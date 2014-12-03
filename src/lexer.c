@@ -2,6 +2,9 @@
 
 Lexer *createLexer(char *input) {
 	Lexer *lexer = malloc(sizeof(*lexer));
+	if (!lexer) {
+		perror("malloc: lexer");
+	}
 	lexer->input = input;
 	lexer->dot = 0;
 	lexer->inputChar = input[lexer->dot];
