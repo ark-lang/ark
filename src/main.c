@@ -3,6 +3,11 @@
 
 #include "lexer.h"
 
+static const char* tokenTypeString[] = {
+	"END_OF_FILE", "IDENTIFIER", "INTEGER", "OPERATOR", 
+	"SEPARATOR", "ERRORNEOUS"
+};
+
 char *readFile(const char *fileName) {
 	FILE *file = fopen(fileName, "r");
 	char *contents;
@@ -45,20 +50,15 @@ char *readFile(const char *fileName) {
 
 void startCompiling(char *source) {
 	Lexer *lexer = createLexer(source);
-
+	// only a 10th of a megabyte, fuck it
+	// todo do this dynamically
+	TokenType tokens[5000];
+	int index = 0;
 	do {
 		getNextToken(lexer);
-		switch (lexer->token.class) {
-			case IDENTIFIER:	printf("identifier"); 	break;
-			case INTEGER:		printf("integer"); 		break;
-			case ERRORNEOUS:	printf("error");		break;
-			case END_OF_FILE:	printf("end of file");	break;
-			default:			printf("op or sep");  	break;
-		}
-		printf(": %s\n", lexer->token.repr);
+		tokens[index++] = lexer->token;
 	}
 	while (lexer->token.class != END_OF_FILE);
-
 	destroyLexer(lexer);
 }
 
@@ -66,9 +66,7 @@ int main(int argc, char** argv) {
 	if (argc > 1) {
 		char *fileName = argv[1];
 		char *sourceCode = readFile(fileName);
-
 		startCompiling(sourceCode);
-
 		free(sourceCode);
 	}
 	else {

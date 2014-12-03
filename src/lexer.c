@@ -79,8 +79,12 @@ void getNextToken(Lexer *lexer) {
 	else if (isDigit(lexer->inputChar)) {
 		recognizeInteger(lexer);
 	}
-	else if (isOperator(lexer->inputChar) || isSeparator(lexer->inputChar)) {
-		lexer->token.class = lexer->inputChar;
+	else if (isOperator(lexer->inputChar)) {
+		lexer->token.class = OPERATOR;
+		nextChar(lexer);
+	}
+	else if (isSeparator(lexer->inputChar)) {
+		lexer->token.class = SEPARATOR;
 		nextChar(lexer);
 	}
 	else {

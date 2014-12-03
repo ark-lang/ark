@@ -1,5 +1,3 @@
 int x = 5;
-int y = 5;
-int z = x + y;
-
-out z, x, y
+int y = x;
+int z = x + (y * 2);
