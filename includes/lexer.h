@@ -5,10 +5,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define END_OF_FILE	256
-#define IDENTIFIER	257
-#define INTEGER		258
-#define	ERRORNEOUS	259
+#define END_OF_FILE	0
+#define IDENTIFIER	1
+#define INTEGER		2
+#define OPERATOR 	3
+#define SEPARATOR 	4
+#define	ERRORNEOUS	5
 
 #define isEndOfInput(ch)	((ch) == '\0')
 #define	isLayout(ch)		(!isEndOfInput(ch) && (ch) <= ' ')
