@@ -2,11 +2,7 @@
 #include <stdlib.h>
 
 #include "lexer.h"
-
-static const char* tokenTypeString[] = {
-	"END_OF_FILE", "IDENTIFIER", "INTEGER", "OPERATOR", 
-	"SEPARATOR", "ERRORNEOUS"
-};
+#include "parser.h"
 
 char *readFile(const char *fileName) {
 	FILE *file = fopen(fileName, "r");
@@ -52,14 +48,27 @@ void startCompiling(char *source) {
 	Lexer *lexer = createLexer(source);
 	// only a 10th of a megabyte, fuck it
 	// todo do this dynamically
-	TokenType tokens[5000];
+	TokenType tokens[TOKEN_LIST_MAX_SIZE];
 	int index = 0;
 	do {
 		getNextToken(lexer);
+		if (index > TOKEN_LIST_MAX_SIZE) {
+			printf("token overflow!\n");
+			exit(1);
+		}
 		tokens[index++] = lexer->token;
 	}
 	while (lexer->token.class != END_OF_FILE);
 	destroyLexer(lexer);
+
+	ASTNode *node;
+
+	// index should be at the end once adding stuffs
+	Parser *parser = createParser(tokens, index);
+	if (!parseToAST(parser, &node)) {
+		printf("No top level expression\n");
+	}
+	destroyParser(parser);
 }
 
 int main(int argc, char** argv) {
