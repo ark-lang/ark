@@ -20,8 +20,8 @@
 #define isDigit(ch)			('0' <= (ch) && (ch) <= '9')
 #define isLetterOrDigit(ch)	(isLetter(ch) || isDigit(ch))
 #define isUnderscore(ch)	((ch) == '_')
-#define isOperator(ch)		(strchr("+-*/", (ch)) != 0)
-#define isSeparator(ch)		(strchr(" ;,(){} ", (ch)) != 0)
+#define isOperator(ch)		(strchr("+-*/=><!~?:&%^", (ch)) != 0)
+#define isSeparator(ch)		(strchr(" ;,.`@(){} ", (ch)) != 0)
 
 typedef struct {
 	char *fileName;

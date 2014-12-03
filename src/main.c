@@ -45,7 +45,6 @@ char *readFile(const char *fileName) {
 
 void startCompiling(char *source) {
 	Lexer *lexer = createLexer(source);
-	printf("lexing:\n %s\n", source);
 
 	do {
 		getNextToken(lexer);
