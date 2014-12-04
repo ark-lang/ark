@@ -67,6 +67,7 @@ bool parseExpression(Parser *parser, Expression **expr) {
 		}
 
 		parser->currentTokenIndex += 1;
+
 		return true;
 	}
 
@@ -74,24 +75,99 @@ bool parseExpression(Parser *parser, Expression **expr) {
 	return false;
 }
 
-bool parseToAST(Parser *parser, ASTNode **node) {
-	Expression *expr;
-
-	int i;
-	for (i = 0; i < parser->tokenListSize; i++) {
-		printf("%s\n", parser->tokens[i].repr);
+bool parseVariable(Parser *parser, Variable *var) {
+	// check if variable is mutable
+	bool mutable = false;
+	if (!strcmp(parser->tokens[parser->currentTokenIndex].repr, "mut")) {
+		mutable = true;
+		parser->currentTokenIndex += 1;
 	}
-	printf("\n\n");
+	
+	// check for data type
+	if (parser->tokens[parser->currentTokenIndex].class == IDENTIFIER) {
+		if (isDataType(parser->tokens[parser->currentTokenIndex].repr)) {
+			// get data type as enum
+			DataType type = getDataType(parser->tokens[parser->currentTokenIndex].repr);
+			parser->currentTokenIndex += 1;
 
-	if (parseExpression(parser, &expr)) {
+			// check for name of variable
+			if (parser->tokens[parser->currentTokenIndex].class == IDENTIFIER) {
+				// store
+				char *variableName = parser->tokens[parser->currentTokenIndex].repr;
+				parser->currentTokenIndex += 1;
+
+				if (parser->tokens[parser->currentTokenIndex].class == OPERATOR) {
+					Expression *variableExpr = createExpression(parser);
+
+					if (parser->tokens[parser->currentTokenIndex].repr[0] == '=') {
+						parser->currentTokenIndex += 1;
+
+						if (!parseExpression(parser, &variableExpr)) {
+							char *found = parser->tokens[parser->currentTokenIndex].repr;
+							printf("error: expected variable assignment expression, found %s\n", found);
+							exit(1);
+						}
+						else {
+							var->name = variableName;
+							var->mutable = mutable;
+							var->type = type;
+							var->expr = variableExpr;
+							return true;
+						}
+					}
+					else if (parser->tokens[parser->currentTokenIndex].repr[0] == ';') {
+						variableExpr->type = 'D';
+						variableExpr->value = 0;
+
+						var->name = variableName;
+						var->mutable = mutable;
+						var->type = type;
+						var->expr = variableExpr;
+						return true;
+					}
+					else {
+						char *found = parser->tokens[parser->currentTokenIndex].repr;
+						printf("error: expected operator, found %s\n", found);
+						exit(1);
+					}
+				}
+			}
+			else {
+				char *found = parser->tokens[parser->currentTokenIndex].repr;
+				printf("error: expected variable name, found %s\n", found);
+				exit(1);
+			}
+		}
+		else {
+			char *found = parser->tokens[parser->currentTokenIndex].repr;
+			printf("error: expected data type, found %s\n", found);
+			exit(1);
+		}
+	}
+	return false;
+}
+
+DataType getDataType(char *type) {
+	if (!strcmp(type, "int")) {
+		return DT_INTEGER;
+	}
+	else if (!strcmp(type, "bool")) {
+		return DT_BOOLEAN;
+	}
+	return DT_VOID;
+}
+
+bool parseToAST(Parser *parser, ASTNode **node) {
+	Variable *var;
+
+	if (parseVariable(parser, var)) {
 		if (parser->tokens[parser->currentTokenIndex].class != END_OF_FILE) {
 			printf("Shit after EOF: \n");
 			printf("%s\n", parser->tokens[parser->currentTokenIndex].repr);
 		}
-		*node = expr;
 		return true;
 	}
-	return 0;
+	return false;
 }
 
 void destroyParser(Parser *parser) {
