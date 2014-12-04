@@ -4,11 +4,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "bool.h"
 #include "lexer.h"
 
+
 #define TOKEN_LIST_MAX_SIZE 5000
-#define false 0
-#define true 1
 
 typedef struct {
 	TokenType *tokens;
@@ -16,8 +16,13 @@ typedef struct {
 	int currentTokenIndex;
 } Parser;
 
-typedef int bool;
 typedef int Operator;
+
+typedef enum {
+	DT_INTEGER,
+	DT_BOOLEAN,
+	DT_VOID
+} DataType;
 
 typedef struct s_Expression {
 	char type;
@@ -25,6 +30,13 @@ typedef struct s_Expression {
 	struct s_Expression *left, *right;
 	Operator op;
 } Expression;
+
+typedef struct s_Variable {
+	char *name;
+	bool mutable;
+	DataType type;
+	Expression *expr;
+} Variable;
 
 typedef Expression ASTNode;
 
@@ -34,11 +46,15 @@ Expression *createExpression(Parser *parser);
 
 void destroyExpression(Parser *parser, Expression *expr);
 
-int parseOperator(Parser *parser, Operator *oper);
+bool parseOperator(Parser *parser, Operator *oper);
 
-int parseExpression(Parser *parser, Expression **expr);
+bool parseExpression(Parser *parser, Expression **expr);
+
+bool parseVariable(Parser *parser, Variable *var);
 
 bool parseToAST(Parser *parser, ASTNode **node);
+
+DataType getDataType(char *type);
 
 void destroyParser(Parser *parser);
 
