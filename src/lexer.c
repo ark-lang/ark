@@ -8,6 +8,8 @@ Lexer *createLexer(char *input) {
 	lexer->input = input;
 	lexer->dot = 0;
 	lexer->inputChar = input[lexer->dot];
+	lexer->token.class = UNKNOWN;
+	lexer->token.repr = "";
 	return lexer;
 }
 
@@ -92,6 +94,10 @@ void getNextToken(Lexer *lexer) {
 		nextChar(lexer);
 	}
 	lexer->token.repr = inputToZString(lexer, startDot, lexer->dot - startDot);
+}
+
+bool isDataType(char *type) {
+	return (!strcmp(type, "int") || !strcmp(type, "bool"));
 }
 
 void destroyLexer(Lexer *lexer) {
