@@ -1,1 +1,0 @@
-gcc -o com -Iincludes/ src/*.c -Wall

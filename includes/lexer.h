@@ -5,28 +5,19 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "bool.h"
+#include "util.h"
 
-#define END_OF_FILE	0
-#define IDENTIFIER	1
-#define INTEGER		2
-#define OPERATOR 	3
-#define SEPARATOR 	4
-#define	ERRORNEOUS	5
-#define UNKNOWN		1337
+#define TOKEN_LIST_MAX_SIZE 512
 
-#define isEndOfInput(ch)	((ch) == '\0')
-#define isCommentOpener(ch)	((ch) == '#')
-#define	isLayout(ch)		(!isEndOfInput(ch) && (ch) <= ' ')
-#define isCommentCloser(ch)	((ch) == '\n')
-#define isUpperLetter(ch)	('A' <= (ch) && (ch) <= 'Z')
-#define isLowerLetter(ch)	('a' <= (ch) && (ch) <= 'z')
-#define isLetter(ch)		(isUpperLetter(ch) || isLowerLetter(ch))
-#define isDigit(ch)			('0' <= (ch) && (ch) <= '9')
-#define isLetterOrDigit(ch)	(isLetter(ch) || isDigit(ch))
-#define isUnderscore(ch)	((ch) == '_')
-#define isOperator(ch)		(strchr("+-*/=><!~?:&%^", (ch)) != 0)
-#define isSeparator(ch)		(strchr(" ;,.`@(){} ", (ch)) != 0)
+typedef enum {
+	END_OF_FILE,
+	IDENTIFIER,
+	INTEGER,
+	OPERATOR,
+	SEPARATOR,
+	ERRORNEOUS,
+	UNKNOWN
+} TokenType;
 
 typedef struct {
 	char *fileName;
@@ -38,10 +29,10 @@ typedef struct {
 	int class;
 	char *repr;
 	TokenPosition pos;
-} TokenType;
+} Token;
 
 typedef struct {
-	TokenType token;
+	Token token;
 	char *input;
 	int dot;
 	int inputChar;
@@ -63,6 +54,51 @@ void getNextToken(Lexer *lexer);
 
 void destroyLexer(Lexer *lexer);
 
-bool isDataType(char *type);
+static inline bool isEndOfInput(char ch)	{ 
+	return(ch == '\0'); 
+}
+
+static inline bool isCommentOpener(char ch) { 
+	return(ch == '#'); 
+}
+
+static inline bool isLayout(char ch)	{ 
+	return(!isEndOfInput(ch) && (ch) <= ' '); 
+}
+
+static inline bool isCommentCloser(char ch) { 
+	return(ch == '\n'); 
+}
+
+static inline bool isUpperLetter(char ch) { 
+	return('A' <= ch && ch <= 'Z'); }
+
+static inline bool isLowerLetter(char ch) { 
+	return('a' <= ch && ch <= 'z'); 
+}
+
+static inline bool isLetter(char ch) { 
+	return(isUpperLetter(ch) || isLowerLetter(ch)); 
+}
+
+static inline bool isDigit(char ch) { 
+	return('0' <= ch && ch <= '9'); 
+}
+
+static inline bool isLetterOrDigit(char ch) { 
+	return(isLetter(ch) || isDigit(ch)); 
+}
+
+static inline bool isUnderscore(char ch) { 
+	return(ch == '_'); }
+
+static inline bool isOperator(char ch) { 
+return(strchr("+-*/=><!~?:&%^", ch) != 0); 
+}
+
+static inline bool isSeparator(char ch) { 
+	return(strchr(" ;,.`@(){} ", ch) != 0); 
+}
+
 
 #endif // LEXER_H
