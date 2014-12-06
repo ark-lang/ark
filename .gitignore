@@ -1,2 +1,35 @@
-.exe
-.o
+# Object Files
+*.o
+*.ko
+*.obj
+*.elf
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Libraries
+*.lib
+*.a
+*.la
+*.lo
+
+# Shared Objects
+*.dll
+*.so
+*.so.*
+*.dylib
+
+# Binaries
+*.exe
+*.out
+*.app
+*.i*86
+*.x86_64
+*.hex
+
+# Other
+builds/
+*~
+*.swp
+*.swo
