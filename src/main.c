@@ -48,7 +48,7 @@ void startCompiling(char *source) {
 	// only a 10th of a megabyte, fuck it
 	// todo do this dynamically
 	Token tokens[TOKEN_LIST_MAX_SIZE];
-	
+
 	int index = 0;
 	do {
 		getNextToken(lexer);
@@ -56,6 +56,7 @@ void startCompiling(char *source) {
 			printf("token overflow!\n");
 			exit(1);
 		}
+		printf("%s\n", lexer->token.repr);
 		tokens[index++] = lexer->token;
 	}
 	while (lexer->token.class != END_OF_FILE);
