@@ -2,6 +2,7 @@
 
 int y = 5;
 int a, b, c;
+float x;
 str amazing = "fuck";
 
 enum {
@@ -11,7 +12,7 @@ enum {
 } whatever;
 
 fn function_name(int x) -> int {
-	return 5;
+	ret 5;
 }
 
 fn function_abc(str whatever) -> void {
@@ -48,7 +49,7 @@ fn main(int argc, string argv[]): int {
 	int b = 123;
 	function_abc("amazing");
 
-	return EXIT_SUCCESS;
+	ret EXIT_SUCCESS;
 }
 
 struct {
