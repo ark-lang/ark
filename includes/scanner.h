@@ -12,7 +12,7 @@
  * 		 to be scanned.
  */
 typedef struct {
-	string contents;
+	char* contents;
 } Scanner;
 
 /**
@@ -24,10 +24,10 @@ Scanner *scannerCreate();
 
 /**
  * Reads the given file into
- * `string contents;`
+ * `char* contents;`
  * 
  */
-void scannerReadFile(Scanner *scanner, const string fileName);
+void scannerReadFile(Scanner *scanner, const char* fileName);
 
 /**
  * Destroys the given Scanner

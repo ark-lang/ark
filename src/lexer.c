@@ -8,7 +8,7 @@ void tokenDestroy(Token *token) {
 	free(token);
 }
 
-Lexer *lexerCreate(string input) {
+Lexer *lexerCreate(char* input) {
 	Lexer *lexer = malloc(sizeof(*lexer));
 	if (!lexer) {
 		perror("malloc: failed to allocate memory for lexer");
@@ -25,8 +25,8 @@ void lexerNextChar(Lexer *lexer) {
 	lexer->charIndex = lexer->input[++lexer->pos];
 }
 
-string lexerFlushBuffer(Lexer *lexer, int start, int length) {
-	string result;
+char* lexerFlushBuffer(Lexer *lexer, int start, int length) {
+	char* result;
 	strncpy(result = malloc(length + 1), &lexer->input[start], length);
 	if (!result) { perror("malloc: failed to allocate memory for buffer flush"); }
 	result[length] = '\0';
