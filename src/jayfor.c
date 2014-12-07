@@ -24,10 +24,15 @@ void jayforStart(Jayfor *jayfor) {
 		lexerGetNextToken(jayfor->lexer);
 	}
 	while (jayfor->lexer->running);
+
+	// initialise parser after we tokenize
+	jayfor->parser = parserCreate(jayfor->lexer->tokenStream);
+	parserStartParsing(jayfor->parser);
 }
 
 void jayforDestroy(Jayfor *jayfor) {
 	scannerDestroy(jayfor->scanner);
 	lexerDestroy(jayfor->lexer);
+	parserDestroy(jayfor->parser);
 	free(jayfor);
 }
