@@ -5,6 +5,7 @@
 #include <stdlib.h>
 
 #include "lexer.h"
+#include "parser.h"
 #include "scanner.h"
 
 /**
@@ -13,6 +14,7 @@
 typedef struct {
 	Scanner *scanner;
 	Lexer *lexer;
+	Parser *parser;
 } Jayfor;
 
 /**
