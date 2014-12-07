@@ -4,6 +4,7 @@
 #include <stdlib.h>
 
 #include "lexer.h"
+#include "util.h"
 #include "vector.h"
 
 /**
@@ -11,6 +12,8 @@
  */
 typedef struct {
 	Vector *tokenStream;
+	int tokenIndex;
+	bool parsing;
 } Parser;
 
 /**
@@ -20,6 +23,8 @@ typedef struct {
  * @return instance of Parser
  */
 Parser *parserCreate(Vector *tokenStream);
+
+void parserStartParsing(Parser *parser);
 
 /**
  * Destroy the given Parser
