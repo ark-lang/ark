@@ -7,98 +7,169 @@
 
 #include "util.h"
 
-#define TOKEN_LIST_MAX_SIZE 512
-
+/** Types of token */
 typedef enum {
-	END_OF_FILE,
-	IDENTIFIER,
-	INTEGER,
-	OPERATOR,
-	SEPARATOR,
-	ERRORNEOUS,
+	END_OF_FILE, IDENTIFIER, INTEGER,
+	OPERATOR, SEPARATOR, ERRORNEOUS,
 	UNKNOWN
 } TokenType;
 
+/** Information on Token for debug */
 typedef struct {
 	char *fileName;
 	int lineNumber;
 	int charNumber;
 } TokenPosition;
 
+/** Properties of a Token or Lexeme */
 typedef struct {
-	int class;
-	char *repr;
+	int type;
+	char *content;
 	TokenPosition pos;
 } Token;
 
 typedef struct {
-	Token token;
-	char *input;
-	int dot;
-	int inputChar;
+	Token token;		// current token
+	char *input;		// input to lex
+	int pos;			// position in the input
+	int charIndex;		// current character
 } Lexer;
 
-Lexer *createLexer(char *input);
+/**
+ * Create an instance of the Lexer
+ * 
+ * @param input the input to lex
+ * @return instance of Lexer
+ */
+Lexer *lexerCreate(char *input);
 
-char *inputToZString(Lexer *lexer, int start, int length);
+/**
+ * Simple substring implementation,
+ * used to flush buffer. This is malloc'd memory, so free it!
+ * 
+ * @param lexer instance of lexer
+ * @param start start of the input
+ * @param length of the input
+ * @return string cut from buffer
+ */
+char *lexerFlushBuffer(Lexer *lexer, int start, int length);
 
-void nextChar(Lexer *lexer);
+/**
+ * Advance to the next character, consuming the
+ * current one.
+ * 
+ * @param lexer instance of the lexer
+ */
+void lexerNextChar(Lexer *lexer);
 
-void skipLayoutAndComment(Lexer *lexer);
+/**
+ * Skips layout characters, such as spaces,
+ * and comments, which are denoted with the 
+ * pound (#).
+ * 
+ * @param lexer the lexer instance
+ */
+void lexerSkipLayoutAndComment(Lexer *lexer);
 
-void recognizeIdentifier(Lexer *lexer);
+/**
+ * Recognize an identifier
+ * 
+ * @param lexer the lexer instance
+ */
+void lexerRecognizeIdentifier(Lexer *lexer);
 
-void recognizeInteger(Lexer *lexer);
+/**
+ * Recognize an Integer
+ * 
+ * @param lexer the lexer instance
+ */
+void lexerRecognizeInteger(Lexer *lexer);
 
-void getNextToken(Lexer *lexer);
+/**
+ * Process the next token in the token stream
+ * 
+ * @param lexer the lexer instance
+ */
+void lexerGetNextToken(Lexer *lexer);
 
-void destroyLexer(Lexer *lexer);
+/**
+ * Destroys the given lexer instance,
+ * freeing any memory
+ * 
+ * @param lexer the lexer instance to destroy
+ */
+void lexerDestroy(Lexer *lexer);
 
-static inline bool isEndOfInput(char ch)	{ 
-	return(ch == '\0'); 
-}
+/**
+ * @return if the character given is the end of input
+ * @param ch the character to check
+ */
+static inline bool isEndOfInput(char ch) 		{ return(ch == '\0'); }
 
-static inline bool isCommentOpener(char ch) { 
-	return(ch == '#'); 
-}
+/**
+ * @return if the character given is a comment opener (#)
+ * @param ch the character to check
+ */
+static inline bool isCommentOpener(char ch) 	{ return(ch == '#'); }
 
-static inline bool isLayout(char ch)	{ 
-	return(!isEndOfInput(ch) && (ch) <= ' '); 
-}
+/**
+ * @return if the character given is a layout character
+ * @param ch the character to check
+ */
+static inline bool isLayout(char ch) 			{ return(!isEndOfInput(ch) && (ch) <= ' '); }
 
-static inline bool isCommentCloser(char ch) { 
-	return(ch == '\n'); 
-}
+/**
+ * @return if the character given is a comment closer 
+ * @param ch the character to check
+ */
+static inline bool isCommentCloser(char ch) 	{ return(ch == '\n'); }
 
-static inline bool isUpperLetter(char ch) { 
-	return('A' <= ch && ch <= 'Z'); }
+/**
+ * @return if the character given is an uppercase letter
+ * @param ch the character to check
+ */
+static inline bool isUpperLetter(char ch) 		{ return('A' <= ch && ch <= 'Z'); }
 
-static inline bool isLowerLetter(char ch) { 
-	return('a' <= ch && ch <= 'z'); 
-}
+/**
+ * @return if the character given is a lower case letter
+ * @param ch the character to check
+ */
+static inline bool isLowerLetter(char ch) 		{ return('a' <= ch && ch <= 'z'); }
 
-static inline bool isLetter(char ch) { 
-	return(isUpperLetter(ch) || isLowerLetter(ch)); 
-}
+/**
+ * @return if the character given is a letter a-z, A-Z
+ * @param ch the character to check
+ */
+static inline bool isLetter(char ch) 			{ return(isUpperLetter(ch) || isLowerLetter(ch)); }
 
-static inline bool isDigit(char ch) { 
-	return('0' <= ch && ch <= '9'); 
-}
+/**
+ * @return if the character given is a digit 0-9
+ * @param ch the character to check
+ */
+static inline bool isDigit(char ch) 			{ return('0' <= ch && ch <= '9'); }
 
-static inline bool isLetterOrDigit(char ch) { 
-	return(isLetter(ch) || isDigit(ch)); 
-}
+/**
+ * @return if the character given is a letter or digit a-z, A-Z, 0-9
+ * @param ch the character to check
+ */
+static inline bool isLetterOrDigit(char ch) 	{ return(isLetter(ch) || isDigit(ch)); }
 
-static inline bool isUnderscore(char ch) { 
-	return(ch == '_'); }
+/**
+ * @return if the character given is an underscore
+ * @param ch the character to check
+ */
+static inline bool isUnderscore(char ch) 		{ return(ch == '_'); }
 
-static inline bool isOperator(char ch) { 
-return(strchr("+-*/=><!~?:&%^", ch) != 0); 
-}
+/**
+ * @return if the character given is an operator
+ * @param ch the character to check
+ */
+static inline bool isOperator(char ch) 			{ return(strchr("+-*/=><!~?:&%^", ch) != 0); }
 
-static inline bool isSeparator(char ch) { 
-	return(strchr(" ;,.`@(){} ", ch) != 0); 
-}
-
+/**
+ * @return if the character given is a separator
+ * @param ch the character to check
+ */
+static inline bool isSeparator(char ch) 		{ return(strchr(" ;,.`@(){} ", ch) != 0); }
 
 #endif // LEXER_H
