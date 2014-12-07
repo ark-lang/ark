@@ -1,33 +1,17 @@
 #ifndef PARSER_H
 #define PARSER_H
 
-// Class
+#include <stdio.h>
+#include <stdlib.h>
 
-typedef struct tree {
-  char* val;
-  tree* right;
-  tree* left;
+typedef struct s_Tree {
+    char* data;
+    struct tree* right;
+    struct tree* left;
 } Tree;
 
-void insert(Tree ** tr, int value) {
-  Tree *temp = NULL;
+void treeInsert(Tree **tr, char *value);
 
-  if(!(*tr)) {
-    temp = malloc(sizeof(Tree));
-    temp->left = temp->right = NULL;
-    temp->data = val;
-    *tr = temp;
-    return;
-  }
+void treeDelete(Tree **tr);
 
-  if(value < (*tr)->data)
-    insert(&(*tree)->left, value);
-  else if(value > (*tree)->data)
-    insert(&(*tree)->right, value);
-  }
-}
-
-
-void deleteTree(Tree ** tr);
-
-#ifndef PARSER_H
+#endif // PARSER_H
