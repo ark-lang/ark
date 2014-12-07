@@ -12,7 +12,7 @@
 typedef enum {
 	END_OF_FILE, IDENTIFIER, INTEGER,
 	OPERATOR, SEPARATOR, ERRORNEOUS,
-	UNKNOWN
+	STRING, UNKNOWN
 } TokenType;
 
 /** Information on Token for debug */
@@ -29,8 +29,27 @@ typedef struct {
 	TokenPosition pos;
 } Token;
 
+/**
+ * Create an empty Token
+ * 
+ * @return allocate memory for Token
+ */
 Token *tokenCreate();
 
+/**
+ * Get the name of the given token
+ * as a string
+ * 
+ * @param token token to find name of
+ * @return the name of the given token
+ */
+char* getTokenName(Token *token);
+
+/**
+ * Deallocates memory for token
+ * 
+ * @param token token to free
+ */
 void tokenDestroy(Token *token);
 
 /** Lexer stuff */
@@ -181,7 +200,7 @@ static inline bool isUnderscore(char ch) 		{ return(ch == '_'); }
  * @return if the character given is an operator
  * @param ch the character to check
  */
-static inline bool isOperator(char ch) 			{ return(strchr("+-*/=><!~?:&%^", ch) != 0); }
+static inline bool isOperator(char ch) 			{ return(strchr("+-*/=><!~?:&%^\"'", ch) != 0); }
 
 /**
  * @return if the character given is a separator
