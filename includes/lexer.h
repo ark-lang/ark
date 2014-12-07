@@ -28,6 +28,7 @@ typedef struct {
 	TokenPosition pos;
 } Token;
 
+/** Lexer stuff */
 typedef struct {
 	Token token;		// current token
 	string input;		// input to lex
