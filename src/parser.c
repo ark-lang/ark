@@ -2,14 +2,12 @@
 
 Parser *parserCreate(Vector *tokenStream) {
 	Parser *parser = malloc(sizeof(*parser));
+	if (!parser) {
+		perror("malloc: failed to allocate memory for parser");
+		exit(1);
+	}
 	parser->tokenStream = tokenStream;
 	return parser;
-}
-
-NumberExpr exprParseNumber() {
-	NumberExpr result = {
-		.value = 5
-	}
 }
 
 void parserDestroy(Parser *parser) {
