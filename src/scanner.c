@@ -1,0 +1,50 @@
+#include "scanner.h"
+
+Scanner *scannerCreate() {
+	Scanner *scanner = malloc(sizeof(*scanner));
+	scanner->contents = NULL;
+	return scanner;
+}
+
+void scannerReadFile(Scanner *scanner, const string fileName) {
+	FILE *file = fopen(fileName, "r");
+
+	if (file) {
+		if (!fseek(file, 0, SEEK_END)) {
+			long fileSize = ftell(file);
+			if (fileSize == -1) {
+				perror("ftell: could not read filesize");
+				exit(1);
+			}
+
+			scanner->contents = malloc(sizeof(*scanner->contents) * (fileSize + 1));
+			if (!scanner->contents) {
+				perror("malloc: failed to allocate memory for file");
+				exit(1);
+			}
+
+			if (fseek(file, 0, SEEK_SET)) {
+				perror("could not reset file index");
+				exit(1);
+			}
+
+			size_t fileLength = fread(scanner->contents, sizeof(char), fileSize, file);
+			if (!fileLength) {
+				perror("fread: file is empty");
+				exit(1);
+			}
+
+			scanner->contents[fileSize] = '\0';
+		}
+		fclose(file);
+	}
+	else {
+		perror("fopen: could not read file");
+		exit(1);
+	}
+}
+
+void scannerDestroy(Scanner *scanner) {
+	free(scanner->contents);
+	free(scanner);
+}
