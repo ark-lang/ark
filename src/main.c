@@ -49,7 +49,7 @@ void startCompiling(char *source) {
 
 	do {
 		lexerGetNextToken(lexer);
-		printf("%s\n", lexer->token.content);
+		// printf("%s\n", lexer->token.content);
 	}
 	while (lexer->token.type != END_OF_FILE);
 
