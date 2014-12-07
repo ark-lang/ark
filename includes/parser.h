@@ -28,6 +28,6 @@ void insert(Tree ** tr, int value) {
 }
 
 
-void delete_from_tree(Tree ** tr);
+void deleteTree(Tree ** tr);
 
 #ifndef PARSER_H
