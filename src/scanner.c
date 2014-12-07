@@ -6,7 +6,7 @@ Scanner *scannerCreate() {
 	return scanner;
 }
 
-void scannerReadFile(Scanner *scanner, const string fileName) {
+void scannerReadFile(Scanner *scanner, const char* fileName) {
 	FILE *file = fopen(fileName, "r");
 
 	if (file) {
