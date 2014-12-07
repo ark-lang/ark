@@ -114,12 +114,5 @@ void lexerGetNextToken(Lexer *lexer) {
 }
 
 void lexerDestroy(Lexer *lexer) {
-	int i;
-	for (i = 0; i < lexer->tokenStream->size; i++) {
-		Token *tok = vectorGetItem(lexer->tokenStream, i);
-		free(tok->content);
-		tokenDestroy(tok);
-	}
-	vectorDestroy(lexer->tokenStream);
 	free(lexer);
 }
