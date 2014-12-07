@@ -8,6 +8,10 @@ Jayfor *jayforCreate(int argc, char** argv) {
 	}
 
 	Jayfor *jayfor = malloc(sizeof(*jayfor));
+	if (!jayfor) {
+		perror("malloc: failed to allocate memory for JAYFOR");
+		exit(1);
+	}
 	jayfor->scanner = scannerCreate();
 	scannerReadFile(jayfor->scanner, argv[1]);
 	jayfor->lexer = lexerCreate(jayfor->scanner->contents);
