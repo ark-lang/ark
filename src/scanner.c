@@ -2,6 +2,10 @@
 
 Scanner *scannerCreate() {
 	Scanner *scanner = malloc(sizeof(*scanner));
+	if (!scanner) {
+		perror("malloc: failed to allocate memory for scanner");
+		exit(1);
+	}
 	scanner->contents = NULL;
 	return scanner;
 }
