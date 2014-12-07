@@ -1,6 +1,30 @@
 # Standard Maths Library
-# for Jayfor
+# for Jayfor, this is a WIP
+# and a "testing" ground for
+# the language as of writing this
 #
 # Written by Felix Angell
 # 07/12/2014
 # freefouran[at]gmail.com
+
+fn mean(double a, double b): double {
+	ret a <= b ? a + (b - a) / 2 : mean(b, a);
+}
+
+fn floor(float x): float {
+	ret x - (x % 1);
+}
+
+fn abs(float x): int {
+	ret x > 0 ? x : -x;
+}
+
+fn pow(float mantissa, float exponent): float {
+	float result = 1.0;
+	float count = 0;
+	while (count < exponent) {
+		result = mantissa * result;
+		count += 1;
+	}
+	ret result;
+}
