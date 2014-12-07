@@ -24,6 +24,29 @@ typedef struct {
  */
 Parser *parserCreate(Vector *tokenStream);
 
+/**
+ * Advances to the next token
+ * 
+ * @param parser parser instance
+ * @return the token we consumed
+ */
+Token *parserConsumeToken(Parser *parser);
+
+/**
+ * Peek at the token that is {@ahead} tokens
+ * away in the token stream
+ * 
+ * @param parser instance of parser
+ * @param ahead how far ahead to peek
+ * @return the Token peeking at
+ */
+Token *parserPeekAhead(Parser *parser, int ahead);
+
+/**
+ * Start parsing
+ *
+ * @param parser parser to start parsing
+ */
 void parserStartParsing(Parser *parser);
 
 /**
