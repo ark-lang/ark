@@ -7,26 +7,27 @@ char *readFile(const char *fileName) {
 	FILE *file = fopen(fileName, "r");
 	char *contents = NULL;
 
-	if (file != NULL) {
-		if (fseek(file, 0, SEEK_END) == 0) {
+	if (file) {
+		if (!fseek(file, 0, SEEK_END)) {
 			long fileSize = ftell(file);
 			if (fileSize == -1) {
 				perror("ftell: could not read filesize");
 				exit(1);
 			}
+
 			contents = malloc(sizeof(*contents) * (fileSize + 1));
-			if (contents == NULL) {
+			if (!contents) {
 				perror("malloc: failed to allocate memory for file");
 				exit(1);
 			}
 
-			if (fseek(file, 0, SEEK_SET) != 0) {
+			if (fseek(file, 0, SEEK_SET)) {
 				perror("could not reset file index");
 				exit(1);
 			}
 
 			size_t fileLength = fread(contents, sizeof(char), fileSize, file);
-			if (fileLength == 0) {
+			if (!fileLength) {
 				perror("fread: file is empty");
 				exit(1);
 			}
@@ -45,6 +46,7 @@ char *readFile(const char *fileName) {
 
 void startCompiling(char *source) {
 	Lexer *lexer = createLexer(source);
+
 	// only a 10th of a megabyte, fuck it
 	// todo do this dynamically
 	Token tokens[TOKEN_LIST_MAX_SIZE];
@@ -54,9 +56,13 @@ void startCompiling(char *source) {
 		getNextToken(lexer);
 		if (index > TOKEN_LIST_MAX_SIZE) {
 			printf("token overflow!\n");
+			printf("if you see this a lot, that means felix hasn't"
+				"implemented dynamic allocation for the token buffer!\n");
+
 			exit(1);
 		}
 		printf("%s\n", lexer->token.repr);
+		
 		tokens[index++] = lexer->token;
 	}
 	while (lexer->token.class != END_OF_FILE);
