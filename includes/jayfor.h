@@ -7,15 +7,35 @@
 #include "lexer.h"
 #include "scanner.h"
 
+/**
+ * The core of Jayfor
+ */
 typedef struct {
 	Scanner *scanner;
 	Lexer *lexer;
 } Jayfor;
 
+/**
+ * Creates a new Jayfor instance
+ * 
+ * @argc number of arguments
+ * @argv argument list
+ * @return instance of Jayfor
+ */
 Jayfor *jayforCreate(int argc, char** argv);
 
+/**
+ * Start the Jayfor interpreter
+ * 
+ * @param jayfor instance to start
+ */
 void jayforStart(Jayfor *jayfor);
 
+/**
+ * Destroy the given Jayfor instance
+ * 
+ * @param jayfor instance to destroy
+ */
 void jayforDestroy(Jayfor *jayfor);
 
 #endif // JAYFOR_H
