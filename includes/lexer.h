@@ -17,7 +17,7 @@ typedef enum {
 
 /** Information on Token for debug */
 typedef struct {
-	string fileName;
+	char* fileName;
 	int lineNumber;
 	int charNumber;
 } TokenPosition;
@@ -25,7 +25,7 @@ typedef struct {
 /** Properties of a Token or Lexeme */
 typedef struct {
 	int type;
-	string content;
+	char* content;
 	TokenPosition pos;
 } Token;
 
@@ -36,7 +36,7 @@ void tokenDestroy(Token *token);
 /** Lexer stuff */
 typedef struct {
 	Vector *tokenStream;
-	string input;			// input to lex
+	char* input;			// input to lex
 	int pos;				// position in the input
 	int charIndex;			// current character
 	bool running;			// if lexer is running 
@@ -48,7 +48,7 @@ typedef struct {
  * @param input the input to lex
  * @return instance of Lexer
  */
-Lexer *lexerCreate(string input);
+Lexer *lexerCreate(char* input);
 
 /**
  * Simple substring implementation,
@@ -59,7 +59,7 @@ Lexer *lexerCreate(string input);
  * @param length of the input
  * @return string cut from buffer
  */
-string lexerFlushBuffer(Lexer *lexer, int start, int length);
+char* lexerFlushBuffer(Lexer *lexer, int start, int length);
 
 /**
  * Advance to the next character, consuming the
