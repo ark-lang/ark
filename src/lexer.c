@@ -1,7 +1,17 @@
 #include "lexer.h"
 
+static char* TOKEN_NAMES[] = {
+	"END_OF_FILE", "IDENTIFIER", "INTEGER",
+	"OPERATOR", "SEPARATOR", "ERRORNEOUS",
+	"STRING", "UNKNOWN"
+};
+
 Token *tokenCreate() {
 	return malloc(sizeof(Token));
+}
+
+char* getTokenName(Token *tok) {
+	return TOKEN_NAMES[tok->type];
 }
 
 void tokenDestroy(Token *token) {
