@@ -8,7 +8,7 @@ Parser *parserCreate(Vector *tokenStream) {
 
 NumberExpr exprParseNumber() {
 	NumberExpr result = {
-		.value
+		.value = 5
 	}
 }
 
