@@ -1,32 +1,14 @@
 #ifndef PARSER_H
 #define PARSER_H
 
-/**
- * Node for a Number
- */
-typedef struct {
-	double value;
-} NumberExpr;
+#include <stdlib.h>
+
+#include "lexer.h"
+#include "vector.h"
 
 /**
- * Node for a variable call
- * e.g int a = b + c;
+ * Parser contents
  */
-typedef struct {
-	char* name;
-} VariableExpr;
-
-/**
- * Node for a binary expression,
- * e.g
- * a + 5
- */
-typedef struct {
-	char operand;
-	Expr *lhs;
-	Expr *rhs;
-} BinaryExpr;
-
 typedef struct {
 	Vector *tokenStream;
 } Parser;
