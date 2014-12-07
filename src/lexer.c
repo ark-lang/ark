@@ -1,5 +1,13 @@
 #include "lexer.h"
 
+Token *tokenCreate() {
+	return malloc(sizeof(Token));
+}
+
+void tokenDestroy(Token *token) {
+	free(token);
+}
+
 Lexer *lexerCreate(string input) {
 	Lexer *lexer = malloc(sizeof(*lexer));
 	if (!lexer) {
@@ -8,8 +16,8 @@ Lexer *lexerCreate(string input) {
 	lexer->input = input;
 	lexer->pos = 0;
 	lexer->charIndex = input[lexer->pos];
-	lexer->token.type = UNKNOWN;
-	lexer->token.content = "";
+	lexer->tokenStream = vectorCreate();
+	lexer->running = true;
 	return lexer;
 }
 
@@ -43,7 +51,6 @@ void lexerSkipLayoutAndComment(Lexer *lexer) {
 }
 
 void lexerRecognizeIdentifier(Lexer *lexer) {
-	lexer->token.type = IDENTIFIER;
 	lexerNextChar(lexer);
 
 	while (isLetterOrDigit(lexer->charIndex)) {
@@ -58,7 +65,6 @@ void lexerRecognizeIdentifier(Lexer *lexer) {
 }
 
 void lexerRecognizeInteger(Lexer *lexer) {
-	lexer->token.type = INTEGER;
 	lexerNextChar(lexer);
 	while (isDigit(lexer->charIndex)) {
 		lexerNextChar(lexer);
@@ -71,36 +77,49 @@ char lexerPeekAhead(Lexer *lexer, int ahead) {
 
 void lexerGetNextToken(Lexer *lexer) {
 	int startPos;
-
 	lexerSkipLayoutAndComment(lexer);
-
 	startPos = lexer->pos;
+
+	Token *tok = tokenCreate();
+
 	if (isEndOfInput(lexer->charIndex)) {
-		lexer->token.type = END_OF_FILE;
-		lexer->token.content = "<END_OF_FILE>";
+		tok->type = END_OF_FILE;
+		tok->content = "<END_OF_FILE>";
+		lexer->running = false;
 		return;
 	}
 	if (isLetter(lexer->charIndex)) {
+		tok->type = IDENTIFIER;
 		lexerRecognizeIdentifier(lexer);
 	}
 	else if (isDigit(lexer->charIndex)) {
+		tok->type = INTEGER;
 		lexerRecognizeInteger(lexer);
 	}
 	else if (isOperator(lexer->charIndex)) {
-		lexer->token.type = OPERATOR;
+		tok->type = OPERATOR;
 		lexerNextChar(lexer);
 	}
 	else if (isSeparator(lexer->charIndex)) {
-		lexer->token.type = SEPARATOR;
+		tok->type = SEPARATOR;
 		lexerNextChar(lexer);
 	}
 	else {
-		lexer->token.type = ERRORNEOUS;
+		tok->type = ERRORNEOUS;
 		lexerNextChar(lexer);
 	}
-	lexer->token.content = lexerFlushBuffer(lexer, startPos, lexer->pos - startPos);
+
+	tok->content = lexerFlushBuffer(lexer, startPos, lexer->pos - startPos);
+	vectorPushBack(lexer->tokenStream, tok);
 }
 
 void lexerDestroy(Lexer *lexer) {
+	int i;
+	for (i = 0; i < lexer->tokenStream->size; i++) {
+		Token *tok = vectorGetItem(lexer->tokenStream, i);
+		free(tok->content);
+		tokenDestroy(tok);
+	}
+	vectorDestroy(lexer->tokenStream);
 	free(lexer);
 }
