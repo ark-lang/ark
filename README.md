@@ -7,4 +7,3 @@ Jayfor is a WIP programming language written in C.
 * Speed
 * Safety
 * Helpful Error Messages
-* Buttocks
