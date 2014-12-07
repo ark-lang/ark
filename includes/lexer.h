@@ -6,6 +6,7 @@
 #include <string.h>
 
 #include "util.h"
+#include "vector.h"
 
 /** Types of token */
 typedef enum {
@@ -28,12 +29,17 @@ typedef struct {
 	TokenPosition pos;
 } Token;
 
+Token *tokenCreate();
+
+void tokenDestroy(Token *token);
+
 /** Lexer stuff */
 typedef struct {
-	Token token;		// current token
-	string input;		// input to lex
-	int pos;			// position in the input
-	int charIndex;		// current character
+	Vector *tokenStream;
+	string input;			// input to lex
+	int pos;				// position in the input
+	int charIndex;			// current character
+	bool running;			// if lexer is running 
 } Lexer;
 
 /**
