@@ -45,29 +45,15 @@ char *readFile(const char *fileName) {
 }
 
 void startCompiling(char *source) {
-	Lexer *lexer = createLexer(source);
+	Lexer *lexer = lexerCreate(source);
 
-	// only a 10th of a megabyte, fuck it
-	// todo do this dynamically
-	Token tokens[TOKEN_LIST_MAX_SIZE];
-
-	int index = 0;
 	do {
-		getNextToken(lexer);
-		if (index > TOKEN_LIST_MAX_SIZE) {
-			printf("token overflow!\n");
-			printf("if you see this a lot, that means felix hasn't"
-				"implemented dynamic allocation for the token buffer!\n");
-
-			exit(1);
-		}
-		printf("%s\n", lexer->token.repr);
-		
-		tokens[index++] = lexer->token;
+		lexerGetNextToken(lexer);
+		printf("%s\n", lexer->token.content);
 	}
-	while (lexer->token.class != END_OF_FILE);
+	while (lexer->token.type != END_OF_FILE);
 
-	destroyLexer(lexer);
+	lexerDestroy(lexer);
 }
 
 int main(int argc, char** argv) {
