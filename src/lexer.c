@@ -90,6 +90,7 @@ void lexerGetNextToken(Lexer *lexer) {
 		tok->type = END_OF_FILE;
 		tok->content = "<END_OF_FILE>";
 		lexer->running = false;
+		vectorPushBack(lexer->tokenStream, tok);
 		return;
 	}
 	if (isLetter(lexer->charIndex)) {
