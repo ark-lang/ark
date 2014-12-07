@@ -1,6 +1,6 @@
 #include "lexer.h"
 
-Lexer *lexerCreate(char *input) {
+Lexer *lexerCreate(string input) {
 	Lexer *lexer = malloc(sizeof(*lexer));
 	if (!lexer) {
 		perror("malloc: failed to allocate memory for lexer");
@@ -17,8 +17,8 @@ void lexerNextChar(Lexer *lexer) {
 	lexer->charIndex = lexer->input[++lexer->pos];
 }
 
-char *lexerFlushBuffer(Lexer *lexer, int start, int length) {
-	char *result;
+string lexerFlushBuffer(Lexer *lexer, int start, int length) {
+	string result;
 	strncpy(result = malloc(length + 1), &lexer->input[start], length);
 	if (!result) { perror("malloc: failed to allocate memory for buffer flush"); }
 	result[length] = '\0';
@@ -49,7 +49,7 @@ void lexerRecognizeIdentifier(Lexer *lexer) {
 	while (isLetterOrDigit(lexer->charIndex)) {
 		lexerNextChar(lexer);
 	}
-	while (isUnderscore(lexer->charIndex) && isLetterOrDigit(lexer->input[lexer->pos + 1])) {
+	while (isUnderscore(lexer->charIndex) && isLetterOrDigit(lexerPeekAhead(lexer, 1))) {
 		lexerNextChar(lexer);
 		while (isLetterOrDigit(lexer->charIndex)) {
 			lexerNextChar(lexer);
@@ -63,6 +63,10 @@ void lexerRecognizeInteger(Lexer *lexer) {
 	while (isDigit(lexer->charIndex)) {
 		lexerNextChar(lexer);
 	}
+}
+
+char lexerPeekAhead(Lexer *lexer, int ahead) {
+	return lexer->input[lexer->pos + ahead];
 }
 
 void lexerGetNextToken(Lexer *lexer) {
