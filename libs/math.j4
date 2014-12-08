@@ -3,9 +3,9 @@
 # and a "testing" ground for
 # the language as of writing this
 #
-# Written by Felix Angell
+# Written by Felix Angell & Vedant N
 # 07/12/2014
-# freefouran[at]gmail.com
+# freefouran[at]gmail.com or captainchloride[at]gmail.com
 
 fn mean(double a, double b): double {
 	ret a <= b ? a + (b - a) / 2 : mean(b, a);
@@ -28,3 +28,13 @@ fn pow(float mantissa, float exponent): float {
 	}
 	ret result;
 }
+
+fn factorial(int number): int {
+	int i = 1;
+	int final_result = 1;
+	for(i; i <= number; i++) {
+		final_result = final_result * i;
+	}
+	return final_result;
+}
+	
