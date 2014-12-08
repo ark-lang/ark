@@ -242,6 +242,6 @@ static inline bool isOperator(char ch) 			{ return (strchr("+-*/=><!~?:&%^\"'", 
  * @return if the character given is a separator
  * @param ch the character to check
  */
-static inline bool isSeparator(char ch) 		{ return (strchr(" ;,.`@(){} ", ch) != 0); }
+static inline bool isSeparator(char ch) 		{ return (strchr(" ;,.`@(){}[] ", ch) != 0); }
 
 #endif // LEXER_H

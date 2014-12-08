@@ -71,7 +71,8 @@ void lexerExpectCharacter(Lexer *lexer, char c) {
 		lexerNextChar(lexer);
 	}
 	else {
-		printf("%s:%d:%d: error: expected %c but found %c\n", "file", lexer->lineNumber, lexer->currentToken->pos.charNumber, c, lexer->charIndex);
+		printf("%s:%d:%d: error: expected `%c` but found `%c`\n", "file", lexer->lineNumber, lexer->currentToken->pos.charNumber, c, lexer->charIndex);
+		exit(1);
 	}
 }
 
