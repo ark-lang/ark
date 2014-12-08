@@ -41,12 +41,14 @@ void parserDestroy(Parser *parser) {
 	int i;
 	for (i = 0; i < parser->tokenStream->size; i++) {
 		Token *tok = vectorGetItem(parser->tokenStream, i);
+			
 		// gotta free the content that was allocated
 		free(tok->content);
 
 		// then we destroy token
 		tokenDestroy(tok);
 	}
+	
 	// destroy the token stream once we're done with it
 	vectorDestroy(parser->tokenStream);
 
