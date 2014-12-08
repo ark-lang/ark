@@ -1,1 +1,8 @@
 char x = 'a';
+string s = "fuck";
+
+fn main(int argc, string argv[]) {
+	x = 'b';
+	s = "wow amazing";
+	ret 0;
+}
