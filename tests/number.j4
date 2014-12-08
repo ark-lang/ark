@@ -1,0 +1,5 @@
+# this is for testing if numbers are lexed
+double x = 52.3;
+double y = 4.3;
+double z = 3.123;
+double a = .3;
