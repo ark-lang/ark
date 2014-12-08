@@ -1,2 +1,6 @@
 # this is to test if strings are lexed
-"this is a string"
+
+fn this_is_a_test(string x) -> string {
+	
+	ret "wow amazing it works! cool dude!";
+}
