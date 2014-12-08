@@ -3,9 +3,10 @@
 # and a "testing" ground for
 # the language as of writing this
 #
-# Written by Felix Angell & Vedant N
 # 07/12/2014
-# freefouran[at]gmail.com or captainchloride[at]gmail.com
+# Written by: 
+# 	Felix A  - freefouran[at]gmail.com
+# 	Vedant N - captainchloride[at]gmail.com
 
 fn mean(double a, double b): double {
 	ret a <= b ? a + (b - a) / 2 : mean(b, a);
