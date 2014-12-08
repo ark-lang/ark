@@ -129,6 +129,13 @@ void lexerRecognizeInteger(Lexer *lexer);
 void lexerRecognizeString(Lexer *lexer);
 
 /**
+ * Recognize a Character
+ * 
+ * @param lexer the lexer instance
+ */
+void lexerRecognizeCharacter(Lexer *lexer);
+
+/**
  * Peek ahead in the character stream by
  * the given amount
  * 

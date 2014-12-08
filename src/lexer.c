@@ -71,7 +71,7 @@ void lexerExpectCharacter(Lexer *lexer, char c) {
 		lexerNextChar(lexer);
 	}
 	else {
-		printf("error:%s:%d:%d expected %c but found %c\n", "file", lexer->lineNumber, lexer->currentToken->pos.charNumber, c, lexer->charIndex);
+		printf("%s:%d:%d: error: expected %c but found %c\n", "file", lexer->lineNumber, lexer->currentToken->pos.charNumber, c, lexer->charIndex);
 	}
 }
 
@@ -105,6 +105,20 @@ void lexerRecognizeString(Lexer *lexer) {
 	}
 
 	lexerExpectCharacter(lexer, '"');
+}
+
+void lexerRecognizeCharacter(Lexer *lexer) {
+	lexerExpectCharacter(lexer, '\'');
+
+	if (isLetterOrDigit(lexer->charIndex)) {
+		lexerNextChar(lexer); // consume character		
+	}
+	else {
+		printf("%s:%d:%d: error: empty character constant\n", "file", lexer->lineNumber, lexer->currentToken->pos.charNumber);
+		exit(1);
+	}
+
+	lexerExpectCharacter(lexer, '\'');
 }
 
 char lexerPeekAhead(Lexer *lexer, int ahead) {
@@ -141,9 +155,8 @@ void lexerGetNextToken(Lexer *lexer) {
 		lexerRecognizeString(lexer);
 	}
 	else if (isCharacter(lexer->charIndex)) {
-		// lexer->currentToken->type = CHARACTER;
-		// lexerNextChar(lexer);
-		// TODO: IMPLEMENT THIS
+		lexer->currentToken->type = CHARACTER;
+		lexerRecognizeCharacter(lexer);
 	}
 	else if (isOperator(lexer->charIndex)) {
 		lexer->currentToken->type = OPERATOR;
