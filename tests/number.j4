@@ -3,3 +3,9 @@ double x = 52.3;
 double y = 4.3;
 double z = 3.123;
 double a = .3;
+
+# fix this.
+# not sure if this should be a lexer
+# thing, or a check after parse tree?
+# probably a lexer thing.
+double e = 3.3.3;
