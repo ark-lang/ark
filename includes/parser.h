@@ -12,9 +12,23 @@
  */
 typedef struct {
 	Vector *tokenStream;
+	Vector *parseTree;
 	int tokenIndex;
 	bool parsing;
 } Parser;
+
+typedef enum {
+	INTEGER,
+} DataType;
+
+/**
+ * Node for an uninitialized
+ * Variable
+ */
+typedef struct {
+	DataType type;		// type of data to store
+	Token *name;		// name of the variable
+} VariableDefineNode;
 
 /**
  * Create a new Parser instance
@@ -31,6 +45,11 @@ Parser *parserCreate(Vector *tokenStream);
  * @return the token we consumed
  */
 Token *parserConsumeToken(Parser *parser);
+
+/**
+ * Check if next token is the given type
+ */
+Token *parserExpectType(Parser *parser, TokenType type);
 
 /**
  * Peek at the token that is {@ahead} tokens
