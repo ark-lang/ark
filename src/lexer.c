@@ -1,7 +1,7 @@
 #include "lexer.h"
 
 static char* TOKEN_NAMES[] = {
-	"END_OF_FILE", "IDENTIFIER", "INTEGER",
+	"END_OF_FILE", "IDENTIFIER", "NUMBER",
 	"OPERATOR", "SEPARATOR", "ERRORNEOUS",
 	"STRING", "CHARACTER", "UNKNOWN"
 };
@@ -90,9 +90,22 @@ void lexerRecognizeIdentifier(Lexer *lexer) {
 	}
 }
 
-void lexerRecognizeInteger(Lexer *lexer) {
+void lexerRecognizeNumber(Lexer *lexer) {
 	lexerNextChar(lexer);
+	if (lexer->charIndex == '.') {
+		lexerNextChar(lexer); // consume dot
+		while (isDigit(lexer->charIndex)) {
+			lexerNextChar(lexer);
+		}
+	}
+
 	while (isDigit(lexer->charIndex)) {
+		if (lexerPeekAhead(lexer, 1) == '.') {
+			lexerNextChar(lexer);
+			while (isDigit(lexer->charIndex)) {
+				lexerNextChar(lexer);
+			}
+		}
 		lexerNextChar(lexer);
 	}
 }
@@ -123,7 +136,9 @@ void lexerRecognizeCharacter(Lexer *lexer) {
 }
 
 char lexerPeekAhead(Lexer *lexer, int ahead) {
-	return lexer->input[lexer->pos + ahead];
+	char x = lexer->input[lexer->pos + ahead];
+	printf("peeking at %c\n", x);
+	return x;
 }
 
 void lexerGetNextToken(Lexer *lexer) {
@@ -147,9 +162,9 @@ void lexerGetNextToken(Lexer *lexer) {
 		lexer->currentToken->type = IDENTIFIER;
 		lexerRecognizeIdentifier(lexer);
 	}
-	else if (isDigit(lexer->charIndex)) {
-		lexer->currentToken->type = INTEGER;
-		lexerRecognizeInteger(lexer);
+	else if (isDigit(lexer->charIndex) || lexer->charIndex == '.') {
+		lexer->currentToken->type = NUMBER;
+		lexerRecognizeNumber(lexer);
 	}
 	else if (isString(lexer->charIndex)) {
 		lexer->currentToken->type = STRING;
