@@ -10,7 +10,7 @@
 
 /** Types of token */
 typedef enum {
-	END_OF_FILE, IDENTIFIER, INTEGER,
+	END_OF_FILE, IDENTIFIER, NUMBER,
 	OPERATOR, SEPARATOR, ERRORNEOUS,
 	STRING, CHARACTER, UNKNOWN
 } TokenType;
@@ -119,7 +119,7 @@ void lexerRecognizeIdentifier(Lexer *lexer);
  * 
  * @param lexer the lexer instance
  */
-void lexerRecognizeInteger(Lexer *lexer);
+void lexerRecognizeNumber(Lexer *lexer);
 
 /**
  * Recognize a String
