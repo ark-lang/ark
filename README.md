@@ -11,7 +11,7 @@ Jayfor is a WIP programming language written in C.
 * Lexer:
 	- Block comments
 	- Decimal numbers
-	- Strings and characters
+	- Strings and characters [x]
 * Parser
 	- Create a parser
 
