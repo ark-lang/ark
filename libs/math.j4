@@ -35,6 +35,6 @@ fn factorial(int number): int {
 	for(int i = i; i <= number; i++) {
 		final_result = final_result * i;
 	}
-	return final_result;
+	ret final_result;
 }
 	
