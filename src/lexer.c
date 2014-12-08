@@ -3,7 +3,7 @@
 static char* TOKEN_NAMES[] = {
 	"END_OF_FILE", "IDENTIFIER", "INTEGER",
 	"OPERATOR", "SEPARATOR", "ERRORNEOUS",
-	"STRING", "UNKNOWN"
+	"STRING", "CHARACTER", "UNKNOWN"
 };
 
 Token *tokenCreate() {
@@ -29,6 +29,7 @@ Lexer *lexerCreate(char* input) {
 	lexer->charIndex = input[lexer->pos];
 	lexer->tokenStream = vectorCreate();
 	lexer->running = true;
+	lexer->lineNumber = 1;
 	return lexer;
 }
 
@@ -57,10 +58,20 @@ void lexerSkipLayoutAndComment(Lexer *lexer) {
 			if (isEndOfInput(lexer->charIndex)) return;
 			lexerNextChar(lexer);
 		}
+		lexer->lineNumber++; // increment line number
 		lexerNextChar(lexer);
 		while (isLayout(lexer->charIndex)) {
 			lexerNextChar(lexer);
 		}
+	}
+}
+
+void lexerExpectCharacter(Lexer *lexer, char c) {
+	if (lexer->charIndex == c) {
+		lexerNextChar(lexer);
+	}
+	else {
+		printf("error:%s:%d:%d expected %c but found %c\n", "file", lexer->lineNumber, lexer->currentToken->pos.charNumber, c, lexer->charIndex);
 	}
 }
 
@@ -85,6 +96,16 @@ void lexerRecognizeInteger(Lexer *lexer) {
 	}
 }
 
+void lexerRecognizeString(Lexer *lexer) {
+	lexerExpectCharacter(lexer, '"');
+
+	while (isLetterOrDigit(lexer->charIndex) || isLayout(lexer->charIndex) || isOperator(lexer->charIndex) || isSeparator(lexer->charIndex)) {
+		lexerNextChar(lexer);
+	}
+
+	lexerExpectCharacter(lexer, '"');
+}
+
 char lexerPeekAhead(Lexer *lexer, int ahead) {
 	return lexer->input[lexer->pos + ahead];
 }
@@ -94,38 +115,50 @@ void lexerGetNextToken(Lexer *lexer) {
 	lexerSkipLayoutAndComment(lexer);
 	startPos = lexer->pos;
 
-	Token *tok = tokenCreate();
+	lexer->currentToken = tokenCreate();
+	lexer->currentToken->pos = (TokenPosition) {
+		.fileName = "swag", .lineNumber = -1, .charNumber = lexer->pos
+	};
 
 	if (isEndOfInput(lexer->charIndex)) {
-		tok->type = END_OF_FILE;
-		tok->content = "<END_OF_FILE>";
+		lexer->currentToken->type = END_OF_FILE;
+		lexer->currentToken->content = "<END_OF_FILE>";
 		lexer->running = false;
-		vectorPushBack(lexer->tokenStream, tok);
+		vectorPushBack(lexer->tokenStream, lexer->currentToken);
 		return;
 	}
 	if (isLetter(lexer->charIndex)) {
-		tok->type = IDENTIFIER;
+		lexer->currentToken->type = IDENTIFIER;
 		lexerRecognizeIdentifier(lexer);
 	}
 	else if (isDigit(lexer->charIndex)) {
-		tok->type = INTEGER;
+		lexer->currentToken->type = INTEGER;
 		lexerRecognizeInteger(lexer);
 	}
+	else if (isString(lexer->charIndex)) {
+		lexer->currentToken->type = STRING;
+		lexerRecognizeString(lexer);
+	}
+	else if (isCharacter(lexer->charIndex)) {
+		// lexer->currentToken->type = CHARACTER;
+		// lexerNextChar(lexer);
+		// TODO: IMPLEMENT THIS
+	}
 	else if (isOperator(lexer->charIndex)) {
-		tok->type = OPERATOR;
+		lexer->currentToken->type = OPERATOR;
 		lexerNextChar(lexer);
 	}
 	else if (isSeparator(lexer->charIndex)) {
-		tok->type = SEPARATOR;
+		lexer->currentToken->type = SEPARATOR;
 		lexerNextChar(lexer);
 	}
 	else {
-		tok->type = ERRORNEOUS;
+		lexer->currentToken->type = ERRORNEOUS;
 		lexerNextChar(lexer);
 	}
 
-	tok->content = lexerFlushBuffer(lexer, startPos, lexer->pos - startPos);
-	vectorPushBack(lexer->tokenStream, tok);
+	lexer->currentToken->content = lexerFlushBuffer(lexer, startPos, lexer->pos - startPos);
+	vectorPushBack(lexer->tokenStream, lexer->currentToken);
 }
 
 void lexerDestroy(Lexer *lexer) {
