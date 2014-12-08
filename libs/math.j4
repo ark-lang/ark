@@ -30,9 +30,8 @@ fn pow(float mantissa, float exponent): float {
 }
 
 fn factorial(int number): int {
-	int i = 1;
 	int final_result = 1;
-	for(i; i <= number; i++) {
+	for(int i = i; i <= number; i++) {
 		final_result = final_result * i;
 	}
 	return final_result;
