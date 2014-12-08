@@ -1,19 +1,10 @@
 # Jayfor
-Jayfor is a WIP programming language written in C.
-
-# TODO List
-* Misc:
-	- Preprocessor of some kind
-	- Macros
-	- Import multiple files, read to scanner
-* Scanner:
-	- Scan multiple files
-* Lexer:
-	- Block comments
-	- Decimal numbers
-	- Strings and characters [x]
-* Parser
-	- Create a parser
+Jayfor is a WIP programming language written in C. We aim to write
+Jayfor from the ground up, that means no lexer generators, or parser
+generators. While we are at a disadvantage that it will take longer
+to create a working programming language, we will have full control
+over the language, and also when we bootstrap Jayfor - it will be
+easier to do.
 
 # Goals
 * No Garbage Collection
