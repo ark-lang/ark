@@ -99,7 +99,8 @@ void lexerRecognizeInteger(Lexer *lexer) {
 void lexerRecognizeString(Lexer *lexer) {
 	lexerExpectCharacter(lexer, '"');
 
-	while (isLetterOrDigit(lexer->charIndex) || isLayout(lexer->charIndex) || isOperator(lexer->charIndex) || isSeparator(lexer->charIndex)) {
+	// just consume everthing
+	while (!isString(lexer->charIndex)) {
 		lexerNextChar(lexer);
 	}
 
