@@ -31,6 +31,26 @@ typedef struct {
 } VariableDefineNode;
 
 /**
+ * Node for an Expression
+ */
+typedef struct s_Expression {
+	char type;
+	Token *value;
+	
+	struct s_Expression *leftHand;
+	char operand;
+	struct s_Expression *rightHand;
+} Expression;
+
+/** 
+ * Node for a Variable being declared
+ */
+typedef struct {
+	VariableDefineNode vdn;
+	Expression *expr;
+} VariableDeclareNode;
+
+/**
  * Create a new Parser instance
  * 
  * @param tokenStream the token stream to parse
