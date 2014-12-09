@@ -109,21 +109,15 @@ bool parserTokenTypeAndContent(Parser *parser, TokenType type, char* content, in
 }
 
 Expression parserParseExpression(Parser *parser) {
-	Expression expr;
-
-	if (parserTokenType(parser, NUMBER, 1)) {
-		parserMatchTypeAndContent(parser, OPERATOR, "=");
-
+	Expression expr; // the final expression
+	if (parserTokenType(parser, NUMBER, 0)) {
 		expr.type = 'N';
 		expr.value = parserConsumeToken(parser);
 		printf("parsed an expression\n");
-
-		parserMatchTypeAndContent(parser, SEPARATOR, ";");
-
 		return expr;
 	}
-
-	printf("failed to parse expression!\n");
+	printf("failed to parse expression, we found this:");
+	printCurrentToken(parser);
 	exit(1);
 }
 
@@ -141,16 +135,35 @@ void parserParseInteger(Parser *parser) {
 	Token *variableNameToken = parserMatchType(parser, IDENTIFIER);
 
 	if (parserTokenTypeAndContent(parser, OPERATOR, "=", 0)) {
-		printf("assignment: unimplemented\n");
+		// consume the equals sign
+		parserConsumeToken(parser);
+
+		VariableDefineNode def;
+		def.type = INTEGER;
+		def.name = variableNameToken;
+
+		Expression expr = parserParseExpression(parser);
+
+		VariableDeclareNode dec;
+		dec.vdn = def;
+		dec.expr = &expr;
+
+		Token *tok = dec.expr->value;
+		printf("%s\n", tok->content);
+
+		parserMatchTypeAndContent(parser, SEPARATOR, ";");
+
+		printf("just parsed an integer declaration!!\nLet's see what we missed:\n");
+		printCurrentToken(parser);
 	}
 	else if (parserTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
 		// consume the semi colon
 		parserConsumeToken(parser);
 
-		VariableDefineNode vdn;
-		vdn.type = INTEGER;
-		vdn.name = variableNameToken;
-		printf("hey we've just parsed an integer definition!!!\n Let's see what's left...\n");
+		VariableDefineNode def;
+		def.type = INTEGER;
+		def.name = variableNameToken;
+		printf("hey we've just parsed an integer definition!!!\nLet's see what's left...\n");
 		printCurrentToken(parser);
 	}
 	else {

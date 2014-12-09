@@ -25,15 +25,6 @@ typedef enum {
 } DataType;
 
 /**
- * Node for an uninitialized
- * Variable
- */
-typedef struct {
-	DataType type;		// type of data to store
-	Token *name;		// name of the variable
-} VariableDefineNode;
-
-/**
  * Node for an Expression
  */
 typedef struct s_Expression {
@@ -44,6 +35,15 @@ typedef struct s_Expression {
 	char operand;
 	struct s_Expression *rightHand;
 } Expression;
+
+/**
+ * Node for an uninitialized
+ * Variable
+ */
+typedef struct {
+	DataType type;		// type of data to store
+	Token *name;		// name of the variable
+} VariableDefineNode;
 
 /** 
  * Node for a Variable being declared
