@@ -1,2 +1,3 @@
 # testing if integers can be parsed
-int x;
+int x = 5;
+int y;
