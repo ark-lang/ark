@@ -39,6 +39,73 @@ Token *parserExpectType(Parser *parser, TokenType type) {
 	}
 }
 
+Token *parserExpectTypeAndContent(Parser *parser, TokenType type, char *content) {
+	Token *tok = parserPeekAhead(parser, 1);
+	if (tok->type == type && !strcmp(tok->content, content)) {
+		return parserConsumeToken(parser);
+	}
+	else {
+		printf("expected %s but found `%s`\n", TOKEN_NAMES[type], tok->content);
+		exit(1);
+	}
+}
+
+Token *parserMatchType(Parser *parser, TokenType type) {
+	Token *tok = parserPeekAhead(parser, 0);
+	if (tok->type == type) {
+		return parserConsumeToken(parser);
+	}
+	else {
+		printf("expected %s but found `%s`\n", TOKEN_NAMES[type], tok->content);
+		exit(1);
+	}
+}
+
+Token *parserMatchTypeAndContent(Parser *parser, TokenType type, char *content) {
+	Token *tok = parserPeekAhead(parser, 0);
+	if (tok->type == type && !strcmp(tok->content, content)) {
+		return parserConsumeToken(parser);
+	}
+	else {
+		printf("expected %s but found `%s`\n", TOKEN_NAMES[type], tok->content);
+		exit(1);
+	}
+}
+
+bool parserTokenType(Parser *parser, TokenType type) {
+	Token *tok = parserPeekAhead(parser, 1);
+	return tok->type == type;
+}
+
+bool parserTokenContent(Parser *parser, char* content) {
+	Token *tok = parserPeekAhead(parser, 1);
+	return !strcmp(tok->content, content);
+}
+
+Expression parserParseExpression(Parser *parser) {
+	Expression expr;
+
+	if (parserTokenType(parser, NUMBER)) {
+		parserMatchTypeAndContent(parser, OPERATOR, "=");
+
+		expr.type = 'N';
+		expr.value = parserConsumeToken(parser);
+		printf("parsed an expression\n");
+
+		parserMatchTypeAndContent(parser, SEPARATOR, ";");
+
+		return expr;
+	}
+
+	printf("failed to parse expression!\n");
+	exit(1);
+}
+
+void printCurrentToken(Parser *parser) {
+	Token *tok = parserPeekAhead(parser, 0);
+	printf("current token is type: %s, value: %s\n", TOKEN_NAMES[tok->type], tok->content);
+}
+
 // simple testing parse thing
 void parserParseInteger(Parser *parser) {
 	Token *integerName = parserExpectType(parser, IDENTIFIER);
@@ -50,12 +117,36 @@ void parserParseInteger(Parser *parser) {
 		// not assigning a value
 		vdn.type = INTEGER;
 		vdn.name = integerName;
+		vectorPushBack(parser->parseTree, &vdn);
+		parserConsumeToken(parser);
+
+		printf("theres another shebang\n");
+		return;
 	}
 	else if (nextToken->type == OPERATOR && nextToken->content[0] == '=') {
 		// assigning a value
-	}
-	else {
+		printf("assigning a value\n");
 
+		// store vdn
+		vdn.type = INTEGER;
+		vdn.name = integerName;
+
+		// consume the equals		
+		parserConsumeToken(parser);
+
+		// probably an expression		
+		Expression expr = parserParseExpression(parser);
+
+		// woah make it mon
+		VariableDeclareNode declareNode;
+		declareNode.vdn = vdn;
+		declareNode.expr = &expr;
+		vectorPushBack(parser->parseTree, &declareNode);
+		
+		printf("fuckin sorted\n");
+		
+		printCurrentToken(parser);
+		return;
 	}
 }
 
@@ -74,9 +165,6 @@ void parserStartParsing(Parser *parser) {
 				parser->parsing = false;
 				break;
 		}
-
-		// print contents
-		printf("%s \t\t\t %s\n", tok->content, getTokenName(tok));
 	}
 }
 
