@@ -79,7 +79,6 @@ Token *parserConsumeToken(Parser *parser);
  */
 Token *parserPeekAhead(Parser *parser, int ahead);
 
-
 /**
  * Checks if the next token type is the same as the given
  * token type. If not, throws an error
@@ -89,6 +88,16 @@ Token *parserPeekAhead(Parser *parser, int ahead);
  * @return the token we matched
  */
 Token *parserExpectType(Parser *parser, TokenType type);
+
+/**
+ * Checks if the next tokens content is the same as the given
+ * content. If not, throws an error
+ * 
+ * @param parser instance of the parser
+ * @param type the type to match
+ * @return the token we matched
+ */
+Token *parserExpectContent(Parser *parser, char *content);
 
 /**
  * Checks if the next token type is the same as the given
@@ -113,6 +122,16 @@ Token *parserExpectTypeAndContent(Parser *parser, TokenType type, char *content)
 Token *parserMatchType(Parser *parser, TokenType type);
 
 /**
+ * Checks if the current tokens content is the same as the given
+ * content. If not, throws an error
+ * 
+ * @param parser instance of the parser
+ * @param type the type to match
+ * @return the token we matched
+ */
+Token *parserMatchContent(Parser *parser, char *content);
+
+/**
  * Checks if the current token type is the same as the given
  * token type and the token content is the same as the given
  * content, if not, throws an error
@@ -125,18 +144,28 @@ Token *parserMatchType(Parser *parser, TokenType type);
 Token *parserMatchTypeAndContent(Parser *parser, TokenType type, char *content);
 
 /**
+ * if the token at the given index is the same type as the given one
  * @param parser the parser instance
  * @param type the type to check
  * @return if the current token is the same type as the given one
  */
-bool parserTokenType(Parser *parser, TokenType type);
+bool parserTokenType(Parser *parser, TokenType type, int ahead);
+
+/**
+ * if the token at the given index has the same content as the given
+ * @param parser the parser instance
+ * @param type the type to check
+ * @param ahead how far away the token is
+ * @return if the current token has the same content as the given
+ */
+bool parserTokenContent(Parser *parser, char* content, int ahead);
 
 /**
  * @param parser the parser instance
  * @param type the type to check
  * @return if the current token has the same content as the given
  */
-bool parserTokenContent(Parser *parser, char* content);
+bool parserTokenTypeAndContent(Parser *parser, TokenType type, char* content, int ahead);
 
 /**
  * Parses an expression: currently only parses a number!
