@@ -39,6 +39,17 @@ Token *parserExpectType(Parser *parser, TokenType type) {
 	}
 }
 
+Token *parserExpectContent(Parser *parser, char *content) {
+	Token *tok = parserPeekAhead(parser, 1);
+	if (!strcmp(tok->content, content)) {
+		return parserConsumeToken(parser);
+	}
+	else {
+		printf("expected %s but found `%s`\n", content, tok->content);
+		exit(1);
+	}
+}
+
 Token *parserExpectTypeAndContent(Parser *parser, TokenType type, char *content) {
 	Token *tok = parserPeekAhead(parser, 1);
 	if (tok->type == type && !strcmp(tok->content, content)) {
@@ -61,31 +72,46 @@ Token *parserMatchType(Parser *parser, TokenType type) {
 	}
 }
 
+Token *parserMatchContent(Parser *parser, char *content) {
+	Token *tok = parserPeekAhead(parser, 0);
+	if (!strcmp(tok->content, content)) {
+		return parserConsumeToken(parser);
+	}
+	else {
+		printf("expected %s but found `%s`\n", content, tok->content);
+		exit(1);
+	}
+}
+
 Token *parserMatchTypeAndContent(Parser *parser, TokenType type, char *content) {
 	Token *tok = parserPeekAhead(parser, 0);
 	if (tok->type == type && !strcmp(tok->content, content)) {
 		return parserConsumeToken(parser);
 	}
 	else {
-		printf("expected %s but found `%s`\n", TOKEN_NAMES[type], tok->content);
+		printf("expected %s but found `%s`\n", content, tok->content);
 		exit(1);
 	}
 }
 
-bool parserTokenType(Parser *parser, TokenType type) {
-	Token *tok = parserPeekAhead(parser, 1);
+bool parserTokenType(Parser *parser, TokenType type, int ahead) {
+	Token *tok = parserPeekAhead(parser, ahead);
 	return tok->type == type;
 }
 
-bool parserTokenContent(Parser *parser, char* content) {
-	Token *tok = parserPeekAhead(parser, 1);
+bool parserTokenContent(Parser *parser, char* content, int ahead) {
+	Token *tok = parserPeekAhead(parser, ahead);
 	return !strcmp(tok->content, content);
+}
+
+bool parserTokenTypeAndContent(Parser *parser, TokenType type, char* content, int ahead) {
+	return parserTokenType(parser, type, ahead) && parserTokenContent(parser, content, ahead);
 }
 
 Expression parserParseExpression(Parser *parser) {
 	Expression expr;
 
-	if (parserTokenType(parser, NUMBER)) {
+	if (parserTokenType(parser, NUMBER, 1)) {
 		parserMatchTypeAndContent(parser, OPERATOR, "=");
 
 		expr.type = 'N';
@@ -106,47 +132,30 @@ void printCurrentToken(Parser *parser) {
 	printf("current token is type: %s, value: %s\n", TOKEN_NAMES[tok->type], tok->content);
 }
 
-// simple testing parse thing
 void parserParseInteger(Parser *parser) {
-	Token *integerName = parserExpectType(parser, IDENTIFIER);
-	Token *nextToken = parserPeekAhead(parser, 1);
-	VariableDefineNode vdn;
+	// INT NAME = 5;
+	// INT NAME;
 
-	// todo finish this
-	if (nextToken->type == OPERATOR && nextToken->content[0] == ';') {
-		// not assigning a value
-		vdn.type = INTEGER;
-		vdn.name = integerName;
-		vectorPushBack(parser->parseTree, &vdn);
-		parserConsumeToken(parser);
+	// consume the int data type
+	parserMatchTypeAndContent(parser, IDENTIFIER, "int");
+	Token *variableNameToken = parserMatchType(parser, IDENTIFIER);
 
-		printf("theres another shebang\n");
-		return;
+	if (parserTokenTypeAndContent(parser, OPERATOR, "=", 0)) {
+		printf("assignment: unimplemented\n");
 	}
-	else if (nextToken->type == OPERATOR && nextToken->content[0] == '=') {
-		// assigning a value
-		printf("assigning a value\n");
-
-		// store vdn
-		vdn.type = INTEGER;
-		vdn.name = integerName;
-
-		// consume the equals		
+	else if (parserTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
+		// consume the semi colon
 		parserConsumeToken(parser);
 
-		// probably an expression		
-		Expression expr = parserParseExpression(parser);
-
-		// woah make it mon
-		VariableDeclareNode declareNode;
-		declareNode.vdn = vdn;
-		declareNode.expr = &expr;
-		vectorPushBack(parser->parseTree, &declareNode);
-		
-		printf("fuckin sorted\n");
-		
+		VariableDefineNode vdn;
+		vdn.type = INTEGER;
+		vdn.name = variableNameToken;
+		printf("hey we've just parsed an integer definition!!!\n Let's see what's left...\n");
 		printCurrentToken(parser);
-		return;
+	}
+	else {
+		printf("missing a semi colon or assignment\n");
+		exit(1);
 	}
 }
 
@@ -173,15 +182,13 @@ void parserDestroy(Parser *parser) {
 	for (i = 0; i < parser->tokenStream->size; i++) {
 		Token *tok = vectorGetItem(parser->tokenStream, i);
 			
-		// gotta free the content that was allocated
-		free(tok->content);
-
 		// then we destroy token
 		tokenDestroy(tok);
 	}
 
 	// destroy the token stream once we're done with it
 	vectorDestroy(parser->tokenStream);
+	vectorDestroy(parser->parseTree);
 
 	// finally destroy parser
 	free(parser);
