@@ -13,7 +13,12 @@ Jayfor *jayforCreate(int argc, char** argv) {
 		exit(1);
 	}
 	jayfor->scanner = scannerCreate();
+
+	// assume second argument is a file name
+	// this is a placeholder for now
 	scannerReadFile(jayfor->scanner, argv[1]);
+
+	// pass the scanned file to the lexer to tokenize
 	jayfor->lexer = lexerCreate(jayfor->scanner->contents);
 
 	return jayfor;
@@ -27,6 +32,7 @@ void jayforStart(Jayfor *jayfor) {
 
 	// initialise parser after we tokenize
 	jayfor->parser = parserCreate(jayfor->lexer->tokenStream);
+
 	parserStartParsing(jayfor->parser);
 }
 
