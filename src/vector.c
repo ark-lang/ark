@@ -17,6 +17,8 @@ Vector *vectorCreate() {
 }
 
 void vectorPushBack(Vector *vec, VectorItem item) {
+	// much more efficient to reallocate exponentially,
+	// instead of reallocating after adding an item
 	if (vec->size >= vec->maxSize) {
 		vec->maxSize *= 2;
 		vec->items = realloc(vec->items, sizeof(*vec->items) * vec->maxSize);
