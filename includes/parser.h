@@ -17,6 +17,9 @@ typedef struct {
 	bool parsing;
 } Parser;
 
+/**
+ * Different data types
+ */
 typedef enum {
 	INTEGER,
 } DataType;
@@ -67,11 +70,6 @@ Parser *parserCreate(Vector *tokenStream);
 Token *parserConsumeToken(Parser *parser);
 
 /**
- * Check if next token is the given type
- */
-Token *parserExpectType(Parser *parser, TokenType type);
-
-/**
  * Peek at the token that is {@ahead} tokens
  * away in the token stream
  * 
@@ -80,6 +78,85 @@ Token *parserExpectType(Parser *parser, TokenType type);
  * @return the Token peeking at
  */
 Token *parserPeekAhead(Parser *parser, int ahead);
+
+
+/**
+ * Checks if the next token type is the same as the given
+ * token type. If not, throws an error
+ * 
+ * @param parser instance of the parser
+ * @param type the type to match
+ * @return the token we matched
+ */
+Token *parserExpectType(Parser *parser, TokenType type);
+
+/**
+ * Checks if the next token type is the same as the given
+ * token type and the token content is the same as the given
+ * content, if not, throws an error
+ * 
+ * @param parser instance of the parser
+ * @param type the type to match
+ * @param content content to match
+ * @return the token we matched
+ */
+Token *parserExpectTypeAndContent(Parser *parser, TokenType type, char *content);
+
+/**
+ * Checks if the current token type is the same as the given
+ * token type. If not, throws an error
+ * 
+ * @param parser instance of the parser
+ * @param type the type to match
+ * @return the token we matched
+ */
+Token *parserMatchType(Parser *parser, TokenType type);
+
+/**
+ * Checks if the current token type is the same as the given
+ * token type and the token content is the same as the given
+ * content, if not, throws an error
+ * 
+ * @param parser instance of the parser
+ * @param type the type to match
+ * @param content content to match
+ * @return the token we matched
+ */
+Token *parserMatchTypeAndContent(Parser *parser, TokenType type, char *content);
+
+/**
+ * @param parser the parser instance
+ * @param type the type to check
+ * @return if the current token is the same type as the given one
+ */
+bool parserTokenType(Parser *parser, TokenType type);
+
+/**
+ * @param parser the parser instance
+ * @param type the type to check
+ * @return if the current token has the same content as the given
+ */
+bool parserTokenContent(Parser *parser, char* content);
+
+/**
+ * Parses an expression: currently only parses a number!
+ * 
+ * @param parser the parser instance
+ * @return the expression parsed
+ */
+Expression parserParseExpression(Parser *parser);
+
+/**
+ * Prints the type and content of the current token
+ */
+void printCurrentToken(Parser *parser);
+
+/**
+ * Parses an integer
+ * 
+ * @param param the integer to parse
+ */
+void parserParseInteger(Parser *parser);
 
 /**
  * Start parsing
