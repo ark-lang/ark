@@ -25,10 +25,9 @@ Jayfor *jayforCreate(int argc, char** argv) {
 }
 
 void jayforStart(Jayfor *jayfor) {
-	do {
+	while (jayfor->lexer->running) {
 		lexerGetNextToken(jayfor->lexer);
 	}
-	while (jayfor->lexer->running);
 
 	// initialise parser after we tokenize
 	jayfor->parser = parserCreate(jayfor->lexer->tokenStream);
