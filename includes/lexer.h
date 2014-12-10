@@ -8,7 +8,8 @@
 #include "util.h"
 #include "vector.h"
 
-#define WEIRD_CHARACTER_ASCII_THRESHOLD 128 //ASCII value of uncommon characters starts here
+//ASCII value of uncommon characters starts here
+#define WEIRD_CHARACTER_ASCII_THRESHOLD 128
 
 /** Types of token */
 typedef enum {
