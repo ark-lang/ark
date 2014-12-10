@@ -208,18 +208,18 @@ Expression parserParseExpression(Parser *parser);
 void printCurrentToken(Parser *parser);
 
 /**
- * Parses an integer
+ * Parses a variable
  * 
- * @param param the integer to parse
+ * @param param the parser instance
  */
-void parserParseInteger(Parser *parser);
+void parserParseVariable(Parser *parser);
 
 /**
  * Parses a block of statements
  *
  * @param parser the parser instance
  */
-Block *parserParseblock(Parser *parser);
+Block parserParseBlock(Parser *parser);
 
 /**
  * Parses a function
@@ -237,6 +237,15 @@ void parserParseFunctionPrototype(Parser *parser);
  * @return the token as a DataType
  */
 DataType parserTokenTypeToDataType(Parser *parser, Token *tok);
+
+/**
+ * Returns if the given token is a data type
+ *
+ * @param parser the parser instance
+ * @param tok the token instance
+ * @return true if the token is a data type
+ */
+bool parserIsTokenDataType(Parser *parser, Token *tok);
 
 /**
  * Start parsing
