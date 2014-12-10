@@ -238,18 +238,18 @@ static inline bool isCharacter(char ch) 		{ return ch == '\''; }
  * @return if the character given is an operator
  * @param ch the character to check
  */
-static inline bool isOperator(char ch) 			{ return !strchr("+-*/=><!~?:&%^\"'", ch); }
+static inline bool isOperator(char ch) 			{ return (strchr("+-*/=><!~?:&%^\"'", ch) != 0); }
 
 /**
  * @return if the character given is a separator
  * @param ch the character to check
  */
-static inline bool isSeparator(char ch) 		{ return !strchr(" ;,.`@(){}[] ", ch); }
+static inline bool isSeparator(char ch) 		{ return (strchr(" ;,.`@(){}[] ", ch) != 0); }
 
 /**
  * @return if the character is a special character like the British symbol or alike 
  * @param ch character to check
  */
-static inline bool isSpecialChar(char ch)		{ return ch >= WEIRD_CHARACTER_THRESHOLD; }
+static inline bool isSpecialChar(char ch)		{ return (int) ch >= WEIRD_CHARACTER_THRESHOLD; }
 	
 #endif // LEXER_H
