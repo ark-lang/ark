@@ -1,6 +1,6 @@
 int x;
 int y = 5;
 
-fn func_name(int x): void {
+fn func_name(): int {
 	
 }
