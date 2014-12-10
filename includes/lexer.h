@@ -46,7 +46,7 @@ Token *tokenCreate();
  * @param token token to find name of
  * @return the name of the given token
  */
-char* getTokenName(Token *token);
+const char* getTokenName(Token *token);
 
 /**
  * Deallocates memory for token
