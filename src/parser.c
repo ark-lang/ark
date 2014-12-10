@@ -131,12 +131,13 @@ void printCurrentToken(Parser *parser) {
 	printf("current token is type: %s, value: %s\n", TOKEN_NAMES[tok->type], tok->content);
 }
 
-void parserParseInteger(Parser *parser) {
-	// INT NAME = 5;
-	// INT NAME;
+void parserParseVariable(Parser *parser) {
+	// TYPE NAME = 5;
+	// TYPE NAME;
 
 	// consume the int data type
-	parserMatchTypeAndContent(parser, IDENTIFIER, "int");
+	Token *tok = parserMatchType(parser, IDENTIFIER);
+	DataType type = parserTokenTypeToDataType(parser, tok);
 	Token *variableNameToken = parserMatchType(parser, IDENTIFIER);
 
 	if (parserTokenTypeAndContent(parser, OPERATOR, "=", 0)) {
@@ -144,7 +145,7 @@ void parserParseInteger(Parser *parser) {
 		parserConsumeToken(parser);
 
 		VariableDefineNode def;
-		def.type = INTEGER;
+		def.type = type;
 		def.name = variableNameToken;
 
 		Expression expr = parserParseExpression(parser);
@@ -166,7 +167,7 @@ void parserParseInteger(Parser *parser) {
 		parserConsumeToken(parser);
 
 		VariableDefineNode def;
-		def.type = INTEGER;
+		def.type = type;
 		def.name = variableNameToken;
 		printf("hey we've just parsed an integer definition!!!\nLet's see what's left...\n");
 		printCurrentToken(parser);
@@ -177,7 +178,7 @@ void parserParseInteger(Parser *parser) {
 	}
 }
 
-Block *parserParseblock(Parser *parser) {
+Block parserParseBlock(Parser *parser) {
 	Block block;
 
 	parserMatchTypeAndContent(parser, SEPARATOR, "{");
@@ -190,7 +191,7 @@ Block *parserParseblock(Parser *parser) {
 
 	printCurrentToken(parser);
 	
-	return &block;
+	return block;
 }
 
 void parserParseFunctionPrototype(Parser *parser) {
@@ -220,13 +221,14 @@ void parserParseFunctionPrototype(Parser *parser) {
 
 		// consume return type
 		Token *functionReturnType = parserMatchType(parser, IDENTIFIER);
+		fpn.ret = parserTokenTypeToDataType(parser, functionReturnType);
 
 		// start block
-		Block *body = parserParseblock(parser);
+		Block body = parserParseBlock(parser);
 
 		FunctionNode fn;
 		fn.fpn = fpn;
-		fn.body = body;
+		fn.body = &body;
 
 		printf("we've finished parsing a function omg\n");
 	}
@@ -242,8 +244,8 @@ void parserStartParsing(Parser *parser) {
 
 		switch (tok->type) {
 			case IDENTIFIER:
-				if (!strcmp(tok->content, "int")) {
-					parserParseInteger(parser);
+				if (parserIsTokenDataType(parser, tok)) {
+					parserParseVariable(parser);
 				}
 				else if (!strcmp(tok->content, "fn")) {
 					parserParseFunctionPrototype(parser);
@@ -254,6 +256,17 @@ void parserStartParsing(Parser *parser) {
 				break;
 		}
 	}
+}
+
+bool parserIsTokenDataType(Parser *parser, Token *tok) {
+	int size = sizeof(DATA_TYPES) / sizeof(DATA_TYPES[0]);
+	int i;
+	for (i = 0; i < size; i++) {
+		if (!strcmp(tok->content, DATA_TYPES[i])) {
+			return true;
+		}
+	}
+	return false;
 }
 
 DataType parserTokenTypeToDataType(Parser *parser, Token *tok) {
