@@ -136,43 +136,53 @@ void parserParseVariable(Parser *parser) {
 	// TYPE NAME;
 
 	// consume the int data type
-	Token *tok = parserMatchType(parser, IDENTIFIER);
-	DataType type = parserTokenTypeToDataType(parser, tok);
+	Token *variableDataType = parserMatchType(parser, IDENTIFIER);
+
+	// convert the data type for enum
+	DataType dataTypeRaw = parserTokenTypeToDataType(parser, variableDataType);
+
+	// name of the variable
 	Token *variableNameToken = parserMatchType(parser, IDENTIFIER);
 
 	if (parserTokenTypeAndContent(parser, OPERATOR, "=", 0)) {
 		// consume the equals sign
 		parserConsumeToken(parser);
 
+		// create variable define node
 		VariableDefineNode def;
-		def.type = type;
+		def.type = dataTypeRaw;
 		def.name = variableNameToken;
 
+		// parses the expression we're assigning to
 		Expression expr = parserParseExpression(parser);
 
+		// create the variable declare node
 		VariableDeclareNode dec;
 		dec.vdn = def;
 		dec.expr = &expr;
 
-		Token *tok = dec.expr->value;
-		printf("%s\n", tok->content);
-
+		// match a semi colon
 		parserMatchTypeAndContent(parser, SEPARATOR, ";");
 
-		printf("just parsed an integer declaration!!\nLet's see what we missed:\n");
+		// print out for debug
+		printf("just parsed an %s declaration!!\nLet's see what we missed:\n", variableDataType->content);
 		printCurrentToken(parser);
 	}
 	else if (parserTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
 		// consume the semi colon
 		parserConsumeToken(parser);
 
+		// create variable define node
 		VariableDefineNode def;
-		def.type = type;
+		def.type = dataTypeRaw;
 		def.name = variableNameToken;
-		printf("hey we've just parsed an integer definition!!!\nLet's see what's left...\n");
+
+		// print out for debug
+		printf("hey we've just parsed an %s definition!!!\nLet's see what's left...\n", variableDataType->content);
 		printCurrentToken(parser);
 	}
 	else {
+		// error message
 		printf("missing a semi colon or assignment\n");
 		exit(1);
 	}
@@ -221,16 +231,22 @@ void parserParseFunctionPrototype(Parser *parser) {
 
 		// consume return type
 		Token *functionReturnType = parserMatchType(parser, IDENTIFIER);
-		fpn.ret = parserTokenTypeToDataType(parser, functionReturnType);
+		
+		// convert to raw data type, also good for errors
+		DataType returnTypeRaw = parserTokenTypeToDataType(parser, functionReturnType);
+
+		// store the return type in the function prototype node
+		fpn.ret = returnTypeRaw;
 
 		// start block
 		Block body = parserParseBlock(parser);
 
+		// create the function because we have a body declared
 		FunctionNode fn;
 		fn.fpn = fpn;
 		fn.body = &body;
 
-		printf("we've finished parsing a function omg\n");
+		printf("we've finished parsing a function that returns %s\n", functionReturnType->content);
 	}
 	else {
 		printf("WHERES THE PARAMETER LIST LEBOWSKI?\n");
@@ -244,6 +260,8 @@ void parserStartParsing(Parser *parser) {
 
 		switch (tok->type) {
 			case IDENTIFIER:
+				// parse a variable if we have a variable
+				// given to us
 				if (parserIsTokenDataType(parser, tok)) {
 					parserParseVariable(parser);
 				}
