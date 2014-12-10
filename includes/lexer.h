@@ -254,9 +254,8 @@ static bool isSpecialCharacter(char ch) {
 	for(i; i < 255; i++) {
 		if(ch == i) {
 			return true;
-			break; // break out of the for loop
 		}
 	}
-} // end isSpecialCharacter
+} 
 	
 #endif // LEXER_H
