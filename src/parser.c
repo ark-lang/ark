@@ -148,6 +148,8 @@ void parserParseVariable(Parser *parser) {
 		// consume the equals sign
 		parserConsumeToken(parser);
 
+		printCurrentToken(parser);
+
 		// create variable define node
 		VariableDefineNode def;
 		def.type = dataTypeRaw;
@@ -183,7 +185,8 @@ void parserParseVariable(Parser *parser) {
 	}
 	else {
 		// error message
-		printf("missing a semi colon or assignment\n");
+		printf("missing a semi colon or assignment, found\n");
+		printCurrentToken(parser);
 		exit(1);
 	}
 }
