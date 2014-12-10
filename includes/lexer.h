@@ -248,14 +248,6 @@ static inline bool isSeparator(char ch) 		{ return (strchr(" ;,.`@(){}[] ", ch) 
  * @return if the character is a special character like the British symbol or alike 
  * @param ch character to check
  */
-static bool isSpecialCharacter(char ch) {
-	int i = 128; // using 128 since the wave of weird looking characters begin at 128 in the ASCII table
-	for(i; i < 255; i++) {
-		if (ch == i) {
-			return true;
-		}
-	}
-	return false;
-} 
+static inline bool isSpecialChar(char ch)		{ return (ch >= 128); }
 	
 #endif // LEXER_H
