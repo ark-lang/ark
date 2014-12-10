@@ -1,4 +1,4 @@
-int x;
+zasdasd x;
 double y = 5;
 
 fn func_name(): int {
