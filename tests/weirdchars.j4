@@ -1,2 +1,2 @@
 # for the pound symbol n stuff
-int x = 5;
+str x = "£££";
