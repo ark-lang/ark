@@ -1,2 +1,2 @@
 # for the pound symbol n stuff
-str x = "£££";
+str x = "£££ this is a test !!£££";
