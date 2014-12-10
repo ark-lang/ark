@@ -172,6 +172,40 @@ void parserParseInteger(Parser *parser) {
 	}
 }
 
+Block parserParseblock(Parser *parser) {
+	// todo parse block
+}
+
+void parserParseFunctionPrototype(Parser *parser) {
+	parserMatchType(parser, IDENTIFIER);	// consume the fn keyword
+	Token *functionName = parserMatchType(parser, IDENTIFIER);
+
+	// parameter list
+	if (parserTokenTypeAndContent(parser, SEPARATOR, "(", 0)) {
+		do {
+			//TODO: implement arguments,
+			// this would be variable defines
+			// except no semicolon.
+			printf("list item\n");
+			parserConsumeToken(parser);
+		}
+		while (parserTokenTypeAndContent(parser, SEPARATOR, ")", 0));
+		printf("end of arg list\n");
+
+		// consume colon 
+		parserMatchTypeAndContent(parser, OPERATOR, ":");
+
+		// consume return type
+		Token *functionReturnType = parserMatchType(parser, IDENTIFIER);
+
+		// start block
+		Block block = parserParseBlock(parser);
+	}
+	else {
+		printf("WHERES THE PARAMETER LIST LEBOWSKI?\n");
+	}
+}
+
 void parserStartParsing(Parser *parser) {
 	while (parser->parsing) {
 		// get current token
@@ -181,6 +215,9 @@ void parserStartParsing(Parser *parser) {
 			case IDENTIFIER:
 				if (!strcmp(tok->content, "int")) {
 					parserParseInteger(parser);
+				}
+				else if (!strcmp(tok->content, "fn")) {
+					parserParseFunctionPrototype(parser);
 				}
 				break;
 			case END_OF_FILE:
