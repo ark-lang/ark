@@ -120,7 +120,6 @@ Expression parserParseExpression(Parser *parser) {
 	if (parserTokenType(parser, NUMBER, 0)) {
 		expr.type = 'N';
 		expr.value = parserConsumeToken(parser);
-		printf("parsed an expression\n");
 		return expr;
 	}
 
@@ -128,7 +127,6 @@ Expression parserParseExpression(Parser *parser) {
 	if (parserTokenType(parser, STRING, 0)) {
 		expr.type = 'S';
 		expr.value = parserConsumeToken(parser);
-		printf("parsed an expression\n");
 		return expr;
 	}
 
@@ -213,7 +211,6 @@ Block parserParseBlock(Parser *parser) {
 	parserMatchTypeAndContent(parser, SEPARATOR, "{");
 	
 	do {
-		printf("statement\n");
 		parserConsumeToken(parser);
 	}
 	while (parserTokenTypeAndContent(parser, SEPARATOR, "}", 0));
@@ -227,7 +224,7 @@ void parserParseFunctionPrototype(Parser *parser) {
 	parserMatchType(parser, IDENTIFIER);	// consume the fn keyword
 
 	Token *functionName = parserMatchType(parser, IDENTIFIER);
-	Vector *args = NULL;
+	Vector *args = vectorCreate(); // null for now till I add arg parsing
 
 	FunctionPrototypeNode fpn;
 	fpn.args = args;
@@ -235,15 +232,49 @@ void parserParseFunctionPrototype(Parser *parser) {
 
 	// parameter list
 	if (parserTokenTypeAndContent(parser, SEPARATOR, "(", 0)) {
+		parserConsumeToken(parser);
+
 		do {
-			//TODO: implement arguments,
-			// this would be variable defines
-			// except no semicolon.
-			printf("list item\n");
-			parserConsumeToken(parser);
+			Token *argDataType = parserMatchType(parser, IDENTIFIER);
+			DataType argRawDataType = parserTokenTypeToDataType(parser, argDataType);
+			Token *argName = parserMatchType(parser, IDENTIFIER);
+
+			FunctionArgument *arg = malloc(sizeof(*arg));
+			arg->type = argRawDataType;
+			arg->name = argName;
+			arg->value = NULL;
+
+			if (parserTokenTypeAndContent(parser, OPERATOR, "=", 0)) {
+				parserConsumeToken(parser);
+
+				// default expression
+				Expression expr = parserParseExpression(parser);
+				arg->value = &expr;
+				vectorPushBack(args, arg);
+
+				if (parserTokenTypeAndContent(parser, SEPARATOR, ",", 0)) {
+					parserConsumeToken(parser);
+				}
+				else if (parserTokenTypeAndContent(parser, SEPARATOR, ")", 0)) {
+					parserConsumeToken(parser); // eat closing parenthesis
+					break;
+				}
+			}
+			else if (parserTokenTypeAndContent(parser, SEPARATOR, ",", 0)) {
+				if (parserTokenTypeAndContent(parser, SEPARATOR, ")", 1)) {
+					printf("OMG A TRAILING COMMA\n");
+					exit(1);
+				}
+				parserConsumeToken(parser); // eat the comma
+				vectorPushBack(args, arg);
+			}
+			else if (parserTokenTypeAndContent(parser, SEPARATOR, ")", 0)) {
+				parserConsumeToken(parser); // eat closing parenthesis
+				vectorPushBack(args, arg);
+				break;
+			}
 		}
-		while (parserTokenTypeAndContent(parser, SEPARATOR, ")", 0));
-		printf("end of arg list\n");
+		while (true);
 
 		// consume colon 
 		parserMatchTypeAndContent(parser, OPERATOR, ":");
@@ -270,6 +301,14 @@ void parserParseFunctionPrototype(Parser *parser) {
 	else {
 		printf("WHERES THE PARAMETER LIST LEBOWSKI?\n");
 	}
+
+	int i;
+	for (i = 0; i < fpn.args->size; i++) {
+		FunctionArgument *arg = vectorGetItem(fpn.args, i);
+		char *content = arg->value != NULL ? arg->value->value->content : "NULL";
+		printf("%s %s = %s\n", DATA_TYPES[arg->type], arg->name->content, content);
+		free(arg);
+	}
 }
 
 void parserStartParsing(Parser *parser) {
@@ -281,11 +320,11 @@ void parserStartParsing(Parser *parser) {
 			case IDENTIFIER:
 				// parse a variable if we have a variable
 				// given to us
-				if (parserIsTokenDataType(parser, tok)) {
-					parserParseVariable(parser);
-				}
-				else if (!strcmp(tok->content, "fn")) {
+				if (!strcmp(tok->content, "fn")) {
 					parserParseFunctionPrototype(parser);
+				} 
+				else if (parserIsTokenDataType(parser, tok)) {
+					parserParseVariable(parser);
 				}
 				else {
 					printf("Unrecognized identifier found: `%s`\n", tok->content);
