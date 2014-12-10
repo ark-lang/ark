@@ -121,6 +121,12 @@ Expression parserParseExpression(Parser *parser) {
 		printf("parsed an expression\n");
 		return expr;
 	}
+	if (parserTokenType(parser, STRING, 0)) {
+		expr.type = 'S';
+		expr.value = parserConsumeToken(parser);
+		printf("parsed an expression\n");
+		return expr;
+	}
 	printf("failed to parse expression, we found this:");
 	printCurrentToken(parser);
 	exit(1);
