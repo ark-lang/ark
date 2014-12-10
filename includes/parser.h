@@ -54,6 +54,15 @@ typedef struct {
 } VariableDeclareNode;
 
 /**
+ * An argument for a function
+ */
+typedef struct {
+	DataType type;
+	Token *name;
+	Expression *value;
+} FunctionArgument;
+
+/**
  * Node which represents a block of statements
  */
 typedef struct {
