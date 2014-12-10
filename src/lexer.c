@@ -3,7 +3,7 @@
 static char* TOKEN_NAMES[] = {
 	"END_OF_FILE", "IDENTIFIER", "NUMBER",
 	"OPERATOR", "SEPARATOR", "ERRORNEOUS",
-	"STRING", "CHARACTER", "UNKNOWN"
+	"STRING", "CHARACTER", "UNKNOWN", "SPECIAL_CHAR"
 };
 
 Token *tokenCreate() {
@@ -180,6 +180,10 @@ void lexerGetNextToken(Lexer *lexer) {
 	}
 	else if (isSeparator(lexer->charIndex)) {
 		lexer->currentToken->type = SEPARATOR;
+		lexerNextChar(lexer);
+	}
+	else if(isSpecialChar(lexer->charIndex)) {
+		lexer->currentToken->type = SPECIAL_CHAR;
 		lexerNextChar(lexer);
 	}
 	else {
