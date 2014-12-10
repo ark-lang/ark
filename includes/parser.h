@@ -54,6 +54,32 @@ typedef struct {
 } VariableDeclareNode;
 
 /**
+ * Node which represents a block of statements
+ */
+typedef struct {
+	Vector *statements;
+} Block;
+
+/**
+ * Function prototype node
+ * 
+ * i.e:
+ *    fn func_name(type name, type name): type
+ */
+typedef struct {
+	Vector *args;
+	Token *name;
+} FunctionPrototypeNode;
+
+/**
+ * Function declaration node
+ */
+typedef struct {
+	FunctionPrototypeNode fpn;
+	Block body;
+} FunctionNode;
+
+/**
  * Create a new Parser instance
  * 
  * @param tokenStream the token stream to parse
