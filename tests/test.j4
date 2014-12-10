@@ -1,6 +1,3 @@
-zasdasd x;
-double y = 5;
-
-fn func_name(): int {
+fn func_name(double y, int x, int zxasdfqasd_asd = 123): int {
 	
 }
