@@ -1,2 +1,6 @@
 int x;
 int y = 5;
+
+func func_name(): void {
+	
+}
