@@ -244,4 +244,19 @@ static inline bool isOperator(char ch) 			{ return (strchr("+-*/=><!~?:&%^\"'", 
  */
 static inline bool isSeparator(char ch) 		{ return (strchr(" ;,.`@(){}[] ", ch) != 0); }
 
+/**
+ * @return if the character is a special character like the British symbol or alike 
+ * @param ch character to check
+ */
+static bool isSpecialCharacter(char ch) {
+	int i = 128; // using 128 since the wave of weird looking characters begin at 128 in the ASCII table
+
+	for(i; i < 255; i++) {
+		if(ch == i) {
+			return true;
+			break; // break out of the for loop
+		}
+	}
+} // end isSpecialCharacter
+	
 #endif // LEXER_H
