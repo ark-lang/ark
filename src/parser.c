@@ -11,6 +11,34 @@ static char* DATA_TYPES[] = {
 	"void"
 };
 
+ExpressionNode *createExpressionNode() {
+	return malloc(sizeof(ExpressionNode));
+}
+
+VariableDefineNode *createVariableDefineNode() {
+	return malloc(sizeof(VariableDefineNode));
+}
+
+VariableDeclareNode *createVariableDeclareNode() {
+	return malloc(sizeof(VariableDeclareNode));
+}
+
+FunctionArgumentNode *createFunctionArgumentNode() {
+	return malloc(sizeof(FunctionArgumentNode));
+}
+
+FunctionNode *createFunctionNode() {
+	return malloc(sizeof(FunctionNode));
+}
+
+BlockNode *createBlockNode() {
+	return malloc(sizeof(BlockNode));
+}
+
+FunctionPrototypeNode *createFunctionPrototypeNode() {
+	return malloc(sizeof(FunctionPrototypeNode));
+}
+
 Parser *parserCreate(Vector *tokenStream) {
 	Parser *parser = malloc(sizeof(*parser));
 	if (!parser) {
@@ -113,20 +141,20 @@ bool parserTokenTypeAndContent(Parser *parser, TokenType type, char* content, in
 	return parserTokenType(parser, type, ahead) && parserTokenContent(parser, content, ahead);
 }
 
-Expression parserParseExpression(Parser *parser) {
-	Expression expr; // the final expression
+ExpressionNode *parserParseExpression(Parser *parser) {
+	ExpressionNode *expr = createExpressionNode(); // the final expression
 
 	// number literal
 	if (parserTokenType(parser, NUMBER, 0)) {
-		expr.type = 'N';
-		expr.value = parserConsumeToken(parser);
+		expr->type = 'N';
+		expr->value = parserConsumeToken(parser);
 		return expr;
 	}
 
 	// string literal
 	if (parserTokenType(parser, STRING, 0)) {
-		expr.type = 'S';
-		expr.value = parserConsumeToken(parser);
+		expr->type = 'S';
+		expr->value = parserConsumeToken(parser);
 		return expr;
 	}
 
@@ -162,40 +190,36 @@ void parserParseVariable(Parser *parser) {
 		// consume the equals sign
 		parserConsumeToken(parser);
 
-		printCurrentToken(parser);
-
 		// create variable define node
-		VariableDefineNode def;
-		def.type = dataTypeRaw;
-		def.name = variableNameToken;
+		VariableDefineNode *def = createVariableDefineNode();
+		def->type = dataTypeRaw;
+		def->name = variableNameToken;
 
 		// parses the expression we're assigning to
-		Expression expr = parserParseExpression(parser);
+		ExpressionNode *expr = parserParseExpression(parser);
 
 		// create the variable declare node
-		VariableDeclareNode dec;
-		dec.vdn = def;
-		dec.expr = &expr;
+		VariableDeclareNode *dec = createVariableDeclareNode();
+		dec->vdn = def;
+		dec->expr = expr;
 
 		// match a semi colon
 		parserMatchTypeAndContent(parser, SEPARATOR, ";");
 
 		// print out for debug
 		printf("just parsed an %s declaration!!\nLet's see what we missed:\n", variableDataType->content);
-		printCurrentToken(parser);
 	}
 	else if (parserTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
 		// consume the semi colon
 		parserConsumeToken(parser);
 
 		// create variable define node
-		VariableDefineNode def;
-		def.type = dataTypeRaw;
-		def.name = variableNameToken;
+		VariableDefineNode *def = createVariableDefineNode();
+		def->type = dataTypeRaw;
+		def->name = variableNameToken;
 
 		// print out for debug
 		printf("hey we've just parsed an %s definition!!!\nLet's see what's left...\n", variableDataType->content);
-		printCurrentToken(parser);
 	}
 	else {
 		// error message
@@ -205,8 +229,8 @@ void parserParseVariable(Parser *parser) {
 	}
 }
 
-Block parserParseBlock(Parser *parser) {
-	Block block;
+BlockNode *parserParseBlock(Parser *parser) {
+	BlockNode *block = createBlockNode();
 
 	parserMatchTypeAndContent(parser, SEPARATOR, "{");
 	
@@ -215,8 +239,6 @@ Block parserParseBlock(Parser *parser) {
 	}
 	while (parserTokenTypeAndContent(parser, SEPARATOR, "}", 0));
 
-	printCurrentToken(parser);
-	
 	return block;
 }
 
@@ -226,9 +248,9 @@ void parserParseFunctionPrototype(Parser *parser) {
 	Token *functionName = parserMatchType(parser, IDENTIFIER);
 	Vector *args = vectorCreate(); // null for now till I add arg parsing
 
-	FunctionPrototypeNode fpn;
-	fpn.args = args;
-	fpn.name = functionName;
+	FunctionPrototypeNode *fpn = createFunctionPrototypeNode();
+	fpn->args = args;
+	fpn->name = functionName;
 
 	// parameter list
 	if (parserTokenTypeAndContent(parser, SEPARATOR, "(", 0)) {
@@ -239,7 +261,7 @@ void parserParseFunctionPrototype(Parser *parser) {
 			DataType argRawDataType = parserTokenTypeToDataType(parser, argDataType);
 			Token *argName = parserMatchType(parser, IDENTIFIER);
 
-			FunctionArgument *arg = malloc(sizeof(*arg));
+			FunctionArgumentNode *arg = createFunctionArgumentNode();
 			arg->type = argRawDataType;
 			arg->name = argName;
 			arg->value = NULL;
@@ -248,8 +270,8 @@ void parserParseFunctionPrototype(Parser *parser) {
 				parserConsumeToken(parser);
 
 				// default expression
-				Expression expr = parserParseExpression(parser);
-				arg->value = &expr;
+				ExpressionNode *expr = parserParseExpression(parser);
+				arg->value = expr;
 				vectorPushBack(args, arg);
 
 				if (parserTokenTypeAndContent(parser, SEPARATOR, ",", 0)) {
@@ -286,15 +308,15 @@ void parserParseFunctionPrototype(Parser *parser) {
 		DataType returnTypeRaw = parserTokenTypeToDataType(parser, functionReturnType);
 
 		// store the return type in the function prototype node
-		fpn.ret = returnTypeRaw;
+		fpn->ret = returnTypeRaw;
 
 		// start block
-		Block body = parserParseBlock(parser);
+		BlockNode *body = parserParseBlock(parser);
 
 		// create the function because we have a body declared
-		FunctionNode fn;
-		fn.fpn = fpn;
-		fn.body = &body;
+		FunctionNode *fn = createFunctionNode();
+		fn->fpn = fpn;
+		fn->body = body;
 
 		printf("we've finished parsing a function that returns %s\n", functionReturnType->content);
 	}
@@ -302,13 +324,16 @@ void parserParseFunctionPrototype(Parser *parser) {
 		printf("WHERES THE PARAMETER LIST LEBOWSKI?\n");
 	}
 
-	int i;
-	for (i = 0; i < fpn.args->size; i++) {
-		FunctionArgument *arg = vectorGetItem(fpn.args, i);
-		char *content = arg->value != NULL ? arg->value->value->content : "NULL";
-		printf("%s %s = %s\n", DATA_TYPES[arg->type], arg->name->content, content);
-		free(arg);
-	}
+	// int i;
+	// for (i = 0; i < fpn.args->size; i++) {
+	// 	FunctionArgument *arg = vectorGetItem(fpn.args, i);
+	// 	char *content = arg->value != NULL ? arg->value->value->content : "NULL";
+	// 	printf("%s %s = %s\n", DATA_TYPES[arg->type], arg->name->content, content);
+	// 	if (arg->value != NULL) {
+	// 		free(arg->value);
+	// 	}
+	// 	free(arg);
+	// }
 }
 
 void parserStartParsing(Parser *parser) {
