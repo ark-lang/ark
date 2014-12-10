@@ -24,6 +24,10 @@ typedef enum {
 	INTEGER, STR, DOUBLE, FLOAT, BOOL, VOID
 } DataType;
 
+/**
+ * Different types of data
+ * to be stored on Node Vector
+ */
 typedef enum {
 	EXPRESSION_NODE, VARIABLE_DEF_NODE,
 	VARIABLE_DEC_NODE, FUNCTION_ARG_NODE,
@@ -31,6 +35,10 @@ typedef enum {
 	BLOCK_NODE
 } NodeType;
 
+/**
+ * A wrapper for easier memory
+ * management with Nodes
+ */
 typedef struct {
 	void *data;
 	NodeType type;
