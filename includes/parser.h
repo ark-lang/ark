@@ -34,7 +34,7 @@ typedef struct s_Expression {
 	struct s_Expression *leftHand;
 	char operand;
 	struct s_Expression *rightHand;
-} Expression;
+} ExpressionNode;
 
 /**
  * Node for an uninitialized
@@ -49,8 +49,8 @@ typedef struct {
  * Node for a Variable being declared
  */
 typedef struct {
-	VariableDefineNode vdn;
-	Expression *expr;
+	VariableDefineNode *vdn;
+	ExpressionNode *expr;
 } VariableDeclareNode;
 
 /**
@@ -59,15 +59,15 @@ typedef struct {
 typedef struct {
 	DataType type;
 	Token *name;
-	Expression *value;
-} FunctionArgument;
+	ExpressionNode *value;
+} FunctionArgumentNode;
 
 /**
  * Node which represents a block of statements
  */
 typedef struct {
 	Vector *statements;
-} Block;
+} BlockNode;
 
 /**
  * Function prototype node
@@ -85,9 +85,23 @@ typedef struct {
  * Function declaration node
  */
 typedef struct {
-	FunctionPrototypeNode fpn;
-	Block *body;
+	FunctionPrototypeNode *fpn;
+	BlockNode *body;
 } FunctionNode;
+
+ExpressionNode *createExpressionNode();
+
+VariableDefineNode *createVariableDefineNode();
+
+VariableDeclareNode *createVariableDeclareNode();
+
+FunctionArgumentNode *createFunctionArgumentNode();
+
+BlockNode *createBlockNode();
+
+FunctionNode *createFunctionNode();
+
+FunctionPrototypeNode *createFunctionPrototypeNode();
 
 /**
  * Create a new Parser instance
@@ -209,7 +223,7 @@ bool parserTokenTypeAndContent(Parser *parser, TokenType type, char* content, in
  * @param parser the parser instance
  * @return the expression parsed
  */
-Expression parserParseExpression(Parser *parser);
+ExpressionNode *parserParseExpression(Parser *parser);
 
 /**
  * Prints the type and content of the current token
@@ -228,7 +242,7 @@ void parserParseVariable(Parser *parser);
  *
  * @param parser the parser instance
  */
-Block parserParseBlock(Parser *parser);
+BlockNode *parserParseBlock(Parser *parser);
 
 /**
  * Parses a function
