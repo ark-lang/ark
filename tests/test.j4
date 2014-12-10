@@ -1,5 +1,5 @@
 int x;
-int y = 5;
+double y = 5;
 
 fn func_name(): int {
 	
