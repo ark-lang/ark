@@ -1,6 +1,6 @@
 #include "lexer.h"
 
-static char* TOKEN_NAMES[] = {
+static const char* TOKEN_NAMES[] = {
 	"END_OF_FILE", "IDENTIFIER", "NUMBER",
 	"OPERATOR", "SEPARATOR", "ERRORNEOUS",
 	"STRING", "CHARACTER", "UNKNOWN"
