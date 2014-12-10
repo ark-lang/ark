@@ -10,7 +10,7 @@ Token *tokenCreate() {
 	return malloc(sizeof(Token));
 }
 
-char* getTokenName(Token *tok) {
+const char* getTokenName(Token *tok) {
 	return TOKEN_NAMES[tok->type];
 }
 
