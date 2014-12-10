@@ -256,6 +256,6 @@ static bool isSpecialCharacter(char ch) {
 		}
 	}
 	return false;
-}
+} 
 	
 #endif // LEXER_H
