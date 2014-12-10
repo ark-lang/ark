@@ -1,15 +1,19 @@
 #include "parser.h"
 
-static char* TOKEN_NAMES[] = {
+/** List of token names */
+static const char* TOKEN_NAMES[] = {
 	"END_OF_FILE", "IDENTIFIER", "NUMBER",
 	"OPERATOR", "SEPARATOR", "ERRORNEOUS",
 	"STRING", "CHARACTER", "UNKNOWN"
 };
 
-static char* DATA_TYPES[] = {
+/** List of data types */
+static const char* DATA_TYPES[] = {
 	"int", "str", "double", "float", "bool",
 	"void"
 };
+
+/** UTILITY FOR NODES */
 
 ExpressionNode *createExpressionNode() {
 	return malloc(sizeof(ExpressionNode));
@@ -38,6 +42,8 @@ BlockNode *createBlockNode() {
 FunctionPrototypeNode *createFunctionPrototypeNode() {
 	return malloc(sizeof(FunctionPrototypeNode));
 }
+
+/** END NODE FUNCTIONS */
 
 Parser *parserCreate(Vector *tokenStream) {
 	Parser *parser = malloc(sizeof(*parser));
@@ -324,16 +330,16 @@ void parserParseFunctionPrototype(Parser *parser) {
 		printf("WHERES THE PARAMETER LIST LEBOWSKI?\n");
 	}
 
-	// int i;
-	// for (i = 0; i < fpn.args->size; i++) {
-	// 	FunctionArgument *arg = vectorGetItem(fpn.args, i);
-	// 	char *content = arg->value != NULL ? arg->value->value->content : "NULL";
-	// 	printf("%s %s = %s\n", DATA_TYPES[arg->type], arg->name->content, content);
-	// 	if (arg->value != NULL) {
-	// 		free(arg->value);
-	// 	}
-	// 	free(arg);
-	// }
+	int i;
+	for (i = 0; i < fpn->args->size; i++) {
+		FunctionArgumentNode *arg = vectorGetItem(fpn->args, i);
+		char *content = arg->value != NULL ? arg->value->value->content : "NULL";
+		printf("%s %s = %s\n", DATA_TYPES[arg->type], arg->name->content, content);
+		if (arg->value != NULL) {
+			free(arg->value);
+		}
+		free(arg);
+	}
 }
 
 void parserStartParsing(Parser *parser) {
