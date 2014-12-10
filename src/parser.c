@@ -16,31 +16,66 @@ static const char* DATA_TYPES[] = {
 /** UTILITY FOR NODES */
 
 ExpressionNode *createExpressionNode() {
-	return malloc(sizeof(ExpressionNode));
+	ExpressionNode *expr = malloc(sizeof(*expr));
+	if (!expr) {
+		perror("malloc: failed to allocate memory for ExpressionNode");
+		exit(1);
+	}
+	return expr;
 }
 
 VariableDefineNode *createVariableDefineNode() {
-	return malloc(sizeof(VariableDefineNode));
+	VariableDefineNode *vdn = malloc(sizeof(*vdn));
+	if (!vdn) {
+		perror("malloc: failed to allocate memory for VariableDefineNode");
+		exit(1);
+	}
+	return vdn;
 }
 
 VariableDeclareNode *createVariableDeclareNode() {
-	return malloc(sizeof(VariableDeclareNode));
+	VariableDeclareNode *vdn = malloc(sizeof(*vdn));
+	if (!vdn) {
+		perror("malloc: failed to allocate memory for VariableDeclareNode");
+		exit(1);
+	}
+	return vdn;
 }
 
 FunctionArgumentNode *createFunctionArgumentNode() {
-	return malloc(sizeof(FunctionArgumentNode));
+	FunctionArgumentNode *fan = malloc(sizeof(*fan));
+	if (!fan) {
+		perror("malloc: failed to allocate memory for FunctionArgumentNode");
+		exit(1);
+	}
+	return fan;
 }
 
 FunctionNode *createFunctionNode() {
-	return malloc(sizeof(FunctionNode));
+	FunctionNode *fn = malloc(sizeof(*fn));
+	if (!fn) {
+		perror("malloc: failed to allocate memory for FunctionNode");
+		exit(1);
+	}
+	return fn;
 }
 
 BlockNode *createBlockNode() {
-	return malloc(sizeof(BlockNode));
+	BlockNode *bn = malloc(sizeof(*bn));
+	if (!bn) {
+		perror("malloc: failed to allocate memory for BlockNode");
+		exit(1);
+	}
+	return bn;
 }
 
 FunctionPrototypeNode *createFunctionPrototypeNode() {
-	return malloc(sizeof(FunctionPrototypeNode));
+	FunctionPrototypeNode *fpn = malloc(sizeof(*fpn));
+	if (!fpn) {
+		perror("malloc: failed to allocate memory for FunctionPrototypeNode");
+		exit(1);
+	}
+	return fpn;
 }
 
 void destroyExpressionNode(ExpressionNode *expr) {
