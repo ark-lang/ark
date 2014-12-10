@@ -115,18 +115,28 @@ bool parserTokenTypeAndContent(Parser *parser, TokenType type, char* content, in
 
 Expression parserParseExpression(Parser *parser) {
 	Expression expr; // the final expression
+
+	// number literal
 	if (parserTokenType(parser, NUMBER, 0)) {
 		expr.type = 'N';
 		expr.value = parserConsumeToken(parser);
 		printf("parsed an expression\n");
 		return expr;
 	}
+
+	// string literal
 	if (parserTokenType(parser, STRING, 0)) {
 		expr.type = 'S';
 		expr.value = parserConsumeToken(parser);
 		printf("parsed an expression\n");
 		return expr;
 	}
+
+	// todo: variable reference
+	// int x = y;
+
+	// actual expressions e.g (5 + 5) - (10 ^ 3)
+
 	printf("failed to parse expression, we found this:");
 	printCurrentToken(parser);
 	exit(1);
@@ -276,6 +286,10 @@ void parserStartParsing(Parser *parser) {
 				}
 				else if (!strcmp(tok->content, "fn")) {
 					parserParseFunctionPrototype(parser);
+				}
+				else {
+					printf("Unrecognized identifier found: `%s`\n", tok->content);
+					exit(1);
 				}
 				break;
 			case END_OF_FILE:
