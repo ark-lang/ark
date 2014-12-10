@@ -137,7 +137,6 @@ void lexerRecognizeCharacter(Lexer *lexer) {
 
 char lexerPeekAhead(Lexer *lexer, int ahead) {
 	char x = lexer->input[lexer->pos + ahead];
-	printf("peeking at %c\n", x);
 	return x;
 }
 
