@@ -21,7 +21,7 @@ typedef struct {
  * Different data types
  */
 typedef enum {
-	INTEGER,
+	INTEGER, STR, DOUBLE, FLOAT, BOOL, VOID
 } DataType;
 
 /**
@@ -69,6 +69,7 @@ typedef struct {
 typedef struct {
 	Vector *args;
 	Token *name;
+	DataType ret;
 } FunctionPrototypeNode;
 
 /**
@@ -76,7 +77,7 @@ typedef struct {
  */
 typedef struct {
 	FunctionPrototypeNode fpn;
-	Block body;
+	Block *body;
 } FunctionNode;
 
 /**
@@ -212,6 +213,30 @@ void printCurrentToken(Parser *parser);
  * @param param the integer to parse
  */
 void parserParseInteger(Parser *parser);
+
+/**
+ * Parses a block of statements
+ *
+ * @param parser the parser instance
+ */
+Block *parserParseblock(Parser *parser);
+
+/**
+ * Parses a function
+ * 
+ * @param parser the parser instance
+ */
+void parserParseFunctionPrototype(Parser *parser);
+
+/**
+ * Finds the appropriate Data Type from the given Token
+ * will throw an error if invalid type
+ * 
+ * @param parser the parser instance
+ * @param tok the token to check
+ * @return the token as a DataType
+ */
+DataType parserTokenTypeToDataType(Parser *parser, Token *tok);
 
 /**
  * Start parsing
