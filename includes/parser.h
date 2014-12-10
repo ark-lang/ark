@@ -159,22 +159,56 @@ FunctionNode *createFunctionNode();
  */
 FunctionPrototypeNode *createFunctionPrototypeNode();
 
+/**
+ * Destroy an Expression Node
+ */
 void destroyExpressionNode(ExpressionNode *expr);
 
+/**
+ * Destroy a Variable Definition Node
+ */
 void destroyVariableDefineNode(VariableDefineNode *vdn);
 
+/**
+ * Destroy a Variable Declaration Node
+ */
 void destroyVariableDeclareNode(VariableDeclareNode *vdn);
 
+/**
+ * Destroy a Function Argument Node
+ */
 void destroyFunctionArgumentNode(FunctionArgumentNode *fan);
 
+/**
+ * Destroy a Block Node
+ */
 void destroyBlockNode(BlockNode *bn);
 
+/**
+ * Destroy a Function Prototype Node
+ */
 void destroyFunctionPrototypeNode(FunctionPrototypeNode *fpn);
 
+/**
+ * Destroy a Function Node
+ */
 void destroyFunctionNode(FunctionNode *fn);
 
+/**
+ * Prepares a node to go into a Vector, this will also
+ * help with memory management
+ * 
+ * @param parser the parser instance for vector access
+ * @param data the data to store
+ * @param type the type of data
+ */
 void prepareNode(Parser *parser, void *data, NodeType type);
 
+/**
+ * Remove a node
+ * 
+ * @param node the node to remove
+ */
 void removeNode(Node *node);
 
 /**
