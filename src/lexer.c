@@ -177,6 +177,11 @@ void lexerGetNextToken(Lexer *lexer) {
 		lexer->currentToken->type = OPERATOR;
 		lexerNextChar(lexer);
 	}
+	else if (isEndOfLine(lexer->charIndex)) {
+			lexer->lineNumber++;
+			printf("the line number is %d \n", lexer->lineNumber); // for debugging
+			lexerNextChar(lexer);
+	}
 	else if (isSeparator(lexer->charIndex)) {
 		lexer->currentToken->type = SEPARATOR;
 		lexerNextChar(lexer);
