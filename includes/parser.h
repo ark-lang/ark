@@ -89,18 +89,62 @@ typedef struct {
 	BlockNode *body;
 } FunctionNode;
 
+/**
+ * Creates a new Expression Node
+ * 
+ * a + b
+ * 1 + 2
+ * (a + b) - (1 + b)
+ */
 ExpressionNode *createExpressionNode();
 
+/**
+ * Creates a new Variable Define node
+ * 
+ * int x;
+ * int y;
+ * double z; 
+ */
 VariableDefineNode *createVariableDefineNode();
 
+/**
+ * Creates a new Variable Declaration Node
+ * 
+ * int x = 5;
+ * int d = 5 + 9;
+ */
 VariableDeclareNode *createVariableDeclareNode();
 
+/**
+ * Creates a new Function Argument Node
+ * 
+ * fn whatever(int x, int y, int z = 23): int {...
+ */
 FunctionArgumentNode *createFunctionArgumentNode();
 
+/**
+ * Creates a new Block Node
+ * 
+ * {
+ *    statement;
+ * }
+ */
 BlockNode *createBlockNode();
 
+/**
+ * Creates a new Function Node
+ * 
+ * fn whatever(int x, int y): int {
+ *     ret x + y;
+ * }
+ */
 FunctionNode *createFunctionNode();
 
+/**
+ * Creates a new Function Prototype Node
+ * 
+ * fn whatever(int x, int y): int
+ */
 FunctionPrototypeNode *createFunctionPrototypeNode();
 
 /**
