@@ -43,6 +43,61 @@ FunctionPrototypeNode *createFunctionPrototypeNode() {
 	return malloc(sizeof(FunctionPrototypeNode));
 }
 
+void destroyExpressionNode(ExpressionNode *expr) {
+	if (expr->leftHand != NULL) {
+		destroyExpressionNode(expr->leftHand);
+	}
+	if (expr->rightHand != NULL) {
+		destroyExpressionNode(expr->rightHand);
+	}
+	free(expr);
+}
+
+void destroyVariableDefineNode(VariableDefineNode *vdn) {
+	free(vdn);
+}
+
+void destroyVariableDeclareNode(VariableDeclareNode *vdn) {
+	if (vdn->vdn != NULL) {
+		destroyVariableDefineNode(vdn->vdn);
+	}
+	if (vdn->expr != NULL) {
+		destroyExpressionNode(vdn->expr);
+	}
+	free(vdn);
+}
+
+void destroyFunctionArgumentNode(FunctionArgumentNode *fan) {
+	if (fan->value != NULL) {
+		destroyExpressionNode(fan->value);
+	}
+	free(fan);
+}
+
+void destroyBlockNode(BlockNode *bn) {
+	if (bn->statements != NULL) {
+		vectorDestroy(bn->statements);
+	}
+	free(bn);
+}
+
+void destroyFunctionPrototypeNode(FunctionPrototypeNode *fpn) {
+	if (fpn->args != NULL) {
+		vectorDestroy(fpn->args);
+	}
+	free(fpn);
+}
+
+void destroyFunctionNode(FunctionNode *fn) {
+	if (fn->fpn != NULL) {
+		destroyFunctionPrototypeNode(fn->fpn);
+	}
+	if (fn->body != NULL) {
+		destroyBlockNode(fn->body);
+	}
+	free(fn);
+}
+
 /** END NODE FUNCTIONS */
 
 Parser *parserCreate(Vector *tokenStream) {
@@ -208,6 +263,7 @@ void parserParseVariable(Parser *parser) {
 		VariableDeclareNode *dec = createVariableDeclareNode();
 		dec->vdn = def;
 		dec->expr = expr;
+		prepareNode(parser, dec, VARIABLE_DEC_NODE);
 
 		// match a semi colon
 		parserMatchTypeAndContent(parser, SEPARATOR, ";");
@@ -223,6 +279,7 @@ void parserParseVariable(Parser *parser) {
 		VariableDefineNode *def = createVariableDefineNode();
 		def->type = dataTypeRaw;
 		def->name = variableNameToken;
+		prepareNode(parser, def, VARIABLE_DEF_NODE);
 
 		// print out for debug
 		printf("hey we've just parsed an %s definition!!!\nLet's see what's left...\n", variableDataType->content);
@@ -323,22 +380,12 @@ void parserParseFunctionPrototype(Parser *parser) {
 		FunctionNode *fn = createFunctionNode();
 		fn->fpn = fpn;
 		fn->body = body;
+		prepareNode(parser, fn, FUNCTION_NODE);
 
 		printf("we've finished parsing a function that returns %s\n", functionReturnType->content);
 	}
 	else {
 		printf("WHERES THE PARAMETER LIST LEBOWSKI?\n");
-	}
-
-	int i;
-	for (i = 0; i < fpn->args->size; i++) {
-		FunctionArgumentNode *arg = vectorGetItem(fpn->args, i);
-		char *content = arg->value != NULL ? arg->value->value->content : "NULL";
-		printf("%s %s = %s\n", DATA_TYPES[arg->type], arg->name->content, content);
-		if (arg->value != NULL) {
-			free(arg->value);
-		}
-		free(arg);
 	}
 }
 
@@ -392,17 +439,67 @@ DataType parserTokenTypeToDataType(Parser *parser, Token *tok) {
 	exit(1);
 }
 
+void prepareNode(Parser *parser, void *data, NodeType type) {
+	Node *node = malloc(sizeof(*node));
+	node->data = data;
+	node->type = type;
+	vectorPushBack(parser->parseTree, node);
+}
+
+void removeNode(Node *node) {
+	// todo switch to handle shit
+	switch (node->type) {
+		case EXPRESSION_NODE:
+			if (node->data != NULL)
+				destroyExpressionNode(node->data);
+			break;
+		case VARIABLE_DEF_NODE: 
+			if (node->data != NULL)
+				destroyVariableDefineNode(node->data);
+			break;
+		case VARIABLE_DEC_NODE:
+			if (node->data != NULL)
+				destroyVariableDeclareNode(node->data);
+			break;
+		case FUNCTION_ARG_NODE:
+			if (node->data != NULL)
+				destroyFunctionArgumentNode(node->data);
+			break;
+		case FUNCTION_NODE:
+			if (node->data != NULL)
+				destroyFunctionNode(node->data);
+			break;
+		case FUNCTION_PROT_NODE:
+			if (node->data != NULL)
+				destroyFunctionPrototypeNode(node->data);
+			break;
+		case BLOCK_NODE:
+			if (node->data != NULL)
+				destroyBlockNode(node->data);
+			break;
+		default:
+			printf("attempting to remove unrecognized node(%d)?\n", node->type);
+			break;
+	}
+	free(node);
+}
+
 void parserDestroy(Parser *parser) {
 	int i;
 	for (i = 0; i < parser->tokenStream->size; i++) {
 		Token *tok = vectorGetItem(parser->tokenStream, i);
-			
+
 		// then we destroy token
 		tokenDestroy(tok);
 	}
 
 	// destroy the token stream once we're done with it
 	vectorDestroy(parser->tokenStream);
+
+	for (i = 0; i < parser->parseTree->size; i++) {
+		Node *node = vectorGetItem(parser->parseTree, i);
+		removeNode(node);
+	}
 	vectorDestroy(parser->parseTree);
 
 	// finally destroy parser
