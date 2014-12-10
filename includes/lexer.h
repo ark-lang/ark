@@ -250,13 +250,12 @@ static inline bool isSeparator(char ch) 		{ return (strchr(" ;,.`@(){}[] ", ch) 
  */
 static bool isSpecialCharacter(char ch) {
 	int i = 128; // using 128 since the wave of weird looking characters begin at 128 in the ASCII table
-
 	for(i; i < 255; i++) {
-		if(ch == i) {
+		if (ch == i) {
 			return true;
-			break; // break out of the for loop
 		}
 	}
-} // end isSpecialCharacter
+	return false;
+}
 	
 #endif // LEXER_H
