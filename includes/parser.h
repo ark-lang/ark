@@ -24,6 +24,18 @@ typedef enum {
 	INTEGER, STR, DOUBLE, FLOAT, BOOL, VOID
 } DataType;
 
+typedef enum {
+	EXPRESSION_NODE, VARIABLE_DEF_NODE,
+	VARIABLE_DEC_NODE, FUNCTION_ARG_NODE,
+	FUNCTION_NODE, FUNCTION_PROT_NODE,
+	BLOCK_NODE
+} NodeType;
+
+typedef struct {
+	void *data;
+	NodeType type;
+} Node;
+
 /**
  * Node for an Expression
  */
@@ -146,6 +158,24 @@ FunctionNode *createFunctionNode();
  * fn whatever(int x, int y): int
  */
 FunctionPrototypeNode *createFunctionPrototypeNode();
+
+void destroyExpressionNode(ExpressionNode *expr);
+
+void destroyVariableDefineNode(VariableDefineNode *vdn);
+
+void destroyVariableDeclareNode(VariableDeclareNode *vdn);
+
+void destroyFunctionArgumentNode(FunctionArgumentNode *fan);
+
+void destroyBlockNode(BlockNode *bn);
+
+void destroyFunctionPrototypeNode(FunctionPrototypeNode *fpn);
+
+void destroyFunctionNode(FunctionNode *fn);
+
+void prepareNode(Parser *parser, void *data, NodeType type);
+
+void removeNode(Node *node);
 
 /**
  * Create a new Parser instance
