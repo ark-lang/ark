@@ -6,6 +6,11 @@ static char* TOKEN_NAMES[] = {
 	"STRING", "CHARACTER", "UNKNOWN"
 };
 
+static char* DATA_TYPES[] = {
+	"int", "str", "double", "float", "bool",
+	"void"
+};
+
 Parser *parserCreate(Vector *tokenStream) {
 	Parser *parser = malloc(sizeof(*parser));
 	if (!parser) {
@@ -172,13 +177,31 @@ void parserParseInteger(Parser *parser) {
 	}
 }
 
-Block parserParseblock(Parser *parser) {
-	// todo parse block
+Block *parserParseblock(Parser *parser) {
+	Block block;
+
+	parserMatchTypeAndContent(parser, SEPARATOR, "{");
+	
+	do {
+		printf("statement\n");
+		parserConsumeToken(parser);
+	}
+	while (parserTokenTypeAndContent(parser, SEPARATOR, "}", 0));
+
+	printCurrentToken(parser);
+	
+	return &block;
 }
 
 void parserParseFunctionPrototype(Parser *parser) {
 	parserMatchType(parser, IDENTIFIER);	// consume the fn keyword
+
 	Token *functionName = parserMatchType(parser, IDENTIFIER);
+	Vector *args = NULL;
+
+	FunctionPrototypeNode fpn;
+	fpn.args = args;
+	fpn.name = functionName;
 
 	// parameter list
 	if (parserTokenTypeAndContent(parser, SEPARATOR, "(", 0)) {
@@ -199,7 +222,13 @@ void parserParseFunctionPrototype(Parser *parser) {
 		Token *functionReturnType = parserMatchType(parser, IDENTIFIER);
 
 		// start block
-		Block block = parserParseBlock(parser);
+		Block *body = parserParseblock(parser);
+
+		FunctionNode fn;
+		fn.fpn = fpn;
+		fn.body = body;
+
+		printf("we've finished parsing a function omg\n");
 	}
 	else {
 		printf("WHERES THE PARAMETER LIST LEBOWSKI?\n");
@@ -225,6 +254,18 @@ void parserStartParsing(Parser *parser) {
 				break;
 		}
 	}
+}
+
+DataType parserTokenTypeToDataType(Parser *parser, Token *tok) {
+	int size = sizeof(DATA_TYPES) / sizeof(DATA_TYPES[0]);
+	int i;
+	for (i = 0; i < size; i++) {
+		if (!strcmp(tok->content, DATA_TYPES[i])) {
+			return i;
+		}
+	}
+	printf("Invalid data type %s!\n", tok->content);
+	exit(1);
 }
 
 void parserDestroy(Parser *parser) {
