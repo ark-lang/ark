@@ -15,6 +15,15 @@ static const char* DATA_TYPES[] = {
 
 /** UTILITY FOR NODES */
 
+FunctionCalleeNode *createFunctionCalleeNode() {
+	FunctionCalleeNode *fcn = malloc(sizeof(*fcn));
+	if (!fcn) {
+		perror("malloc: failed to allocate memory for FunctionCalleeNode");
+		exit(1);
+	}
+	return fcn;
+}
+
 ExpressionNode *createExpressionNode() {
 	ExpressionNode *expr = malloc(sizeof(*expr));
 	if (!expr) {
@@ -131,6 +140,13 @@ void destroyFunctionNode(FunctionNode *fn) {
 		destroyBlockNode(fn->body);
 	}
 	free(fn);
+}
+
+void destroyFunctionCalleeNode(FunctionCalleeNode *fcn) {
+	if (fcn->args != NULL) {
+		vectorDestroy(fcn->args);
+	}
+	free(fcn);
 }
 
 /** END NODE FUNCTIONS */
@@ -355,6 +371,12 @@ void parserParseFunctionPrototype(Parser *parser) {
 		parserConsumeToken(parser);
 
 		do {
+			// NO ARGUMENTS PROVIDED TO FUNCTION
+			if (parserTokenTypeAndContent(parser, SEPARATOR, ")", 0)) {
+				parserConsumeToken(parser);
+				break;
+			}
+
 			Token *argDataType = parserMatchType(parser, IDENTIFIER);
 			DataType argRawDataType = parserTokenTypeToDataType(parser, argDataType);
 			Token *argName = parserMatchType(parser, IDENTIFIER);
