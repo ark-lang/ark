@@ -380,6 +380,21 @@ BlockNode *parserParseBlock(Parser *parser);
 void parserParseFunctionPrototype(Parser *parser);
 
 /**
+ * Parses a function call
+ * 
+ * @param parser the parser instance
+ */
+void parserParseFunctionCall(Parser *parser);
+
+/**
+ * Parses statements, function calls, while
+ * loops, etc
+ * 
+ * @param parser the parser instance
+ */
+void parserParseStatements(Parser *parser);
+
+/**
  * Finds the appropriate Data Type from the given Token
  * will throw an error if invalid type
  * 
