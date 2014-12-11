@@ -446,6 +446,54 @@ void parserParseFunctionPrototype(Parser *parser) {
 	}
 }
 
+void parserParseFunctionCall(Parser *parser) {
+	// consume function name
+	Token *callee = parserMatchType(parser, IDENTIFIER);
+
+	if (parserTokenTypeAndContent(parser, SEPARATOR, "(", 0)) {
+		parserConsumeToken(parser);	// eat open bracket
+
+		Vector *args = vectorCreate();
+
+		do {
+			// NO ARGUMENTS PROVIDED TO FUNCTION
+			if (parserTokenTypeAndContent(parser, SEPARATOR, ")", 0)) {
+				parserConsumeToken(parser);
+				break;
+			}
+
+			Token *argDataType = parserMatchType(parser, IDENTIFIER);
+			DataType argRawDataType = parserTokenTypeToDataType(parser, argDataType);
+			Token *argName = parserMatchType(parser, IDENTIFIER);
+
+			FunctionArgumentNode *arg = createFunctionArgumentNode();
+			arg->type = argRawDataType;
+			arg->name = argName;
+			arg->value = NULL;
+
+			if (parserTokenTypeAndContent(parser, SEPARATOR, ",", 0)) {
+				if (parserTokenTypeAndContent(parser, SEPARATOR, ")", 1)) {
+					printf("OMG A TRAILING COMMA\n");
+					exit(1);
+				}
+				parserConsumeToken(parser); // eat the comma
+				vectorPushBack(args, arg);
+			}
+			else if (parserTokenTypeAndContent(parser, SEPARATOR, ")", 0)) {
+				parserConsumeToken(parser); // eat closing parenthesis
+				vectorPushBack(args, arg);
+				break;
+			}
+		}
+		while (true);
+
+		FunctionCalleeNode *fcn = createFunctionCalleeNode();
+		fcn->callee = callee;
+		fcn->args = args;
+		prepareNode(parser, fcn, FUNCTION_CALLEE_NODE);
+	}
+}
+
 void parserStartParsing(Parser *parser) {
 	while (parser->parsing) {
 		// get current token
@@ -504,39 +552,32 @@ void prepareNode(Parser *parser, void *data, NodeType type) {
 }
 
 void removeNode(Node *node) {
-	// todo switch to handle shit
-	switch (node->type) {
-		case EXPRESSION_NODE:
-			if (node->data != NULL)
+	/**
+	 * This could probably be a lot more cleaner
+	 */
+	if (node->data != NULL) {
+		switch (node->type) {
+			case EXPRESSION_NODE:
 				destroyExpressionNode(node->data);
-			break;
-		case VARIABLE_DEF_NODE: 
-			if (node->data != NULL)
+			case VARIABLE_DEF_NODE: 
 				destroyVariableDefineNode(node->data);
-			break;
-		case VARIABLE_DEC_NODE:
-			if (node->data != NULL)
+			case VARIABLE_DEC_NODE:
 				destroyVariableDeclareNode(node->data);
-			break;
-		case FUNCTION_ARG_NODE:
-			if (node->data != NULL)
+			case FUNCTION_ARG_NODE:
 				destroyFunctionArgumentNode(node->data);
-			break;
-		case FUNCTION_NODE:
-			if (node->data != NULL)
+			case FUNCTION_NODE:
 				destroyFunctionNode(node->data);
-			break;
-		case FUNCTION_PROT_NODE:
-			if (node->data != NULL)
+			case FUNCTION_PROT_NODE:
 				destroyFunctionPrototypeNode(node->data);
-			break;
-		case BLOCK_NODE:
-			if (node->data != NULL)
+			case BLOCK_NODE:
 				destroyBlockNode(node->data);
-			break;
-		default:
-			printf("attempting to remove unrecognized node(%d)?\n", node->type);
-			break;
+			case FUNCTION_CALLEE_NODE:
+				destroyFunctionCalleeNode(node->data);
+				break;
+			default:
+				printf("attempting to remove unrecognized node(%d)?\n", node->type);
+				break;
+		}
 	}
 	free(node);
 }
