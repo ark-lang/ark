@@ -83,6 +83,14 @@ typedef struct {
 } FunctionArgumentNode;
 
 /**
+ * Function call
+ */
+typedef struct {
+	Token *callee;
+	Vector *args;
+} FunctionCalleeNode;
+
+/**
  * Node which represents a block of statements
  */
 typedef struct {
@@ -108,6 +116,8 @@ typedef struct {
 	FunctionPrototypeNode *fpn;
 	BlockNode *body;
 } FunctionNode;
+
+FunctionCalleeNode *createFunctionCalleeNode();
 
 /**
  * Creates a new Expression Node
@@ -166,6 +176,8 @@ FunctionNode *createFunctionNode();
  * fn whatever(int x, int y): int
  */
 FunctionPrototypeNode *createFunctionPrototypeNode();
+
+void destroyFunctionCalleeNode(FunctionCalleeNode *fcn);
 
 /**
  * Destroy an Expression Node
