@@ -468,14 +468,10 @@ void parserParseFunctionCall(Parser *parser) {
 				break;
 			}
 
-			Token *argDataType = parserMatchType(parser, IDENTIFIER);
-			DataType argRawDataType = parserTokenTypeToDataType(parser, argDataType);
-			Token *argName = parserMatchType(parser, IDENTIFIER);
+			ExpressionNode *expr = parserParseExpression(parser);
 
 			FunctionArgumentNode *arg = createFunctionArgumentNode();
-			arg->type = argRawDataType;
-			arg->name = argName;
-			arg->value = NULL;
+			arg->value = expr;
 
 			if (parserTokenTypeAndContent(parser, SEPARATOR, ",", 0)) {
 				if (parserTokenTypeAndContent(parser, SEPARATOR, ")", 1)) {
@@ -514,7 +510,6 @@ void parserParseStatements(Parser *parser) {
 	if (parserTokenType(parser, IDENTIFIER, 0)) {
 		if (parserTokenTypeAndContent(parser, SEPARATOR, "(", 1)) {
 			parserParseFunctionCall(parser);
-			printf("good enough for me\n");
 		}
 	}
 }
