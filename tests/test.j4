@@ -13,6 +13,4 @@ fn something_else(): void {
 
 fn main(): void {
 	something_else();
-
-	func_name(5, 5);
 }
