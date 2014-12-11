@@ -11,7 +11,7 @@ Scanner *scannerCreate() {
 }
 
 void scannerReadFile(Scanner *scanner, const char* fileName) {
-	FILE *file = fopen(fileName, "r");
+	FILE *file = fopen(fileName, "rb");
 
 	if (file) {
 		if (!fseek(file, 0, SEEK_END)) {
