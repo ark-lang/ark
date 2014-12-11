@@ -349,9 +349,15 @@ BlockNode *parserParseBlock(Parser *parser) {
 	parserMatchTypeAndContent(parser, SEPARATOR, "{");
 	
 	do {
-		parserConsumeToken(parser);
+		parserParseStatements(parser);
+		
+		if (parserTokenTypeAndContent(parser, SEPARATOR, "}", 0)) {
+			parserConsumeToken(parser);
+			printf("finished parsing statements\n");
+			break;
+		}
 	}
-	while (parserTokenTypeAndContent(parser, SEPARATOR, "}", 0));
+	while (true);
 
 	return block;
 }
@@ -487,10 +493,29 @@ void parserParseFunctionCall(Parser *parser) {
 		}
 		while (true);
 
+		// consume semi colon
+		parserMatchTypeAndContent(parser, SEPARATOR, ";");
+
+		// woo we got the function
 		FunctionCalleeNode *fcn = createFunctionCalleeNode();
 		fcn->callee = callee;
 		fcn->args = args;
 		prepareNode(parser, fcn, FUNCTION_CALLEE_NODE);
+	}
+}
+
+void parserParseStatements(Parser *parser) {
+	/**
+	 * todo: if it's not a while loop or all that
+	 * kinda shit, check for function call, if it
+	 * isnt a function call, throw an error.
+	 * For now, this will do
+	 */
+	if (parserTokenType(parser, IDENTIFIER, 0)) {
+		if (parserTokenTypeAndContent(parser, SEPARATOR, "(", 1)) {
+			parserParseFunctionCall(parser);
+			printf("good enough for me\n");
+		}
 	}
 }
 
