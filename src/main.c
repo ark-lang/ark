@@ -16,6 +16,10 @@ int main(int argc, char** argv) {
 	// jayfor stuff
 	Jayfor *jayfor = jayforCreate(argc, argv);
 	jayforStart(jayfor);
+
+	printf("THIS IS THE FILE CONTENT BITCH:\n");
+	printf("%s\n\n\n", jayfor->scanner->content);
+
 	jayforDestroy(jayfor);
 
 	// calculate time
