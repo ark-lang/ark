@@ -553,15 +553,7 @@ void parserStartParsing(Parser *parser) {
 					parserParseVariable(parser);
 				}
 				else {
-					printf("\n\n");
 					printf("Unrecognized identifier found: `%s`\n", tok->content);
-					int i;
-					for (i = 0; i < parser->tokenStream->size; i++) {
-						Token *tok = vectorGetItem(parser->tokenStream, i);
-						printf("%s, ", tok->content);
-						if (i % 25 == 0) printf("\n");
-					}
-					printf("\n");
 					exit(1);
 				}
 				break;
