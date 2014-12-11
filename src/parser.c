@@ -584,18 +584,25 @@ void removeNode(Node *node) {
 		switch (node->type) {
 			case EXPRESSION_NODE:
 				destroyExpressionNode(node->data);
+				break;
 			case VARIABLE_DEF_NODE: 
 				destroyVariableDefineNode(node->data);
+				break;
 			case VARIABLE_DEC_NODE:
 				destroyVariableDeclareNode(node->data);
+				break;
 			case FUNCTION_ARG_NODE:
 				destroyFunctionArgumentNode(node->data);
+				break;
 			case FUNCTION_NODE:
 				destroyFunctionNode(node->data);
+				break;
 			case FUNCTION_PROT_NODE:
 				destroyFunctionPrototypeNode(node->data);
+				break;
 			case BLOCK_NODE:
 				destroyBlockNode(node->data);
+				break;
 			case FUNCTION_CALLEE_NODE:
 				destroyFunctionCalleeNode(node->data);
 				break;
