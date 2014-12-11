@@ -18,7 +18,7 @@ int main(int argc, char** argv) {
 	jayforStart(jayfor);
 
 	printf("THIS IS THE FILE CONTENT BITCH:\n");
-	printf("%s\n\n\n", jayfor->scanner->content);e
+	printf("%s\n\n\n", jayfor->scanner->contents);
 
 	jayforDestroy(jayfor);
 
