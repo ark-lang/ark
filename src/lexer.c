@@ -43,7 +43,7 @@ void lexerNextChar(Lexer *lexer) {
 }
 
 char* lexerFlushBuffer(Lexer *lexer, int start, int length) {
-	char* result;
+	char* result = NULL;
 	strncpy(result = malloc(length + 1), &lexer->input[start], length);
 	if (!result) { 
 		perror("malloc: failed to allocate memory for buffer flush"); 
