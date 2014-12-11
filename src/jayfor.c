@@ -12,6 +12,13 @@ Jayfor *jayforCreate(int argc, char** argv) {
 		perror("malloc: failed to allocate memory for JAYFOR");
 		exit(1);
 	}
+	
+	// just in case.
+	jayfor->scanner = NULL;
+	jayfor->lexer = NULL;
+	jayfor->parser = NULL;
+
+	// start actual useful shit here
 	jayfor->scanner = scannerCreate();
 
 	// assume second argument is a file name

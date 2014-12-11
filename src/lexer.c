@@ -7,7 +7,12 @@ static const char* TOKEN_NAMES[] = {
 };
 
 Token *tokenCreate() {
-	return malloc(sizeof(Token));
+	Token *token = malloc(sizeof(*token));
+	if (!token) {
+		perror("malloc: failed to allocate memory for token");
+		exit(1);
+	}
+	return token;
 }
 
 const char* getTokenName(Token *tok) {
