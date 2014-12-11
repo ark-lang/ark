@@ -1,6 +1,8 @@
 int x = 5;
 int y = 10;
 
+
+
 fn func_name(double y, int x, int zxasdfqasd_asd = 123): int {
 			
 }
@@ -10,5 +12,7 @@ fn something_else(): void {
 }
 
 fn main(): void {
+	something_else();
 
+	func_name(5, 5);
 }
