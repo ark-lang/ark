@@ -3,11 +3,12 @@ Jayfor is a programming language written in C.
 
 # Table of Contents
 * [About](#about)
+* [IRC](#irc)
 * [License](#license)
 * [Building](#building)
 * [Goals](#goals)
 
-# IRC
+# <a name="irc"></a>IRC
 We just setup an IRC chat. Come join us:
 
 	server:  irc.freenode.net
