@@ -7,6 +7,13 @@ Jayfor is a programming language written in C.
 * [Building](#building)
 * [Goals](#goals)
 
+# IRC
+We just setup an IRC chat. Come join us:
+
+	server:  irc.freenode.net
+	port:    8001
+	channel: #jayfor-dev
+
 # <a name="about"></a>About
 Jayfor is a programming language written in C. It is still under
 heavy development. Jayfor is influenced from languages like Rust,
