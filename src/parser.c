@@ -285,9 +285,8 @@ ExpressionNode *parserParseExpression(Parser *parser) {
 		expr->value = parserConsumeToken(parser);
 		return expr;
 	}
-
 	// string literal
-	if (parserTokenType(parser, STRING, 0)) {
+	else if (parserTokenType(parser, STRING, 0)) {
 		expr->type = 'S';
 		expr->value = parserConsumeToken(parser);
 		return expr;
