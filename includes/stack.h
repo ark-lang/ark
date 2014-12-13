@@ -38,6 +38,15 @@ Stack *stackCreate();
 void stackPush(Stack *stack, StackItem item);
 
 /**
+ * Retrieve the value at the given index
+ * 
+ * @param stack the stack to retrieve from
+ * @param index the index to check
+ * @return the item at the given @{index}
+ */
+StackItem stackGet(Stack *stack, int index);
+
+/**
  * Pops value from top of stack
  * 
  * @param stack the stack to pop
