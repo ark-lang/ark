@@ -13,7 +13,7 @@ We just setup an IRC chat. Come join us:
 
 	server:  irc.freenode.net
 	port:    8001
-	channel: #jayfor-dev
+	channel: ##jayfor
 
 # <a name="about"></a>About
 Jayfor is a programming language written in C. It is still under
