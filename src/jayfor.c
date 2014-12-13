@@ -37,15 +37,6 @@ void jayforStart(Jayfor *jayfor) {
 		lexerGetNextToken(jayfor->lexer);
 	}
 
-	printf("\nstart:\n");
-	int i;
-	for (i = 0; i < jayfor->lexer->tokenStream->size; i++) {
-		Token *tok = vectorGetItem(jayfor->lexer->tokenStream, i);
-		printf("%s ", tok->content);
-	}
-	printf("\nfinished \n");
-	exit(1);
-
 	// initialise parser after we tokenize
 	jayfor->parser = parserCreate(jayfor->lexer->tokenStream);
 
