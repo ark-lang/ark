@@ -21,7 +21,8 @@ typedef struct {
  * Different data types
  */
 typedef enum {
-	INTEGER, STR, DOUBLE, FLOAT, BOOL, VOID
+	INTEGER, STR, DOUBLE, FLOAT, BOOL, VOID,
+	CHAR
 } DataType;
 
 /**

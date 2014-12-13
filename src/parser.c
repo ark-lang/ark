@@ -10,7 +10,7 @@ static const char* TOKEN_NAMES[] = {
 /** List of data types */
 static const char* DATA_TYPES[] = {
 	"int", "str", "double", "float", "bool",
-	"void"
+	"void", "char"
 };
 
 static const char* NODE_NAMES[] = {
@@ -357,8 +357,14 @@ ExpressionNode *parserParseExpression(Parser *parser) {
 		expr->value = parserConsumeToken(parser);
 		return expr;
 	}
+	// character
+	if (parserTokenType(parser, CHARACTER, 0)) {
+		expr->type = 'C';
+		expr->value = parserConsumeToken(parser);
+		return expr;
+	}
 
-	printf(KRED "error: failed to parse expression, STRING & NUMBER only supported\n" KNRM);
+	printf(KRED "error: failed to parse expression, only character, string and numbers are supported\n" KNRM);
 	exit(1);
 }
 
