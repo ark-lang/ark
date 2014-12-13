@@ -48,10 +48,13 @@ typedef struct {
 /**
  * Node for an Expression
  */
-typedef struct {
+typedef struct s_Expression {
 	char type;
 	Token *value;
-	Stack *postfix;	
+	
+	struct s_Expression *lhand;
+	char operand;
+	struct s_Expression *rhand;
 } ExpressionNode;
 
 /**
