@@ -4,6 +4,7 @@
 #include <stdlib.h>
 
 #include "lexer.h"
+#include "stack.h"
 #include "util.h"
 #include "vector.h"
 
@@ -47,13 +48,10 @@ typedef struct {
 /**
  * Node for an Expression
  */
-typedef struct s_Expression {
+typedef struct {
 	char type;
 	Token *value;
-	
-	struct s_Expression *leftHand;
-	char operand;
-	struct s_Expression *rightHand;
+	Stack *postfix;	
 } ExpressionNode;
 
 /**
