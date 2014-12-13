@@ -92,10 +92,6 @@ void lexerSkipLayoutAndComment(Lexer *lexer) {
 		}
 	}
 
-	while (isLayout(lexer->charIndex)) {
-		lexerNextChar(lexer);
-	}
-
 	while (lexer->charIndex == '/' && lexerPeekAhead(lexer, 1) == '/') {
 		lexerNextChar(lexer);	// eat the /
 		lexerNextChar(lexer);	// eat the /

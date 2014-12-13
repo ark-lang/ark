@@ -1,13 +1,3 @@
-/*
-	block comment
-	test
-	int x = 5;
-	fn main(int whatever): int {
-
-		ret 5;
-	}
-*/
-
 // this is a comment
 
 // and another
@@ -16,7 +6,9 @@
 
 // asdfasdf asdf asdf
 
-fn main(): void {
+// BLOCK COMMENTS DONT WORK TOO WELL!
+
+fn main(): void {  // comment
 	int x = 5; // amazing
-	ret 6;
-}
+	ret 6; // comment
+}  // comment
