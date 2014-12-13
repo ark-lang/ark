@@ -2,10 +2,14 @@
 #define PARSER_H
 
 #include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <ctype.h>
 
 #include "lexer.h"
 #include "util.h"
 #include "vector.h"
+#include "hashmap.h"
 
 /**
  * Parser contents
@@ -13,6 +17,7 @@
 typedef struct {
 	Vector *tokenStream;
 	Vector *parseTree;
+
 	int tokenIndex;
 	bool parsing;
 } Parser;
@@ -135,6 +140,10 @@ typedef struct {
 	BlockNode *body;
 	FunctionReturnNode *ret;
 } FunctionNode;
+
+int parserGetTokenPrecedence(Parser *parser);
+
+ExpressionNode *parserParseBinaryOperatorRHS(Parser *parser, int prec, ExpressionNode *lhs);
 
 /**
  * Create a new  Function Callee Node
