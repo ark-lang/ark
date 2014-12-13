@@ -1,15 +1,17 @@
 int x = 5;
 int y = 10;
-
 int test = 10;
 
 fn func_name(double y, int x, int zxasdfqasd_asd = 123): int {
-	
+	int fuck = "wow this is SO VALID!";
+	something_else();
+	ret "amazing";
 }
 
 fn something_else(): void {
 	int x = 5;
 	int y = 10;
+	int z = "fuck the police";
 }
 
 fn main(): void {
