@@ -18,7 +18,8 @@ static const char* DATA_TYPES[] = {
 ExpressionNode *createExpressionNode() {
 	ExpressionNode *expr = malloc(sizeof(*expr));
 	expr->value = NULL;
-	expr->postfix = NULL;
+	expr->lhand = NULL;
+	expr->rhand = NULL;
 
 	if (!expr) {
 		perror("malloc: failed to allocate memory for ExpressionNode");
@@ -110,8 +111,11 @@ FunctionNode *createFunctionNode() {
 }
 
 void destroyExpressionNode(ExpressionNode *expr) {
-	if (expr->postfix != NULL) {
-		stackDestroy(expr->postfix);
+	if (expr->lhand != NULL) {
+		destroyExpressionNode(expr->lhand);
+	}
+	if (expr->rhand != NULL) {
+		destroyExpressionNode(expr->rhand);
 	}
 	free(expr);
 }
@@ -277,7 +281,6 @@ ExpressionNode *parserParseExpression(Parser *parser) {
 
 	// number literal
 	if (parserTokenType(parser, NUMBER, 0)) {
-		printCurrentToken(parser);
 		expr->type = 'N';
 		expr->value = parserConsumeToken(parser);
 		return expr;
