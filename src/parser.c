@@ -358,12 +358,13 @@ BlockNode *parserParseBlock(Parser *parser) {
 	parserMatchTypeAndContent(parser, SEPARATOR, "{");
 	
 	do {
-		parserParseStatements(parser);
-		
+		// check if block is empty before we try parse some statements
 		if (parserTokenTypeAndContent(parser, SEPARATOR, "}", 0)) {
 			parserConsumeToken(parser);
 			break;
 		}
+
+		parserParseStatements(parser);
 	}
 	while (true);
 
@@ -512,12 +513,22 @@ void parserParseReturnStatement(Parser *parser) {
 }
 
 void parserParseStatements(Parser *parser) {
-	/**
-	 * todo: if it's not a while loop or all that
-	 * kinda shit, check for function call, if it
-	 * isnt a function call, throw an error.
-	 * For now, this will do
-	 */
+	// ret keyword	
+	if (parserTokenTypeAndContent(parser, IDENTIFIER, "ret", 0)) {
+		printf("swag\n");
+	}
+	else if (parserTokenType(parser, IDENTIFIER, 0)) {
+		if (parserTokenTypeAndContent(parser, SEPARATOR, "(", 1)) {
+			parserParseFunctionCall(parser);
+		}
+		else {
+			printf("no function what is this\n");
+		}
+	}
+	else {
+		Token *tok = parserPeekAhead(parser, 0);
+		printf("error: unrecognized token %s(%s)\n", tok->content, TOKEN_NAMES[tok->type]);
+	}
 }
 
 void parserStartParsing(Parser *parser) {
