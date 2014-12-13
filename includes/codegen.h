@@ -2,6 +2,8 @@
 #define CODEGEN_H
 
 #include <llvm-c/Core.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 typedef struct {
 	LLVMModuleRef module;
