@@ -12,5 +12,5 @@ fn something_else(): void {
 }
 
 fn main(): void {
-	main();
+	something_else();
 }
