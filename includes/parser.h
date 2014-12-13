@@ -29,10 +29,11 @@ typedef enum {
  * to be stored on Node Vector
  */
 typedef enum {
-	EXPRESSION_NODE, VARIABLE_DEF_NODE,
+	UNSET_NODE, EXPRESSION_NODE, VARIABLE_DEF_NODE,
 	VARIABLE_DEC_NODE, FUNCTION_ARG_NODE,
 	FUNCTION_NODE, FUNCTION_PROT_NODE,
-	BLOCK_NODE, FUNCTION_CALLEE_NODE
+	BLOCK_NODE, FUNCTION_CALLEE_NODE,
+	FUNCTION_RET_NODE
 } NodeType;
 
 /**
@@ -83,12 +84,28 @@ typedef struct {
 } FunctionArgumentNode;
 
 /**
+ * Function Return Node
+ */
+typedef struct {
+	ExpressionNode *expr;
+} FunctionReturnNode;
+
+/**
  * Function call
  */
 typedef struct {
 	Token *callee;
 	Vector *args;
 } FunctionCalleeNode;
+
+/**
+ * A node for containing and identifying
+ * statements
+ */
+typedef struct {
+	void *data;
+	NodeType type;
+} StatementNode;
 
 /**
  * Node which represents a block of statements
@@ -115,9 +132,14 @@ typedef struct {
 typedef struct {
 	FunctionPrototypeNode *fpn;
 	BlockNode *body;
+	FunctionReturnNode *ret;
 } FunctionNode;
 
 FunctionCalleeNode *createFunctionCalleeNode();
+
+FunctionReturnNode *createFunctionReturnNode();
+
+StatementNode *createStatementNode();
 
 /**
  * Creates a new Expression Node
@@ -176,6 +198,10 @@ FunctionNode *createFunctionNode();
  * fn whatever(int x, int y): int
  */
 FunctionPrototypeNode *createFunctionPrototypeNode();
+
+void destroyStatementNode(StatementNode *sn);
+
+void destroyFunctionReturnNode(FunctionReturnNode *frn);
 
 void destroyFunctionCalleeNode(FunctionCalleeNode *fcn);
 
@@ -362,8 +388,9 @@ void printCurrentToken(Parser *parser);
  * Parses a variable
  * 
  * @param param the parser instance
+ * @param global if the variable is globally declared
  */
-void parserParseVariable(Parser *parser);
+void *parserParseVariable(Parser *parser, bool global);
 
 /**
  * Parses a block of statements
@@ -377,14 +404,14 @@ BlockNode *parserParseBlock(Parser *parser);
  * 
  * @param parser the parser instance
  */
-void parserParseFunctionPrototype(Parser *parser);
+FunctionNode *parserParseFunction(Parser *parser);
 
 /**
  * Parses a function call
  * 
  * @param parser the parser instance
  */
-void parserParseFunctionCall(Parser *parser);
+FunctionCalleeNode *parserParseFunctionCall(Parser *parser);
 
 /**
  * Parses statements, function calls, while
@@ -392,7 +419,7 @@ void parserParseFunctionCall(Parser *parser);
  * 
  * @param parser the parser instance
  */
-void parserParseStatements(Parser *parser);
+StatementNode *parserParseStatements(Parser *parser);
 
 /**
  * Finds the appropriate Data Type from the given Token
