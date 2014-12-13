@@ -13,6 +13,14 @@ static const char* DATA_TYPES[] = {
 	"void"
 };
 
+static const char* NODE_NAMES[] = {
+	"expression_node", "variable_def_node",
+	"variable_dec_node", "function_arg_node",
+	"function_node", "function_prot_node",
+	"block_node", "function_callee_node",
+	"function_ret_node"
+};
+
 /** UTILITY FOR NODES */
 
 StatementNode *createStatementNode() {
@@ -443,6 +451,13 @@ BlockNode *parserParseBlock(Parser *parser) {
 	}
 	while (true);
 
+	int i;
+	for (i = 0; i < block->statements->size; i++) {
+		StatementNode *sn = vectorGetItem(block->statements, i);
+		printf("vector at %d = %s\n", i, NODE_NAMES[sn->type]);
+	}
+	printf("\n");
+
 	return block;
 }
 
@@ -615,9 +630,6 @@ StatementNode *parserParseStatements(Parser *parser) {
 
 		// function call
 		if (parserTokenTypeAndContent(parser, SEPARATOR, "(", 1)) {
-			Token *tok = parserPeekAhead(parser, 0);
-			printf("parsing function call to %s\n", tok->content);
-
 			StatementNode *sn = createStatementNode();
 			sn->data = parserParseFunctionCall(parser);
 			sn->type = FUNCTION_CALLEE_NODE;
