@@ -16,6 +16,10 @@ Stack *stackCreate() {
 	return stack;
 }
 
+StackItem stackGet(Stack *stack, int index) {
+	return stack->items[index];
+}
+
 void stackPush(Stack *stack, StackItem item) {
 	// much more efficient to reallocate exponentially,
 	// instead of reallocating after adding an item
