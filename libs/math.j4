@@ -8,7 +8,7 @@
 # 	Felix A  - freefouran[at]gmail.com
 # 	Vedant N - captainchloride[at]gmail.com
 
-const double PI = 3.14159265358979323846264338327950288;
+double PI = 3.14159265358979323846264338327950288;
 
 fn toRadians(double degrees): double {
 	ret degrees * PI / 180;
