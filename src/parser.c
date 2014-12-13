@@ -292,8 +292,7 @@ ExpressionNode *parserParseExpression(Parser *parser) {
 		return expr;
 	}
 
-	printf("failed to parse expression, we found this:\n");
-	printCurrentToken(parser);
+	printf("error: failed to parse expression, STRING & NUMBER only supported\n");
 	exit(1);
 }
 
@@ -335,9 +334,6 @@ void parserParseVariable(Parser *parser) {
 
 		// match a semi colon
 		parserMatchTypeAndContent(parser, SEPARATOR, ";");
-
-		// print out for debug
-		printf("just parsed an %s declaration!!\nLet's see what we missed:\n", variableDataType->content);
 	}
 	else if (parserTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
 		// consume the semi colon
@@ -348,14 +344,10 @@ void parserParseVariable(Parser *parser) {
 		def->type = dataTypeRaw;
 		def->name = variableNameToken;
 		prepareNode(parser, def, VARIABLE_DEF_NODE);
-
-		// print out for debug
-		printf("hey we've just parsed an %s definition!!!\nLet's see what's left...\n", variableDataType->content);
 	}
 	else {
 		// error message
-		printf("missing a semi colon or assignment, found\n");
-		printCurrentToken(parser);
+		printf("error: missing a semi colon or assignment\n");
 		exit(1);
 	}
 }
@@ -370,7 +362,6 @@ BlockNode *parserParseBlock(Parser *parser) {
 		
 		if (parserTokenTypeAndContent(parser, SEPARATOR, "}", 0)) {
 			parserConsumeToken(parser);
-			printf("finished parsing statements\n");
 			break;
 		}
 	}
@@ -427,7 +418,7 @@ void parserParseFunctionPrototype(Parser *parser) {
 			}
 			else if (parserTokenTypeAndContent(parser, SEPARATOR, ",", 0)) {
 				if (parserTokenTypeAndContent(parser, SEPARATOR, ")", 1)) {
-					printf("OMG A TRAILING COMMA\n");
+					printf("error: trailing comma at the end of argument list\n");
 					exit(1);
 				}
 				parserConsumeToken(parser); // eat the comma
@@ -461,11 +452,10 @@ void parserParseFunctionPrototype(Parser *parser) {
 		fn->fpn = fpn;
 		fn->body = body;
 		prepareNode(parser, fn, FUNCTION_NODE);
-
-		printf("we've finished parsing a function that returns %s\n", functionReturnType->content);
 	}
 	else {
-		printf("WHERES THE PARAMETER LIST LEBOWSKI?\n");
+		printf("error: no parameter list provided\n");
+		exit(1);
 	}
 }
 
@@ -492,7 +482,7 @@ void parserParseFunctionCall(Parser *parser) {
 
 			if (parserTokenTypeAndContent(parser, SEPARATOR, ",", 0)) {
 				if (parserTokenTypeAndContent(parser, SEPARATOR, ")", 1)) {
-					printf("OMG A TRAILING COMMA\n");
+					printf("error: trailing comma at the end of argument list\n");
 					exit(1);
 				}
 				parserConsumeToken(parser); // eat the comma
@@ -528,22 +518,7 @@ void parserParseStatements(Parser *parser) {
 	 * isnt a function call, throw an error.
 	 * For now, this will do
 	 */
-	Token *tok = parserConsumeToken(parser);
-
-	switch (tok->type) {
-		case IDENTIFIER:
-			// return
-			if (!strcmp(tok->content, "ret")) {
-				parserParseReturnStatement(parser);
-			}
-			// else if (parserTokenTypeAndContent(parser, SEPARATOR, "(", 1)) {
-			// 	parserParseFunctionCall(parser);
-			// }
-			else {
-				printf("what is this? %s\n", tok->content);
-			}
-			break;
-	}
+	 printCurrentToken(parser);
 }
 
 void parserStartParsing(Parser *parser) {
@@ -562,7 +537,7 @@ void parserStartParsing(Parser *parser) {
 					parserParseVariable(parser);
 				}
 				else {
-					printf("Unrecognized identifier found: `%s`\n", tok->content);
+					printf("error: unrecognized identifier found: `%s`\n", tok->content);
 					exit(1);
 				}
 				break;
@@ -592,7 +567,7 @@ DataType parserTokenTypeToDataType(Parser *parser, Token *tok) {
 			return i;
 		}
 	}
-	printf("Invalid data type %s!\n", tok->content);
+	printf("error: invalid data type specified: %s!\n", tok->content);
 	exit(1);
 }
 
