@@ -8,9 +8,10 @@ fn func_name(double y, int x, int zxasdfqasd_asd = 123): int {
 }
 
 fn something_else(): void {
-
+	int x = 5;
 }
 
 fn main(): void {
+	func_name(10, 15, 23);
 	something_else();
 }

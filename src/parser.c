@@ -15,6 +15,27 @@ static const char* DATA_TYPES[] = {
 
 /** UTILITY FOR NODES */
 
+StatementNode *createStatementNode() {
+	StatementNode *sn = malloc(sizeof(*sn));
+	sn->data = NULL;
+	sn->type = 0;
+	if (!sn) {
+		perror("malloc: failed to allocate memory for Statement Node");
+		exit(1);
+	}
+	return sn;
+}
+
+FunctionReturnNode *createFunctionReturnNode() {
+	FunctionReturnNode *frn = malloc(sizeof(*frn));
+	frn->expr = NULL;
+	if (!frn) {
+		perror("malloc: failed to allocate memory for Function Return Node");
+		exit(1);
+	}
+	return frn;
+}
+
 ExpressionNode *createExpressionNode() {
 	ExpressionNode *expr = malloc(sizeof(*expr));
 	expr->value = NULL;
@@ -110,6 +131,35 @@ FunctionNode *createFunctionNode() {
 	return fn;
 }
 
+void destroyStatementNode(StatementNode *sn) {
+	if (sn->data != NULL) {
+		switch (sn->type) {
+			case VARIABLE_DEF_NODE:
+				destroyVariableDefineNode(sn->data);
+				break;
+			case VARIABLE_DEC_NODE:
+				destroyVariableDeclareNode(sn->data);
+				break;
+			case FUNCTION_CALLEE_NODE:
+				destroyFunctionCalleeNode(sn->data);
+				break;
+			case FUNCTION_RET_NODE:
+				destroyFunctionNode(sn->data);
+				break;
+			default:
+				break;
+		}
+	}
+	free(sn);
+}
+
+void destroyFunctionReturnNode(FunctionReturnNode *frn) {
+	if (frn->expr != NULL) {
+		destroyExpressionNode(frn->expr);
+	}
+	free(frn);
+}
+
 void destroyExpressionNode(ExpressionNode *expr) {
 	if (expr->lhand != NULL) {
 		destroyExpressionNode(expr->lhand);
@@ -150,6 +200,11 @@ void destroyBlockNode(BlockNode *bn) {
 
 void destroyFunctionPrototypeNode(FunctionPrototypeNode *fpn) {
 	if (fpn->args != NULL) {
+		int i;
+		for (i = 0; i < fpn->args->size; i++) {
+			StatementNode *sn = vectorGetItem(fpn->args, i);
+			destroyStatementNode(sn);
+		}
 		vectorDestroy(fpn->args);
 	}
 	free(fpn);
@@ -161,6 +216,9 @@ void destroyFunctionNode(FunctionNode *fn) {
 	}
 	if (fn->body != NULL) {
 		destroyBlockNode(fn->body);
+	}
+	if (fn->ret != NULL) {
+		destroyFunctionReturnNode(fn->ret);
 	}
 	free(fn);
 }
@@ -301,7 +359,7 @@ void printCurrentToken(Parser *parser) {
 	printf(KYEL "current token is type: %s, value: %s\n" KNRM, TOKEN_NAMES[tok->type], tok->content);
 }
 
-void parserParseVariable(Parser *parser) {
+void *parserParseVariable(Parser *parser, bool global) {
 	// TYPE NAME = 5;
 	// TYPE NAME;
 
@@ -330,10 +388,18 @@ void parserParseVariable(Parser *parser) {
 		VariableDeclareNode *dec = createVariableDeclareNode();
 		dec->vdn = def;
 		dec->expr = expr;
-		prepareNode(parser, dec, VARIABLE_DEC_NODE);
 
 		// match a semi colon
 		parserMatchTypeAndContent(parser, SEPARATOR, ";");
+
+		if (global) {
+			prepareNode(parser, dec, VARIABLE_DEC_NODE);
+			return dec;
+		}
+		StatementNode *sn = createStatementNode();
+		sn->data = dec;
+		sn->type = VARIABLE_DEC_NODE;
+		return sn;
 	}
 	else if (parserTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
 		// consume the semi colon
@@ -343,7 +409,15 @@ void parserParseVariable(Parser *parser) {
 		VariableDefineNode *def = createVariableDefineNode();
 		def->type = dataTypeRaw;
 		def->name = variableNameToken;
-		prepareNode(parser, def, VARIABLE_DEF_NODE);
+		
+		if (global) {
+			prepareNode(parser, def, VARIABLE_DEF_NODE);
+			return def;
+		}
+		StatementNode *sn = createStatementNode();
+		sn->data = def;
+		sn->type = VARIABLE_DEF_NODE;
+		return sn;
 	}
 	else {
 		// error message
@@ -354,6 +428,7 @@ void parserParseVariable(Parser *parser) {
 
 BlockNode *parserParseBlock(Parser *parser) {
 	BlockNode *block = createBlockNode();
+	block->statements = vectorCreate();
 
 	parserMatchTypeAndContent(parser, SEPARATOR, "{");
 	
@@ -364,14 +439,14 @@ BlockNode *parserParseBlock(Parser *parser) {
 			break;
 		}
 
-		parserParseStatements(parser);
+		vectorPushBack(block->statements, parserParseStatements(parser));
 	}
 	while (true);
 
 	return block;
 }
 
-void parserParseFunctionPrototype(Parser *parser) {
+FunctionNode *parserParseFunction(Parser *parser) {
 	parserMatchType(parser, IDENTIFIER);	// consume the fn keyword
 
 	Token *functionName = parserMatchType(parser, IDENTIFIER);
@@ -453,6 +528,8 @@ void parserParseFunctionPrototype(Parser *parser) {
 		fn->fpn = fpn;
 		fn->body = body;
 		prepareNode(parser, fn, FUNCTION_NODE);
+
+		return fn;
 	}
 	else {
 		printf(KRED "error: no parameter list provided\n" KNRM);
@@ -460,7 +537,7 @@ void parserParseFunctionPrototype(Parser *parser) {
 	}
 }
 
-void parserParseFunctionCall(Parser *parser) {
+FunctionCalleeNode *parserParseFunctionCall(Parser *parser) {
 	// consume function name
 	Token *callee = parserMatchType(parser, IDENTIFIER);
 
@@ -505,32 +582,61 @@ void parserParseFunctionCall(Parser *parser) {
 		fcn->callee = callee;
 		fcn->args = args;
 		prepareNode(parser, fcn, FUNCTION_CALLEE_NODE);
+		return fcn;
 	}
+
+	printf(KRED "error: failed to parse function call\n" KNRM);
+	exit(1);
 }
 
-void parserParseReturnStatement(Parser *parser) {
+FunctionReturnNode *parserParseReturnStatement(Parser *parser) {
+	// consume the return keyword
+	parserMatchTypeAndContent(parser, IDENTIFIER, "ret");
 
+	ExpressionNode *expr = parserParseExpression(parser);
+
+	parserMatchTypeAndContent(parser, SEPARATOR, ";");
+
+	FunctionReturnNode *frn = createFunctionReturnNode();
+	frn->expr = expr;
+	return frn;
 }
 
-void parserParseStatements(Parser *parser) {
+StatementNode *parserParseStatements(Parser *parser) {
 	// ret keyword	
 	if (parserTokenTypeAndContent(parser, IDENTIFIER, "ret", 0)) {
-		printf("swag\n");
+		StatementNode *sn = createStatementNode();
+		sn->data = parserParseReturnStatement(parser); 
+		sn->type = FUNCTION_RET_NODE;
+		return sn;
 	}
 	else if (parserTokenType(parser, IDENTIFIER, 0)) {
+		Token *tok = parserPeekAhead(parser, 0);
+
+		// function call
 		if (parserTokenTypeAndContent(parser, SEPARATOR, "(", 1)) {
 			Token *tok = parserPeekAhead(parser, 0);
 			printf("parsing function call to %s\n", tok->content);
-			parserParseFunctionCall(parser);
+
+			StatementNode *sn = createStatementNode();
+			sn->data = parserParseFunctionCall(parser);
+			sn->type = FUNCTION_CALLEE_NODE;
+			return sn;
 		}
+		// local variable
+		else if (parserIsTokenDataType(parser, tok)) {
+			return parserParseVariable(parser, false);
+		}
+		// fuck knows
 		else {
-			printf("no function what is this\n");
+			printf("error: unrecognized identifier %s\n", tok->content);
+			exit(1);
 		}
 	}
-	else {
-		Token *tok = parserPeekAhead(parser, 0);
-		printf("error: unrecognized token %s(%s)\n", tok->content, TOKEN_NAMES[tok->type]);
-	}
+
+	Token *tok = parserPeekAhead(parser, 0);
+	printf(KRED "error: unrecognized token %s(%s)\n" KNRM, tok->content, TOKEN_NAMES[tok->type]);
+	exit(1);
 }
 
 void parserStartParsing(Parser *parser) {
@@ -543,10 +649,10 @@ void parserStartParsing(Parser *parser) {
 				// parse a variable if we have a variable
 				// given to us
 				if (!strcmp(tok->content, "fn")) {
-					parserParseFunctionPrototype(parser);
+					parserParseFunction(parser);
 				} 
 				else if (parserIsTokenDataType(parser, tok)) {
-					parserParseVariable(parser);
+					parserParseVariable(parser, true);
 				}
 				else {
 					printf(KRED "error: unrecognized identifier found: `%s`\n" KNRM, tok->content);
@@ -619,6 +725,9 @@ void removeNode(Node *node) {
 				break;
 			case FUNCTION_CALLEE_NODE:
 				destroyFunctionCalleeNode(node->data);
+				break;
+			case FUNCTION_RET_NODE:
+				destroyFunctionReturnNode(node->data);
 				break;
 			default:
 				printf(KYEL "attempting to remove unrecognized node(%d)?\n" KNRM, node->type);
