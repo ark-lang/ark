@@ -29,8 +29,12 @@ typedef struct {
 typedef struct {
 	int type;
 	char* content;
-	TokenPosition pos;
+	TokenPosition *pos;
 } Token;
+
+TokenPosition *tokenPositionCreate();
+
+void tokenPositionDestroy(TokenPosition *token);
 
 /**
  * Create an empty Token
@@ -147,6 +151,8 @@ void lexerRecognizeCharacter(Lexer *lexer);
  * @return the char we peeked at
  */
 char lexerPeekAhead(Lexer *lexer, int ahead);
+
+void lexerUpdateTokenPos(Lexer *lexer);
 
 /**
  * Process the next token in the token stream
