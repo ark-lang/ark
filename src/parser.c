@@ -18,8 +18,7 @@ static const char* DATA_TYPES[] = {
 ExpressionNode *createExpressionNode() {
 	ExpressionNode *expr = malloc(sizeof(*expr));
 	expr->value = NULL;
-	expr->leftHand = NULL;
-	expr->rightHand = NULL;
+	expr->postfix = NULL;
 
 	if (!expr) {
 		perror("malloc: failed to allocate memory for ExpressionNode");
@@ -111,11 +110,8 @@ FunctionNode *createFunctionNode() {
 }
 
 void destroyExpressionNode(ExpressionNode *expr) {
-	if (expr->leftHand != NULL) {
-		destroyExpressionNode(expr->leftHand);
-	}
-	if (expr->rightHand != NULL) {
-		destroyExpressionNode(expr->rightHand);
+	if (expr->postfix != NULL) {
+		stackDestroy(expr->postfix);
 	}
 	free(expr);
 }
@@ -279,25 +275,50 @@ bool parserTokenTypeAndContent(Parser *parser, TokenType type, char* content, in
 ExpressionNode *parserParseExpression(Parser *parser) {
 	ExpressionNode *expr = createExpressionNode(); // the final expression
 
-	// number literal
-	if (parserTokenType(parser, NUMBER, 0)) {
-		expr->type = 'N';
-		expr->value = parserConsumeToken(parser);
+	// int x = _;
+	if (parserTokenType(parser, SEPARATOR, 1)) {
+		// number literal
+		if (parserTokenType(parser, NUMBER, 0)) {
+			printCurrentToken(parser);
+			expr->type = 'N';
+			expr->value = parserConsumeToken(parser);
+			return expr;
+		}
+		// string literal
+		else if (parserTokenType(parser, STRING, 0)) {
+			expr->type = 'S';
+			expr->value = parserConsumeToken(parser);
+			return expr;
+		}
+		else if (parserTokenType(parser, IDENTIFIER, 0)) {
+			expr->type = 'V';
+			expr->value = parserConsumeToken(parser);
+			return expr;
+		}
+		else {
+			printf("\n\n");
+			printf("what even is this: \n");
+			printCurrentToken(parser);
+			exit(1);
+		}
+	}
+	else {
+		expr->postfix = stackCreate();
+		do {
+			Token *currentToken = parserConsumeToken(parser);
+			stackPush(expr->postfix, currentToken);
+
+			if (parserTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
+				break;
+			}
+		}
+		while (true);
+
 		return expr;
 	}
-	// string literal
-	else if (parserTokenType(parser, STRING, 0)) {
-		expr->type = 'S';
-		expr->value = parserConsumeToken(parser);
-		return expr;
-	}
 
-	// todo: variable reference
-	// int x = y;
 
-	// actual expressions e.g (5 + 5) - (10 ^ 3)
-
-	printf("failed to parse expression, we found this:");
+	printf("failed to parse expression, we found this:\n");
 	printCurrentToken(parser);
 	exit(1);
 }
