@@ -135,10 +135,19 @@ typedef struct {
 	FunctionReturnNode *ret;
 } FunctionNode;
 
+/**
+ * Create a new  Function Callee Node
+ */
 FunctionCalleeNode *createFunctionCalleeNode();
 
+/**
+ * Create a new Function Return Node
+ */
 FunctionReturnNode *createFunctionReturnNode();
 
+/**
+ * Create a new Statement Node
+ */
 StatementNode *createStatementNode();
 
 /**
@@ -199,10 +208,19 @@ FunctionNode *createFunctionNode();
  */
 FunctionPrototypeNode *createFunctionPrototypeNode();
 
+/**
+ * Destroy the given Statement Node
+ */
 void destroyStatementNode(StatementNode *sn);
 
+/**
+ * Destroy the given Function Return Node 
+ */
 void destroyFunctionReturnNode(FunctionReturnNode *frn);
 
+/**
+ * Destroy function callee node
+ */
 void destroyFunctionCalleeNode(FunctionCalleeNode *fcn);
 
 /**
