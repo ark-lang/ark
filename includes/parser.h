@@ -4,7 +4,6 @@
 #include <stdlib.h>
 
 #include "lexer.h"
-#include "stack.h"
 #include "util.h"
 #include "vector.h"
 
