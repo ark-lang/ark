@@ -1,5 +1,8 @@
-j4: src/*.c
-	clang -o j4 -Iincludes/ src/*.c -Wall
+COMPILER = clang
+C_FLAGS = -Wall -std=c99 -Iincludes/
+SOURCES = src/*.c
 
-j4gcc: src/*.c
-	gcc -o j4 -Iincludes/ src/*.c -Wall
+LLVM_C_FLAGS = `llvm-config --libs --cflags --ldflags core analysis executionengine jit native`
+
+all: ${SOURCES}
+	${COMPILER} -o j4 ${SOURCES} ${LLVM_C_FLAGS} ${C_FLAGS}

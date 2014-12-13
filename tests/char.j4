@@ -1,8 +1,8 @@
-char x = 'a';
-string s = "fuck";
+int x = 'a';
+str s = "fuck";
 
-fn main(int argc, string argv[]) {
-	x = 'b';
-	s = "wow amazing";
+fn main(int argc, str argv): void {
+	int x = 'b';
+	str s = "wow amazing";
 	ret 0;
 }
