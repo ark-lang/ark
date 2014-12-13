@@ -3,10 +3,8 @@ int y = 10;
 
 int test = 10;
 
-duble x = 123;
-
 fn func_name(double y, int x, int zxasdfqasd_asd = 123): int {
-
+	
 }
 
 fn something_else(): void {
@@ -14,5 +12,5 @@ fn something_else(): void {
 }
 
 fn main(): void {
-
+	main();
 }
