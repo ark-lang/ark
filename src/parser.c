@@ -275,46 +275,17 @@ bool parserTokenTypeAndContent(Parser *parser, TokenType type, char* content, in
 ExpressionNode *parserParseExpression(Parser *parser) {
 	ExpressionNode *expr = createExpressionNode(); // the final expression
 
-	// int x = _;
-	if (parserTokenType(parser, SEPARATOR, 1)) {
-		// number literal
-		if (parserTokenType(parser, NUMBER, 0)) {
-			printCurrentToken(parser);
-			expr->type = 'N';
-			expr->value = parserConsumeToken(parser);
-			return expr;
-		}
-		// string literal
-		else if (parserTokenType(parser, STRING, 0)) {
-			expr->type = 'S';
-			expr->value = parserConsumeToken(parser);
-			return expr;
-		}
-		else if (parserTokenType(parser, IDENTIFIER, 0)) {
-			expr->type = 'V';
-			expr->value = parserConsumeToken(parser);
-			return expr;
-		}
-		else {
-			printf("\n\n");
-			printf("what even is this: \n");
-			printCurrentToken(parser);
-			exit(1);
-		}
+	// number literal
+	if (parserTokenType(parser, NUMBER, 0)) {
+		printCurrentToken(parser);
+		expr->type = 'N';
+		expr->value = parserConsumeToken(parser);
+		return expr;
 	}
-	else {
-		//TODO: check for errors.
-		expr->postfix = stackCreate();
-		do {
-			Token *currentToken = parserConsumeToken(parser);
-			stackPush(expr->postfix, currentToken);
-
-			if (parserTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
-				break;
-			}
-		}
-		while (true);
-
+	// string literal
+	if (parserTokenType(parser, STRING, 0)) {
+		expr->type = 'S';
+		expr->value = parserConsumeToken(parser);
 		return expr;
 	}
 
