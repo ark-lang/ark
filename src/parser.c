@@ -292,13 +292,13 @@ ExpressionNode *parserParseExpression(Parser *parser) {
 		return expr;
 	}
 
-	printf("error: failed to parse expression, STRING & NUMBER only supported\n");
+	printf(KRED "error: failed to parse expression, STRING & NUMBER only supported\n" KNRM);
 	exit(1);
 }
 
 void printCurrentToken(Parser *parser) {
 	Token *tok = parserPeekAhead(parser, 0);
-	printf("current token is type: %s, value: %s\n", TOKEN_NAMES[tok->type], tok->content);
+	printf(KYEL "current token is type: %s, value: %s\n" KNRM, TOKEN_NAMES[tok->type], tok->content);
 }
 
 void parserParseVariable(Parser *parser) {
@@ -347,7 +347,7 @@ void parserParseVariable(Parser *parser) {
 	}
 	else {
 		// error message
-		printf("error: missing a semi colon or assignment\n");
+		printf(KRED "error: missing a semi colon or assignment\n" KNRM);
 		exit(1);
 	}
 }
@@ -418,7 +418,7 @@ void parserParseFunctionPrototype(Parser *parser) {
 			}
 			else if (parserTokenTypeAndContent(parser, SEPARATOR, ",", 0)) {
 				if (parserTokenTypeAndContent(parser, SEPARATOR, ")", 1)) {
-					printf("error: trailing comma at the end of argument list\n");
+					printf(KRED "error: trailing comma at the end of argument list\n" KNRM);
 					exit(1);
 				}
 				parserConsumeToken(parser); // eat the comma
@@ -454,7 +454,7 @@ void parserParseFunctionPrototype(Parser *parser) {
 		prepareNode(parser, fn, FUNCTION_NODE);
 	}
 	else {
-		printf("error: no parameter list provided\n");
+		printf(KRED "error: no parameter list provided\n" KNRM);
 		exit(1);
 	}
 }
@@ -482,7 +482,7 @@ void parserParseFunctionCall(Parser *parser) {
 
 			if (parserTokenTypeAndContent(parser, SEPARATOR, ",", 0)) {
 				if (parserTokenTypeAndContent(parser, SEPARATOR, ")", 1)) {
-					printf("error: trailing comma at the end of argument list\n");
+					printf(KRED "error: trailing comma at the end of argument list\n" KNRM);
 					exit(1);
 				}
 				parserConsumeToken(parser); // eat the comma
@@ -518,7 +518,6 @@ void parserParseStatements(Parser *parser) {
 	 * isnt a function call, throw an error.
 	 * For now, this will do
 	 */
-	 printCurrentToken(parser);
 }
 
 void parserStartParsing(Parser *parser) {
@@ -537,7 +536,7 @@ void parserStartParsing(Parser *parser) {
 					parserParseVariable(parser);
 				}
 				else {
-					printf("error: unrecognized identifier found: `%s`\n", tok->content);
+					printf(KRED "error: unrecognized identifier found: `%s`\n" KNRM, tok->content);
 					exit(1);
 				}
 				break;
@@ -567,7 +566,7 @@ DataType parserTokenTypeToDataType(Parser *parser, Token *tok) {
 			return i;
 		}
 	}
-	printf("error: invalid data type specified: %s!\n", tok->content);
+	printf(KRED "error: invalid data type specified: %s!\n" KNRM, tok->content);
 	exit(1);
 }
 
@@ -609,7 +608,7 @@ void removeNode(Node *node) {
 				destroyFunctionCalleeNode(node->data);
 				break;
 			default:
-				printf("attempting to remove unrecognized node(%d)?\n", node->type);
+				printf(KYEL "attempting to remove unrecognized node(%d)?\n" KNRM, node->type);
 				break;
 		}
 	}
