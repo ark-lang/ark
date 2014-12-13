@@ -519,6 +519,8 @@ void parserParseStatements(Parser *parser) {
 	}
 	else if (parserTokenType(parser, IDENTIFIER, 0)) {
 		if (parserTokenTypeAndContent(parser, SEPARATOR, "(", 1)) {
+			Token *tok = parserPeekAhead(parser, 0);
+			printf("parsing function call to %s\n", tok->content);
 			parserParseFunctionCall(parser);
 		}
 		else {
