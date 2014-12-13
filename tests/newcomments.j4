@@ -1,0 +1,22 @@
+/*
+	block comment
+	test
+	int x = 5;
+	fn main(int whatever): int {
+
+		ret 5;
+	}
+*/
+
+// this is a comment
+
+// and another
+
+// what?
+
+// asdfasdf asdf asdf
+
+fn main(): void {
+	int x = 5; // amazing
+	ret 6;
+}
