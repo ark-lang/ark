@@ -198,7 +198,7 @@ Token *parserExpectType(Parser *parser, TokenType type) {
 		return parserConsumeToken(parser);
 	}
 	else {
-		printf("expected %s but found `%s`\n", TOKEN_NAMES[type], tok->content);
+		printf("%d:%d expected %s but found `%s`\n", tok->pos->lineNumber, tok->pos->charNumber, TOKEN_NAMES[type], tok->content);
 		exit(1);
 	}
 }
@@ -209,7 +209,7 @@ Token *parserExpectContent(Parser *parser, char *content) {
 		return parserConsumeToken(parser);
 	}
 	else {
-		printf("expected %s but found `%s`\n", content, tok->content);
+		printf("%d:%d expected %s but found `%s`\n", tok->pos->lineNumber, tok->pos->charNumber, tok->content, content);
 		exit(1);
 	}
 }
@@ -220,7 +220,7 @@ Token *parserExpectTypeAndContent(Parser *parser, TokenType type, char *content)
 		return parserConsumeToken(parser);
 	}
 	else {
-		printf("expected %s but found `%s`\n", TOKEN_NAMES[type], tok->content);
+		printf("%d:%d expected %s but found `%s`\n", tok->pos->lineNumber, tok->pos->charNumber, TOKEN_NAMES[type], tok->content);
 		exit(1);
 	}
 }
@@ -231,7 +231,7 @@ Token *parserMatchType(Parser *parser, TokenType type) {
 		return parserConsumeToken(parser);
 	}
 	else {
-		printf("expected %s but found `%s`\n", TOKEN_NAMES[type], tok->content);
+		printf("%d:%d expected %s but found `%s`\n", tok->pos->lineNumber, tok->pos->charNumber, TOKEN_NAMES[type], tok->content);
 		exit(1);
 	}
 }
@@ -242,7 +242,7 @@ Token *parserMatchContent(Parser *parser, char *content) {
 		return parserConsumeToken(parser);
 	}
 	else {
-		printf("expected %s but found `%s`\n", content, tok->content);
+		printf("%d:%d expected %s but found `%s`\n", tok->pos->lineNumber, tok->pos->charNumber, tok->content, content);
 		exit(1);
 	}
 }
@@ -253,7 +253,7 @@ Token *parserMatchTypeAndContent(Parser *parser, TokenType type, char *content) 
 		return parserConsumeToken(parser);
 	}
 	else {
-		printf("expected %s but found `%s`\n", content, tok->content);
+		printf("%d:%d expected %s but found `%s`\n", tok->pos->lineNumber, tok->pos->charNumber, TOKEN_NAMES[type], tok->content);
 		exit(1);
 	}
 }
@@ -303,6 +303,7 @@ ExpressionNode *parserParseExpression(Parser *parser) {
 		}
 	}
 	else {
+		//TODO: check for errors.
 		expr->postfix = stackCreate();
 		do {
 			Token *currentToken = parserConsumeToken(parser);
@@ -316,7 +317,6 @@ ExpressionNode *parserParseExpression(Parser *parser) {
 
 		return expr;
 	}
-
 
 	printf("failed to parse expression, we found this:\n");
 	printCurrentToken(parser);
@@ -543,6 +543,10 @@ void parserParseFunctionCall(Parser *parser) {
 	}
 }
 
+void parserParseReturnStatement(Parser *parser) {
+
+}
+
 void parserParseStatements(Parser *parser) {
 	/**
 	 * todo: if it's not a while loop or all that
@@ -550,10 +554,21 @@ void parserParseStatements(Parser *parser) {
 	 * isnt a function call, throw an error.
 	 * For now, this will do
 	 */
-	if (parserTokenType(parser, IDENTIFIER, 0)) {
-		if (parserTokenTypeAndContent(parser, SEPARATOR, "(", 1)) {
-			parserParseFunctionCall(parser);
-		}
+	Token *tok = parserConsumeToken(parser);
+
+	switch (tok->type) {
+		case IDENTIFIER:
+			// return
+			if (!strcmp(tok->content, "ret")) {
+				parserParseReturnStatement(parser);
+			}
+			else if (parserTokenTypeAndContent(parser, SEPARATOR, "(", 1)) {
+				parserParseFunctionCall(parser);
+			}
+			else {
+				printf("what is this? %s\n", tok->content);
+			}
+			break;
 	}
 }
 
