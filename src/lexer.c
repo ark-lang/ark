@@ -162,6 +162,7 @@ char lexerPeekAhead(Lexer *lexer, int ahead) {
 }
 
 void lexerUpdateTokenPos(Lexer *lexer) {
+	// this is broken fix this shit
 	lexer->currentToken->pos->lineNumber = lexer->lineNumber;
 	lexer->currentToken->pos->charNumber = lexer->pos;
 	lexer->currentToken->pos->fileName = "swag";
