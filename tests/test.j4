@@ -1,7 +1,7 @@
 int x = 5;
 int y = 10;
 
-int test = a + b - (12 / 2);
+int test = 10;
 
 fn func_name(double y, int x, int zxasdfqasd_asd = 123): int {
 			
