@@ -6,6 +6,19 @@ static const char* TOKEN_NAMES[] = {
 	"STRING", "CHARACTER", "UNKNOWN"
 };
 
+TokenPosition *tokenPositionCreate() {
+	TokenPosition *pos = malloc(sizeof(*pos));
+	if (!pos) {
+		perror("malloc: could not allocate memory for Token Position");
+		exit(1);
+	}
+	return pos;
+}
+
+void tokenPositionDestroy(TokenPosition *token) {
+	free(token);
+}
+
 Token *tokenCreate() {
 	Token *token = malloc(sizeof(*token));
 	if (!token) {
@@ -20,6 +33,9 @@ const char* getTokenName(Token *tok) {
 }
 
 void tokenDestroy(Token *token) {
+	if (token->pos != NULL) {
+		tokenPositionDestroy(token->pos);
+	}
 	free(token);
 }
 
@@ -76,7 +92,7 @@ void lexerExpectCharacter(Lexer *lexer, char c) {
 		lexerNextChar(lexer);
 	}
 	else {
-		printf("%s:%d:%d: error: expected `%c` but found `%c`\n", "file", lexer->lineNumber, lexer->currentToken->pos.charNumber, c, lexer->charIndex);
+		printf("%s:%d:%d: error: expected `%c` but found `%c`\n", "file", lexer->currentToken->pos->lineNumber, lexer->currentToken->pos->charNumber, c, lexer->charIndex);
 		exit(1);
 	}
 }
@@ -133,7 +149,7 @@ void lexerRecognizeCharacter(Lexer *lexer) {
 		lexerNextChar(lexer); // consume character		
 	}
 	else {
-		printf("%s:%d:%d: error: empty character constant\n", "file", lexer->lineNumber, lexer->currentToken->pos.charNumber);
+		printf("%s:%d:%d: error: empty character constant\n", "file", lexer->currentToken->pos->lineNumber, lexer->currentToken->pos->charNumber);
 		exit(1);
 	}
 
@@ -145,15 +161,19 @@ char lexerPeekAhead(Lexer *lexer, int ahead) {
 	return x;
 }
 
+void lexerUpdateTokenPos(Lexer *lexer) {
+	lexer->currentToken->pos->lineNumber = lexer->lineNumber;
+	lexer->currentToken->pos->charNumber = lexer->pos;
+	lexer->currentToken->pos->fileName = "swag";
+}
+
 void lexerGetNextToken(Lexer *lexer) {
 	int startPos;
 	lexerSkipLayoutAndComment(lexer);
 	startPos = lexer->pos;
 
 	lexer->currentToken = tokenCreate();
-	lexer->currentToken->pos = (TokenPosition) {
-		.fileName = "swag", .lineNumber = -1, .charNumber = lexer->pos
-	};
+	lexer->currentToken->pos = tokenPositionCreate();
 
 	if (isEndOfInput(lexer->charIndex)) {
 		lexer->currentToken->type = END_OF_FILE;
@@ -183,9 +203,8 @@ void lexerGetNextToken(Lexer *lexer) {
 		lexerNextChar(lexer);
 	}
 	else if (isEndOfLine(lexer->charIndex)) {
-			lexer->lineNumber++;
-			printf("the line number is %d \n", lexer->lineNumber); // for debugging
-			lexerNextChar(lexer);
+		lexer->lineNumber++;
+		lexerNextChar(lexer);
 	}
 	else if (isSeparator(lexer->charIndex)) {
 		lexer->currentToken->type = SEPARATOR;
@@ -196,6 +215,7 @@ void lexerGetNextToken(Lexer *lexer) {
 		lexerNextChar(lexer);
 	}
 
+	lexerUpdateTokenPos(lexer);
 	lexer->currentToken->content = lexerFlushBuffer(lexer, startPos, lexer->pos - startPos);
 	vectorPushBack(lexer->tokenStream, lexer->currentToken);
 }
