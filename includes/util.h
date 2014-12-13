@@ -1,6 +1,11 @@
 #ifndef BOOL_H
 #define BOOL_H
 
+/**
+ * Colour Printing stuff, not sure
+ * if it works on Windows or not
+ * so I've disabled it for Windows
+ */
 #ifdef _WIN32
 	#define KNRM  ""
 	#define KRED  ""
