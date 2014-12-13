@@ -73,14 +73,40 @@ void lexerSkipLayoutAndComment(Lexer *lexer) {
 	while (isLayout(lexer->charIndex)) {
 		lexerNextChar(lexer);
 	}
-	while (isCommentOpener(lexer->charIndex)) {
+
+	while (lexer->charIndex == '/' && lexerPeekAhead(lexer, 1) == '*') {
+		lexerNextChar(lexer); 	// consume /
+		lexerNextChar(lexer);	// consume *
+
+		// eat stuff inside of comment block
+		while (lexer->charIndex != '*' && lexerPeekAhead(lexer, 1) != '/') {
+			lexerNextChar(lexer);
+		}
+
+		lexerNextChar(lexer);	// consume *
+		lexerNextChar(lexer);	// consume /
+		
+		// eat up the spaces
+		while (isLayout(lexer->charIndex)) {
+			lexerNextChar(lexer);
+		}
+	}
+
+	while (isLayout(lexer->charIndex)) {
 		lexerNextChar(lexer);
+	}
+
+	while (lexer->charIndex == '/' && lexerPeekAhead(lexer, 1) == '/') {
+		lexerNextChar(lexer);	// eat the /
+		lexerNextChar(lexer);	// eat the /
+
 		while (!isCommentCloser(lexer->charIndex)) {
 			if (isEndOfInput(lexer->charIndex)) return;
 			lexerNextChar(lexer);
 		}
+		
 		lexer->lineNumber++; // increment line number
-		lexerNextChar(lexer);
+		
 		while (isLayout(lexer->charIndex)) {
 			lexerNextChar(lexer);
 		}
@@ -157,8 +183,7 @@ void lexerRecognizeCharacter(Lexer *lexer) {
 }
 
 char lexerPeekAhead(Lexer *lexer, int ahead) {
-	char x = lexer->input[lexer->pos + ahead];
-	return x;
+	return lexer->input[lexer->pos + ahead];
 }
 
 void lexerUpdateTokenPos(Lexer *lexer) {
