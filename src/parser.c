@@ -536,9 +536,9 @@ void parserParseStatements(Parser *parser) {
 			if (!strcmp(tok->content, "ret")) {
 				parserParseReturnStatement(parser);
 			}
-			else if (parserTokenTypeAndContent(parser, SEPARATOR, "(", 1)) {
-				parserParseFunctionCall(parser);
-			}
+			// else if (parserTokenTypeAndContent(parser, SEPARATOR, "(", 1)) {
+			// 	parserParseFunctionCall(parser);
+			// }
 			else {
 				printf("what is this? %s\n", tok->content);
 			}
