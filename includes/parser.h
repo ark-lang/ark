@@ -145,6 +145,8 @@ int parserGetTokenPrecedence(Parser *parser);
 
 ExpressionNode *parserParseBinaryOperatorRHS(Parser *parser, int prec, ExpressionNode *lhs);
 
+char parserParseOperand(Parser *parser);
+
 /**
  * Create a new  Function Callee Node
  */
