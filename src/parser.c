@@ -388,10 +388,10 @@ char parserParseOperand(Parser *parser) {
 	char tokChar = tok->content[0];
 
 	switch (tokChar) {
-		case '+': return tokChar;
-		case '-': return tokChar;
-		case '*': return tokChar;
-		case '/': return tokChar;
+		case '+': parserConsumeToken(parser); return tokChar;
+		case '-': parserConsumeToken(parser); return tokChar;
+		case '*': parserConsumeToken(parser); return tokChar;
+		case '/': parserConsumeToken(parser); return tokChar;
 		default:
 			printf(KRED "error: invalid operator ('%c') specified\n" KNRM, tok->content[0]);
 			exit(1);
@@ -621,9 +621,8 @@ BlockNode *parserParseBlock(Parser *parser) {
 	int i;
 	for (i = 0; i < block->statements->size; i++) {
 		StatementNode *sn = vectorGetItem(block->statements, i);
-		printf("vector at %d = %s\n", i, NODE_NAMES[sn->type]);
+		printf("%d = %s\n", i, NODE_NAMES[sn->type]);
 	}
-	printf("\n");
 
 	return block;
 }
