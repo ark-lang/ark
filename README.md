@@ -27,6 +27,8 @@ to our IRC channel:
     port:       8001
     channel:    ##jayfor
 
+Since there aren't many of us, we're mostly active around 4pm GMT on weekdays.
+
 # <a name="about"></a>About
 Jayfor is a programming language written in C. It is still under
 heavy development. Jayfor is influenced from languages like Rust,
