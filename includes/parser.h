@@ -129,7 +129,6 @@ typedef struct {
 typedef struct {
 	Vector *args;
 	Token *name;
-	DataType ret;
 } FunctionPrototypeNode;
 
 /**
@@ -138,7 +137,7 @@ typedef struct {
 typedef struct {
 	FunctionPrototypeNode *fpn;
 	BlockNode *body;
-	FunctionReturnNode *ret;
+	Vector *ret;
 } FunctionNode;
 
 typedef enum {

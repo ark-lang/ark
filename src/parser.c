@@ -268,7 +268,7 @@ void destroyFunctionNode(FunctionNode *fn) {
 			destroyBlockNode(fn->body);
 		}
 		if (fn->ret != NULL) {
-			destroyFunctionReturnNode(fn->ret);
+			vectorDestroy(fn->ret);
 		}
 		free(fn);
 		fn = NULL;
@@ -696,11 +696,43 @@ FunctionNode *parserParseFunction(Parser *parser) {
 		}
 		while (true);
 
+		FunctionNode *fn = createFunctionNode();
+		fn->ret = vectorCreate();
+
 		if (parserTokenTypeAndContent(parser, SEPARATOR, "[", 0)) {
 			parserConsumeToken(parser);
 
-			do {
+			int returnCount = 0;
 
+			do {
+				if (parserTokenTypeAndContent(parser, SEPARATOR, "]", 0)) {
+					if (returnCount < 1) {
+						printf(KRED "error: function expects a return type\n" KNRM);
+						exit(1);
+					}
+					parserConsumeToken(parser); // eat
+					break;
+				}
+
+				if (parserTokenType(parser, IDENTIFIER, 0)) {
+					Token *tok = parserConsumeToken(parser);
+					if (parserIsTokenDataType(parser, tok)) {
+						DataType rawDataType = parserTokenTypeToDataType(parser, tok);
+						vectorPushBack(fn->ret, &rawDataType);
+						returnCount++;
+					}
+					else {
+						printf(KRED "error: invalid data type specified: `%s`\n" KNRM, tok->content);
+						exit(1);
+					}
+					if (parserTokenTypeAndContent(parser, SEPARATOR, ",", 0)) {
+						if (parserTokenTypeAndContent(parser, SEPARATOR, "]", 1)) {
+							printf(KRED "error: trailing comma in function declaraction\n" KNRM);
+							exit(1);
+						}
+						parserConsumeToken(parser);
+					}
+				}
 			}
 			while (true);
 		}
@@ -710,20 +742,8 @@ FunctionNode *parserParseFunction(Parser *parser) {
 			exit(1);
 		}
 
-		// consume return type
-		Token *functionReturnType = parserMatchType(parser, IDENTIFIER);
-		
-		// convert to raw data type, also good for errors
-		DataType returnTypeRaw = parserTokenTypeToDataType(parser, functionReturnType);
-
-		// store the return type in the function prototype node
-		fpn->ret = returnTypeRaw;
-
 		// start block
 		BlockNode *body = parserParseBlock(parser);
-
-		// create the function because we have a body declared
-		FunctionNode *fn = createFunctionNode();
 		fn->fpn = fpn;
 		fn->body = body;
 		prepareNode(parser, fn, FUNCTION_NODE);
