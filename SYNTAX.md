@@ -10,6 +10,8 @@ We've added the tuples functionality, allowing you to return multiple values fro
 
 		fn function_name(param_one, param_two): [tuple_value_one, tuple_value_two, ...] { //code }
 
+---------------------------------
+
 We felt that the old style of the *for* loop was annoying as hell. So we implemented a new way to use them:
 
 		for data_type variable_name:<value_one, value_two, step>
@@ -21,6 +23,7 @@ This is equivalent to:
 
 If *value_one* happens to be greater than *value_two*, Jayfor can detect that and decrement the value by *step* amounts too. There is no need to specify explicitly.
 
+----------------------------------------------
 
 Do-while loops are tedious to write. Having to write a do and then a while condition after it is a complete waste of time in our opinion. So we have a new way to declare do-while loops:
 
