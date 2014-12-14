@@ -18,11 +18,11 @@ You can view the snippet of code below for a basic 'feel' of the language,
 or check out some actual code we use for the library [here](libs/math.j4).
 
 	// add the given values together
-	fn add(int a = 0, int b = ((5 + 5) - (5 + 5))): int {
+	fn add(int a = 0, int b = ((5 + 5) - (5 + 5))): [int] {
 		ret (a + b);
 	}
 
-	fn main(): void {
+	fn main(): [void] {
 		int a = add(5, 3);
 		println(a);
 	}
