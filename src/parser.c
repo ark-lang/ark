@@ -696,8 +696,19 @@ FunctionNode *parserParseFunction(Parser *parser) {
 		}
 		while (true);
 
-		// consume colon 
-		parserMatchTypeAndContent(parser, OPERATOR, ":");
+		if (parserTokenTypeAndContent(parser, SEPARATOR, "[", 0)) {
+			parserConsumeToken(parser);
+
+			do {
+
+			}
+			while (true);
+		}
+		else {
+			printf(KRED "error: function declaration return type expected, found this:\n" KNRM);
+			printCurrentToken(parser);
+			exit(1);
+		}
 
 		// consume return type
 		Token *functionReturnType = parserMatchType(parser, IDENTIFIER);
