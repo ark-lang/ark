@@ -5,6 +5,7 @@ Jayfor is a programming language written in C.
 * [About](#about)
   * [More details](JAYFOR.md)
 * [Informal Specification](SPECIFICATION.md)
+* [IRC](#IRC)
 * [Note](#note)
 * [Requirements](#requirements)
 * [Contributing](#contributing)
@@ -16,6 +17,15 @@ Jayfor is a programming language written in C.
 * Default argument values
 * Reimagined syntax for annoying [traditional] features
   * do whiles, for loops, etc
+
+# <a name="IRC"></a>IRC
+We have an IRC channel, this is mostly where we discuss development related
+issues, syntax styles, and so on. Interested in contributing, come over
+to our IRC channel:
+
+    server:     irc.freenode.net
+    port:       8001
+    channel:    ##jayfor
 
 # <a name="about"></a>About
 Jayfor is a programming language written in C. It is still under
