@@ -8,6 +8,7 @@ Jayfor is a programming language written in C.
 * [Requirements](#requirements)
 * [Contributing](#contributing)
 * [License](#license)
+* [Syntax](#syntax)
 
 # <a name="about"></a>About
 Jayfor is a programming language written in C. It is still under
@@ -33,6 +34,9 @@ JAYFOR is still in design stage. It's not quite working yet, stay tuned.
 # <a name="requirements"></a>Requirements
 * GCC/Clang
 * LLVM
+
+# <a name="syntax"></a>Syntax
+Check the SYNTAX.md file.
 
 # <a name="contributing"></a>Contributing
 Send a pull request to [http://github.com/freefouran/jayfor](http://github.com/freefouran/jayfor). Use [http://github.com/freefouran/jayfor/issues](http://github.com/freefouran/jayfor/issues) for discussion. Please note that we consider that you have granted non-exclusive right to your contributed code under the MIT License.
