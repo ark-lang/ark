@@ -1,20 +1,23 @@
-// this is a test for while loops
+// this is no longer a test for while loops
 
-int a = (5 + 5);
+int a = (5 + 5)
+int z = a
+int a
 
 fn test(int a = ((5 + 5) - (a / b)), int b) [int, float] {
 	for int x:<10, 0> {
 
 	}
+
+	main(5, 5)
 }
 
 fn main(int a, int b) [void] {
-	// type, index, start, end, step
 	for int x:<0, 10, 2> {
-
+		test(x, x);
 	}
 
 	test(5, 5)
 
-	ret [(5 + 5)]
+	ret [(5 + 5), (5 + 5), "swag"]
 }

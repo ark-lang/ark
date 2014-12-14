@@ -570,7 +570,9 @@ void *parserParseVariable(Parser *parser, bool global) {
 		dec->expr = expr;
 
 		// match a semi colon
-		parserMatchTypeAndContent(parser, SEPARATOR, ";");
+		if (parserTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
+			parserConsumeToken(parser);
+		}
 
 		if (global) {
 			prepareNode(parser, dec, VARIABLE_DEC_NODE);
@@ -581,9 +583,10 @@ void *parserParseVariable(Parser *parser, bool global) {
 		sn->type = VARIABLE_DEC_NODE;
 		return sn;
 	}
-	else if (parserTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
-		// consume the semi colon
-		parserConsumeToken(parser);
+	else {
+		if (parserTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
+			parserConsumeToken(parser);
+		}
 
 		// create variable define node
 		VariableDefineNode *def = createVariableDefineNode();
@@ -598,11 +601,6 @@ void *parserParseVariable(Parser *parser, bool global) {
 		sn->data = def;
 		sn->type = VARIABLE_DEF_NODE;
 		return sn;
-	}
-	else {
-		// error message
-		printf(KRED "error: missing a semi colon or assignment\n" KNRM);
-		exit(1);
 	}
 }
 
