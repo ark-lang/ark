@@ -40,7 +40,7 @@ So:
 			statements;
 		}
 
-is valid.
+is valid, but only for when **start** is greater than **end**. If you didn't already figure this out, quit programming.
 
 You could also do:
 
