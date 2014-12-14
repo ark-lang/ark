@@ -26,6 +26,15 @@ We realize that this is a pain, and we will fix this.
 	 * them for the time being!
 	 */
 
+## Data Structures
+Structures are declared as follows:
+
+	struct Name {
+		int x,
+		int y,
+		int z
+	};
+
 ## Functions
 
 Functions are declared like so:
