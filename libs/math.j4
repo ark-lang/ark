@@ -10,47 +10,44 @@
 
 double PI = 3.14159265358979323846264338327950288;
 
-fn toRadians(double degrees): double {
-	ret degrees * PI / 180;
+fn toRadians(double degrees) [double] {
+	ret [(degrees * (PI / 180))];
 }
 
-fn toDegrees(double radians): double {
-	ret radians * 180 / PI;
+fn toDegrees(double radians) [double] {
+	ret [(radians * (180 / PI))];
 }
 
-fn clamp(double value, double low, double high): double {
-	if (value < low) {
-		ret low;
-	}
-	if (value > high) {
-		ret high;
-	}
-	ret value;
+fn clamp(double value, double low, double high) [double] {
+	// just return value for now
+	// ifs or ternary unsupported
+	ret [value];
 }
 
-fn floor(float x): float {
-	ret x - (x % 1);
+fn floor(float x) [float] {
+	ret [(x - (x % 1))];
 }
 
-fn abs(float x): int {
-	ret x > 0 ? x : -x;
+fn abs(float x) [int] {
+	// see clamp();
+	ret [x];
 }
 
-fn pow(float mantissa, float exponent): float {
+fn pow(float mantissa, float exponent) [float] {
 	float result = 1.0;
 	float count = 0;
-	while (count < exponent) {
-		result = mantissa * result;
-		count += 1;
-	}
-	ret result;
+	// while (count < exponent) {
+	// 	result = (mantissa * result);
+	// 	count += 1;
+	// }
+	ret [result];
 }
 
-fn factorial(int number): int {
+fn factorial(int number) [int] {
 	int final_result = 1;
-	for (int i = i; i <= number; i++) {
-		final_result = final_result * i;
+	for int i:<0, number> {
+		final_result = (final_result * i);
 	}
-	ret final_result;
+	ret [final_result];
 }
 	
