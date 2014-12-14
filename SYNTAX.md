@@ -6,11 +6,15 @@ We aim to make Jayfor different while still keeping things concise and easy to g
 
 Functions are delared like so:
 
-		fn function_name(param_one, param_two): [return_type] { }
+		fn function_name(param_one, param_two): [return_type] { 
+			statements;
+		}
 
 We've added the tuples functionality, allowing you to return multiple values from a function in a (somewhat) array-like fashion. So you could also do:
 
-		fn function_name(param_one, param_two): [tuple_value_one, tuple_value_two, ...] { }
+		fn function_name(param_one, param_two): [tuple_value_one, tuple_value_two, ...] { 
+			statements;
+		}
 
 ---------------------------------
 ##FOR loops
@@ -18,12 +22,16 @@ We've added the tuples functionality, allowing you to return multiple values fro
 
 We felt that the old style of the *for* loop was annoying as hell. So we implemented a new way to use them:
 
-		for data_type variable_name:<start, end, step>
+		for data_type variable_name:<start, end, step> {
+			statements;
+		}
 
 *step* is the value by which we must increment *variable_name*
 This is equivalent to:
 		
-		for(data_type variable_name = start; variable_name < end; variable_name += step) { }
+		for(data_type variable_name = start; variable_name < end; variable_name += step) { 
+			statements;
+		}
 
 If *value_one* happens to be greater than *value_two*, Jayfor can detect that and decrement the value by *step* amounts too. There is no need to specify explicitly.
 
@@ -39,12 +47,15 @@ in which case *step* defaults to 1, and the increments happen in steps of 1 (obv
 
 Do-while loops are tedious to write. Having to write a do and then a while condition after it is a complete waste of time in our opinion. So we have a new way to declare do-while loops:
 
-		do(condition) { }
+		do(condition) { 
+			statements;
+		}
 
 If you think this is worse than:
 
 		do {
-		
+			statements;
+			
 		} while(condition);
 
 then you're retarded.
