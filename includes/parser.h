@@ -39,7 +39,7 @@ typedef enum {
 	VARIABLE_DEC_NODE, FUNCTION_ARG_NODE,
 	FUNCTION_NODE, FUNCTION_PROT_NODE,
 	BLOCK_NODE, FUNCTION_CALLEE_NODE,
-	FUNCTION_RET_NODE
+	FUNCTION_RET_NODE, FOR_LOOP_NODE
 } NodeType;
 
 /**
@@ -141,11 +141,31 @@ typedef struct {
 	FunctionReturnNode *ret;
 } FunctionNode;
 
-int parserGetTokenPrecedence(Parser *parser);
+typedef enum {
+	FOR_START,
+	FOR_END,
+	FOR_STEP
+} ForLoopParam;
 
-ExpressionNode *parserParseBinaryOperatorRHS(Parser *parser, int prec, ExpressionNode *lhs);
+/**
+ * A node for a for loop
+ */
+typedef struct {
+	DataType type;		// data type
+	Token *indexName;	// index name
+	Vector *params;		// parameters (start, end, step)
+	BlockNode *body;	// contents of for loop
+} ForLoopNode;
 
+/**
+ * Parser an operand
+ */
 char parserParseOperand(Parser *parser);
+
+/**
+ * Create a new For Loop Node
+ */
+ForLoopNode *createForLoopNode();
 
 /**
  * Create a new  Function Callee Node
@@ -219,6 +239,11 @@ FunctionNode *createFunctionNode();
  * fn whatever(int x, int y): int
  */
 FunctionPrototypeNode *createFunctionPrototypeNode();
+
+/**
+ * Destroys the given For Loop Node
+ */
+void destroyForLoopNode(ForLoopNode *fln);
 
 /**
  * Destroy the given Statement Node
@@ -408,6 +433,11 @@ bool parserTokenTypeAndContent(Parser *parser, TokenType type, char* content, in
  * @return the expression parsed
  */
 ExpressionNode *parserParseExpression(Parser *parser);
+
+/**
+ * Parses a For Loop statement
+ */
+StatementNode *parserParseForLoopNode(Parser *parser);
 
 /**
  * Prints the type and content of the current token
