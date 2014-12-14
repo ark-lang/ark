@@ -18,7 +18,7 @@ static const char* NODE_NAMES[] = {
 	"variable_dec_node", "function_arg_node",
 	"function_node", "function_prot_node",
 	"block_node", "function_callee_node",
-	"function_ret_node"
+	"function_ret_node", "for_loop_node"
 };
 
 /** UTILITY FOR NODES */
@@ -137,6 +137,22 @@ FunctionNode *createFunctionNode() {
 		exit(1);
 	}
 	return fn;
+}
+
+ForLoopNode *createForLoopNode() {
+	ForLoopNode *fln = malloc(sizeof(*fln));
+	if (!fln) {
+		perror("malloc: failed to allocate memory for ForLoopNode");
+		exit(1);
+	}
+	return fln;
+}
+
+void destroyForLoopNode(ForLoopNode *fln) {
+	if (fln != NULL) {
+		free(fln);
+		fln = NULL;
+	}
 }
 
 void destroyStatementNode(StatementNode *sn) {
@@ -387,6 +403,91 @@ char parserParseOperand(Parser *parser) {
 			exit(1);
 			break;
 	}
+}
+
+StatementNode *parserParseForLoopNode(Parser *parser) {
+	/**
+	 * for int x:<0, 10, 2> {
+	 * 
+	 * }
+	 */
+
+	// for token
+	parserMatchTypeAndContent(parser, IDENTIFIER, "for");					// FOR
+	
+	Token *dataType = parserMatchType(parser, IDENTIFIER);					// DATA_TYPE
+	DataType dataTypeRaw = parserTokenTypeToDataType(parser, dataType);
+	
+	Token *indexName = parserMatchType(parser, IDENTIFIER);					// INDEX_NAME
+
+	parserMatchTypeAndContent(parser, OPERATOR, ":");						// PARAMS
+
+	ForLoopNode *fln = createForLoopNode();
+	fln->type = dataTypeRaw;
+	fln->indexName = indexName;
+	fln->params = vectorCreate();
+
+	if (parserTokenTypeAndContent(parser, OPERATOR, "<", 0)) {
+		parserConsumeToken(parser);
+
+		int paramCount = 0;
+
+		do {
+			if (paramCount > 3) {
+				printf(KRED "error: for loop has one too many arguments %d\n" KNRM, paramCount);
+				exit(1);
+			}
+			if (parserTokenTypeAndContent(parser, OPERATOR, ">", 0)) {
+				if (paramCount < 2) {
+					printf(KRED "error: for loop expects a maximum of 3 arguments, you have %d\n" KNRM, paramCount);
+					exit(1);
+				}
+				parserConsumeToken(parser);
+				break;
+			}
+
+			if (parserTokenType(parser, IDENTIFIER, 0)) {
+				vectorPushBack(fln->params, parserConsumeToken(parser));
+				if (parserTokenTypeAndContent(parser, SEPARATOR, ",", 0)) {
+					if (parserTokenTypeAndContent(parser, OPERATOR, ">", 1)) {
+						printf(KRED "error: trailing comma in for loop declaration!\n" KNRM);
+						exit(1);
+					}
+					parserConsumeToken(parser);
+				}
+			}
+			else if (parserTokenType(parser, NUMBER, 0)) {
+				vectorPushBack(fln->params, parserConsumeToken(parser));	
+				if (parserTokenTypeAndContent(parser, SEPARATOR, ",", 0)) {
+					if (parserTokenTypeAndContent(parser, OPERATOR, ">", 1)) {
+						printf(KRED "error: trailing comma in for loop declaration!\n" KNRM);
+						exit(1);
+					}
+					parserConsumeToken(parser);
+				}
+			}
+			else {
+				printf(KRED "error: expected a number or variable in for loop parameters, found:\n" KNRM);
+				printCurrentToken(parser);
+				exit(1);
+			}
+
+			paramCount++;
+		}
+		while (true);	
+	
+		printf(KGRN "parsed for loop with %d arguments\n" KNRM, paramCount);
+		
+		fln->body = parserParseBlock(parser);
+
+		StatementNode *sn = createStatementNode();
+		sn->type = FOR_LOOP_NODE;
+		sn->data = fln;
+		return sn;
+	}
+
+	printf(KRED "failed to parse for loop" KNRM);
+	exit(1);
 }
 
 ExpressionNode *parserParseExpression(Parser *parser) {
@@ -700,6 +801,9 @@ StatementNode *parserParseStatements(Parser *parser) {
 		sn->data = parserParseReturnStatement(parser); 
 		sn->type = FUNCTION_RET_NODE;
 		return sn;
+	}
+	else if (parserTokenTypeAndContent(parser, IDENTIFIER, "for", 0)) {
+		return parserParseForLoopNode(parser);
 	}
 	else if (parserTokenType(parser, IDENTIFIER, 0)) {
 		Token *tok = parserPeekAhead(parser, 0);
