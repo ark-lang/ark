@@ -365,6 +365,7 @@ ExpressionNode *parserParseExpression(Parser *parser) {
 	}
 
 	printf(KRED "error: failed to parse expression, only character, string and numbers are supported\n" KNRM);
+	printCurrentToken(parser);
 	exit(1);
 }
 
