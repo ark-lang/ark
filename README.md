@@ -3,6 +3,7 @@ Jayfor is a programming language written in C.
 
 # Table of Contents
 * [About](#about)
+  * [More details](JAYFOR.md)
 * [Note](#note)
 * [Requirements](#requirements)
 * [Contributing](#contributing)
