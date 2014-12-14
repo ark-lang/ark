@@ -3,25 +3,16 @@ Jayfor is a programming language written in C.
 
 # Table of Contents
 * [About](#about)
-* [IRC](#irc)
+* [Note](#note)
+* [Requirements](#requirements)
+* [Contributing](#contributing)
 * [License](#license)
-* [Building](#building)
-* [Goals](#goals)
-
-# <a name="irc"></a>IRC
-We just setup an IRC chat. Come join us:
-
-	server:  irc.freenode.net
-	port:    8001
-	channel: ##jayfor
 
 # <a name="about"></a>About
 Jayfor is a programming language written in C. It is still under
 heavy development. Jayfor is influenced from languages like Rust,
 C, C++, and Java. We like to keep things simple, safe and fast,
 but maintain a syntactically beautiful language.
-
-## Sample
 You can view the snippet of code below for a basic 'feel' of the language,
 or check out some actual code we use for the library [here](libs/math.j4).
 
@@ -35,40 +26,16 @@ or check out some actual code we use for the library [here](libs/math.j4).
 		println(a);
 	}
 
+# <a name="note"></a>Note
+JAYFOR is still in design stage. It's not quite working yet, stay tuned.
+
+# <a name="requirements"></a>Requirements
+* GCC/Clang
+* LLVM
+
+# <a name="contributing"></a>Contributing
+Send a pull request to [http://github.com/freefouran/jayfor](http://github.com/freefouran/jayfor). Use [http://github.com/freefouran/jayfor/issues](http://github.com/freefouran/jayfor/issues) for discussion. Please note that we consider that you have granted non-exclusive right to your contributed code under the MIT License.
+
 # <a name="license"></a>License
 Jayfor is licensed under The MIT License. I have no idea
 what this means, I just randomly chose it. Read it [here](LICENSE.md)
-
-# <a name="building"></a>Building
-Building is very simple
-
-## Requirements
-Only GCC or Clang is required to build the repository. You
-can also use another compiler, but you will have to change
-the [Makefile](Makefile).
-
-## Clone the repository
-
-	git clone git@github.com:freefouran/jayfor.git
-	cd jayfor
-
-## Building with Make
-If you are using MinGW or GCC:
-
-	make j4mingw
-
-If you are using Clang
-
-	make
-
-This will create an executable, which can be run like
-so:
-
-	./j4 somefile.j4
-
-# <a name="goals"></a>Goals
-* Self hosting
-* No Garbage Collection
-* Simplicity
-* Safety
-* Helpful Error Messages
