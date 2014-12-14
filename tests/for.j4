@@ -7,6 +7,7 @@ int a
 char b = 'a'
 
 fn add(int a, int b) [void] {
+	a = 10;
 	ret [(a + b)]
 }
 
