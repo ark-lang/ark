@@ -1,6 +1,6 @@
 # <a name="syntax styles"></a>Syntax
 
-We aim to make Jayfor different while still keeping things concise and easy to get around. We've tried to get rid of some of the annoying flaws [we felt] affect us most commonly while programming. 
+We aim to make Jayfor's syntax different while still keeping things concise and easy to get around. We've tried to get rid of some of the annoying flaws [we felt] affect us most commonly while programming. 
 
 ##Functions
 
