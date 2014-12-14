@@ -18,29 +18,11 @@ typedef enum {
 	STRING, CHARACTER, UNKNOWN, SPECIAL_CHAR
 } TokenType;
 
-/** Information on Token for debug */
-typedef struct {
-	char* fileName;
-	int lineNumber;
-	int charNumber;
-} TokenPosition;
-
 /** Properties of a Token or Lexeme */
 typedef struct {
 	int type;
 	char* content;
-	TokenPosition *pos;
 } Token;
-
-/**
- * Create a new token position
- */
-TokenPosition *tokenPositionCreate();
-
-/**
- * Destroy the given token position
- */
-void tokenPositionDestroy(TokenPosition *token);
 
 /**
  * Create an empty Token
