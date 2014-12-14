@@ -8,7 +8,7 @@ Jayfor is still under construction, this affects expressions as they aren't full
 
 	int x = 5 + 5 + 5 + 5;
 
-so the invalid expression is written like this:
+is invalid and will not parse! It should be written like this:
 
 	int x = ((5 + 5) + (5 + 5));
 
