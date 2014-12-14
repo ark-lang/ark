@@ -17,12 +17,12 @@ but maintain a syntactically beautiful language.
 You can view the snippet of code below for a basic 'feel' of the language,
 or check out some actual code we use for the library [here](libs/math.j4).
 
-	# add the given values together
-	fn add(int a, int b): int {
-		ret a + b;
+	// add the given values together
+	fn add(int a = 0, int b = ((5 + 5) - (5 + 5))): int {
+		ret (a + b);
 	}
 
-	fn main(int argc, str[] argv): void {
+	fn main(): void {
 		int a = add(5, 3);
 		println(a);
 	}

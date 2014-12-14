@@ -1,12 +1,12 @@
-# Standard Maths Library
-# for Jayfor, this is a WIP
-# and a "testing" ground for
-# the language as of writing this
-#
-# 07/12/2014
-# Written by: 
-# 	Felix A  - freefouran[at]gmail.com
-# 	Vedant N - captainchloride[at]gmail.com
+// Standard Maths Library
+// for Jayfor, this is a WIP
+// and a "testing" ground for
+// the language as of writing this
+//
+// 07/12/2014
+// Written by: 
+// 	  Felix A  - freefouran[at]gmail.com
+// 	  Vedant N - captainchloride[at]gmail.com
 
 double PI = 3.14159265358979323846264338327950288;
 
@@ -19,10 +19,12 @@ fn toDegrees(double radians): double {
 }
 
 fn clamp(double value, double low, double high): double {
-	if (value < low) 
+	if (value < low) {
 		ret low;
-	if (value > high)
+	}
+	if (value > high) {
 		ret high;
+	}
 	ret value;
 }
 
