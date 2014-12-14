@@ -30,7 +30,7 @@ We realize that this is a pain, and we will fix this.
 
 Functions are declared like so:
 
-	fn function_name(data_type arg_name, data_type arg_name)[void] { 
+	fn function_name(data_type arg_name, data_type arg_name) [void] { 
 		statements;
 	}
 
@@ -39,21 +39,21 @@ The above is a function which returns void (nothing).
 ### Returning Values
 We can also return values from functions, like so:
 
-	fn function_name(data_type arg_name, data_type arg_name)[data_type] { 
+	fn function_name(data_type arg_name, data_type arg_name) [data_type] { 
 		statements;
 		ret_statement;
 	}
 
 For example, an adding function, could be written like so:
 
-	fn add_values(int a, int b)[int] {
+	fn add_values(int a, int b) [int] {
 		ret (a + b);
 	}
 
 ### Tuples
 Tuples are also supported, allowing you to return multiple values from a function in a (somewhat) array-like fashion:
 
-	fn function_name(param_one, param_two)[data_type, data_type, ...] { 
+	fn function_name(param_one, param_two) [data_type, data_type, ...] { 
 		statements;
 		ret [5, 6];
 	}
