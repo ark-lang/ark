@@ -7,6 +7,7 @@ Functions are delared like so:
 		fn function_name(param_one, param_two): [return_type] { //code }
 
 We've added the tuples functionality, allowing you to return multiple values from a function in a (somewhat) array-like fashion. So you could also do:
+
 		fn function_name(param_one, param_two): [tuple_value_one, tuple_value_two, ...] { //code }
 
 We felt that the old style of the *for* loop was annoying as hell. So we implemented a new way to use them:
