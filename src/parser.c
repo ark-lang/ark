@@ -140,102 +140,133 @@ FunctionNode *createFunctionNode() {
 }
 
 void destroyStatementNode(StatementNode *sn) {
-	if (sn->data != NULL) {
-		switch (sn->type) {
-			case VARIABLE_DEF_NODE:
-				destroyVariableDefineNode(sn->data);
-				break;
-			case VARIABLE_DEC_NODE:
-				destroyVariableDeclareNode(sn->data);
-				break;
-			case FUNCTION_CALLEE_NODE:
-				destroyFunctionCalleeNode(sn->data);
-				break;
-			case FUNCTION_RET_NODE:
-				destroyFunctionNode(sn->data);
-				break;
-			default:
-				break;
+	if (sn != NULL) {
+		if (sn->data != NULL) {
+			switch (sn->type) {
+				case VARIABLE_DEF_NODE:
+					destroyVariableDefineNode(sn->data);
+					break;
+				case VARIABLE_DEC_NODE:
+					destroyVariableDeclareNode(sn->data);
+					break;
+				case FUNCTION_CALLEE_NODE:
+					destroyFunctionCalleeNode(sn->data);
+					break;
+				case FUNCTION_RET_NODE:
+					destroyFunctionNode(sn->data);
+					break;
+				default:
+					printf("unrecognized statement free %d!\n", sn->type);
+					break;
+			}
 		}
+		free(sn);
+		sn = NULL;
 	}
-	free(sn);
 }
 
 void destroyFunctionReturnNode(FunctionReturnNode *frn) {
-	if (frn->expr != NULL) {
-		destroyExpressionNode(frn->expr);
+	if (frn != NULL) {
+		if (frn->expr != NULL) {
+			destroyExpressionNode(frn->expr);
+		}
+		free(frn);
+		frn = NULL;
 	}
-	free(frn);
 }
 
 void destroyExpressionNode(ExpressionNode *expr) {
-	if (expr->lhand != NULL) {
-		destroyExpressionNode(expr->lhand);
+	if (expr != NULL) {
+		if (expr->lhand != NULL) {
+			destroyExpressionNode(expr->lhand);
+		}
+		if (expr->rhand != NULL) {
+			destroyExpressionNode(expr->rhand);
+		}
+		free(expr);
+		expr = NULL;
 	}
-	if (expr->rhand != NULL) {
-		destroyExpressionNode(expr->rhand);
-	}
-	free(expr);
 }
 
 void destroyVariableDefineNode(VariableDefineNode *vdn) {
-	free(vdn);
+	if (vdn != NULL) {
+		free(vdn);
+		vdn = NULL;
+	}
 }
 
 void destroyVariableDeclareNode(VariableDeclareNode *vdn) {
-	if (vdn->vdn != NULL) {
-		destroyVariableDefineNode(vdn->vdn);
+	if (vdn != NULL) {
+		if (vdn->vdn != NULL) {
+			destroyVariableDefineNode(vdn->vdn);
+		}
+		if (vdn->expr != NULL) {
+			destroyExpressionNode(vdn->expr);
+		}
+		free(vdn);
+		vdn = NULL;
 	}
-	if (vdn->expr != NULL) {
-		destroyExpressionNode(vdn->expr);
-	}
-	free(vdn);
 }
 
 void destroyFunctionArgumentNode(FunctionArgumentNode *fan) {
-	if (fan->value != NULL) {
-		destroyExpressionNode(fan->value);
+	if (fan != NULL) {
+		if (fan->value != NULL) {
+			destroyExpressionNode(fan->value);
+		}
+		free(fan);
+		fan = NULL;
 	}
-	free(fan);
 }
 
 void destroyBlockNode(BlockNode *bn) {
-	if (bn->statements != NULL) {
-		vectorDestroy(bn->statements);
+	if (bn != NULL) {
+		if (bn->statements != NULL) {
+			vectorDestroy(bn->statements);
+		}
+		free(bn);
+		bn = NULL;
 	}
-	free(bn);
 }
 
 void destroyFunctionPrototypeNode(FunctionPrototypeNode *fpn) {
-	if (fpn->args != NULL) {
-		int i;
-		for (i = 0; i < fpn->args->size; i++) {
-			StatementNode *sn = vectorGetItem(fpn->args, i);
-			destroyStatementNode(sn);
+	if (fpn != NULL) {
+		if (fpn->args != NULL) {
+			int i;
+			for (i = 0; i < fpn->args->size; i++) {
+				StatementNode *sn = vectorGetItem(fpn->args, i);
+				destroyStatementNode(sn);
+			}
+			vectorDestroy(fpn->args);
 		}
-		vectorDestroy(fpn->args);
+		free(fpn);
+		fpn = NULL;
 	}
-	free(fpn);
 }
 
 void destroyFunctionNode(FunctionNode *fn) {
-	if (fn->fpn != NULL) {
-		destroyFunctionPrototypeNode(fn->fpn);
+	if (fn != NULL) {
+		if (fn->fpn != NULL) {
+			destroyFunctionPrototypeNode(fn->fpn);
+		}
+		if (fn->body != NULL) {
+			destroyBlockNode(fn->body);
+		}
+		if (fn->ret != NULL) {
+			destroyFunctionReturnNode(fn->ret);
+		}
+		free(fn);
+		fn = NULL;
 	}
-	if (fn->body != NULL) {
-		destroyBlockNode(fn->body);
-	}
-	if (fn->ret != NULL) {
-		destroyFunctionReturnNode(fn->ret);
-	}
-	free(fn);
 }
 
 void destroyFunctionCalleeNode(FunctionCalleeNode *fcn) {
-	if (fcn->args != NULL) {
-		vectorDestroy(fcn->args);
+	if (fcn != NULL) {
+		if (fcn->args != NULL) {
+			vectorDestroy(fcn->args);
+		}
+		free(fcn);
+		fcn = NULL;
 	}
-	free(fcn);
 }
 
 /** END NODE FUNCTIONS */
@@ -592,7 +623,9 @@ FunctionNode *parserParseFunction(Parser *parser) {
 		exit(1);
 	}
 
+	// just in case we fail to parse, free this shit
 	free(fpn);
+	fpn = NULL;
 }
 
 FunctionCalleeNode *parserParseFunctionCall(Parser *parser) {
@@ -796,8 +829,6 @@ void parserDestroy(Parser *parser) {
 	int i;
 	for (i = 0; i < parser->tokenStream->size; i++) {
 		Token *tok = vectorGetItem(parser->tokenStream, i);
-
-		// then we destroy token
 		tokenDestroy(tok);
 	}
 
