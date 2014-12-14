@@ -1,8 +1,14 @@
 // this is a test for while loops
 
+fn test(int a, int b) [int, float] {
+	for int x:<10, 0> {
+
+	}
+}
+
 fn main() [void] {
 	// type, index, start, end, step
-	for int x:<0, 10, 2,> {
+	for int x:<0, 10, 2> {
 
 	}
 }
