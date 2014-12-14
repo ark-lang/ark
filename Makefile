@@ -1,5 +1,5 @@
 COMPILER = clang
-C_FLAGS = -Wall -Iincludes/
+C_FLAGS = -g -Wall -Iincludes/
 SOURCES = src/*.c
 
 all: ${SOURCES}
