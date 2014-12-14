@@ -25,117 +25,109 @@ static const char* NODE_NAMES[] = {
 
 StatementNode *createStatementNode() {
 	StatementNode *sn = malloc(sizeof(*sn));
-	sn->data = NULL;
-	sn->type = 0;
 	if (!sn) {
 		perror("malloc: failed to allocate memory for Statement Node");
 		exit(1);
 	}
+	sn->data = NULL;
+	sn->type = 0;
 	return sn;
 }
 
 FunctionReturnNode *createFunctionReturnNode() {
 	FunctionReturnNode *frn = malloc(sizeof(*frn));
-	frn->expr = NULL;
 	if (!frn) {
 		perror("malloc: failed to allocate memory for Function Return Node");
 		exit(1);
 	}
+	frn->expr = NULL;
 	return frn;
 }
 
 ExpressionNode *createExpressionNode() {
 	ExpressionNode *expr = malloc(sizeof(*expr));
-	expr->value = NULL;
-	expr->lhand = NULL;
-	expr->rhand = NULL;
-
 	if (!expr) {
 		perror("malloc: failed to allocate memory for ExpressionNode");
 		exit(1);
 	}
+	expr->value = NULL;
+	expr->lhand = NULL;
+	expr->rhand = NULL;
 	return expr;
 }
 
 VariableDefineNode *createVariableDefineNode() {
 	VariableDefineNode *vdn = malloc(sizeof(*vdn));
-	vdn->name = NULL;
-
 	if (!vdn) {
 		perror("malloc: failed to allocate memory for VariableDefineNode");
 		exit(1);
 	}
+	vdn->name = NULL;
 	return vdn;
 }
 
 VariableDeclareNode *createVariableDeclareNode() {
 	VariableDeclareNode *vdn = malloc(sizeof(*vdn));
-	vdn->vdn = NULL;
-	vdn->expr = NULL;
-
 	if (!vdn) {
 		perror("malloc: failed to allocate memory for VariableDeclareNode");
 		exit(1);
 	}
+	vdn->vdn = NULL;
+	vdn->expr = NULL;
 	return vdn;
 }
 
 FunctionArgumentNode *createFunctionArgumentNode() {
 	FunctionArgumentNode *fan = malloc(sizeof(*fan));
-	fan->name = NULL;
-	fan->value = NULL;
-
 	if (!fan) {
 		perror("malloc: failed to allocate memory for FunctionArgumentNode");
 		exit(1);
 	}
+	fan->name = NULL;
+	fan->value = NULL;
 	return fan;
 }
 
 FunctionCalleeNode *createFunctionCalleeNode() {
 	FunctionCalleeNode *fcn = malloc(sizeof(*fcn));
-	fcn->callee = NULL;
-	fcn->args = NULL;
-
 	if (!fcn) {
 		perror("malloc: failed to allocate memory for FunctionCalleeNode");
 		exit(1);
 	}
+	fcn->callee = NULL;
+	fcn->args = NULL;
 	return fcn;
 }
 
 BlockNode *createBlockNode() {
 	BlockNode *bn = malloc(sizeof(*bn));
-	bn->statements = NULL;
-
 	if (!bn) {
 		perror("malloc: failed to allocate memory for BlockNode");
 		exit(1);
 	}
+	bn->statements = NULL;
 	return bn;
 }
 
 FunctionPrototypeNode *createFunctionPrototypeNode() {
 	FunctionPrototypeNode *fpn = malloc(sizeof(*fpn));
-	fpn->args = NULL;
-	fpn->name = NULL;
-
 	if (!fpn) {
 		perror("malloc: failed to allocate memory for FunctionPrototypeNode");
 		exit(1);
 	}
+	fpn->args = NULL;
+	fpn->name = NULL;
 	return fpn;
 }
 
 FunctionNode *createFunctionNode() {
 	FunctionNode *fn = malloc(sizeof(*fn));
-	fn->fpn = NULL;
-	fn->body = NULL;
-
 	if (!fn) {
 		perror("malloc: failed to allocate memory for FunctionNode");
 		exit(1);
 	}
+	fn->fpn = NULL;
+	fn->body = NULL;
 	return fn;
 }
 
@@ -250,7 +242,9 @@ void destroyFunctionPrototypeNode(FunctionPrototypeNode *fpn) {
 			int i;
 			for (i = 0; i < fpn->args->size; i++) {
 				StatementNode *sn = vectorGetItem(fpn->args, i);
-				destroyStatementNode(sn);
+				if (sn != NULL) {
+					destroyStatementNode(sn);
+				}
 			}
 			vectorDestroy(fpn->args);
 		}
@@ -315,7 +309,7 @@ Token *parserExpectType(Parser *parser, TokenType type) {
 		return parserConsumeToken(parser);
 	}
 	else {
-		printf("%d:%d expected %s but found `%s`\n", tok->pos->lineNumber, tok->pos->charNumber, TOKEN_NAMES[type], tok->content);
+		printf("expected %s but found `%s`\n", TOKEN_NAMES[type], tok->content);
 		exit(1);
 	}
 }
@@ -326,7 +320,7 @@ Token *parserExpectContent(Parser *parser, char *content) {
 		return parserConsumeToken(parser);
 	}
 	else {
-		printf("%d:%d expected %s but found `%s`\n", tok->pos->lineNumber, tok->pos->charNumber, tok->content, content);
+		printf("expected %s but found `%s`\n", tok->content, content);
 		exit(1);
 	}
 }
@@ -337,7 +331,7 @@ Token *parserExpectTypeAndContent(Parser *parser, TokenType type, char *content)
 		return parserConsumeToken(parser);
 	}
 	else {
-		printf("%d:%d expected %s but found `%s`\n", tok->pos->lineNumber, tok->pos->charNumber, TOKEN_NAMES[type], tok->content);
+		printf("expected %s but found `%s`\n", TOKEN_NAMES[type], tok->content);
 		exit(1);
 	}
 }
@@ -348,7 +342,7 @@ Token *parserMatchType(Parser *parser, TokenType type) {
 		return parserConsumeToken(parser);
 	}
 	else {
-		printf("%d:%d expected %s but found `%s`\n", tok->pos->lineNumber, tok->pos->charNumber, TOKEN_NAMES[type], tok->content);
+		printf("expected %s but found `%s`\n", TOKEN_NAMES[type], tok->content);
 		exit(1);
 	}
 }
@@ -359,7 +353,7 @@ Token *parserMatchContent(Parser *parser, char *content) {
 		return parserConsumeToken(parser);
 	}
 	else {
-		printf("%d:%d expected %s but found `%s`\n", tok->pos->lineNumber, tok->pos->charNumber, tok->content, content);
+		printf("expected %s but found `%s`\n", tok->content, content);
 		exit(1);
 	}
 }
@@ -370,7 +364,7 @@ Token *parserMatchTypeAndContent(Parser *parser, TokenType type, char *content) 
 		return parserConsumeToken(parser);
 	}
 	else {
-		printf("%d:%d expected %s but found `%s`\n", tok->pos->lineNumber, tok->pos->charNumber, TOKEN_NAMES[type], tok->content);
+		printf("expected %s but found `%s`\n", TOKEN_NAMES[type], tok->content);
 		exit(1);
 	}
 }
@@ -966,8 +960,6 @@ void parserDestroy(Parser *parser) {
 		Token *tok = vectorGetItem(parser->tokenStream, i);
 		tokenDestroy(tok);
 	}
-
-	// destroy the token stream once we're done with it
 	vectorDestroy(parser->tokenStream);
 
 	for (i = 0; i < parser->parseTree->size; i++) {
@@ -976,6 +968,5 @@ void parserDestroy(Parser *parser) {
 	}
 	vectorDestroy(parser->parseTree);
 
-	// finally destroy parser
 	free(parser);
 }
