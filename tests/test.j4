@@ -1,6 +1,0 @@
-// uh uh
-
-fn main(int argc, str argv): int {
-	
-	ret 0;
-}

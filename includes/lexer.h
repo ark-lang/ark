@@ -32,8 +32,14 @@ typedef struct {
 	TokenPosition *pos;
 } Token;
 
+/**
+ * Create a new token position
+ */
 TokenPosition *tokenPositionCreate();
 
+/**
+ * Destroy the given token position
+ */
 void tokenPositionDestroy(TokenPosition *token);
 
 /**
