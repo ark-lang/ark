@@ -15,8 +15,7 @@ int main(int argc, char** argv) {
 	// calculate time
 	timer = clock() - timer;
 	double timeTaken = ((double) timer) / CLOCKS_PER_SEC;
-
-	printf("Finished in %.5f/s\n", timeTaken);
+	printf(KGRN "Finished in %.5f/s\n" KNRM, timeTaken);
 
 	return 0;
 }
