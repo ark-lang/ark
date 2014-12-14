@@ -14,7 +14,7 @@ fn main(int a, int b) [void] {
 
 	}
 
-	test(5, 5);
+	test(5, 5)
 
-	ret (5 + 5);
+	ret [(5 + 5)]
 }
