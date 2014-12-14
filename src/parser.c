@@ -40,7 +40,7 @@ FunctionReturnNode *createFunctionReturnNode() {
 		perror("malloc: failed to allocate memory for Function Return Node");
 		exit(1);
 	}
-	frn->expr = NULL;
+	frn->returnVals = NULL;
 	return frn;
 }
 
@@ -175,8 +175,15 @@ void destroyStatementNode(StatementNode *sn) {
 
 void destroyFunctionReturnNode(FunctionReturnNode *frn) {
 	if (frn != NULL) {
-		if (frn->expr != NULL) {
-			destroyExpressionNode(frn->expr);
+		if (frn->returnVals != NULL) {
+			int i;
+			for (i = 0; i < frn->returnVals->size; i++) {
+				ExpressionNode *temp = vectorGetItem(frn->returnVals, i);
+				if (temp != NULL) {
+					destroyExpressionNode(temp);
+				}
+			}
+			vectorDestroy(frn->returnVals);
 		}
 		free(frn);
 		frn = NULL;
@@ -470,8 +477,6 @@ StatementNode *parserParseForLoopNode(Parser *parser) {
 		}
 		while (true);	
 	
-		printf(KGRN "parsed for loop with %d arguments\n" KNRM, paramCount);
-		
 		fln->body = parserParseBlock(parser);
 
 		StatementNode *sn = createStatementNode();
@@ -623,6 +628,7 @@ BlockNode *parserParseBlock(Parser *parser) {
 		StatementNode *sn = vectorGetItem(block->statements, i);
 		printf("%d = %s\n", i, NODE_NAMES[sn->type]);
 	}
+	printf("\n");
 
 	return block;
 }
@@ -691,15 +697,14 @@ FunctionNode *parserParseFunction(Parser *parser) {
 
 		FunctionNode *fn = createFunctionNode();
 		fn->ret = vectorCreate();
+		fn->numOfReturnValues = 0;
 
 		if (parserTokenTypeAndContent(parser, SEPARATOR, "[", 0)) {
 			parserConsumeToken(parser);
 
-			int returnCount = 0;
-
 			do {
 				if (parserTokenTypeAndContent(parser, SEPARATOR, "]", 0)) {
-					if (returnCount < 1) {
+					if (fn->numOfReturnValues < 1) {
 						printf(KRED "error: function expects a return type\n" KNRM);
 						exit(1);
 					}
@@ -712,7 +717,7 @@ FunctionNode *parserParseFunction(Parser *parser) {
 					if (parserIsTokenDataType(parser, tok)) {
 						DataType rawDataType = parserTokenTypeToDataType(parser, tok);
 						vectorPushBack(fn->ret, &rawDataType);
-						returnCount++;
+						fn->numOfReturnValues++;
 					}
 					else {
 						printf(KRED "error: invalid data type specified: `%s`\n" KNRM, tok->content);
@@ -791,7 +796,9 @@ FunctionCalleeNode *parserParseFunctionCall(Parser *parser) {
 		while (true);
 
 		// consume semi colon
-		parserMatchTypeAndContent(parser, SEPARATOR, ";");
+		if (parserTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
+			parserConsumeToken(parser);
+		}
 
 		// woo we got the function
 		FunctionCalleeNode *fcn = createFunctionCalleeNode();
@@ -809,13 +816,42 @@ FunctionReturnNode *parserParseReturnStatement(Parser *parser) {
 	// consume the return keyword
 	parserMatchTypeAndContent(parser, IDENTIFIER, "ret");
 
-	ExpressionNode *expr = parserParseExpression(parser);
-
-	parserMatchTypeAndContent(parser, SEPARATOR, ";");
-
 	FunctionReturnNode *frn = createFunctionReturnNode();
-	frn->expr = expr;
-	return frn;
+	frn->returnVals = vectorCreate();
+	frn->numOfReturnValues = 0;
+
+	if (parserTokenTypeAndContent(parser, SEPARATOR, "[", 0)) {
+		parserConsumeToken(parser);
+
+		do {
+			if (parserTokenTypeAndContent(parser, SEPARATOR, "]", 0)) {
+				parserConsumeToken(parser);
+				if (parserTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
+					parserConsumeToken(parser);
+				}
+				return frn;
+			}
+
+			ExpressionNode *expr = parserParseExpression(parser);
+			vectorPushBack(frn->returnVals, expr);
+			if (parserTokenTypeAndContent(parser, SEPARATOR, ",", 0)) {
+				if (parserTokenTypeAndContent(parser, SEPARATOR, "]", 1)) {
+					printf(KRED "error: trailing comma in return statement\n" KNRM);
+					exit(1);
+				}
+				parserConsumeToken(parser);
+				frn->numOfReturnValues++;
+			}
+		}
+		while (true);
+	}
+	else {
+		printf(KRED "error: return statement expects block brackets\n" KNRM);
+		exit(1);
+	}
+
+	printf(KRED "error: failed to parse return statement" KNRM);
+	exit(1);
 }
 
 StatementNode *parserParseStatements(Parser *parser) {

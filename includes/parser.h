@@ -93,7 +93,8 @@ typedef struct {
  * Function Return Node
  */
 typedef struct {
-	ExpressionNode *expr;
+	Vector *returnVals;
+	int numOfReturnValues;
 } FunctionReturnNode;
 
 /**
@@ -138,10 +139,16 @@ typedef struct {
 	FunctionPrototypeNode *fpn;
 	BlockNode *body;
 	Vector *ret;
+	int numOfReturnValues;
 } FunctionNode;
 
+/**
+ * Labelled for accessing 
+ * certain parts of our
+ * for loop
+ */
 typedef enum {
-	FOR_START,
+	FOR_START = 0,
 	FOR_END,
 	FOR_STEP
 } ForLoopParam;
