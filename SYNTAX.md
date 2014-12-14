@@ -1,18 +1,18 @@
 # <a name="syntax styles"></a>Syntax
 
-We aim to make Jayfor different while still keeping things concise and easy to get around. We've tried to get rid of some of the annoying flaws [we felt] affect us most commonly while coding. 
+We aim to make Jayfor different while still keeping things concise and easy to get around. We've tried to get rid of some of the annoying flaws [we felt] affect us most commonly while programming. 
 
 ##Functions
 
-Functions are delared like so:
+Functions are declared like so:
 
 		fn function_name(param_one, param_two): [return_type] { 
 			statements;
 		}
 
-We've added the tuples functionality, allowing you to return multiple values from a function in a (somewhat) array-like fashion. So you could also do:
+Tuples are also supported, allowing you to return multiple values from a function in a (somewhat) array-like fashion. So you could also do:
 
-		fn function_name(param_one, param_two): [tuple_value_one, tuple_value_two, ...] { 
+		fn function_name(param_one, param_two): [data_type, data_type, ...] { 
 			statements;
 		}
 
@@ -33,7 +33,14 @@ This is equivalent to:
 			statements;
 		}
 
-If *value_one* happens to be greater than *value_two*, Jayfor can detect that and decrement the value by *step* amounts too. There is no need to specify explicitly.
+If *value_one* happens to be greater than *value_two*, Jayfor can detect that and decrement the value by *step* amounts too. There is no need to specify explicitly. However, it *can* be done if you feel the itch/need to.
+So:
+
+		for data_type:variable_name:<start, end, -step> {
+			statements;
+		}
+
+is valid.
 
 You could also do:
 
