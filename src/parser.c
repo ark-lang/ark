@@ -343,18 +343,19 @@ bool parserTokenTypeAndContent(Parser *parser, TokenType type, char* content, in
 }
 
 char parserParseOperand(Parser *parser) {
-	if (parserTokenTypeAndContent(parser, OPERATOR, "+", 0)) {
-		char* temp = parserConsumeToken(parser)->content;
-		return temp[0];
-	}
-	if (parserTokenTypeAndContent(parser, OPERATOR, "-", 0)) {
-		char* temp = parserConsumeToken(parser)->content;
-		return temp[0];
-	}
-
 	Token *tok = parserPeekAhead(parser, 0);
-	printf(KRED "error: invalid operator ('%c') specified\n" KNRM, tok->content[0]);
-	return '\0';
+	char tokChar = tok->content[0];
+
+	switch (tokChar) {
+		case '+': return tokChar;
+		case '-': return tokChar;
+		case '*': return tokChar;
+		case '/': return tokChar;
+		default:
+			printf(KRED "error: invalid operator ('%c') specified\n" KNRM, tok->content[0]);
+			exit(1);
+			break;
+	}
 }
 
 ExpressionNode *parserParseExpression(Parser *parser) {
