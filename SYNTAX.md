@@ -1,15 +1,24 @@
-# <a name="syntax styles"></a>Syntax
+# JAYFOR SPECIFCATION
+We aim to make Jayfor's syntax unique, concise, and easy to get around. We've tried to get rid of some of the annoying flaws [we felt] affect us most commonly while programming. 
 
-We aim to make Jayfor's syntax different while still keeping things concise and easy to get around. We've tried to get rid of some of the annoying flaws [we felt] affect us most commonly while programming. 
-
-##Functions
+## Functions
 
 Functions are declared like so:
 
-	fn function_name(param_one, param_two): [return_type] { 
+	fn function_name(data_type arg_name, data_type arg_name): void { 
 		statements;
 	}
 
+The above is a function which returns void (nothing).
+
+### Returning Values
+We can also return values from functions, like so:
+
+	fn function_name(data_type arg_name, data_type arg_name): void { 
+		statements;
+	}
+
+### Tuples
 Tuples are also supported, allowing you to return multiple values from a function in a (somewhat) array-like fashion. So you could also do:
 
 	fn function_name(param_one, param_two): [data_type, data_type, ...] { 
@@ -33,59 +42,50 @@ This is equivalent to:
 		statements;
 	}
 
-If **value_one** happens to be greater than **value_two**, Jayfor can detect that and decrement the value by **step** amounts too. There is no need to specify explicitly. However, it *can* be done if you feel the itch/need to.
-So:
+Jayfor can detect the difference between the start and end value and increment, or decrement accordingly. You do not need to explicitly define
+if you want to increment or decrement, but you can if you feel the itching need to, you can prefix your step with a negative sign to decrement.
 
-	for data_type:variable_name:<start, end, -step> {
+	for data_type variable_name:<start, end, -step> {
 		statements;
 	}
 
-is valid, but only for when **start** is greater than **end**. If you didn't already figure this out, quit programming.
+You do not not have to specify a step like so:
 
-You could also do:
-
-	for data_type variable_name:<start, end>
-		
-in which case **step** defaults to 1, and the increments happen in steps of 1 (obviously).
-
-----------------------------------------------
-##DO-WHILE loops
-
-
-Do-while loops are tedious to write. Having to write a do and then a while condition after it is a complete waste of time in our opinion. So we have a new way to declare do-while loops:
-
-	do(condition) { 
+	for data_type variable_name:<start, end> {
 		statements;
 	}
 
-If you think this is worse than:
-
-	do {
-		statements;
-	} while(condition);
-
-then you're retarded.
+If you do not specify step, it will default at 1.
 
 ----------------------------------------------
-##IF loop
+## DO-WHILE loops
+We think that Do-while loops are tedious to write and outdated. Having to write a do and then a while condition after is tedious and a waste of time. With Jayfor, you just have to use the do keyword in replace of while, which
+means that Jayfor will ensure that the loop is executed atleast once before checking the condition.
 
-**IF** loops are the same, since they don't really need any change.
-
-	if(condition) {
+	do (condition) { 
 		statements;
 	}
 
 ----------------------------------------------
-##WHILE loop
+## If Statement
 
-**WHILE** loops are the same too, since, again, they don't really need to be changed.
+We think that **if** statements are perfect as they are:
+
+	if (condition) {
+		statements;
+	}
+
+----------------------------------------------
+## While Loop
+
+**While** loops are also perfect as they traditionally are.
 
 	while(condition) {
 		statements;
 	}
 
 ----------------------------------------------
-##Other general stuff
+## Misc
 
 Most of the other syntax is pretty much the same. However, we despise the *variable++* way of incrementing (or decrementing). So please do:
 
