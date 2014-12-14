@@ -20,12 +20,13 @@ or check out some actual code we use for the library [here](libs/math.j4).
 
 	// add the given values together
 	fn add(int a = 0, int b = ((5 + 5) - (5 + 5))) [int] {
-		ret (a + b);
+		ret [(a + b)]
 	}
 
-	fn main(): [void] {
-		int a = add(5, 3);
-		println(a);
+	fn main(): [int] {
+		int a = add(5, 3)
+		println(a)
+        ret [a]
 	}
 
 # <a name="note"></a>Note
