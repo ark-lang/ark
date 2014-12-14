@@ -342,6 +342,21 @@ bool parserTokenTypeAndContent(Parser *parser, TokenType type, char* content, in
 	return parserTokenType(parser, type, ahead) && parserTokenContent(parser, content, ahead);
 }
 
+char parserParseOperand(Parser *parser) {
+	if (parserTokenTypeAndContent(parser, OPERATOR, "+", 0)) {
+		char* temp = parserConsumeToken(parser)->content;
+		return temp[0];
+	}
+	if (parserTokenTypeAndContent(parser, OPERATOR, "-", 0)) {
+		char* temp = parserConsumeToken(parser)->content;
+		return temp[0];
+	}
+
+	Token *tok = parserPeekAhead(parser, 0);
+	printf(KRED "error: invalid operator ('%c') specified\n" KNRM, tok->content[0]);
+	return '\0';
+}
+
 ExpressionNode *parserParseExpression(Parser *parser) {
 	ExpressionNode *expr = createExpressionNode(); // the final expression
 
@@ -362,6 +377,24 @@ ExpressionNode *parserParseExpression(Parser *parser) {
 		expr->type = 'C';
 		expr->value = parserConsumeToken(parser);
 		return expr;
+	}
+	if (parserTokenType(parser, IDENTIFIER, 0)) {
+		expr->type = 'V';
+		expr->value = parserConsumeToken(parser);
+		return expr;
+	}
+	if (parserTokenTypeAndContent(parser, SEPARATOR, "(", 0)) {
+		parserConsumeToken(parser);
+		expr->type = 'P';
+		expr->lhand = parserParseExpression(parser);
+		expr->operand = parserParseOperand(parser);
+		expr->rhand = parserParseExpression(parser);
+		if (parserTokenTypeAndContent(parser, SEPARATOR, ")", 0)) {
+			parserConsumeToken(parser);
+			return expr;
+		}
+		printf(KRED "error: missing closing parenthesis on expression\n" KNRM);
+		exit(1);
 	}
 
 	printf(KRED "error: failed to parse expression, only character, string and numbers are supported\n" KNRM);
@@ -557,6 +590,8 @@ FunctionNode *parserParseFunction(Parser *parser) {
 		printf(KRED "error: no parameter list provided\n" KNRM);
 		exit(1);
 	}
+
+	free(fpn);
 }
 
 FunctionCalleeNode *parserParseFunctionCall(Parser *parser) {

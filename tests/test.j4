@@ -2,10 +2,10 @@
 
 fn do_something(int a): int {
 	int x = 10;
-	ret 21;
+	ret (a + 5);
 }
 
 fn main(): int {
 	do_something(5);
-	ret 5;
+	ret (5 + 5);
 }
