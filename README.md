@@ -25,19 +25,29 @@ but maintain a syntactically beautiful language.
 You can view the snippet of code below for a basic 'feel' of the language,
 or check out some actual code we use for the library [here](libs/math.j4).
 
-	// add the given values together
-	fn add(int a = 0, int b = ((5 + 5) - (5 + 5))) [int] {
-		for int x:<0, 10, 2> {
-            add(x, 5)
-        }
-        ret [(a + b)]
-	}
+    // this is no longer a test for while loops
+    // just some random code for testing
 
-	fn main() [int] {
-		int a = add(5, 3)
-		println(a); // semi colons are optional!
-        ret [a]
-	}
+    int a = (5 + 5)
+    int z = a
+    int a
+    char b = 'a'
+
+    fn add(int a, int b) [void] {
+        ret [(a + b)]
+    }
+
+    fn test(int a, int b, str x) [int, float, str] {
+        for int x:<10, 0> {
+            add(x, x)
+        }
+
+        ret [0, 3.2, "test"]
+    }
+
+    fn main(int a, int b) [void] {
+        test(5, 5)
+    }
 
 # <a name="note"></a>Note
 JAYFOR is still in design stage. It's not quite working yet, stay tuned.
