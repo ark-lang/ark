@@ -20,7 +20,7 @@ Tuples are also supported, allowing you to return multiple values from a functio
 ##FOR loops
 
 
-We felt that the old style of the **for** loop was annoying as hell. So we implemented a new way to use them:
+We felt that the old style of the **for** loop was annoying as hell. So we added our own little prettifying sauce to it:
 
 	for data_type variable_name:<start, end, step> {
 		statements;
