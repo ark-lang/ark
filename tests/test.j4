@@ -1,11 +1,14 @@
 // this is JAYFOR
 
 fn do_something(int a): int {
-	int x = 10;
+	int x = (5 + a);
 	ret (a + 5);
 }
 
 fn main(): int {
-	do_something(5);
-	ret (5 + 5);
+	do_something((a + 5));
+
+	// expressions can only be parsed
+	// like this right now.
+	ret ((5 + 5) + (5 + 5));
 }
