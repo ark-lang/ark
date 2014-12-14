@@ -3,11 +3,13 @@
 int a = (5 + 5)
 int z = a
 int a
+char b = 'a'
 
 fn test(int a = ((5 + 5) - (a / b)), int b) [int, float] {
 	for int x:<10, 0> {
-
+		char y = 'a'
 	}
+	char x = 'f'
 
 	main(5, 5)
 }
