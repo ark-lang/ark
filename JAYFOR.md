@@ -13,8 +13,4 @@ The frontend of JAYFOR is fairly simple, we use a hand written Lexer and Parser.
 * Less bloat
 
 ## Backend
-The backend uses LLVM. We use LLVM because
-* More optimisations in there that I could do in a lifetime
-* I've never written a Bytecode Compiler
-* It's super duper fast
-* Easy to use
+We don't know yet.
