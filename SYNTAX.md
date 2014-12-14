@@ -1,6 +1,8 @@
 # JAYFOR SPECIFCATION
 We aim to make Jayfor's syntax unique, concise, and easy to get around. We've tried to get rid of some of the annoying flaws [we felt] affect us most commonly while programming. 
 
+PLEASE NOTE THAT THIS LANGUAGE IS STILL IN ITS EARLY STAGES, AND ANYTHING IN THIS DOCUMENT COULD CHANGE AT ANY TIME.
+
 ## Expressions
 Jayfor is still under construction, this affects expressions as they aren't fully implemented yet! An expression like this:
 
@@ -116,17 +118,26 @@ We think that **if** statements are perfect as they are:
 	}
 
 ----------------------------------------------
-## 
+## Common Syntax We've Removed
+There are some language features we feel are useless, error prone, unsafe, or we just disagree with it.
 
-Most of the other syntax is pretty much the same. However, we despise the *variable++* way of incrementing (or decrementing). So please do:
+### If Statements
+In most languages, if your if statement only has a single statement in it's block, you do not need braces, i.e:
 
-	variable_to_be_incremented += number;
+	if (x == 5)
+		printf("whatever\n");
 
-or:
+We feel this feature is unsafe and can be prone to errors, so it has not been implemented. Therefore you must use braces, even in single statement ifs, whiles, etc.
 
-	variable_to_be_decremented -= number;
+	if (x == 5) {
+		statement;
+	}
 
-if you need to increment or decrement by a certain value.
-	
+### Incrementing and Decrementing
+To make our lives a bit easier, we have not implemented the `++` and `--` operators. While it is a nice shorthand, we feel it is not a great priority to implement this feature. If you wish to increment/decrement, you will have to use the older syntax:
+
+	x += 1;
+	y -= 1;
+	x += 5; // etc
 
 We will update this with newer stuff if our great minds think it up. Stay tuned.
