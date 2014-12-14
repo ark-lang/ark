@@ -1,0 +1,11 @@
+// this is JAYFOR
+
+fn do_something(int a): int {
+	int x = 10;
+	ret 21;
+}
+
+fn main(): int {
+	do_something(5);
+	ret 5;
+}
