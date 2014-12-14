@@ -1,14 +1,18 @@
 // this is a test for while loops
 
+int a = (5 + 5);
+
 fn test(int a, int b) [int, float] {
 	for int x:<10, 0> {
 
 	}
 }
 
-fn main() [void] {
+fn main(int a, int b) [void] {
 	// type, index, start, end, step
 	for int x:<0, 10, 2> {
 
 	}
+	test(5, 5);
+	ret (5 + 5);
 }
