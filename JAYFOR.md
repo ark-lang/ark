@@ -18,31 +18,3 @@ The backend uses LLVM. We use LLVM because
 * I've never written a Bytecode Compiler
 * It's super duper fast
 * Easy to use
-
-# FELIXS REMEMBER STUFF
-for type index:<start, end, step> {
-    
-}
-
-fn add(int a, int b)[int] {
-    
-}
-
-// tuples
-fn add(int a, int b)[int, double] {
-    
-}
-
-if (x == 5) {
-    
-}
-
-// while loop
-while (x == 10) {
-    
-}
-
-// do while
-do (x == 5) {
-    
-}

@@ -1,6 +1,6 @@
 // this is a test for while loops
 
-fn main(): void {
+fn main() [void] {
 	// type, index, start, end, step
 	for int x:<0, 10, 2,> {
 
