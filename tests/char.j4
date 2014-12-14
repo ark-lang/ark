@@ -1,8 +1,0 @@
-int x = 'a';
-str s = "fuck";
-
-fn main(int argc, str argv): void {
-	int x = 'b';
-	str s = "wow amazing";
-	ret 0;
-}

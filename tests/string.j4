@@ -1,3 +1,0 @@
-fn this_is_a_test(str x): str {
-	ret "wow amazing it works! cool dude! how sik is that bro?!!$'''";
-}

@@ -15,8 +15,11 @@ TokenPosition *tokenPositionCreate() {
 	return pos;
 }
 
-void tokenPositionDestroy(TokenPosition *token) {
-	free(token);
+void tokenPositionDestroy(TokenPosition *pos) {
+	if (pos != NULL) {
+		free(pos);
+		pos = NULL;
+	}
 }
 
 Token *tokenCreate() {
@@ -33,10 +36,13 @@ const char* getTokenName(Token *tok) {
 }
 
 void tokenDestroy(Token *token) {
-	if (token->pos != NULL) {
-		tokenPositionDestroy(token->pos);
+	if (token != NULL) {
+		if (token->pos != NULL) {
+			tokenPositionDestroy(token->pos);
+		}
+		free(token);
+		token = NULL;
 	}
-	free(token);
 }
 
 Lexer *lexerCreate(char* input) {
@@ -51,6 +57,7 @@ Lexer *lexerCreate(char* input) {
 	lexer->tokenStream = vectorCreate();
 	lexer->running = true;
 	lexer->lineNumber = 1;
+
 	return lexer;
 }
 
@@ -59,13 +66,15 @@ void lexerNextChar(Lexer *lexer) {
 }
 
 char* lexerFlushBuffer(Lexer *lexer, int start, int length) {
-	char* result = NULL;
-	strncpy(result = malloc(length + 1), &lexer->input[start], length);
+	char* result = malloc(sizeof(char) * (length + 1));
 	if (!result) { 
 		perror("malloc: failed to allocate memory for buffer flush"); 
 		exit(1);
 	}
+
+	strncpy(result, &lexer->input[start], length);
 	result[length] = '\0';
+	
 	return result;
 }
 
@@ -200,7 +209,7 @@ void lexerGetNextToken(Lexer *lexer) {
 	if (isEndOfInput(lexer->charIndex)) {
 		lexer->currentToken->type = END_OF_FILE;
 		lexer->currentToken->content = "<END_OF_FILE>";
-		lexer->running = false;
+		lexer->running = false;	// stop lexing
 		vectorPushBack(lexer->tokenStream, lexer->currentToken);
 		return;
 	}
@@ -243,5 +252,7 @@ void lexerGetNextToken(Lexer *lexer) {
 }
 
 void lexerDestroy(Lexer *lexer) {
+	if (lexer == NULL) return;
 	free(lexer);
+	lexer = NULL;
 }
