@@ -10,6 +10,13 @@ Jayfor is a programming language written in C.
 * [Contributing](#contributing)
 * [License](#license)
 
+# Unique(-ish) features
+* Semi-colons are optional
+* Tuples
+* Default argument values
+* Reimagined syntax for annoying [traditional] features
+  * do whiles, for loops, etc
+
 # <a name="about"></a>About
 Jayfor is a programming language written in C. It is still under
 heavy development. Jayfor is influenced from languages like Rust,
@@ -20,12 +27,15 @@ or check out some actual code we use for the library [here](libs/math.j4).
 
 	// add the given values together
 	fn add(int a = 0, int b = ((5 + 5) - (5 + 5))) [int] {
-		ret [(a + b)]
+		for int x:<0, 10, 2> {
+            add(x, 5)
+        }
+        ret [(a + b)]
 	}
 
-	fn main(): [int] {
+	fn main() [int] {
 		int a = add(5, 3)
-		println(a)
+		println(a); // semi colons are optional!
         ret [a]
 	}
 
