@@ -164,7 +164,7 @@ void destroyStatementNode(StatementNode *sn) {
 					destroyFunctionNode(sn->data);
 					break;
 				default:
-					printf("unrecognized statement free %d!\n", sn->type);
+					printf(KYEL "unrecognized statement free #%d!\n" KNRM, sn->type);
 					break;
 			}
 		}
