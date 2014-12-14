@@ -62,7 +62,6 @@ If you think this is worse than:
 
 	do {
 		statements;
-			
 	} while(condition);
 
 then you're retarded.
