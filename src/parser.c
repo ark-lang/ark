@@ -18,10 +18,22 @@ static const char* NODE_NAMES[] = {
 	"variable_dec_node", "function_arg_node",
 	"function_node", "function_prot_node",
 	"block_node", "function_callee_node",
-	"function_ret_node", "for_loop_node"
+	"function_ret_node", "for_loop_node",
+	"variable_reassign_node"
 };
 
 /** UTILITY FOR NODES */
+
+VariableReassignNode *createVariableReassignNode() {
+	VariableReassignNode *vrn = malloc(sizeof(*vrn));
+	if (!vrn) {
+		perror("malloc: failed to allocate memory for Variable Reassign Node");
+		exit(1);
+	}
+	vrn->name = NULL;
+	vrn->expr = NULL;
+	return vrn;
+}
 
 StatementNode *createStatementNode() {
 	StatementNode *sn = malloc(sizeof(*sn));
@@ -140,6 +152,15 @@ ForLoopNode *createForLoopNode() {
 	return fln;
 }
 
+void destroyVariableReassignNode(VariableReassignNode *vrn) {
+	if (vrn != NULL) {
+		if (vrn->expr != NULL) {
+			destroyExpressionNode(vrn->expr);
+		}
+		free(vrn);
+	}
+}
+
 void destroyForLoopNode(ForLoopNode *fln) {
 	if (fln != NULL) {
 		free(fln);
@@ -163,9 +184,10 @@ void destroyStatementNode(StatementNode *sn) {
 				case FUNCTION_RET_NODE:
 					destroyFunctionNode(sn->data);
 					break;
-				default:
-					printf(KYEL "unrecognized statement free #%d!\n" KNRM, sn->type);
+				case VARIABLE_REASSIGN_NODE:
+					destroyVariableReassignNode(sn->data);
 					break;
+				default: break;
 			}
 		}
 		free(sn);
@@ -399,6 +421,7 @@ char parserParseOperand(Parser *parser) {
 		case '-': parserConsumeToken(parser); return tokChar;
 		case '*': parserConsumeToken(parser); return tokChar;
 		case '/': parserConsumeToken(parser); return tokChar;
+		case '%': parserConsumeToken(parser); return tokChar;
 		default:
 			printf(KRED "error: invalid operator ('%c') specified\n" KNRM, tok->content[0]);
 			exit(1);
@@ -865,9 +888,16 @@ StatementNode *parserParseStatements(Parser *parser) {
 	}
 	else if (parserTokenType(parser, IDENTIFIER, 0)) {
 		Token *tok = parserPeekAhead(parser, 0);
-
+		
+		// variable reassignment
+		if (parserTokenTypeAndContent(parser, OPERATOR, "=", 1)) {
+			StatementNode *sn = createStatementNode();
+			sn->data = parserParseReassignmentStatement(parser);
+			sn->type = VARIABLE_REASSIGN_NODE;
+			return sn;
+		}
 		// function call
-		if (parserTokenTypeAndContent(parser, SEPARATOR, "(", 1)) {
+		else if (parserTokenTypeAndContent(parser, SEPARATOR, "(", 1)) {
 			StatementNode *sn = createStatementNode();
 			sn->data = parserParseFunctionCall(parser);
 			sn->type = FUNCTION_CALLEE_NODE;
@@ -889,6 +919,30 @@ StatementNode *parserParseStatements(Parser *parser) {
 	exit(1);
 }
 
+VariableReassignNode *parserParseReassignmentStatement(Parser *parser) {
+	if (parserTokenType(parser, IDENTIFIER, 0)) {
+		Token *variableName = parserConsumeToken(parser);
+
+		if (parserTokenTypeAndContent(parser, OPERATOR, "=", 0)) {
+			parserConsumeToken(parser);
+
+			ExpressionNode *expr = parserParseExpression(parser);
+
+			if (parserTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
+				parserConsumeToken(parser);
+			}
+
+			VariableReassignNode *vrn = createVariableReassignNode();
+			vrn->name = variableName;
+			vrn->expr = expr;
+			return vrn;
+		}
+	}
+
+	printf(KRED "error: failed to parse variable reassignment\n" KNRM);
+	exit(1);
+}
+
 void parserStartParsing(Parser *parser) {
 	while (parser->parsing) {
 		// get current token
@@ -903,6 +957,9 @@ void parserStartParsing(Parser *parser) {
 				} 
 				else if (parserIsTokenDataType(parser, tok)) {
 					parserParseVariable(parser, true);
+				}
+				else if (parserTokenTypeAndContent(parser, OPERATOR, "=", 1)) {
+					parserParseReassignmentStatement(parser);
 				}
 				else {
 					printf(KRED "error: unrecognized identifier found: `%s`\n" KNRM, tok->content);
