@@ -42,7 +42,7 @@ Structures are declared as follows:
 
 Functions are declared like so:
 
-	fn function_name(data_type arg_name, data_type arg_name) [void] { 
+	fn function_name(data_type arg_name, data_type arg_name): void { 
 		statements;
 	}
 
@@ -51,23 +51,23 @@ The above is a function which returns void (nothing).
 ### Returning Values
 We can also return values from functions, like so:
 
-	fn function_name(data_type arg_name, data_type arg_name) [data_type] { 
+	fn function_name(data_type arg_name, data_type arg_name): data_type { 
 		statements;
 		ret_statement;
 	}
 
 For example, an adding function, could be written like so:
 
-	fn add_values(int a, int b) [int] {
+	fn add_values(int a, int b): int {
 		ret (a + b);
 	}
 
 ### Tuples
 Tuples are also supported, allowing you to return multiple values from a function in a (somewhat) array-like fashion:
 
-	fn function_name(param_one, param_two) [data_type, data_type, ...] { 
+	fn function_name(param_one, param_two): <data_type, data_type, ...> { 
 		statements;
-		ret [5, 6];
+		ret <5, 6>;
 	}
 
 ---------------------------------
@@ -76,11 +76,13 @@ Tuples are also supported, allowing you to return multiple values from a functio
 
 We felt that the old style of the **for** loop was annoying as hell. So we added our own little prettifying sauce to it:
 
-	for data_type variable_name:<start, end, step> {
+	for data_type variable_name:(start, end, step) {
 		statements;
 	}
 
-**step** is the value by which we must increment **variable_name**
+**step** is the value by which we must increment **variable_name**. 
+
+Note that the loop is exclusive of the **end** value, so if you specify **start** as 0 and **end** as 10, it runs from 0 to 9.
 This is equivalent to:
 		
 	for(data_type variable_name = start; variable_name < end; variable_name += step) { 
@@ -90,13 +92,13 @@ This is equivalent to:
 Jayfor can detect the difference between the start and end value and increment, or decrement accordingly. You do not need to explicitly define
 if you want to increment or decrement, but you can if you feel the itching need to, you can prefix your step with a negative sign to decrement.
 
-	for data_type variable_name:<start, end, -step> {
+	for data_type variable_name:(start, end, -step) {
 		statements;
 	}
 
 You do not not have to specify a step like so:
 
-	for data_type variable_name:<start, end> {
+	for data_type variable_name:(start, end) {
 		statements;
 	}
 
@@ -105,27 +107,27 @@ If you do not specify step, it will default at 1.
 ----------------------------------------------
 ## Do While Loops
 We think that Do-while loops are tedious to write and outdated. Having to write a do and then a while condition after is tedious and a waste of time. With Jayfor, you just have to use the do keyword in replace of while, which
-means that Jayfor will ensure that the loop is executed atleast once before checking the condition.
+means that Jayfor will ensure that the loop is executed atleast once before checking the condition. We got rid of the parentheses as they're kind of trivial.
 
-	do (condition) { 
+	do condition { 
 		statements;
 	}
 
 ----------------------------------------------
 ## If Statement
 
-We think that **if** statements are perfect as they are:
+We think that **if** statements are perfect as they are, except for the parentheses. They're kind of trivial so we got rid of them (yes, here too):
 
-	if (condition) {
+	if condition {
 		statements;
 	}
 
 ----------------------------------------------
 ## While Loop
 
-**While** loops are also perfect as they traditionally are.
+**While** loops are also perfect as they traditionally are. And finally, "Goodbye parentheses!" here too:
 
-	while(condition) {
+	while condition {
 		statements;
 	}
 
@@ -154,7 +156,7 @@ In most languages, if your if statement only has a single statement in it's bloc
 
 We feel this feature is unsafe and can be prone to errors, so it has not been implemented. Therefore you must use braces, even in single statement ifs, whiles, etc.
 
-	if (x == 5) {
+	if x == 5 {
 		statement;
 	}
 
