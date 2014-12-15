@@ -140,6 +140,7 @@ typedef struct {
 	FunctionPrototypeNode *fpn;
 	BlockNode *body;
 	Vector *ret;
+	bool isTuple;
 	int numOfReturnValues;
 } FunctionNode;
 
