@@ -1,6 +1,7 @@
 // this is just me messing around with syntax ideas.
 
-fn add(int a, int b):<int, str> {
+
+fn add(int a, int b): <int, str> {
 	int x = (a + b)
 
 	for int x:<0, 10, 1> {
@@ -10,11 +11,11 @@ fn add(int a, int b):<int, str> {
 	ret <x, "test">
 }
 
-fn do_some_shit(tup amazing): <void> {
+fn do_some_shit(tup amazing): void {
 	println("this is {} nice", amazing<0>);
 }
 
-fn main: int argc, str argv[]: <void> {
+fn main: int argc, str argv[]): void {
 	tup myTuple = add(5, 5);
 	int myTupleInt = myTuple<0>;
 }
