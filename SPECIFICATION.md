@@ -1,6 +1,9 @@
 # JAYFOR SPECIFCATION
 We aim to make Jayfor's syntax unique, concise, and easy to get around. We've tried to get rid of some of the annoying flaws [we felt] affect us most commonly while programming. This is a very informal specification of the JAYFOR programming language.
 
+
+This is a really rough guideline for the programming language, this is not final documentation for the language and is for now an 'informal specification'. We feel there is no point writing a formal specification for a language that is so early in its development, since things will probably change a lot.
+
 **PLEASE NOTE THAT THIS LANGUAGE IS STILL IN ITS EARLY STAGES, AND ANYTHING IN THIS DOCUMENT IS STILL SUBJECT TO CHANGE. NOTHING IS GUARANTEED AS FINAL.**
 
 ## Expressions

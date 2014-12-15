@@ -37,7 +37,7 @@ Lexer *lexerCreate(char* input) {
 	lexer->charIndex = input[lexer->pos];
 	lexer->tokenStream = vectorCreate();
 	lexer->running = true;
-	lexer->lineNumber = 1;
+	lexer->lineNumber = 0;
 
 	return lexer;
 }
