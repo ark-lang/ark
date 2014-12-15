@@ -45,7 +45,7 @@ fn pow(float mantissa, float exponent): float {
 
 fn factorial(int number): int {
 	int final_result = 1;
-	for int i:(0, number+1) {
+	for int i: (0, (number + 1)) {
 		final_result = (final_result * i);
 	}
 	ret final_result;
