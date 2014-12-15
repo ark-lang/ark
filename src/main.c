@@ -4,7 +4,7 @@
 #include "jayfor.h"
 
 int main(int argc, char** argv) {
-	// for calculating time taken
+	// start the timer
 	clock_t timer = clock();
 
 	// jayfor stuff
@@ -12,10 +12,11 @@ int main(int argc, char** argv) {
 	jayforStart(jayfor);
 	jayforDestroy(jayfor);
 
-	// calculate time
-	timer = clock() - timer;
-	double timeTaken = ((double) timer) / CLOCKS_PER_SEC;
-	timeTaken *= 1000;
+	// finished timer
+	timer = clock() - timer;	// calculate time taken
+	double timeTaken = ((double) timer) / CLOCKS_PER_SEC;	// in seconds
+	timeTaken *= 1000;	// convert to milliseconds
+
 	printf(KGRN "Finished in %.3f/ms\n" KNRM, timeTaken);
 
 	return 0;
