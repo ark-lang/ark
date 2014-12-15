@@ -1,6 +1,3 @@
-// this is no longer a test for while loops
-// just some random code for testing
-
 int a = (5 + 5)
 int z = a
 int a
