@@ -15,7 +15,7 @@ fn do_some_shit(tup amazing): void {
 	println("this is {} nice", amazing<0>);
 }
 
-fn main: int argc, str argv[]): void {
+fn main(int argc, str argv[]): void {
 	tup myTuple = add(5, 5);
 	int myTupleInt = myTuple<0>;
 }
