@@ -49,7 +49,14 @@ Jayfor *jayforCreate(int argc, char** argv) {
 
 	// assume last argument is a file name
 	// this is a placeholder for now
-	scannerReadFile(jayfor->scanner, argv[argc-1]);
+	char *filename = argv[argc-1];
+	// check if the filename doesn't end with j4
+	if(strstr(filename, ".j4") != NULL) {
+		scannerReadFile(jayfor->scanner, filename);
+	} else {
+		printf(KRED "error: not a valid j4 file.\n" KNRM);
+		exit(1);
+	}
 
 	// pass the scanned file to the lexer to tokenize
 	jayfor->lexer = lexerCreate(jayfor->scanner->contents);
