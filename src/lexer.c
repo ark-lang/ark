@@ -55,7 +55,6 @@ char* lexerFlushBuffer(Lexer *lexer, int start, int length) {
 
 	strncpy(result, &lexer->input[start], length);
 	result[length] = '\0';
-	
 	return result;
 }
 

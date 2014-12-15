@@ -1,20 +1,24 @@
-// this is a test for while loops
+// this is no longer a test for while loops
+// just some random code for testing
 
-int a = (5 + 5);
+int a = (5 + 5)
+int z = a
+int a
+char b = 'a'
 
-fn test(int a = ((5 + 5) - (a / b)), int b) [int, float] {
+fn add(int a, int b) [void] {
+	a = 10;
+	ret [(a + b)]
+}
+
+fn test(int a, int b, str x) [int, float, str] {
 	for int x:<10, 0> {
-
+		add(x, x)
 	}
+
+	ret [0, 3.2, "test"]
 }
 
 fn main(int a, int b) [void] {
-	// type, index, start, end, step
-	for int x:<0, 10, 2> {
-
-	}
-
-	test(5, 5);
-
-	ret (5 + 5);
+	test(5, 5)
 }
