@@ -126,6 +126,19 @@ We think that **if** statements are perfect as they are:
 		statements;
 	}
 
+## Pointers
+Still not sure if I should implement pointers or not. If I would they would be like this:
+	
+	int y = 5;
+	
+	// x is a pointer to the address of y
+	int ~x = &y;
+	int ~z = x;
+
+	~x = 10;
+	// or 
+	x -> 10;
+
 ----------------------------------------------
 ## Common Syntax We've Removed
 There are some language features we feel are useless, error prone, unsafe, or we just disagree with it.
