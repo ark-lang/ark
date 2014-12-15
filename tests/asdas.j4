@@ -1,0 +1,17 @@
+// adds x and y
+fn add(int x, int y = 12) [int, double, str] {
+	for int i:<0, 10> {
+		ret [i, (i * 0.3), "swag"];
+	}
+	ret [5, 3.2, "test"];
+}
+
+int x = 5;
+double y = 3.5;
+str whatever = "whatever";
+
+fn main() [void] {
+	int x = 5;
+	x = 12;
+	add(5);
+}
