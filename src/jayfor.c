@@ -5,7 +5,32 @@ Jayfor *jayforCreate(int argc, char** argv) {
 	if (argc <= 1) {
 		printf(KRED "error: no input files\n" KNRM);
 		exit(1);
+	} 
+
+	// used as a counter for getopt()
+	int c;
+	/* arguments specified after each tag. e.g. -o a.out
+	 * here a.out will be stored in opt_arg
+	 */
+	char *opt_arg; 
+	while((c = getopt (argc, argv, "v:o:")) != -1 ) {
+		switch(c) {
+			case 'v':
+				printf("v argument found.\n\n");
+				opt_arg = optarg;
+				printf("argument specified with v: %s\n\n", opt_arg);
+				break;
+			case 'o':
+				printf("o argument found.\n\n");
+				opt_arg = optarg;
+				printf("argument specified with o: %s\n\n", opt_arg);
+				break;
+			default:
+				printf("invalid argument.\n\n");
+				abort();
+		}
 	}
+	
 
 	// create the instance of jayfor
 	Jayfor *jayfor = malloc(sizeof(*jayfor));
@@ -22,9 +47,9 @@ Jayfor *jayforCreate(int argc, char** argv) {
 	// start actual useful shit here
 	jayfor->scanner = scannerCreate();
 
-	// assume second argument is a file name
+	// assume last argument is a file name
 	// this is a placeholder for now
-	scannerReadFile(jayfor->scanner, argv[1]);
+	scannerReadFile(jayfor->scanner, argv[argc-1]);
 
 	// pass the scanned file to the lexer to tokenize
 	jayfor->lexer = lexerCreate(jayfor->scanner->contents);
