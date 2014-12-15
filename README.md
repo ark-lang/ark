@@ -45,20 +45,20 @@ or check out some actual code we use for the library [here](libs/math.j4).
     int a
     char b = 'a'
 
-    fn add(int a, int b) [void] {
-        ret [(a + b)]
+    fn add(int a, int b): int {
+        ret (a + b)
     }
 
-    fn test(int a, int b, str x) [int, float, str] {
-        for int x:<10, 0> {
+    fn test(int a, int b, str x): <int, float, str> {
+        for int x:(10, 0) {
             add(x, x)
         }
 
-        ret [0, 3.2, "test"]
+        ret <0, 3.2, "test">
     }
 
-    fn main(int a, int b) [void] {
-        test(5, 5)
+    fn main(int a, int b): void {
+        test(5, 5, "rand")
     }
 
 # <a name="note"></a>Note
