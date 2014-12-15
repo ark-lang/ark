@@ -422,6 +422,9 @@ char parserParseOperand(Parser *parser) {
 		case '*': parserConsumeToken(parser); return tokChar;
 		case '/': parserConsumeToken(parser); return tokChar;
 		case '%': parserConsumeToken(parser); return tokChar;
+		case '>': parserConsumeToken(parser); return tokChar;
+		case '<': parserConsumeToken(parser); return tokChar;
+		case '^': parserConsumeToken(parser); return tokChar;
 		default:
 			printf(KRED "error: invalid operator ('%c') specified\n" KNRM, tok->content[0]);
 			exit(1);
