@@ -10,7 +10,7 @@ static const char* TOKEN_NAMES[] = {
 /** List of data types */
 static const char* DATA_TYPES[] = {
 	"int", "str", "double", "float", "bool",
-	"void", "char"
+	"void", "char", "tup"
 };
 
 static const char* NODE_NAMES[] = {
@@ -451,7 +451,7 @@ StatementNode *parserParseForLoopNode(Parser *parser) {
 	fln->indexName = indexName;
 	fln->params = vectorCreate();
 
-	if (parserTokenTypeAndContent(parser, OPERATOR, "<", 0)) {
+	if (parserTokenTypeAndContent(parser, SEPARATOR, "(", 0)) {
 		parserConsumeToken(parser);
 
 		int paramCount = 0;
@@ -461,7 +461,7 @@ StatementNode *parserParseForLoopNode(Parser *parser) {
 				printf(KRED "error: for loop has one too many arguments %d\n" KNRM, paramCount);
 				exit(1);
 			}
-			if (parserTokenTypeAndContent(parser, OPERATOR, ">", 0)) {
+			if (parserTokenTypeAndContent(parser, SEPARATOR, ")", 0)) {
 				if (paramCount < 2) {
 					printf(KRED "error: for loop expects a maximum of 3 arguments, you have %d\n" KNRM, paramCount);
 					exit(1);
@@ -473,7 +473,7 @@ StatementNode *parserParseForLoopNode(Parser *parser) {
 			if (parserTokenType(parser, IDENTIFIER, 0)) {
 				vectorPushBack(fln->params, parserConsumeToken(parser));
 				if (parserTokenTypeAndContent(parser, SEPARATOR, ",", 0)) {
-					if (parserTokenTypeAndContent(parser, OPERATOR, ">", 1)) {
+					if (parserTokenTypeAndContent(parser, SEPARATOR, ")", 1)) {
 						printf(KRED "error: trailing comma in for loop declaration!\n" KNRM);
 						exit(1);
 					}
@@ -483,7 +483,7 @@ StatementNode *parserParseForLoopNode(Parser *parser) {
 			else if (parserTokenType(parser, NUMBER, 0)) {
 				vectorPushBack(fln->params, parserConsumeToken(parser));	
 				if (parserTokenTypeAndContent(parser, SEPARATOR, ",", 0)) {
-					if (parserTokenTypeAndContent(parser, OPERATOR, ">", 1)) {
+					if (parserTokenTypeAndContent(parser, SEPARATOR, ")", 1)) {
 						printf(KRED "error: trailing comma in for loop declaration!\n" KNRM);
 						exit(1);
 					}
@@ -508,7 +508,7 @@ StatementNode *parserParseForLoopNode(Parser *parser) {
 		return sn;
 	}
 
-	printf(KRED "failed to parse for loop" KNRM);
+	printf(KRED "failed to parse for loop\n" KNRM);
 	exit(1);
 }
 
@@ -657,9 +657,10 @@ BlockNode *parserParseBlock(Parser *parser) {
 FunctionNode *parserParseFunction(Parser *parser) {
 	parserMatchType(parser, IDENTIFIER);	// consume the fn keyword
 
-	Token *functionName = parserMatchType(parser, IDENTIFIER);
+	Token *functionName = parserMatchType(parser, IDENTIFIER); // name of function
 	Vector *args = vectorCreate(); // null for now till I add arg parsing
 
+	// Create function signature
 	FunctionPrototypeNode *fpn = createFunctionPrototypeNode();
 	fpn->args = args;
 	fpn->name = functionName;
@@ -720,11 +721,21 @@ FunctionNode *parserParseFunction(Parser *parser) {
 		fn->ret = vectorCreate();
 		fn->numOfReturnValues = 0;
 
-		if (parserTokenTypeAndContent(parser, SEPARATOR, "[", 0)) {
+		if (parserTokenTypeAndContent(parser, OPERATOR, ":", 0)) {
 			parserConsumeToken(parser);
+		}
+		else {
+			printf(KRED "error: function signature missing colon\n" KNRM);
+			exit(1);
+		}
+
+		// START OF TUPLE
+		if (parserTokenTypeAndContent(parser, OPERATOR, "<", 0)) {
+			parserConsumeToken(parser);
+			fn->isTuple = true;
 
 			do {
-				if (parserTokenTypeAndContent(parser, SEPARATOR, "]", 0)) {
+				if (parserTokenTypeAndContent(parser, OPERATOR, ">", 0)) {
 					if (fn->numOfReturnValues < 1) {
 						printf(KRED "error: function expects a return type\n" KNRM);
 						exit(1);
@@ -745,7 +756,7 @@ FunctionNode *parserParseFunction(Parser *parser) {
 						exit(1);
 					}
 					if (parserTokenTypeAndContent(parser, SEPARATOR, ",", 0)) {
-						if (parserTokenTypeAndContent(parser, SEPARATOR, "]", 1)) {
+						if (parserTokenTypeAndContent(parser, OPERATOR, ">", 1)) {
 							printf(KRED "error: trailing comma in function declaraction\n" KNRM);
 							exit(1);
 						}
@@ -754,6 +765,12 @@ FunctionNode *parserParseFunction(Parser *parser) {
 				}
 			}
 			while (true);
+		}
+		else if (parserTokenType(parser, IDENTIFIER, 0)) {
+			Token *returnType = parserConsumeToken(parser);
+			DataType rawDataType = parserTokenTypeToDataType(parser, returnType);
+			vectorPushBack(fn->ret, &rawDataType);
+			fn->numOfReturnValues += 1;
 		}
 		else {
 			printf(KRED "error: function declaration return type expected, found this:\n" KNRM);
@@ -841,11 +858,11 @@ FunctionReturnNode *parserParseReturnStatement(Parser *parser) {
 	frn->returnVals = vectorCreate();
 	frn->numOfReturnValues = 0;
 
-	if (parserTokenTypeAndContent(parser, SEPARATOR, "[", 0)) {
+	if (parserTokenTypeAndContent(parser, OPERATOR, "<", 0)) {
 		parserConsumeToken(parser);
 
 		do {
-			if (parserTokenTypeAndContent(parser, SEPARATOR, "]", 0)) {
+			if (parserTokenTypeAndContent(parser, OPERATOR, ">", 0)) {
 				parserConsumeToken(parser);
 				if (parserTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
 					parserConsumeToken(parser);
@@ -856,7 +873,7 @@ FunctionReturnNode *parserParseReturnStatement(Parser *parser) {
 			ExpressionNode *expr = parserParseExpression(parser);
 			vectorPushBack(frn->returnVals, expr);
 			if (parserTokenTypeAndContent(parser, SEPARATOR, ",", 0)) {
-				if (parserTokenTypeAndContent(parser, SEPARATOR, "]", 1)) {
+				if (parserTokenTypeAndContent(parser, OPERATOR, ">", 1)) {
 					printf(KRED "error: trailing comma in return statement\n" KNRM);
 					exit(1);
 				}
@@ -867,11 +884,14 @@ FunctionReturnNode *parserParseReturnStatement(Parser *parser) {
 		while (true);
 	}
 	else {
-		printf(KRED "error: return statement expects block brackets\n" KNRM);
-		exit(1);
+		// only one return type
+		ExpressionNode *expr = parserParseExpression(parser);
+		vectorPushBack(frn->returnVals, expr);
+		frn->numOfReturnValues++;
+		return frn;
 	}
 
-	printf(KRED "error: failed to parse return statement" KNRM);
+	printf(KRED "error: failed to parse return statement\n" KNRM);
 	exit(1);
 }
 
