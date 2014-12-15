@@ -6,6 +6,7 @@
 int main(int argc, char** argv) {
 	// for calculating time taken
 	clock_t timer = clock();
+
 	// jayfor stuff
 	Jayfor *jayfor = jayforCreate(argc, argv);
 	jayforStart(jayfor);
