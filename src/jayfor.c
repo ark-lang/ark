@@ -74,11 +74,15 @@ void jayforStart(Jayfor *jayfor) {
 	jayfor->parser = parserCreate(jayfor->lexer->tokenStream);
 
 	parserStartParsing(jayfor->parser);
+
+	jayfor->compiler = compilerCreate();
+	compilerStart(jayfor->compiler);
 }
 
 void jayforDestroy(Jayfor *jayfor) {
 	scannerDestroy(jayfor->scanner);
 	lexerDestroy(jayfor->lexer);
 	parserDestroy(jayfor->parser);
+	compilerDestroy(jayfor->compiler);
 	free(jayfor);
 }
