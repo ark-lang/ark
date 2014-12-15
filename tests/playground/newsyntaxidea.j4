@@ -1,10 +1,25 @@
 // this is just me messing around with syntax ideas.
-
+//
+//	TODO:
+//		* Enumeration
+//		* Data Structures
+//		* Implementations
+//		* Arrays
+//
+//  DONE:
+//		* For Loops
+//		* If Statements
+//		* While Loops
+//		* Do While Loops
+//		* Tuples
+//		* Match
+//		* Functions
+//
 
 fn add(int a, int b): <int, str> {
 	int x = (a + b)
 
-	for int x:<0, 10, 1> {
+	for int x: (0, 10, 1) {
 		println("i dunno {}", x)
 	}
 
@@ -20,7 +35,7 @@ fn add(int a, int b): <int, str> {
 		}
 	}
 
-	ret <x, "test">
+	ret <(x + x), "test">
 }
 
 fn do_some_shit(tup amazing): void {
