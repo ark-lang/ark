@@ -174,10 +174,36 @@ typedef struct {
 } VariableReassignNode;
 
 /**
+ * Node for Boolean Expressions
+ * 
+ * ???
+ * !var
+ * var
+ * 
+ * var == var
+ * var != var
+ * var && var
+ * var || var
+ * 
+ */
+typedef struct s_BooleanExpressionNode {
+	char operand;
+	ExpressionNode *expr;
+
+	struct s_BooleanExpressionNode *lhand;
+	char firstCompar;
+	char secondCompar;
+	struct s_BooleanExpressionNode *rhand;
+} BooleanExpressionNode;
+
+/**
  * Parser an operand
  */
 char parserParseOperand(Parser *parser);
 
+/**
+ * Create a new Variable Reassignment Node
+ */
 VariableReassignNode *createVariableReassignNode();
 
 /**
