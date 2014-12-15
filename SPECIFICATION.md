@@ -1,7 +1,7 @@
 # JAYFOR SPECIFCATION
 We aim to make Jayfor's syntax unique, concise, and easy to get around. We've tried to get rid of some of the annoying flaws [we felt] affect us most commonly while programming. This is a very informal specification of the JAYFOR programming language.
 
-PLEASE NOTE THAT THIS LANGUAGE IS STILL IN ITS EARLY STAGES, AND ANYTHING IN THIS DOCUMENT IS STILL SUBJECT TO CHANGE. NOTHING IS GUARANTEED AS FINAL.
+**PLEASE NOTE THAT THIS LANGUAGE IS STILL IN ITS EARLY STAGES, AND ANYTHING IN THIS DOCUMENT IS STILL SUBJECT TO CHANGE. NOTHING IS GUARANTEED AS FINAL.**
 
 ## Expressions
 Jayfor is still under construction, this affects expressions as they aren't fully implemented yet! An expression like this:
