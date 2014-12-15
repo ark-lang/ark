@@ -431,7 +431,7 @@ char parserParseOperand(Parser *parser) {
 
 StatementNode *parserParseForLoopNode(Parser *parser) {
 	/**
-	 * for int x:<0, 10, 2> {
+	 * for int x:(0, 10, 2) {
 	 * 
 	 * }
 	 */
@@ -482,6 +482,18 @@ StatementNode *parserParseForLoopNode(Parser *parser) {
 			}
 			else if (parserTokenType(parser, NUMBER, 0)) {
 				vectorPushBack(fln->params, parserConsumeToken(parser));	
+				if (parserTokenTypeAndContent(parser, SEPARATOR, ",", 0)) {
+					if (parserTokenTypeAndContent(parser, SEPARATOR, ")", 1)) {
+						printf(KRED "error: trailing comma in for loop declaration!\n" KNRM);
+						exit(1);
+					}
+					parserConsumeToken(parser);
+				}
+			}
+			// it's an expression probably
+			else if (parserTokenTypeAndContent(parser, SEPARATOR, "(", 0)) {
+				ExpressionNode *expr = parserParseExpression(parser);
+				vectorPushBack(fln->params, expr);
 				if (parserTokenTypeAndContent(parser, SEPARATOR, ",", 0)) {
 					if (parserTokenTypeAndContent(parser, SEPARATOR, ")", 1)) {
 						printf(KRED "error: trailing comma in for loop declaration!\n" KNRM);
@@ -888,6 +900,11 @@ FunctionReturnNode *parserParseReturnStatement(Parser *parser) {
 		ExpressionNode *expr = parserParseExpression(parser);
 		vectorPushBack(frn->returnVals, expr);
 		frn->numOfReturnValues++;
+
+		// consume semi colon if present
+		if (parserTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
+			parserConsumeToken(parser);
+		}
 		return frn;
 	}
 
