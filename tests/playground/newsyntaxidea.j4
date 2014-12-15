@@ -8,11 +8,35 @@ fn add(int a, int b): <int, str> {
 		println("i dunno {}", x)
 	}
 
+	match a {
+		5 {
+			println("a is 5")
+		},
+		10 {
+			println("a is 10");
+		},
+		_ {
+			println("danno wat the fak a is obviously {}", a)
+		}
+	}
+
 	ret <x, "test">
 }
 
 fn do_some_shit(tup amazing): void {
 	println("this is {} nice", amazing<0>);
+
+	do amazing<99> {
+
+	}
+
+	while 1 == 1 {
+
+	}
+
+	if amazing<0> == 5 {
+		println("holy shittttttttt")
+	}
 }
 
 fn main(int argc, str argv[]): void {
