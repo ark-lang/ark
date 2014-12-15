@@ -10,6 +10,7 @@
 
 //ASCII value of uncommon characters starts here
 #define WEIRD_CHARACTER_ASCII_THRESHOLD 128
+#define uint unsigned int
 
 /** Types of token */
 typedef enum {
