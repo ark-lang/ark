@@ -12,20 +12,20 @@ Jayfor *jayforCreate(int argc, char** argv) {
 
 	/* 
 	 * arguments specified after each tag. e.g. -o a.out
-	 * here a.out will be stored in opt_arg
+	 * here a.out will be stored in nextArg
 	 */
 	char *nextArg; 
 	while ((argCounter = getopt(argc, argv, "v:o:")) != -1) {
-		switch(c) {
+		switch(argCounter) {
 			case 'v':
 				printf(KYEL "v argument found.\n\n" KNRM);
-				opt_arg = optarg;
-				printf(KYEL "argument specified with v: %s\n\n" KNRM, opt_arg);
+				nextArg = optarg;
+				printf(KYEL "argument specified with v: %s\n\n" KNRM, nextArg);
 				break;
 			case 'o':
 				printf(KYEL "o argument found.\n\n" KNRM);
-				opt_arg = optarg;
-				printf("argument specified with o: %s\n\n", opt_arg);
+				nextArg = optarg;
+				printf("argument specified with o: %s\n\n", nextArg);
 				break;
 			default:
 				printf(KRED "invalid argument.\n\n" KNRM);
