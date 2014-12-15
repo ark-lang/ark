@@ -1,6 +1,7 @@
 int a = (5 + 5)
 int z = a
 int a
+double swag = 5.5
 char b = 'a'
 
 fn add(int a, int b): void {
