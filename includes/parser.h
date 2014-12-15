@@ -39,7 +39,8 @@ typedef enum {
 	VARIABLE_DEC_NODE, FUNCTION_ARG_NODE,
 	FUNCTION_NODE, FUNCTION_PROT_NODE,
 	BLOCK_NODE, FUNCTION_CALLEE_NODE,
-	FUNCTION_RET_NODE, FOR_LOOP_NODE
+	FUNCTION_RET_NODE, FOR_LOOP_NODE,
+	VARIABLE_REASSIGN_NODE
 } NodeType;
 
 /**
@@ -93,7 +94,8 @@ typedef struct {
  * Function Return Node
  */
 typedef struct {
-	ExpressionNode *expr;
+	Vector *returnVals;
+	int numOfReturnValues;
 } FunctionReturnNode;
 
 /**
@@ -138,10 +140,16 @@ typedef struct {
 	FunctionPrototypeNode *fpn;
 	BlockNode *body;
 	Vector *ret;
+	int numOfReturnValues;
 } FunctionNode;
 
+/**
+ * Labelled for accessing 
+ * certain parts of our
+ * for loop
+ */
 typedef enum {
-	FOR_START,
+	FOR_START = 0,
 	FOR_END,
 	FOR_STEP
 } ForLoopParam;
@@ -157,9 +165,19 @@ typedef struct {
 } ForLoopNode;
 
 /**
+ * Node for variable re-assignment
+ */
+typedef struct {
+	Token *name;
+	ExpressionNode *expr;
+} VariableReassignNode;
+
+/**
  * Parser an operand
  */
 char parserParseOperand(Parser *parser);
+
+VariableReassignNode *createVariableReassignNode();
 
 /**
  * Create a new For Loop Node
@@ -238,6 +256,8 @@ FunctionNode *createFunctionNode();
  * fn whatever(int x, int y): int
  */
 FunctionPrototypeNode *createFunctionPrototypeNode();
+
+void destroyVariableReassignNode(VariableReassignNode *vrn);
 
 /**
  * Destroys the given For Loop Node
@@ -498,6 +518,13 @@ DataType parserTokenTypeToDataType(Parser *parser, Token *tok);
  * @return true if the token is a data type
  */
 bool parserIsTokenDataType(Parser *parser, Token *tok);
+
+/**
+ * Parses a variable reassignment
+ * 
+ * @parser the parser instance
+ */
+VariableReassignNode *parserParseReassignmentStatement(Parser *parser);
 
 /**
  * Start parsing

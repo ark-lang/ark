@@ -18,10 +18,22 @@ static const char* NODE_NAMES[] = {
 	"variable_dec_node", "function_arg_node",
 	"function_node", "function_prot_node",
 	"block_node", "function_callee_node",
-	"function_ret_node", "for_loop_node"
+	"function_ret_node", "for_loop_node",
+	"variable_reassign_node"
 };
 
 /** UTILITY FOR NODES */
+
+VariableReassignNode *createVariableReassignNode() {
+	VariableReassignNode *vrn = malloc(sizeof(*vrn));
+	if (!vrn) {
+		perror("malloc: failed to allocate memory for Variable Reassign Node");
+		exit(1);
+	}
+	vrn->name = NULL;
+	vrn->expr = NULL;
+	return vrn;
+}
 
 StatementNode *createStatementNode() {
 	StatementNode *sn = malloc(sizeof(*sn));
@@ -40,7 +52,7 @@ FunctionReturnNode *createFunctionReturnNode() {
 		perror("malloc: failed to allocate memory for Function Return Node");
 		exit(1);
 	}
-	frn->expr = NULL;
+	frn->returnVals = NULL;
 	return frn;
 }
 
@@ -140,6 +152,15 @@ ForLoopNode *createForLoopNode() {
 	return fln;
 }
 
+void destroyVariableReassignNode(VariableReassignNode *vrn) {
+	if (vrn != NULL) {
+		if (vrn->expr != NULL) {
+			destroyExpressionNode(vrn->expr);
+		}
+		free(vrn);
+	}
+}
+
 void destroyForLoopNode(ForLoopNode *fln) {
 	if (fln != NULL) {
 		free(fln);
@@ -163,9 +184,10 @@ void destroyStatementNode(StatementNode *sn) {
 				case FUNCTION_RET_NODE:
 					destroyFunctionNode(sn->data);
 					break;
-				default:
-					printf("unrecognized statement free %d!\n", sn->type);
+				case VARIABLE_REASSIGN_NODE:
+					destroyVariableReassignNode(sn->data);
 					break;
+				default: break;
 			}
 		}
 		free(sn);
@@ -175,8 +197,15 @@ void destroyStatementNode(StatementNode *sn) {
 
 void destroyFunctionReturnNode(FunctionReturnNode *frn) {
 	if (frn != NULL) {
-		if (frn->expr != NULL) {
-			destroyExpressionNode(frn->expr);
+		if (frn->returnVals != NULL) {
+			int i;
+			for (i = 0; i < frn->returnVals->size; i++) {
+				ExpressionNode *temp = vectorGetItem(frn->returnVals, i);
+				if (temp != NULL) {
+					destroyExpressionNode(temp);
+				}
+			}
+			vectorDestroy(frn->returnVals);
 		}
 		free(frn);
 		frn = NULL;
@@ -392,6 +421,7 @@ char parserParseOperand(Parser *parser) {
 		case '-': parserConsumeToken(parser); return tokChar;
 		case '*': parserConsumeToken(parser); return tokChar;
 		case '/': parserConsumeToken(parser); return tokChar;
+		case '%': parserConsumeToken(parser); return tokChar;
 		default:
 			printf(KRED "error: invalid operator ('%c') specified\n" KNRM, tok->content[0]);
 			exit(1);
@@ -470,8 +500,6 @@ StatementNode *parserParseForLoopNode(Parser *parser) {
 		}
 		while (true);	
 	
-		printf(KGRN "parsed for loop with %d arguments\n" KNRM, paramCount);
-		
 		fln->body = parserParseBlock(parser);
 
 		StatementNode *sn = createStatementNode();
@@ -565,7 +593,9 @@ void *parserParseVariable(Parser *parser, bool global) {
 		dec->expr = expr;
 
 		// match a semi colon
-		parserMatchTypeAndContent(parser, SEPARATOR, ";");
+		if (parserTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
+			parserConsumeToken(parser);
+		}
 
 		if (global) {
 			prepareNode(parser, dec, VARIABLE_DEC_NODE);
@@ -576,9 +606,10 @@ void *parserParseVariable(Parser *parser, bool global) {
 		sn->type = VARIABLE_DEC_NODE;
 		return sn;
 	}
-	else if (parserTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
-		// consume the semi colon
-		parserConsumeToken(parser);
+	else {
+		if (parserTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
+			parserConsumeToken(parser);
+		}
 
 		// create variable define node
 		VariableDefineNode *def = createVariableDefineNode();
@@ -593,11 +624,6 @@ void *parserParseVariable(Parser *parser, bool global) {
 		sn->data = def;
 		sn->type = VARIABLE_DEF_NODE;
 		return sn;
-	}
-	else {
-		// error message
-		printf(KRED "error: missing a semi colon or assignment\n" KNRM);
-		exit(1);
 	}
 }
 
@@ -623,6 +649,7 @@ BlockNode *parserParseBlock(Parser *parser) {
 		StatementNode *sn = vectorGetItem(block->statements, i);
 		printf("%d = %s\n", i, NODE_NAMES[sn->type]);
 	}
+	printf("\n");
 
 	return block;
 }
@@ -691,15 +718,14 @@ FunctionNode *parserParseFunction(Parser *parser) {
 
 		FunctionNode *fn = createFunctionNode();
 		fn->ret = vectorCreate();
+		fn->numOfReturnValues = 0;
 
 		if (parserTokenTypeAndContent(parser, SEPARATOR, "[", 0)) {
 			parserConsumeToken(parser);
 
-			int returnCount = 0;
-
 			do {
 				if (parserTokenTypeAndContent(parser, SEPARATOR, "]", 0)) {
-					if (returnCount < 1) {
+					if (fn->numOfReturnValues < 1) {
 						printf(KRED "error: function expects a return type\n" KNRM);
 						exit(1);
 					}
@@ -712,7 +738,7 @@ FunctionNode *parserParseFunction(Parser *parser) {
 					if (parserIsTokenDataType(parser, tok)) {
 						DataType rawDataType = parserTokenTypeToDataType(parser, tok);
 						vectorPushBack(fn->ret, &rawDataType);
-						returnCount++;
+						fn->numOfReturnValues++;
 					}
 					else {
 						printf(KRED "error: invalid data type specified: `%s`\n" KNRM, tok->content);
@@ -791,7 +817,9 @@ FunctionCalleeNode *parserParseFunctionCall(Parser *parser) {
 		while (true);
 
 		// consume semi colon
-		parserMatchTypeAndContent(parser, SEPARATOR, ";");
+		if (parserTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
+			parserConsumeToken(parser);
+		}
 
 		// woo we got the function
 		FunctionCalleeNode *fcn = createFunctionCalleeNode();
@@ -809,13 +837,42 @@ FunctionReturnNode *parserParseReturnStatement(Parser *parser) {
 	// consume the return keyword
 	parserMatchTypeAndContent(parser, IDENTIFIER, "ret");
 
-	ExpressionNode *expr = parserParseExpression(parser);
-
-	parserMatchTypeAndContent(parser, SEPARATOR, ";");
-
 	FunctionReturnNode *frn = createFunctionReturnNode();
-	frn->expr = expr;
-	return frn;
+	frn->returnVals = vectorCreate();
+	frn->numOfReturnValues = 0;
+
+	if (parserTokenTypeAndContent(parser, SEPARATOR, "[", 0)) {
+		parserConsumeToken(parser);
+
+		do {
+			if (parserTokenTypeAndContent(parser, SEPARATOR, "]", 0)) {
+				parserConsumeToken(parser);
+				if (parserTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
+					parserConsumeToken(parser);
+				}
+				return frn;
+			}
+
+			ExpressionNode *expr = parserParseExpression(parser);
+			vectorPushBack(frn->returnVals, expr);
+			if (parserTokenTypeAndContent(parser, SEPARATOR, ",", 0)) {
+				if (parserTokenTypeAndContent(parser, SEPARATOR, "]", 1)) {
+					printf(KRED "error: trailing comma in return statement\n" KNRM);
+					exit(1);
+				}
+				parserConsumeToken(parser);
+				frn->numOfReturnValues++;
+			}
+		}
+		while (true);
+	}
+	else {
+		printf(KRED "error: return statement expects block brackets\n" KNRM);
+		exit(1);
+	}
+
+	printf(KRED "error: failed to parse return statement" KNRM);
+	exit(1);
 }
 
 StatementNode *parserParseStatements(Parser *parser) {
@@ -831,9 +888,16 @@ StatementNode *parserParseStatements(Parser *parser) {
 	}
 	else if (parserTokenType(parser, IDENTIFIER, 0)) {
 		Token *tok = parserPeekAhead(parser, 0);
-
+		
+		// variable reassignment
+		if (parserTokenTypeAndContent(parser, OPERATOR, "=", 1)) {
+			StatementNode *sn = createStatementNode();
+			sn->data = parserParseReassignmentStatement(parser);
+			sn->type = VARIABLE_REASSIGN_NODE;
+			return sn;
+		}
 		// function call
-		if (parserTokenTypeAndContent(parser, SEPARATOR, "(", 1)) {
+		else if (parserTokenTypeAndContent(parser, SEPARATOR, "(", 1)) {
 			StatementNode *sn = createStatementNode();
 			sn->data = parserParseFunctionCall(parser);
 			sn->type = FUNCTION_CALLEE_NODE;
@@ -855,6 +919,30 @@ StatementNode *parserParseStatements(Parser *parser) {
 	exit(1);
 }
 
+VariableReassignNode *parserParseReassignmentStatement(Parser *parser) {
+	if (parserTokenType(parser, IDENTIFIER, 0)) {
+		Token *variableName = parserConsumeToken(parser);
+
+		if (parserTokenTypeAndContent(parser, OPERATOR, "=", 0)) {
+			parserConsumeToken(parser);
+
+			ExpressionNode *expr = parserParseExpression(parser);
+
+			if (parserTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
+				parserConsumeToken(parser);
+			}
+
+			VariableReassignNode *vrn = createVariableReassignNode();
+			vrn->name = variableName;
+			vrn->expr = expr;
+			return vrn;
+		}
+	}
+
+	printf(KRED "error: failed to parse variable reassignment\n" KNRM);
+	exit(1);
+}
+
 void parserStartParsing(Parser *parser) {
 	while (parser->parsing) {
 		// get current token
@@ -869,6 +957,9 @@ void parserStartParsing(Parser *parser) {
 				} 
 				else if (parserIsTokenDataType(parser, tok)) {
 					parserParseVariable(parser, true);
+				}
+				else if (parserTokenTypeAndContent(parser, OPERATOR, "=", 1)) {
+					parserParseReassignmentStatement(parser);
 				}
 				else {
 					printf(KRED "error: unrecognized identifier found: `%s`\n" KNRM, tok->content);

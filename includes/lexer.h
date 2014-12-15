@@ -24,6 +24,11 @@ typedef struct {
 	char* content;
 } Token;
 
+typedef struct {
+	char *buffer;
+	uint length;
+} Slice;
+
 /**
  * Create an empty Token
  * 
