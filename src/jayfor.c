@@ -8,30 +8,31 @@ Jayfor *jayforCreate(int argc, char** argv) {
 	} 
 
 	// used as a counter for getopt()
-	int c;
-	/* arguments specified after each tag. e.g. -o a.out
+	int argCounter;
+
+	/* 
+	 * arguments specified after each tag. e.g. -o a.out
 	 * here a.out will be stored in opt_arg
 	 */
-	char *opt_arg; 
-	while((c = getopt (argc, argv, "v:o:")) != -1 ) {
+	char *nextArg; 
+	while ((argCounter = getopt(argc, argv, "v:o:")) != -1) {
 		switch(c) {
 			case 'v':
-				printf("v argument found.\n\n");
+				printf(KYEL "v argument found.\n\n" KNRM);
 				opt_arg = optarg;
-				printf("argument specified with v: %s\n\n", opt_arg);
+				printf(KYEL "argument specified with v: %s\n\n" KNRM, opt_arg);
 				break;
 			case 'o':
-				printf("o argument found.\n\n");
+				printf(KYEL "o argument found.\n\n" KNRM);
 				opt_arg = optarg;
 				printf("argument specified with o: %s\n\n", opt_arg);
 				break;
 			default:
-				printf("invalid argument.\n\n");
+				printf(KRED "invalid argument.\n\n" KNRM);
 				abort();
 		}
 	}
 	
-
 	// create the instance of jayfor
 	Jayfor *jayfor = malloc(sizeof(*jayfor));
 	if (!jayfor) {
