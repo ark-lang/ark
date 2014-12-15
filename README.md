@@ -73,6 +73,7 @@ Check the SPECIFICATION.md file.
 
 # <a name="contributing"></a>Contributing
 Send a pull request to [http://github.com/freefouran/jayfor](http://github.com/freefouran/jayfor). Use [http://github.com/freefouran/jayfor/issues](http://github.com/freefouran/jayfor/issues) for discussion. Please note that we consider that you have granted non-exclusive right to your contributed code under the MIT License.
+**Please conform to the coding rules and write short, but meaningful commit messages.**
 
 # <a name="license"></a>License
 Jayfor is licensed under The MIT License. I have no idea
