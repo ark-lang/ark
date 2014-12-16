@@ -320,6 +320,19 @@ void destroyFunctionCalleeNode(FunctionCalleeNode *fcn) {
 	}
 }
 
+void destroyBooleanExpressionNode(BooleanExpressionNode *ben) {
+    if (ben != NULL) {
+        if(ben->lhand != NULL) {
+            destroyBooleanExpressionNode(ben->lhand);
+        }
+        if(ben->rhand != NULL) {
+            destroyBooleanExpressionNode(ben->rhand);
+        }
+        free(ben);
+        ben = NULL;
+    }
+}
+
 /** END NODE FUNCTIONS */
 
 Parser *parserCreate(Vector *tokenStream) {
@@ -578,6 +591,11 @@ ExpressionNode *parserParseExpression(Parser *parser) {
 		printf(KRED "error: missing closing parenthesis on expression\n" KNRM);
 		exit(1);
 	}
+    if(parserTokenTypeAndContent(parser, OPERATOR, "!", 0)) {
+        parserConsumeToken(parser);
+        expr->type = 'LO'; // logical operator
+        // TODO
+    }
 
 	printf(KRED "error: failed to parse expression, only character, string and numbers are supported\n" KNRM);
 	printCurrentToken(parser);
