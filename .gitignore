@@ -32,5 +32,6 @@ j4
 # Other
 builds/
 *~
+.DS_Store
 *.swp
 *.swo
