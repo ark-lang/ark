@@ -68,6 +68,18 @@ ExpressionNode *createExpressionNode() {
 	return expr;
 }
 
+BooleanExpressionNode *createBooleanExpressionNode() {
+    BooleanExpressionNode *boolExpr = malloc(sizeof(*boolExpr));
+    if (!boolExpr) {
+        perror("malloc: failed to allocate memory for BooleanExpressionNode");
+        exit(1);
+    }
+    boolExpr->expr = NULL;
+    boolExpr->lhand = NULL;
+    boolExpr->rhand = NULL;
+    return boolExpr;
+}
+
 VariableDefineNode *createVariableDefineNode() {
 	VariableDefineNode *vdn = malloc(sizeof(*vdn));
 	if (!vdn) {

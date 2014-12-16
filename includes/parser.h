@@ -217,6 +217,11 @@ ForLoopNode *createForLoopNode();
 FunctionCalleeNode *createFunctionCalleeNode();
 
 /**
+ * Create a new Boolean Expression Node
+ */
+BooleanExpressionNode *createBooleanExpressionNode();
+
+/**
  * Create a new Function Return Node
  */
 FunctionReturnNode *createFunctionReturnNode();
