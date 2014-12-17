@@ -557,30 +557,30 @@ ExpressionNode *parserParseExpression(Parser *parser) {
 
 	// number literal
 	if (parserTokenType(parser, NUMBER, 0)) {
-		expr->type = 'N';
+		expr->type = EXPR_NUMBER;
 		expr->value = parserConsumeToken(parser);
 		return expr;
 	}
 	// string literal
 	if (parserTokenType(parser, STRING, 0)) {
-		expr->type = 'S';
+		expr->type = EXPR_STRING;
 		expr->value = parserConsumeToken(parser);
 		return expr;
 	}
 	// character
 	if (parserTokenType(parser, CHARACTER, 0)) {
-		expr->type = 'C';
+		expr->type = EXPR_CHARACTER;
 		expr->value = parserConsumeToken(parser);
 		return expr;
 	}
 	if (parserTokenType(parser, IDENTIFIER, 0)) {
-		expr->type = 'V';
+		expr->type = EXPR_VARIABLE;
 		expr->value = parserConsumeToken(parser);
 		return expr;
 	}
 	if (parserTokenTypeAndContent(parser, SEPARATOR, "(", 0)) {
 		parserConsumeToken(parser);
-		expr->type = 'P';
+		expr->type = EXPR_PARENTHESIS;
 		expr->lhand = parserParseExpression(parser);
 		expr->operand = parserParseOperand(parser);
 		expr->rhand = parserParseExpression(parser);
@@ -593,8 +593,7 @@ ExpressionNode *parserParseExpression(Parser *parser) {
 	}
     if(parserTokenTypeAndContent(parser, OPERATOR, "!", 0)) {
         parserConsumeToken(parser);
-        expr->type = 'LO'; // logical operator
-        // TODO
+        expr->type = EXPR_LOGICAL_OPERATOR;
     }
 
 	printf(KRED "error: failed to parse expression, only character, string and numbers are supported\n" KNRM);
