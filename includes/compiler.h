@@ -1,32 +1,21 @@
-/**
 #ifndef COMPILER_H
 #define COMPILER_H
 
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <llvm-c/Core.h>
-#include <llvm-c/Analysis.h>
-#include <llvm-c/ExecutionEngine.h>
-#include <llvm-c/Target.h>
-#include <llvm-c/Transforms/Scalar.h>
-
-#include "util.h"
-#include "hashmap.h"
+#include "vector.h"
+#include "j4vm.h"
 
 typedef struct {
-	char *error;
-	LLVMModuleRef module;
-	LLVMBuilderRef builder;
-	LLVMExecutionEngineRef engine;
-	LLVMPassManagerRef passManager;
+	Vector *ast;
+	JayforVM *vm;
 } Compiler;
 
-Compiler *compilerCreate();
+Compiler *createCompiler();
 
-void compilerStart(Compiler *compiler);
+void startCompiler(Compiler *compiler, Vector *ast);
 
-void compilerDestroy(Compiler *compiler);
+void destroyCompiler(Compiler *compiler);
 
 #endif // COMPILER_H
-*/
