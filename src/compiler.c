@@ -33,18 +33,14 @@ int evaluateExpressionNode(Compiler *self, ExpressionNode *expr) {
 	else {
 		int left = evaluateExpressionNode(self, expr->lhand);
 		int right = evaluateExpressionNode(self, expr->rhand);
-		appendInstruction(self, ICONST);
-		appendInstruction(self, left);
-		appendInstruction(self, ICONST);
-		appendInstruction(self, right);
 
 		switch (expr->operand) {
-			case '+': appendInstruction(self, ADD); break;
-			case '-': appendInstruction(self, SUB); break;
-			case '*': appendInstruction(self, MUL); break;
-			case '/': appendInstruction(self, DIV); break;
-			case '%': appendInstruction(self, MOD); break;
-			case '^': appendInstruction(self, POW); break;
+			case '+': result = left + right; break;
+			case '-': result = left - right; break;
+			case '*': result = left * right; break;
+			case '/': result = left / right; break;
+			case '%': result = left % right; break;
+			case '^': result = left ^ right; break;
 		}
 	}
 	return result;
@@ -54,7 +50,11 @@ void generateVariableDeclarationCode(Compiler *self, VariableDeclareNode *vdn) {
 	DataType type = vdn->vdn->type;
 	Token *name = vdn->vdn->name;
 	ExpressionNode *expr = vdn->expr;
-	evaluateExpressionNode(self, expr);
+	int result = evaluateExpressionNode(self, expr);
+	
+	appendInstruction(self, ICONST);
+	appendInstruction(self, result);	
+
 	consumeNode(self);
 }
 
@@ -93,7 +93,7 @@ void startCompiler(Compiler *self, Vector *ast) {
 
 	int *value = getValueAtKey(self->functions, "main");
 	if (value) {
-		self->mainEntryPoint = *value;
+		self->mainEntryPoint = 0; // *value
 	}
 
 	// stop
