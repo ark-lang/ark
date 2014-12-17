@@ -4,6 +4,9 @@ static Instruction debugInstructions[] = {
     { "add",    0 },
     { "sub",    0 },
     { "mul",    0 },
+    { "div",    0 },
+    { "mod",    0 },
+    { "pow",    0 },
     { "ret",    0 },
     { "call",   2 },
     { "iconst", 1 },
@@ -40,9 +43,10 @@ static void printInstruction(int *code, int ip) {
     }
 }
 
-void startJayforVM(JayforVM *vm, int *bytecode, int globalCount) {
+void startJayforVM(JayforVM *vm, int *bytecode, int globalCount, int entryPoint) {
 	vm->bytecode = bytecode;
 	vm->globals = malloc(sizeof(*vm->globals) * globalCount);
+	vm->instructionPointer = entryPoint;
 
 	// for arithmetic operations
 	int *a = NULL;
@@ -75,6 +79,24 @@ void startJayforVM(JayforVM *vm, int *bytecode, int globalCount) {
 				a = popStack(vm->stack);
 				b = popStack(vm->stack);
 				c = *a * *b; // ****************
+				pushToStack(vm->stack, &c);
+				break;
+			case DIV:
+				a = popStack(vm->stack);
+				b = popStack(vm->stack);
+				c = *a / *b; // ****************
+				pushToStack(vm->stack, &c);
+				break;
+			case MOD:
+				a = popStack(vm->stack);
+				b = popStack(vm->stack);
+				c = *a % *b; // ****************
+				pushToStack(vm->stack, &c);
+				break;
+			case POW:
+				a = popStack(vm->stack);
+				b = popStack(vm->stack);
+				c = *a ^ *b; // ****************
 				pushToStack(vm->stack, &c);
 				break;
 			case RET:

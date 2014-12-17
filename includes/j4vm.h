@@ -19,6 +19,9 @@ typedef enum {
 	ADD,
 	SUB,
 	MUL,
+	DIV,
+	MOD,
+	POW,
 	RET,
 	CALL,
 	ICONST,
@@ -37,7 +40,7 @@ typedef struct {
 
 JayforVM *createJayforVM();
 
-void startJayforVM(JayforVM *vm, int *bytecode, int globalCount);
+void startJayforVM(JayforVM *vm, int *bytecode, int globalCount, int entryPoint);
 
 void destroyJayforVM(JayforVM *vm);
 

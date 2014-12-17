@@ -688,12 +688,12 @@ BlockNode *parseBlockNode(Parser *parser) {
 	}
 	while (true);
 
-	int i;
-	for (i = 0; i < block->statements->size; i++) {
-		StatementNode *sn = getItemFromVector(block->statements, i);
-		printf("%d = %s\n", i, NODE_NAMES[sn->type]);
-	}
-	printf("\n");
+	// int i;
+	// for (i = 0; i < block->statements->size; i++) {
+	// 	StatementNode *sn = getItemFromVector(block->statements, i);
+	// 	printf("%d = %s\n", i, NODE_NAMES[sn->type]);
+	// }
+	// printf("\n");
 
 	return block;
 }
@@ -764,6 +764,7 @@ FunctionNode *parseFunctionNode(Parser *parser) {
 		FunctionNode *fn = createFunctionNode();
 		fn->ret = createVector();
 		fn->numOfReturnValues = 0;
+		fn->isTuple = false;
 
 		if (checkTokenTypeAndContent(parser, OPERATOR, ":", 0)) {
 			consumeToken(parser);

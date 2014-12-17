@@ -1,12 +1,5 @@
 #include "compiler.h"
 
-/** List of data types */
-static const char* DATA_TYPES[] = {
-	"int", "str", "double", "float", "bool",
-	"void", "char", "tup"
-};
-
-
 Compiler *createCompiler() {
 	Compiler *self = malloc(sizeof(*self));
 	self->ast = NULL;
@@ -15,6 +8,8 @@ Compiler *createCompiler() {
 	self->bytecode = malloc(sizeof(*self->bytecode) * self->maxBytecodeSize);
 	self->currentNode = 0;
 	self->globalCount = -1;
+	self->mainEntryPoint = -1;
+	self->functions = createHashmap(128);
 	return self;
 }
 
@@ -38,14 +33,18 @@ int evaluateExpressionNode(Compiler *self, ExpressionNode *expr) {
 	else {
 		int left = evaluateExpressionNode(self, expr->lhand);
 		int right = evaluateExpressionNode(self, expr->rhand);
+		appendInstruction(self, ICONST);
+		appendInstruction(self, left);
+		appendInstruction(self, ICONST);
+		appendInstruction(self, right);
 
 		switch (expr->operand) {
-			case '+': result = left + right; break;
-			case '-': result = left - right; break;
-			case '*': result = left * right; break;
-			case '/': result = left / right; break;
-			case '%': result = left % right; break;
-			case '^': result = left ^ right; break;
+			case '+': appendInstruction(self, ADD); break;
+			case '-': appendInstruction(self, SUB); break;
+			case '*': appendInstruction(self, MUL); break;
+			case '/': appendInstruction(self, DIV); break;
+			case '%': appendInstruction(self, MOD); break;
+			case '^': appendInstruction(self, POW); break;
 		}
 	}
 	return result;
@@ -55,14 +54,20 @@ void generateVariableDeclarationCode(Compiler *self, VariableDeclareNode *vdn) {
 	DataType type = vdn->vdn->type;
 	Token *name = vdn->vdn->name;
 	ExpressionNode *expr = vdn->expr;
-	int result = evaluateExpressionNode(self, expr);
+	evaluateExpressionNode(self, expr);
+	consumeNode(self);
+}
 
-	printf("%s %s = %d\n", DATA_TYPES[type], name->content, result);
+void generateFunctionCode(Compiler *self, FunctionNode *func) {
+	// easier than a shit ton of arrows
+	BlockNode *body = func->body;
+	Vector *ret = func->ret;
+	Vector *args = func->fpn->args;
+	Token *name = func->fpn->name;
 
-	appendInstruction(self, ICONST);
-	appendInstruction(self, result);
-	appendInstruction(self, GSTORE);
-	appendInstruction(self, ++self->globalCount);
+	// add function name and address to the table
+	int functionAddress = self->currentInstruction;
+	setValueAtKey(self->functions, name->content, &functionAddress, sizeof(functionAddress));
 
 	consumeNode(self);
 }
@@ -74,13 +79,21 @@ void startCompiler(Compiler *self, Vector *ast) {
 		Node *currentNode = getItemFromVector(self->ast, self->currentNode);
 
 		switch (currentNode->type) {
-			case VARIABLE_DEC_NODE:
-				generateVariableDeclarationCode(self, currentNode->data);
-				break;
-			default:
-				printf("unrecognized node\n");
-				break;
+		case VARIABLE_DEC_NODE:
+			generateVariableDeclarationCode(self, currentNode->data);
+			break;
+		case FUNCTION_NODE:
+			generateFunctionCode(self, currentNode->data);
+			break;
+		default:
+			printf("unrecognized node\n");
+			break;
 		}
+	}
+
+	int *value = getValueAtKey(self->functions, "main");
+	if (value) {
+		self->mainEntryPoint = *value;
 	}
 
 	// stop
