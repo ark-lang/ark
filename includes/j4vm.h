@@ -23,6 +23,7 @@ typedef enum {
 	MOD,
 	POW,
 	RET,
+	PRINT,
 	CALL,
 	ICONST,
 	LOAD,
