@@ -67,6 +67,9 @@ void startCompiler(Compiler *self, Vector *ast) {
 		}
 	}
 
+	// stop
+	appendInstruction(self, HALT);
+
 	int i;
 	for (i = 0; i < self->currentInstruction; i++) {
 		printf("%d\n", self->bytecode[i]);

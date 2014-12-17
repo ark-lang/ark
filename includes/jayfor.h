@@ -10,6 +10,7 @@
 #include "parser.h"
 #include "scanner.h"
 #include "compiler.h"
+#include "j4vm.h"
 
 /**
  * The core of Jayfor
@@ -19,6 +20,7 @@ typedef struct {
 	Lexer *lexer;
 	Parser *parser;
 	Compiler *compiler;
+	JayforVM *j4vm;
 } Jayfor;
 
 /**
