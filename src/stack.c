@@ -17,7 +17,25 @@ Stack *createStack() {
 }
 
 StackItem getValueFromStack(Stack *stack, int index) {
+	if (index > stack->stackPointer) {
+		printf("error: could not retrieve value at index %d\n", index);
+		return NULL;
+	} 
 	return stack->items[index];
+}
+
+void pushToStackAtIndex(Stack *stack, StackItem item, int index) {
+	// much more efficient to reallocate exponentially,
+	// instead of reallocating after adding an item
+	if (stack->stackPointer >= stack->defaultStackSize) {
+		stack->defaultStackSize *= 2;
+		stack->items = realloc(stack->items, sizeof(*stack->items) * stack->defaultStackSize);
+		if (!stack->items) {
+			perror("realloc: failed to allocate memory for stack items");
+			exit(1);
+		}
+	}
+	stack->items[index] = item;
 }
 
 void pushToStack(Stack *stack, StackItem item) {
@@ -35,6 +53,10 @@ void pushToStack(Stack *stack, StackItem item) {
 }
 
 StackItem popStack(Stack *stack) {
+	if (stack->stackPointer < 0) {
+		printf("error: cannot pop value from empty stack\n");
+		return NULL;
+	}
 	return stack->items[stack->stackPointer--];
 }
 
