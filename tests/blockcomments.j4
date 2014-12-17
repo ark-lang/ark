@@ -1,0 +1,12 @@
+/**
+	Let's try and fix the block comments!
+
+	fn main(int argc): void {
+		int x = 10;
+	}
+*/
+
+fn /*asfawdt qwertq we */test(/* comment */ int argc): void {
+	/* swag */
+	double z = /* double x double x */ 32;
+}
