@@ -9,10 +9,12 @@ fn add(int a, int b): void {
 	ret (a + b)
 }
 
+# this is a comment
 fn test(int a, int b, str x): <int, float, str> {
 	for int x:(10, 0) {
-		add(x, x)
+		add(x, x) /** cool */
 	}
+	// and another comment
 
 	ret <0, 3.2, "test">
 }
