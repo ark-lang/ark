@@ -42,9 +42,6 @@ void startJ4VM(JayforVM *vm, int *bytecode) {
 				c = *a * *b; // ****************
 				pushToStack(vm->stack, &c);
 				break;
-			case RET:
-
-				break;
 			case ICONST:
 				pushToStack(vm->stack, &vm->bytecode[vm->instructionPointer++]);
 				break;
