@@ -81,7 +81,7 @@ void startJayfor(Jayfor *jayfor) {
 	startCompiler(jayfor->compiler, jayfor->parser->parseTree);
 
 	jayfor->j4vm = createJayforVM();
-	startJayforVM(jayfor->j4vm, jayfor->compiler->bytecode, jayfor->compiler->globalCount + 1);
+	startJayforVM(jayfor->j4vm, jayfor->compiler->bytecode, jayfor->compiler->globalCount + 1, jayfor->compiler->mainEntryPoint);
 }
 
 void destroyJayfor(Jayfor *jayfor) {
