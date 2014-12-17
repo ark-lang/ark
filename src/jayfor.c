@@ -61,6 +61,8 @@ Jayfor *createJayfor(int argc, char** argv) {
 
 	// pass the scanned file to the lexer to tokenize
 	jayfor->lexer = createLexer(jayfor->scanner->contents);
+	jayfor->compiler = NULL;
+	jayfor->j4vm = NULL;
 
 	return jayfor;
 }
@@ -77,6 +79,9 @@ void startJayfor(Jayfor *jayfor) {
 
 	jayfor->compiler = createCompiler();
 	startCompiler(jayfor->compiler, jayfor->parser->parseTree);
+
+	jayfor->j4vm = createJayforVM();
+	startJayforVM(jayfor->j4vm, jayfor->compiler->bytecode, jayfor->compiler->globalCount + 1);
 }
 
 void destroyJayfor(Jayfor *jayfor) {
