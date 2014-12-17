@@ -3,25 +3,32 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "parser.h"
 #include "vector.h"
 #include "j4vm.h"
+#include "hashmap.h"
 
 typedef struct {
 	Vector *ast;
 	JayforVM *vm;
+	Hashmap *functions;
 	int *bytecode;
+
 	int initialBytecodeSize;
 	int maxBytecodeSize;
 	int currentNode;
 	int currentInstruction;
 	int globalCount;
+	int mainEntryPoint;
 } Compiler;
 
 Compiler *createCompiler();
 
 void appendInstruction(Compiler *self, int instr);
+
+void generateFunctionCode(Compiler *self, FunctionNode *func);
 
 int evaluateExpressionNode(Compiler *self, ExpressionNode *expr);
 
