@@ -63,6 +63,7 @@ void lexerSkipLayoutAndComment(Lexer *lexer) {
 		lexerNextChar(lexer);
 	}
 
+	// consume a block comment and its contents
 	if (lexer->charIndex == '/' && lexerPeekAhead(lexer, 1) == '*') {
 		// consume new comment symbols
 		lexerNextChar(lexer);
@@ -81,7 +82,8 @@ void lexerSkipLayoutAndComment(Lexer *lexer) {
 		}
 	}
 
-	while (lexer->charIndex == '/' && lexerPeekAhead(lexer, 1) == '/') {
+	// consume a single line comment
+	while ((lexer->charIndex == '/' && lexerPeekAhead(lexer, 1) == '/') || (lexer->charIndex == '#')) {
 		lexerNextChar(lexer);	// eat the /
 		lexerNextChar(lexer);	// eat the /
 
