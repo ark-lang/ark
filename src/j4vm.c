@@ -1,17 +1,19 @@
 #include "j4vm.h"
 
-JayforVM *createJ4VM() {
+JayforVM *createJayforVM() {
 	JayforVM *vm = malloc(sizeof(*vm));
 	vm->bytecode = NULL;
 	vm->instructionPointer = 0;
 	vm->framePointer = -1;
 	vm->stack = createStack();
 	vm->running = true;
+	vm->globals = NULL;
 	return vm;
 }
 
-void startJ4VM(JayforVM *vm, int *bytecode) {
+void startJayforVM(JayforVM *vm, int *bytecode, int globalCount) {
 	vm->bytecode = bytecode;
+	vm->globals = malloc(sizeof(*vm->globals) * globalCount);
 
 	// for arithmetic operations
 	int *a = NULL;
@@ -75,7 +77,7 @@ void startJ4VM(JayforVM *vm, int *bytecode) {
 	}
 }
 
-void destroyJ4VM(JayforVM *vm) {
+void destroyJayforVM(JayforVM *vm) {
 	if (vm != NULL) {
 		free(vm);
 		vm = NULL;

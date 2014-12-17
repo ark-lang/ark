@@ -1,5 +1,5 @@
-#ifndef J4VM_H
-#define J4VM_H
+#ifndef JAYFORVM_H
+#define JAYFORVM_H
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -29,10 +29,10 @@ typedef enum {
 	HALT,
 } InstructionSet;
 
-JayforVM *createJ4VM();
+JayforVM *createJayforVM();
 
-void startJ4VM(JayforVM *vm, int *bytecode);
+void startJayforVM(JayforVM *vm, int *bytecode, int globalCount);
 
-void destroyJ4VM(JayforVM *vm);
+void destroyJayforVM(JayforVM *vm);
 
-#endif // J4VM_H
+#endif // JAYFORVM_H
