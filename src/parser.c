@@ -13,14 +13,14 @@ static const char* DATA_TYPES[] = {
 	"void", "char", "tup"
 };
 
-static const char* NODE_NAMES[] = {
-	"expression_node", "variable_def_node",
-	"variable_dec_node", "function_arg_node",
-	"function_node", "function_prot_node",
-	"block_node", "function_callee_node",
-	"function_ret_node", "for_loop_node",
-	"variable_reassign_node"
-};
+// static const char* NODE_NAMES[] = {
+// 	"expression_node", "variable_def_node",
+// 	"variable_dec_node", "function_arg_node",
+// 	"function_node", "function_prot_node",
+// 	"block_node", "function_callee_node",
+// 	"function_ret_node", "for_loop_node",
+// 	"variable_reassign_node"
+// };
 
 /** UTILITY FOR NODES */
 
