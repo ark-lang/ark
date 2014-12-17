@@ -11,6 +11,15 @@
 #include "vector.h"
 #include "hashmap.h"
 
+// for defining expression types
+// values are somewhat arbitrary
+#define EXPR_LOGICAL_OPERATOR 	'L'
+#define EXPR_NUMBER				'N'
+#define EXPR_STRING 			'S'
+#define EXPR_CHARACTER 			'C'
+#define EXPR_VARIABLE 			'V'
+#define EXPR_PARENTHESIS 		'P'
+
 /**
  * Parser contents
  */
