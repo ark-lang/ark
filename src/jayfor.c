@@ -1,6 +1,6 @@
 #include "jayfor.h"
 
-Jayfor *jayforCreate(int argc, char** argv) {
+Jayfor *createJayfor(int argc, char** argv) {
 	// not enough args just throw an error
 	if (argc <= 1) {
 		printf(KRED "error: no input files\n" KNRM);
@@ -46,43 +46,43 @@ Jayfor *jayforCreate(int argc, char** argv) {
 	jayfor->parser = NULL;
 
 	// start actual useful shit here
-	jayfor->scanner = scannerCreate();
+	jayfor->scanner = createScanner();
 
 	// assume last argument is a file name
 	// this is a placeholder for now
 	char *filename = argv[argc-1];
 	// check if the filename doesn't end with j4
 	if(strstr(filename, ".j4") != NULL) {
-		scannerReadFile(jayfor->scanner, filename);
+		scanFile(jayfor->scanner, filename);
 	} else {
 		printf(KRED "error: not a valid j4 file.\n" KNRM);
 		exit(1);
 	}
 
 	// pass the scanned file to the lexer to tokenize
-	jayfor->lexer = lexerCreate(jayfor->scanner->contents);
+	jayfor->lexer = createLexer(jayfor->scanner->contents);
 
 	return jayfor;
 }
 
-void jayforStart(Jayfor *jayfor) {
+void startJayfor(Jayfor *jayfor) {
 	while (jayfor->lexer->running) {
-		lexerGetNextToken(jayfor->lexer);
+		getNextToken(jayfor->lexer);
 	}
 
 	// initialise parser after we tokenize
-	jayfor->parser = parserCreate(jayfor->lexer->tokenStream);
+	jayfor->parser = createParser(jayfor->lexer->tokenStream);
 
-	parserStartParsing(jayfor->parser);
+	startParsingTokenStream(jayfor->parser);
 
 	// jayfor->compiler = compilerCreate();
 	// compilerStart(jayfor->compiler);
 }
 
-void jayforDestroy(Jayfor *jayfor) {
-	scannerDestroy(jayfor->scanner);
-	lexerDestroy(jayfor->lexer);
-	parserDestroy(jayfor->parser);
+void destroyJayfor(Jayfor *jayfor) {
+	destroyScanner(jayfor->scanner);
+	destroyLexer(jayfor->lexer);
+	destroyParser(jayfor->parser);
 	// compilerDestroy(jayfor->compiler);
 	free(jayfor);
 }

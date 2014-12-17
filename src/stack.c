@@ -1,6 +1,6 @@
 #include "stack.h"
 
-Stack *stackCreate() {
+Stack *createStack() {
 	Stack *stack = malloc(sizeof(*stack));
 	if (!stack) {
 		perror("malloc: failed to allocate memory for stack");
@@ -16,11 +16,11 @@ Stack *stackCreate() {
 	return stack;
 }
 
-StackItem stackGet(Stack *stack, int index) {
+StackItem getValueFromStack(Stack *stack, int index) {
 	return stack->items[index];
 }
 
-void stackPush(Stack *stack, StackItem item) {
+void pushToStack(Stack *stack, StackItem item) {
 	// much more efficient to reallocate exponentially,
 	// instead of reallocating after adding an item
 	if (stack->stackPointer >= stack->defaultStackSize) {
@@ -34,10 +34,10 @@ void stackPush(Stack *stack, StackItem item) {
 	stack->items[++stack->stackPointer] = item;
 }
 
-StackItem stackPop(Stack *stack) {
+StackItem popStack(Stack *stack) {
 	return stack->items[stack->stackPointer--];
 }
 
-void stackDestroy(Stack *stack) {
+void destroyStack(Stack *stack) {
 	free(stack);
 }
