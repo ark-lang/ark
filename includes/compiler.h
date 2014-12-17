@@ -23,6 +23,8 @@ Compiler *createCompiler();
 
 void appendInstruction(Compiler *self, int instr);
 
+int evaluateExpressionNode(Compiler *self, ExpressionNode *expr);
+
 void consumeNode(Compiler *self);
 
 void generateVariableDeclarationCode(Compiler *compiler, VariableDeclareNode *vdn);
