@@ -1,6 +1,6 @@
 #include "vector.h"
 
-Vector *vectorCreate() {
+Vector *createVector() {
 	Vector *vec = malloc(sizeof(*vec));
 	if (!vec) {
 		perror("malloc: failed to allocate memory for Vector");
@@ -16,7 +16,7 @@ Vector *vectorCreate() {
 	return vec;
 }
 
-void vectorPushBack(Vector *vec, VectorItem item) {
+void pushBackVectorItem(Vector *vec, VectorItem item) {
 	// much more efficient to reallocate exponentially,
 	// instead of reallocating after adding an item
 	if (vec->size >= vec->maxSize) {
@@ -30,11 +30,11 @@ void vectorPushBack(Vector *vec, VectorItem item) {
 	vec->items[vec->size++] = item;
 }
 
-VectorItem vectorGetItem(Vector *vec, int index) {
+VectorItem getItemFromVector(Vector *vec, int index) {
 	return vec->items[index];
 }
 
-void vectorDestroy(Vector *vec) {
+void destroyVector(Vector *vec) {
 	free(vec->items);
 	free(vec);
 }

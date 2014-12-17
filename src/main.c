@@ -8,9 +8,9 @@ int main(int argc, char** argv) {
 	clock_t timer = clock();
 
 	// jayfor stuff
-	Jayfor *jayfor = jayforCreate(argc, argv);
-	jayforStart(jayfor);
-	jayforDestroy(jayfor);
+	Jayfor *jayfor = createJayfor(argc, argv);
+	startJayfor(jayfor);
+	destroyJayfor(jayfor);
 
 	// finished timer
 	timer = clock() - timer;	// calculate time taken

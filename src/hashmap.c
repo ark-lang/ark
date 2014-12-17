@@ -1,6 +1,6 @@
 #include "hashmap.h"
 
-Hashmap *hashmapCreate() {
+Hashmap *createHashmap() {
 	Hashmap *map = malloc(sizeof(*map));
 	map->size = 128;
 	map->fields = malloc(sizeof(Field) * map->size);
@@ -13,7 +13,7 @@ Hashmap *hashmapCreate() {
 	return map;
 }
 
-void *hashmapGet(Hashmap *map, char *key) {
+void *getValueAtKey(Hashmap *map, char *key) {
 	int hash = hashmapHash(key, map->size - 1);
 	Field *field = map->fields + hash;
 	Entry *entry;
@@ -28,7 +28,7 @@ void *hashmapGet(Hashmap *map, char *key) {
 	return NULL;
 }
 
-void hashmapSet(Hashmap *map, char *key, void *value, size_t length) {
+void setValueAtKey(Hashmap *map, char *key, void *value, size_t length) {
 	int hash = hashmapHash(key, map->size - 1);
 	Field *field = map->fields + hash;
 	Entry *entry;
@@ -62,7 +62,7 @@ void hashmapSet(Hashmap *map, char *key, void *value, size_t length) {
 	}
 }
 
-void hashmapDestroy(Hashmap *map) {
+void destroyHashmap(Hashmap *map) {
 	int i;
 	for (i = 0; i < map->size; i++) {
 		Field *field = map->fields + i;

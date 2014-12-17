@@ -20,20 +20,20 @@ typedef struct {
  * 
  * @return the scanner
  */
-Scanner *scannerCreate();
+Scanner *createScanner();
 
 /**
  * Reads the given file into
  * `char* contents;`
  * 
  */
-void scannerReadFile(Scanner *scanner, const char* fileName);
+void scanFile(Scanner *scanner, const char* fileName);
 
 /**
  * Destroys the given Scanner
  * 
  * @param scanner scanner to destroy
  */
-void scannerDestroy(Scanner *scanner);
+void destroyScanner(Scanner *scanner);
 
 #endif // SCANNER_H

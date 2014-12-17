@@ -35,7 +35,7 @@ typedef struct {
  * 
  * @return allocate memory for Token
  */
-Token *tokenCreate();
+Token *createToken();
 
 /**
  * Get the name of the given token
@@ -51,7 +51,7 @@ const char* getTokenName(Token *token);
  * 
  * @param token token to free
  */
-void tokenDestroy(Token *token);
+void destroyToken(Token *token);
 
 /** Lexer stuff */
 typedef struct {
@@ -70,7 +70,7 @@ typedef struct {
  * @param input the input to lex
  * @return instance of Lexer
  */
-Lexer *lexerCreate(char* input);
+Lexer *createLexer(char* input);
 
 /**
  * Simple substring implementation,
@@ -81,7 +81,7 @@ Lexer *lexerCreate(char* input);
  * @param length of the input
  * @return string cut from buffer
  */
-char* lexerFlushBuffer(Lexer *lexer, int start, int length);
+char* flushBuffer(Lexer *lexer, int start, int length);
 
 /**
  * Advance to the next character, consuming the
@@ -89,7 +89,7 @@ char* lexerFlushBuffer(Lexer *lexer, int start, int length);
  * 
  * @param lexer instance of the lexer
  */
-void lexerNextChar(Lexer *lexer);
+void consumeCharacter(Lexer *lexer);
 
 /**
  * Skips layout characters, such as spaces,
@@ -98,7 +98,7 @@ void lexerNextChar(Lexer *lexer);
  * 
  * @param lexer the lexer instance
  */
-void lexerSkipLayoutAndComment(Lexer *lexer);
+void skipLayoutAndComments(Lexer *lexer);
 
 /**
  * Checks if current character is the given character
@@ -106,35 +106,35 @@ void lexerSkipLayoutAndComment(Lexer *lexer);
  * 
  * @param lexer the lexer instance
  */
-void lexerExpectCharacter(Lexer *lexer, char c);
+void expectCharacter(Lexer *lexer, char c);
 
 /**
  * Recognize an identifier
  * 
  * @param lexer the lexer instance
  */
-void lexerRecognizeIdentifier(Lexer *lexer);
+void recognizeIdentifierToken(Lexer *lexer);
 
 /**
  * Recognize an Integer
  * 
  * @param lexer the lexer instance
  */
-void lexerRecognizeNumber(Lexer *lexer);
+void recognizeNumberToken(Lexer *lexer);
 
 /**
  * Recognize a String
  * 
  * @param lexer the lexer instance
  */
-void lexerRecognizeString(Lexer *lexer);
+void recognizeStringToken(Lexer *lexer);
 
 /**
  * Recognize a Character
  * 
  * @param lexer the lexer instance
  */
-void lexerRecognizeCharacter(Lexer *lexer);
+void recognizeCharacterToken(Lexer *lexer);
 
 /**
  * Peek ahead in the character stream by
@@ -144,16 +144,14 @@ void lexerRecognizeCharacter(Lexer *lexer);
  * @ahead amount to peek by
  * @return the char we peeked at
  */
-char lexerPeekAhead(Lexer *lexer, int ahead);
-
-void lexerUpdateTokenPos(Lexer *lexer);
+char peekAhead(Lexer *lexer, int ahead);
 
 /**
  * Process the next token in the token stream
  * 
  * @param lexer the lexer instance
  */
-void lexerGetNextToken(Lexer *lexer);
+void getNextToken(Lexer *lexer);
 
 /**
  * Destroys the given lexer instance,
@@ -161,7 +159,7 @@ void lexerGetNextToken(Lexer *lexer);
  * 
  * @param lexer the lexer instance to destroy
  */
-void lexerDestroy(Lexer *lexer);
+void destroyLexer(Lexer *lexer);
 
 /**
  * @return if the character given is the end of input
