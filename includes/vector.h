@@ -24,7 +24,7 @@ typedef struct {
  * 
  * @return the Vector instance
  */
-Vector *vectorCreate();
+Vector *createVector();
 
 /**
  * Push a VectorItem into the given Vector
@@ -32,7 +32,7 @@ Vector *vectorCreate();
  * @param vec the vector to push to
  * @param VectorItem the item to push
  */
-void vectorPushBack(Vector *vec, VectorItem item);
+void pushBackVectorItem(Vector *vec, VectorItem item);
 
 /**
  * Retrieves the VectorItem at the given index in
@@ -42,13 +42,13 @@ void vectorPushBack(Vector *vec, VectorItem item);
  * @param index the place to check
  * @return the Vector Item
  */
-VectorItem vectorGetItem(Vector *vec, int index);
+VectorItem getItemFromVector(Vector *vec, int index);
 
 /**
  * Destroys the given Vector
  * 
  * @param vec the vector to destroy
  */
-void vectorDestroy(Vector *vec);
+void destroyVector(Vector *vec);
 
 #endif // VECTOR_H

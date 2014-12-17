@@ -27,7 +27,7 @@ typedef struct {
  * Create a new stack instance
  * @return the instance of the stack created
  */
-Stack *stackCreate();
+Stack *createStack();
 
 /**
  * Push a value to the stack
@@ -35,7 +35,7 @@ Stack *stackCreate();
  * @param stack stack to push to
  * @param item item to push to
  */
-void stackPush(Stack *stack, StackItem item);
+void pushToStack(Stack *stack, StackItem item);
 
 /**
  * Retrieve the value at the given index
@@ -44,7 +44,7 @@ void stackPush(Stack *stack, StackItem item);
  * @param index the index to check
  * @return the item at the given @{index}
  */
-StackItem stackGet(Stack *stack, int index);
+StackItem getValueFromStack(Stack *stack, int index);
 
 /**
  * Pops value from top of stack
@@ -52,13 +52,13 @@ StackItem stackGet(Stack *stack, int index);
  * @param stack the stack to pop
  * @return the item we popped
  */
-StackItem stackPop(Stack *stack);
+StackItem popStack(Stack *stack);
 
 /**
  * Destroys the given stack
  * 
  * @param stack stack to destroy
  */
-void stackDestroy(Stack *stack);
+void destroyStack(Stack *stack);
 
 #endif // STACK_H
