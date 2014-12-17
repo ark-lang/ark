@@ -208,7 +208,7 @@ typedef struct s_BooleanExpressionNode {
 /**
  * Parser an operand
  */
-char parserParseOperand(Parser *parser);
+char parseOperand(Parser *parser);
 
 /**
  * Create a new Variable Reassignment Node
@@ -378,7 +378,7 @@ void removeNode(Node *node);
  * @param tokenStream the token stream to parse
  * @return instance of Parser
  */
-Parser *parserCreate(Vector *tokenStream);
+Parser *createParser(Vector *tokenStream);
 
 /**
  * Advances to the next token
@@ -386,7 +386,7 @@ Parser *parserCreate(Vector *tokenStream);
  * @param parser parser instance
  * @return the token we consumed
  */
-Token *parserConsumeToken(Parser *parser);
+Token *consumeToken(Parser *parser);
 
 /**
  * Peek at the token that is {@ahead} tokens
@@ -396,7 +396,7 @@ Token *parserConsumeToken(Parser *parser);
  * @param ahead how far ahead to peek
  * @return the Token peeking at
  */
-Token *parserPeekAhead(Parser *parser, int ahead);
+Token *peekAtTokenStream(Parser *parser, int ahead);
 
 /**
  * Checks if the next token type is the same as the given
@@ -406,7 +406,7 @@ Token *parserPeekAhead(Parser *parser, int ahead);
  * @param type the type to match
  * @return the token we matched
  */
-Token *parserExpectType(Parser *parser, TokenType type);
+Token *expectTokenType(Parser *parser, TokenType type);
 
 /**
  * Checks if the next tokens content is the same as the given
@@ -416,7 +416,7 @@ Token *parserExpectType(Parser *parser, TokenType type);
  * @param type the type to match
  * @return the token we matched
  */
-Token *parserExpectContent(Parser *parser, char *content);
+Token *expectTokenContent(Parser *parser, char *content);
 
 /**
  * Checks if the next token type is the same as the given
@@ -428,7 +428,7 @@ Token *parserExpectContent(Parser *parser, char *content);
  * @param content content to match
  * @return the token we matched
  */
-Token *parserExpectTypeAndContent(Parser *parser, TokenType type, char *content);
+Token *expectTokenTypeAndContent(Parser *parser, TokenType type, char *content);
 
 /**
  * Checks if the current token type is the same as the given
@@ -438,7 +438,7 @@ Token *parserExpectTypeAndContent(Parser *parser, TokenType type, char *content)
  * @param type the type to match
  * @return the token we matched
  */
-Token *parserMatchType(Parser *parser, TokenType type);
+Token *matchTokenType(Parser *parser, TokenType type);
 
 /**
  * Checks if the current tokens content is the same as the given
@@ -448,7 +448,7 @@ Token *parserMatchType(Parser *parser, TokenType type);
  * @param type the type to match
  * @return the token we matched
  */
-Token *parserMatchContent(Parser *parser, char *content);
+Token *matchTokenContent(Parser *parser, char *content);
 
 /**
  * Checks if the current token type is the same as the given
@@ -460,7 +460,7 @@ Token *parserMatchContent(Parser *parser, char *content);
  * @param content content to match
  * @return the token we matched
  */
-Token *parserMatchTypeAndContent(Parser *parser, TokenType type, char *content);
+Token *matchTokenTypeAndContent(Parser *parser, TokenType type, char *content);
 
 /**
  * if the token at the given index is the same type as the given one
@@ -468,7 +468,7 @@ Token *parserMatchTypeAndContent(Parser *parser, TokenType type, char *content);
  * @param type the type to check
  * @return if the current token is the same type as the given one
  */
-bool parserTokenType(Parser *parser, TokenType type, int ahead);
+bool checkTokenType(Parser *parser, TokenType type, int ahead);
 
 /**
  * if the token at the given index has the same content as the given
@@ -477,14 +477,14 @@ bool parserTokenType(Parser *parser, TokenType type, int ahead);
  * @param ahead how far away the token is
  * @return if the current token has the same content as the given
  */
-bool parserTokenContent(Parser *parser, char* content, int ahead);
+bool checkTokenContent(Parser *parser, char* content, int ahead);
 
 /**
  * @param parser the parser instance
  * @param type the type to check
  * @return if the current token has the same content as the given
  */
-bool parserTokenTypeAndContent(Parser *parser, TokenType type, char* content, int ahead);
+bool checkTokenTypeAndContent(Parser *parser, TokenType type, char* content, int ahead);
 
 /**
  * Parses an expression: currently only parses a number!
@@ -492,7 +492,7 @@ bool parserTokenTypeAndContent(Parser *parser, TokenType type, char* content, in
  * @param parser the parser instance
  * @return the expression parsed
  */
-ExpressionNode *parserParseExpression(Parser *parser);
+ExpressionNode *parseExpressionNode(Parser *parser);
 
 /**
  * Parses a For Loop statement
@@ -510,28 +510,28 @@ void printCurrentToken(Parser *parser);
  * @param param the parser instance
  * @param global if the variable is globally declared
  */
-void *parserParseVariable(Parser *parser, bool global);
+void *parseVariableNode(Parser *parser, bool global);
 
 /**
  * Parses a block of statements
  *
  * @param parser the parser instance
  */
-BlockNode *parserParseBlock(Parser *parser);
+BlockNode *parseBlockNode(Parser *parser);
 
 /**
  * Parses a function
  * 
  * @param parser the parser instance
  */
-FunctionNode *parserParseFunction(Parser *parser);
+FunctionNode *parseFunctionNode(Parser *parser);
 
 /**
  * Parses a function call
  * 
  * @param parser the parser instance
  */
-FunctionCalleeNode *parserParseFunctionCall(Parser *parser);
+FunctionCalleeNode *parseFunctionNodeCall(Parser *parser);
 
 /**
  * Parses statements, function calls, while
@@ -539,7 +539,7 @@ FunctionCalleeNode *parserParseFunctionCall(Parser *parser);
  * 
  * @param parser the parser instance
  */
-StatementNode *parserParseStatements(Parser *parser);
+StatementNode *parseStatementNode(Parser *parser);
 
 /**
  * Finds the appropriate Data Type from the given Token
@@ -549,7 +549,7 @@ StatementNode *parserParseStatements(Parser *parser);
  * @param tok the token to check
  * @return the token as a DataType
  */
-DataType parserTokenTypeToDataType(Parser *parser, Token *tok);
+DataType matchTokenTypeToDataType(Parser *parser, Token *tok);
 
 /**
  * Returns if the given token is a data type
@@ -558,27 +558,27 @@ DataType parserTokenTypeToDataType(Parser *parser, Token *tok);
  * @param tok the token instance
  * @return true if the token is a data type
  */
-bool parserIsTokenDataType(Parser *parser, Token *tok);
+bool checkTokenTypeIsValidDataType(Parser *parser, Token *tok);
 
 /**
  * Parses a variable reassignment
  * 
  * @parser the parser instance
  */
-VariableReassignNode *parserParseReassignmentStatement(Parser *parser);
+VariableReassignNode *parseReassignmentStatementNode(Parser *parser);
 
 /**
  * Start parsing
  *
  * @param parser parser to start parsing
  */
-void parserStartParsing(Parser *parser);
+void startParsingTokenStream(Parser *parser);
 
 /**
  * Destroy the given Parser
  * 
  * @param parser the parser to destroy
  */
-void parserDestroy(Parser *parser);
+void destroyParser(Parser *parser);
 
 #endif // PARSER_H

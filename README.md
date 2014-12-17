@@ -50,10 +50,10 @@ or check out some actual code we use for the library [here](libs/math.j4).
 
     fn test(int a, int b, str x): <int, float, str> {
         for int x:(10, 0) {
-            add(x, x)
+            add(a, b)
         }
 
-        ret <0, 3.2, "test">
+        ret <a, 3.2, "test">
     }
 
     fn main(int a, int b): void {

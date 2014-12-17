@@ -6,7 +6,7 @@ static const char* TOKEN_NAMES[] = {
 	"STRING", "CHARACTER", "UNKNOWN"
 };
 
-Token *tokenCreate() {
+Token *createToken() {
 	Token *token = malloc(sizeof(*token));
 	if (!token) {
 		perror("malloc: failed to allocate memory for token");
@@ -19,14 +19,14 @@ const char* getTokenName(Token *tok) {
 	return TOKEN_NAMES[tok->type];
 }
 
-void tokenDestroy(Token *token) {
+void destroyToken(Token *token) {
 	if (token != NULL) {
 		free(token);
 		token = NULL;
 	}
 }
 
-Lexer *lexerCreate(char* input) {
+Lexer *createLexer(char* input) {
 	Lexer *lexer = malloc(sizeof(*lexer));
 	if (!lexer) {
 		perror("malloc: failed to allocate memory for lexer");
@@ -35,18 +35,18 @@ Lexer *lexerCreate(char* input) {
 	lexer->input = input;
 	lexer->pos = 0;
 	lexer->charIndex = input[lexer->pos];
-	lexer->tokenStream = vectorCreate();
+	lexer->tokenStream = createVector();
 	lexer->running = true;
 	lexer->lineNumber = 0;
 
 	return lexer;
 }
 
-void lexerNextChar(Lexer *lexer) {
+void consumeCharacter(Lexer *lexer) {
 	lexer->charIndex = lexer->input[++lexer->pos];
 }
 
-char* lexerFlushBuffer(Lexer *lexer, int start, int length) {
+char* flushBuffer(Lexer *lexer, int start, int length) {
 	char* result = malloc(sizeof(char) * (length + 1));
 	if (!result) { 
 		perror("malloc: failed to allocate memory for buffer flush"); 
@@ -58,24 +58,24 @@ char* lexerFlushBuffer(Lexer *lexer, int start, int length) {
 	return result;
 }
 
-void lexerSkipLayoutAndComment(Lexer *lexer) {
+void skipLayoutAndComments(Lexer *lexer) {
 	while (isLayout(lexer->charIndex)) {
-		lexerNextChar(lexer);
+		consumeCharacter(lexer);
 	}
 
 	// consume a block comment and its contents
-	if (lexer->charIndex == '/' && lexerPeekAhead(lexer, 1) == '*') {
+	if (lexer->charIndex == '/' && peekAhead(lexer, 1) == '*') {
 		// consume new comment symbols
-		lexerNextChar(lexer);
-		lexerNextChar(lexer);
+		consumeCharacter(lexer);
+		consumeCharacter(lexer);
 
 		while (true) {
-			lexerNextChar(lexer);
-			if (lexer->charIndex == '*' && lexerPeekAhead(lexer, 1) == '/') {
-				lexerNextChar(lexer);
-				lexerNextChar(lexer);
+			consumeCharacter(lexer);
+			if (lexer->charIndex == '*' && peekAhead(lexer, 1) == '/') {
+				consumeCharacter(lexer);
+				consumeCharacter(lexer);
 				while (isLayout(lexer->charIndex)) {
-					lexerNextChar(lexer);
+					consumeCharacter(lexer);
 				}
 				break;
 			}
@@ -83,26 +83,26 @@ void lexerSkipLayoutAndComment(Lexer *lexer) {
 	}
 
 	// consume a single line comment
-	while ((lexer->charIndex == '/' && lexerPeekAhead(lexer, 1) == '/') || (lexer->charIndex == '#')) {
-		lexerNextChar(lexer);	// eat the /
-		lexerNextChar(lexer);	// eat the /
+	while ((lexer->charIndex == '/' && peekAhead(lexer, 1) == '/') || (lexer->charIndex == '#')) {
+		consumeCharacter(lexer);	// eat the /
+		consumeCharacter(lexer);	// eat the /
 
 		while (!isCommentCloser(lexer->charIndex)) {
 			if (isEndOfInput(lexer->charIndex)) return;
-			lexerNextChar(lexer);
+			consumeCharacter(lexer);
 		}
 		
 		lexer->lineNumber++; // increment line number
 		
 		while (isLayout(lexer->charIndex)) {
-			lexerNextChar(lexer);
+			consumeCharacter(lexer);
 		}
 	}
 }
 
-void lexerExpectCharacter(Lexer *lexer, char c) {
+void expectCharacter(Lexer *lexer, char c) {
 	if (lexer->charIndex == c) {
-		lexerNextChar(lexer);
+		consumeCharacter(lexer);
 	}
 	else {
 		printf("error: expected `%c` but found `%c`\n", c, lexer->charIndex);
@@ -110,121 +110,121 @@ void lexerExpectCharacter(Lexer *lexer, char c) {
 	}
 }
 
-void lexerRecognizeIdentifier(Lexer *lexer) {
-	lexerNextChar(lexer);
+void recognizeIdentifierToken(Lexer *lexer) {
+	consumeCharacter(lexer);
 
 	while (isLetterOrDigit(lexer->charIndex)) {
-		lexerNextChar(lexer);
+		consumeCharacter(lexer);
 	}
-	while (isUnderscore(lexer->charIndex) && isLetterOrDigit(lexerPeekAhead(lexer, 1))) {
-		lexerNextChar(lexer);
+	while (isUnderscore(lexer->charIndex) && isLetterOrDigit(peekAhead(lexer, 1))) {
+		consumeCharacter(lexer);
 		while (isLetterOrDigit(lexer->charIndex)) {
-			lexerNextChar(lexer);
+			consumeCharacter(lexer);
 		}
 	}
 }
 
-void lexerRecognizeNumber(Lexer *lexer) {
-	lexerNextChar(lexer);
+void recognizeNumberToken(Lexer *lexer) {
+	consumeCharacter(lexer);
 	if (lexer->charIndex == '.') {
-		lexerNextChar(lexer); // consume dot
+		consumeCharacter(lexer); // consume dot
 		while (isDigit(lexer->charIndex)) {
-			lexerNextChar(lexer);
+			consumeCharacter(lexer);
 		}
 	}
 
 	while (isDigit(lexer->charIndex)) {
-		if (lexerPeekAhead(lexer, 1) == '.') {
-			lexerNextChar(lexer);
+		if (peekAhead(lexer, 1) == '.') {
+			consumeCharacter(lexer);
 			while (isDigit(lexer->charIndex)) {
-				lexerNextChar(lexer);
+				consumeCharacter(lexer);
 			}
 		}
-		lexerNextChar(lexer);
+		consumeCharacter(lexer);
 	}
 }
 
-void lexerRecognizeString(Lexer *lexer) {
-	lexerExpectCharacter(lexer, '"');
+void recognizeStringToken(Lexer *lexer) {
+	expectCharacter(lexer, '"');
 
 	// just consume everthing
 	while (!isString(lexer->charIndex)) {
-		lexerNextChar(lexer);
+		consumeCharacter(lexer);
 	}
 
-	lexerExpectCharacter(lexer, '"');
+	expectCharacter(lexer, '"');
 }
 
-void lexerRecognizeCharacter(Lexer *lexer) {
-	lexerExpectCharacter(lexer, '\'');
+void recognizeCharacterToken(Lexer *lexer) {
+	expectCharacter(lexer, '\'');
 
 	if (isLetterOrDigit(lexer->charIndex)) {
-		lexerNextChar(lexer); // consume character		
+		consumeCharacter(lexer); // consume character		
 	}
 	else {
 		printf("error: empty character constant\n");
 		exit(1);
 	}
 
-	lexerExpectCharacter(lexer, '\'');
+	expectCharacter(lexer, '\'');
 }
 
-char lexerPeekAhead(Lexer *lexer, int ahead) {
+char peekAhead(Lexer *lexer, int ahead) {
 	return lexer->input[lexer->pos + ahead];
 }
 
-void lexerGetNextToken(Lexer *lexer) {
+void getNextToken(Lexer *lexer) {
 	int startPos;
-	lexerSkipLayoutAndComment(lexer);
+	skipLayoutAndComments(lexer);
 	startPos = lexer->pos;
 
-	lexer->currentToken = tokenCreate();
+	lexer->currentToken = createToken();
 
 	if (isEndOfInput(lexer->charIndex)) {
 		lexer->currentToken->type = END_OF_FILE;
 		lexer->currentToken->content = "<END_OF_FILE>";
 		lexer->running = false;	// stop lexing
-		vectorPushBack(lexer->tokenStream, lexer->currentToken);
+		pushBackVectorItem(lexer->tokenStream, lexer->currentToken);
 		return;
 	}
 	if (isLetter(lexer->charIndex)) {
 		lexer->currentToken->type = IDENTIFIER;
-		lexerRecognizeIdentifier(lexer);
+		recognizeIdentifierToken(lexer);
 	}
 	else if (isDigit(lexer->charIndex) || lexer->charIndex == '.') {
 		lexer->currentToken->type = NUMBER;
-		lexerRecognizeNumber(lexer);
+		recognizeNumberToken(lexer);
 	}
 	else if (isString(lexer->charIndex)) {
 		lexer->currentToken->type = STRING;
-		lexerRecognizeString(lexer);
+		recognizeStringToken(lexer);
 	}
 	else if (isCharacter(lexer->charIndex)) {
 		lexer->currentToken->type = CHARACTER;
-		lexerRecognizeCharacter(lexer);
+		recognizeCharacterToken(lexer);
 	}
 	else if (isOperator(lexer->charIndex)) {
 		lexer->currentToken->type = OPERATOR;
-		lexerNextChar(lexer);
+		consumeCharacter(lexer);
 	}
 	else if (isEndOfLine(lexer->charIndex)) {
 		lexer->lineNumber++;
-		lexerNextChar(lexer);
+		consumeCharacter(lexer);
 	}
 	else if (isSeparator(lexer->charIndex)) {
 		lexer->currentToken->type = SEPARATOR;
-		lexerNextChar(lexer);
+		consumeCharacter(lexer);
 	}
 	else {
 		lexer->currentToken->type = ERRORNEOUS;
-		lexerNextChar(lexer);
+		consumeCharacter(lexer);
 	}
 
-	lexer->currentToken->content = lexerFlushBuffer(lexer, startPos, lexer->pos - startPos);
-	vectorPushBack(lexer->tokenStream, lexer->currentToken);
+	lexer->currentToken->content = flushBuffer(lexer, startPos, lexer->pos - startPos);
+	pushBackVectorItem(lexer->tokenStream, lexer->currentToken);
 }
 
-void lexerDestroy(Lexer *lexer) {
+void destroyLexer(Lexer *lexer) {
 	if (lexer == NULL) return;
 	free(lexer);
 	lexer = NULL;
