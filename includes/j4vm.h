@@ -20,6 +20,7 @@ typedef enum {
 	SUB,
 	MUL,
 	RET,
+	CALL,
 	ICONST,
 	LOAD,
 	GLOAD,
@@ -28,6 +29,11 @@ typedef enum {
 	POP,
 	HALT,
 } InstructionSet;
+
+typedef struct {
+    char name[6];
+    int numOfArgs;
+} Instruction;
 
 JayforVM *createJayforVM();
 
