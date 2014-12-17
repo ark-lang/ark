@@ -63,21 +63,21 @@ void lexerSkipLayoutAndComment(Lexer *lexer) {
 		lexerNextChar(lexer);
 	}
 
-	while (lexer->charIndex == '/' && lexerPeekAhead(lexer, 1) == '*') {
-		lexerNextChar(lexer); 	// consume /
-		lexerNextChar(lexer);	// consume *
+	if (lexer->charIndex == '/' && lexerPeekAhead(lexer, 1) == '*') {
+		// consume new comment symbols
+		lexerNextChar(lexer);
+		lexerNextChar(lexer);
 
-		// eat stuff inside of comment block
-		while (lexer->charIndex != '*' && lexerPeekAhead(lexer, 1) != '/') {
+		while (true) {
 			lexerNextChar(lexer);
-		}
-
-		lexerNextChar(lexer);	// consume *
-		lexerNextChar(lexer);	// consume /
-		
-		// eat up the spaces
-		while (isLayout(lexer->charIndex)) {
-			lexerNextChar(lexer);
+			if (lexer->charIndex == '*' && lexerPeekAhead(lexer, 1) == '/') {
+				lexerNextChar(lexer);
+				lexerNextChar(lexer);
+				while (isLayout(lexer->charIndex)) {
+					lexerNextChar(lexer);
+				}
+				break;
+			}
 		}
 	}
 
