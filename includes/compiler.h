@@ -1,3 +1,4 @@
+/**
 #ifndef COMPILER_H
 #define COMPILER_H
 
@@ -28,3 +29,4 @@ void compilerStart(Compiler *compiler);
 void compilerDestroy(Compiler *compiler);
 
 #endif // COMPILER_H
+*/
