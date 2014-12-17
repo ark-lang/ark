@@ -1,3 +1,4 @@
+/*
 #include "compiler.h"
 
 Compiler *compilerCreate() {
@@ -46,3 +47,4 @@ void compilerDestroy(Compiler *compiler) {
 		compiler = NULL;
 	}
 }
+*/
