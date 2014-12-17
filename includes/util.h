@@ -5,6 +5,8 @@
  * Colour Printing stuff, not sure
  * if it works on Windows or not
  * so I've disabled it for Windows
+ *
+ * Update: on windows can confirm, it does not work
  */
 #ifdef _WIN32
 	#define KNRM  ""
