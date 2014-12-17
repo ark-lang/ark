@@ -9,7 +9,6 @@ Jayfor is a programming language written in C.
 * [Requirements](#requirements)
 * [Contributing](#contributing)
 * [License](#license)
-# [Trello](https://trello.com/b/cxs5pVqr/jayfor)
 
 # Unique(-ish) features
 * Semi-colons are optional
