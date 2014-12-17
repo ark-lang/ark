@@ -38,6 +38,14 @@ Stack *createStack();
 void pushToStack(Stack *stack, StackItem item);
 
 /**
+ * Push a value to the stack at the given index
+ * 
+ * @param stack stack to push to
+ * @param item item to push to
+ */
+void pushToStackAtIndex(Stack *stack, StackItem item, int index);
+
+/**
  * Retrieve the value at the given index
  * 
  * @param stack the stack to retrieve from
