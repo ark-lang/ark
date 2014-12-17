@@ -55,7 +55,7 @@ Jayfor *createJayfor(int argc, char** argv) {
 	if(strstr(filename, ".j4") != NULL) {
 		scanFile(jayfor->scanner, filename);
 	} else {
-		printf(KRED "error: not a valid j4 file.\n" KNRM);
+		printf(KRED "error: file format not recognized.\n" KNRM);
 		exit(1);
 	}
 

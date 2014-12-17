@@ -6,9 +6,6 @@ static const char* DATA_TYPES[] = {
 	"void", "char", "tup"
 };
 
-static const char* INSTRUCTION_SET[] = {
-	"ADD", "SUB", "MUL", "RET", "ICONST", "LOAD", "GLOAD", "STORE", "GSTORE", "POP", "HALT"
-};
 
 Compiler *createCompiler() {
 	Compiler *self = malloc(sizeof(*self));
@@ -48,8 +45,6 @@ int evaluateExpressionNode(Compiler *self, ExpressionNode *expr) {
 			case '*': result = left * right; break;
 			case '/': result = left / right; break;
 			case '%': result = left % right; break;
-			case '>': result = left > right; break;
-			case '<': result = left < right; break;
 			case '^': result = left ^ right; break;
 		}
 	}
@@ -90,11 +85,6 @@ void startCompiler(Compiler *self, Vector *ast) {
 
 	// stop
 	appendInstruction(self, HALT);
-
-	int i;
-	for (i = 0; i < self->currentInstruction; i += 2) {
-		printf("%s %d\n", INSTRUCTION_SET[self->bytecode[i]], self->bytecode[i + 1]);
-	}
 }
 
 void destroyCompiler(Compiler *self) {
