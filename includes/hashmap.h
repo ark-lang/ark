@@ -35,22 +35,22 @@ typedef struct {
 /**
  * Create a new hashmap
  */
-Hashmap *hashmapCreate();
+Hashmap *createHashmap();
 
 /**
  * Set the value in the hashmap
  */
-void hashmapSet(Hashmap *map, char *key, void *value, size_t length);
+void setValueAtKey(Hashmap *map, char *key, void *value, size_t length);
 
 /**
  * Retrieves value at the given key from the hashmap
  */
-void *hashmapGet(Hashmap *map, char *key);
+void *getValueAtKey(Hashmap *map, char *key);
 
 /**
  * Destroy the given hashmap
  */
-void hashmapDestroy(Hashmap *map);
+void destroyHashmap(Hashmap *map);
 
 /**
  * Simple hashing algorithm

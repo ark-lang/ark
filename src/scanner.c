@@ -1,6 +1,6 @@
 #include "scanner.h"
 
-Scanner *scannerCreate() {
+Scanner *createScanner() {
 	Scanner *scanner = malloc(sizeof(*scanner));
 	if (!scanner) {
 		perror("malloc: failed to allocate memory for scanner");
@@ -10,7 +10,7 @@ Scanner *scannerCreate() {
 	return scanner;
 }
 
-void scannerReadFile(Scanner *scanner, const char* fileName) {
+void scanFile(Scanner *scanner, const char* fileName) {
 	FILE *file = fopen(fileName, "rb");
 
 	if (file) {
@@ -47,7 +47,7 @@ void scannerReadFile(Scanner *scanner, const char* fileName) {
 	}
 }
 
-void scannerDestroy(Scanner *scanner) {
+void destroyScanner(Scanner *scanner) {
 	free(scanner->contents);
 	free(scanner);
 }
