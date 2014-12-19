@@ -21,7 +21,6 @@ typedef struct {
 	int currentNode;
 	int currentInstruction;
 	int globalCount;
-	int mainEntryPoint;
 } Compiler;
 
 Compiler *createCompiler();

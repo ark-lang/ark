@@ -8,7 +8,6 @@ Compiler *createCompiler() {
 	self->bytecode = malloc(sizeof(*self->bytecode) * self->maxBytecodeSize);
 	self->currentNode = 0;
 	self->globalCount = -1;
-	self->mainEntryPoint = -1;
 	self->functions = createHashmap(128);
 	return self;
 }
@@ -89,11 +88,6 @@ void startCompiler(Compiler *self, Vector *ast) {
 			printf("unrecognized node\n");
 			break;
 		}
-	}
-
-	int *value = getValueAtKey(self->functions, "main");
-	if (value) {
-		self->mainEntryPoint = 0; // *value
 	}
 
 	// stop
