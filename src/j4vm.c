@@ -49,10 +49,9 @@ static int popValueFromStack(Stack *stk) {
 	return *x;
 }
 
-void startJayforVM(JayforVM *vm, int *bytecode, int globalCount, int entryPoint) {
+void startJayforVM(JayforVM *vm, int *bytecode, int globalCount) {
 	vm->bytecode = bytecode;
 	vm->globals = malloc(sizeof(*vm->globals) * globalCount);
-	vm->instructionPointer = entryPoint;
 
 	// for arithmetic operations
 	int a = 0;
