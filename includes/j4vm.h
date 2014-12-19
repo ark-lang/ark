@@ -41,7 +41,7 @@ typedef struct {
 
 JayforVM *createJayforVM();
 
-void startJayforVM(JayforVM *vm, int *bytecode, int globalCount, int entryPoint);
+void startJayforVM(JayforVM *vm, int *bytecode, int globalCount);
 
 void destroyJayforVM(JayforVM *vm);
 
