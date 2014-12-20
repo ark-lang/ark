@@ -27,33 +27,31 @@ void consumeNode(Compiler *self) {
 int evaluateExpressionNode(Compiler *self, ExpressionNode *expr) {
 	int result = 0;
 	if (expr->value != NULL) {
-		result = atoi(expr->value->content);
+		appendInstruction(self, ICONST);
+		appendInstruction(self, atoi(expr->value->content));
 	}
 	else {
-		int left = evaluateExpressionNode(self, expr->lhand);
-		int right = evaluateExpressionNode(self, expr->rhand);
+		evaluateExpressionNode(self, expr->lhand);
+		evaluateExpressionNode(self, expr->rhand);
 
 		switch (expr->operand) {
-			case '+': result = left + right; break;
-			case '-': result = left - right; break;
-			case '*': result = left * right; break;
-			case '/': result = left / right; break;
-			case '%': result = left % right; break;
-			case '^': result = left ^ right; break;
+			case '+': appendInstruction(self, ADD); break;
+			case '-': appendInstruction(self, SUB); break;
+			case '*': appendInstruction(self, MUL); break;
+			case '/': appendInstruction(self, DIV); break;
+			case '%': appendInstruction(self, MOD); break;
+			case '^': appendInstruction(self, POW); break;
 		}
 	}
-	return result;
+	return 1337;
 }
 
 void generateVariableDeclarationCode(Compiler *self, VariableDeclareNode *vdn) {
 	DataType type = vdn->vdn->type;
 	Token *name = vdn->vdn->name;
 	ExpressionNode *expr = vdn->expr;
-	int result = evaluateExpressionNode(self, expr);
+	evaluateExpressionNode(self, expr);
 	
-	appendInstruction(self, ICONST);
-	appendInstruction(self, result);	
-
 	consumeNode(self);
 }
 
