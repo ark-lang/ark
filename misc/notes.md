@@ -15,5 +15,5 @@ Just random stuff I write down
 * Reliability
 * Debuggable
 * Concise
-* Consistency
-* Predticable - especially in libraries
+* Consistent
+* Predictable - especially with libraries
