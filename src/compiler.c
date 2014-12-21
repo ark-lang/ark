@@ -25,7 +25,6 @@ void consumeNode(Compiler *self) {
 }
 
 int evaluateExpressionNode(Compiler *self, ExpressionNode *expr) {
-	int result = 0;
 	if (expr->value != NULL) {
 		appendInstruction(self, ICONST);
 		appendInstruction(self, atoi(expr->value->content));
@@ -47,25 +46,28 @@ int evaluateExpressionNode(Compiler *self, ExpressionNode *expr) {
 }
 
 void generateVariableDeclarationCode(Compiler *self, VariableDeclareNode *vdn) {
+/*
 	DataType type = vdn->vdn->type;
 	Token *name = vdn->vdn->name;
 	ExpressionNode *expr = vdn->expr;
 	evaluateExpressionNode(self, expr);
-	
+*/	
+
+	consumeNode(self);
+}
+
+void generateFunctionCalleeCode(Compiler *self, FunctionCalleeNode *fcn) {
+	char *name = fcn->callee->content;
+	int *address = getValueAtKey(self->functions, name);
+
+	appendInstruction(self, CALL);
+	appendInstruction(self, *address);
 	consumeNode(self);
 }
 
 void generateFunctionCode(Compiler *self, FunctionNode *func) {
-	// easier than a shit ton of arrows
-	BlockNode *body = func->body;
-	Vector *ret = func->ret;
-	Vector *args = func->fpn->args;
-	Token *name = func->fpn->name;
-
-	// add function name and address to the table
-	int functionAddress = self->currentInstruction;
-	setValueAtKey(self->functions, name->content, &functionAddress, sizeof(functionAddress));
-
+	int address = self->currentInstruction;
+	setValueAtKey(self->functions, func->fpn->name->content, &address, sizeof(int));
 	consumeNode(self);
 }
 
@@ -81,6 +83,9 @@ void startCompiler(Compiler *self, Vector *ast) {
 			break;
 		case FUNCTION_NODE:
 			generateFunctionCode(self, currentNode->data);
+			break;
+		case FUNCTION_CALLEE_NODE:
+			generateFunctionCalleeCode(self, currentNode->data);
 			break;
 		default:
 			printf("unrecognized node\n");

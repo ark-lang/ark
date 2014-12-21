@@ -1031,6 +1031,9 @@ void startParsingTokenStream(Parser *parser) {
 				else if (checkTokenTypeAndContent(parser, OPERATOR, "=", 1)) {
 					parseReassignmentStatementNode(parser);
 				}
+				else if (checkTokenTypeAndContent(parser, SEPARATOR, "(", 1)) {
+					prepareNode(parser, parseFunctionNodeCall(parser), FUNCTION_CALLEE_NODE);
+				}
 				else {
 					printf(KRED "error: unrecognized identifier found: `%s`\n" KNRM, tok->content);
 					exit(1);

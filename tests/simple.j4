@@ -1,1 +1,7 @@
 int x = ((5 + 5) + (7 * 2))
+
+fn add(int x, int y): int {
+	ret (x + y);
+}
+
+add(5, 5);
