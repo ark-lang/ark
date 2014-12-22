@@ -1,6 +1,8 @@
 #ifndef BOOL_H
 #define BOOL_H
 
+#define JAYFOR_VERSION "0.0.0"
+
 /**
  * Colour Printing stuff, not sure
  * if it works on Windows or not
@@ -32,5 +34,7 @@
 typedef enum {
 	false, true
 } bool;
+
+extern bool DEBUG_MODE;
 
 #endif // BOOL_H
