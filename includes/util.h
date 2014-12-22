@@ -1,7 +1,7 @@
 #ifndef BOOL_H
 #define BOOL_H
 
-#define JAYFOR_VERSION "0.0.0"
+#define jayfor_VERSION "0.0.0"
 
 /**
  * Colour Printing stuff, not sure
@@ -36,5 +36,7 @@ typedef enum {
 } bool;
 
 extern bool DEBUG_MODE;
+extern bool EXECUTE_BYTECODE;
+extern char* EXECUTABLE_FILENAME;
 
 #endif // BOOL_H
