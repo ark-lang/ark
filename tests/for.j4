@@ -1,7 +1,6 @@
 int a = (5 + 5)
 int z = a
 int a
-double swag = 5.5
 char b = 'a'
 
 fn add(int a, int b): void {
@@ -9,13 +8,14 @@ fn add(int a, int b): void {
 	ret (a + b)
 }
 
-# this is a comment
+// this is a comment
 fn test(int a, int b, str x): <int, float, str> {
 	for int x:(10, 0) {
-		add(x, x) /** cool */
+		add(x, x) /** comment */
 	}
 	// and another comment
 
+	// semi colons are optional
 	ret <0, 3.2, "test">
 }
 

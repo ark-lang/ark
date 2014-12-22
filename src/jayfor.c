@@ -1,43 +1,63 @@
 #include "jayfor.h"
 
+bool DEBUG_MODE = false;
+
+static void parseArgument(char *arg) {
+	char argument = arg[0];
+	switch (argument) {
+		case 'v':
+			printf(KGRN "Jayfor Version: %s\n" KNRM, JAYFOR_VERSION);
+			exit(1);
+			break;
+		case 'd':
+			DEBUG_MODE = true;
+			break;
+		case 'h':
+			printf(KYEL "JAYFOR Argument List\n");
+			printf("\t-h,\t shows a help menu\n");
+			printf("\t-v,\t shows current version\n");
+			printf("\t-d,\t logs extra debug information\n");
+			printf("\n" KNRM);
+			exit(1);
+			break;
+		default:
+			printf(KRED "error: unrecognized argument %c\n" KNRM, argument);
+			exit(1);
+			break;
+	}
+}
+
 Jayfor *createJayfor(int argc, char** argv) {
 	// not enough args just throw an error
 	if (argc <= 1) {
 		printf(KRED "error: no input files\n" KNRM);
 		exit(1);
-	} 
-
-	// used as a counter for getopt()
-	int argCounter;
-
-	/* 
-	 * arguments specified after each tag. e.g. -o a.out
-	 * here a.out will be stored in nextArg
-	 */
-	char *nextArg; 
-	while ((argCounter = getopt(argc, argv, "v:o:")) != -1) {
-		switch(argCounter) {
-			case 'v':
-				printf(KYEL "v argument found.\n\n" KNRM);
-				nextArg = optarg;
-				printf(KYEL "argument specified with v: %s\n\n" KNRM, nextArg);
-				break;
-			case 'o':
-				printf(KYEL "o argument found.\n\n" KNRM);
-				nextArg = optarg;
-				printf("argument specified with o: %s\n\n", nextArg);
-				break;
-			default:
-				printf(KRED "invalid argument.\n\n" KNRM);
-				abort();
-		}
 	}
-	
-	// create the instance of jayfor
+
+	char *filename = NULL;
 	Jayfor *jayfor = malloc(sizeof(*jayfor));
+
 	if (!jayfor) {
 		perror("malloc: failed to allocate memory for JAYFOR");
 		exit(1);
+	}
+
+	int i;
+	// i = 1 to ignore first arg
+	for (i = 1; i < argc; i++) {
+		if (argv[i][0] == '-') {
+			size_t len = strlen(argv[i]) - 1;
+			char temp[len];
+			memcpy(temp, &argv[i][len], 1);
+			temp[len] = '\0';
+			parseArgument(temp);
+		}
+		else if (strstr(argv[i], ".j4")) {
+			filename = argv[i];
+		}
+		else {
+			printf(KRED "error: argument not recognized: %s\n" KNRM, argv[i]);
+		}
 	}
 
 	// just in case.
@@ -47,17 +67,7 @@ Jayfor *createJayfor(int argc, char** argv) {
 
 	// start actual useful shit here
 	jayfor->scanner = createScanner();
-
-	// assume last argument is a file name
-	// this is a placeholder for now
-	char *filename = argv[argc-1];
-	// check if the filename doesn't end with j4
-	if(strstr(filename, ".j4") != NULL) {
-		scanFile(jayfor->scanner, filename);
-	} else {
-		printf(KRED "error: file format not recognized.\n" KNRM);
-		exit(1);
-	}
+	scanFile(jayfor->scanner, filename);
 
 	// pass the scanned file to the lexer to tokenize
 	jayfor->lexer = createLexer(jayfor->scanner->contents);
