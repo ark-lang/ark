@@ -39,6 +39,8 @@ typedef struct {
     int numOfArgs;
 } instruction;
 
+extern instruction debug_instructions[];
+
 jayfor_vm *create_jayfor_vm();
 
 void start_jayfor_vm(jayfor_vm *vm, int *bytecode, int global_count);
