@@ -1,6 +1,6 @@
 #include "j4vm.h"
 
-static instruction debuginstructions[] = {
+instruction debug_instructions[] = {
     { "add",    0 },
     { "sub",    0 },
     { "mul",    0 },
@@ -33,7 +33,7 @@ jayfor_vm *create_jayfor_vm() {
 static void printinstruction(int *code, int ip) {
     int opcode = code[ip];
     if (opcode > HALT) return;
-    instruction *instruction = &debuginstructions[opcode];
+    instruction *instruction = &debug_instructions[opcode];
     switch (instruction->numOfArgs) {
     	case 0:
 	        printf("%04d:  %-20s\n", ip, instruction->name);
