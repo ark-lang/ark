@@ -13,15 +13,6 @@ static const char* DATA_TYPES[] = {
 	"void", "char", "tup"
 };
 
-// static const char* ast_node_NAMES[] = {
-// 	"expression_ast_node", "variable_def_ast_node",
-// 	"variable_dec_ast_node", "function_arg_ast_node",
-// 	"function_ast_node", "function_prot_ast_node",
-// 	"block_ast_node", "function_callee_ast_node",
-// 	"function_ret_ast_node", "for_loop_ast_node",
-// 	"variable_reassign_ast_node"
-// };
-
 /** UTILITY FOR ast_nodeS */
 
 variable_reassignment_node *create_variable_reassign_ast_node() {

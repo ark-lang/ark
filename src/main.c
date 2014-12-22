@@ -8,7 +8,7 @@ int main(int argc, char** argv) {
 	clock_t timer = clock();
 
 	// jayfor stuff
-	Jayfor *jayfor = create_jayfor(argc, argv);
+	jayfor *jayfor = create_jayfor(argc, argv);
 	start_jayfor(jayfor);
 	destroy_jayfor(jayfor);
 
