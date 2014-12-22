@@ -1,5 +1,5 @@
-#ifndef COMPILER_H
-#define COMPILER_H
+#ifndef compiler_H
+#define compiler_H
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,32 +11,32 @@
 #include "hashmap.h"
 
 typedef struct {
-	Vector *ast;
-	JayforVM *vm;
-	Hashmap *functions;
+	vector *ast;
+	jayfor_vm *vm;
+	hashmap *functions;
 	int *bytecode;
 
-	int initialBytecodeSize;
-	int maxBytecodeSize;
-	int currentNode;
-	int currentInstruction;
-	int globalCount;
-} Compiler;
+	int initial_bytecode_size;
+	int max_bytecode_size;
+	int current_ast_node;
+	int current_instruction;
+	int global_count;
+} compiler;
 
-Compiler *createCompiler();
+compiler *create_compiler();
 
-void appendInstruction(Compiler *self, int instr);
+void append_instruction(compiler *self, int instr);
 
-void generateFunctionCode(Compiler *self, FunctionNode *func);
+void generate_function_code(compiler *self, function_ast_node *func);
 
-int evaluateExpressionNode(Compiler *self, ExpressionNode *expr);
+int evaluate_expression_ast_node(compiler *self, expression_ast_node *expr);
 
-void consumeNode(Compiler *self);
+void consume_ast_node(compiler *self);
 
-void generateVariableDeclarationCode(Compiler *compiler, VariableDeclareNode *vdn);
+void generate_variable_declaration_code(compiler *compiler, variable_declare_ast_node *vdn);
 
-void startCompiler(Compiler *compiler, Vector *ast);
+void start_compiler(compiler *compiler, vector *ast);
 
-void destroyCompiler(Compiler *compiler);
+void destroy_compiler(compiler *compiler);
 
-#endif // COMPILER_H
+#endif // compiler_H
