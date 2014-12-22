@@ -1,5 +1,5 @@
-#ifndef JAYFOR_H
-#define JAYFOR_H
+#ifndef jayfor_H
+#define jayfor_H
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -13,7 +13,7 @@
 #include "j4vm.h"
 
 /**
- * The core of Jayfor
+ * The core of jayfor
  */
 typedef struct {
 	Scanner *scanner;
@@ -21,29 +21,29 @@ typedef struct {
 	parser *parser;
 	compiler *compiler;
 	jayfor_vm *j4vm;
-} Jayfor;
+} jayfor;
 
 /**
- * Creates a new Jayfor instance
+ * Creates a new jayfor instance
  * 
  * @argc number of arguments
  * @argv argument list
- * @return instance of Jayfor
+ * @return instance of jayfor
  */
-Jayfor *create_jayfor(int argc, char** argv);
+jayfor *create_jayfor(int argc, char** argv);
 
 /**
- * Start the Jayfor interpreter
+ * Start the jayfor interpreter
  * 
  * @param jayfor instance to start
  */
-void start_jayfor(Jayfor *jayfor);
+void start_jayfor(jayfor *jayfor);
 
 /**
- * Destroy the given Jayfor instance
+ * Destroy the given jayfor instance
  * 
  * @param jayfor instance to destroy
  */
-void destroy_jayfor(Jayfor *jayfor);
+void destroy_jayfor(jayfor *jayfor);
 
-#endif // JAYFOR_H
+#endif // jayfor_H
