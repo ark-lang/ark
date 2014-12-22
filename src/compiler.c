@@ -59,9 +59,18 @@ void generateVariableDeclarationCode(Compiler *self, VariableDeclareNode *vdn) {
 void generateFunctionCalleeCode(Compiler *self, FunctionCalleeNode *fcn) {
 	char *name = fcn->callee->content;
 	int *address = getValueAtKey(self->functions, name);
+	int numOfArgs = fcn->args->size;
+
+	int i;
+	for (i = 0; i < numOfArgs; i++) {
+		FunctionArgumentNode *fan = getItemFromVector(fcn->args, i);
+		evaluateExpressionNode(self, fan->value);
+	}
 
 	appendInstruction(self, CALL);
 	appendInstruction(self, *address);
+	appendInstruction(self, numOfArgs);
+
 	consumeNode(self);
 }
 
