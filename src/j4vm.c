@@ -45,21 +45,20 @@ static void printInstruction(int *code, int ip) {
 }
 
 static void programDump(JayforVM *vm) {
-	printf("\nDUMPING PROGRAM CONTENTS\n");
+	printf(KYEL "\nDUMPING PROGRAM CONTENTS\n");
 	int i;
 	for (i = 0; i< vm->instructionPointer; i++) {
 		printInstruction(vm->bytecode, i);
 	}
+	printf("\n" KNRM);
 }
 
 // this is a utility to make it easier for the VM
 static int popValueFromStack(JayforVM *vm, Stack *stk) {
 	int *x = popStack(stk);
 	if (!x) {
-		printf("failed to pop at instruction: \n");
-		printInstruction(vm->bytecode, vm->instructionPointer);
-		
 		if (DEBUG_MODE) {
+			printInstruction(vm->bytecode, vm->instructionPointer);
 			programDump(vm);
 		}
 		exit(1);
