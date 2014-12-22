@@ -1,131 +1,131 @@
 #include "compiler.h"
 
-Compiler *createCompiler() {
-	Compiler *self = malloc(sizeof(*self));
+compiler *create_compiler() {
+	compiler *self = malloc(sizeof(*self));
 	self->ast = NULL;
-	self->currentInstruction = 0;
-	self->maxBytecodeSize = 32;
-	self->bytecode = malloc(sizeof(*self->bytecode) * self->maxBytecodeSize);
-	self->currentNode = 0;
-	self->globalCount = -1;
-	self->functions = createHashmap(128);
+	self->current_instruction = 0;
+	self->max_bytecode_size = 32;
+	self->bytecode = malloc(sizeof(*self->bytecode) * self->max_bytecode_size);
+	self->current_ast_node = 0;
+	self->global_count = -1;
+	self->functions = create_hashmap(128);
 	return self;
 }
 
-void appendInstruction(Compiler *self, int instr) {
-	if (self->currentInstruction >= self->maxBytecodeSize) {
-		self->maxBytecodeSize *= 2;
-		self->bytecode = realloc(self->bytecode, sizeof(*self->bytecode) * self->maxBytecodeSize);
+void append_instruction(compiler *self, int instr) {
+	if (self->current_instruction >= self->max_bytecode_size) {
+		self->max_bytecode_size *= 2;
+		self->bytecode = realloc(self->bytecode, sizeof(*self->bytecode) * self->max_bytecode_size);
 	}
-	self->bytecode[self->currentInstruction++] = instr;
+	self->bytecode[self->current_instruction++] = instr;
 }
 
-void consumeNode(Compiler *self) {
-	self->currentNode += 1;
+void consume_ast_node(compiler *self) {
+	self->current_ast_node += 1;
 }
 
-int evaluateExpressionNode(Compiler *self, ExpressionNode *expr) {
+int evaluate_expression_ast_node(compiler *self, expression_ast_node *expr) {
 	if (expr->value != NULL) {
-		appendInstruction(self, ICONST);
-		appendInstruction(self, atoi(expr->value->content));
+		append_instruction(self, ICONST);
+		append_instruction(self, atoi(expr->value->content));
 	}
 	else {
-		evaluateExpressionNode(self, expr->lhand);
-		evaluateExpressionNode(self, expr->rhand);
+		evaluate_expression_ast_node(self, expr->lhand);
+		evaluate_expression_ast_node(self, expr->rhand);
 
 		switch (expr->operand) {
-			case '+': appendInstruction(self, ADD); break;
-			case '-': appendInstruction(self, SUB); break;
-			case '*': appendInstruction(self, MUL); break;
-			case '/': appendInstruction(self, DIV); break;
-			case '%': appendInstruction(self, MOD); break;
-			case '^': appendInstruction(self, POW); break;
+			case '+': append_instruction(self, ADD); break;
+			case '-': append_instruction(self, SUB); break;
+			case '*': append_instruction(self, MUL); break;
+			case '/': append_instruction(self, DIV); break;
+			case '%': append_instruction(self, MOD); break;
+			case '^': append_instruction(self, POW); break;
 		}
 	}
 	return 1337;
 }
 
-void generateVariableDeclarationCode(Compiler *self, VariableDeclareNode *vdn) {
+void generate_variable_declaration_code(compiler *self, variable_declare_ast_node *vdn) {
 }
 
-void generateFunctionCalleeCode(Compiler *self, FunctionCalleeNode *fcn) {
+void generateFunctionCalleeCode(compiler *self, function_callee_ast_node *fcn) {
 	char *name = fcn->callee->content;
-	int *address = getValueAtKey(self->functions, name);
+	int *address = get_value_at_key(self->functions, name);
 	int numOfArgs = fcn->args->size;
 
 	int i;
 	for (i = 0; i < numOfArgs; i++) {
-		FunctionArgumentNode *fan = getItemFromVector(fcn->args, i);
-		evaluateExpressionNode(self, fan->value);
+		function_argument_ast_node *fan = get_vector_item(fcn->args, i);
+		evaluate_expression_ast_node(self, fan->value);
 	}
 
-	appendInstruction(self, CALL);
-	appendInstruction(self, *address);
-	appendInstruction(self, numOfArgs);
+	append_instruction(self, CALL);
+	append_instruction(self, *address);
+	append_instruction(self, numOfArgs);
 }
 
-void generateFunctionReturnCode(Compiler *self, FunctionReturnNode *frn) {
+void generateFunctionReturnCode(compiler *self, function_return_ast_node *frn) {
 	if (frn->numOfReturnValues > 1) {
 		printf("tuples not yet supported.\n");
 		exit(1);
 	}
 	// no tuple support, just use first return value for now.
-	ExpressionNode *expr = getItemFromVector(frn->returnVals, 0);
-	evaluateExpressionNode(self, expr);
+	expression_ast_node *expr = get_vector_item(frn->returnVals, 0);
+	evaluate_expression_ast_node(self, expr);
 }
 
-void generateFunctionCode(Compiler *self, FunctionNode *func) {
-	int address = self->currentInstruction;
-	setValueAtKey(self->functions, func->fpn->name->content, &address, sizeof(int));
+void generate_function_code(compiler *self, function_ast_node *func) {
+	int address = self->current_instruction;
+	set_value_at_key(self->functions, func->fpn->name->content, &address, sizeof(int));
 		
-	Vector *statements = func->body->statements;
+	vector *statements = func->body->statements;
 
 	// return stuff
 	int i;
 	for (i = 0; i < statements->size; i++) {
-		StatementNode *sn = getItemFromVector(statements, i);
+		statement_ast_node *sn = get_vector_item(statements, i);
 		switch (sn->type) {
-			case FUNCTION_RET_NODE:
+			case FUNCTION_RET_ast_node:
 				generateFunctionReturnCode(self, sn->data);
 				break;
 			default:
-				printf("WHAT NODES YA GIVIN ME SON?\n");
+				printf("WHAT ast_nodeS YA GIVIN ME SON?\n");
 				break;
 		}
 	}
 
-	appendInstruction(self, RET);
+	append_instruction(self, RET);
 }
 
-void startCompiler(Compiler *self, Vector *ast) {
+void start_compiler(compiler *self, vector *ast) {
 	self->ast = ast;
 
-	while (self->currentNode < self->ast->size) {
-		Node *currentNode = getItemFromVector(self->ast, self->currentNode);
+	while (self->current_ast_node < self->ast->size) {
+		ast_node *current_ast_node = get_vector_item(self->ast, self->current_ast_node);
 
-		switch (currentNode->type) {
-		case VARIABLE_DEC_NODE:
-			generateVariableDeclarationCode(self, currentNode->data);
+		switch (current_ast_node->type) {
+		case VARIABLE_DEC_ast_node:
+			generate_variable_declaration_code(self, current_ast_node->data);
 			break;
-		case FUNCTION_NODE:
-			generateFunctionCode(self, currentNode->data);
+		case FUNCTION_ast_node:
+			generate_function_code(self, current_ast_node->data);
 			break;
-		case FUNCTION_CALLEE_NODE:
-			generateFunctionCalleeCode(self, currentNode->data);
+		case FUNCTION_CALLEE_ast_node:
+			generateFunctionCalleeCode(self, current_ast_node->data);
 			break;
 		default:
-			printf("unrecognized node\n");
+			printf("unrecognized ast_node\n");
 			break;
 		}
 
-		consumeNode(self);
+		consume_ast_node(self);
 	}
 
 	// stop
-	appendInstruction(self, HALT);
+	append_instruction(self, HALT);
 }
 
-void destroyCompiler(Compiler *self) {
+void destroy_compiler(compiler *self) {
 	if (self != NULL) {
 		free(self);
 		self = NULL;

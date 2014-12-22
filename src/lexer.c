@@ -1,13 +1,13 @@
 #include "lexer.h"
 
-static const char* TOKEN_NAMES[] = {
+static const char* token_NAMES[] = {
 	"END_OF_FILE", "IDENTIFIER", "NUMBER",
 	"OPERATOR", "SEPARATOR", "ERRORNEOUS",
 	"STRING", "CHARACTER", "UNKNOWN"
 };
 
-Token *createToken() {
-	Token *token = malloc(sizeof(*token));
+token *create_token() {
+	token *token = malloc(sizeof(*token));
 	if (!token) {
 		perror("malloc: failed to allocate memory for token");
 		exit(1);
@@ -15,18 +15,18 @@ Token *createToken() {
 	return token;
 }
 
-const char* getTokenName(Token *tok) {
-	return TOKEN_NAMES[tok->type];
+const char* get_token_name(token *tok) {
+	return token_NAMES[tok->type];
 }
 
-void destroyToken(Token *token) {
+void destroy_token(token *token) {
 	if (token != NULL) {
 		free(token);
 		token = NULL;
 	}
 }
 
-Lexer *createLexer(char* input) {
+Lexer *create_lexer(char* input) {
 	Lexer *lexer = malloc(sizeof(*lexer));
 	if (!lexer) {
 		perror("malloc: failed to allocate memory for lexer");
@@ -34,19 +34,19 @@ Lexer *createLexer(char* input) {
 	}
 	lexer->input = input;
 	lexer->pos = 0;
-	lexer->charIndex = input[lexer->pos];
-	lexer->tokenStream = createVector();
+	lexer->char_index = input[lexer->pos];
+	lexer->token_stream = create_vector();
 	lexer->running = true;
-	lexer->lineNumber = 0;
+	lexer->line_number = 0;
 
 	return lexer;
 }
 
-void consumeCharacter(Lexer *lexer) {
-	lexer->charIndex = lexer->input[++lexer->pos];
+void consume_character(Lexer *lexer) {
+	lexer->char_index = lexer->input[++lexer->pos];
 }
 
-char* flushBuffer(Lexer *lexer, int start, int length) {
+char* flush_buffer(Lexer *lexer, int start, int length) {
 	char* result = malloc(sizeof(char) * (length + 1));
 	if (!result) { 
 		perror("malloc: failed to allocate memory for buffer flush"); 
@@ -58,24 +58,24 @@ char* flushBuffer(Lexer *lexer, int start, int length) {
 	return result;
 }
 
-void skipLayoutAndComments(Lexer *lexer) {
-	while (isLayout(lexer->charIndex)) {
-		consumeCharacter(lexer);
+void skip_layout_and_comments(Lexer *lexer) {
+	while (is_layout(lexer->char_index)) {
+		consume_character(lexer);
 	}
 
 	// consume a block comment and its contents
-	if (lexer->charIndex == '/' && peekAhead(lexer, 1) == '*') {
+	if (lexer->char_index == '/' && peek_ahead(lexer, 1) == '*') {
 		// consume new comment symbols
-		consumeCharacter(lexer);
-		consumeCharacter(lexer);
+		consume_character(lexer);
+		consume_character(lexer);
 
 		while (true) {
-			consumeCharacter(lexer);
-			if (lexer->charIndex == '*' && peekAhead(lexer, 1) == '/') {
-				consumeCharacter(lexer);
-				consumeCharacter(lexer);
-				while (isLayout(lexer->charIndex)) {
-					consumeCharacter(lexer);
+			consume_character(lexer);
+			if (lexer->char_index == '*' && peek_ahead(lexer, 1) == '/') {
+				consume_character(lexer);
+				consume_character(lexer);
+				while (is_layout(lexer->char_index)) {
+					consume_character(lexer);
 				}
 				break;
 			}
@@ -83,148 +83,148 @@ void skipLayoutAndComments(Lexer *lexer) {
 	}
 
 	// consume a single line comment
-	while ((lexer->charIndex == '/' && peekAhead(lexer, 1) == '/') || (lexer->charIndex == '#')) {
-		consumeCharacter(lexer);	// eat the /
-		consumeCharacter(lexer);	// eat the /
+	while ((lexer->char_index == '/' && peek_ahead(lexer, 1) == '/') || (lexer->char_index == '#')) {
+		consume_character(lexer);	// eat the /
+		consume_character(lexer);	// eat the /
 
-		while (!isCommentCloser(lexer->charIndex)) {
-			if (isEndOfInput(lexer->charIndex)) return;
-			consumeCharacter(lexer);
+		while (!is_comment_closer(lexer->char_index)) {
+			if (is_end_of_input(lexer->char_index)) return;
+			consume_character(lexer);
 		}
 		
-		lexer->lineNumber++; // increment line number
+		lexer->line_number++; // increment line number
 		
-		while (isLayout(lexer->charIndex)) {
-			consumeCharacter(lexer);
+		while (is_layout(lexer->char_index)) {
+			consume_character(lexer);
 		}
 	}
 }
 
-void expectCharacter(Lexer *lexer, char c) {
-	if (lexer->charIndex == c) {
-		consumeCharacter(lexer);
+void expect_character(Lexer *lexer, char c) {
+	if (lexer->char_index == c) {
+		consume_character(lexer);
 	}
 	else {
-		printf("error: expected `%c` but found `%c`\n", c, lexer->charIndex);
+		printf("error: expected `%c` but found `%c`\n", c, lexer->char_index);
 		exit(1);
 	}
 }
 
-void recognizeIdentifierToken(Lexer *lexer) {
-	consumeCharacter(lexer);
+void recognize_identifier_token(Lexer *lexer) {
+	consume_character(lexer);
 
-	while (isLetterOrDigit(lexer->charIndex)) {
-		consumeCharacter(lexer);
+	while (is_letter_or_digit(lexer->char_index)) {
+		consume_character(lexer);
 	}
-	while (isUnderscore(lexer->charIndex) && isLetterOrDigit(peekAhead(lexer, 1))) {
-		consumeCharacter(lexer);
-		while (isLetterOrDigit(lexer->charIndex)) {
-			consumeCharacter(lexer);
+	while (is_underscore(lexer->char_index) && is_letter_or_digit(peek_ahead(lexer, 1))) {
+		consume_character(lexer);
+		while (is_letter_or_digit(lexer->char_index)) {
+			consume_character(lexer);
 		}
 	}
 }
 
-void recognizeNumberToken(Lexer *lexer) {
-	consumeCharacter(lexer);
-	if (lexer->charIndex == '.') {
-		consumeCharacter(lexer); // consume dot
-		while (isDigit(lexer->charIndex)) {
-			consumeCharacter(lexer);
+void recognize_number_token(Lexer *lexer) {
+	consume_character(lexer);
+	if (lexer->char_index == '.') {
+		consume_character(lexer); // consume dot
+		while (is_digit(lexer->char_index)) {
+			consume_character(lexer);
 		}
 	}
 
-	while (isDigit(lexer->charIndex)) {
-		if (peekAhead(lexer, 1) == '.') {
-			consumeCharacter(lexer);
-			while (isDigit(lexer->charIndex)) {
-				consumeCharacter(lexer);
+	while (is_digit(lexer->char_index)) {
+		if (peek_ahead(lexer, 1) == '.') {
+			consume_character(lexer);
+			while (is_digit(lexer->char_index)) {
+				consume_character(lexer);
 			}
 		}
-		consumeCharacter(lexer);
+		consume_character(lexer);
 	}
 }
 
-void recognizeStringToken(Lexer *lexer) {
-	expectCharacter(lexer, '"');
+void recognize_string_token(Lexer *lexer) {
+	expect_character(lexer, '"');
 
 	// just consume everthing
-	while (!isString(lexer->charIndex)) {
-		consumeCharacter(lexer);
+	while (!is_string(lexer->char_index)) {
+		consume_character(lexer);
 	}
 
-	expectCharacter(lexer, '"');
+	expect_character(lexer, '"');
 }
 
-void recognizeCharacterToken(Lexer *lexer) {
-	expectCharacter(lexer, '\'');
+void recognize_character_token(Lexer *lexer) {
+	expect_character(lexer, '\'');
 
-	if (isLetterOrDigit(lexer->charIndex)) {
-		consumeCharacter(lexer); // consume character		
+	if (is_letter_or_digit(lexer->char_index)) {
+		consume_character(lexer); // consume character		
 	}
 	else {
 		printf("error: empty character constant\n");
 		exit(1);
 	}
 
-	expectCharacter(lexer, '\'');
+	expect_character(lexer, '\'');
 }
 
-char peekAhead(Lexer *lexer, int ahead) {
+char peek_ahead(Lexer *lexer, int ahead) {
 	return lexer->input[lexer->pos + ahead];
 }
 
-void getNextToken(Lexer *lexer) {
+void get_next_token(Lexer *lexer) {
 	int startPos;
-	skipLayoutAndComments(lexer);
+	skip_layout_and_comments(lexer);
 	startPos = lexer->pos;
 
-	lexer->currentToken = createToken();
+	lexer->current_token = create_token();
 
-	if (isEndOfInput(lexer->charIndex)) {
-		lexer->currentToken->type = END_OF_FILE;
-		lexer->currentToken->content = "<END_OF_FILE>";
+	if (is_end_of_input(lexer->char_index)) {
+		lexer->current_token->type = END_OF_FILE;
+		lexer->current_token->content = "<END_OF_FILE>";
 		lexer->running = false;	// stop lexing
-		pushBackVectorItem(lexer->tokenStream, lexer->currentToken);
+		push_back_item(lexer->token_stream, lexer->current_token);
 		return;
 	}
-	if (isLetter(lexer->charIndex)) {
-		lexer->currentToken->type = IDENTIFIER;
-		recognizeIdentifierToken(lexer);
+	if (is_letter(lexer->char_index)) {
+		lexer->current_token->type = IDENTIFIER;
+		recognize_identifier_token(lexer);
 	}
-	else if (isDigit(lexer->charIndex) || lexer->charIndex == '.') {
-		lexer->currentToken->type = NUMBER;
-		recognizeNumberToken(lexer);
+	else if (is_digit(lexer->char_index) || lexer->char_index == '.') {
+		lexer->current_token->type = NUMBER;
+		recognize_number_token(lexer);
 	}
-	else if (isString(lexer->charIndex)) {
-		lexer->currentToken->type = STRING;
-		recognizeStringToken(lexer);
+	else if (is_string(lexer->char_index)) {
+		lexer->current_token->type = STRING;
+		recognize_string_token(lexer);
 	}
-	else if (isCharacter(lexer->charIndex)) {
-		lexer->currentToken->type = CHARACTER;
-		recognizeCharacterToken(lexer);
+	else if (is_character(lexer->char_index)) {
+		lexer->current_token->type = CHARACTER;
+		recognize_character_token(lexer);
 	}
-	else if (isOperator(lexer->charIndex)) {
-		lexer->currentToken->type = OPERATOR;
-		consumeCharacter(lexer);
+	else if (is_operator(lexer->char_index)) {
+		lexer->current_token->type = OPERATOR;
+		consume_character(lexer);
 	}
-	else if (isEndOfLine(lexer->charIndex)) {
-		lexer->lineNumber++;
-		consumeCharacter(lexer);
+	else if (is_end_of_line(lexer->char_index)) {
+		lexer->line_number++;
+		consume_character(lexer);
 	}
-	else if (isSeparator(lexer->charIndex)) {
-		lexer->currentToken->type = SEPARATOR;
-		consumeCharacter(lexer);
+	else if (is_separator(lexer->char_index)) {
+		lexer->current_token->type = SEPARATOR;
+		consume_character(lexer);
 	}
 	else {
-		lexer->currentToken->type = ERRORNEOUS;
-		consumeCharacter(lexer);
+		lexer->current_token->type = ERRORNEOUS;
+		consume_character(lexer);
 	}
 
-	lexer->currentToken->content = flushBuffer(lexer, startPos, lexer->pos - startPos);
-	pushBackVectorItem(lexer->tokenStream, lexer->currentToken);
+	lexer->current_token->content = flush_buffer(lexer, startPos, lexer->pos - startPos);
+	push_back_item(lexer->token_stream, lexer->current_token);
 }
 
-void destroyLexer(Lexer *lexer) {
+void destroy_lexer(Lexer *lexer) {
 	if (lexer == NULL) return;
 	free(lexer);
 	lexer = NULL;
