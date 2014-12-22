@@ -1,24 +1,40 @@
 #include "jayfor.h"
 
 bool DEBUG_MODE = false;
+bool EXECUTE_BYTECODE = false;
+char *EXECUTABLE_FILENAME = "a.j4e";
 
-static void parseArgument(char *arg) {
-	char argument = arg[0];
+typedef struct {
+	char *argument;
+	char *next_argument;
+} argument;
+
+static void parseArgument(argument *arg) {
+	char argument = arg->argument[0];
+
 	switch (argument) {
 		case 'v':
-			printf(KGRN "Jayfor Version: %s\n" KNRM, JAYFOR_VERSION);
+			printf(KGRN "jayfor Version: %s\n" KNRM, jayfor_VERSION);
 			exit(1);
 			break;
 		case 'd':
 			DEBUG_MODE = true;
 			break;
 		case 'h':
-			printf(KYEL "JAYFOR Argument List\n");
-			printf("\t-h,\t shows a help menu\n");
-			printf("\t-v,\t shows current version\n");
-			printf("\t-d,\t logs extra debug information\n");
+			printf(KYEL "jayfor Argument List\n");
+			printf("\t-h,\t\t shows a help menu\n");
+			printf("\t-v,\t\t shows current version\n");
+			printf("\t-d,\t\t logs extra debug information\n");
+			printf("\t-r,\t\t will compile and execute code instead of creating an executable\n");
+			printf("\t-o [file name],\t\t creates an executable with the given file name and extension\n");
 			printf("\n" KNRM);
 			exit(1);
+			break;
+		case 'o':
+			EXECUTABLE_FILENAME = arg->next_argument;
+			break;
+		case 'r':
+			EXECUTE_BYTECODE = true;
 			break;
 		default:
 			printf(KRED "error: unrecognized argument %c\n" KNRM, argument);
@@ -27,7 +43,7 @@ static void parseArgument(char *arg) {
 	}
 }
 
-Jayfor *create_jayfor(int argc, char** argv) {
+jayfor *create_jayfor(int argc, char** argv) {
 	// not enough args just throw an error
 	if (argc <= 1) {
 		printf(KRED "error: no input files\n" KNRM);
@@ -35,10 +51,10 @@ Jayfor *create_jayfor(int argc, char** argv) {
 	}
 
 	char *filename = NULL;
-	Jayfor *jayfor = malloc(sizeof(*jayfor));
+	jayfor *self = malloc(sizeof(*self));
 
-	if (!jayfor) {
-		perror("malloc: failed to allocate memory for JAYFOR");
+	if (!self) {
+		perror("malloc: failed to allocate memory for jayfor");
 		exit(1);
 	}
 
@@ -46,11 +62,25 @@ Jayfor *create_jayfor(int argc, char** argv) {
 	// i = 1 to ignore first arg
 	for (i = 1; i < argc; i++) {
 		if (argv[i][0] == '-') {
+			argument arg;
+
+			// remove the -
 			size_t len = strlen(argv[i]) - 1;
 			char temp[len];
 			memcpy(temp, &argv[i][len], 1);
 			temp[len] = '\0';
-			parseArgument(temp);
+
+			// set argument stuff
+			arg.argument = temp;
+			arg.next_argument = argv[i + 1];
+			
+			// multiple arguments needed for -o, consume twice
+			if (!strcmp(arg.argument, "o")) {
+				i += 2;
+			}
+
+			// parse the argument
+			parseArgument(&arg);
 		}
 		else if (strstr(argv[i], ".j4")) {
 			filename = argv[i];
@@ -61,43 +91,60 @@ Jayfor *create_jayfor(int argc, char** argv) {
 	}
 
 	// just in case.
-	jayfor->scanner = NULL;
-	jayfor->lexer = NULL;
-	jayfor->parser = NULL;
+	self->scanner = NULL;
+	self->lexer = NULL;
+	self->parser = NULL;
 
 	// start actual useful shit here
-	jayfor->scanner = create_scanner();
-	scan_file(jayfor->scanner, filename);
+	self->scanner = create_scanner();
+	scan_file(self->scanner, filename);
 
 	// pass the scanned file to the lexer to tokenize
-	jayfor->lexer = create_lexer(jayfor->scanner->contents);
-	jayfor->compiler = NULL;
-	jayfor->j4vm = NULL;
+	self->lexer = create_lexer(self->scanner->contents);
+	self->compiler = NULL;
+	self->j4vm = NULL;
 
-	return jayfor;
+	return self;
 }
 
-void start_jayfor(Jayfor *jayfor) {
-	while (jayfor->lexer->running) {
-		get_next_token(jayfor->lexer);
+void start_jayfor(jayfor *self) {
+	while (self->lexer->running) {
+		get_next_token(self->lexer);
 	}
 
 	// initialise parser after we tokenize
-	jayfor->parser = create_parser(jayfor->lexer->token_stream);
+	self->parser = create_parser(self->lexer->token_stream);
 
-	start_parsing_token_stream(jayfor->parser);
+	start_parsing_token_stream(self->parser);
 
-	jayfor->compiler = create_compiler();
-	start_compiler(jayfor->compiler, jayfor->parser->parse_tree);
+	self->compiler = create_compiler();
+	start_compiler(self->compiler, self->parser->parse_tree);
 
-	jayfor->j4vm = create_jayfor_vm();
-	start_jayfor_vm(jayfor->j4vm, jayfor->compiler->bytecode, jayfor->compiler->global_count + 1);
+	if (EXECUTE_BYTECODE) {
+		self->j4vm = create_jayfor_vm();
+		start_jayfor_vm(self->j4vm, self->compiler->bytecode, self->compiler->global_count + 1);
+	}
+	else {
+		// output bytecode to file, overwrite existing
+		FILE *output = fopen(EXECUTABLE_FILENAME, "wb");
+		int i;
+		for (i = 0; i < self->compiler->current_instruction; i++) {
+			if (i % 8 == 0 && i != 0) {
+				fprintf(output, "\n");
+			}
+			fprintf(output, "%04d ", *(self->compiler->bytecode + i));
+		}
+		fclose(output);
+	}
 }
 
-void destroy_jayfor(Jayfor *jayfor) {
-	destroy_scanner(jayfor->scanner);
-	destroy_lexer(jayfor->lexer);
-	destroy_parser(jayfor->parser);
-	destroy_compiler(jayfor->compiler);
-	free(jayfor);
+void destroy_jayfor(jayfor *self) {
+	destroy_scanner(self->scanner);
+	destroy_lexer(self->lexer);
+	destroy_parser(self->parser);
+	destroy_compiler(self->compiler);
+	if (EXECUTE_BYTECODE) {
+		destroy_jayfor_vm(self->j4vm);
+	}
+	free(self);
 }
