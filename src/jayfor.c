@@ -119,9 +119,9 @@ void start_jayfor(jayfor *self) {
 
 	self->compiler = create_compiler();
 	start_compiler(self->compiler, self->parser->parse_tree);
-
+	
+	self->j4vm = create_jayfor_vm();
 	if (EXECUTE_BYTECODE) {
-		self->j4vm = create_jayfor_vm();
 		start_jayfor_vm(self->j4vm, self->compiler->bytecode, self->compiler->global_count + 1);
 	}
 	else {
@@ -134,10 +134,12 @@ void start_jayfor(jayfor *self) {
 
 		int i;
 		for (i = 0; i < self->compiler->current_instruction; i++) {
+			// every 8 instructions, newline
 			if (i % 8 == 0 && i != 0) {
 				fprintf(output, "\n");
 			}
-			fprintf(output, "%04d ", *(self->compiler->bytecode + i));
+			// print instruction as 4 digit number 
+			fprintf(output, "%04d ", self->compiler->bytecode[i]);
 		}
 		fclose(output);
 	}
@@ -148,8 +150,6 @@ void destroy_jayfor(jayfor *self) {
 	destroy_lexer(self->lexer);
 	destroy_parser(self->parser);
 	destroy_compiler(self->compiler);
-	if (EXECUTE_BYTECODE) {
-		destroy_jayfor_vm(self->j4vm);
-	}
+	destroy_jayfor_vm(self->j4vm);
 	free(self);
 }
