@@ -46,16 +46,6 @@ int evaluateExpressionNode(Compiler *self, ExpressionNode *expr) {
 }
 
 void generateVariableDeclarationCode(Compiler *self, VariableDeclareNode *vdn) {
-/*
-	DataType type = vdn->vdn->type;
-	Token *name = vdn->vdn->name;
-	ExpressionNode *expr = vdn->expr;
-	evaluateExpressionNode(self, expr);
-*/	
-
-	// todo
-
-	consumeNode(self);
 }
 
 void generateFunctionCalleeCode(Compiler *self, FunctionCalleeNode *fcn) {
@@ -72,8 +62,6 @@ void generateFunctionCalleeCode(Compiler *self, FunctionCalleeNode *fcn) {
 	appendInstruction(self, CALL);
 	appendInstruction(self, *address);
 	appendInstruction(self, numOfArgs);
-
-	consumeNode(self);
 }
 
 void generateFunctionReturnCode(Compiler *self, FunctionReturnNode *frn) {
@@ -107,8 +95,6 @@ void generateFunctionCode(Compiler *self, FunctionNode *func) {
 	}
 
 	appendInstruction(self, RET);
-
-	consumeNode(self);
 }
 
 void startCompiler(Compiler *self, Vector *ast) {
@@ -131,6 +117,8 @@ void startCompiler(Compiler *self, Vector *ast) {
 			printf("unrecognized node\n");
 			break;
 		}
+
+		consumeNode(self);
 	}
 
 	// stop
