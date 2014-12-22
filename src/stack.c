@@ -29,27 +29,22 @@ void pushToStackAtIndex(Stack *stack, StackItem item, int index) {
 	// instead of reallocating after adding an item
 	if (stack->stackPointer >= stack->defaultStackSize) {
 		stack->defaultStackSize *= 2;
-		stack->items = realloc(stack->items, sizeof(*stack->items) * stack->defaultStackSize);
-		if (!stack->items) {
+		printf("stack size expanded to: %d\n", stack->defaultStackSize);
+
+		StackItem *tmp = realloc(stack->items, sizeof(*stack->items) * stack->defaultStackSize);
+		if (!tmp) {
 			perror("realloc: failed to allocate memory for stack items");
 			exit(1);
+		}
+		else {
+			stack->items = tmp;
 		}
 	}
 	stack->items[index] = item;
 }
 
 void pushToStack(Stack *stack, StackItem item) {
-	// much more efficient to reallocate exponentially,
-	// instead of reallocating after adding an item
-	if (stack->stackPointer >= stack->defaultStackSize) {
-		stack->defaultStackSize *= 2;
-		stack->items = realloc(stack->items, sizeof(*stack->items) * stack->defaultStackSize);
-		if (!stack->items) {
-			perror("realloc: failed to allocate memory for stack items");
-			exit(1);
-		}
-	}
-	stack->items[++stack->stackPointer] = item;
+	pushToStackAtIndex(stack, item, ++stack->stackPointer);
 }
 
 StackItem popStack(Stack *stack) {
