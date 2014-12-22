@@ -43,6 +43,7 @@ void scanFile(Scanner *scanner, const char* fileName) {
 	}
 	else {
 		perror("fopen: could not read file");
+		printf("file: %s\n", fileName);
 		exit(1);
 	}
 }
