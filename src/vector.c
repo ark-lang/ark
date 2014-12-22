@@ -31,6 +31,10 @@ void pushBackVectorItem(Vector *vec, VectorItem item) {
 }
 
 VectorItem getItemFromVector(Vector *vec, int index) {
+	if (index > vec->size) {
+		printf("index out of vector bounds, index: %d, size: %d\n", index, vec->size);
+		exit(1);
+	}
 	return vec->items[index];
 }
 
