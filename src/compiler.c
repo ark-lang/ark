@@ -53,6 +53,8 @@ void generateVariableDeclarationCode(Compiler *self, VariableDeclareNode *vdn) {
 	evaluateExpressionNode(self, expr);
 */	
 
+	// todo
+
 	consumeNode(self);
 }
 
@@ -74,9 +76,38 @@ void generateFunctionCalleeCode(Compiler *self, FunctionCalleeNode *fcn) {
 	consumeNode(self);
 }
 
+void generateFunctionReturnCode(Compiler *self, FunctionReturnNode *frn) {
+	if (frn->numOfReturnValues > 1) {
+		printf("tuples not yet supported.\n");
+		exit(1);
+	}
+	// no tuple support, just use first return value for now.
+	ExpressionNode *expr = getItemFromVector(frn->returnVals, 0);
+	evaluateExpressionNode(self, expr);
+}
+
 void generateFunctionCode(Compiler *self, FunctionNode *func) {
 	int address = self->currentInstruction;
 	setValueAtKey(self->functions, func->fpn->name->content, &address, sizeof(int));
+		
+	Vector *statements = func->body->statements;
+
+	// return stuff
+	int i;
+	for (i = 0; i < statements->size; i++) {
+		StatementNode *sn = getItemFromVector(statements, i);
+		switch (sn->type) {
+			case FUNCTION_RET_NODE:
+				generateFunctionReturnCode(self, sn->data);
+				break;
+			default:
+				printf("WHAT NODES YA GIVIN ME SON?\n");
+				break;
+		}
+	}
+
+	appendInstruction(self, RET);
+
 	consumeNode(self);
 }
 
