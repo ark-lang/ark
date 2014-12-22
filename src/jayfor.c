@@ -27,7 +27,7 @@ static void parseArgument(char *arg) {
 	}
 }
 
-Jayfor *createJayfor(int argc, char** argv) {
+Jayfor *create_jayfor(int argc, char** argv) {
 	// not enough args just throw an error
 	if (argc <= 1) {
 		printf(KRED "error: no input files\n" KNRM);
@@ -66,38 +66,38 @@ Jayfor *createJayfor(int argc, char** argv) {
 	jayfor->parser = NULL;
 
 	// start actual useful shit here
-	jayfor->scanner = createScanner();
-	scanFile(jayfor->scanner, filename);
+	jayfor->scanner = create_scanner();
+	scan_file(jayfor->scanner, filename);
 
 	// pass the scanned file to the lexer to tokenize
-	jayfor->lexer = createLexer(jayfor->scanner->contents);
+	jayfor->lexer = create_lexer(jayfor->scanner->contents);
 	jayfor->compiler = NULL;
 	jayfor->j4vm = NULL;
 
 	return jayfor;
 }
 
-void startJayfor(Jayfor *jayfor) {
+void start_jayfor(Jayfor *jayfor) {
 	while (jayfor->lexer->running) {
-		getNextToken(jayfor->lexer);
+		get_next_token(jayfor->lexer);
 	}
 
 	// initialise parser after we tokenize
-	jayfor->parser = createParser(jayfor->lexer->tokenStream);
+	jayfor->parser = create_parser(jayfor->lexer->token_stream);
 
-	startParsingTokenStream(jayfor->parser);
+	start_parsing_token_stream(jayfor->parser);
 
-	jayfor->compiler = createCompiler();
-	startCompiler(jayfor->compiler, jayfor->parser->parseTree);
+	jayfor->compiler = create_compiler();
+	start_compiler(jayfor->compiler, jayfor->parser->parse_tree);
 
-	jayfor->j4vm = createJayforVM();
-	startJayforVM(jayfor->j4vm, jayfor->compiler->bytecode, jayfor->compiler->globalCount + 1);
+	jayfor->j4vm = create_jayfor_vm();
+	start_jayfor_vm(jayfor->j4vm, jayfor->compiler->bytecode, jayfor->compiler->global_count + 1);
 }
 
-void destroyJayfor(Jayfor *jayfor) {
-	destroyScanner(jayfor->scanner);
-	destroyLexer(jayfor->lexer);
-	destroyParser(jayfor->parser);
-	destroyCompiler(jayfor->compiler);
+void destroy_jayfor(Jayfor *jayfor) {
+	destroy_scanner(jayfor->scanner);
+	destroy_lexer(jayfor->lexer);
+	destroy_parser(jayfor->parser);
+	destroy_compiler(jayfor->compiler);
 	free(jayfor);
 }

@@ -1,7 +1,7 @@
 #include "parser.h"
 
 /** List of token names */
-static const char* TOKEN_NAMES[] = {
+static const char* token_NAMES[] = {
 	"END_OF_FILE", "IDENTIFIER", "NUMBER",
 	"OPERATOR", "SEPARATOR", "ERRORNEOUS",
 	"STRING", "CHARACTER", "UNKNOWN"
@@ -13,21 +13,21 @@ static const char* DATA_TYPES[] = {
 	"void", "char", "tup"
 };
 
-// static const char* NODE_NAMES[] = {
-// 	"expression_node", "variable_def_node",
-// 	"variable_dec_node", "function_arg_node",
-// 	"function_node", "function_prot_node",
-// 	"block_node", "function_callee_node",
-// 	"function_ret_node", "for_loop_node",
-// 	"variable_reassign_node"
+// static const char* ast_node_NAMES[] = {
+// 	"expression_ast_node", "variable_def_ast_node",
+// 	"variable_dec_ast_node", "function_arg_ast_node",
+// 	"function_ast_node", "function_prot_ast_node",
+// 	"block_ast_node", "function_callee_ast_node",
+// 	"function_ret_ast_node", "for_loop_ast_node",
+// 	"variable_reassign_ast_node"
 // };
 
-/** UTILITY FOR NODES */
+/** UTILITY FOR ast_nodeS */
 
-VariableReassignNode *createVariableReassignNode() {
-	VariableReassignNode *vrn = malloc(sizeof(*vrn));
+variable_reassignment_node *create_variable_reassign_ast_node() {
+	variable_reassignment_node *vrn = malloc(sizeof(*vrn));
 	if (!vrn) {
-		perror("malloc: failed to allocate memory for Variable Reassign Node");
+		perror("malloc: failed to allocate memory for Variable Reassign ast_node");
 		exit(1);
 	}
 	vrn->name = NULL;
@@ -35,10 +35,10 @@ VariableReassignNode *createVariableReassignNode() {
 	return vrn;
 }
 
-StatementNode *createStatementNode() {
-	StatementNode *sn = malloc(sizeof(*sn));
+statement_ast_node *create_statement_ast_node() {
+	statement_ast_node *sn = malloc(sizeof(*sn));
 	if (!sn) {
-		perror("malloc: failed to allocate memory for Statement Node");
+		perror("malloc: failed to allocate memory for Statement ast_node");
 		exit(1);
 	}
 	sn->data = NULL;
@@ -46,20 +46,20 @@ StatementNode *createStatementNode() {
 	return sn;
 }
 
-FunctionReturnNode *createFunctionReturnNode() {
-	FunctionReturnNode *frn = malloc(sizeof(*frn));
+function_return_ast_node *create_function_return_ast_node() {
+	function_return_ast_node *frn = malloc(sizeof(*frn));
 	if (!frn) {
-		perror("malloc: failed to allocate memory for Function Return Node");
+		perror("malloc: failed to allocate memory for Function Return ast_node");
 		exit(1);
 	}
 	frn->returnVals = NULL;
 	return frn;
 }
 
-ExpressionNode *createExpressionNode() {
-	ExpressionNode *expr = malloc(sizeof(*expr));
+expression_ast_node *create_expression_ast_node() {
+	expression_ast_node *expr = malloc(sizeof(*expr));
 	if (!expr) {
-		perror("malloc: failed to allocate memory for ExpressionNode");
+		perror("malloc: failed to allocate memory for expression_ast_node");
 		exit(1);
 	}
 	expr->value = NULL;
@@ -68,10 +68,10 @@ ExpressionNode *createExpressionNode() {
 	return expr;
 }
 
-BooleanExpressionNode *createBooleanExpressionNode() {
-    BooleanExpressionNode *boolExpr = malloc(sizeof(*boolExpr));
+bool_expression_ast_node *create_boolean_expression_ast_node() {
+    bool_expression_ast_node *boolExpr = malloc(sizeof(*boolExpr));
     if (!boolExpr) {
-        perror("malloc: failed to allocate memory for BooleanExpressionNode");
+        perror("malloc: failed to allocate memory for bool_expression_ast_node");
         exit(1);
     }
     boolExpr->expr = NULL;
@@ -80,20 +80,20 @@ BooleanExpressionNode *createBooleanExpressionNode() {
     return boolExpr;
 }
 
-VariableDefineNode *createVariableDefineNode() {
-	VariableDefineNode *vdn = malloc(sizeof(*vdn));
+variable_define_ast_node *create_variable_define_ast_node() {
+	variable_define_ast_node *vdn = malloc(sizeof(*vdn));
 	if (!vdn) {
-		perror("malloc: failed to allocate memory for VariableDefineNode");
+		perror("malloc: failed to allocate memory for variable_define_ast_node");
 		exit(1);
 	}
 	vdn->name = NULL;
 	return vdn;
 }
 
-VariableDeclareNode *createVariableDeclareNode() {
-	VariableDeclareNode *vdn = malloc(sizeof(*vdn));
+variable_declare_ast_node *create_variable_declare_ast_node() {
+	variable_declare_ast_node *vdn = malloc(sizeof(*vdn));
 	if (!vdn) {
-		perror("malloc: failed to allocate memory for VariableDeclareNode");
+		perror("malloc: failed to allocate memory for variable_declare_ast_node");
 		exit(1);
 	}
 	vdn->vdn = NULL;
@@ -101,10 +101,10 @@ VariableDeclareNode *createVariableDeclareNode() {
 	return vdn;
 }
 
-FunctionArgumentNode *createFunctionArgumentNode() {
-	FunctionArgumentNode *fan = malloc(sizeof(*fan));
+function_argument_ast_node *create_function_argument_ast_node() {
+	function_argument_ast_node *fan = malloc(sizeof(*fan));
 	if (!fan) {
-		perror("malloc: failed to allocate memory for FunctionArgumentNode");
+		perror("malloc: failed to allocate memory for function_argument_ast_node");
 		exit(1);
 	}
 	fan->name = NULL;
@@ -112,10 +112,10 @@ FunctionArgumentNode *createFunctionArgumentNode() {
 	return fan;
 }
 
-FunctionCalleeNode *createFunctionCalleeNode() {
-	FunctionCalleeNode *fcn = malloc(sizeof(*fcn));
+function_callee_ast_node *create_function_callee_ast_node() {
+	function_callee_ast_node *fcn = malloc(sizeof(*fcn));
 	if (!fcn) {
-		perror("malloc: failed to allocate memory for FunctionCalleeNode");
+		perror("malloc: failed to allocate memory for function_callee_ast_node");
 		exit(1);
 	}
 	fcn->callee = NULL;
@@ -123,20 +123,20 @@ FunctionCalleeNode *createFunctionCalleeNode() {
 	return fcn;
 }
 
-BlockNode *createBlockNode() {
-	BlockNode *bn = malloc(sizeof(*bn));
+block_ast_node *create_block_ast_node() {
+	block_ast_node *bn = malloc(sizeof(*bn));
 	if (!bn) {
-		perror("malloc: failed to allocate memory for BlockNode");
+		perror("malloc: failed to allocate memory for block_ast_node");
 		exit(1);
 	}
 	bn->statements = NULL;
 	return bn;
 }
 
-FunctionPrototypeNode *createFunctionPrototypeNode() {
-	FunctionPrototypeNode *fpn = malloc(sizeof(*fpn));
+function_prototype_ast_node *create_function_prototype_ast_node() {
+	function_prototype_ast_node *fpn = malloc(sizeof(*fpn));
 	if (!fpn) {
-		perror("malloc: failed to allocate memory for FunctionPrototypeNode");
+		perror("malloc: failed to allocate memory for function_prototype_ast_node");
 		exit(1);
 	}
 	fpn->args = NULL;
@@ -144,10 +144,10 @@ FunctionPrototypeNode *createFunctionPrototypeNode() {
 	return fpn;
 }
 
-FunctionNode *createFunctionNode() {
-	FunctionNode *fn = malloc(sizeof(*fn));
+function_ast_node *create_function_ast_node() {
+	function_ast_node *fn = malloc(sizeof(*fn));
 	if (!fn) {
-		perror("malloc: failed to allocate memory for FunctionNode");
+		perror("malloc: failed to allocate memory for function_ast_node");
 		exit(1);
 	}
 	fn->fpn = NULL;
@@ -155,49 +155,49 @@ FunctionNode *createFunctionNode() {
 	return fn;
 }
 
-ForLoopNode *createForLoopNode() {
-	ForLoopNode *fln = malloc(sizeof(*fln));
+for_loop_ast_node *create_for_loop_ast_node() {
+	for_loop_ast_node *fln = malloc(sizeof(*fln));
 	if (!fln) {
-		perror("malloc: failed to allocate memory for ForLoopNode");
+		perror("malloc: failed to allocate memory for for_loop_ast_node");
 		exit(1);
 	}
 	return fln;
 }
 
-void destroyVariableReassignNode(VariableReassignNode *vrn) {
+void destroy_variable_reassign_ast_node(variable_reassignment_node *vrn) {
 	if (vrn != NULL) {
 		if (vrn->expr != NULL) {
-			destroyExpressionNode(vrn->expr);
+			destroy_expression_ast_node(vrn->expr);
 		}
 		free(vrn);
 	}
 }
 
-void destroyForLoopNode(ForLoopNode *fln) {
+void destroy_for_loop_ast_node(for_loop_ast_node *fln) {
 	if (fln != NULL) {
 		free(fln);
 		fln = NULL;
 	}
 }
 
-void destroyStatementNode(StatementNode *sn) {
+void destroy_statement_ast_node(statement_ast_node *sn) {
 	if (sn != NULL) {
 		if (sn->data != NULL) {
 			switch (sn->type) {
-				case VARIABLE_DEF_NODE:
-					destroyVariableDefineNode(sn->data);
+				case VARIABLE_DEF_ast_node:
+					destroy_variable_define_ast_node(sn->data);
 					break;
-				case VARIABLE_DEC_NODE:
-					destroyVariableDeclareNode(sn->data);
+				case VARIABLE_DEC_ast_node:
+					destroy_variable_declare_ast_node(sn->data);
 					break;
-				case FUNCTION_CALLEE_NODE:
-					destroyFunctionCalleeNode(sn->data);
+				case FUNCTION_CALLEE_ast_node:
+					destroy_function_callee_ast_node(sn->data);
 					break;
-				case FUNCTION_RET_NODE:
-					destroyFunctionNode(sn->data);
+				case FUNCTION_RET_ast_node:
+					destroy_function_ast_node(sn->data);
 					break;
-				case VARIABLE_REASSIGN_NODE:
-					destroyVariableReassignNode(sn->data);
+				case VARIABLE_REASSIGN_ast_node:
+					destroy_variable_reassign_ast_node(sn->data);
 					break;
 				default: break;
 			}
@@ -207,171 +207,171 @@ void destroyStatementNode(StatementNode *sn) {
 	}
 }
 
-void destroyFunctionReturnNode(FunctionReturnNode *frn) {
+void destroy_function_return_ast_node(function_return_ast_node *frn) {
 	if (frn != NULL) {
 		if (frn->returnVals != NULL) {
 			int i;
 			for (i = 0; i < frn->returnVals->size; i++) {
-				ExpressionNode *temp = getItemFromVector(frn->returnVals, i);
+				expression_ast_node *temp = get_vector_item(frn->returnVals, i);
 				if (temp != NULL) {
-					destroyExpressionNode(temp);
+					destroy_expression_ast_node(temp);
 				}
 			}
-			destroyVector(frn->returnVals);
+			destroy_vector(frn->returnVals);
 		}
 		free(frn);
 		frn = NULL;
 	}
 }
 
-void destroyExpressionNode(ExpressionNode *expr) {
+void destroy_expression_ast_node(expression_ast_node *expr) {
 	if (expr != NULL) {
 		if (expr->lhand != NULL) {
-			destroyExpressionNode(expr->lhand);
+			destroy_expression_ast_node(expr->lhand);
 		}
 		if (expr->rhand != NULL) {
-			destroyExpressionNode(expr->rhand);
+			destroy_expression_ast_node(expr->rhand);
 		}
 		free(expr);
 		expr = NULL;
 	}
 }
 
-void destroyVariableDefineNode(VariableDefineNode *vdn) {
+void destroy_variable_define_ast_node(variable_define_ast_node *vdn) {
 	if (vdn != NULL) {
 		free(vdn);
 		vdn = NULL;
 	}
 }
 
-void destroyVariableDeclareNode(VariableDeclareNode *vdn) {
+void destroy_variable_declare_ast_node(variable_declare_ast_node *vdn) {
 	if (vdn != NULL) {
 		if (vdn->vdn != NULL) {
-			destroyVariableDefineNode(vdn->vdn);
+			destroy_variable_define_ast_node(vdn->vdn);
 		}
 		if (vdn->expr != NULL) {
-			destroyExpressionNode(vdn->expr);
+			destroy_expression_ast_node(vdn->expr);
 		}
 		free(vdn);
 		vdn = NULL;
 	}
 }
 
-void destroyFunctionArgumentNode(FunctionArgumentNode *fan) {
+void destroy_function_argument_ast_node(function_argument_ast_node *fan) {
 	if (fan != NULL) {
 		if (fan->value != NULL) {
-			destroyExpressionNode(fan->value);
+			destroy_expression_ast_node(fan->value);
 		}
 		free(fan);
 		fan = NULL;
 	}
 }
 
-void destroyBlockNode(BlockNode *bn) {
+void destroy_block_ast_node(block_ast_node *bn) {
 	if (bn != NULL) {
 		if (bn->statements != NULL) {
-			destroyVector(bn->statements);
+			destroy_vector(bn->statements);
 		}
 		free(bn);
 		bn = NULL;
 	}
 }
 
-void destroyFunctionPrototypeNode(FunctionPrototypeNode *fpn) {
+void destroy_function_prototype_ast_node(function_prototype_ast_node *fpn) {
 	if (fpn != NULL) {
 		if (fpn->args != NULL) {
 			int i;
 			for (i = 0; i < fpn->args->size; i++) {
-				StatementNode *sn = getItemFromVector(fpn->args, i);
+				statement_ast_node *sn = get_vector_item(fpn->args, i);
 				if (sn != NULL) {
-					destroyStatementNode(sn);
+					destroy_statement_ast_node(sn);
 				}
 			}
-			destroyVector(fpn->args);
+			destroy_vector(fpn->args);
 		}
 		free(fpn);
 		fpn = NULL;
 	}
 }
 
-void destroyFunctionNode(FunctionNode *fn) {
+void destroy_function_ast_node(function_ast_node *fn) {
 	if (fn != NULL) {
 		if (fn->fpn != NULL) {
-			destroyFunctionPrototypeNode(fn->fpn);
+			destroy_function_prototype_ast_node(fn->fpn);
 		}
 		if (fn->body != NULL) {
-			destroyBlockNode(fn->body);
+			destroy_block_ast_node(fn->body);
 		}
 		if (fn->ret != NULL) {
-			destroyVector(fn->ret);
+			destroy_vector(fn->ret);
 		}
 		free(fn);
 		fn = NULL;
 	}
 }
 
-void destroyFunctionCalleeNode(FunctionCalleeNode *fcn) {
+void destroy_function_callee_ast_node(function_callee_ast_node *fcn) {
 	if (fcn != NULL) {
 		if (fcn->args != NULL) {
-			destroyVector(fcn->args);
+			destroy_vector(fcn->args);
 		}
 		free(fcn);
 		fcn = NULL;
 	}
 }
 
-void destroyBooleanExpressionNode(BooleanExpressionNode *ben) {
+void destroybool_expression_ast_node(bool_expression_ast_node *ben) {
     if (ben != NULL) {
         if(ben->lhand != NULL) {
-            destroyBooleanExpressionNode(ben->lhand);
+            destroybool_expression_ast_node(ben->lhand);
         }
         if(ben->rhand != NULL) {
-            destroyBooleanExpressionNode(ben->rhand);
+            destroybool_expression_ast_node(ben->rhand);
         }
         free(ben);
         ben = NULL;
     }
 }
 
-/** END NODE FUNCTIONS */
+/** END ast_node FUNCTIONS */
 
-Parser *createParser(Vector *tokenStream) {
-	Parser *parser = malloc(sizeof(*parser));
+parser *create_parser(vector *token_stream) {
+	parser *parser = malloc(sizeof(*parser));
 	if (!parser) {
 		perror("malloc: failed to allocate memory for parser");
 		exit(1);
 	}
-	parser->tokenStream = tokenStream;
-	parser->parseTree = createVector();
-	parser->tokenIndex = 0;
+	parser->token_stream = token_stream;
+	parser->parse_tree = create_vector();
+	parser->token_index = 0;
 	parser->parsing = true;
 	return parser;
 }
 
-Token *consumeToken(Parser *parser) {
+token *consume_token(parser *parser) {
 	// return the token we are consuming, then increment token index
-	return getItemFromVector(parser->tokenStream, parser->tokenIndex++);
+	return get_vector_item(parser->token_stream, parser->token_index++);
 }
 
-Token *peekAtTokenStream(Parser *parser, int ahead) {
-	return getItemFromVector(parser->tokenStream, parser->tokenIndex + ahead);
+token *peek_at_token_stream(parser *parser, int ahead) {
+	return get_vector_item(parser->token_stream, parser->token_index + ahead);
 }
 
-Token *expectTokenType(Parser *parser, TokenType type) {
-	Token *tok = peekAtTokenStream(parser, 1);
+token *expect_token_type(parser *parser, token_type type) {
+	token *tok = peek_at_token_stream(parser, 1);
 	if (tok->type == type) {
-		return consumeToken(parser);
+		return consume_token(parser);
 	}
 	else {
-		printf("expected %s but found `%s`\n", TOKEN_NAMES[type], tok->content);
+		printf("expected %s but found `%s`\n", token_NAMES[type], tok->content);
 		exit(1);
 	}
 }
 
-Token *expectTokenContent(Parser *parser, char *content) {
-	Token *tok = peekAtTokenStream(parser, 1);
+token *expect_token_content(parser *parser, char *content) {
+	token *tok = peek_at_token_stream(parser, 1);
 	if (!strcmp(tok->content, content)) {
-		return consumeToken(parser);
+		return consume_token(parser);
 	}
 	else {
 		printf("expected %s but found `%s`\n", tok->content, content);
@@ -379,32 +379,32 @@ Token *expectTokenContent(Parser *parser, char *content) {
 	}
 }
 
-Token *expectTokenTypeAndContent(Parser *parser, TokenType type, char *content) {
-	Token *tok = peekAtTokenStream(parser, 1);
+token *expect_token_type_and_content(parser *parser, token_type type, char *content) {
+	token *tok = peek_at_token_stream(parser, 1);
 	if (tok->type == type && !strcmp(tok->content, content)) {
-		return consumeToken(parser);
+		return consume_token(parser);
 	}
 	else {
-		printf("expected %s but found `%s`\n", TOKEN_NAMES[type], tok->content);
+		printf("expected %s but found `%s`\n", token_NAMES[type], tok->content);
 		exit(1);
 	}
 }
 
-Token *matchTokenType(Parser *parser, TokenType type) {
-	Token *tok = peekAtTokenStream(parser, 0);
+token *match_token_type(parser *parser, token_type type) {
+	token *tok = peek_at_token_stream(parser, 0);
 	if (tok->type == type) {
-		return consumeToken(parser);
+		return consume_token(parser);
 	}
 	else {
-		printf("expected %s but found `%s`\n", TOKEN_NAMES[type], tok->content);
+		printf("expected %s but found `%s`\n", token_NAMES[type], tok->content);
 		exit(1);
 	}
 }
 
-Token *matchTokenContent(Parser *parser, char *content) {
-	Token *tok = peekAtTokenStream(parser, 0);
+token *match_token_content(parser *parser, char *content) {
+	token *tok = peek_at_token_stream(parser, 0);
 	if (!strcmp(tok->content, content)) {
-		return consumeToken(parser);
+		return consume_token(parser);
 	}
 	else {
 		printf("expected %s but found `%s`\n", tok->content, content);
@@ -412,44 +412,44 @@ Token *matchTokenContent(Parser *parser, char *content) {
 	}
 }
 
-Token *matchTokenTypeAndContent(Parser *parser, TokenType type, char *content) {
-	Token *tok = peekAtTokenStream(parser, 0);
+token *match_token_type_and_content(parser *parser, token_type type, char *content) {
+	token *tok = peek_at_token_stream(parser, 0);
 	if (tok->type == type && !strcmp(tok->content, content)) {
-		return consumeToken(parser);
+		return consume_token(parser);
 	}
 	else {
-		printf("expected %s but found `%s`\n", TOKEN_NAMES[type], tok->content);
+		printf("expected %s but found `%s`\n", token_NAMES[type], tok->content);
 		exit(1);
 	}
 }
 
-bool checkTokenType(Parser *parser, TokenType type, int ahead) {
-	Token *tok = peekAtTokenStream(parser, ahead);
+bool check_token_type(parser *parser, token_type type, int ahead) {
+	token *tok = peek_at_token_stream(parser, ahead);
 	return tok->type == type;
 }
 
-bool checkTokenContent(Parser *parser, char* content, int ahead) {
-	Token *tok = peekAtTokenStream(parser, ahead);
+bool check_token_content(parser *parser, char* content, int ahead) {
+	token *tok = peek_at_token_stream(parser, ahead);
 	return !strcmp(tok->content, content);
 }
 
-bool checkTokenTypeAndContent(Parser *parser, TokenType type, char* content, int ahead) {
-	return checkTokenType(parser, type, ahead) && checkTokenContent(parser, content, ahead);
+bool check_token_type_and_content(parser *parser, token_type type, char* content, int ahead) {
+	return check_token_type(parser, type, ahead) && check_token_content(parser, content, ahead);
 }
 
-char parseOperand(Parser *parser) {
-	Token *tok = peekAtTokenStream(parser, 0);
+char parse_operand(parser *parser) {
+	token *tok = peek_at_token_stream(parser, 0);
 	char tokChar = tok->content[0];
 
 	switch (tokChar) {
-		case '+': consumeToken(parser); return tokChar;
-		case '-': consumeToken(parser); return tokChar;
-		case '*': consumeToken(parser); return tokChar;
-		case '/': consumeToken(parser); return tokChar;
-		case '%': consumeToken(parser); return tokChar;
-		case '>': consumeToken(parser); return tokChar;
-		case '<': consumeToken(parser); return tokChar;
-		case '^': consumeToken(parser); return tokChar;
+		case '+': consume_token(parser); return tokChar;
+		case '-': consume_token(parser); return tokChar;
+		case '*': consume_token(parser); return tokChar;
+		case '/': consume_token(parser); return tokChar;
+		case '%': consume_token(parser); return tokChar;
+		case '>': consume_token(parser); return tokChar;
+		case '<': consume_token(parser); return tokChar;
+		case '^': consume_token(parser); return tokChar;
 		default:
 			printf(KRED "error: invalid operator ('%c') specified\n" KNRM, tok->content[0]);
 			exit(1);
@@ -457,7 +457,7 @@ char parseOperand(Parser *parser) {
 	}
 }
 
-StatementNode *parserParseForLoopNode(Parser *parser) {
+statement_ast_node *parse_for_loop_ast_node(parser *parser) {
 	/**
 	 * for int x:(0, 10, 2) {
 	 * 
@@ -465,22 +465,22 @@ StatementNode *parserParseForLoopNode(Parser *parser) {
 	 */
 
 	// for token
-	matchTokenTypeAndContent(parser, IDENTIFIER, "for");					// FOR
+	match_token_type_and_content(parser, IDENTIFIER, "for");					// FOR
 	
-	Token *dataType = matchTokenType(parser, IDENTIFIER);					// DATA_TYPE
-	DataType dataTypeRaw = matchTokenTypeToDataType(parser, dataType);
+	token *type_tok = match_token_type(parser, IDENTIFIER);					// DATA_TYPE
+	data_type type_raw = match_token_type_to_data_type(parser, type_tok);
 	
-	Token *indexName = matchTokenType(parser, IDENTIFIER);					// INDEX_NAME
+	token *indexName = match_token_type(parser, IDENTIFIER);					// INDEX_NAME
 
-	matchTokenTypeAndContent(parser, OPERATOR, ":");						// PARAMS
+	match_token_type_and_content(parser, OPERATOR, ":");						// PARAMS
 
-	ForLoopNode *fln = createForLoopNode();
-	fln->type = dataTypeRaw;
+	for_loop_ast_node *fln = create_for_loop_ast_node();
+	fln->type = type_raw;
 	fln->indexName = indexName;
-	fln->params = createVector();
+	fln->params = create_vector();
 
-	if (checkTokenTypeAndContent(parser, SEPARATOR, "(", 0)) {
-		consumeToken(parser);
+	if (check_token_type_and_content(parser, SEPARATOR, "(", 0)) {
+		consume_token(parser);
 
 		int paramCount = 0;
 
@@ -489,50 +489,50 @@ StatementNode *parserParseForLoopNode(Parser *parser) {
 				printf(KRED "error: for loop has one too many arguments %d\n" KNRM, paramCount);
 				exit(1);
 			}
-			if (checkTokenTypeAndContent(parser, SEPARATOR, ")", 0)) {
+			if (check_token_type_and_content(parser, SEPARATOR, ")", 0)) {
 				if (paramCount < 2) {
 					printf(KRED "error: for loop expects a maximum of 3 arguments, you have %d\n" KNRM, paramCount);
 					exit(1);
 				}
-				consumeToken(parser);
+				consume_token(parser);
 				break;
 			}
 
-			if (checkTokenType(parser, IDENTIFIER, 0)) {
-				pushBackVectorItem(fln->params, consumeToken(parser));
-				if (checkTokenTypeAndContent(parser, SEPARATOR, ",", 0)) {
-					if (checkTokenTypeAndContent(parser, SEPARATOR, ")", 1)) {
+			if (check_token_type(parser, IDENTIFIER, 0)) {
+				push_back_item(fln->params, consume_token(parser));
+				if (check_token_type_and_content(parser, SEPARATOR, ",", 0)) {
+					if (check_token_type_and_content(parser, SEPARATOR, ")", 1)) {
 						printf(KRED "error: trailing comma in for loop declaration!\n" KNRM);
 						exit(1);
 					}
-					consumeToken(parser);
+					consume_token(parser);
 				}
 			}
-			else if (checkTokenType(parser, NUMBER, 0)) {
-				pushBackVectorItem(fln->params, consumeToken(parser));	
-				if (checkTokenTypeAndContent(parser, SEPARATOR, ",", 0)) {
-					if (checkTokenTypeAndContent(parser, SEPARATOR, ")", 1)) {
+			else if (check_token_type(parser, NUMBER, 0)) {
+				push_back_item(fln->params, consume_token(parser));	
+				if (check_token_type_and_content(parser, SEPARATOR, ",", 0)) {
+					if (check_token_type_and_content(parser, SEPARATOR, ")", 1)) {
 						printf(KRED "error: trailing comma in for loop declaration!\n" KNRM);
 						exit(1);
 					}
-					consumeToken(parser);
+					consume_token(parser);
 				}
 			}
 			// it's an expression probably
-			else if (checkTokenTypeAndContent(parser, SEPARATOR, "(", 0)) {
-				ExpressionNode *expr = parseExpressionNode(parser);
-				pushBackVectorItem(fln->params, expr);
-				if (checkTokenTypeAndContent(parser, SEPARATOR, ",", 0)) {
-					if (checkTokenTypeAndContent(parser, SEPARATOR, ")", 1)) {
+			else if (check_token_type_and_content(parser, SEPARATOR, "(", 0)) {
+				expression_ast_node *expr = parse_expression_ast_node(parser);
+				push_back_item(fln->params, expr);
+				if (check_token_type_and_content(parser, SEPARATOR, ",", 0)) {
+					if (check_token_type_and_content(parser, SEPARATOR, ")", 1)) {
 						printf(KRED "error: trailing comma in for loop declaration!\n" KNRM);
 						exit(1);
 					}
-					consumeToken(parser);
+					consume_token(parser);
 				}
 			}
 			else {
 				printf(KRED "error: expected a number or variable in for loop parameters, found:\n" KNRM);
-				printCurrentToken(parser);
+				print_current_token(parser);
 				exit(1);
 			}
 
@@ -540,10 +540,10 @@ StatementNode *parserParseForLoopNode(Parser *parser) {
 		}
 		while (true);	
 	
-		fln->body = parseBlockNode(parser);
+		fln->body = parse_block_ast_node(parser);
 
-		StatementNode *sn = createStatementNode();
-		sn->type = FOR_LOOP_NODE;
+		statement_ast_node *sn = create_statement_ast_node();
+		sn->type = FOR_LOOP_ast_node;
 		sn->data = fln;
 		return sn;
 	}
@@ -552,222 +552,222 @@ StatementNode *parserParseForLoopNode(Parser *parser) {
 	exit(1);
 }
 
-ExpressionNode *parseExpressionNode(Parser *parser) {
-	ExpressionNode *expr = createExpressionNode(); // the final expression
+expression_ast_node *parse_expression_ast_node(parser *parser) {
+	expression_ast_node *expr = create_expression_ast_node(); // the final expression
 
 	// number literal
-	if (checkTokenType(parser, NUMBER, 0)) {
+	if (check_token_type(parser, NUMBER, 0)) {
 		expr->type = EXPR_NUMBER;
-		expr->value = consumeToken(parser);
+		expr->value = consume_token(parser);
 		return expr;
 	}
 	// string literal
-	if (checkTokenType(parser, STRING, 0)) {
+	if (check_token_type(parser, STRING, 0)) {
 		expr->type = EXPR_STRING;
-		expr->value = consumeToken(parser);
+		expr->value = consume_token(parser);
 		return expr;
 	}
 	// character
-	if (checkTokenType(parser, CHARACTER, 0)) {
+	if (check_token_type(parser, CHARACTER, 0)) {
 		expr->type = EXPR_CHARACTER;
-		expr->value = consumeToken(parser);
+		expr->value = consume_token(parser);
 		return expr;
 	}
-	if (checkTokenType(parser, IDENTIFIER, 0)) {
+	if (check_token_type(parser, IDENTIFIER, 0)) {
 		expr->type = EXPR_VARIABLE;
-		expr->value = consumeToken(parser);
+		expr->value = consume_token(parser);
 		return expr;
 	}
-	if (checkTokenTypeAndContent(parser, SEPARATOR, "(", 0)) {
-		consumeToken(parser);
+	if (check_token_type_and_content(parser, SEPARATOR, "(", 0)) {
+		consume_token(parser);
 		expr->type = EXPR_PARENTHESIS;
-		expr->lhand = parseExpressionNode(parser);
-		expr->operand = parseOperand(parser);
-		expr->rhand = parseExpressionNode(parser);
-		if (checkTokenTypeAndContent(parser, SEPARATOR, ")", 0)) {
-			consumeToken(parser);
+		expr->lhand = parse_expression_ast_node(parser);
+		expr->operand = parse_operand(parser);
+		expr->rhand = parse_expression_ast_node(parser);
+		if (check_token_type_and_content(parser, SEPARATOR, ")", 0)) {
+			consume_token(parser);
 			return expr;
 		}
 		printf(KRED "error: missing closing parenthesis on expression\n" KNRM);
 		exit(1);
 	}
-    if(checkTokenTypeAndContent(parser, OPERATOR, "!", 0)) {
-        consumeToken(parser);
+    if(check_token_type_and_content(parser, OPERATOR, "!", 0)) {
+        consume_token(parser);
         expr->type = EXPR_LOGICAL_OPERATOR;
     }
 
 	printf(KRED "error: failed to parse expression, only character, string and numbers are supported\n" KNRM);
-	printCurrentToken(parser);
+	print_current_token(parser);
 	exit(1);
 }
 
-void printCurrentToken(Parser *parser) {
-	Token *tok = peekAtTokenStream(parser, 0);
-	printf(KYEL "current token is type: %s, value: %s\n" KNRM, TOKEN_NAMES[tok->type], tok->content);
+void print_current_token(parser *parser) {
+	token *tok = peek_at_token_stream(parser, 0);
+	printf(KYEL "current token is type: %s, value: %s\n" KNRM, token_NAMES[tok->type], tok->content);
 }
 
-void *parseVariableNode(Parser *parser, bool global) {
+void *parse_variable_ast_node(parser *parser, bool global) {
 	// TYPE NAME = 5;
 	// TYPE NAME;
 
 	// consume the int data type
-	Token *variableDataType = matchTokenType(parser, IDENTIFIER);
+	token *variabledata_type = match_token_type(parser, IDENTIFIER);
 
 	// convert the data type for enum
-	DataType dataTypeRaw = matchTokenTypeToDataType(parser, variableDataType);
+	data_type data_typeRaw = match_token_type_to_data_type(parser, variabledata_type);
 
 	// name of the variable
-	Token *variableNameToken = matchTokenType(parser, IDENTIFIER);
+	token *variableNametoken = match_token_type(parser, IDENTIFIER);
 
-	if (checkTokenTypeAndContent(parser, OPERATOR, "=", 0)) {
+	if (check_token_type_and_content(parser, OPERATOR, "=", 0)) {
 		// consume the equals sign
-		consumeToken(parser);
+		consume_token(parser);
 
-		// create variable define node
-		VariableDefineNode *def = createVariableDefineNode();
-		def->type = dataTypeRaw;
-		def->name = variableNameToken;
+		// create variable define ast_node
+		variable_define_ast_node *def = create_variable_define_ast_node();
+		def->type = data_typeRaw;
+		def->name = variableNametoken;
 
 		// parses the expression we're assigning to
-		ExpressionNode *expr = parseExpressionNode(parser);
+		expression_ast_node *expr = parse_expression_ast_node(parser);
 
-		// create the variable declare node
-		VariableDeclareNode *dec = createVariableDeclareNode();
+		// create the variable declare ast_node
+		variable_declare_ast_node *dec = create_variable_declare_ast_node();
 		dec->vdn = def;
 		dec->expr = expr;
 
 		// match a semi colon
-		if (checkTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
-			consumeToken(parser);
+		if (check_token_type_and_content(parser, SEPARATOR, ";", 0)) {
+			consume_token(parser);
 		}
 
 		if (global) {
-			prepareNode(parser, dec, VARIABLE_DEC_NODE);
+			prepare_ast_node(parser, dec, VARIABLE_DEC_ast_node);
 			return dec;
 		}
-		StatementNode *sn = createStatementNode();
+		statement_ast_node *sn = create_statement_ast_node();
 		sn->data = dec;
-		sn->type = VARIABLE_DEC_NODE;
+		sn->type = VARIABLE_DEC_ast_node;
 		return sn;
 	}
 	else {
-		if (checkTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
-			consumeToken(parser);
+		if (check_token_type_and_content(parser, SEPARATOR, ";", 0)) {
+			consume_token(parser);
 		}
 
-		// create variable define node
-		VariableDefineNode *def = createVariableDefineNode();
-		def->type = dataTypeRaw;
-		def->name = variableNameToken;
+		// create variable define ast_node
+		variable_define_ast_node *def = create_variable_define_ast_node();
+		def->type = data_typeRaw;
+		def->name = variableNametoken;
 		
 		if (global) {
-			prepareNode(parser, def, VARIABLE_DEF_NODE);
+			prepare_ast_node(parser, def, VARIABLE_DEF_ast_node);
 			return def;
 		}
-		StatementNode *sn = createStatementNode();
+		statement_ast_node *sn = create_statement_ast_node();
 		sn->data = def;
-		sn->type = VARIABLE_DEF_NODE;
+		sn->type = VARIABLE_DEF_ast_node;
 		return sn;
 	}
 }
 
-BlockNode *parseBlockNode(Parser *parser) {
-	BlockNode *block = createBlockNode();
-	block->statements = createVector();
+block_ast_node *parse_block_ast_node(parser *parser) {
+	block_ast_node *block = create_block_ast_node();
+	block->statements = create_vector();
 
-	matchTokenTypeAndContent(parser, SEPARATOR, "{");
+	match_token_type_and_content(parser, SEPARATOR, "{");
 	
 	do {
 		// check if block is empty before we try parse some statements
-		if (checkTokenTypeAndContent(parser, SEPARATOR, "}", 0)) {
-			consumeToken(parser);
+		if (check_token_type_and_content(parser, SEPARATOR, "}", 0)) {
+			consume_token(parser);
 			break;
 		}
 
-		pushBackVectorItem(block->statements, parseStatementNode(parser));
+		push_back_item(block->statements, parse_statement_ast_node(parser));
 	}
 	while (true);
 
 	// int i;
 	// for (i = 0; i < block->statements->size; i++) {
-	// 	StatementNode *sn = getItemFromVector(block->statements, i);
-	// 	printf("%d = %s\n", i, NODE_NAMES[sn->type]);
+	// 	statement_ast_node *sn = get_vector_item(block->statements, i);
+	// 	printf("%d = %s\n", i, ast_node_NAMES[sn->type]);
 	// }
 	// printf("\n");
 
 	return block;
 }
 
-FunctionNode *parseFunctionNode(Parser *parser) {
-	matchTokenType(parser, IDENTIFIER);	// consume the fn keyword
+function_ast_node *parse_function_ast_node(parser *parser) {
+	match_token_type(parser, IDENTIFIER);	// consume the fn keyword
 
-	Token *functionName = matchTokenType(parser, IDENTIFIER); // name of function
-	Vector *args = createVector(); // null for now till I add arg parsing
+	token *functionName = match_token_type(parser, IDENTIFIER); // name of function
+	vector *args = create_vector(); // null for now till I add arg parsing
 
 	// Create function signature
-	FunctionPrototypeNode *fpn = createFunctionPrototypeNode();
+	function_prototype_ast_node *fpn = create_function_prototype_ast_node();
 	fpn->args = args;
 	fpn->name = functionName;
 
 	// parameter list
-	if (checkTokenTypeAndContent(parser, SEPARATOR, "(", 0)) {
-		consumeToken(parser);
+	if (check_token_type_and_content(parser, SEPARATOR, "(", 0)) {
+		consume_token(parser);
 
 		do {
 			// NO ARGUMENTS PROVIDED TO FUNCTION
-			if (checkTokenTypeAndContent(parser, SEPARATOR, ")", 0)) {
-				consumeToken(parser);
+			if (check_token_type_and_content(parser, SEPARATOR, ")", 0)) {
+				consume_token(parser);
 				break;
 			}
 
-			Token *argDataType = matchTokenType(parser, IDENTIFIER);
-			DataType argRawDataType = matchTokenTypeToDataType(parser, argDataType);
-			Token *argName = matchTokenType(parser, IDENTIFIER);
+			token *argdata_type = match_token_type(parser, IDENTIFIER);
+			data_type argRawdata_type = match_token_type_to_data_type(parser, argdata_type);
+			token *argName = match_token_type(parser, IDENTIFIER);
 
-			FunctionArgumentNode *arg = createFunctionArgumentNode();
-			arg->type = argRawDataType;
+			function_argument_ast_node *arg = create_function_argument_ast_node();
+			arg->type = argRawdata_type;
 			arg->name = argName;
 			arg->value = NULL;
 
-			if (checkTokenTypeAndContent(parser, OPERATOR, "=", 0)) {
-				consumeToken(parser);
+			if (check_token_type_and_content(parser, OPERATOR, "=", 0)) {
+				consume_token(parser);
 
 				// default expression
-				ExpressionNode *expr = parseExpressionNode(parser);
+				expression_ast_node *expr = parse_expression_ast_node(parser);
 				arg->value = expr;
-				pushBackVectorItem(args, arg);
+				push_back_item(args, arg);
 
-				if (checkTokenTypeAndContent(parser, SEPARATOR, ",", 0)) {
-					consumeToken(parser);
+				if (check_token_type_and_content(parser, SEPARATOR, ",", 0)) {
+					consume_token(parser);
 				}
-				else if (checkTokenTypeAndContent(parser, SEPARATOR, ")", 0)) {
-					consumeToken(parser); // eat closing parenthesis
+				else if (check_token_type_and_content(parser, SEPARATOR, ")", 0)) {
+					consume_token(parser); // eat closing parenthesis
 					break;
 				}
 			}
-			else if (checkTokenTypeAndContent(parser, SEPARATOR, ",", 0)) {
-				if (checkTokenTypeAndContent(parser, SEPARATOR, ")", 1)) {
+			else if (check_token_type_and_content(parser, SEPARATOR, ",", 0)) {
+				if (check_token_type_and_content(parser, SEPARATOR, ")", 1)) {
 					printf(KRED "error: trailing comma at the end of argument list\n" KNRM);
 					exit(1);
 				}
-				consumeToken(parser); // eat the comma
-				pushBackVectorItem(args, arg);
+				consume_token(parser); // eat the comma
+				push_back_item(args, arg);
 			}
-			else if (checkTokenTypeAndContent(parser, SEPARATOR, ")", 0)) {
-				consumeToken(parser); // eat closing parenthesis
-				pushBackVectorItem(args, arg);
+			else if (check_token_type_and_content(parser, SEPARATOR, ")", 0)) {
+				consume_token(parser); // eat closing parenthesis
+				push_back_item(args, arg);
 				break;
 			}
 		}
 		while (true);
 
-		FunctionNode *fn = createFunctionNode();
-		fn->ret = createVector();
+		function_ast_node *fn = create_function_ast_node();
+		fn->ret = create_vector();
 		fn->numOfReturnValues = 0;
 		fn->isTuple = false;
 
-		if (checkTokenTypeAndContent(parser, OPERATOR, ":", 0)) {
-			consumeToken(parser);
+		if (check_token_type_and_content(parser, OPERATOR, ":", 0)) {
+			consume_token(parser);
 		}
 		else {
 			printf(KRED "error: function signature missing colon\n" KNRM);
@@ -775,59 +775,59 @@ FunctionNode *parseFunctionNode(Parser *parser) {
 		}
 
 		// START OF TUPLE
-		if (checkTokenTypeAndContent(parser, OPERATOR, "<", 0)) {
-			consumeToken(parser);
+		if (check_token_type_and_content(parser, OPERATOR, "<", 0)) {
+			consume_token(parser);
 			fn->isTuple = true;
 
 			do {
-				if (checkTokenTypeAndContent(parser, OPERATOR, ">", 0)) {
+				if (check_token_type_and_content(parser, OPERATOR, ">", 0)) {
 					if (fn->numOfReturnValues < 1) {
 						printf(KRED "error: function expects a return type\n" KNRM);
 						exit(1);
 					}
-					consumeToken(parser); // eat
+					consume_token(parser); // eat
 					break;
 				}
 
-				if (checkTokenType(parser, IDENTIFIER, 0)) {
-					Token *tok = consumeToken(parser);
-					if (checkTokenTypeIsValidDataType(parser, tok)) {
-						DataType rawDataType = matchTokenTypeToDataType(parser, tok);
-						pushBackVectorItem(fn->ret, &rawDataType);
+				if (check_token_type(parser, IDENTIFIER, 0)) {
+					token *tok = consume_token(parser);
+					if (check_token_type_is_valid_data_type(parser, tok)) {
+						data_type rawdata_type = match_token_type_to_data_type(parser, tok);
+						push_back_item(fn->ret, &rawdata_type);
 						fn->numOfReturnValues++;
 					}
 					else {
 						printf(KRED "error: invalid data type specified: `%s`\n" KNRM, tok->content);
 						exit(1);
 					}
-					if (checkTokenTypeAndContent(parser, SEPARATOR, ",", 0)) {
-						if (checkTokenTypeAndContent(parser, OPERATOR, ">", 1)) {
+					if (check_token_type_and_content(parser, SEPARATOR, ",", 0)) {
+						if (check_token_type_and_content(parser, OPERATOR, ">", 1)) {
 							printf(KRED "error: trailing comma in function declaraction\n" KNRM);
 							exit(1);
 						}
-						consumeToken(parser);
+						consume_token(parser);
 					}
 				}
 			}
 			while (true);
 		}
-		else if (checkTokenType(parser, IDENTIFIER, 0)) {
-			Token *returnType = consumeToken(parser);
-			DataType rawDataType = matchTokenTypeToDataType(parser, returnType);
-			pushBackVectorItem(fn->ret, &rawDataType);
+		else if (check_token_type(parser, IDENTIFIER, 0)) {
+			token *returnType = consume_token(parser);
+			data_type rawdata_type = match_token_type_to_data_type(parser, returnType);
+			push_back_item(fn->ret, &rawdata_type);
 			fn->numOfReturnValues += 1;
 		}
 		else {
 			printf(KRED "error: function declaration return type expected, found this:\n" KNRM);
-			printCurrentToken(parser);
+			print_current_token(parser);
 			exit(1);
 		}
 
 		// start block
-		BlockNode *body = parseBlockNode(parser);
+		block_ast_node *body = parse_block_ast_node(parser);
 		fn->fpn = fpn;
 		fn->body = body;
-		prepareNode(parser, fn, FUNCTION_NODE);
+		prepare_ast_node(parser, fn, FUNCTION_ast_node);
 
 		return fn;
 	}
@@ -841,53 +841,53 @@ FunctionNode *parseFunctionNode(Parser *parser) {
 	fpn = NULL;
 }
 
-FunctionCalleeNode *parseFunctionNodeCall(Parser *parser) {
+function_callee_ast_node *parse_function_ast_nodeCall(parser *parser) {
 	// consume function name
-	Token *callee = matchTokenType(parser, IDENTIFIER);
+	token *callee = match_token_type(parser, IDENTIFIER);
 
-	if (checkTokenTypeAndContent(parser, SEPARATOR, "(", 0)) {
-		consumeToken(parser);	// eat open bracket
+	if (check_token_type_and_content(parser, SEPARATOR, "(", 0)) {
+		consume_token(parser);	// eat open bracket
 
-		Vector *args = createVector();
+		vector *args = create_vector();
 
 		do {
 			// NO ARGUMENTS PROVIDED TO FUNCTION
-			if (checkTokenTypeAndContent(parser, SEPARATOR, ")", 0)) {
-				consumeToken(parser);
+			if (check_token_type_and_content(parser, SEPARATOR, ")", 0)) {
+				consume_token(parser);
 				break;
 			}
 
-			ExpressionNode *expr = parseExpressionNode(parser);
+			expression_ast_node *expr = parse_expression_ast_node(parser);
 
-			FunctionArgumentNode *arg = createFunctionArgumentNode();
+			function_argument_ast_node *arg = create_function_argument_ast_node();
 			arg->value = expr;
 
-			if (checkTokenTypeAndContent(parser, SEPARATOR, ",", 0)) {
-				if (checkTokenTypeAndContent(parser, SEPARATOR, ")", 1)) {
+			if (check_token_type_and_content(parser, SEPARATOR, ",", 0)) {
+				if (check_token_type_and_content(parser, SEPARATOR, ")", 1)) {
 					printf(KRED "error: trailing comma at the end of argument list\n" KNRM);
 					exit(1);
 				}
-				consumeToken(parser); // eat the comma
-				pushBackVectorItem(args, arg);
+				consume_token(parser); // eat the comma
+				push_back_item(args, arg);
 			}
-			else if (checkTokenTypeAndContent(parser, SEPARATOR, ")", 0)) {
-				consumeToken(parser); // eat closing parenthesis
-				pushBackVectorItem(args, arg);
+			else if (check_token_type_and_content(parser, SEPARATOR, ")", 0)) {
+				consume_token(parser); // eat closing parenthesis
+				push_back_item(args, arg);
 				break;
 			}
 		}
 		while (true);
 
 		// consume semi colon
-		if (checkTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
-			consumeToken(parser);
+		if (check_token_type_and_content(parser, SEPARATOR, ";", 0)) {
+			consume_token(parser);
 		}
 
 		// woo we got the function
-		FunctionCalleeNode *fcn = createFunctionCalleeNode();
+		function_callee_ast_node *fcn = create_function_callee_ast_node();
 		fcn->callee = callee;
 		fcn->args = args;
-		prepareNode(parser, fcn, FUNCTION_CALLEE_NODE);
+		prepare_ast_node(parser, fcn, FUNCTION_CALLEE_ast_node);
 		return fcn;
 	}
 
@@ -895,34 +895,34 @@ FunctionCalleeNode *parseFunctionNodeCall(Parser *parser) {
 	exit(1);
 }
 
-FunctionReturnNode *parserParseReturnStatement(Parser *parser) {
+function_return_ast_node *parserparsereturnStatement(parser *parser) {
 	// consume the return keyword
-	matchTokenTypeAndContent(parser, IDENTIFIER, "ret");
+	match_token_type_and_content(parser, IDENTIFIER, "ret");
 
-	FunctionReturnNode *frn = createFunctionReturnNode();
-	frn->returnVals = createVector();
+	function_return_ast_node *frn = create_function_return_ast_node();
+	frn->returnVals = create_vector();
 	frn->numOfReturnValues = 0;
 
-	if (checkTokenTypeAndContent(parser, OPERATOR, "<", 0)) {
-		consumeToken(parser);
+	if (check_token_type_and_content(parser, OPERATOR, "<", 0)) {
+		consume_token(parser);
 
 		do {
-			if (checkTokenTypeAndContent(parser, OPERATOR, ">", 0)) {
-				consumeToken(parser);
-				if (checkTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
-					consumeToken(parser);
+			if (check_token_type_and_content(parser, OPERATOR, ">", 0)) {
+				consume_token(parser);
+				if (check_token_type_and_content(parser, SEPARATOR, ";", 0)) {
+					consume_token(parser);
 				}
 				return frn;
 			}
 
-			ExpressionNode *expr = parseExpressionNode(parser);
-			pushBackVectorItem(frn->returnVals, expr);
-			if (checkTokenTypeAndContent(parser, SEPARATOR, ",", 0)) {
-				if (checkTokenTypeAndContent(parser, OPERATOR, ">", 1)) {
+			expression_ast_node *expr = parse_expression_ast_node(parser);
+			push_back_item(frn->returnVals, expr);
+			if (check_token_type_and_content(parser, SEPARATOR, ",", 0)) {
+				if (check_token_type_and_content(parser, OPERATOR, ">", 1)) {
 					printf(KRED "error: trailing comma in return statement\n" KNRM);
 					exit(1);
 				}
-				consumeToken(parser);
+				consume_token(parser);
 				frn->numOfReturnValues++;
 			}
 		}
@@ -930,13 +930,13 @@ FunctionReturnNode *parserParseReturnStatement(Parser *parser) {
 	}
 	else {
 		// only one return type
-		ExpressionNode *expr = parseExpressionNode(parser);
-		pushBackVectorItem(frn->returnVals, expr);
+		expression_ast_node *expr = parse_expression_ast_node(parser);
+		push_back_item(frn->returnVals, expr);
 		frn->numOfReturnValues++;
 
 		// consume semi colon if present
-		if (checkTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
-			consumeToken(parser);
+		if (check_token_type_and_content(parser, SEPARATOR, ";", 0)) {
+			consume_token(parser);
 		}
 		return frn;
 	}
@@ -945,37 +945,37 @@ FunctionReturnNode *parserParseReturnStatement(Parser *parser) {
 	exit(1);
 }
 
-StatementNode *parseStatementNode(Parser *parser) {
+statement_ast_node *parse_statement_ast_node(parser *parser) {
 	// ret keyword	
-	if (checkTokenTypeAndContent(parser, IDENTIFIER, "ret", 0)) {
-		StatementNode *sn = createStatementNode();
-		sn->data = parserParseReturnStatement(parser); 
-		sn->type = FUNCTION_RET_NODE;
+	if (check_token_type_and_content(parser, IDENTIFIER, "ret", 0)) {
+		statement_ast_node *sn = create_statement_ast_node();
+		sn->data = parserparsereturnStatement(parser); 
+		sn->type = FUNCTION_RET_ast_node;
 		return sn;
 	}
-	else if (checkTokenTypeAndContent(parser, IDENTIFIER, "for", 0)) {
-		return parserParseForLoopNode(parser);
+	else if (check_token_type_and_content(parser, IDENTIFIER, "for", 0)) {
+		return parse_for_loop_ast_node(parser);
 	}
-	else if (checkTokenType(parser, IDENTIFIER, 0)) {
-		Token *tok = peekAtTokenStream(parser, 0);
+	else if (check_token_type(parser, IDENTIFIER, 0)) {
+		token *tok = peek_at_token_stream(parser, 0);
 		
 		// variable reassignment
-		if (checkTokenTypeAndContent(parser, OPERATOR, "=", 1)) {
-			StatementNode *sn = createStatementNode();
-			sn->data = parseReassignmentStatementNode(parser);
-			sn->type = VARIABLE_REASSIGN_NODE;
+		if (check_token_type_and_content(parser, OPERATOR, "=", 1)) {
+			statement_ast_node *sn = create_statement_ast_node();
+			sn->data = parse_reassignment_statement_ast_node(parser);
+			sn->type = VARIABLE_REASSIGN_ast_node;
 			return sn;
 		}
 		// function call
-		else if (checkTokenTypeAndContent(parser, SEPARATOR, "(", 1)) {
-			StatementNode *sn = createStatementNode();
-			sn->data = parseFunctionNodeCall(parser);
-			sn->type = FUNCTION_CALLEE_NODE;
+		else if (check_token_type_and_content(parser, SEPARATOR, "(", 1)) {
+			statement_ast_node *sn = create_statement_ast_node();
+			sn->data = parse_function_ast_nodeCall(parser);
+			sn->type = FUNCTION_CALLEE_ast_node;
 			return sn;
 		}
 		// local variable
-		else if (checkTokenTypeIsValidDataType(parser, tok)) {
-			return parseVariableNode(parser, false);
+		else if (check_token_type_is_valid_data_type(parser, tok)) {
+			return parse_variable_ast_node(parser, false);
 		}
 		// fuck knows
 		else {
@@ -984,25 +984,25 @@ StatementNode *parseStatementNode(Parser *parser) {
 		}
 	}
 
-	Token *tok = peekAtTokenStream(parser, 0);
-	printf(KRED "error: unrecognized token %s(%s)\n" KNRM, tok->content, TOKEN_NAMES[tok->type]);
+	token *tok = peek_at_token_stream(parser, 0);
+	printf(KRED "error: unrecognized token %s(%s)\n" KNRM, tok->content, token_NAMES[tok->type]);
 	exit(1);
 }
 
-VariableReassignNode *parseReassignmentStatementNode(Parser *parser) {
-	if (checkTokenType(parser, IDENTIFIER, 0)) {
-		Token *variableName = consumeToken(parser);
+variable_reassignment_node *parse_reassignment_statement_ast_node(parser *parser) {
+	if (check_token_type(parser, IDENTIFIER, 0)) {
+		token *variableName = consume_token(parser);
 
-		if (checkTokenTypeAndContent(parser, OPERATOR, "=", 0)) {
-			consumeToken(parser);
+		if (check_token_type_and_content(parser, OPERATOR, "=", 0)) {
+			consume_token(parser);
 
-			ExpressionNode *expr = parseExpressionNode(parser);
+			expression_ast_node *expr = parse_expression_ast_node(parser);
 
-			if (checkTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
-				consumeToken(parser);
+			if (check_token_type_and_content(parser, SEPARATOR, ";", 0)) {
+				consume_token(parser);
 			}
 
-			VariableReassignNode *vrn = createVariableReassignNode();
+			variable_reassignment_node *vrn = create_variable_reassign_ast_node();
 			vrn->name = variableName;
 			vrn->expr = expr;
 			return vrn;
@@ -1013,26 +1013,26 @@ VariableReassignNode *parseReassignmentStatementNode(Parser *parser) {
 	exit(1);
 }
 
-void startParsingTokenStream(Parser *parser) {
+void start_parsing_token_stream(parser *parser) {
 	while (parser->parsing) {
 		// get current token
-		Token *tok = getItemFromVector(parser->tokenStream, parser->tokenIndex);
+		token *tok = get_vector_item(parser->token_stream, parser->token_index);
 
 		switch (tok->type) {
 			case IDENTIFIER:
 				// parse a variable if we have a variable
 				// given to us
 				if (!strcmp(tok->content, "fn")) {
-					parseFunctionNode(parser);
+					parse_function_ast_node(parser);
 				} 
-				else if (checkTokenTypeIsValidDataType(parser, tok)) {
-					parseVariableNode(parser, true);
+				else if (check_token_type_is_valid_data_type(parser, tok)) {
+					parse_variable_ast_node(parser, true);
 				}
-				else if (checkTokenTypeAndContent(parser, OPERATOR, "=", 1)) {
-					parseReassignmentStatementNode(parser);
+				else if (check_token_type_and_content(parser, OPERATOR, "=", 1)) {
+					parse_reassignment_statement_ast_node(parser);
 				}
-				else if (checkTokenTypeAndContent(parser, SEPARATOR, "(", 1)) {
-					prepareNode(parser, parseFunctionNodeCall(parser), FUNCTION_CALLEE_NODE);
+				else if (check_token_type_and_content(parser, SEPARATOR, "(", 1)) {
+					prepare_ast_node(parser, parse_function_ast_nodeCall(parser), FUNCTION_CALLEE_ast_node);
 				}
 				else {
 					printf(KRED "error: unrecognized identifier found: `%s`\n" KNRM, tok->content);
@@ -1046,7 +1046,7 @@ void startParsingTokenStream(Parser *parser) {
 	}
 }
 
-bool checkTokenTypeIsValidDataType(Parser *parser, Token *tok) {
+bool check_token_type_is_valid_data_type(parser *parser, token *tok) {
 	int size = sizeof(DATA_TYPES) / sizeof(DATA_TYPES[0]);
 	int i;
 	for (i = 0; i < size; i++) {
@@ -1057,7 +1057,7 @@ bool checkTokenTypeIsValidDataType(Parser *parser, Token *tok) {
 	return false;
 }
 
-DataType matchTokenTypeToDataType(Parser *parser, Token *tok) {
+data_type match_token_type_to_data_type(parser *parser, token *tok) {
 	int size = sizeof(DATA_TYPES) / sizeof(DATA_TYPES[0]);
 	int i;
 	for (i = 0; i < size; i++) {
@@ -1069,67 +1069,67 @@ DataType matchTokenTypeToDataType(Parser *parser, Token *tok) {
 	exit(1);
 }
 
-void prepareNode(Parser *parser, void *data, NodeType type) {
-	Node *node = malloc(sizeof(*node));
-	node->data = data;
-	node->type = type;
-	pushBackVectorItem(parser->parseTree, node);
+void prepare_ast_node(parser *parser, void *data, ast_ast_node_type type) {
+	ast_node *ast_node = malloc(sizeof(*ast_node));
+	ast_node->data = data;
+	ast_node->type = type;
+	push_back_item(parser->parse_tree, ast_node);
 }
 
-void removeNode(Node *node) {
+void remove_ast_node(ast_node *ast_node) {
 	/**
 	 * This could probably be a lot more cleaner
 	 */
-	if (node->data != NULL) {
-		switch (node->type) {
-			case EXPRESSION_NODE:
-				destroyExpressionNode(node->data);
+	if (ast_node->data != NULL) {
+		switch (ast_node->type) {
+			case EXPRESSION_ast_node:
+				destroy_expression_ast_node(ast_node->data);
 				break;
-			case VARIABLE_DEF_NODE: 
-				destroyVariableDefineNode(node->data);
+			case VARIABLE_DEF_ast_node: 
+				destroy_variable_define_ast_node(ast_node->data);
 				break;
-			case VARIABLE_DEC_NODE:
-				destroyVariableDeclareNode(node->data);
+			case VARIABLE_DEC_ast_node:
+				destroy_variable_declare_ast_node(ast_node->data);
 				break;
-			case FUNCTION_ARG_NODE:
-				destroyFunctionArgumentNode(node->data);
+			case FUNCTION_ARG_ast_node:
+				destroy_function_argument_ast_node(ast_node->data);
 				break;
-			case FUNCTION_NODE:
-				destroyFunctionNode(node->data);
+			case FUNCTION_ast_node:
+				destroy_function_ast_node(ast_node->data);
 				break;
-			case FUNCTION_PROT_NODE:
-				destroyFunctionPrototypeNode(node->data);
+			case FUNCTION_PROT_ast_node:
+				destroy_function_prototype_ast_node(ast_node->data);
 				break;
-			case BLOCK_NODE:
-				destroyBlockNode(node->data);
+			case BLOCK_ast_node:
+				destroy_block_ast_node(ast_node->data);
 				break;
-			case FUNCTION_CALLEE_NODE:
-				destroyFunctionCalleeNode(node->data);
+			case FUNCTION_CALLEE_ast_node:
+				destroy_function_callee_ast_node(ast_node->data);
 				break;
-			case FUNCTION_RET_NODE:
-				destroyFunctionReturnNode(node->data);
+			case FUNCTION_RET_ast_node:
+				destroy_function_return_ast_node(ast_node->data);
 				break;
 			default:
-				printf(KYEL "attempting to remove unrecognized node(%d)?\n" KNRM, node->type);
+				printf(KYEL "attempting to remove unrecognized ast_node(%d)?\n" KNRM, ast_node->type);
 				break;
 		}
 	}
-	free(node);
+	free(ast_node);
 }
 
-void destroyParser(Parser *parser) {
+void destroy_parser(parser *parser) {
 	int i;
-	for (i = 0; i < parser->tokenStream->size; i++) {
-		Token *tok = getItemFromVector(parser->tokenStream, i);
-		destroyToken(tok);
+	for (i = 0; i < parser->token_stream->size; i++) {
+		token *tok = get_vector_item(parser->token_stream, i);
+		destroy_token(tok);
 	}
-	destroyVector(parser->tokenStream);
+	destroy_vector(parser->token_stream);
 
-	for (i = 0; i < parser->parseTree->size; i++) {
-		Node *node = getItemFromVector(parser->parseTree, i);
-		removeNode(node);
+	for (i = 0; i < parser->parse_tree->size; i++) {
+		ast_node *ast_node = get_vector_item(parser->parse_tree, i);
+		remove_ast_node(ast_node);
 	}
-	destroyVector(parser->parseTree);
+	destroy_vector(parser->parse_tree);
 
 	free(parser);
 }
