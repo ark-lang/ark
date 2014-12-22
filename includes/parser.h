@@ -1,5 +1,5 @@
-#ifndef PARSER_H
-#define PARSER_H
+#ifndef parser_H
+#define parser_H
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -21,15 +21,15 @@
 #define EXPR_PARENTHESIS 		'P'
 
 /**
- * Parser contents
+ * parser contents
  */
 typedef struct {
-	Vector *tokenStream;
-	Vector *parseTree;
+	vector *token_stream;
+	vector *parse_tree;
 
-	int tokenIndex;
+	int token_index;
 	bool parsing;
-} Parser;
+} parser;
 
 /**
  * Different data types
@@ -37,121 +37,121 @@ typedef struct {
 typedef enum {
 	INTEGER = 0, STR, DOUBLE, FLOAT, BOOL, VOID,
 	CHAR
-} DataType;
+} data_type;
 
 /**
  * Different types of data
- * to be stored on Node Vector
+ * to be stored on ast_node vector
  */
 typedef enum {
-	EXPRESSION_NODE = 0, VARIABLE_DEF_NODE,
-	VARIABLE_DEC_NODE, FUNCTION_ARG_NODE,
-	FUNCTION_NODE, FUNCTION_PROT_NODE,
-	BLOCK_NODE, FUNCTION_CALLEE_NODE,
-	FUNCTION_RET_NODE, FOR_LOOP_NODE,
-	VARIABLE_REASSIGN_NODE
-} NodeType;
+	EXPRESSION_ast_node = 0, VARIABLE_DEF_ast_node,
+	VARIABLE_DEC_ast_node, FUNCTION_ARG_ast_node,
+	FUNCTION_ast_node, FUNCTION_PROT_ast_node,
+	BLOCK_ast_node, FUNCTION_CALLEE_ast_node,
+	FUNCTION_RET_ast_node, FOR_LOOP_ast_node,
+	VARIABLE_REASSIGN_ast_node
+} ast_ast_node_type;
 
 /**
  * A wrapper for easier memory
- * management with Nodes
+ * management with ast_nodes
  */
 typedef struct {
 	void *data;
-	NodeType type;
-} Node;
+	ast_ast_node_type type;
+} ast_node;
 
 /**
- * Node for an Expression
+ * ast_node for an Expression
  */
 typedef struct s_Expression {
 	char type;
-	Token *value;
+	token *value;
 	
 	struct s_Expression *lhand;
 	char operand;
 	struct s_Expression *rhand;
-} ExpressionNode;
+} expression_ast_node;
 
 /**
- * Node for an uninitialized
+ * ast_node for an uninitialized
  * Variable
  */
 typedef struct {
-	DataType type;		// type of data to store
-	Token *name;		// name of the variable
-} VariableDefineNode;
+	data_type type;		// type of data to store
+	token *name;		// name of the variable
+} variable_define_ast_node;
 
 /** 
- * Node for a Variable being declared
+ * ast_node for a Variable being declared
  */
 typedef struct {
-	VariableDefineNode *vdn;
-	ExpressionNode *expr;
-} VariableDeclareNode;
+	variable_define_ast_node *vdn;
+	expression_ast_node *expr;
+} variable_declare_ast_node;
 
 /**
  * An argument for a function
  */
 typedef struct {
-	DataType type;
-	Token *name;
-	ExpressionNode *value;
-} FunctionArgumentNode;
+	data_type type;
+	token *name;
+	expression_ast_node *value;
+} function_argument_ast_node;
 
 /**
- * Function Return Node
+ * Function Return ast_node
  */
 typedef struct {
-	Vector *returnVals;
+	vector *returnVals;
 	int numOfReturnValues;
-} FunctionReturnNode;
+} function_return_ast_node;
 
 /**
  * Function call
  */
 typedef struct {
-	Token *callee;
-	Vector *args;
-} FunctionCalleeNode;
+	token *callee;
+	vector *args;
+} function_callee_ast_node;
 
 /**
- * A node for containing and identifying
+ * A ast_node for containing and identifying
  * statements
  */
 typedef struct {
 	void *data;
-	NodeType type;
-} StatementNode;
+	ast_ast_node_type type;
+} statement_ast_node;
 
 /**
- * Node which represents a block of statements
+ * ast_node which represents a block of statements
  */
 typedef struct {
-	Vector *statements;
-} BlockNode;
+	vector *statements;
+} block_ast_node;
 
 /**
- * Function prototype node
+ * Function prototype ast_node
  * 
  * i.e:
  *    fn func_name(type name, type name): type
  */
 typedef struct {
-	Vector *args;
-	Token *name;
-} FunctionPrototypeNode;
+	vector *args;
+	token *name;
+} function_prototype_ast_node;
 
 /**
- * Function declaration node
+ * Function declaration ast_node
  */
 typedef struct {
-	FunctionPrototypeNode *fpn;
-	BlockNode *body;
-	Vector *ret;
+	function_prototype_ast_node *fpn;
+	block_ast_node *body;
+	vector *ret;
 	bool isTuple;
 	int numOfReturnValues;
-} FunctionNode;
+} function_ast_node;
 
 /**
  * Labelled for accessing 
@@ -162,28 +162,28 @@ typedef enum {
 	FOR_START = 0,
 	FOR_END,
 	FOR_STEP
-} ForLoopParam;
+} for_loop_param;
 
 /**
- * A node for a for loop
+ * A ast_node for a for loop
  */
 typedef struct {
-	DataType type;		// data type
-	Token *indexName;	// index name
-	Vector *params;		// parameters (start, end, step)
-	BlockNode *body;	// contents of for loop
-} ForLoopNode;
+	data_type type;		// data type
+	token *indexName;	// index name
+	vector *params;		// parameters (start, end, step)
+	block_ast_node *body;	// contents of for loop
+} for_loop_ast_node;
 
 /**
- * Node for variable re-assignment
+ * ast_node for variable re-assignment
  */
 typedef struct {
-	Token *name;
-	ExpressionNode *expr;
-} VariableReassignNode;
+	token *name;
+	expression_ast_node *expr;
+} variable_reassignment_node;
 
 /**
- * Node for Boolean Expressions
+ * ast_node for Boolean Expressions
  * 
  * ???
  * !var
@@ -195,190 +195,190 @@ typedef struct {
  * var || var
  * 
  */
-typedef struct s_BooleanExpressionNode {
+typedef struct s_bool_expression_ast_node {
 	char operand;
-	ExpressionNode *expr;
+	expression_ast_node *expr;
 
-	struct s_BooleanExpressionNode *lhand;
+	struct s_bool_expression_ast_node *lhand;
 	char firstCompar;
 	char secondCompar;
-	struct s_BooleanExpressionNode *rhand;
-} BooleanExpressionNode;
+	struct s_bool_expression_ast_node *rhand;
+} bool_expression_ast_node;
 
 /**
- * Parser an operand
+ * parser an operand
  */
-char parseOperand(Parser *parser);
+char parse_operand(parser *parser);
 
 /**
- * Create a new Variable Reassignment Node
+ * Create a new Variable Reassignment ast_node
  */
-VariableReassignNode *createVariableReassignNode();
+variable_reassignment_node *create_variable_reassign_ast_node();
 
 /**
- * Create a new For Loop Node
+ * Create a new For Loop ast_node
  */
-ForLoopNode *createForLoopNode();
+for_loop_ast_node *create_for_loop_ast_node();
 
 /**
- * Create a new  Function Callee Node
+ * Create a new  Function Callee ast_node
  */
-FunctionCalleeNode *createFunctionCalleeNode();
+function_callee_ast_node *create_function_callee_ast_node();
 
 /**
- * Create a new Boolean Expression Node
+ * Create a new Boolean Expression ast_node
  */
-BooleanExpressionNode *createBooleanExpressionNode();
+bool_expression_ast_node *create_boolean_expression_ast_node();
 
 /**
- * Create a new Function Return Node
+ * Create a new Function Return ast_node
  */
-FunctionReturnNode *createFunctionReturnNode();
+function_return_ast_node *create_function_return_ast_node();
 
 /**
- * Create a new Statement Node
+ * Create a new Statement ast_node
  */
-StatementNode *createStatementNode();
+statement_ast_node *create_statement_ast_node();
 
 /**
- * Creates a new Expression Node
+ * Creates a new Expression ast_node
  * 
  * a + b
  * 1 + 2
  * (a + b) - (1 + b)
  */
-ExpressionNode *createExpressionNode();
+expression_ast_node *create_expression_ast_node();
 
 /**
- * Creates a new Variable Define node
+ * Creates a new Variable Define ast_node
  * 
  * int x;
  * int y;
  * double z; 
  */
-VariableDefineNode *createVariableDefineNode();
+variable_define_ast_node *create_variable_define_ast_node();
 
 /**
- * Creates a new Variable Declaration Node
+ * Creates a new Variable Declaration ast_node
  * 
  * int x = 5;
  * int d = 5 + 9;
  */
-VariableDeclareNode *createVariableDeclareNode();
+variable_declare_ast_node *create_variable_declare_ast_node();
 
 /**
- * Creates a new Function Argument Node
+ * Creates a new Function Argument ast_node
  * 
  * fn whatever(int x, int y, int z = 23): int {...
  */
-FunctionArgumentNode *createFunctionArgumentNode();
+function_argument_ast_node *create_function_argument_ast_node();
 
 /**
- * Creates a new Block Node
+ * Creates a new Block ast_node
  * 
  * {
  *    statement;
  * }
  */
-BlockNode *createBlockNode();
+block_ast_node *create_block_ast_node();
 
 /**
- * Creates a new Function Node
+ * Creates a new Function ast_node
  * 
  * fn whatever(int x, int y): int {
  *     ret x + y;
  * }
  */
-FunctionNode *createFunctionNode();
+function_ast_node *create_function_ast_node();
 
 /**
- * Creates a new Function Prototype Node
+ * Creates a new Function Prototype ast_node
  * 
  * fn whatever(int x, int y): int
  */
-FunctionPrototypeNode *createFunctionPrototypeNode();
+function_prototype_ast_node *create_function_prototype_ast_node();
 
-void destroyVariableReassignNode(VariableReassignNode *vrn);
+void destroy_variable_reassign_ast_node(variable_reassignment_node *vrn);
 
 /**
- * Destroys the given For Loop Node
+ * Destroys the given For Loop ast_node
  */
-void destroyForLoopNode(ForLoopNode *fln);
+void destroy_for_loop_ast_node(for_loop_ast_node *fln);
 
 /**
- * Destroy the given Statement Node
+ * Destroy the given Statement ast_node
  */
-void destroyStatementNode(StatementNode *sn);
+void destroy_statement_ast_node(statement_ast_node *sn);
 
 /**
- * Destroy the given Function Return Node 
+ * Destroy the given Function Return ast_node 
  */
-void destroyFunctionReturnNode(FunctionReturnNode *frn);
+void destroy_function_return_ast_node(function_return_ast_node *frn);
 
 /**
- * Destroy function callee node
+ * Destroy function callee ast_node
  */
-void destroyFunctionCalleeNode(FunctionCalleeNode *fcn);
+void destroy_function_callee_ast_node(function_callee_ast_node *fcn);
 
 /**
- * Destroy an Expression Node
+ * Destroy an Expression ast_node
  */
-void destroyExpressionNode(ExpressionNode *expr);
+void destroy_expression_ast_node(expression_ast_node *expr);
 
 /**
- * Destroy a Variable Definition Node
+ * Destroy a Variable Definition ast_node
  */
-void destroyVariableDefineNode(VariableDefineNode *vdn);
+void destroy_variable_define_ast_node(variable_define_ast_node *vdn);
 
 /**
- * Destroy a Variable Declaration Node
+ * Destroy a Variable Declaration ast_node
  */
-void destroyVariableDeclareNode(VariableDeclareNode *vdn);
+void destroy_variable_declare_ast_node(variable_declare_ast_node *vdn);
 
 /**
- * Destroy a Function Argument Node
+ * Destroy a Function Argument ast_node
  */
-void destroyFunctionArgumentNode(FunctionArgumentNode *fan);
+void destroy_function_argument_ast_node(function_argument_ast_node *fan);
 
 /**
- * Destroy a Block Node
+ * Destroy a Block ast_node
  */
-void destroyBlockNode(BlockNode *bn);
+void destroy_block_ast_node(block_ast_node *bn);
 
 /**
- * Destroy a Function Prototype Node
+ * Destroy a Function Prototype ast_node
  */
-void destroyFunctionPrototypeNode(FunctionPrototypeNode *fpn);
+void destroy_function_prototype_ast_node(function_prototype_ast_node *fpn);
 
 /**
- * Destroy a Function Node
+ * Destroy a Function ast_node
  */
-void destroyFunctionNode(FunctionNode *fn);
+void destroy_function_ast_node(function_ast_node *fn);
 
 /**
- * Prepares a node to go into a Vector, this will also
+ * Prepares a ast_node to go into a vector, this will also
  * help with memory management
  * 
  * @param parser the parser instance for vector access
  * @param data the data to store
  * @param type the type of data
  */
-void prepareNode(Parser *parser, void *data, NodeType type);
+void prepare_ast_node(parser *parser, void *data, ast_ast_node_type type);
 
 /**
- * Remove a node
+ * Remove a ast_node
  * 
- * @param node the node to remove
+ * @param ast_node the ast_node to remove
  */
-void removeNode(Node *node);
+void remove_ast_node(ast_node *ast_node);
 
 /**
- * Create a new Parser instance
+ * Create a new parser instance
  * 
- * @param tokenStream the token stream to parse
- * @return instance of Parser
+ * @param token_stream the token stream to parse
+ * @return instance of parser
  */
-Parser *createParser(Vector *tokenStream);
+parser *create_parser(vector *token_stream);
 
 /**
  * Advances to the next token
@@ -386,7 +386,7 @@ Parser *createParser(Vector *tokenStream);
  * @param parser parser instance
  * @return the token we consumed
  */
-Token *consumeToken(Parser *parser);
+token *consume_token(parser *parser);
 
 /**
  * Peek at the token that is {@ahead} tokens
@@ -394,9 +394,9 @@ Token *consumeToken(Parser *parser);
  * 
  * @param parser instance of parser
  * @param ahead how far ahead to peek
- * @return the Token peeking at
+ * @return the token peeking at
  */
-Token *peekAtTokenStream(Parser *parser, int ahead);
+token *peek_at_token_stream(parser *parser, int ahead);
 
 /**
  * Checks if the next token type is the same as the given
@@ -406,7 +406,7 @@ Token *peekAtTokenStream(Parser *parser, int ahead);
  * @param type the type to match
  * @return the token we matched
  */
-Token *expectTokenType(Parser *parser, TokenType type);
+token *expect_token_type(parser *parser, token_type type);
 
 /**
  * Checks if the next tokens content is the same as the given
@@ -416,7 +416,7 @@ Token *expectTokenType(Parser *parser, TokenType type);
  * @param type the type to match
  * @return the token we matched
  */
-Token *expectTokenContent(Parser *parser, char *content);
+token *expect_token_content(parser *parser, char *content);
 
 /**
  * Checks if the next token type is the same as the given
@@ -428,7 +428,7 @@ Token *expectTokenContent(Parser *parser, char *content);
  * @param content content to match
  * @return the token we matched
  */
-Token *expectTokenTypeAndContent(Parser *parser, TokenType type, char *content);
+token *expect_token_type_and_content(parser *parser, token_type type, char *content);
 
 /**
  * Checks if the current token type is the same as the given
@@ -438,7 +438,7 @@ Token *expectTokenTypeAndContent(Parser *parser, TokenType type, char *content);
  * @param type the type to match
  * @return the token we matched
  */
-Token *matchTokenType(Parser *parser, TokenType type);
+token *match_token_type(parser *parser, token_type type);
 
 /**
  * Checks if the current tokens content is the same as the given
@@ -448,7 +448,7 @@ Token *matchTokenType(Parser *parser, TokenType type);
  * @param type the type to match
  * @return the token we matched
  */
-Token *matchTokenContent(Parser *parser, char *content);
+token *match_token_content(parser *parser, char *content);
 
 /**
  * Checks if the current token type is the same as the given
@@ -460,7 +460,7 @@ Token *matchTokenContent(Parser *parser, char *content);
  * @param content content to match
  * @return the token we matched
  */
-Token *matchTokenTypeAndContent(Parser *parser, TokenType type, char *content);
+token *match_token_type_and_content(parser *parser, token_type type, char *content);
 
 /**
  * if the token at the given index is the same type as the given one
@@ -468,7 +468,7 @@ Token *matchTokenTypeAndContent(Parser *parser, TokenType type, char *content);
  * @param type the type to check
  * @return if the current token is the same type as the given one
  */
-bool checkTokenType(Parser *parser, TokenType type, int ahead);
+bool check_token_type(parser *parser, token_type type, int ahead);
 
 /**
  * if the token at the given index has the same content as the given
@@ -477,14 +477,14 @@ bool checkTokenType(Parser *parser, TokenType type, int ahead);
  * @param ahead how far away the token is
  * @return if the current token has the same content as the given
  */
-bool checkTokenContent(Parser *parser, char* content, int ahead);
+bool check_token_content(parser *parser, char* content, int ahead);
 
 /**
  * @param parser the parser instance
  * @param type the type to check
  * @return if the current token has the same content as the given
  */
-bool checkTokenTypeAndContent(Parser *parser, TokenType type, char* content, int ahead);
+bool check_token_type_and_content(parser *parser, token_type type, char* content, int ahead);
 
 /**
  * Parses an expression: currently only parses a number!
@@ -492,17 +492,17 @@ bool checkTokenTypeAndContent(Parser *parser, TokenType type, char* content, int
  * @param parser the parser instance
  * @return the expression parsed
  */
-ExpressionNode *parseExpressionNode(Parser *parser);
+expression_ast_node *parse_expression_ast_node(parser *parser);
 
 /**
  * Parses a For Loop statement
  */
-StatementNode *parserParseForLoopNode(Parser *parser);
+statement_ast_node *parse_for_loop_ast_node(parser *parser);
 
 /**
  * Prints the type and content of the current token
  */
-void printCurrentToken(Parser *parser);
+void print_current_token(parser *parser);
 
 /**
  * Parses a variable
@@ -510,28 +510,28 @@ void printCurrentToken(Parser *parser);
  * @param param the parser instance
  * @param global if the variable is globally declared
  */
-void *parseVariableNode(Parser *parser, bool global);
+void *parse_variable_ast_node(parser *parser, bool global);
 
 /**
  * Parses a block of statements
  *
  * @param parser the parser instance
  */
-BlockNode *parseBlockNode(Parser *parser);
+block_ast_node *parse_block_ast_node(parser *parser);
 
 /**
  * Parses a function
  * 
  * @param parser the parser instance
  */
-FunctionNode *parseFunctionNode(Parser *parser);
+function_ast_node *parse_function_ast_node(parser *parser);
 
 /**
  * Parses a function call
  * 
  * @param parser the parser instance
  */
-FunctionCalleeNode *parseFunctionNodeCall(Parser *parser);
+function_callee_ast_node *parse_function_ast_nodeCall(parser *parser);
 
 /**
  * Parses statements, function calls, while
@@ -539,17 +539,17 @@ FunctionCalleeNode *parseFunctionNodeCall(Parser *parser);
  * 
  * @param parser the parser instance
  */
-StatementNode *parseStatementNode(Parser *parser);
+statement_ast_node *parse_statement_ast_node(parser *parser);
 
 /**
- * Finds the appropriate Data Type from the given Token
+ * Finds the appropriate Data Type from the given token
  * will throw an error if invalid type
  * 
  * @param parser the parser instance
  * @param tok the token to check
- * @return the token as a DataType
+ * @return the token as a data_type
  */
-DataType matchTokenTypeToDataType(Parser *parser, Token *tok);
+data_type match_token_type_to_data_type(parser *parser, token *tok);
 
 /**
  * Returns if the given token is a data type
@@ -558,27 +558,27 @@ DataType matchTokenTypeToDataType(Parser *parser, Token *tok);
  * @param tok the token instance
  * @return true if the token is a data type
  */
-bool checkTokenTypeIsValidDataType(Parser *parser, Token *tok);
+bool check_token_type_is_valid_data_type(parser *parser, token *tok);
 
 /**
  * Parses a variable reassignment
  * 
  * @parser the parser instance
  */
-VariableReassignNode *parseReassignmentStatementNode(Parser *parser);
+variable_reassignment_node *parse_reassignment_statement_ast_node(parser *parser);
 
 /**
  * Start parsing
  *
  * @param parser parser to start parsing
  */
-void startParsingTokenStream(Parser *parser);
+void start_parsing_token_stream(parser *parser);
 
 /**
- * Destroy the given Parser
+ * Destroy the given parser
  * 
  * @param parser the parser to destroy
  */
-void destroyParser(Parser *parser);
+void destroy_parser(parser *parser);
 
-#endif // PARSER_H
+#endif // parser_H

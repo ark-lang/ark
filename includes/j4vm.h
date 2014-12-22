@@ -1,5 +1,5 @@
-#ifndef JAYFORVM_H
-#define JAYFORVM_H
+#ifndef jayfor_vm_H
+#define jayfor_vm_H
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -9,11 +9,11 @@
 typedef struct {
 	int *bytecode;
 	int *globals;
-	int instructionPointer;
-	int framePointer;
+	int instruction_pointer;
+	int frame_pointer;
 	bool running;
 	Stack *stack;
-} JayforVM;
+} jayfor_vm;
 
 typedef enum {
 	ADD,
@@ -32,17 +32,17 @@ typedef enum {
 	GSTORE,
 	POP,
 	HALT,
-} InstructionSet;
+} instruction_set;
 
 typedef struct {
     char name[6];
     int numOfArgs;
-} Instruction;
+} instruction;
 
-JayforVM *createJayforVM();
+jayfor_vm *create_jayfor_vm();
 
-void startJayforVM(JayforVM *vm, int *bytecode, int globalCount);
+void start_jayfor_vm(jayfor_vm *vm, int *bytecode, int global_count);
 
-void destroyJayforVM(JayforVM *vm);
+void destroy_jayfor_vm(jayfor_vm *vm);
 
-#endif // JAYFORVM_H
+#endif // jayfor_vm_H

@@ -29,7 +29,7 @@ typedef struct {
  * Create a new stack instance
  * @return the instance of the stack created
  */
-Stack *createStack();
+Stack *create_stack();
 
 /**
  * Push a value to the stack
@@ -37,7 +37,7 @@ Stack *createStack();
  * @param stack stack to push to
  * @param item item to push to
  */
-void pushToStack(Stack *stack, StackItem item);
+void push_to_stack(Stack *stack, StackItem item);
 
 /**
  * Push a value to the stack at the given index
@@ -45,7 +45,7 @@ void pushToStack(Stack *stack, StackItem item);
  * @param stack stack to push to
  * @param item item to push to
  */
-void pushToStackAtIndex(Stack *stack, StackItem item, int index);
+void push_to_stack_at_index(Stack *stack, StackItem item, int index);
 
 /**
  * Retrieve the value at the given index
@@ -54,7 +54,7 @@ void pushToStackAtIndex(Stack *stack, StackItem item, int index);
  * @param index the index to check
  * @return the item at the given @{index}
  */
-StackItem getValueFromStack(Stack *stack, int index);
+StackItem get_value_from_stack(Stack *stack, int index);
 
 /**
  * Pops value from top of stack
@@ -62,13 +62,13 @@ StackItem getValueFromStack(Stack *stack, int index);
  * @param stack the stack to pop
  * @return the item we popped
  */
-StackItem popStack(Stack *stack);
+StackItem pop_stack(Stack *stack);
 
 /**
  * Destroys the given stack
  * 
  * @param stack stack to destroy
  */
-void destroyStack(Stack *stack);
+void destroy_stack(Stack *stack);
 
 #endif // STACK_H

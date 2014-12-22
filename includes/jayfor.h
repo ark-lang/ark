@@ -18,9 +18,9 @@
 typedef struct {
 	Scanner *scanner;
 	Lexer *lexer;
-	Parser *parser;
-	Compiler *compiler;
-	JayforVM *j4vm;
+	parser *parser;
+	compiler *compiler;
+	jayfor_vm *j4vm;
 } Jayfor;
 
 /**
@@ -30,20 +30,20 @@ typedef struct {
  * @argv argument list
  * @return instance of Jayfor
  */
-Jayfor *createJayfor(int argc, char** argv);
+Jayfor *create_jayfor(int argc, char** argv);
 
 /**
  * Start the Jayfor interpreter
  * 
  * @param jayfor instance to start
  */
-void startJayfor(Jayfor *jayfor);
+void start_jayfor(Jayfor *jayfor);
 
 /**
  * Destroy the given Jayfor instance
  * 
  * @param jayfor instance to destroy
  */
-void destroyJayfor(Jayfor *jayfor);
+void destroy_jayfor(Jayfor *jayfor);
 
 #endif // JAYFOR_H
