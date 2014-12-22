@@ -1,9 +1,9 @@
 #include "vector.h"
 
-Vector *createVector() {
-	Vector *vec = malloc(sizeof(*vec));
+vector *create_vector() {
+	vector *vec = malloc(sizeof(*vec));
 	if (!vec) {
-		perror("malloc: failed to allocate memory for Vector");
+		perror("malloc: failed to allocate memory for vector");
 		exit(1);
 	}
 	vec->size = 0;
@@ -16,7 +16,7 @@ Vector *createVector() {
 	return vec;
 }
 
-void pushBackVectorItem(Vector *vec, VectorItem item) {
+void push_back_item(vector *vec, vectorItem item) {
 	// much more efficient to reallocate exponentially,
 	// instead of reallocating after adding an item
 	if (vec->size >= vec->maxSize) {
@@ -30,7 +30,7 @@ void pushBackVectorItem(Vector *vec, VectorItem item) {
 	vec->items[vec->size++] = item;
 }
 
-VectorItem getItemFromVector(Vector *vec, int index) {
+vectorItem get_vector_item(vector *vec, int index) {
 	if (index > vec->size) {
 		printf("index out of vector bounds, index: %d, size: %d\n", index, vec->size);
 		exit(1);
@@ -38,7 +38,7 @@ VectorItem getItemFromVector(Vector *vec, int index) {
 	return vec->items[index];
 }
 
-void destroyVector(Vector *vec) {
+void destroy_vector(vector *vec) {
 	free(vec->items);
 	free(vec);
 }
