@@ -58,7 +58,10 @@ static int popValueFromStack(JayforVM *vm, Stack *stk) {
 	if (!x) {
 		printf("failed to pop at instruction: \n");
 		printInstruction(vm->bytecode, vm->instructionPointer);
-		programDump(vm);
+		
+		if (DEBUG_MODE) {
+			programDump(vm);
+		}
 		exit(1);
 	}
 	return *x;
@@ -78,7 +81,7 @@ void startJayforVM(JayforVM *vm, int *bytecode, int globalCount) {
 	int ret = 0;
 
 	while (vm->running) {
-		printInstruction(vm->bytecode, vm->instructionPointer);
+		if (DEBUG_MODE) printInstruction(vm->bytecode, vm->instructionPointer);
 		
 		int op = vm->bytecode[vm->instructionPointer++];
 
