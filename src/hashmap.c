@@ -20,13 +20,13 @@ int hashString(char *str, int max_hash) {
 }
  
 /* Creates a new hashmap */
-Hashmap *createHashmap(int size) {
-	Hashmap *map = malloc(sizeof(Hashmap));
+hashmap *create_hashmap(int size) {
+	hashmap *map = malloc(sizeof(hashmap));
 	map->size = size;
-	map->fields = malloc(sizeof(HashmapField) * size);
+	map->fields = malloc(sizeof(hashmap_field) * size);
 	int i;
 	for(i = 0; i < size; i++) {
-		HashmapField *field = map->fields + i;
+		hashmap_field *field = map->fields + i;
 		field->size = 0;
 		field->entries = NULL;
 	}
@@ -34,14 +34,14 @@ Hashmap *createHashmap(int size) {
 }
  
 /* Frees the hashmap. You have to manually set the pointer to NULL after using this function */
-void destroyHashmap(Hashmap *map) {
+void destroy_hashmap(hashmap *map) {
 	int i;
 	for(i = 0; i < map->size; i++) {
-		HashmapField *field = map->fields + i;
+		hashmap_field *field = map->fields + i;
 		if(field->entries != 0) {
 			int j;
 			for(j = 0; j < field->size; j++) {
-				HashmapEntry *entry = field->entries + j;
+				hashmap_entry *entry = field->entries + j;
 				free(entry->key);
 				free(entry->val);
 			}
@@ -53,10 +53,10 @@ void destroyHashmap(Hashmap *map) {
 }
  
 /* Sets a value in the hashmap. The memory area that val points to is copied. */
-void setValueAtKey(Hashmap *map, char *key, void *value, size_t length) {
+void set_value_at_key(hashmap *map, char *key, void *value, size_t length) {
 	int hash = hashString(key, map->size - 1);
-	HashmapField *field = map->fields + hash;
-	HashmapEntry *entry;
+	hashmap_field *field = map->fields + hash;
+	hashmap_entry *entry;
  
 	int i;
 	/* Check if entry with the same key already exists in field. */
@@ -73,7 +73,7 @@ void setValueAtKey(Hashmap *map, char *key, void *value, size_t length) {
 	/* Create new entry */
 	if(value == NULL) return;
 	field->size++;
-	field->entries = realloc(field->entries, field->size * sizeof(HashmapEntry));
+	field->entries = realloc(field->entries, field->size * sizeof(hashmap_entry));
 	entry = field->entries + field->size - 1;
 	entry->key = strdup(key);
  
@@ -87,18 +87,18 @@ void setValueAtKey(Hashmap *map, char *key, void *value, size_t length) {
 		field->size--;
 		/* Copy last entry to new position */
 		if(entry != (field->entries + field->size)) {
-			memcpy((void*) entry, (void*) (field->entries + field->size), sizeof(HashmapEntry));
+			memcpy((void*) entry, (void*) (field->entries + field->size), sizeof(hashmap_entry));
 		}
 		/* Shrink field */
-		field->entries = realloc((void*) field->entries, field->size * sizeof(HashmapEntry));
+		field->entries = realloc((void*) field->entries, field->size * sizeof(hashmap_entry));
 	}
 }
  
 /* Get a void-ptr from the hash-map. It is copied from the hashmap and must be freed manually. */
-void *getValueAtKey(Hashmap *map, char *key) {
+void *get_value_at_key(hashmap *map, char *key) {
 	int hash = hashString(key, map->size - 1);
-	HashmapField *field = map->fields + hash;
-	HashmapEntry *entry;
+	hashmap_field *field = map->fields + hash;
+	hashmap_entry *entry;
  
 	int i;
 	for(i = 0; i < field->size; i++) {

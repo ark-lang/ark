@@ -1,54 +1,54 @@
-#ifndef VECTOR_H
-#define VECTOR_H
+#ifndef vector_H
+#define vector_H
 
 #include <stdio.h>
 #include <stdlib.h>
 
 /**
- * VectorItem typedef so we can change
+ * vectorItem typedef so we can change
  * the data type if need be
  */
-typedef void* VectorItem;
+typedef void* vectorItem;
 
 /**
- * Properties of a Vector
+ * Properties of a vector
  */
 typedef struct {
-	VectorItem *items;
+	vectorItem *items;
 	int maxSize;
 	int size;
-} Vector;
+} vector;
 
 /**
- * Creates a new instance of Vector
+ * Creates a new instance of vector
  * 
- * @return the Vector instance
+ * @return the vector instance
  */
-Vector *createVector();
+vector *create_vector();
 
 /**
- * Push a VectorItem into the given Vector
+ * Push a vectorItem into the given vector
  * 
  * @param vec the vector to push to
- * @param VectorItem the item to push
+ * @param vectorItem the item to push
  */
-void pushBackVectorItem(Vector *vec, VectorItem item);
+void push_back_item(vector *vec, vectorItem item);
 
 /**
- * Retrieves the VectorItem at the given index in
- * the given Vector
+ * Retrieves the vectorItem at the given index in
+ * the given vector
  * 
  * @param vec vector the retrieve item from
  * @param index the place to check
- * @return the Vector Item
+ * @return the vector Item
  */
-VectorItem getItemFromVector(Vector *vec, int index);
+vectorItem get_vector_item(vector *vec, int index);
 
 /**
- * Destroys the given Vector
+ * Destroys the given vector
  * 
  * @param vec the vector to destroy
  */
-void destroyVector(Vector *vec);
+void destroy_vector(vector *vec);
 
-#endif // VECTOR_H
+#endif // vector_H

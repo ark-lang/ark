@@ -1,5 +1,5 @@
-#ifndef HASHMAP_H
-#define HASHMAP_H
+#ifndef hashmap_H
+#define hashmap_H
 
 #include <stdlib.h>
 #include <string.h>
@@ -8,24 +8,24 @@ typedef struct {
 	char *key;
 	void *val;
 	size_t len;
-} HashmapEntry;
+} hashmap_entry;
 
 typedef struct {
 	int size;
-	HashmapEntry *entries;
-} HashmapField;
+	hashmap_entry *entries;
+} hashmap_field;
 
 typedef struct {
 	int size;
-	HashmapField *fields;
-} Hashmap;
+	hashmap_field *fields;
+} hashmap;
  
-Hashmap *createHashmap(int);
+hashmap *create_hashmap(int);
 
-void destroyHashmap(Hashmap *map);
+void destroy_hashmap(hashmap *map);
 
-void *getValueAtKey(Hashmap *map, char* str);
+void *get_value_at_key(hashmap *map, char* str);
 
-void setValueAtKey(Hashmap  *map, char* str, void* data, size_t size);
+void set_value_at_key(hashmap  *map, char* str, void* data, size_t size);
 
-#endif // HASHMAP_H
+#endif // hashmap_H
