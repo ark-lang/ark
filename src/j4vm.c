@@ -8,6 +8,7 @@ static Instruction debugInstructions[] = {
     { "mod",    0 },
     { "pow",    0 },
     { "ret",    0 },
+    { "print",    0 },
     { "call",   2 },
     { "iconst", 1 },
     { "load",   1 },
@@ -43,9 +44,23 @@ static void printInstruction(int *code, int ip) {
     }
 }
 
+static void programDump(JayforVM *vm) {
+	printf("\nDUMPING PROGRAM CONTENTS\n");
+	int i;
+	for (i = 0; i< vm->instructionPointer; i++) {
+		printInstruction(vm->bytecode, i);
+	}
+}
+
 // this is a utility to make it easier for the VM
-static int popValueFromStack(Stack *stk) {
+static int popValueFromStack(JayforVM *vm, Stack *stk) {
 	int *x = popStack(stk);
+	if (!x) {
+		printf("failed to pop at instruction: \n");
+		printInstruction(vm->bytecode, vm->instructionPointer);
+		programDump(vm);
+		exit(1);
+	}
 	return *x;
 }
 
@@ -69,52 +84,52 @@ void startJayforVM(JayforVM *vm, int *bytecode, int globalCount) {
 
 		switch (op) {
 			case ADD:
-				a = popValueFromStack(vm->stack);
-				b = popValueFromStack(vm->stack);
+				a = popValueFromStack(vm, vm->stack);
+				b = popValueFromStack(vm, vm->stack);
 				c = a + b;
 				pushToStack(vm->stack, &c);
 				break;
 			case SUB:
-				a = popValueFromStack(vm->stack);
-				b = popValueFromStack(vm->stack);
+				a = popValueFromStack(vm, vm->stack);
+				b = popValueFromStack(vm, vm->stack);
 				c = a - b;
 				pushToStack(vm->stack, &c);
 				break;
 			case MUL:
-				a = popValueFromStack(vm->stack);
-				b = popValueFromStack(vm->stack);
+				a = popValueFromStack(vm, vm->stack);
+				b = popValueFromStack(vm, vm->stack);
 				c = a * b;
 				pushToStack(vm->stack, &c);
 				break;
 			case DIV:
-				a = popValueFromStack(vm->stack);
-				b = popValueFromStack(vm->stack);
+				a = popValueFromStack(vm, vm->stack);
+				b = popValueFromStack(vm, vm->stack);
 				c = a / b;
 				pushToStack(vm->stack, &c);
 				break;
 			case MOD:
-				a = popValueFromStack(vm->stack);
-				b = popValueFromStack(vm->stack);
+				a = popValueFromStack(vm, vm->stack);
+				b = popValueFromStack(vm, vm->stack);
 				c = a % b;
 				pushToStack(vm->stack, &c);
 				break;
 			case POW:
-				a = popValueFromStack(vm->stack);
-				b = popValueFromStack(vm->stack);
+				a = popValueFromStack(vm, vm->stack);
+				b = popValueFromStack(vm, vm->stack);
 				c = a ^ b;
 				pushToStack(vm->stack, &c);
 				break;
 			case RET:
-				ret = popValueFromStack(vm->stack);
+				ret = popValueFromStack(vm, vm->stack);
 				vm->stack->stackPointer = vm->framePointer;
-				vm->instructionPointer = popValueFromStack(vm->stack);
-				vm->framePointer = popValueFromStack(vm->stack);
-				numOfArgs = popValueFromStack(vm->stack);
+				vm->instructionPointer = popValueFromStack(vm, vm->stack);
+				vm->framePointer = popValueFromStack(vm, vm->stack);
+				numOfArgs = popValueFromStack(vm, vm->stack);
 				vm->stack->stackPointer -= numOfArgs;
 				pushToStack(vm->stack, &ret);
 				break;
 			case PRINT:
-				printf("%d\n", popValueFromStack(vm->stack));
+				printf("%d\n", popValueFromStack(vm, vm->stack));
 				break;
 			case CALL:
 				address = vm->bytecode[vm->instructionPointer++];
@@ -142,10 +157,10 @@ void startJayforVM(JayforVM *vm, int *bytecode, int globalCount) {
 				break;
 			case GSTORE:
 				address = vm->bytecode[vm->instructionPointer++];
-				vm->globals[address] = popValueFromStack(vm->stack);
+				vm->globals[address] = popValueFromStack(vm, vm->stack);
 				break;
 			case POP:
-				popValueFromStack(vm->stack);
+				popValueFromStack(vm, vm->stack);
 				break;
 			case HALT:
 				vm->running = false;
