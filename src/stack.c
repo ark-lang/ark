@@ -18,7 +18,7 @@ Stack *createStack() {
 
 StackItem getValueFromStack(Stack *stack, int index) {
 	if (index > stack->stackPointer) {
-		printf("error: could not retrieve value at index %d\n", index);
+		printf(KRED "error: could not retrieve value at index %d\n" KNRM, index);
 		return NULL;
 	} 
 	return stack->items[index];
@@ -29,7 +29,7 @@ void pushToStackAtIndex(Stack *stack, StackItem item, int index) {
 	// instead of reallocating after adding an item
 	if (stack->stackPointer >= stack->defaultStackSize) {
 		stack->defaultStackSize *= 2;
-		printf("stack size expanded to: %d\n", stack->defaultStackSize);
+		if (DEBUG_MODE) printf(KYEL "stack size expanded to: %d\n" KNRM, stack->defaultStackSize);
 
 		StackItem *tmp = realloc(stack->items, sizeof(*stack->items) * stack->defaultStackSize);
 		if (!tmp) {
@@ -49,7 +49,7 @@ void pushToStack(Stack *stack, StackItem item) {
 
 StackItem popStack(Stack *stack) {
 	if (stack->stackPointer < 0) {
-		printf("error: cannot pop value from empty stack\n");
+		printf(KRED "error: cannot pop value from empty stack\n" KNRM);
 		return NULL;
 	}
 	return stack->items[stack->stackPointer--];
