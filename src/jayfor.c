@@ -128,10 +128,10 @@ void start_jayfor(jayfor *self) {
 		// output bytecode to file, overwrite existing
 		FILE *output = fopen(EXECUTABLE_FILENAME, "wb");
 		if (!output) {
-			perror("fopen: failed to create executable %s\n", EXECUTABLE_FILENAME);
+			perror("fopen: failed to create executable\n");
 			exit(1);
 		}
-		
+
 		int i;
 		for (i = 0; i < self->compiler->current_instruction; i++) {
 			if (i % 8 == 0 && i != 0) {
