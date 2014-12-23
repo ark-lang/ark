@@ -159,96 +159,128 @@ void destroy_lexer(Lexer *lexer);
  * @return if the character given is the end of input
  * @param ch the character to check
  */
-static inline bool is_end_of_input(char ch) 		{ return ch == '\0'; }
+static inline bool is_end_of_input(char ch) { 
+	return ch == '\0'; 
+}
 
 /**
  * @return if the character given is a comment opener (#)
  * @param ch the character to check
  */
-static inline bool is_comment_opener(char ch) 	{ return ch == '#'; }
+static inline bool is_comment_opener(char ch) { 
+	return ch == '#'; 
+}
 
 /**
  * @return if the character given is a layout character
  * @param ch the character to check
  */
-static inline bool is_layout(char ch) 			{ return !is_end_of_input(ch) && (ch) <= ' '; }
+static inline bool is_layout(char ch) { 
+	return !is_end_of_input(ch) && (ch) <= ' '; 
+}
 
 /**
  * @return if the character given is a comment closer 
  * @param ch the character to check
  */
-static inline bool is_comment_closer(char ch) 	{ return ch == '\n'; }
+static inline bool is_comment_closer(char ch) { 
+	return ch == '\n'; 
+}
 
 /**
  * @return if the character given is an uppercase letter
  * @param ch the character to check
  */
-static inline bool is_upper_letter(char ch) 		{ return 'A' <= ch && ch <= 'Z'; }
+static inline bool is_upper_letter(char ch) { 
+	return 'A' <= ch && ch <= 'Z'; 
+}
 
 /**
  * @return if the character given is a lower case letter
  * @param ch the character to check
  */
-static inline bool is_lower_letter(char ch) 		{ return 'a' <= ch && ch <= 'z'; }
+static inline bool is_lower_letter(char ch) { 
+	return 'a' <= ch && ch <= 'z'; 
+}
 
 /**
  * @return if the character given is a letter a-z, A-Z
  * @param ch the character to check
  */
-static inline bool is_letter(char ch) 			{ return is_upper_letter(ch) || is_lower_letter(ch); }
+static inline bool is_letter(char ch) { 
+	return is_upper_letter(ch) || is_lower_letter(ch); 
+}
 
 /**
  * @return if the character given is a digit 0-9
  * @param ch the character to check
  */
-static inline bool is_digit(char ch) 			{ return '0' <= ch && ch <= '9'; }
+static inline bool is_digit(char ch) { 
+	return '0' <= ch && ch <= '9'; 
+}
 
 /**
  * @return if the character given is a letter or digit a-z, A-Z, 0-9
  * @param ch the character to check
  */
-static inline bool is_letter_or_digit(char ch) 	{ return is_letter(ch) || is_digit(ch); }
+static inline bool is_letter_or_digit(char ch) { 
+	return is_letter(ch) || is_digit(ch); 
+}
 
 /**
  * @return if the character given is an underscore
  * @param ch the character to check
  */
-static inline bool is_underscore(char ch) 		{ return ch == '_'; }
+static inline bool is_underscore(char ch) { 
+	return ch == '_'; 
+}
 
 /**
  * @return if the character given is a quote, denoting a string
  * @param ch the character to check
  */
-static inline bool is_string(char ch) 			{ return ch == '"'; }
+static inline bool is_string(char ch) { 
+	return ch == '"'; 
+}
 
 /**
  * @return if the character given is a single quote, denoting a character
  * @param ch the character to check
  */
-static inline bool is_character(char ch) 		{ return ch == '\''; }
+static inline bool is_character(char ch) { 
+	return ch == '\''; 
+}
 
 /**
  * @return if the character given is an operator
  * @param ch the character to check
  */
-static inline bool is_operator(char ch) 			{ return (strchr("+-*/=><!~?:&%^\"'", ch) != 0); }
+static inline bool is_operator(char ch) { 
+	return (strchr("+-*/=><!~?:&%^\"'", ch) != 0); 
+}
 
 /**
  * @return if the character given is a separator
  * @param ch the character to check
  */
-static inline bool is_separator(char ch) 		{ return (strchr(" ;,.`@(){}[] ", ch) != 0); }
+static inline bool is_separator(char ch) { 
+	return (strchr(" ;,.`@(){}[] ", ch) != 0); 
+}
 
 /**
  * @return if the character is a special character like the British symbol or alike 
  * @param ch character to check
  */
-static inline bool is_special_char(char ch)		{ return (int) ch >= WEIRD_CHARACTER_ASCII_THRESHOLD; }
+static inline bool is_special_char(char ch) { 
+	return (int) ch >= WEIRD_CHARACTER_ASCII_THRESHOLD; 
+}
 
 /**
  * @return if the character is end of line to track line number
  * @param ch character to check
  */
-static inline bool is_end_of_line(char ch)			{ return ch == '\n'; }
+static inline bool is_end_of_line(char ch) { 
+	return ch == '\n'; 
+}
 
 #endif // LEXER_H

@@ -23,7 +23,8 @@ void consume_ast_node(compiler *self) {
 	self->current_ast_node += 1;
 }
 
-int evaluate_expression_ast_node(compiler *self, expression_ast_node *expr) {
+void evaluate_expression_ast_node(compiler *self, expression_ast_node *expr) {
+	// O(n + m)
 	if (expr->value != NULL) {
 		append_instruction(self, ICONST);
 		append_instruction(self, atoi(expr->value->content));
@@ -40,26 +41,26 @@ int evaluate_expression_ast_node(compiler *self, expression_ast_node *expr) {
 			case '%': append_instruction(self, MOD); break;
 		}
 	}
-	return 1337;
 }
 
 void generate_variable_declaration_code(compiler *self, variable_declare_ast_node *vdn) {
+	
 }
 
 void generateFunctionCalleeCode(compiler *self, function_callee_ast_node *fcn) {
 	char *name = fcn->callee->content;
 	int *address = get_value_at_key(self->functions, name);
-	int numOfArgs = fcn->args->size;
+	int number_of_args = fcn->args->size;
 
 	int i;
-	for (i = 0; i < numOfArgs; i++) {
+	for (i = 0; i < number_of_args; i++) {
 		function_argument_ast_node *fan = get_vector_item(fcn->args, i);
 		evaluate_expression_ast_node(self, fan->value);
 	}
 
 	append_instruction(self, CALL);
 	append_instruction(self, *address);
-	append_instruction(self, numOfArgs);
+	append_instruction(self, number_of_args);
 }
 
 void generateFunctionReturnCode(compiler *self, function_return_ast_node *frn) {
