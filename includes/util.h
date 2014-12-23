@@ -1,7 +1,7 @@
 #ifndef BOOL_H
 #define BOOL_H
 
-#define jayfor_VERSION "0.0.0"
+#define JAYFOR_VERSION "0.0.0"
 
 /**
  * Colour Printing stuff, not sure
@@ -35,8 +35,19 @@ typedef enum {
 	false, true
 } bool;
 
+/** if we are in debug mode -- will print debug warnings */
 extern bool DEBUG_MODE;
+
+/** if we are going to execute the bytecode after generation */
 extern bool EXECUTE_BYTECODE;
-extern char* EXECUTABLE_FILENAME;
+
+/** if we are running a vm executable */
+extern bool RUN_VM_EXECUTABLE;
+
+/** the name of vm executable name, if applicable */
+extern char* VM_EXECUTABLE_NAME;
+
+/** the name of the executable file */
+extern char* OUTPUT_EXECUTABLE_NAME;
 
 #endif // BOOL_H
