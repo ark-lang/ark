@@ -1,5 +1,5 @@
 fn add(int a, int b): int {
-	ret (5 + 5)
+	ret (a + b);
 }
 
-add(5, 5)
+add(5, 9);
