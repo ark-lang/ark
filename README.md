@@ -1,3 +1,6 @@
+# Status
+[![Build Status](https://travis-ci.org/freefouran/jayfor.svg?branch=master)](https://travis-ci.org/freefouran/jayfor)
+
 # Jayfor
 Jayfor is a programming language written in C.
 
