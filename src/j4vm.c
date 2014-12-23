@@ -45,25 +45,6 @@ static void print_instruction(int *code, int ip) {
     }
 }
 
-static void program_dump(jayfor_vm *vm) {
-	printf(KYEL "\nDUMPING PROGRAM CONTENTS\n");
-	int i;
-	for (i = 0; i< vm->instruction_pointer; i++) {
-		print_instruction(vm->bytecode, i);
-	}
-	printf("\n" KNRM);
-}
-
-static void print_stack_trace(jayfor_vm *vm) {
-	int i;
-	printf("%d: [ ", vm->instruction_pointer);
-	for (i = 0; i < vm->stack->stack_pointer; i++) {
-		int *x = get_value_from_stack(vm->stack, i);
-		printf("%d, ", *x);
-	}
-	printf("]\n");
-}
-
 void start_jayfor_vm(jayfor_vm *vm, int *bytecode) {
 	vm->bytecode = bytecode;
 	vm->globals = malloc(sizeof(*vm->globals) * vm->default_global_space);
