@@ -2,36 +2,37 @@
 
 bool DEBUG_MODE = false;
 bool EXECUTE_BYTECODE = false;
-char *EXECUTABLE_FILENAME = "a.j4e";
-
-typedef struct {
-	char *argument;
-	char *next_argument;
-} argument;
+bool RUN_VM_EXECUTABLE = false;
+char *VM_EXECUTABLE_NAME = "";
+char *OUTPUT_EXECUTABLE_NAME = "a.j4e";
 
 static void parseArgument(argument *arg) {
 	char argument = arg->argument[0];
 
 	switch (argument) {
 		case 'v':
-			printf(KGRN "jayfor Version: %s\n" KNRM, jayfor_VERSION);
+			printf(KGRN "jayfor Version: %s\n" KNRM, JAYFOR_VERSION);
 			exit(1);
 			break;
 		case 'd':
 			DEBUG_MODE = true;
 			break;
+		case 'e':
+			RUN_VM_EXECUTABLE = true;
+			VM_EXECUTABLE_NAME = arg->next_argument;
+			break;
 		case 'h':
 			printf(KYEL "jayfor Argument List\n");
-			printf("\t-h,\t\t shows a help menu\n");
-			printf("\t-v,\t\t shows current version\n");
-			printf("\t-d,\t\t logs extra debug information\n");
-			printf("\t-r,\t\t will compile and execute code instead of creating an executable\n");
-			printf("\t-o [file name],\t\t creates an executable with the given file name and extension\n");
+			printf("\t-h,\t shows a help menu\n");
+			printf("\t-v,\t shows current version\n");
+			printf("\t-d,\t logs extra debug information\n");
+			printf("\t-r,\t will compile and execute code instead of creating an executable\n");
+			printf("\t-o <name>.j4e,\t creates an executable with the given file name and extension\n");
 			printf("\n" KNRM);
 			exit(1);
 			break;
 		case 'o':
-			EXECUTABLE_FILENAME = arg->next_argument;
+			OUTPUT_EXECUTABLE_NAME = arg->next_argument;
 			break;
 		case 'r':
 			EXECUTE_BYTECODE = true;
@@ -49,9 +50,8 @@ jayfor *create_jayfor(int argc, char** argv) {
 		printf(KRED "error: no input files\n" KNRM);
 		exit(1);
 	}
-
-	char *filename = NULL;
 	jayfor *self = malloc(sizeof(*self));
+	self->filename = NULL;
 
 	if (!self) {
 		perror("malloc: failed to allocate memory for jayfor");
@@ -83,31 +83,38 @@ jayfor *create_jayfor(int argc, char** argv) {
 			parseArgument(&arg);
 		}
 		else if (strstr(argv[i], ".j4")) {
-			filename = argv[i];
+			self->filename = argv[i];
 		}
 		else {
 			printf(KRED "error: argument not recognized: %s\n" KNRM, argv[i]);
 		}
 	}
 
-	// just in case.
 	self->scanner = NULL;
 	self->lexer = NULL;
 	self->parser = NULL;
-
-	// start actual useful shit here
-	self->scanner = create_scanner();
-	scan_file(self->scanner, filename);
-
-	// pass the scanned file to the lexer to tokenize
-	self->lexer = create_lexer(self->scanner->contents);
+	self->lexer = NULL;
 	self->compiler = NULL;
 	self->j4vm = NULL;
+
+	if (RUN_VM_EXECUTABLE) {
+		self->j4vm = create_jayfor_vm();
+		run_vm_executable(self);
+		return self;
+	}
 
 	return self;
 }
 
 void start_jayfor(jayfor *self) {
+	if (RUN_VM_EXECUTABLE) return;
+
+	// start actual useful shit here
+	self->scanner = create_scanner();
+	scan_file(self->scanner, self->filename);
+
+	self->lexer = create_lexer(self->scanner->contents);
+
 	while (self->lexer->running) {
 		get_next_token(self->lexer);
 	}
@@ -120,13 +127,13 @@ void start_jayfor(jayfor *self) {
 	self->compiler = create_compiler();
 	start_compiler(self->compiler, self->parser->parse_tree);
 	
-	self->j4vm = create_jayfor_vm();
 	if (EXECUTE_BYTECODE) {
-		start_jayfor_vm(self->j4vm, self->compiler->bytecode, self->compiler->global_count + 1);
+		self->j4vm = create_jayfor_vm();
+		start_jayfor_vm(self->j4vm, self->compiler->bytecode);
 	}
 	else {
 		// output bytecode to file, overwrite existing
-		FILE *output = fopen(EXECUTABLE_FILENAME, "wb");
+		FILE *output = fopen(OUTPUT_EXECUTABLE_NAME, "wb");
 		if (!output) {
 			perror("fopen: failed to create executable\n");
 			exit(1);
@@ -139,17 +146,49 @@ void start_jayfor(jayfor *self) {
 				fprintf(output, "\n");
 			}
 			// print instruction as 4 digit number 
-			fprintf(output, "%04d ", self->compiler->bytecode[i]);
+			fprintf(output, "%04X ", self->compiler->bytecode[i]);
 		}
 		fclose(output);
 	}
 }
 
+void run_vm_executable(jayfor *self) {
+	FILE *executable = fopen(VM_EXECUTABLE_NAME, "rb");
+	int default_bytecode_size = 32;
+	int *bytecode = malloc(sizeof(int) * default_bytecode_size);
+
+	if (!executable) {
+		perror("fopen: failed to open executable");
+		exit(1);
+	}
+
+	int i = 0;
+	int current_value = 0;
+	while (fscanf(executable, "%04X", &current_value) != EOF) {
+		bytecode[i++] = current_value;
+		if (i > default_bytecode_size) {
+			default_bytecode_size *= 2;
+			int *temp = realloc(bytecode, sizeof(int) * default_bytecode_size);
+			if (!temp) {
+				perror("realloc: failed to reallocate memory for bytecode");
+				exit(1);
+			}
+			else {
+				bytecode = temp;
+			}
+		}
+	}
+
+	start_jayfor_vm(self->j4vm, bytecode);
+}
+
 void destroy_jayfor(jayfor *self) {
-	destroy_scanner(self->scanner);
-	destroy_lexer(self->lexer);
-	destroy_parser(self->parser);
-	destroy_compiler(self->compiler);
+	if (!RUN_VM_EXECUTABLE) {
+		destroy_scanner(self->scanner);
+		destroy_lexer(self->lexer);
+		destroy_parser(self->parser);
+		destroy_compiler(self->compiler);
+	}
 	destroy_jayfor_vm(self->j4vm);
 	free(self);
 }
