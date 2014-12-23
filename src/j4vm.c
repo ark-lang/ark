@@ -22,12 +22,16 @@ instruction debug_instructions[] = {
 jayfor_vm *create_jayfor_vm() {
 	jayfor_vm *vm = malloc(sizeof(*vm));
 	vm->bytecode = NULL;
+	vm->globals = NULL;
+	vm->stack = NULL;
+	
 	vm->instruction_pointer = 0;
 	vm->frame_pointer = -1;
-	vm->stack = create_stack();
+	vm->stack_pointer = -1;
 	vm->default_global_space = 32;
+	vm->default_stack_size = 32;
+
 	vm->running = true;
-	vm->globals = NULL;
 	return vm;
 }
 
@@ -45,106 +49,110 @@ static void print_instruction(int *code, int ip) {
     }
 }
 
+static void push_value(jayfor_vm *vm, int value, int index) {
+	if (index > vm->default_stack_size) {
+		vm->default_stack_size *= 2;
+		int *temp = realloc(vm->stack, sizeof(*vm->stack) * vm->default_stack_size);
+		if (!temp) {
+			perror("realloc: failed to reallocate memory for stack");
+			exit(1);
+		}
+		else {
+			vm->stack = temp;
+		}
+	}
+	vm->stack[index] = value;
+}
+
 void start_jayfor_vm(jayfor_vm *vm, int *bytecode) {
 	vm->bytecode = bytecode;
 	vm->globals = malloc(sizeof(*vm->globals) * vm->default_global_space);
+	vm->stack = malloc(sizeof(*vm->stack) * vm->default_stack_size);
 
 	while (vm->running) {
-		if (DEBUG_MODE) {
-			print_instruction(vm->bytecode, vm->instruction_pointer);
-		}
+		if (DEBUG_MODE) print_instruction(vm->bytecode, vm->instruction_pointer);
 		int op = vm->bytecode[vm->instruction_pointer++];
 
 		switch (op) {
 			case ADD: {
-				int *a = pop_stack(vm->stack);
-				int *b = pop_stack(vm->stack);
-				int c = *a + *b;
-				push_to_stack(vm->stack, &c);
+				int a = vm->stack[vm->stack_pointer--];
+				int b = vm->stack[vm->stack_pointer--];
+				push_value(vm, a + b, ++vm->stack_pointer);
 				break;
 			}
 			case SUB: {
-				int *a = pop_stack(vm->stack);
-				int *b = pop_stack(vm->stack);
-				int c = *a - *b;
-				push_to_stack(vm->stack, &c);
+				int a = vm->stack[vm->stack_pointer--];
+				int b = vm->stack[vm->stack_pointer--];
+				push_value(vm, a - b, ++vm->stack_pointer);
 				break;
 			}	
 			case MUL: {
-				int *a = pop_stack(vm->stack);
-				int *b = pop_stack(vm->stack);
-				int c = *a * *b;
-				push_to_stack(vm->stack, &c);
+				int a = vm->stack[vm->stack_pointer--];
+				int b = vm->stack[vm->stack_pointer--];
+				push_value(vm, a * b, ++vm->stack_pointer);
 				break;
 			}
 			case DIV: {
-				int *a = pop_stack(vm->stack);
-				int *b = pop_stack(vm->stack);
-				int c = *a / *b;
-				push_to_stack(vm->stack, &c);	
+				int a = vm->stack[vm->stack_pointer--];
+				int b = vm->stack[vm->stack_pointer--];
+				push_value(vm, a / b, ++vm->stack_pointer);
 				break;
 			}
 			case MOD: {
-				int *a = pop_stack(vm->stack);
-				int *b = pop_stack(vm->stack);
-				int c = *a % *b;
-				push_to_stack(vm->stack, &c);
+				int a = vm->stack[vm->stack_pointer--];
+				int b = vm->stack[vm->stack_pointer--];
+				push_value(vm, a % b, ++vm->stack_pointer);
 				break;
 			}
 			case POW: {
-				int *a = pop_stack(vm->stack);
-				int *b = pop_stack(vm->stack);
-				int c = *a ^ *b;
-				push_to_stack(vm->stack, &c);
+				int a = vm->stack[vm->stack_pointer--];
+				int b = vm->stack[vm->stack_pointer--];
+				// todo: add power function lol
+				push_value(vm, a * b * 1337, ++vm->stack_pointer);
 				break;
 			}
 			case RET: {
-				int *ret = (int*) pop_stack(vm->stack);
-				vm->stack->stack_pointer = vm->frame_pointer;
-					
-				int *ip = pop_stack(vm->stack);
-				int *fp = pop_stack(vm->stack);
-				vm->instruction_pointer = *ip;
-				vm->frame_pointer = *fp;
-
-				int *numOfArgs = pop_stack(vm->stack);
-				vm->stack->stack_pointer -= *numOfArgs;
-				push_to_stack(vm->stack, ret);
+				int return_value = vm->stack[vm->stack_pointer--];
+				vm->stack_pointer = vm->frame_pointer;
+				vm->instruction_pointer = vm->stack[vm->stack_pointer--];
+				vm->frame_pointer = vm->stack[vm->stack_pointer--];
+				int number_of_args = vm->stack[vm->stack_pointer--];
+				vm->stack_pointer -= number_of_args;
+				push_value(vm, return_value, ++vm->stack_pointer);
 				break;
 			}
 			case PRINT: {
-				int *x = pop_stack(vm->stack);
-				printf("%d\n", *x);
+				int x = vm->stack[vm->stack_pointer--];
+				printf("%d, %04X\n", x, x);
 				break;
 			}
 			case CALL: {
 				int address = vm->bytecode[vm->instruction_pointer++];
-				int numOfArgs = vm->bytecode[vm->instruction_pointer++];
-				push_to_stack(vm->stack, &numOfArgs);
-				push_to_stack(vm->stack, &vm->frame_pointer);
-				push_to_stack(vm->stack, &vm->instruction_pointer);
-				vm->frame_pointer = vm->stack->stack_pointer;
+				int number_of_args = vm->bytecode[vm->instruction_pointer++];
+				push_value(vm, number_of_args, ++vm->stack_pointer);
+				push_value(vm, vm->frame_pointer, ++vm->stack_pointer);
+				push_value(vm, vm->instruction_pointer, ++vm->stack_pointer);
+				vm->frame_pointer = vm->stack_pointer;
 				vm->instruction_pointer = address;
 				break;
 			}
 			case ICONST: {
-				int x = vm->bytecode[vm->instruction_pointer++];
-				push_to_stack(vm->stack, &x);
+				push_value(vm, vm->bytecode[vm->instruction_pointer++], ++vm->stack_pointer);
 				break;
 			}
 			case LOAD: {
 				int offset = vm->bytecode[vm->instruction_pointer++];
-				push_to_stack(vm->stack, get_value_from_stack(vm->stack, vm->frame_pointer + offset));
+				push_value(vm, vm->stack[vm->frame_pointer + offset], ++vm->stack_pointer);
 				break;
 			}
 			case GLOAD: {
 				int address = vm->bytecode[vm->instruction_pointer++];
-				push_to_stack(vm->stack, &vm->globals[address]);				
+				push_value(vm, vm->globals[address], ++vm->stack_pointer);
 				break;
 			}
 			case STORE: {
 				int offset = vm->bytecode[vm->instruction_pointer++];
-				push_to_stack_at_index(vm->stack, pop_stack(vm->stack), vm->frame_pointer + offset);
+				push_value(vm, vm->stack[vm->stack_pointer--], vm->frame_pointer + offset);
 				break;
 			}
 			case GSTORE: {
@@ -160,12 +168,11 @@ void start_jayfor_vm(jayfor_vm *vm, int *bytecode) {
 						vm->globals = temp;
 					}
 				}
-				int *value = pop_stack(vm->stack);
-				vm->globals[address] = *value;
+				vm->globals[address] = vm->stack[vm->stack_pointer--];
 				break;
 			}
 			case POP: {
-				pop_stack(vm->stack);
+				vm->stack_pointer--;
 				break;
 			}
 			case HALT: {
