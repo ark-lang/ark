@@ -10,3 +10,7 @@ fn /*asfawdt qwertq we */test(/* comment */ int argc): void {
 	/* swag */
 	double z = /* double x double x */ 32;
 }
+
+this_is_a_function |int| {
+	
+}
