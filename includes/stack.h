@@ -21,8 +21,8 @@ typedef void* StackItem;
  */
 typedef struct {
 	StackItem *items;
-	int stackPointer;
-	int defaultStackSize;
+	int stack_pointer;
+	int default_stack_size;
 } Stack;
 
 /**
