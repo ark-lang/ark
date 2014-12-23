@@ -38,7 +38,6 @@ int evaluate_expression_ast_node(compiler *self, expression_ast_node *expr) {
 			case '*': append_instruction(self, MUL); break;
 			case '/': append_instruction(self, DIV); break;
 			case '%': append_instruction(self, MOD); break;
-			case '^': append_instruction(self, POW); break;
 		}
 	}
 	return 1337;
