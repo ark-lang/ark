@@ -76,4 +76,4 @@ Send a pull request to [http://github.com/freefouran/jayfor](http://github.com/f
 
 # <a name="license"></a>License
 Jayfor is licensed under The MIT License. I have no idea
-what this means, I just randomly chose it. Read it [here](LICENSE.md)
+what this means, I just randomly chose it. Read it [here](misc/LICENSE.md)
