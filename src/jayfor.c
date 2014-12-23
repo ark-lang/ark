@@ -166,9 +166,9 @@ void run_vm_executable(jayfor *self) {
 	int current_value = 0;
 	while (fscanf(executable, "%04X", &current_value) != EOF) {
 		bytecode[i++] = current_value;
-		if (i > default_bytecode_size) {
+		if (i >= default_bytecode_size) {
 			default_bytecode_size *= 2;
-			int *temp = realloc(bytecode, sizeof(int) * default_bytecode_size);
+			int *temp = realloc(bytecode, sizeof(*temp) * default_bytecode_size);
 			if (!temp) {
 				perror("realloc: failed to reallocate memory for bytecode");
 				exit(1);
