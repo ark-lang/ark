@@ -25,8 +25,7 @@ We realize that this is a pain, and we will fix this.
 ### Block Comments
 
 	/**
-	 * These are buggy and we suggest to not use
-	 * them for the time being!
+	 * These are block comments!
 	 */
 
 ## Data Structures
