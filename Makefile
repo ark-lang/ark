@@ -1,5 +1,5 @@
 COMPILER = gcc
-C_FLAGS = -g -o builds/j4 -Wall -Iincludes/
+C_FLAGS = -g -o j4 -Wall -Iincludes/
 SOURCES = src/*.c
 
 all: ${SOURCES}
