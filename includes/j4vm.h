@@ -3,7 +3,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
 
 #include "stack.h"
 #include "util.h"
@@ -24,9 +23,9 @@ typedef struct {
 
 typedef enum {
 	ADD, SUB, MUL, DIV, MOD,
-	POW, RET, PRINT, CALL,
-	ICONST, LOAD, GLOAD, STORE,
-	GSTORE, POP, HALT,
+	RET, PRINT, CALL, ICONST, 
+	LOAD, GLOAD, STORE, GSTORE, 
+	POP, HALT,
 } instruction_set;
 
 typedef struct {
