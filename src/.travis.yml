@@ -1,2 +1,5 @@
 language: c
-./make
+compiler:
+  - gcc
+  - clang
+script: ./make
