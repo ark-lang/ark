@@ -7,10 +7,6 @@
 #include "util.h"
 
 /**
- * Quick Stack implementation
- */
-
-/**
  * typedef for void* so we can
  * change the type if need be
  */
