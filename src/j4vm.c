@@ -14,6 +14,10 @@ instruction debug_instructions[] = {
     { "gload",  1 },
     { "store",  1 },
     { "gstore", 1 },
+    { "ilt",    0 },
+    { "ieq",    0 },
+    { "brf",    1 },
+    { "brt",    1 },
     { "pop",    0 },
     { "halt",   0 }
 };
@@ -38,7 +42,7 @@ static void print_instruction(int *code, int ip) {
     int opcode = code[ip];
     if (opcode > HALT) return;
     instruction *instruction = &debug_instructions[opcode];
-    switch (instruction->numOfArgs) {
+    switch (instruction->number_of_args) {
     	case 0:
 	        printf("%04d:  %-20s\n", ip, instruction->name);
 	        break;
@@ -74,32 +78,32 @@ void start_jayfor_vm(jayfor_vm *vm, int *bytecode, int bytecode_size) {
 
 		switch (op) {
 			case ADD: {
-				int a = vm->stack[vm->stack_pointer--];
 				int b = vm->stack[vm->stack_pointer--];
+				int a = vm->stack[vm->stack_pointer--];
 				push_value(vm, a + b, ++vm->stack_pointer);
 				break;
 			}
 			case SUB: {
-				int a = vm->stack[vm->stack_pointer--];
 				int b = vm->stack[vm->stack_pointer--];
+				int a = vm->stack[vm->stack_pointer--];
 				push_value(vm, a - b, ++vm->stack_pointer);
 				break;
 			}	
 			case MUL: {
-				int a = vm->stack[vm->stack_pointer--];
 				int b = vm->stack[vm->stack_pointer--];
+				int a = vm->stack[vm->stack_pointer--];
 				push_value(vm, a * b, ++vm->stack_pointer);
 				break;
 			}
 			case DIV: {
-				int a = vm->stack[vm->stack_pointer--];
 				int b = vm->stack[vm->stack_pointer--];
+				int a = vm->stack[vm->stack_pointer--];
 				push_value(vm, a / b, ++vm->stack_pointer);
 				break;
 			}
 			case MOD: {
-				int a = vm->stack[vm->stack_pointer--];
 				int b = vm->stack[vm->stack_pointer--];
+				int a = vm->stack[vm->stack_pointer--];
 				push_value(vm, a % b, ++vm->stack_pointer);
 				break;
 			}
@@ -162,6 +166,28 @@ void start_jayfor_vm(jayfor_vm *vm, int *bytecode, int bytecode_size) {
 				}
 				vm->globals[address] = vm->stack[vm->stack_pointer--];
 				break;
+			}
+			case ILT: {
+				int b = vm->stack[vm->stack_pointer--];
+				int a = vm->stack[vm->stack_pointer--];
+				push_value(vm, (a < b) ? true : false, ++vm->stack_pointer);
+			}
+			case IEQ: {
+				int b = vm->stack[vm->stack_pointer--];
+				int a = vm->stack[vm->stack_pointer--];
+				push_value(vm, (a == b) ? true : false, ++vm->stack_pointer);
+			}
+			case BRT: {
+				int address = vm->bytecode[vm->instruction_pointer++];
+				if (vm->stack[vm->stack_pointer--]) {
+					vm->instruction_pointer = address;
+				}
+			}
+			case BRF: {
+				int address = vm->bytecode[vm->instruction_pointer++];
+				if (!vm->stack[vm->stack_pointer--]) {
+					vm->instruction_pointer = address;
+				}
 			}
 			case POP: {
 				vm->stack_pointer--;

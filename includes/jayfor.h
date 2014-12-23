@@ -12,6 +12,10 @@
 #include "compiler.h"
 #include "j4vm.h"
 
+/**
+ * For handling command line
+ * arguments
+ */
 typedef struct {
 	char *argument;
 	char *next_argument;
@@ -46,6 +50,10 @@ jayfor *create_jayfor(int argc, char** argv);
  */
 void start_jayfor(jayfor *jayfor);
 
+/**
+ * Runs the bytecode in the VM
+ * @param self the jayfor instance
+ */
 void run_vm_executable(jayfor *self);
 
 /**
