@@ -9,30 +9,22 @@
 typedef struct {
 	int *bytecode;
 	int *globals;
-	int default_global_space;
+	int *stack;
+
 	int instruction_pointer;
 	int frame_pointer;
+	int stack_pointer;
+	int default_global_space;
+	int default_stack_size;
+
 	bool running;
-	Stack *stack;
 } jayfor_vm;
 
 typedef enum {
-	ADD,
-	SUB,
-	MUL,
-	DIV,
-	MOD,
-	POW,
-	RET,
-	PRINT,
-	CALL,
-	ICONST,
-	LOAD,
-	GLOAD,
-	STORE,
-	GSTORE,
-	POP,
-	HALT,
+	ADD, SUB, MUL, DIV, MOD,
+	POW, RET, PRINT, CALL,
+	ICONST, LOAD, GLOAD, STORE,
+	GSTORE, POP, HALT,
 } instruction_set;
 
 typedef struct {
