@@ -6,7 +6,6 @@ instruction debug_instructions[] = {
     { "mul",    0 },
     { "div",    0 },
     { "mod",    0 },
-    { "pow",    0 },
     { "ret",    0 },
     { "print",  0 },
     { "call",   2 },
@@ -102,12 +101,6 @@ void start_jayfor_vm(jayfor_vm *vm, int *bytecode, int bytecode_size) {
 				int a = vm->stack[vm->stack_pointer--];
 				int b = vm->stack[vm->stack_pointer--];
 				push_value(vm, a % b, ++vm->stack_pointer);
-				break;
-			}
-			case POW: {
-				int a = vm->stack[vm->stack_pointer--];
-				int b = vm->stack[vm->stack_pointer--];
-				push_value(vm, pow(a, b), ++vm->stack_pointer);
 				break;
 			}
 			case RET: {
