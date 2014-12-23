@@ -9,6 +9,7 @@
 typedef struct {
 	int *bytecode;
 	int *globals;
+	int default_global_space;
 	int instruction_pointer;
 	int frame_pointer;
 	bool running;
@@ -43,7 +44,7 @@ extern instruction debug_instructions[];
 
 jayfor_vm *create_jayfor_vm();
 
-void start_jayfor_vm(jayfor_vm *vm, int *bytecode, int global_count);
+void start_jayfor_vm(jayfor_vm *vm, int *bytecode);
 
 void destroy_jayfor_vm(jayfor_vm *vm);
 

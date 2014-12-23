@@ -49,6 +49,12 @@ void scan_file(Scanner *scanner, const char* fileName) {
 }
 
 void destroy_scanner(Scanner *scanner) {
-	free(scanner->contents);
-	free(scanner);
+	if (scanner->contents) {
+		free(scanner->contents);
+		scanner->contents = NULL;
+	}
+	if (scanner) {
+		free(scanner);
+		scanner = NULL;
+	}
 }

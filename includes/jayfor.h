@@ -12,6 +12,11 @@
 #include "compiler.h"
 #include "j4vm.h"
 
+typedef struct {
+	char *argument;
+	char *next_argument;
+} argument;
+
 /**
  * The core of jayfor
  */
@@ -21,6 +26,8 @@ typedef struct {
 	parser *parser;
 	compiler *compiler;
 	jayfor_vm *j4vm;
+
+	char *filename;
 } jayfor;
 
 /**
@@ -38,6 +45,8 @@ jayfor *create_jayfor(int argc, char** argv);
  * @param jayfor instance to start
  */
 void start_jayfor(jayfor *jayfor);
+
+void run_vm_executable(jayfor *self);
 
 /**
  * Destroy the given jayfor instance
