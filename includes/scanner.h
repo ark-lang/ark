@@ -17,7 +17,6 @@ typedef struct {
 
 /**
  * Creates an instance of a scanner
- * 
  * @return the scanner
  */
 Scanner *create_scanner();
@@ -25,13 +24,11 @@ Scanner *create_scanner();
 /**
  * Reads the given file into
  * `char* contents;`
- * 
  */
 void scan_file(Scanner *scanner, const char* fileName);
 
 /**
  * Destroys the given Scanner
- * 
  * @param scanner scanner to destroy
  */
 void destroy_scanner(Scanner *scanner);
