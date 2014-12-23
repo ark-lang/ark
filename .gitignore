@@ -29,6 +29,8 @@
 *.hex
 j4
 
+*.j4e
+
 # Other
 builds/
 *~
