@@ -1,6 +1,6 @@
 #include "hashmap.h"
  
-unsigned long int fnv1a(void *data, unsigned long int len) {
+static unsigned long int fnv1a(void *data, unsigned long int len) {
 	unsigned char *p = (unsigned char *) data;
 	unsigned long int h = 2166136261UL;
 	unsigned long int i;
@@ -12,14 +12,12 @@ unsigned long int fnv1a(void *data, unsigned long int len) {
 	return h;
 }
  
-/* Maps the hash to the interval [0, max_hash] */
-int hashString(char *str, int max_hash) {
+static int hashString(char *str, int max_hash) {
 	unsigned long int fnv1a_hash = fnv1a((void*) str, strlen(str));
 	int hash = (int) (fnv1a_hash % (max_hash + 1));
 	return hash;
 }
  
-/* Creates a new hashmap */
 hashmap *create_hashmap(int size) {
 	hashmap *map = malloc(sizeof(hashmap));
 	map->size = size;
@@ -33,7 +31,6 @@ hashmap *create_hashmap(int size) {
 	return map;
 }
  
-/* Frees the hashmap. You have to manually set the pointer to NULL after using this function */
 void destroy_hashmap(hashmap *map) {
 	int i;
 	for(i = 0; i < map->size; i++) {
@@ -52,7 +49,6 @@ void destroy_hashmap(hashmap *map) {
 	free(map);
 }
  
-/* Sets a value in the hashmap. The memory area that val points to is copied. */
 void set_value_at_key(hashmap *map, char *key, void *value, size_t length) {
 	int hash = hashString(key, map->size - 1);
 	hashmap_field *field = map->fields + hash;
@@ -94,7 +90,6 @@ void set_value_at_key(hashmap *map, char *key, void *value, size_t length) {
 	}
 }
  
-/* Get a void-ptr from the hash-map. It is copied from the hashmap and must be freed manually. */
 void *get_value_at_key(hashmap *map, char *key) {
 	int hash = hashString(key, map->size - 1);
 	hashmap_field *field = map->fields + hash;
