@@ -64,7 +64,7 @@ static void push_value(jayfor_vm *vm, int value, int index) {
 	vm->stack[index] = value;
 }
 
-void start_jayfor_vm(jayfor_vm *vm, int *bytecode) {
+void start_jayfor_vm(jayfor_vm *vm, int *bytecode, int bytecode_size) {
 	vm->bytecode = bytecode;
 	vm->globals = malloc(sizeof(*vm->globals) * vm->default_global_space);
 	vm->stack = malloc(sizeof(*vm->stack) * vm->default_stack_size);
@@ -107,8 +107,7 @@ void start_jayfor_vm(jayfor_vm *vm, int *bytecode) {
 			case POW: {
 				int a = vm->stack[vm->stack_pointer--];
 				int b = vm->stack[vm->stack_pointer--];
-				// todo: add power function lol
-				push_value(vm, a * b * 1337, ++vm->stack_pointer);
+				push_value(vm, pow(a, b), ++vm->stack_pointer);
 				break;
 			}
 			case RET: {
