@@ -3,6 +3,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
+
 #include "stack.h"
 #include "util.h"
 
@@ -36,7 +38,7 @@ extern instruction debug_instructions[];
 
 jayfor_vm *create_jayfor_vm();
 
-void start_jayfor_vm(jayfor_vm *vm, int *bytecode);
+void start_jayfor_vm(jayfor_vm *vm, int *bytecode, int bytecode_size);
 
 void destroy_jayfor_vm(jayfor_vm *vm);
 
