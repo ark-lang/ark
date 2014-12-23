@@ -20,7 +20,6 @@ typedef struct {
 	int max_bytecode_size;
 	int current_ast_node;
 	int current_instruction;
-	int global_count;
 } compiler;
 
 compiler *create_compiler();

@@ -7,7 +7,6 @@ compiler *create_compiler() {
 	self->max_bytecode_size = 32;
 	self->bytecode = malloc(sizeof(*self->bytecode) * self->max_bytecode_size);
 	self->current_ast_node = 0;
-	self->global_count = -1;
 	self->functions = create_hashmap(128);
 	return self;
 }
