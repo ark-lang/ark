@@ -234,11 +234,13 @@ void start_jayfor_vm(jayfor_vm *vm, int *bytecode, int bytecode_size) {
 				push_value(vm, value, ++vm->stack_pointer);
 			}
 			case LOAD: {
-				push_value(vm, vm->stack[vm->frame_pointer + vm->bytecode[vm->instruction_pointer++]], ++vm->stack_pointer);
+				int offset = vm->bytecode[vm->instruction_pointer++];
+				push_value(vm, vm->stack[vm->frame_pointer + offset], ++vm->stack_pointer);
 				break;
 			}
 			case GLOAD: {
-				push_value(vm, vm->globals[vm->bytecode[vm->instruction_pointer++]], ++vm->stack_pointer);
+				int address = vm->bytecode[vm->instruction_pointer++];
+				push_value(vm, vm->globals[address], ++vm->stack_pointer);
 				break;
 			}
 			case STORE: {
