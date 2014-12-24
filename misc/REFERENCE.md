@@ -9,7 +9,7 @@ TO CHANGE. NOTHING IS FINAL*
 
 # Table Of Contents
 * [Lexical Structure](#lexical_structure)
-  * [Semi Colons](semi_colons)
+  * [Semi Colons](#semi_colons)
   * [Comments](#comments)
   * [Keywords](#keywords)
   * [Expressions](#expressions)
