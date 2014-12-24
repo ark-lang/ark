@@ -8,7 +8,6 @@
 #define JAYFOR_VERSION "0.0.0"
 
 #ifdef _WIN32
-	#include <windows.h>
 	#define KNRM()  ""
 	#define KRED()  ""
 	#define KGRN()  ""
