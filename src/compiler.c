@@ -30,15 +30,16 @@ void evaluate_expression_ast_node(compiler *self, expression_ast_node *expr) {
 		int int_val = 0;
 		float float_val = 0;
 
-		if (sscanf(expr->value->content, "%d", &int_val)) {
-			printf("storing int: %d or %d\n", int_val, atoi(expr->value->content));
-			append_instruction(self, ICONST);
-			append_instruction(self, int_val);
-		}
-		else if (sscanf(expr->value->content, "%f", &float_val)) {
+		if (sscanf(expr->value->content, "%f", &float_val)) {
 			printf("storing flaot\n");
 			append_instruction(self, FCONST);
-			append_instruction(self, float_to_int_bits(float_val));
+			printf("storing int: %04X", float_to_int_bits(float_val));
+			exit(1);
+			// append_instruction(self, );
+		}
+		else if (sscanf(expr->value->content, "%d", &int_val)) {
+			append_instruction(self, ICONST);
+			append_instruction(self, int_val);
 		}
 		else {
 			printf(KRED "error: invalid number specified: %s\n" KNRM, expr->value->content);
