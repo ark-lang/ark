@@ -3,105 +3,90 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
+#include <assert.h>
 
 #include "util.h"
 
-typedef enum {
-	TYPE_FLOAT, TYPE_INT
-} object_data_type;
+#define MAX_LOCAL_COUNT 10
+#define MAX_STACK_COUNT 10
+#define STACK_PUSH(JVM, VALUE) do {															\
+							assert(JVM->stack_pointer - JVM->stack < MAX_STACK_COUNT);	\
+							*(++JVM->stack_pointer) = (VALUE);												\
+							retain_object(*JVM->stack_pointer);													\
+						  } while (0);
+
+#define STACK_POP(JVM)	(*JVM->stack_pointer--)
+
+typedef unsigned char byte;
+
+enum {
+	CALL,
+	PUSH_NUMBER,
+	PUSH_STRING,
+	PUSH_SELF,
+	PUSH_NULL,
+	PUSH_BOOL,
+	GET_LOCAL,
+	SET_LOCAL,
+	JUMP_UNLESS,
+	JUMP,
+	ADD,
+	RETURN,
+};
+
+enum {
+	type_object,
+	type_number,
+	type_string
+};
 
 typedef struct {
-	int data;
-	object_data_type type;
+	char type;
+	union {
+		char* string;
+		int number;
+	} value;
+	int ref_count;
 } object;
 
-/**
- * Virtual Machine
- * (needs a lot of work!)
- */
+static object *true_object;
+static object *false_object;
+static object *null_object;
+
 typedef struct {
-	int *bytecode;
-	object *globals;
-	object *stack;
-
-	int instruction_pointer;
-	int frame_pointer;
-	int stack_pointer;
-	int default_global_space;
-	int default_stack_size;
-
-	bool running;
+	int *instructions;
+	object *stack[MAX_STACK_COUNT];
+	object **stack_pointer;
+	object *locals[MAX_LOCAL_COUNT];
+	object *self;
 } jayfor_vm;
 
-/* Instruction Set for the VM */
-typedef enum {
-	ADD, 
-	SUB, 
-	MUL, 
-	DIV, 
-	MOD,
-	RET, 
-	PRINT, 
-	CALL, 
-	ICONST, 
-	FCONST,
-	LOAD, 
-	GLOAD, 
-	STORE, 
-	GSTORE,
-	ILT, 
-	IEQ, 
-	BRF, 
-	BRT, 
-	POP, 
-	HALT,
-} instruction_set;
+/** garbage collection */
 
-/**
- * Instructions with names and
- * number of arguments -- for debugging
- */
-typedef struct {
-    char name[6];
-    int number_of_args;
-} instruction;
+object *create_object();
 
-/**
- * Global instruction array
- */
-extern instruction debug_instructions[];
+object *retain_object(object *obj);
 
-/**
- * Convert a float to IEEE 754 int bits
- * @param x the float to convert
- */
-int float_to_int_bits(float x);
+void release_object(object *obj);
 
-/**
- * Convert integer bits to a float IEEE 754
- * @param x the int bits to convert
- */
-float int_bits_to_float(int x);
+/** virtual machine stuff */
 
-/**
- * Create a new VM instance
- * @return the instance created
- */
 jayfor_vm *create_jayfor_vm();
 
-/**
- * Start the VM
- * @param vm the VM to start
- * @param bytecode the code to execute
- * @param bytecode_size how many instructions there are
- */
-void start_jayfor_vm(jayfor_vm *vm, int *bytecode, int bytecode_size);
+void start_jayfor_vm(jayfor_vm *jvm, int *instructions);
 
-/**
- * Destroys the given VM
- * @param vm the vm to destroy
- */
-void destroy_jayfor_vm(jayfor_vm *vm);
+void destroy_jayfor_vm(jayfor_vm *jvm);
+
+/** helpers */
+
+bool object_is_true(object *obj);
+
+int number_value(object *obj);
+
+object *create_number(int value);
+
+object *create_string(char *value);
+
+object *call(object *obj, char *message, object *argv[], int argc);
 
 #endif // jayfor_vm_H
