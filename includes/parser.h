@@ -44,12 +44,12 @@ typedef enum {
  * to be stored on ast_node vector
  */
 typedef enum {
-	EXPRESSION_ast_node = 0, VARIABLE_DEF_ast_node,
-	VARIABLE_DEC_ast_node, FUNCTION_ARG_ast_node,
-	FUNCTION_ast_node, FUNCTION_PROT_ast_node,
-	BLOCK_ast_node, FUNCTION_CALLEE_ast_node,
-	FUNCTION_RET_ast_node, FOR_LOOP_ast_node,
-	VARIABLE_REASSIGN_ast_node
+	EXPRESSION_AST_NODE = 0, VARIABLE_DEF_AST_NODE,
+	VARIABLE_DEC_AST_NODE, FUNCTION_ARG_AST_NODE,
+	FUNCTION_AST_NODE, FUNCTION_PROT_AST_NODE,
+	BLOCK_AST_NODE, FUNCTION_CALLEE_AST_NODE,
+	FUNCTION_RET_AST_NODE, FOR_LOOP_AST_NODE,
+	VARIABLE_REASSIGN_AST_NODE
 } ast_ast_node_type;
 
 /**
