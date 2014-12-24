@@ -7,18 +7,30 @@
 
 #include "util.h"
 
+/** maximum number of locals TODO: make dynamic */
 #define MAX_LOCAL_COUNT 10
+
+/** maximum number of stack items TODO: make dynamic */
 #define MAX_STACK_COUNT 10
+
+/**
+ * Helper for pushing a value to the stack
+ * @param  JVM   the JVM instance
+ * @param  VALUE the value to push
+ */
 #define STACK_PUSH(JVM, VALUE) do {															\
 							assert(JVM->stack_pointer - JVM->stack < MAX_STACK_COUNT);	\
 							*(++JVM->stack_pointer) = (VALUE);												\
 							retain_object(*JVM->stack_pointer);													\
 						  } while (0);
 
+/**
+ * Pops a value from the stack
+ * @param  JVM 	the JVM instance
+ */
 #define STACK_POP(JVM)	(*JVM->stack_pointer--)
 
-typedef unsigned char byte;
-
+/** OP CODES */
 enum {
 	CALL,
 	PUSH_NUMBER,
@@ -34,12 +46,16 @@ enum {
 	RETURN,
 };
 
+/** TYPES */
 enum {
 	type_object,
 	type_number,
 	type_string
 };
 
+/**
+ * object properties
+ */
 typedef struct {
 	char type;
 	union {
@@ -49,10 +65,14 @@ typedef struct {
 	int ref_count;
 } object;
 
+/** default objects */
 static object *true_object;
 static object *false_object;
 static object *null_object;
 
+/**
+ * The Jayfor VM (J4VM)
+ */
 typedef struct {
 	int *instructions;
 	object *stack[MAX_STACK_COUNT];
