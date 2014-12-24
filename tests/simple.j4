@@ -1,1 +1,1 @@
-int z = 5.3;
+const int z = 5.3;
