@@ -3,9 +3,18 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "stack.h"
+#include <math.h>
+
 #include "util.h"
 
+typedef enum {
+	TYPE_FLOAT, TYPE_INT
+} object_data_type;
+
+typedef struct {
+	int data;
+	object_data_type type;
+} object;
 
 /**
  * Virtual Machine
@@ -13,8 +22,8 @@
  */
 typedef struct {
 	int *bytecode;
-	int *globals;
-	int *stack;
+	object *globals;
+	object *stack;
 
 	int instruction_pointer;
 	int frame_pointer;
@@ -36,6 +45,7 @@ typedef enum {
 	PRINT, 
 	CALL, 
 	ICONST, 
+	FCONST,
 	LOAD, 
 	GLOAD, 
 	STORE, 
@@ -61,6 +71,18 @@ typedef struct {
  * Global instruction array
  */
 extern instruction debug_instructions[];
+
+/**
+ * Convert a float to IEEE 754 int bits
+ * @param x the float to convert
+ */
+int float_to_int_bits(float x);
+
+/**
+ * Convert integer bits to a float IEEE 754
+ * @param x the int bits to convert
+ */
+float int_bits_to_float(int x);
 
 /**
  * Create a new VM instance
