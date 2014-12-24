@@ -1,0 +1,411 @@
+\hypertarget{lexer_8h}{\section{includes/lexer.h File Reference}
+\label{lexer_8h}\index{includes/lexer.\+h@{includes/lexer.\+h}}
+}
+{\ttfamily \#include $<$stdio.\+h$>$}\\*
+{\ttfamily \#include $<$stdlib.\+h$>$}\\*
+{\ttfamily \#include $<$string.\+h$>$}\\*
+{\ttfamily \#include \char`\"{}util.\+h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}vector.\+h\char`\"{}}\\*
+\subsection*{Data Structures}
+\begin{DoxyCompactItemize}
+\item 
+struct \hyperlink{structtoken}{token}
+\item 
+struct \hyperlink{struct_lexer}{Lexer}
+\end{DoxyCompactItemize}
+\subsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\#define \hyperlink{lexer_8h_ada29ca9215360e70130ae6e84c878197}{W\+E\+I\+R\+D\+\_\+\+C\+H\+A\+R\+A\+C\+T\+E\+R\+\_\+\+A\+S\+C\+I\+I\+\_\+\+T\+H\+R\+E\+S\+H\+O\+L\+D}~128
+\item 
+\#define \hyperlink{lexer_8h_ad46b2ebcd4c426b06cda147ddc1001e7}{uint}~unsigned int
+\end{DoxyCompactItemize}
+\subsection*{Enumerations}
+\begin{DoxyCompactItemize}
+\item 
+enum \hyperlink{lexer_8h_afe5ef662303b6b710ea6ee1a944bad0d}{token\+\_\+type} \{ \\*
+\hyperlink{lexer_8h_afe5ef662303b6b710ea6ee1a944bad0da7ea291c26de584b23fd7f9111784f860}{E\+N\+D\+\_\+\+O\+F\+\_\+\+F\+I\+L\+E}, 
+\hyperlink{lexer_8h_afe5ef662303b6b710ea6ee1a944bad0da84f8ae2490f9e4bd2321fd21f4b0e807}{I\+D\+E\+N\+T\+I\+F\+I\+E\+R}, 
+\hyperlink{lexer_8h_afe5ef662303b6b710ea6ee1a944bad0da12a90dfe20486bbe3e075afcd19ef2d0}{N\+U\+M\+B\+E\+R}, 
+\hyperlink{lexer_8h_afe5ef662303b6b710ea6ee1a944bad0da6411d9d6073252e4d316493506bbb979}{O\+P\+E\+R\+A\+T\+O\+R}, 
+\\*
+\hyperlink{lexer_8h_afe5ef662303b6b710ea6ee1a944bad0dac22e1a44f0ddbc929cfea45e49d20f84}{S\+E\+P\+A\+R\+A\+T\+O\+R}, 
+\hyperlink{lexer_8h_afe5ef662303b6b710ea6ee1a944bad0da9c7a0f896094fd76655125e6dfe21b3b}{E\+R\+R\+O\+R\+N\+E\+O\+U\+S}, 
+\hyperlink{lexer_8h_afe5ef662303b6b710ea6ee1a944bad0daee847e634a4297b274316de8a8ca9921}{S\+T\+R\+I\+N\+G}, 
+\hyperlink{lexer_8h_afe5ef662303b6b710ea6ee1a944bad0da762041e95dc7b081aaf6b0019dca8586}{C\+H\+A\+R\+A\+C\+T\+E\+R}, 
+\\*
+\hyperlink{lexer_8h_afe5ef662303b6b710ea6ee1a944bad0da6ce26a62afab55d7606ad4e92428b30c}{U\+N\+K\+N\+O\+W\+N}, 
+\hyperlink{lexer_8h_afe5ef662303b6b710ea6ee1a944bad0da703e6b8851fc921d2262534621ef8578}{S\+P\+E\+C\+I\+A\+L\+\_\+\+C\+H\+A\+R}
+ \}
+\end{DoxyCompactItemize}
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{structtoken}{token} $\ast$ \hyperlink{lexer_8h_a78563c380a33a3261124d01695806b6e}{create\+\_\+token} ()
+\item 
+const char $\ast$ \hyperlink{lexer_8h_acf08d947c7cef23ec5c836b73e7a4ef3}{get\+\_\+token\+\_\+name} (\hyperlink{structtoken}{token} $\ast$\hyperlink{structtoken}{token})
+\item 
+void \hyperlink{lexer_8h_a882aa8a58590401749e1d8c04d665734}{destroy\+\_\+token} (\hyperlink{structtoken}{token} $\ast$\hyperlink{structtoken}{token})
+\item 
+\hyperlink{struct_lexer}{Lexer} $\ast$ \hyperlink{lexer_8h_ac4c84e6817d348dc2a8ec6d14ad2708a}{create\+\_\+lexer} (char $\ast$input)
+\item 
+char $\ast$ \hyperlink{lexer_8h_acd475a743379d757430b1dda8190241c}{flush\+\_\+buffer} (\hyperlink{struct_lexer}{Lexer} $\ast$lexer, int start, int length)
+\item 
+void \hyperlink{lexer_8h_a847620269d9dffd4c7652d50b283b263}{consume\+\_\+character} (\hyperlink{struct_lexer}{Lexer} $\ast$lexer)
+\item 
+void \hyperlink{lexer_8h_a750068393248935f85de48ca7ec62a01}{skip\+\_\+layout\+\_\+and\+\_\+comments} (\hyperlink{struct_lexer}{Lexer} $\ast$lexer)
+\item 
+void \hyperlink{lexer_8h_a9e6e544dcc66419f7085e140d8473edb}{expect\+\_\+character} (\hyperlink{struct_lexer}{Lexer} $\ast$lexer, char c)
+\item 
+void \hyperlink{lexer_8h_a1bddce9509bc383e4b58ae704f85438f}{recognize\+\_\+identifier\+\_\+token} (\hyperlink{struct_lexer}{Lexer} $\ast$lexer)
+\item 
+void \hyperlink{lexer_8h_ab310ca77bd6fb630d1bb80f8603a624e}{recognize\+\_\+number\+\_\+token} (\hyperlink{struct_lexer}{Lexer} $\ast$lexer)
+\item 
+void \hyperlink{lexer_8h_a270ebeb2e67e43c0896efeda6ca80c92}{recognize\+\_\+string\+\_\+token} (\hyperlink{struct_lexer}{Lexer} $\ast$lexer)
+\item 
+void \hyperlink{lexer_8h_a307c1284628f8238004ba6c5f1edbbc2}{recognize\+\_\+character\+\_\+token} (\hyperlink{struct_lexer}{Lexer} $\ast$lexer)
+\item 
+char \hyperlink{lexer_8h_a562c387f53e45d9a8d6f653a4cf271df}{peek\+\_\+ahead} (\hyperlink{struct_lexer}{Lexer} $\ast$lexer, int ahead)
+\item 
+void \hyperlink{lexer_8h_a6c3e431604a7d4169bdf00ebe55327f8}{get\+\_\+next\+\_\+token} (\hyperlink{struct_lexer}{Lexer} $\ast$lexer)
+\item 
+void \hyperlink{lexer_8h_a58a8c96e3aa2ecdef77e4bea2a5b9f96}{destroy\+\_\+lexer} (\hyperlink{struct_lexer}{Lexer} $\ast$lexer)
+\end{DoxyCompactItemize}
+
+
+\subsection{Macro Definition Documentation}
+\hypertarget{lexer_8h_ad46b2ebcd4c426b06cda147ddc1001e7}{\index{lexer.\+h@{lexer.\+h}!uint@{uint}}
+\index{uint@{uint}!lexer.\+h@{lexer.\+h}}
+\subsubsection[{uint}]{\setlength{\rightskip}{0pt plus 5cm}\#define uint~unsigned int}}\label{lexer_8h_ad46b2ebcd4c426b06cda147ddc1001e7}
+
+
+Definition at line 12 of file lexer.\+h.
+
+\hypertarget{lexer_8h_ada29ca9215360e70130ae6e84c878197}{\index{lexer.\+h@{lexer.\+h}!W\+E\+I\+R\+D\+\_\+\+C\+H\+A\+R\+A\+C\+T\+E\+R\+\_\+\+A\+S\+C\+I\+I\+\_\+\+T\+H\+R\+E\+S\+H\+O\+L\+D@{W\+E\+I\+R\+D\+\_\+\+C\+H\+A\+R\+A\+C\+T\+E\+R\+\_\+\+A\+S\+C\+I\+I\+\_\+\+T\+H\+R\+E\+S\+H\+O\+L\+D}}
+\index{W\+E\+I\+R\+D\+\_\+\+C\+H\+A\+R\+A\+C\+T\+E\+R\+\_\+\+A\+S\+C\+I\+I\+\_\+\+T\+H\+R\+E\+S\+H\+O\+L\+D@{W\+E\+I\+R\+D\+\_\+\+C\+H\+A\+R\+A\+C\+T\+E\+R\+\_\+\+A\+S\+C\+I\+I\+\_\+\+T\+H\+R\+E\+S\+H\+O\+L\+D}!lexer.\+h@{lexer.\+h}}
+\subsubsection[{W\+E\+I\+R\+D\+\_\+\+C\+H\+A\+R\+A\+C\+T\+E\+R\+\_\+\+A\+S\+C\+I\+I\+\_\+\+T\+H\+R\+E\+S\+H\+O\+L\+D}]{\setlength{\rightskip}{0pt plus 5cm}\#define W\+E\+I\+R\+D\+\_\+\+C\+H\+A\+R\+A\+C\+T\+E\+R\+\_\+\+A\+S\+C\+I\+I\+\_\+\+T\+H\+R\+E\+S\+H\+O\+L\+D~128}}\label{lexer_8h_ada29ca9215360e70130ae6e84c878197}
+
+
+Definition at line 11 of file lexer.\+h.
+
+
+
+\subsection{Enumeration Type Documentation}
+\hypertarget{lexer_8h_afe5ef662303b6b710ea6ee1a944bad0d}{\index{lexer.\+h@{lexer.\+h}!token\+\_\+type@{token\+\_\+type}}
+\index{token\+\_\+type@{token\+\_\+type}!lexer.\+h@{lexer.\+h}}
+\subsubsection[{token\+\_\+type}]{\setlength{\rightskip}{0pt plus 5cm}enum {\bf token\+\_\+type}}}\label{lexer_8h_afe5ef662303b6b710ea6ee1a944bad0d}
+Types of token \begin{Desc}
+\item[Enumerator]\par
+\begin{description}
+\index{E\+N\+D\+\_\+\+O\+F\+\_\+\+F\+I\+L\+E@{E\+N\+D\+\_\+\+O\+F\+\_\+\+F\+I\+L\+E}!lexer.\+h@{lexer.\+h}}\index{lexer.\+h@{lexer.\+h}!E\+N\+D\+\_\+\+O\+F\+\_\+\+F\+I\+L\+E@{E\+N\+D\+\_\+\+O\+F\+\_\+\+F\+I\+L\+E}}\item[{\em 
+\hypertarget{lexer_8h_afe5ef662303b6b710ea6ee1a944bad0da7ea291c26de584b23fd7f9111784f860}{E\+N\+D\+\_\+\+O\+F\+\_\+\+F\+I\+L\+E}\label{lexer_8h_afe5ef662303b6b710ea6ee1a944bad0da7ea291c26de584b23fd7f9111784f860}
+}]\index{I\+D\+E\+N\+T\+I\+F\+I\+E\+R@{I\+D\+E\+N\+T\+I\+F\+I\+E\+R}!lexer.\+h@{lexer.\+h}}\index{lexer.\+h@{lexer.\+h}!I\+D\+E\+N\+T\+I\+F\+I\+E\+R@{I\+D\+E\+N\+T\+I\+F\+I\+E\+R}}\item[{\em 
+\hypertarget{lexer_8h_afe5ef662303b6b710ea6ee1a944bad0da84f8ae2490f9e4bd2321fd21f4b0e807}{I\+D\+E\+N\+T\+I\+F\+I\+E\+R}\label{lexer_8h_afe5ef662303b6b710ea6ee1a944bad0da84f8ae2490f9e4bd2321fd21f4b0e807}
+}]\index{N\+U\+M\+B\+E\+R@{N\+U\+M\+B\+E\+R}!lexer.\+h@{lexer.\+h}}\index{lexer.\+h@{lexer.\+h}!N\+U\+M\+B\+E\+R@{N\+U\+M\+B\+E\+R}}\item[{\em 
+\hypertarget{lexer_8h_afe5ef662303b6b710ea6ee1a944bad0da12a90dfe20486bbe3e075afcd19ef2d0}{N\+U\+M\+B\+E\+R}\label{lexer_8h_afe5ef662303b6b710ea6ee1a944bad0da12a90dfe20486bbe3e075afcd19ef2d0}
+}]\index{O\+P\+E\+R\+A\+T\+O\+R@{O\+P\+E\+R\+A\+T\+O\+R}!lexer.\+h@{lexer.\+h}}\index{lexer.\+h@{lexer.\+h}!O\+P\+E\+R\+A\+T\+O\+R@{O\+P\+E\+R\+A\+T\+O\+R}}\item[{\em 
+\hypertarget{lexer_8h_afe5ef662303b6b710ea6ee1a944bad0da6411d9d6073252e4d316493506bbb979}{O\+P\+E\+R\+A\+T\+O\+R}\label{lexer_8h_afe5ef662303b6b710ea6ee1a944bad0da6411d9d6073252e4d316493506bbb979}
+}]\index{S\+E\+P\+A\+R\+A\+T\+O\+R@{S\+E\+P\+A\+R\+A\+T\+O\+R}!lexer.\+h@{lexer.\+h}}\index{lexer.\+h@{lexer.\+h}!S\+E\+P\+A\+R\+A\+T\+O\+R@{S\+E\+P\+A\+R\+A\+T\+O\+R}}\item[{\em 
+\hypertarget{lexer_8h_afe5ef662303b6b710ea6ee1a944bad0dac22e1a44f0ddbc929cfea45e49d20f84}{S\+E\+P\+A\+R\+A\+T\+O\+R}\label{lexer_8h_afe5ef662303b6b710ea6ee1a944bad0dac22e1a44f0ddbc929cfea45e49d20f84}
+}]\index{E\+R\+R\+O\+R\+N\+E\+O\+U\+S@{E\+R\+R\+O\+R\+N\+E\+O\+U\+S}!lexer.\+h@{lexer.\+h}}\index{lexer.\+h@{lexer.\+h}!E\+R\+R\+O\+R\+N\+E\+O\+U\+S@{E\+R\+R\+O\+R\+N\+E\+O\+U\+S}}\item[{\em 
+\hypertarget{lexer_8h_afe5ef662303b6b710ea6ee1a944bad0da9c7a0f896094fd76655125e6dfe21b3b}{E\+R\+R\+O\+R\+N\+E\+O\+U\+S}\label{lexer_8h_afe5ef662303b6b710ea6ee1a944bad0da9c7a0f896094fd76655125e6dfe21b3b}
+}]\index{S\+T\+R\+I\+N\+G@{S\+T\+R\+I\+N\+G}!lexer.\+h@{lexer.\+h}}\index{lexer.\+h@{lexer.\+h}!S\+T\+R\+I\+N\+G@{S\+T\+R\+I\+N\+G}}\item[{\em 
+\hypertarget{lexer_8h_afe5ef662303b6b710ea6ee1a944bad0daee847e634a4297b274316de8a8ca9921}{S\+T\+R\+I\+N\+G}\label{lexer_8h_afe5ef662303b6b710ea6ee1a944bad0daee847e634a4297b274316de8a8ca9921}
+}]\index{C\+H\+A\+R\+A\+C\+T\+E\+R@{C\+H\+A\+R\+A\+C\+T\+E\+R}!lexer.\+h@{lexer.\+h}}\index{lexer.\+h@{lexer.\+h}!C\+H\+A\+R\+A\+C\+T\+E\+R@{C\+H\+A\+R\+A\+C\+T\+E\+R}}\item[{\em 
+\hypertarget{lexer_8h_afe5ef662303b6b710ea6ee1a944bad0da762041e95dc7b081aaf6b0019dca8586}{C\+H\+A\+R\+A\+C\+T\+E\+R}\label{lexer_8h_afe5ef662303b6b710ea6ee1a944bad0da762041e95dc7b081aaf6b0019dca8586}
+}]\index{U\+N\+K\+N\+O\+W\+N@{U\+N\+K\+N\+O\+W\+N}!lexer.\+h@{lexer.\+h}}\index{lexer.\+h@{lexer.\+h}!U\+N\+K\+N\+O\+W\+N@{U\+N\+K\+N\+O\+W\+N}}\item[{\em 
+\hypertarget{lexer_8h_afe5ef662303b6b710ea6ee1a944bad0da6ce26a62afab55d7606ad4e92428b30c}{U\+N\+K\+N\+O\+W\+N}\label{lexer_8h_afe5ef662303b6b710ea6ee1a944bad0da6ce26a62afab55d7606ad4e92428b30c}
+}]\index{S\+P\+E\+C\+I\+A\+L\+\_\+\+C\+H\+A\+R@{S\+P\+E\+C\+I\+A\+L\+\_\+\+C\+H\+A\+R}!lexer.\+h@{lexer.\+h}}\index{lexer.\+h@{lexer.\+h}!S\+P\+E\+C\+I\+A\+L\+\_\+\+C\+H\+A\+R@{S\+P\+E\+C\+I\+A\+L\+\_\+\+C\+H\+A\+R}}\item[{\em 
+\hypertarget{lexer_8h_afe5ef662303b6b710ea6ee1a944bad0da703e6b8851fc921d2262534621ef8578}{S\+P\+E\+C\+I\+A\+L\+\_\+\+C\+H\+A\+R}\label{lexer_8h_afe5ef662303b6b710ea6ee1a944bad0da703e6b8851fc921d2262534621ef8578}
+}]\end{description}
+\end{Desc}
+
+
+Definition at line 15 of file lexer.\+h.
+
+
+
+\subsection{Function Documentation}
+\hypertarget{lexer_8h_a847620269d9dffd4c7652d50b283b263}{\index{lexer.\+h@{lexer.\+h}!consume\+\_\+character@{consume\+\_\+character}}
+\index{consume\+\_\+character@{consume\+\_\+character}!lexer.\+h@{lexer.\+h}}
+\subsubsection[{consume\+\_\+character}]{\setlength{\rightskip}{0pt plus 5cm}void consume\+\_\+character (
+\begin{DoxyParamCaption}
+\item[{{\bf Lexer} $\ast$}]{lexer}
+\end{DoxyParamCaption}
+)}}\label{lexer_8h_a847620269d9dffd4c7652d50b283b263}
+Advance to the next character, consuming the current one.
+
+
+\begin{DoxyParams}{Parameters}
+{\em lexer} & instance of the lexer \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 45 of file lexer.\+c.
+
+\hypertarget{lexer_8h_ac4c84e6817d348dc2a8ec6d14ad2708a}{\index{lexer.\+h@{lexer.\+h}!create\+\_\+lexer@{create\+\_\+lexer}}
+\index{create\+\_\+lexer@{create\+\_\+lexer}!lexer.\+h@{lexer.\+h}}
+\subsubsection[{create\+\_\+lexer}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Lexer}$\ast$ create\+\_\+lexer (
+\begin{DoxyParamCaption}
+\item[{char $\ast$}]{input}
+\end{DoxyParamCaption}
+)}}\label{lexer_8h_ac4c84e6817d348dc2a8ec6d14ad2708a}
+Create an instance of the \hyperlink{struct_lexer}{Lexer}
+
+
+\begin{DoxyParams}{Parameters}
+{\em input} & the input to lex \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+instance of \hyperlink{struct_lexer}{Lexer} 
+\end{DoxyReturn}
+
+
+Definition at line 29 of file lexer.\+c.
+
+\hypertarget{lexer_8h_a78563c380a33a3261124d01695806b6e}{\index{lexer.\+h@{lexer.\+h}!create\+\_\+token@{create\+\_\+token}}
+\index{create\+\_\+token@{create\+\_\+token}!lexer.\+h@{lexer.\+h}}
+\subsubsection[{create\+\_\+token}]{\setlength{\rightskip}{0pt plus 5cm}{\bf token}$\ast$ create\+\_\+token (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{lexer_8h_a78563c380a33a3261124d01695806b6e}
+Create an empty token
+
+\begin{DoxyReturn}{Returns}
+allocate memory for token 
+\end{DoxyReturn}
+
+
+Definition at line 9 of file lexer.\+c.
+
+\hypertarget{lexer_8h_a58a8c96e3aa2ecdef77e4bea2a5b9f96}{\index{lexer.\+h@{lexer.\+h}!destroy\+\_\+lexer@{destroy\+\_\+lexer}}
+\index{destroy\+\_\+lexer@{destroy\+\_\+lexer}!lexer.\+h@{lexer.\+h}}
+\subsubsection[{destroy\+\_\+lexer}]{\setlength{\rightskip}{0pt plus 5cm}void destroy\+\_\+lexer (
+\begin{DoxyParamCaption}
+\item[{{\bf Lexer} $\ast$}]{lexer}
+\end{DoxyParamCaption}
+)}}\label{lexer_8h_a58a8c96e3aa2ecdef77e4bea2a5b9f96}
+Destroys the given lexer instance, freeing any memory
+
+
+\begin{DoxyParams}{Parameters}
+{\em lexer} & the lexer instance to destroy \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 227 of file lexer.\+c.
+
+\hypertarget{lexer_8h_a882aa8a58590401749e1d8c04d665734}{\index{lexer.\+h@{lexer.\+h}!destroy\+\_\+token@{destroy\+\_\+token}}
+\index{destroy\+\_\+token@{destroy\+\_\+token}!lexer.\+h@{lexer.\+h}}
+\subsubsection[{destroy\+\_\+token}]{\setlength{\rightskip}{0pt plus 5cm}void destroy\+\_\+token (
+\begin{DoxyParamCaption}
+\item[{{\bf token} $\ast$}]{token}
+\end{DoxyParamCaption}
+)}}\label{lexer_8h_a882aa8a58590401749e1d8c04d665734}
+Deallocates memory for token
+
+
+\begin{DoxyParams}{Parameters}
+{\em token} & token to free \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 22 of file lexer.\+c.
+
+\hypertarget{lexer_8h_a9e6e544dcc66419f7085e140d8473edb}{\index{lexer.\+h@{lexer.\+h}!expect\+\_\+character@{expect\+\_\+character}}
+\index{expect\+\_\+character@{expect\+\_\+character}!lexer.\+h@{lexer.\+h}}
+\subsubsection[{expect\+\_\+character}]{\setlength{\rightskip}{0pt plus 5cm}void expect\+\_\+character (
+\begin{DoxyParamCaption}
+\item[{{\bf Lexer} $\ast$}]{lexer, }
+\item[{char}]{c}
+\end{DoxyParamCaption}
+)}}\label{lexer_8h_a9e6e544dcc66419f7085e140d8473edb}
+Checks if current character is the given character otherwise throws an error
+
+
+\begin{DoxyParams}{Parameters}
+{\em lexer} & the lexer instance \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 103 of file lexer.\+c.
+
+\hypertarget{lexer_8h_acd475a743379d757430b1dda8190241c}{\index{lexer.\+h@{lexer.\+h}!flush\+\_\+buffer@{flush\+\_\+buffer}}
+\index{flush\+\_\+buffer@{flush\+\_\+buffer}!lexer.\+h@{lexer.\+h}}
+\subsubsection[{flush\+\_\+buffer}]{\setlength{\rightskip}{0pt plus 5cm}char$\ast$ flush\+\_\+buffer (
+\begin{DoxyParamCaption}
+\item[{{\bf Lexer} $\ast$}]{lexer, }
+\item[{int}]{start, }
+\item[{int}]{length}
+\end{DoxyParamCaption}
+)}}\label{lexer_8h_acd475a743379d757430b1dda8190241c}
+Simple substring implementation, used to flush buffer. This is malloc'd memory, so free it!
+
+
+\begin{DoxyParams}{Parameters}
+{\em lexer} & instance of lexer \\
+\hline
+{\em start} & start of the input \\
+\hline
+{\em length} & of the input \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+string cut from buffer 
+\end{DoxyReturn}
+
+
+Definition at line 49 of file lexer.\+c.
+
+\hypertarget{lexer_8h_a6c3e431604a7d4169bdf00ebe55327f8}{\index{lexer.\+h@{lexer.\+h}!get\+\_\+next\+\_\+token@{get\+\_\+next\+\_\+token}}
+\index{get\+\_\+next\+\_\+token@{get\+\_\+next\+\_\+token}!lexer.\+h@{lexer.\+h}}
+\subsubsection[{get\+\_\+next\+\_\+token}]{\setlength{\rightskip}{0pt plus 5cm}void get\+\_\+next\+\_\+token (
+\begin{DoxyParamCaption}
+\item[{{\bf Lexer} $\ast$}]{lexer}
+\end{DoxyParamCaption}
+)}}\label{lexer_8h_a6c3e431604a7d4169bdf00ebe55327f8}
+Process the next token in the token stream
+
+
+\begin{DoxyParams}{Parameters}
+{\em lexer} & the lexer instance \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 176 of file lexer.\+c.
+
+\hypertarget{lexer_8h_acf08d947c7cef23ec5c836b73e7a4ef3}{\index{lexer.\+h@{lexer.\+h}!get\+\_\+token\+\_\+name@{get\+\_\+token\+\_\+name}}
+\index{get\+\_\+token\+\_\+name@{get\+\_\+token\+\_\+name}!lexer.\+h@{lexer.\+h}}
+\subsubsection[{get\+\_\+token\+\_\+name}]{\setlength{\rightskip}{0pt plus 5cm}const char$\ast$ get\+\_\+token\+\_\+name (
+\begin{DoxyParamCaption}
+\item[{{\bf token} $\ast$}]{token}
+\end{DoxyParamCaption}
+)}}\label{lexer_8h_acf08d947c7cef23ec5c836b73e7a4ef3}
+Get the name of the given token as a string
+
+
+\begin{DoxyParams}{Parameters}
+{\em token} & token to find name of \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+the name of the given token 
+\end{DoxyReturn}
+
+
+Definition at line 18 of file lexer.\+c.
+
+\hypertarget{lexer_8h_a562c387f53e45d9a8d6f653a4cf271df}{\index{lexer.\+h@{lexer.\+h}!peek\+\_\+ahead@{peek\+\_\+ahead}}
+\index{peek\+\_\+ahead@{peek\+\_\+ahead}!lexer.\+h@{lexer.\+h}}
+\subsubsection[{peek\+\_\+ahead}]{\setlength{\rightskip}{0pt plus 5cm}char peek\+\_\+ahead (
+\begin{DoxyParamCaption}
+\item[{{\bf Lexer} $\ast$}]{lexer, }
+\item[{int}]{ahead}
+\end{DoxyParamCaption}
+)}}\label{lexer_8h_a562c387f53e45d9a8d6f653a4cf271df}
+Peek ahead in the character stream by the given amount
+
+instance of lexer  amount to peek by \begin{DoxyReturn}{Returns}
+the char we peeked at 
+\end{DoxyReturn}
+
+
+Definition at line 172 of file lexer.\+c.
+
+\hypertarget{lexer_8h_a307c1284628f8238004ba6c5f1edbbc2}{\index{lexer.\+h@{lexer.\+h}!recognize\+\_\+character\+\_\+token@{recognize\+\_\+character\+\_\+token}}
+\index{recognize\+\_\+character\+\_\+token@{recognize\+\_\+character\+\_\+token}!lexer.\+h@{lexer.\+h}}
+\subsubsection[{recognize\+\_\+character\+\_\+token}]{\setlength{\rightskip}{0pt plus 5cm}void recognize\+\_\+character\+\_\+token (
+\begin{DoxyParamCaption}
+\item[{{\bf Lexer} $\ast$}]{lexer}
+\end{DoxyParamCaption}
+)}}\label{lexer_8h_a307c1284628f8238004ba6c5f1edbbc2}
+Recognize a Character
+
+
+\begin{DoxyParams}{Parameters}
+{\em lexer} & the lexer instance \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 158 of file lexer.\+c.
+
+\hypertarget{lexer_8h_a1bddce9509bc383e4b58ae704f85438f}{\index{lexer.\+h@{lexer.\+h}!recognize\+\_\+identifier\+\_\+token@{recognize\+\_\+identifier\+\_\+token}}
+\index{recognize\+\_\+identifier\+\_\+token@{recognize\+\_\+identifier\+\_\+token}!lexer.\+h@{lexer.\+h}}
+\subsubsection[{recognize\+\_\+identifier\+\_\+token}]{\setlength{\rightskip}{0pt plus 5cm}void recognize\+\_\+identifier\+\_\+token (
+\begin{DoxyParamCaption}
+\item[{{\bf Lexer} $\ast$}]{lexer}
+\end{DoxyParamCaption}
+)}}\label{lexer_8h_a1bddce9509bc383e4b58ae704f85438f}
+Recognize an identifier
+
+
+\begin{DoxyParams}{Parameters}
+{\em lexer} & the lexer instance \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 113 of file lexer.\+c.
+
+\hypertarget{lexer_8h_ab310ca77bd6fb630d1bb80f8603a624e}{\index{lexer.\+h@{lexer.\+h}!recognize\+\_\+number\+\_\+token@{recognize\+\_\+number\+\_\+token}}
+\index{recognize\+\_\+number\+\_\+token@{recognize\+\_\+number\+\_\+token}!lexer.\+h@{lexer.\+h}}
+\subsubsection[{recognize\+\_\+number\+\_\+token}]{\setlength{\rightskip}{0pt plus 5cm}void recognize\+\_\+number\+\_\+token (
+\begin{DoxyParamCaption}
+\item[{{\bf Lexer} $\ast$}]{lexer}
+\end{DoxyParamCaption}
+)}}\label{lexer_8h_ab310ca77bd6fb630d1bb80f8603a624e}
+Recognize an Integer
+
+
+\begin{DoxyParams}{Parameters}
+{\em lexer} & the lexer instance \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 127 of file lexer.\+c.
+
+\hypertarget{lexer_8h_a270ebeb2e67e43c0896efeda6ca80c92}{\index{lexer.\+h@{lexer.\+h}!recognize\+\_\+string\+\_\+token@{recognize\+\_\+string\+\_\+token}}
+\index{recognize\+\_\+string\+\_\+token@{recognize\+\_\+string\+\_\+token}!lexer.\+h@{lexer.\+h}}
+\subsubsection[{recognize\+\_\+string\+\_\+token}]{\setlength{\rightskip}{0pt plus 5cm}void recognize\+\_\+string\+\_\+token (
+\begin{DoxyParamCaption}
+\item[{{\bf Lexer} $\ast$}]{lexer}
+\end{DoxyParamCaption}
+)}}\label{lexer_8h_a270ebeb2e67e43c0896efeda6ca80c92}
+Recognize a String
+
+
+\begin{DoxyParams}{Parameters}
+{\em lexer} & the lexer instance \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 147 of file lexer.\+c.
+
+\hypertarget{lexer_8h_a750068393248935f85de48ca7ec62a01}{\index{lexer.\+h@{lexer.\+h}!skip\+\_\+layout\+\_\+and\+\_\+comments@{skip\+\_\+layout\+\_\+and\+\_\+comments}}
+\index{skip\+\_\+layout\+\_\+and\+\_\+comments@{skip\+\_\+layout\+\_\+and\+\_\+comments}!lexer.\+h@{lexer.\+h}}
+\subsubsection[{skip\+\_\+layout\+\_\+and\+\_\+comments}]{\setlength{\rightskip}{0pt plus 5cm}void skip\+\_\+layout\+\_\+and\+\_\+comments (
+\begin{DoxyParamCaption}
+\item[{{\bf Lexer} $\ast$}]{lexer}
+\end{DoxyParamCaption}
+)}}\label{lexer_8h_a750068393248935f85de48ca7ec62a01}
+Skips layout characters, such as spaces, and comments, which are denoted with the pound (\#).
+
+
+\begin{DoxyParams}{Parameters}
+{\em lexer} & the lexer instance \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 61 of file lexer.\+c.
+

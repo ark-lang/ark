@@ -1,0 +1,102 @@
+\hypertarget{jayfor_8h}{\section{includes/jayfor.h File Reference}
+\label{jayfor_8h}\index{includes/jayfor.\+h@{includes/jayfor.\+h}}
+}
+{\ttfamily \#include $<$stdio.\+h$>$}\\*
+{\ttfamily \#include $<$stdlib.\+h$>$}\\*
+{\ttfamily \#include $<$unistd.\+h$>$}\\*
+{\ttfamily \#include \char`\"{}util.\+h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}lexer.\+h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}parser.\+h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}scanner.\+h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}compiler.\+h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}j4vm.\+h\char`\"{}}\\*
+\subsection*{Data Structures}
+\begin{DoxyCompactItemize}
+\item 
+struct \hyperlink{structargument}{argument}
+\item 
+struct \hyperlink{structjayfor}{jayfor}
+\end{DoxyCompactItemize}
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{structjayfor}{jayfor} $\ast$ \hyperlink{jayfor_8h_a05a3ca16a4aef33eabcbab146a7836a0}{create\+\_\+jayfor} (int argc, char $\ast$$\ast$argv)
+\item 
+void \hyperlink{jayfor_8h_ae5cd09055dae431c22144aa4d6524cc1}{start\+\_\+jayfor} (\hyperlink{structjayfor}{jayfor} $\ast$\hyperlink{structjayfor}{jayfor})
+\item 
+void \hyperlink{jayfor_8h_a944380a68a8b01a87ee1f81cc27918f3}{run\+\_\+vm\+\_\+executable} (\hyperlink{structjayfor}{jayfor} $\ast$self)
+\item 
+void \hyperlink{jayfor_8h_a96f3e72d3ed1d2d74631736ba1e6c7d1}{destroy\+\_\+jayfor} (\hyperlink{structjayfor}{jayfor} $\ast$\hyperlink{structjayfor}{jayfor})
+\end{DoxyCompactItemize}
+
+
+\subsection{Function Documentation}
+\hypertarget{jayfor_8h_a05a3ca16a4aef33eabcbab146a7836a0}{\index{jayfor.\+h@{jayfor.\+h}!create\+\_\+jayfor@{create\+\_\+jayfor}}
+\index{create\+\_\+jayfor@{create\+\_\+jayfor}!jayfor.\+h@{jayfor.\+h}}
+\subsubsection[{create\+\_\+jayfor}]{\setlength{\rightskip}{0pt plus 5cm}{\bf jayfor}$\ast$ create\+\_\+jayfor (
+\begin{DoxyParamCaption}
+\item[{int}]{argc, }
+\item[{char $\ast$$\ast$}]{argv}
+\end{DoxyParamCaption}
+)}}\label{jayfor_8h_a05a3ca16a4aef33eabcbab146a7836a0}
+Creates a new jayfor instance
+
+number of arguments  argument list \begin{DoxyReturn}{Returns}
+instance of jayfor 
+\end{DoxyReturn}
+
+
+Definition at line 47 of file jayfor.\+c.
+
+\hypertarget{jayfor_8h_a96f3e72d3ed1d2d74631736ba1e6c7d1}{\index{jayfor.\+h@{jayfor.\+h}!destroy\+\_\+jayfor@{destroy\+\_\+jayfor}}
+\index{destroy\+\_\+jayfor@{destroy\+\_\+jayfor}!jayfor.\+h@{jayfor.\+h}}
+\subsubsection[{destroy\+\_\+jayfor}]{\setlength{\rightskip}{0pt plus 5cm}void destroy\+\_\+jayfor (
+\begin{DoxyParamCaption}
+\item[{{\bf jayfor} $\ast$}]{jayfor}
+\end{DoxyParamCaption}
+)}}\label{jayfor_8h_a96f3e72d3ed1d2d74631736ba1e6c7d1}
+Destroy the given jayfor instance
+
+
+\begin{DoxyParams}{Parameters}
+{\em jayfor} & instance to destroy \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 185 of file jayfor.\+c.
+
+\hypertarget{jayfor_8h_a944380a68a8b01a87ee1f81cc27918f3}{\index{jayfor.\+h@{jayfor.\+h}!run\+\_\+vm\+\_\+executable@{run\+\_\+vm\+\_\+executable}}
+\index{run\+\_\+vm\+\_\+executable@{run\+\_\+vm\+\_\+executable}!jayfor.\+h@{jayfor.\+h}}
+\subsubsection[{run\+\_\+vm\+\_\+executable}]{\setlength{\rightskip}{0pt plus 5cm}void run\+\_\+vm\+\_\+executable (
+\begin{DoxyParamCaption}
+\item[{{\bf jayfor} $\ast$}]{self}
+\end{DoxyParamCaption}
+)}}\label{jayfor_8h_a944380a68a8b01a87ee1f81cc27918f3}
+Runs the bytecode in the V\+M 
+\begin{DoxyParams}{Parameters}
+{\em self} & the jayfor instance \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 155 of file jayfor.\+c.
+
+\hypertarget{jayfor_8h_ae5cd09055dae431c22144aa4d6524cc1}{\index{jayfor.\+h@{jayfor.\+h}!start\+\_\+jayfor@{start\+\_\+jayfor}}
+\index{start\+\_\+jayfor@{start\+\_\+jayfor}!jayfor.\+h@{jayfor.\+h}}
+\subsubsection[{start\+\_\+jayfor}]{\setlength{\rightskip}{0pt plus 5cm}void start\+\_\+jayfor (
+\begin{DoxyParamCaption}
+\item[{{\bf jayfor} $\ast$}]{jayfor}
+\end{DoxyParamCaption}
+)}}\label{jayfor_8h_ae5cd09055dae431c22144aa4d6524cc1}
+Start the jayfor interpreter
+
+
+\begin{DoxyParams}{Parameters}
+{\em jayfor} & instance to start \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 109 of file jayfor.\+c.
+
