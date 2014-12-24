@@ -1,5 +1,5 @@
 CC = clang
-C_FLAGS = -g -o j4 -Wall -Iincludes/
+C_FLAGS = -o j4 -fomit-frame-pointer -Wall -Iincludes/ 
 SOURCES = src/*.c
 
 all: ${SOURCES}

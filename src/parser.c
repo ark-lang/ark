@@ -601,18 +601,18 @@ void *parse_variable_ast_node(parser *parser, bool global) {
 	// TYPE NAME = 5;
 	// TYPE NAME;
 
-	// consume the int data type
-	token *variabledata_type = match_token_type(parser, IDENTIFIER);
-
-	// convert the data type for enum
-	data_type data_typeRaw = match_token_type_to_data_type(parser, variabledata_type);
-
 	bool is_constant = false;
 
 	if (check_token_type_and_content(parser, IDENTIFIER, CONSTANT_KEYWORD, 0)) {
 		consume_token(parser);
 		is_constant = true;
-	}	
+	}
+
+	// consume the int data type
+	token *variabledata_type = match_token_type(parser, IDENTIFIER);
+
+	// convert the data type for enum
+	data_type data_typeRaw = match_token_type_to_data_type(parser, variabledata_type);
 
 	// name of the variable
 	token *variableNametoken = match_token_type(parser, IDENTIFIER);
@@ -645,6 +645,8 @@ void *parse_variable_ast_node(parser *parser, bool global) {
 			prepare_ast_node(parser, dec, VARIABLE_DEC_AST_NODE);
 			return dec;
 		}
+
+		// not global, pop it as a statement node
 		statement_ast_node *sn = create_statement_ast_node();
 		sn->data = dec;
 		sn->type = VARIABLE_DEC_AST_NODE;
@@ -666,6 +668,8 @@ void *parse_variable_ast_node(parser *parser, bool global) {
 			prepare_ast_node(parser, def, VARIABLE_DEF_AST_NODE);
 			return def;
 		}
+
+		// not global, pop it as a statement node
 		statement_ast_node *sn = create_statement_ast_node();
 		sn->data = def;
 		sn->type = VARIABLE_DEF_AST_NODE;
@@ -1027,7 +1031,7 @@ void start_parsing_token_stream(parser *parser) {
 				if (!strcmp(tok->content, FUNCTION_KEYWORD)) {
 					parse_function_ast_node(parser);
 				} 
-				else if (check_token_type_is_valid_data_type(parser, tok)) {
+				else if (check_token_type_is_valid_data_type(parser, tok) || check_token_type_and_content(parser, IDENTIFIER, CONSTANT_KEYWORD, 0)) {
 					parse_variable_ast_node(parser, true);
 				}
 				else if (check_token_type_and_content(parser, OPERATOR, "=", 1)) {
