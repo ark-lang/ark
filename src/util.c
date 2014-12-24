@@ -4,9 +4,8 @@ extern void debug_message(const char *fmt, ...) {
 	if (DEBUG_MODE) {
 		va_list arg;
 		va_start(arg, fmt);
-		KYEL();
-		printf(fmt, arg);
-		fflush(stdout);
+		KRED();
+		vfprintf(stdout, fmt, arg);
 		KNRM();
 		va_end(arg);
 	}
@@ -16,8 +15,7 @@ extern void error_message(const char *fmt, ...) {
 	va_list arg;
 	va_start(arg, fmt);
 	KYEL();
-	printf(fmt, arg);
-	fflush(stdout);
+	vfprintf(stdout, fmt, arg);
 	KNRM();
 	va_end(arg);
 	exit(1);
@@ -26,9 +24,8 @@ extern void error_message(const char *fmt, ...) {
 extern void primary_message(const char *fmt, ...) {
 	va_list arg;
 	va_start(arg, fmt);
-	KYEL();
-	printf(fmt, arg);
+	KGRN();
+	vfprintf(stdout, fmt, arg);
 	KNRM();
 	va_end(arg);
-	exit(1);
 }
