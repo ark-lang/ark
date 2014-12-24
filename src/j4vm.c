@@ -154,8 +154,3 @@ object *create_string(char *value) {
 	obj->value.string = value;
 	return obj;
 }
-
-object *call(object *obj, char *message, object *argv[], int argc) {
-
-	return NULL;
-}
