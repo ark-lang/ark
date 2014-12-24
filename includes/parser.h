@@ -80,6 +80,7 @@ typedef struct s_Expression {
 typedef struct {
 	data_type type;		// type of data to store
 	token *name;		// name of the variable
+	bool is_global;
 } variable_define_ast_node;
 
 /** 
