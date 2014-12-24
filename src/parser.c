@@ -13,10 +13,20 @@ static const char* DATA_TYPES[] = {
 	"void", "char", "tup"
 };
 
-/** UTILITY FOR ast_nodeS */
+/** UTILITY FOR AST NODES */
 
-variable_reassignment_node *create_variable_reassign_ast_node() {
-	variable_reassignment_node *vrn = malloc(sizeof(*vrn));
+infinite_loop_ast_node *create_infinite_loop_ast_node() {
+	infinite_loop_ast_node *iln = malloc(sizeof(*iln));
+	if (!iln) {
+		perror("malloc: failed to allocate memory for Infinite Loop AST Node");
+		exit(1);
+	}
+	iln->body = NULL;
+	return iln;
+}
+
+variable_reassignment_ast_node *create_variable_reassign_ast_node() {
+	variable_reassignment_ast_node *vrn = malloc(sizeof(*vrn));
 	if (!vrn) {
 		perror("malloc: failed to allocate memory for Variable Reassign ast_node");
 		exit(1);
@@ -155,12 +165,13 @@ for_loop_ast_node *create_for_loop_ast_node() {
 	return fln;
 }
 
-void destroy_variable_reassign_ast_node(variable_reassignment_node *vrn) {
+void destroy_variable_reassign_ast_node(variable_reassignment_ast_node *vrn) {
 	if (vrn != NULL) {
 		if (vrn->expr != NULL) {
 			destroy_expression_ast_node(vrn->expr);
 		}
 		free(vrn);
+		vrn = NULL;
 	}
 }
 
@@ -265,6 +276,16 @@ void destroy_block_ast_node(block_ast_node *bn) {
 		}
 		free(bn);
 		bn = NULL;
+	}
+}
+
+void destroy_infinite_loop_ast_node(infinite_loop_ast_node *iln) {
+	if (iln != NULL) {
+		if (iln->body != NULL) {
+			destroy_block_ast_node(iln->body);
+		}
+		free(iln);
+		iln = NULL;
 	}
 }
 
@@ -694,14 +715,22 @@ block_ast_node *parse_block_ast_node(parser *parser) {
 	}
 	while (true);
 
-	// int i;
-	// for (i = 0; i < block->statements->size; i++) {
-	// 	statement_ast_node *sn = get_vector_item(block->statements, i);
-	// 	printf("%d = %s\n", i, ast_node_NAMES[sn->type]);
-	// }
-	// printf("\n");
-
 	return block;
+}
+
+statement_ast_node *parse_infinite_loop_ast_node(parser *parser) {
+	match_token_type(parser, IDENTIFIER);
+	
+	block_ast_node *body = parse_block_ast_node(parser);	
+	
+	infinite_loop_ast_node *iln = create_infinite_loop_ast_node();
+	iln->body = body;
+
+	statement_ast_node *sn = create_statement_ast_node();
+	sn->data = iln;
+	sn->type = INFINITE_LOOP_AST_NODE;
+	
+	return sn;
 }
 
 function_ast_node *parse_function_ast_node(parser *parser) {
@@ -847,7 +876,7 @@ function_ast_node *parse_function_ast_node(parser *parser) {
 	fpn = NULL;
 }
 
-function_callee_ast_node *parse_function_ast_nodeCall(parser *parser) {
+function_callee_ast_node *parse_function_callee_ast_node(parser *parser) {
 	// consume function name
 	token *callee = match_token_type(parser, IDENTIFIER);
 
@@ -901,7 +930,7 @@ function_callee_ast_node *parse_function_ast_nodeCall(parser *parser) {
 	exit(1);
 }
 
-function_return_ast_node *parserparsereturnStatement(parser *parser) {
+function_return_ast_node *parse_return_statement_ast_node(parser *parser) {
 	// consume the return keyword
 	match_token_type_and_content(parser, IDENTIFIER, RETURN_KEYWORD);
 
@@ -955,12 +984,15 @@ statement_ast_node *parse_statement_ast_node(parser *parser) {
 	// ret keyword	
 	if (check_token_type_and_content(parser, IDENTIFIER, RETURN_KEYWORD, 0)) {
 		statement_ast_node *sn = create_statement_ast_node();
-		sn->data = parserparsereturnStatement(parser); 
+		sn->data = parse_return_statement_ast_node(parser); 
 		sn->type = FUNCTION_RET_AST_NODE;
 		return sn;
 	}
 	else if (check_token_type_and_content(parser, IDENTIFIER, FOR_LOOP_KEYWORD, 0)) {
 		return parse_for_loop_ast_node(parser);
+	}
+	else if (check_token_type_and_content(parser, IDENTIFIER, INFINITE_LOOP_KEYWORD, 0)) {
+		return parse_infinite_loop_ast_node(parser);
 	}
 	else if (check_token_type(parser, IDENTIFIER, 0)) {
 		token *tok = peek_at_token_stream(parser, 0);
@@ -975,7 +1007,7 @@ statement_ast_node *parse_statement_ast_node(parser *parser) {
 		// function call
 		else if (check_token_type_and_content(parser, SEPARATOR, "(", 1)) {
 			statement_ast_node *sn = create_statement_ast_node();
-			sn->data = parse_function_ast_nodeCall(parser);
+			sn->data = parse_function_callee_ast_node(parser);
 			sn->type = FUNCTION_CALLEE_AST_NODE;
 			return sn;
 		}
@@ -995,7 +1027,7 @@ statement_ast_node *parse_statement_ast_node(parser *parser) {
 	exit(1);
 }
 
-variable_reassignment_node *parse_reassignment_statement_ast_node(parser *parser) {
+variable_reassignment_ast_node *parse_reassignment_statement_ast_node(parser *parser) {
 	if (check_token_type(parser, IDENTIFIER, 0)) {
 		token *variableName = consume_token(parser);
 
@@ -1008,7 +1040,7 @@ variable_reassignment_node *parse_reassignment_statement_ast_node(parser *parser
 				consume_token(parser);
 			}
 
-			variable_reassignment_node *vrn = create_variable_reassign_ast_node();
+			variable_reassignment_ast_node *vrn = create_variable_reassign_ast_node();
 			vrn->name = variableName;
 			vrn->expr = expr;
 			return vrn;
@@ -1038,7 +1070,7 @@ void start_parsing_token_stream(parser *parser) {
 					parse_reassignment_statement_ast_node(parser);
 				}
 				else if (check_token_type_and_content(parser, SEPARATOR, "(", 1)) {
-					prepare_ast_node(parser, parse_function_ast_nodeCall(parser), FUNCTION_CALLEE_AST_NODE);
+					prepare_ast_node(parser, parse_function_callee_ast_node(parser), FUNCTION_CALLEE_AST_NODE);
 				}
 				else {
 					printf(KRED "error: unrecognized identifier found: `%s`\n" KNRM, tok->content);
