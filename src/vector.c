@@ -7,8 +7,8 @@ vector *create_vector() {
 		exit(1);
 	}
 	vec->size = 0;
-	vec->maxSize = 2;
-	vec->items = malloc(sizeof(*vec->items) * vec->maxSize);
+	vec->max_size = 2;
+	vec->items = malloc(sizeof(*vec->items) * vec->max_size);
 	if (!vec->items) {
 		perror("malloc: failed to allocate memory for vector contents");
 		exit(1);
@@ -16,12 +16,12 @@ vector *create_vector() {
 	return vec;
 }
 
-void push_back_item(vector *vec, vectorItem item) {
+void push_back_item(vector *vec, vector_item item) {
 	// much more efficient to reallocate exponentially,
 	// instead of reallocating after adding an item
-	if (vec->size >= vec->maxSize) {
-		vec->maxSize *= 2;
-		vec->items = realloc(vec->items, sizeof(*vec->items) * vec->maxSize);
+	if (vec->size >= vec->max_size) {
+		vec->max_size *= 2;
+		vec->items = realloc(vec->items, sizeof(*vec->items) * vec->max_size);
 		if (!vec->items) {
 			perror("realloc: failed to allocate memory for vector contents");
 			exit(1);
@@ -30,7 +30,7 @@ void push_back_item(vector *vec, vectorItem item) {
 	vec->items[vec->size++] = item;
 }
 
-vectorItem get_vector_item(vector *vec, int index) {
+vector_item get_vector_item(vector *vec, int index) {
 	if (index > vec->size) {
 		printf("index out of vector bounds, index: %d, size: %d\n", index, vec->size);
 		exit(1);
