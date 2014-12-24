@@ -1,0 +1,65 @@
+\hypertarget{scanner_8h}{\section{includes/scanner.h File Reference}
+\label{scanner_8h}\index{includes/scanner.\+h@{includes/scanner.\+h}}
+}
+{\ttfamily \#include $<$stdio.\+h$>$}\\*
+{\ttfamily \#include $<$stdlib.\+h$>$}\\*
+{\ttfamily \#include \char`\"{}util.\+h\char`\"{}}\\*
+\subsection*{Data Structures}
+\begin{DoxyCompactItemize}
+\item 
+struct \hyperlink{struct_scanner}{Scanner}
+\end{DoxyCompactItemize}
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{struct_scanner}{Scanner} $\ast$ \hyperlink{scanner_8h_af45d40871f9f9872607dcbf5779ae385}{create\+\_\+scanner} ()
+\item 
+void \hyperlink{scanner_8h_ae8cc9af3d87fb0945af1e58904a81d2b}{scan\+\_\+file} (\hyperlink{struct_scanner}{Scanner} $\ast$scanner, const char $\ast$file\+Name)
+\item 
+void \hyperlink{scanner_8h_a2c098870582d332a28b3b321a4439f36}{destroy\+\_\+scanner} (\hyperlink{struct_scanner}{Scanner} $\ast$scanner)
+\end{DoxyCompactItemize}
+
+
+\subsection{Function Documentation}
+\hypertarget{scanner_8h_af45d40871f9f9872607dcbf5779ae385}{\index{scanner.\+h@{scanner.\+h}!create\+\_\+scanner@{create\+\_\+scanner}}
+\index{create\+\_\+scanner@{create\+\_\+scanner}!scanner.\+h@{scanner.\+h}}
+\subsubsection[{create\+\_\+scanner}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Scanner}$\ast$ create\+\_\+scanner (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{scanner_8h_af45d40871f9f9872607dcbf5779ae385}
+Creates an instance of a scanner \begin{DoxyReturn}{Returns}
+the scanner 
+\end{DoxyReturn}
+
+
+Definition at line 3 of file scanner.\+c.
+
+\hypertarget{scanner_8h_a2c098870582d332a28b3b321a4439f36}{\index{scanner.\+h@{scanner.\+h}!destroy\+\_\+scanner@{destroy\+\_\+scanner}}
+\index{destroy\+\_\+scanner@{destroy\+\_\+scanner}!scanner.\+h@{scanner.\+h}}
+\subsubsection[{destroy\+\_\+scanner}]{\setlength{\rightskip}{0pt plus 5cm}void destroy\+\_\+scanner (
+\begin{DoxyParamCaption}
+\item[{{\bf Scanner} $\ast$}]{scanner}
+\end{DoxyParamCaption}
+)}}\label{scanner_8h_a2c098870582d332a28b3b321a4439f36}
+Destroys the given \hyperlink{struct_scanner}{Scanner} 
+\begin{DoxyParams}{Parameters}
+{\em scanner} & scanner to destroy \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 51 of file scanner.\+c.
+
+\hypertarget{scanner_8h_ae8cc9af3d87fb0945af1e58904a81d2b}{\index{scanner.\+h@{scanner.\+h}!scan\+\_\+file@{scan\+\_\+file}}
+\index{scan\+\_\+file@{scan\+\_\+file}!scanner.\+h@{scanner.\+h}}
+\subsubsection[{scan\+\_\+file}]{\setlength{\rightskip}{0pt plus 5cm}void scan\+\_\+file (
+\begin{DoxyParamCaption}
+\item[{{\bf Scanner} $\ast$}]{scanner, }
+\item[{const char $\ast$}]{file\+Name}
+\end{DoxyParamCaption}
+)}}\label{scanner_8h_ae8cc9af3d87fb0945af1e58904a81d2b}
+Reads the given file into {\ttfamily char$\ast$ contents;} 
+
+Definition at line 13 of file scanner.\+c.
+
