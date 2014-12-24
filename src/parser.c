@@ -609,7 +609,7 @@ void *parse_variable_ast_node(parser *parser, bool global) {
 
 	bool is_constant = false;
 
-	if (match_token_type_and_content(parser, IDENTIFIER, CONSTANT_KEYWORD, 0)) {
+	if (check_token_type_and_content(parser, IDENTIFIER, CONSTANT_KEYWORD, 0)) {
 		consume_token(parser);
 		is_constant = true;
 	}	
