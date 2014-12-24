@@ -1,16 +1,16 @@
 #include "scanner.h"
 
-Scanner *create_scanner() {
-	Scanner *scanner = malloc(sizeof(*scanner));
-	if (!scanner) {
+scanner *create_scanner() {
+	scanner *self = malloc(sizeof(*self));
+	if (!self) {
 		perror("malloc: failed to allocate memory for scanner");
 		exit(1);
 	}
-	scanner->contents = NULL;
-	return scanner;
+	self->contents = NULL;
+	return self;
 }
 
-void scan_file(Scanner *scanner, const char* fileName) {
+void scan_file(scanner *self, const char* fileName) {
 	FILE *file = fopen(fileName, "rb");
 
 	if (file) {
@@ -21,8 +21,8 @@ void scan_file(Scanner *scanner, const char* fileName) {
 				exit(1);
 			}
 
-			scanner->contents = malloc(sizeof(*scanner->contents) * (fileSize + 1));
-			if (!scanner->contents) {
+			self->contents = malloc(sizeof(*self->contents) * (fileSize + 1));
+			if (!self->contents) {
 				perror("malloc: failed to allocate memory for file");
 				exit(1);
 			}
@@ -32,12 +32,12 @@ void scan_file(Scanner *scanner, const char* fileName) {
 				exit(1);
 			}
 
-			size_t fileLength = fread(scanner->contents, sizeof(char), fileSize, file);
+			size_t fileLength = fread(self->contents, sizeof(char), fileSize, file);
 			if (!fileLength) {
 				printf(KYEL "warning: \"%s\" is empty\n" KNRM, fileName);
 			}
 
-			scanner->contents[fileSize] = '\0';
+			self->contents[fileSize] = '\0';
 		}
 		fclose(file);
 	}
@@ -48,13 +48,13 @@ void scan_file(Scanner *scanner, const char* fileName) {
 	}
 }
 
-void destroy_scanner(Scanner *scanner) {
-	if (scanner->contents) {
-		free(scanner->contents);
-		scanner->contents = NULL;
+void destroy_scanner(scanner *self) {
+	if (self->contents) {
+		free(self->contents);
+		self->contents = NULL;
 	}
-	if (scanner) {
-		free(scanner);
-		scanner = NULL;
+	if (self) {
+		free(self);
+		self = NULL;
 	}
 }
