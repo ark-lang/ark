@@ -1,15 +1,14 @@
 #ifndef LEXER_H
 #define LEXER_H
 
+#define WEIRD_CHARACTER_ASCII_THRESHOLD 128
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "util.h"
 #include "vector.h"
-
-#define WEIRD_CHARACTER_ASCII_THRESHOLD 128
-#define uint unsigned int
 
 /** Types of token */
 typedef enum {
