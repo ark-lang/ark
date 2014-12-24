@@ -1,6 +1,9 @@
 #ifndef BOOL_H
 #define BOOL_H
 
+#include <stdio.h>
+#include <stdlib.h>
+
 #define JAYFOR_VERSION "0.0.0"
 
 /**
@@ -49,5 +52,7 @@ extern char* VM_EXECUTABLE_NAME;
 
 /** the name of the executable file */
 extern char* OUTPUT_EXECUTABLE_NAME;
+
+extern void debug_message(char *msg, bool exit_on_error); 
 
 #endif // BOOL_H
