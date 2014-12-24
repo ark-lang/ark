@@ -154,6 +154,28 @@ function_prototype_ast_node *create_function_prototype_ast_node() {
 	return fpn;
 }
 
+enumeration_ast_node *create_enumeration_ast_node() {
+	enumeration_ast_node *en = malloc(sizeof(*en));
+	if (!en) {
+		perror("malloc: failed to create enum ast node");
+		exit(1);
+	}
+	en->name = NULL;
+	en->enum_items = create_vector();
+	return en;
+}
+
+enum_item *create_enum_item(char *name, int value) {
+	enum_item *ei = malloc(sizeof(*ei));
+	if (!ei) {
+		perror("malloc: failed to allocate memory for enum item");
+		exit(1);
+	}
+	ei->name = name;
+	ei->value = value;
+	return ei;
+}
+
 function_ast_node *create_function_ast_node() {
 	function_ast_node *fn = malloc(sizeof(*fn));
 	if (!fn) {
@@ -216,6 +238,18 @@ void destroy_statement_ast_node(statement_ast_node *sn) {
 					break;
 				case VARIABLE_REASSIGN_AST_NODE:
 					destroy_variable_reassign_ast_node(sn->data);
+					break;
+				case FOR_LOOP_AST_NODE:
+					destroy_for_loop_ast_node(sn->data);
+					break;
+				case INFINITE_LOOP_AST_NODE:
+					destroy_infinite_loop_ast_node(sn->data);
+					break;
+				case BREAK_AST_NODE:
+					destroy_break_ast_node(sn->data);
+					break;
+				case ENUM_AST_NODE:
+					destroy_enumeration_ast_node(sn->data);
 					break;
 				default: break;
 			}
@@ -361,6 +395,27 @@ void destroybool_expression_ast_node(bool_expression_ast_node *ben) {
     }
 }
 
+void destroy_enumeration_ast_node(enumeration_ast_node *en) {
+	if (en != NULL) {
+		if (en->enum_items != NULL) {
+			int i;
+			for (i = 0; i < en->enum_items->size; i++) {
+				destroy_enum_item(get_vector_item(en->enum_items, i));
+			}
+			destroy_vector(en->enum_items);
+		}
+		free(en);
+		en = NULL;
+	}
+}
+
+void destroy_enum_item(enum_item *ei) {
+	if (ei != NULL) {
+		free(ei);
+		ei = NULL;
+	}
+}
+
 /** END ast_node FUNCTIONS */
 
 parser *create_parser(vector *token_stream) {
@@ -482,6 +537,95 @@ char parse_operand(parser *parser) {
 
 	error_message("error: invalid operator ('%c') specified\n", tok->content[0]);
 	return '\0';
+}
+
+enumeration_ast_node *parse_enumeration_ast_node(parser *parser) {
+	enumeration_ast_node *en = create_enumeration_ast_node();
+	
+	match_token_type_and_content(parser, IDENTIFIER, ENUM_KEYWORD); // ENUM
+
+	if (check_token_type(parser, IDENTIFIER, 0)) {
+		en->name = consume_token(parser);	
+		
+		if (check_token_type_and_content(parser, SEPARATOR, "{", 0)) {
+			consume_token(parser);
+
+			do {
+				if (check_token_type_and_content(parser, SEPARATOR, "}", 0)) {
+					consume_token(parser);
+					break;
+				}
+
+				
+				// ENUM_ITEM = 0
+				if (check_token_type(parser, IDENTIFIER, 0)) {
+					token *enum_item_name = consume_token(parser);
+
+					if (check_token_type_and_content(parser, OPERATOR, "=", 0)) {
+						consume_token(parser);
+
+						if (check_token_type(parser, NUMBER, 0)) {
+							token *enum_item_value = consume_token(parser);
+
+							int enum_item_value_as_int = atoi(enum_item_value->content);
+
+							if (en->enum_items->size >= 1) {
+								enum_item *prev_item = get_vector_item(en->enum_items, en->enum_items->size - 1);
+								int prev_item_value = prev_item->value;
+								char *prev_item_name = prev_item->name;
+
+								// validate names are not duplicate
+								if (!strcmp(prev_item_name, enum_item_name->content)) {
+									error_message("error: duplicate enum items: \"%s\"", enum_item_name->content, prev_item_name);
+								}
+	
+								// validate values are not duplicate
+								if (prev_item_value == enum_item_value_as_int) {
+									error_message("error: enum values cannot be the same: `%s = %d`", enum_item_name->content, enum_item_value_as_int);
+								}
+							}
+
+							enum_item *item = create_enum_item(enum_item_name->content, enum_item_value_as_int);
+							push_back_item(en->enum_items, item);
+
+							parse_optional_semi_colon(parser);
+							printf("pushed back %d as %s\n", enum_item_value_as_int, enum_item_name->content);
+						}
+						else {
+							token *errorneous_token = consume_token(parser);
+							error_message("error enum item expecting valid integer constant, found %s\n", errorneous_token->content);
+						}
+					}
+					// ENUM_ITEM
+					else {
+						int enum_item_value_as_int = 0;
+						if (en->enum_items->size >= 1) {
+							enum_item *prev_item = get_vector_item(en->enum_items, en->enum_items->size - 1);
+							enum_item_value_as_int = prev_item->value + 1;
+							char *prev_item_name = prev_item->name;
+
+							// validate name
+							if (!strcmp(prev_item_name, enum_item_name->content)) {
+								error_message("error: duplicate enum items: \"%s\"", enum_item_name->content, prev_item_name);
+							}
+						} 
+
+						enum_item *item = create_enum_item(enum_item_name->content, enum_item_value_as_int);
+						push_back_item(en->enum_items, item);
+
+						printf("pushed back %d as %s\n", enum_item_value_as_int, enum_item_name->content);
+
+						parse_optional_semi_colon(parser);
+					}
+				}
+
+				// empty enum?
+			}
+			while (true);
+		}
+	}
+
+	return en;
 }
 
 statement_ast_node *parse_for_loop_ast_node(parser *parser) {
@@ -991,6 +1135,12 @@ statement_ast_node *parse_statement_ast_node(parser *parser) {
 	else if (check_token_type_and_content(parser, IDENTIFIER, INFINITE_LOOP_KEYWORD, 0)) {
 		return parse_infinite_loop_ast_node(parser);
 	}
+	else if (check_token_type_and_content(parser, IDENTIFIER, ENUM_KEYWORD, 0)) {
+		statement_ast_node *sn = create_statement_ast_node();
+		sn->data = parse_enumeration_ast_node(parser);
+		sn->type = ENUM_AST_NODE;
+		return sn;
+	}
 	else if (check_token_type_and_content(parser, IDENTIFIER, BREAK_KEYWORD, 0)) {
 		// consume the token
 		consume_token(parser);
@@ -1068,7 +1218,10 @@ void start_parsing_token_stream(parser *parser) {
 				// given to us
 				if (!strcmp(tok->content, FUNCTION_KEYWORD)) {
 					parse_function_ast_node(parser);
-				} 
+				}
+				else if (check_token_type_and_content(parser, IDENTIFIER, ENUM_KEYWORD, 0)) {
+					prepare_ast_node(parser, parse_enumeration_ast_node(parser), ENUM_AST_NODE);
+				}
 				else if (check_token_type_is_valid_data_type(parser, tok) || check_token_type_and_content(parser, IDENTIFIER, CONSTANT_KEYWORD, 0)) {
 					parse_variable_ast_node(parser, true);
 				}
@@ -1151,6 +1304,21 @@ void remove_ast_node(ast_node *ast_node) {
 				break;
 			case FUNCTION_RET_AST_NODE:
 				destroy_function_return_ast_node(ast_node->data);
+				break;
+			case FOR_LOOP_AST_NODE:
+				destroy_for_loop_ast_node(ast_node->data);
+				break;
+			case VARIABLE_REASSIGN_AST_NODE:
+				destroy_variable_reassign_ast_node(ast_node->data);
+				break;
+			case INFINITE_LOOP_AST_NODE:
+				destroy_infinite_loop_ast_node(ast_node->data);
+				break;
+			case BREAK_AST_NODE:
+				destroy_break_ast_node(ast_node->data);
+				break;
+			case ENUM_AST_NODE:
+				destroy_enumeration_ast_node(ast_node->data);
 				break;
 			default:
 				error_message("attempting to remove unrecognized ast_node(%d)?\n", ast_node->type);
