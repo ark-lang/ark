@@ -1,0 +1,204 @@
+\hypertarget{j4vm_8c}{\section{src/j4vm.c File Reference}
+\label{j4vm_8c}\index{src/j4vm.\+c@{src/j4vm.\+c}}
+}
+{\ttfamily \#include \char`\"{}j4vm.\+h\char`\"{}}\\*
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{structobject}{object} $\ast$ \hyperlink{j4vm_8c_a4ea46f452d9bc0346cd02fce20e91033}{create\+\_\+object} ()
+\item 
+\hyperlink{structobject}{object} $\ast$ \hyperlink{j4vm_8c_a1ec4d833fc6dfa9bf9bccb952a73bff2}{retain\+\_\+object} (\hyperlink{structobject}{object} $\ast$obj)
+\item 
+void \hyperlink{j4vm_8c_a2f46e034874d4f4b1b62549fe0292d7b}{release\+\_\+object} (\hyperlink{structobject}{object} $\ast$obj)
+\item 
+\hyperlink{structjayfor__vm}{jayfor\+\_\+vm} $\ast$ \hyperlink{j4vm_8c_a73cd8dc50bf3d1c8fd1ae5c58652707b}{create\+\_\+jayfor\+\_\+vm} ()
+\item 
+void \hyperlink{j4vm_8c_a5a67bf32124509fad5e83c6257b4b58b}{start\+\_\+jayfor\+\_\+vm} (\hyperlink{structjayfor__vm}{jayfor\+\_\+vm} $\ast$jvm, int $\ast$instructions)
+\item 
+void \hyperlink{j4vm_8c_a86ab59c2360c2a117a0514caad6c8cc5}{destroy\+\_\+jayfor\+\_\+vm} (\hyperlink{structjayfor__vm}{jayfor\+\_\+vm} $\ast$jvm)
+\item 
+\hyperlink{util_8h_af6a258d8f3ee5206d682d799316314b1}{bool} \hyperlink{j4vm_8c_a818358bc153fea49bafa31995b879862}{object\+\_\+is\+\_\+true} (\hyperlink{structobject}{object} $\ast$obj)
+\item 
+int \hyperlink{j4vm_8c_ab38284f4a6eff2db4c134ef3dcac2076}{number\+\_\+value} (\hyperlink{structobject}{object} $\ast$obj)
+\item 
+\hyperlink{structobject}{object} $\ast$ \hyperlink{j4vm_8c_a4382808d9a4a558188b2fbe2e8d5e2e4}{create\+\_\+number} (int value)
+\item 
+\hyperlink{structobject}{object} $\ast$ \hyperlink{j4vm_8c_a1eddfd2bf3431fee5925dd759c24693a}{create\+\_\+string} (char $\ast$value)
+\end{DoxyCompactItemize}
+
+
+\subsection{Function Documentation}
+\hypertarget{j4vm_8c_a73cd8dc50bf3d1c8fd1ae5c58652707b}{\index{j4vm.\+c@{j4vm.\+c}!create\+\_\+jayfor\+\_\+vm@{create\+\_\+jayfor\+\_\+vm}}
+\index{create\+\_\+jayfor\+\_\+vm@{create\+\_\+jayfor\+\_\+vm}!j4vm.\+c@{j4vm.\+c}}
+\subsubsection[{create\+\_\+jayfor\+\_\+vm}]{\setlength{\rightskip}{0pt plus 5cm}{\bf jayfor\+\_\+vm}$\ast$ create\+\_\+jayfor\+\_\+vm (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{j4vm_8c_a73cd8dc50bf3d1c8fd1ae5c58652707b}
+virtual machine stuff Creates a J\+V\+M installation \begin{DoxyReturn}{Returns}
+the J\+V\+M instance created 
+\end{DoxyReturn}
+
+
+Definition at line 26 of file j4vm.\+c.
+
+\hypertarget{j4vm_8c_a4382808d9a4a558188b2fbe2e8d5e2e4}{\index{j4vm.\+c@{j4vm.\+c}!create\+\_\+number@{create\+\_\+number}}
+\index{create\+\_\+number@{create\+\_\+number}!j4vm.\+c@{j4vm.\+c}}
+\subsubsection[{create\+\_\+number}]{\setlength{\rightskip}{0pt plus 5cm}{\bf object}$\ast$ create\+\_\+number (
+\begin{DoxyParamCaption}
+\item[{int}]{value}
+\end{DoxyParamCaption}
+)}}\label{j4vm_8c_a4382808d9a4a558188b2fbe2e8d5e2e4}
+Create a new number with the given value 
+\begin{DoxyParams}{Parameters}
+{\em value} & the value of the number to create \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+the new object 
+\end{DoxyReturn}
+
+
+Definition at line 144 of file j4vm.\+c.
+
+\hypertarget{j4vm_8c_a4ea46f452d9bc0346cd02fce20e91033}{\index{j4vm.\+c@{j4vm.\+c}!create\+\_\+object@{create\+\_\+object}}
+\index{create\+\_\+object@{create\+\_\+object}!j4vm.\+c@{j4vm.\+c}}
+\subsubsection[{create\+\_\+object}]{\setlength{\rightskip}{0pt plus 5cm}{\bf object}$\ast$ create\+\_\+object (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{j4vm_8c_a4ea46f452d9bc0346cd02fce20e91033}
+garbage collection Creates a new object \begin{DoxyReturn}{Returns}
+the object instance created 
+\end{DoxyReturn}
+
+
+Definition at line 3 of file j4vm.\+c.
+
+\hypertarget{j4vm_8c_a1eddfd2bf3431fee5925dd759c24693a}{\index{j4vm.\+c@{j4vm.\+c}!create\+\_\+string@{create\+\_\+string}}
+\index{create\+\_\+string@{create\+\_\+string}!j4vm.\+c@{j4vm.\+c}}
+\subsubsection[{create\+\_\+string}]{\setlength{\rightskip}{0pt plus 5cm}{\bf object}$\ast$ create\+\_\+string (
+\begin{DoxyParamCaption}
+\item[{char $\ast$}]{value}
+\end{DoxyParamCaption}
+)}}\label{j4vm_8c_a1eddfd2bf3431fee5925dd759c24693a}
+Creates a new string object 
+\begin{DoxyParams}{Parameters}
+{\em value} & the value to give the string \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+the string object created 
+\end{DoxyReturn}
+
+
+Definition at line 151 of file j4vm.\+c.
+
+\hypertarget{j4vm_8c_a86ab59c2360c2a117a0514caad6c8cc5}{\index{j4vm.\+c@{j4vm.\+c}!destroy\+\_\+jayfor\+\_\+vm@{destroy\+\_\+jayfor\+\_\+vm}}
+\index{destroy\+\_\+jayfor\+\_\+vm@{destroy\+\_\+jayfor\+\_\+vm}!j4vm.\+c@{j4vm.\+c}}
+\subsubsection[{destroy\+\_\+jayfor\+\_\+vm}]{\setlength{\rightskip}{0pt plus 5cm}void destroy\+\_\+jayfor\+\_\+vm (
+\begin{DoxyParamCaption}
+\item[{{\bf jayfor\+\_\+vm} $\ast$}]{jvm}
+\end{DoxyParamCaption}
+)}}\label{j4vm_8c_a86ab59c2360c2a117a0514caad6c8cc5}
+Destroys the given J\+V\+M 
+\begin{DoxyParams}{Parameters}
+{\em jvm} & the J\+V\+M to destroy \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 128 of file j4vm.\+c.
+
+\hypertarget{j4vm_8c_ab38284f4a6eff2db4c134ef3dcac2076}{\index{j4vm.\+c@{j4vm.\+c}!number\+\_\+value@{number\+\_\+value}}
+\index{number\+\_\+value@{number\+\_\+value}!j4vm.\+c@{j4vm.\+c}}
+\subsubsection[{number\+\_\+value}]{\setlength{\rightskip}{0pt plus 5cm}int number\+\_\+value (
+\begin{DoxyParamCaption}
+\item[{{\bf object} $\ast$}]{obj}
+\end{DoxyParamCaption}
+)}}\label{j4vm_8c_ab38284f4a6eff2db4c134ef3dcac2076}
+Get the number value of an object 
+\begin{DoxyParams}{Parameters}
+{\em obj} & the object to retrieve the value from \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+the objects value as an integer 
+\end{DoxyReturn}
+
+
+Definition at line 139 of file j4vm.\+c.
+
+\hypertarget{j4vm_8c_a818358bc153fea49bafa31995b879862}{\index{j4vm.\+c@{j4vm.\+c}!object\+\_\+is\+\_\+true@{object\+\_\+is\+\_\+true}}
+\index{object\+\_\+is\+\_\+true@{object\+\_\+is\+\_\+true}!j4vm.\+c@{j4vm.\+c}}
+\subsubsection[{object\+\_\+is\+\_\+true}]{\setlength{\rightskip}{0pt plus 5cm}{\bf bool} object\+\_\+is\+\_\+true (
+\begin{DoxyParamCaption}
+\item[{{\bf object} $\ast$}]{obj}
+\end{DoxyParamCaption}
+)}}\label{j4vm_8c_a818358bc153fea49bafa31995b879862}
+helpers Check if the given object is true 
+\begin{DoxyParams}{Parameters}
+{\em obj} & the object to check \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+if the object is true 
+\end{DoxyReturn}
+
+
+Definition at line 133 of file j4vm.\+c.
+
+\hypertarget{j4vm_8c_a2f46e034874d4f4b1b62549fe0292d7b}{\index{j4vm.\+c@{j4vm.\+c}!release\+\_\+object@{release\+\_\+object}}
+\index{release\+\_\+object@{release\+\_\+object}!j4vm.\+c@{j4vm.\+c}}
+\subsubsection[{release\+\_\+object}]{\setlength{\rightskip}{0pt plus 5cm}void release\+\_\+object (
+\begin{DoxyParamCaption}
+\item[{{\bf object} $\ast$}]{obj}
+\end{DoxyParamCaption}
+)}}\label{j4vm_8c_a2f46e034874d4f4b1b62549fe0292d7b}
+Releases the given object 
+\begin{DoxyParams}{Parameters}
+{\em obj} & the object to release \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 19 of file j4vm.\+c.
+
+\hypertarget{j4vm_8c_a1ec4d833fc6dfa9bf9bccb952a73bff2}{\index{j4vm.\+c@{j4vm.\+c}!retain\+\_\+object@{retain\+\_\+object}}
+\index{retain\+\_\+object@{retain\+\_\+object}!j4vm.\+c@{j4vm.\+c}}
+\subsubsection[{retain\+\_\+object}]{\setlength{\rightskip}{0pt plus 5cm}{\bf object}$\ast$ retain\+\_\+object (
+\begin{DoxyParamCaption}
+\item[{{\bf object} $\ast$}]{obj}
+\end{DoxyParamCaption}
+)}}\label{j4vm_8c_a1ec4d833fc6dfa9bf9bccb952a73bff2}
+Retains the given object 
+\begin{DoxyParams}{Parameters}
+{\em obj} & the object to retain \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+the object retained 
+\end{DoxyReturn}
+
+
+Definition at line 14 of file j4vm.\+c.
+
+\hypertarget{j4vm_8c_a5a67bf32124509fad5e83c6257b4b58b}{\index{j4vm.\+c@{j4vm.\+c}!start\+\_\+jayfor\+\_\+vm@{start\+\_\+jayfor\+\_\+vm}}
+\index{start\+\_\+jayfor\+\_\+vm@{start\+\_\+jayfor\+\_\+vm}!j4vm.\+c@{j4vm.\+c}}
+\subsubsection[{start\+\_\+jayfor\+\_\+vm}]{\setlength{\rightskip}{0pt plus 5cm}void start\+\_\+jayfor\+\_\+vm (
+\begin{DoxyParamCaption}
+\item[{{\bf jayfor\+\_\+vm} $\ast$}]{jvm, }
+\item[{int $\ast$}]{instructions}
+\end{DoxyParamCaption}
+)}}\label{j4vm_8c_a5a67bf32124509fad5e83c6257b4b58b}
+Starts the given J\+V\+M 
+\begin{DoxyParams}{Parameters}
+{\em jvm} & the J\+V\+M instance to start \\
+\hline
+{\em instructions} & the list of instructions to execute \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 34 of file j4vm.\+c.
+
