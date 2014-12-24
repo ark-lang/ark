@@ -67,7 +67,7 @@ typedef enum {
 	BLOCK_AST_NODE, FUNCTION_CALLEE_AST_NODE,
 	FUNCTION_RET_AST_NODE, FOR_LOOP_AST_NODE,
 	VARIABLE_REASSIGN_AST_NODE, INFINITE_LOOP_AST_NODE,
-	BREAK_AST_NODE
+	BREAK_AST_NODE, ENUM_AST_NODE
 } ast_node_type;
 
 /**
@@ -143,6 +143,22 @@ typedef struct {
 	void *data;
 	ast_node_type type;
 } statement_ast_node;
+
+/**
+ * An enumeration item
+ */
+typedef struct {
+	char *name;
+	int value;
+} enum_item;
+
+/**
+ * An enumeration node
+ */
+typedef struct {
+	token *name;
+	vector *enum_items;
+} enumeration_ast_node;
 
 /**
  * A node representing a break 
@@ -250,6 +266,20 @@ typedef struct s_bool_expression_ast_node {
 char parse_operand(parser *parser);
 
 /**
+ * Creates an enumeration node
+ * @return the enum node we created
+ */
+enumeration_ast_node *create_enumeration_ast_node();
+
+/**
+ * Creates an enumeration item and fills it with values
+ * @param  name  the name of the enum item
+ * @param  value the value it stores
+ * @return       [description]
+ */
+enum_item *create_enum_item(char *name, int value);
+
+/**
  * Create an infinite loop ast node
  * @return the infinite loop ast node
  */
@@ -348,6 +378,18 @@ function_ast_node *create_function_ast_node();
  * fn whatever(int x, int y): int
  */
 function_prototype_ast_node *create_function_prototype_ast_node();
+
+/**
+ * Destroys the given enum ast node
+ * @param en the node to destroy
+ */
+void destroy_enumeration_ast_node(enumeration_ast_node *en);
+
+/**
+ * Destroys the given enumeration item
+ * @param ei the item to destroy
+ */
+void destroy_enum_item(enum_item *ei);
 
 /**
  * Destroy the break ast node
