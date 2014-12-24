@@ -9,6 +9,7 @@ TO CHANGE. NOTHING IS FINAL*
 
 # Table Of Contents
 * [Lexical Structure](#lexical_structure)
+  * [Semi Colons](semi_colons)
   * [Comments](#comments)
   * [Keywords](#keywords)
   * [Expressions](#expressions)
@@ -22,9 +23,17 @@ TO CHANGE. NOTHING IS FINAL*
   	* [Do-While Loops](#do)
   	* [Infinite Loops](#loop)
   	* [For Loop](#for)
+  	* [Matches](#matches)
+  * [Data Structures](#data_structures)
+  	* [Enumeration](#enumeration)
 
 
 # <a name="lexical_structure"></a>Lexical Structure
+## <a name="semi_colons"></a>Semi Colons
+It's important to note that semi colons are optional in the Jayfor programming language. This feature
+means that you are less likely to slip up on a "missing semi-colon" error. However, you should keep it
+consistent and stick with either no semi-colons or semi-colons.
+
 ## <a name="comments"></a>Comments
 Comments in Jayfor code follow the general C style of line and block comments. Nested
 comments are supported.
@@ -154,8 +163,130 @@ and a pair of curly `{}` braces:
 The for loop has been simplified from its traditional syntax. A for loop is specified with the
 `for` keyword, a data type (int, float, etc...), and an index to keep track of the current
 iteration. If you do not care about what iteration you are on, this can be replaced with an
-underscore `_`. The for loop must also be given a list of 2 - 3 parameters, the start... todo
+underscore `_`. The for loop must also be given a list of 2 - 3 parameters, the start of the loop,
+the end of the loop, and the step. The loops step is how much the `index` will be incremented by
+every iteration. It is an optional parameter, if no step is supplied it will default to either positive
+or negative 1 -- this depends on what the step and end arguments are. Here are some examples:
 
-	for type index: (0, 10, 1) {
+	for int index: (0, 10, 1) {
 
+	}
+
+	// same as the above
+	for int index: (0, 10) {
+
+	} 
+
+	// start > end, which means that step
+	// wil decrement instead of increment
+	for int index: (10, 0) {
+
+	}
+
+	for int _: (0, 10) {
+		// we don't care about
+		// the index, just loop
+	}
+
+### <a name="matches"></a>Matches
+We feel that the switch syntax is tedious, ugly, and not as semantic as it could be. Therefore we implemented
+a Rust like match:
+
+	int value_to_match = 23;
+	int value = 5;
+	int another_value = 23;
+
+	match value_to_match {
+		value {
+			// this will be skipped
+		}
+		another_value {
+			// this is the result
+		}
+		_ {
+			// this is a "default" in case value_to_match was for example 64
+		}
+	}
+
+## <a name="data_structures"></a>Data Structures
+### Structs
+A `struct` is a data structure defined with the keyword `struct`. Here is an
+example of a struct:
+
+	struct vector {
+		float x
+		float y
+	}
+
+	// structs can be defined like so
+	vector vec = {
+		10, 10
+	}
+
+	// which is short hand for
+	vector vec;
+	vec.x = 10
+	vec.y = 10
+
+You can also define a struct with default values, like so:
+
+	struct vector {
+		float x = 0
+		float y = 0
+	}
+
+### <a name="enumeration"></a>Enumeration
+Enumerations are defined with the `enum` keyword, like so:
+
+	enum TRAFFIC_LIGHT {
+		RED
+		ORANGE
+		GREEN
+	}
+
+By default, the values will always start from zero, and the next value in
+the enumeration will be incremented by 1. You can also change the default value with
+an equal sign, like so:
+
+	enum TRAFFIC_LIGHT {
+		RED = 10
+		ORANGE	// 11
+		GREEN	// 12
+	}
+
+	// or
+
+	enum PET_TYPE {
+		DOG = 10
+		CAT = 54
+		LIZARD = 61
+		DRAGON // 61
+	}
+
+Enumerations are accessed with the double-colon operator, similar to C++:
+
+	PET_TYPE::DOG
+
+You can match enumerations or use them in if statements:
+
+	// set it to dog
+	int x = PET_TYPE::DOG;
+
+	if x == PET_TYPE::DOG {
+		/// do stuff
+	}
+
+	match x to PET_TYPE {
+		DOG {
+			// im a dog
+		}
+		CAT {	
+			// im a cat
+		}
+		LIZARD {
+			// im a lizard
+		}
+		_ {
+			// no idea
+		}
 	}
