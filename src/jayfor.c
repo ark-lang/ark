@@ -11,7 +11,7 @@ static void parseArgument(argument *arg) {
 
 	switch (argument) {
 		case 'v':
-			printf(KGRN "jayfor Version: %s\n" KNRM, JAYFOR_VERSION);
+			printf("jayfor Version: %s\n", JAYFOR_VERSION);
 			exit(1);
 			break;
 		case 'd':
@@ -22,13 +22,15 @@ static void parseArgument(argument *arg) {
 			VM_EXECUTABLE_NAME = arg->next_argument;
 			break;
 		case 'h':
-			printf(KYEL "jayfor Argument List\n");
+			KYEL();
+			printf("jayfor Argument List\n");
 			printf("\t-h,\t shows a help menu\n");
 			printf("\t-v,\t shows current version\n");
 			printf("\t-d,\t logs extra debug information\n");
 			printf("\t-r,\t will compile and execute code instead of creating an executable\n");
 			printf("\t-o <name>.j4e,\t creates an executable with the given file name and extension\n");
-			printf("\n" KNRM);
+			printf("\n");
+			KNRM();
 			exit(1);
 			break;
 		case 'o':
@@ -38,8 +40,7 @@ static void parseArgument(argument *arg) {
 			EXECUTE_BYTECODE = true;
 			break;
 		default:
-			printf(KRED "error: unrecognized argument %c\n" KNRM, argument);
-			exit(1);
+			error_message("error: unrecognized argument %c\n", argument);
 			break;
 	}
 }
@@ -47,8 +48,7 @@ static void parseArgument(argument *arg) {
 jayfor *create_jayfor(int argc, char** argv) {
 	// not enough args just throw an error
 	if (argc <= 1) {
-		printf(KRED "error: no input files\n" KNRM);
-		exit(1);
+		error_message("error: no input files\n");
 	}
 	jayfor *self = malloc(sizeof(*self));
 	self->filename = NULL;
@@ -86,7 +86,7 @@ jayfor *create_jayfor(int argc, char** argv) {
 			self->filename = argv[i];
 		}
 		else {
-			printf(KRED "error: argument not recognized: %s\n" KNRM, argv[i]);
+			error_message("error: argument not recognized: %s\n", argv[i]);
 		}
 	}
 

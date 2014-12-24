@@ -3,3 +3,5 @@ compiler:
   - gcc
   - clang
 script: make
+notifications:
+  email: false

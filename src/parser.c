@@ -391,8 +391,8 @@ token *expect_token_type(parser *parser, token_type type) {
 		return consume_token(parser);
 	}
 	else {
-		printf("expected %s but found `%s`\n", token_NAMES[type], tok->content);
-		exit(1);
+		error_message("expected %s but found `%s`\n", token_NAMES[type], tok->content);
+		return NULL;
 	}
 }
 
@@ -402,8 +402,8 @@ token *expect_token_content(parser *parser, char *content) {
 		return consume_token(parser);
 	}
 	else {
-		printf("expected %s but found `%s`\n", tok->content, content);
-		exit(1);
+		error_message("expected %s but found `%s`\n", tok->content, content);
+		return NULL;
 	}
 }
 
@@ -413,8 +413,8 @@ token *expect_token_type_and_content(parser *parser, token_type type, char *cont
 		return consume_token(parser);
 	}
 	else {
-		printf("expected %s but found `%s`\n", token_NAMES[type], tok->content);
-		exit(1);
+		error_message("expected %s but found `%s`\n", token_NAMES[type], tok->content);
+		return NULL;
 	}
 }
 
@@ -424,8 +424,8 @@ token *match_token_type(parser *parser, token_type type) {
 		return consume_token(parser);
 	}
 	else {
-		printf("expected %s but found `%s`\n", token_NAMES[type], tok->content);
-		exit(1);
+		error_message("expected %s but found `%s`\n", token_NAMES[type], tok->content);
+		return NULL;
 	}
 }
 
@@ -435,8 +435,8 @@ token *match_token_content(parser *parser, char *content) {
 		return consume_token(parser);
 	}
 	else {
-		printf("expected %s but found `%s`\n", tok->content, content);
-		exit(1);
+		error_message("expected %s but found `%s`\n", tok->content, content);
+		return NULL;
 	}
 }
 
@@ -446,8 +446,8 @@ token *match_token_type_and_content(parser *parser, token_type type, char *conte
 		return consume_token(parser);
 	}
 	else {
-		printf("expected %s but found `%s`\n", token_NAMES[type], tok->content);
-		exit(1);
+		error_message("expected %s but found `%s`\n", token_NAMES[type], tok->content);
+		return NULL;
 	}
 }
 
@@ -478,11 +478,10 @@ char parse_operand(parser *parser) {
 		case '>': consume_token(parser); return tokChar;
 		case '<': consume_token(parser); return tokChar;
 		case '^': consume_token(parser); return tokChar;
-		default:
-			printf(KRED "error: invalid operator ('%c') specified\n" KNRM, tok->content[0]);
-			exit(1);
-			break;
 	}
+
+	error_message("error: invalid operator ('%c') specified\n", tok->content[0]);
+	return '\0';
 }
 
 statement_ast_node *parse_for_loop_ast_node(parser *parser) {
@@ -514,13 +513,11 @@ statement_ast_node *parse_for_loop_ast_node(parser *parser) {
 
 		do {
 			if (paramCount > 3) {
-				printf(KRED "error: for loop has one too many arguments %d\n" KNRM, paramCount);
-				exit(1);
+				error_message("error: for loop has one too many arguments %d\n", paramCount);
 			}
 			if (check_token_type_and_content(parser, SEPARATOR, ")", 0)) {
 				if (paramCount < 2) {
-					printf(KRED "error: for loop expects a maximum of 3 arguments, you have %d\n" KNRM, paramCount);
-					exit(1);
+					error_message("error: for loop expects a maximum of 3 arguments, you have %d\n", paramCount);
 				}
 				consume_token(parser);
 				break;
@@ -530,8 +527,7 @@ statement_ast_node *parse_for_loop_ast_node(parser *parser) {
 				push_back_item(fln->params, consume_token(parser));
 				if (check_token_type_and_content(parser, SEPARATOR, ",", 0)) {
 					if (check_token_type_and_content(parser, SEPARATOR, ")", 1)) {
-						printf(KRED "error: trailing comma in for loop declaration!\n" KNRM);
-						exit(1);
+						error_message("error: trailing comma in for loop declaration!\n");
 					}
 					consume_token(parser);
 				}
@@ -540,8 +536,7 @@ statement_ast_node *parse_for_loop_ast_node(parser *parser) {
 				push_back_item(fln->params, consume_token(parser));	
 				if (check_token_type_and_content(parser, SEPARATOR, ",", 0)) {
 					if (check_token_type_and_content(parser, SEPARATOR, ")", 1)) {
-						printf(KRED "error: trailing comma in for loop declaration!\n" KNRM);
-						exit(1);
+						error_message("error: trailing comma in for loop declaration!\n");
 					}
 					consume_token(parser);
 				}
@@ -552,16 +547,15 @@ statement_ast_node *parse_for_loop_ast_node(parser *parser) {
 				push_back_item(fln->params, expr);
 				if (check_token_type_and_content(parser, SEPARATOR, ",", 0)) {
 					if (check_token_type_and_content(parser, SEPARATOR, ")", 1)) {
-						printf(KRED "error: trailing comma in for loop declaration!\n" KNRM);
-						exit(1);
+						error_message("error: trailing comma in for loop declaration!\n");
 					}
 					consume_token(parser);
 				}
 			}
 			else {
-				printf(KRED "error: expected a number or variable in for loop parameters, found:\n" KNRM);
 				print_current_token(parser);
-				exit(1);
+				error_message("error: expected a number or variable in for loop parameters, found:\n");
+				return NULL;
 			}
 
 			paramCount++;
@@ -576,8 +570,8 @@ statement_ast_node *parse_for_loop_ast_node(parser *parser) {
 		return sn;
 	}
 
-	printf(KRED "failed to parse for loop\n" KNRM);
-	exit(1);
+	error_message("failed to parse for loop\n");
+	return NULL;
 }
 
 expression_ast_node *parse_expression_ast_node(parser *parser) {
@@ -616,22 +610,22 @@ expression_ast_node *parse_expression_ast_node(parser *parser) {
 			consume_token(parser);
 			return expr;
 		}
-		printf(KRED "error: missing closing parenthesis on expression\n" KNRM);
-		exit(1);
+		error_message("error: missing closing parenthesis on expression\n");
+		return NULL;
 	}
     if(check_token_type_and_content(parser, OPERATOR, "!", 0)) {
         consume_token(parser);
         expr->type = EXPR_LOGICAL_OPERATOR;
     }
 
-	printf(KRED "error: failed to parse expression, only character, string and numbers are supported\n" KNRM);
 	print_current_token(parser);
-	exit(1);
+	error_message("error: failed to parse expression, only character, string and numbers are supported\n");
+	return NULL;
 }
 
 void print_current_token(parser *parser) {
 	token *tok = peek_at_token_stream(parser, 0);
-	printf(KYEL "current token is type: %s, value: %s\n" KNRM, token_NAMES[tok->type], tok->content);
+	error_message("current token is type: %s, value: %s\n", token_NAMES[tok->type], tok->content);
 }
 
 void *parse_variable_ast_node(parser *parser, bool global) {
@@ -793,8 +787,7 @@ function_ast_node *parse_function_ast_node(parser *parser) {
 			}
 			else if (check_token_type_and_content(parser, SEPARATOR, ",", 0)) {
 				if (check_token_type_and_content(parser, SEPARATOR, ")", 1)) {
-					printf(KRED "error: trailing comma at the end of argument list\n" KNRM);
-					exit(1);
+					error_message("error: trailing comma at the end of argument list\n");
 				}
 				consume_token(parser); // eat the comma
 				push_back_item(args, arg);
@@ -816,8 +809,7 @@ function_ast_node *parse_function_ast_node(parser *parser) {
 			consume_token(parser);
 		}
 		else {
-			printf(KRED "error: function signature missing colon\n" KNRM);
-			exit(1);
+			error_message("error: function signature missing colon\n");
 		}
 
 		// START OF TUPLE
@@ -828,8 +820,7 @@ function_ast_node *parse_function_ast_node(parser *parser) {
 			do {
 				if (check_token_type_and_content(parser, OPERATOR, ">", 0)) {
 					if (fn->numOfReturnValues < 1) {
-						printf(KRED "error: function expects a return type\n" KNRM);
-						exit(1);
+						error_message("error: function expects a return type\n");
 					}
 					consume_token(parser); // eat
 					break;
@@ -843,13 +834,11 @@ function_ast_node *parse_function_ast_node(parser *parser) {
 						fn->numOfReturnValues++;
 					}
 					else {
-						printf(KRED "error: invalid data type specified: `%s`\n" KNRM, tok->content);
-						exit(1);
+						error_message("error: invalid data type specified: `%s`\n", tok->content);
 					}
 					if (check_token_type_and_content(parser, SEPARATOR, ",", 0)) {
 						if (check_token_type_and_content(parser, OPERATOR, ">", 1)) {
-							printf(KRED "error: trailing comma in function declaraction\n" KNRM);
-							exit(1);
+							error_message("error: trailing comma in function declaraction\n");
 						}
 						consume_token(parser);
 					}
@@ -864,9 +853,8 @@ function_ast_node *parse_function_ast_node(parser *parser) {
 			fn->numOfReturnValues += 1;
 		}
 		else {
-			printf(KRED "error: function declaration return type expected, found this:\n" KNRM);
 			print_current_token(parser);
-			exit(1);
+			error_message("error: function declaration return type expected, found this:\n");
 		}
 
 		// start block
@@ -878,13 +866,14 @@ function_ast_node *parse_function_ast_node(parser *parser) {
 		return fn;
 	}
 	else {
-		printf(KRED "error: no parameter list provided\n" KNRM);
-		exit(1);
+		error_message("error: no parameter list provided\n");
 	}
 
 	// just in case we fail to parse, free this shit
 	free(fpn);
 	fpn = NULL;
+	error_message("Failed to parse function");
+	return NULL;
 }
 
 function_callee_ast_node *parse_function_callee_ast_node(parser *parser) {
@@ -910,8 +899,7 @@ function_callee_ast_node *parse_function_callee_ast_node(parser *parser) {
 
 			if (check_token_type_and_content(parser, SEPARATOR, ",", 0)) {
 				if (check_token_type_and_content(parser, SEPARATOR, ")", 1)) {
-					printf(KRED "error: trailing comma at the end of argument list\n" KNRM);
-					exit(1);
+					error_message("error: trailing comma at the end of argument list\n");
 				}
 				consume_token(parser); // eat the comma
 				push_back_item(args, arg);
@@ -934,8 +922,8 @@ function_callee_ast_node *parse_function_callee_ast_node(parser *parser) {
 		return fcn;
 	}
 
-	printf(KRED "error: failed to parse function call\n" KNRM);
-	exit(1);
+	error_message("error: failed to parse function call\n");
+	return NULL;
 }
 
 function_return_ast_node *parse_return_statement_ast_node(parser *parser) {
@@ -960,8 +948,7 @@ function_return_ast_node *parse_return_statement_ast_node(parser *parser) {
 			push_back_item(frn->returnVals, expr);
 			if (check_token_type_and_content(parser, SEPARATOR, ",", 0)) {
 				if (check_token_type_and_content(parser, OPERATOR, ">", 1)) {
-					printf(KRED "error: trailing comma in return statement\n" KNRM);
-					exit(1);
+					error_message("error: trailing comma in return statement\n");
 				}
 				consume_token(parser);
 				frn->numOfReturnValues++;
@@ -980,8 +967,8 @@ function_return_ast_node *parse_return_statement_ast_node(parser *parser) {
 		return frn;
 	}
 
-	printf(KRED "error: failed to parse return statement\n" KNRM);
-	exit(1);
+	error_message("error: failed to parse return statement\n");
+	return NULL;
 }
 
 void parse_optional_semi_colon(parser *parser) {
@@ -1039,14 +1026,13 @@ statement_ast_node *parse_statement_ast_node(parser *parser) {
 		}
 		// fuck knows
 		else {
-			printf("error: unrecognized identifier %s\n", tok->content);
-			exit(1);
+			error_message("error: unrecognized identifier %s\n", tok->content);
 		}
 	}
 
 	token *tok = peek_at_token_stream(parser, 0);
-	printf(KRED "error: unrecognized token %s(%s)\n" KNRM, tok->content, token_NAMES[tok->type]);
-	exit(1);
+	error_message("error: unrecognized token %s(%s)\n", tok->content, token_NAMES[tok->type]);
+	return NULL;
 }
 
 variable_reassignment_ast_node *parse_reassignment_statement_ast_node(parser *parser) {
@@ -1067,8 +1053,8 @@ variable_reassignment_ast_node *parse_reassignment_statement_ast_node(parser *pa
 		}
 	}
 
-	printf(KRED "error: failed to parse variable reassignment\n" KNRM);
-	exit(1);
+	error_message("error: failed to parse variable reassignment\n");
+	return NULL;
 }
 
 void start_parsing_token_stream(parser *parser) {
@@ -1093,8 +1079,7 @@ void start_parsing_token_stream(parser *parser) {
 					prepare_ast_node(parser, parse_function_callee_ast_node(parser), FUNCTION_CALLEE_AST_NODE);
 				}
 				else {
-					printf(KRED "error: unrecognized identifier found: `%s`\n" KNRM, tok->content);
-					exit(1);
+					error_message("error: unrecognized identifier found: `%s`\n", tok->content);
 				}
 				break;
 			case END_OF_FILE:
@@ -1123,8 +1108,8 @@ data_type match_token_type_to_data_type(parser *parser, token *tok) {
 			return i;
 		}
 	}
-	printf(KRED "error: invalid data type specified: %s!\n" KNRM, tok->content);
-	exit(1);
+	error_message("error: invalid data type specified: %s!\n", tok->content);
+	return 0;
 }
 
 void prepare_ast_node(parser *parser, void *data, ast_node_type type) {
@@ -1168,7 +1153,7 @@ void remove_ast_node(ast_node *ast_node) {
 				destroy_function_return_ast_node(ast_node->data);
 				break;
 			default:
-				printf(KYEL "attempting to remove unrecognized ast_node(%d)?\n" KNRM, ast_node->type);
+				error_message("attempting to remove unrecognized ast_node(%d)?\n", ast_node->type);
 				break;
 		}
 	}
