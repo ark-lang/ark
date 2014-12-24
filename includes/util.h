@@ -7,31 +7,25 @@
 /** the current version of jayfor */
 #define JAYFOR_VERSION "0.0.0"
 
-/**
- * Colour Printing stuff, not sure
- * if it works on Windows or not
- * so I've disabled it for Windows
- *
- * Update: on windows can confirm, it does not work
- */
-#if __linux || __APPLE__
-	#define KNRM  "\x1B[0m"
-	#define KRED  "\x1B[31m"
-	#define KGRN  "\x1B[32m"
-	#define KYEL  "\x1B[33m"
-	#define KBLU  "\x1B[34m"
-	#define KMAG  "\x1B[35m"
-	#define KCYN  "\x1B[36m"
-	#define KWHT  "\x1B[37m*"
+#ifdef _WIN32
+	#include <windows.h>
+	#define KNRM()  ""
+	#define KRED()  ""
+	#define KGRN()  ""
+	#define KYEL()  ""
+	#define KBLU()  ""
+	#define KMAG()  ""
+	#define KCYN()  ""
+	#define KWHT()  ""
 #else
-	#define KNRM  ""
-	#define KRED  ""
-	#define KGRN  ""
-	#define KYEL  ""
-	#define KBLU  ""
-	#define KMAG  ""
-	#define KCYN  ""
-	#define KWHT  ""
+	#define KNRM()  "printf(\x1B[0m);"
+	#define KRED()  "printf(\x1B[31m);"
+	#define KGRN()  "printf(\x1B[32m);"
+	#define KYEL()  "printf(\x1B[33m);"
+	#define KBLU()  "printf(\x1B[34m);"
+	#define KMAG()  "printf(\x1B[35m);"
+	#define KCYN()  "printf(\x1B[36m);"
+	#define KWHT()  "printf(\x1B[37m*);"
 #endif
 
 /** quick boolean implementation */
@@ -59,6 +53,10 @@ extern char* OUTPUT_EXECUTABLE_NAME;
  * @param msg           the message to print
  * @param exit_on_error if we should exit on an error
  */
-extern void debug_message(char *msg, bool exit_on_error); 
+extern void debug_message(const char *fmt, ...); 
+
+extern void error_message(const char *fmt, ...);
+
+extern void primary_message(const char *fmt, ...);
 
 #endif // BOOL_H
