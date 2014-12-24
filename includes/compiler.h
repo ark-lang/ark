@@ -23,6 +23,7 @@ typedef struct {
 	hashmap *functions;
 	int *bytecode;
 
+	int global_count;
 	int initial_bytecode_size;
 	int max_bytecode_size;
 	int current_ast_node;
