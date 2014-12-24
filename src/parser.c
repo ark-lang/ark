@@ -25,6 +25,15 @@ infinite_loop_ast_node *create_infinite_loop_ast_node() {
 	return iln;
 }
 
+break_ast_node *create_break_ast_node() {
+	break_ast_node *bn = malloc(sizeof(*bn));
+	if (!bn) {
+		perror("malloc: failed to allocate memory for Break AST NODE");
+		exit(1);
+	}
+	return bn;
+}
+
 variable_reassignment_ast_node *create_variable_reassign_ast_node() {
 	variable_reassignment_ast_node *vrn = malloc(sizeof(*vrn));
 	if (!vrn) {
@@ -179,6 +188,13 @@ void destroy_for_loop_ast_node(for_loop_ast_node *fln) {
 	if (fln != NULL) {
 		free(fln);
 		fln = NULL;
+	}
+}
+
+void destroy_break_ast_node(break_ast_node *bn) {
+	if (bn != NULL) {
+		free(bn);
+		bn = NULL;
 	}
 }
 
@@ -657,10 +673,7 @@ void *parse_variable_ast_node(parser *parser, bool global) {
 		dec->vdn = def;
 		dec->expr = expr;
 
-		// match a semi colon
-		if (check_token_type_and_content(parser, SEPARATOR, ";", 0)) {
-			consume_token(parser);
-		}
+		parse_optional_semi_colon(parser);
 
 		if (global) {
 			prepare_ast_node(parser, dec, VARIABLE_DEC_AST_NODE);
@@ -674,9 +687,7 @@ void *parse_variable_ast_node(parser *parser, bool global) {
 		return sn;
 	}
 	else {
-		if (check_token_type_and_content(parser, SEPARATOR, ";", 0)) {
-			consume_token(parser);
-		}
+		parse_optional_semi_colon(parser);
 
 		// create variable define ast_node
 		variable_define_ast_node *def = create_variable_define_ast_node();
@@ -913,10 +924,7 @@ function_callee_ast_node *parse_function_callee_ast_node(parser *parser) {
 		}
 		while (true);
 
-		// consume semi colon
-		if (check_token_type_and_content(parser, SEPARATOR, ";", 0)) {
-			consume_token(parser);
-		}
+		parse_optional_semi_colon(parser);
 
 		// woo we got the function
 		function_callee_ast_node *fcn = create_function_callee_ast_node();
@@ -944,9 +952,7 @@ function_return_ast_node *parse_return_statement_ast_node(parser *parser) {
 		do {
 			if (check_token_type_and_content(parser, OPERATOR, ">", 0)) {
 				consume_token(parser);
-				if (check_token_type_and_content(parser, SEPARATOR, ";", 0)) {
-					consume_token(parser);
-				}
+				parse_optional_semi_colon(parser);
 				return frn;
 			}
 
@@ -970,14 +976,18 @@ function_return_ast_node *parse_return_statement_ast_node(parser *parser) {
 		frn->numOfReturnValues++;
 
 		// consume semi colon if present
-		if (check_token_type_and_content(parser, SEPARATOR, ";", 0)) {
-			consume_token(parser);
-		}
+		parse_optional_semi_colon(parser);
 		return frn;
 	}
 
 	printf(KRED "error: failed to parse return statement\n" KNRM);
 	exit(1);
+}
+
+void parse_optional_semi_colon(parser *parser) {
+	if (check_token_type_and_content(parser, SEPARATOR, ";", 0)) {
+		consume_token(parser);
+	}
 }
 
 statement_ast_node *parse_statement_ast_node(parser *parser) {
@@ -993,6 +1003,18 @@ statement_ast_node *parse_statement_ast_node(parser *parser) {
 	}
 	else if (check_token_type_and_content(parser, IDENTIFIER, INFINITE_LOOP_KEYWORD, 0)) {
 		return parse_infinite_loop_ast_node(parser);
+	}
+	else if (check_token_type_and_content(parser, IDENTIFIER, BREAK_KEYWORD, 0)) {
+		// consume the token
+		consume_token(parser);
+
+		statement_ast_node *sn = create_statement_ast_node();
+		sn->data = create_break_ast_node();
+		sn->type = BREAK_AST_NODE;
+
+		parse_optional_semi_colon(parser);
+
+		return sn;
 	}
 	else if (check_token_type(parser, IDENTIFIER, 0)) {
 		token *tok = peek_at_token_stream(parser, 0);
@@ -1036,9 +1058,7 @@ variable_reassignment_ast_node *parse_reassignment_statement_ast_node(parser *pa
 
 			expression_ast_node *expr = parse_expression_ast_node(parser);
 
-			if (check_token_type_and_content(parser, SEPARATOR, ";", 0)) {
-				consume_token(parser);
-			}
+			parse_optional_semi_colon(parser);
 
 			variable_reassignment_ast_node *vrn = create_variable_reassign_ast_node();
 			vrn->name = variableName;
