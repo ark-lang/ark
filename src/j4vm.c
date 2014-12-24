@@ -108,10 +108,9 @@ void start_jayfor_vm(jayfor_vm *jvm, int *instructions) {
 		}
 		jvm->instructions++;
 	}
+
 	cleanup:
-
 	debug_message("cleaning up virtual machine", false);
-
 	release_object(jvm->self);
 	int i;
 	for (i = 0; i < MAX_LOCAL_COUNT; i++) {
@@ -132,8 +131,9 @@ void destroy_jayfor_vm(jayfor_vm *jvm) {
 }
 
 bool object_is_true(object *obj) {
-	if (obj == false_object || obj == null_object) return 0;
-	return 1;
+	if (obj == false_object || obj == null_object) 
+		return false;
+	return true;
 }
 
 int number_value(object *obj) {

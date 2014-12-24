@@ -175,19 +175,19 @@ void destroy_statement_ast_node(statement_ast_node *sn) {
 	if (sn != NULL) {
 		if (sn->data != NULL) {
 			switch (sn->type) {
-				case VARIABLE_DEF_ast_node:
+				case VARIABLE_DEF_AST_NODE:
 					destroy_variable_define_ast_node(sn->data);
 					break;
-				case VARIABLE_DEC_ast_node:
+				case VARIABLE_DEC_AST_NODE:
 					destroy_variable_declare_ast_node(sn->data);
 					break;
-				case FUNCTION_CALLEE_ast_node:
+				case FUNCTION_CALLEE_AST_NODE:
 					destroy_function_callee_ast_node(sn->data);
 					break;
-				case FUNCTION_RET_ast_node:
+				case FUNCTION_RET_AST_NODE:
 					destroy_function_ast_node(sn->data);
 					break;
-				case VARIABLE_REASSIGN_ast_node:
+				case VARIABLE_REASSIGN_AST_NODE:
 					destroy_variable_reassign_ast_node(sn->data);
 					break;
 				default: break;
@@ -534,7 +534,7 @@ statement_ast_node *parse_for_loop_ast_node(parser *parser) {
 		fln->body = parse_block_ast_node(parser);
 
 		statement_ast_node *sn = create_statement_ast_node();
-		sn->type = FOR_LOOP_ast_node;
+		sn->type = FOR_LOOP_AST_NODE;
 		sn->data = fln;
 		return sn;
 	}
@@ -634,12 +634,12 @@ void *parse_variable_ast_node(parser *parser, bool global) {
 		}
 
 		if (global) {
-			prepare_ast_node(parser, dec, VARIABLE_DEC_ast_node);
+			prepare_ast_node(parser, dec, VARIABLE_DEC_AST_NODE);
 			return dec;
 		}
 		statement_ast_node *sn = create_statement_ast_node();
 		sn->data = dec;
-		sn->type = VARIABLE_DEC_ast_node;
+		sn->type = VARIABLE_DEC_AST_NODE;
 		return sn;
 	}
 	else {
@@ -654,12 +654,12 @@ void *parse_variable_ast_node(parser *parser, bool global) {
 		def->is_global = global;
 		
 		if (global) {
-			prepare_ast_node(parser, def, VARIABLE_DEF_ast_node);
+			prepare_ast_node(parser, def, VARIABLE_DEF_AST_NODE);
 			return def;
 		}
 		statement_ast_node *sn = create_statement_ast_node();
 		sn->data = def;
-		sn->type = VARIABLE_DEF_ast_node;
+		sn->type = VARIABLE_DEF_AST_NODE;
 		return sn;
 	}
 }
@@ -820,7 +820,7 @@ function_ast_node *parse_function_ast_node(parser *parser) {
 		block_ast_node *body = parse_block_ast_node(parser);
 		fn->fpn = fpn;
 		fn->body = body;
-		prepare_ast_node(parser, fn, FUNCTION_ast_node);
+		prepare_ast_node(parser, fn, FUNCTION_AST_NODE);
 
 		return fn;
 	}
@@ -880,7 +880,7 @@ function_callee_ast_node *parse_function_ast_nodeCall(parser *parser) {
 		function_callee_ast_node *fcn = create_function_callee_ast_node();
 		fcn->callee = callee;
 		fcn->args = args;
-		prepare_ast_node(parser, fcn, FUNCTION_CALLEE_ast_node);
+		prepare_ast_node(parser, fcn, FUNCTION_CALLEE_AST_NODE);
 		return fcn;
 	}
 
@@ -943,7 +943,7 @@ statement_ast_node *parse_statement_ast_node(parser *parser) {
 	if (check_token_type_and_content(parser, IDENTIFIER, "ret", 0)) {
 		statement_ast_node *sn = create_statement_ast_node();
 		sn->data = parserparsereturnStatement(parser); 
-		sn->type = FUNCTION_RET_ast_node;
+		sn->type = FUNCTION_RET_AST_NODE;
 		return sn;
 	}
 	else if (check_token_type_and_content(parser, IDENTIFIER, "for", 0)) {
@@ -956,14 +956,14 @@ statement_ast_node *parse_statement_ast_node(parser *parser) {
 		if (check_token_type_and_content(parser, OPERATOR, "=", 1)) {
 			statement_ast_node *sn = create_statement_ast_node();
 			sn->data = parse_reassignment_statement_ast_node(parser);
-			sn->type = VARIABLE_REASSIGN_ast_node;
+			sn->type = VARIABLE_REASSIGN_AST_NODE;
 			return sn;
 		}
 		// function call
 		else if (check_token_type_and_content(parser, SEPARATOR, "(", 1)) {
 			statement_ast_node *sn = create_statement_ast_node();
 			sn->data = parse_function_ast_nodeCall(parser);
-			sn->type = FUNCTION_CALLEE_ast_node;
+			sn->type = FUNCTION_CALLEE_AST_NODE;
 			return sn;
 		}
 		// local variable
@@ -1025,7 +1025,7 @@ void start_parsing_token_stream(parser *parser) {
 					parse_reassignment_statement_ast_node(parser);
 				}
 				else if (check_token_type_and_content(parser, SEPARATOR, "(", 1)) {
-					prepare_ast_node(parser, parse_function_ast_nodeCall(parser), FUNCTION_CALLEE_ast_node);
+					prepare_ast_node(parser, parse_function_ast_nodeCall(parser), FUNCTION_CALLEE_AST_NODE);
 				}
 				else {
 					printf(KRED "error: unrecognized identifier found: `%s`\n" KNRM, tok->content);
@@ -1075,31 +1075,31 @@ void remove_ast_node(ast_node *ast_node) {
 	 */
 	if (ast_node->data != NULL) {
 		switch (ast_node->type) {
-			case EXPRESSION_ast_node:
+			case EXPRESSION_AST_NODE:
 				destroy_expression_ast_node(ast_node->data);
 				break;
-			case VARIABLE_DEF_ast_node: 
+			case VARIABLE_DEF_AST_NODE: 
 				destroy_variable_define_ast_node(ast_node->data);
 				break;
-			case VARIABLE_DEC_ast_node:
+			case VARIABLE_DEC_AST_NODE:
 				destroy_variable_declare_ast_node(ast_node->data);
 				break;
-			case FUNCTION_ARG_ast_node:
+			case FUNCTION_ARG_AST_NODE:
 				destroy_function_argument_ast_node(ast_node->data);
 				break;
-			case FUNCTION_ast_node:
+			case FUNCTION_AST_NODE:
 				destroy_function_ast_node(ast_node->data);
 				break;
-			case FUNCTION_PROT_ast_node:
+			case FUNCTION_PROT_AST_NODE:
 				destroy_function_prototype_ast_node(ast_node->data);
 				break;
-			case BLOCK_ast_node:
+			case BLOCK_AST_NODE:
 				destroy_block_ast_node(ast_node->data);
 				break;
-			case FUNCTION_CALLEE_ast_node:
+			case FUNCTION_CALLEE_AST_NODE:
 				destroy_function_callee_ast_node(ast_node->data);
 				break;
-			case FUNCTION_RET_ast_node:
+			case FUNCTION_RET_AST_NODE:
 				destroy_function_return_ast_node(ast_node->data);
 				break;
 			default:
