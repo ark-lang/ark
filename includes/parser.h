@@ -20,6 +20,23 @@
 #define EXPR_VARIABLE 			'V'
 #define EXPR_PARENTHESIS 		'P'
 
+#define CONSTANT_KEYWORD 	   	"const"
+#define FUNCTION_KEYWORD 	   	"fn"
+#define VOID_KEYWORD	 	   	"void"
+#define BREAK_KEYWORD	 	   	"break"
+#define RETURN_KEYWORD	 	   	"ret"
+#define STRUCT_KEYWORD	 	   	"struct"
+#define ENUM_KEYWORD	 	   	"enum"
+#define UNSAFE_KEYWORD	 	   	"unsafe"
+#define IF_STATEMENT_KEYWORD   	"if"
+#define WHILE_LOOP_KEYWORD	   	"while"
+#define INFINITE_LOOP_KEYWORD  	"loop"
+#define ELSE_KEYWORD		   	"else"
+#define MATCH_KEYWORD			"match"
+#define FOR_LOOP_KEYWORD		"for"
+#define TRUE_KEYWORD			"true"
+#define FALSE_KEYWORD			"false"
+
 /**
  * parser contents
  */
@@ -50,7 +67,7 @@ typedef enum {
 	BLOCK_AST_NODE, FUNCTION_CALLEE_AST_NODE,
 	FUNCTION_RET_AST_NODE, FOR_LOOP_AST_NODE,
 	VARIABLE_REASSIGN_AST_NODE
-} ast_ast_node_type;
+} ast_node_type;
 
 /**
  * A wrapper for easier memory
@@ -58,7 +75,7 @@ typedef enum {
  */
 typedef struct {
 	void *data;
-	ast_ast_node_type type;
+	ast_node_type type;
 } ast_node;
 
 /**
@@ -80,7 +97,8 @@ typedef struct s_Expression {
 typedef struct {
 	data_type type;		// type of data to store
 	token *name;		// name of the variable
-	bool is_global;
+	bool is_global;		// is it in a global scope?
+	bool is_constant;	// is it a constant variable?
 } variable_define_ast_node;
 
 /** 
@@ -122,7 +140,7 @@ typedef struct {
  */
 typedef struct {
 	void *data;
-	ast_ast_node_type type;
+	ast_node_type type;
 } statement_ast_node;
 
 /**
@@ -364,7 +382,7 @@ void destroy_function_ast_node(function_ast_node *fn);
  * @param data the data to store
  * @param type the type of data
  */
-void prepare_ast_node(parser *parser, void *data, ast_ast_node_type type);
+void prepare_ast_node(parser *parser, void *data, ast_node_type type);
 
 /**
  * Remove a ast_node
