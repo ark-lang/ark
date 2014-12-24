@@ -66,7 +66,7 @@ typedef enum {
 	FUNCTION_AST_NODE, FUNCTION_PROT_AST_NODE,
 	BLOCK_AST_NODE, FUNCTION_CALLEE_AST_NODE,
 	FUNCTION_RET_AST_NODE, FOR_LOOP_AST_NODE,
-	VARIABLE_REASSIGN_AST_NODE
+	VARIABLE_REASSIGN_AST_NODE, INFINITE_LOOP_AST_NODE
 } ast_node_type;
 
 /**
@@ -199,7 +199,18 @@ typedef struct {
 typedef struct {
 	token *name;
 	expression_ast_node *expr;
-} variable_reassignment_node;
+} variable_reassignment_ast_node;
+
+/**
+ * A node for an infinite loop
+ *
+ * loop {
+ * 		// statements
+ * }
+ */
+typedef struct {
+	block_ast_node *body;
+} infinite_loop_ast_node;
 
 /**
  * ast_node for Boolean Expressions
@@ -229,10 +240,12 @@ typedef struct s_bool_expression_ast_node {
  */
 char parse_operand(parser *parser);
 
+infinite_loop_ast_node *create_infinite_loop_ast_node();
+
 /**
  * Create a new Variable Reassignment ast_node
  */
-variable_reassignment_node *create_variable_reassign_ast_node();
+variable_reassignment_ast_node *create_variable_reassign_ast_node();
 
 /**
  * Create a new For Loop ast_node
@@ -317,7 +330,17 @@ function_ast_node *create_function_ast_node();
  */
 function_prototype_ast_node *create_function_prototype_ast_node();
 
-void destroy_variable_reassign_ast_node(variable_reassignment_node *vrn);
+/**
+ * Destroys a variable reassignement node
+ * @param vrn the node to destroy
+ */
+void destroy_variable_reassign_ast_node(variable_reassignment_ast_node *vrn);
+
+/**
+ * Destroys an infinite loop node
+ * @param iln the node to destroy
+ */
+void destroy_infinite_loop_ast_node(infinite_loop_ast_node *iln);
 
 /**
  * Destroys the given For Loop ast_node
@@ -539,6 +562,13 @@ void *parse_variable_ast_node(parser *parser, bool global);
 block_ast_node *parse_block_ast_node(parser *parser);
 
 /**
+ * Parses an infinite loop ast node
+ * @param  parser the parser to parse with
+ * @return        the loop node as a statement node
+ */
+statement_ast_node *parse_infinite_loop_ast_node(parser *parser);
+
+/**
  * Parses a function
  * 
  * @param parser the parser instance
@@ -550,7 +580,7 @@ function_ast_node *parse_function_ast_node(parser *parser);
  * 
  * @param parser the parser instance
  */
-function_callee_ast_node *parse_function_ast_nodeCall(parser *parser);
+function_callee_ast_node *parse_function_callee_ast_node(parser *parser);
 
 /**
  * Parses statements, function calls, while
@@ -580,11 +610,18 @@ data_type match_token_type_to_data_type(parser *parser, token *tok);
 bool check_token_type_is_valid_data_type(parser *parser, token *tok);
 
 /**
+ * Parses a return statement node
+ * @param  parser the parser to parse with
+ * @return        the return ast node
+ */
+function_return_ast_node *parse_return_statement_ast_node(parser *parser);
+
+/**
  * Parses a variable reassignment
  * 
  * @parser the parser instance
  */
-variable_reassignment_node *parse_reassignment_statement_ast_node(parser *parser);
+variable_reassignment_ast_node *parse_reassignment_statement_ast_node(parser *parser);
 
 /**
  * Start parsing
