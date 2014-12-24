@@ -7,30 +7,30 @@
 #include "util.h"
 
 /**
- * Scanner properties,
+ * scanner properties,
  * todo: allow multiple files
  * 		 to be scanned.
  */
 typedef struct {
 	char* contents;
-} Scanner;
+} scanner;
 
 /**
  * Creates an instance of a scanner
  * @return the scanner
  */
-Scanner *create_scanner();
+scanner *create_scanner();
 
 /**
  * Reads the given file into
  * `char* contents;`
  */
-void scan_file(Scanner *scanner, const char* fileName);
+void scan_file(scanner *scanner, const char* fileName);
 
 /**
- * Destroys the given Scanner
+ * Destroys the given scanner
  * @param scanner scanner to destroy
  */
-void destroy_scanner(Scanner *scanner);
+void destroy_scanner(scanner *scanner);
 
 #endif // SCANNER_H
