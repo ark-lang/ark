@@ -51,13 +51,13 @@ void start_compiler(compiler *self, vector *ast) {
 		ast_node *current_ast_node = get_vector_item(self->ast, self->current_ast_node);
 
 		switch (current_ast_node->type) {
-		case VARIABLE_DEC_ast_node:
+		case VARIABLE_DEC_AST_NODE:
 			generate_variable_declaration_code(self, current_ast_node->data);
 			break;
-		case FUNCTION_ast_node:
+		case FUNCTION_AST_NODE:
 			generate_function_code(self, current_ast_node->data);
 			break;
-		case FUNCTION_CALLEE_ast_node:
+		case FUNCTION_CALLEE_AST_NODE:
 			generateFunctionCalleeCode(self, current_ast_node->data);
 			break;
 		default:
