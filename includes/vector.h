@@ -5,17 +5,17 @@
 #include <stdlib.h>
 
 /**
- * vectorItem typedef so we can change
+ * vector_item typedef so we can change
  * the data type if need be
  */
-typedef void* vectorItem;
+typedef void* vector_item;
 
 /**
  * Properties of a vector
  */
 typedef struct {
-	vectorItem *items;
-	int maxSize;
+	vector_item *items;
+	int max_size;
 	int size;
 } vector;
 
@@ -27,22 +27,22 @@ typedef struct {
 vector *create_vector();
 
 /**
- * Push a vectorItem into the given vector
+ * Push a vector_item into the given vector
  * 
  * @param vec the vector to push to
- * @param vectorItem the item to push
+ * @param vector_item the item to push
  */
-void push_back_item(vector *vec, vectorItem item);
+void push_back_item(vector *vec, vector_item item);
 
 /**
- * Retrieves the vectorItem at the given index in
+ * Retrieves the vector_item at the given index in
  * the given vector
  * 
  * @param vec vector the retrieve item from
  * @param index the place to check
  * @return the vector Item
  */
-vectorItem get_vector_item(vector *vec, int index);
+vector_item get_vector_item(vector *vec, int index);
 
 /**
  * Destroys the given vector
