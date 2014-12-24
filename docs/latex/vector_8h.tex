@@ -1,0 +1,118 @@
+\hypertarget{vector_8h}{\section{includes/vector.h File Reference}
+\label{vector_8h}\index{includes/vector.\+h@{includes/vector.\+h}}
+}
+{\ttfamily \#include $<$stdio.\+h$>$}\\*
+{\ttfamily \#include $<$stdlib.\+h$>$}\\*
+\subsection*{Data Structures}
+\begin{DoxyCompactItemize}
+\item 
+struct \hyperlink{structvector}{vector}
+\end{DoxyCompactItemize}
+\subsection*{Typedefs}
+\begin{DoxyCompactItemize}
+\item 
+typedef void $\ast$ \hyperlink{vector_8h_a188d83d405678bb6e5712d5a0add11c9}{vector\+\_\+item}
+\end{DoxyCompactItemize}
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{structvector}{vector} $\ast$ \hyperlink{vector_8h_a106a2facebdddff10b2d6acfe2cca973}{create\+\_\+vector} ()
+\item 
+void \hyperlink{vector_8h_aec48cd6ed5d9121dba223bdfa884ae48}{push\+\_\+back\+\_\+item} (\hyperlink{structvector}{vector} $\ast$vec, \hyperlink{vector_8h_a188d83d405678bb6e5712d5a0add11c9}{vector\+\_\+item} item)
+\item 
+\hyperlink{vector_8h_a188d83d405678bb6e5712d5a0add11c9}{vector\+\_\+item} \hyperlink{vector_8h_a7dd79f3bcd16a66117c6ef9e370f1f61}{get\+\_\+vector\+\_\+item} (\hyperlink{structvector}{vector} $\ast$vec, int index)
+\item 
+void \hyperlink{vector_8h_ae4507bd5e60b29ef9aba2d68700d0f91}{destroy\+\_\+vector} (\hyperlink{structvector}{vector} $\ast$vec)
+\end{DoxyCompactItemize}
+
+
+\subsection{Typedef Documentation}
+\hypertarget{vector_8h_a188d83d405678bb6e5712d5a0add11c9}{\index{vector.\+h@{vector.\+h}!vector\+\_\+item@{vector\+\_\+item}}
+\index{vector\+\_\+item@{vector\+\_\+item}!vector.\+h@{vector.\+h}}
+\subsubsection[{vector\+\_\+item}]{\setlength{\rightskip}{0pt plus 5cm}typedef void$\ast$ {\bf vector\+\_\+item}}}\label{vector_8h_a188d83d405678bb6e5712d5a0add11c9}
+vector\+\_\+item typedef so we can change the data type if need be 
+
+Definition at line 11 of file vector.\+h.
+
+
+
+\subsection{Function Documentation}
+\hypertarget{vector_8h_a106a2facebdddff10b2d6acfe2cca973}{\index{vector.\+h@{vector.\+h}!create\+\_\+vector@{create\+\_\+vector}}
+\index{create\+\_\+vector@{create\+\_\+vector}!vector.\+h@{vector.\+h}}
+\subsubsection[{create\+\_\+vector}]{\setlength{\rightskip}{0pt plus 5cm}{\bf vector}$\ast$ create\+\_\+vector (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{vector_8h_a106a2facebdddff10b2d6acfe2cca973}
+Creates a new instance of vector
+
+\begin{DoxyReturn}{Returns}
+the vector instance 
+\end{DoxyReturn}
+
+
+Definition at line 3 of file vector.\+c.
+
+\hypertarget{vector_8h_ae4507bd5e60b29ef9aba2d68700d0f91}{\index{vector.\+h@{vector.\+h}!destroy\+\_\+vector@{destroy\+\_\+vector}}
+\index{destroy\+\_\+vector@{destroy\+\_\+vector}!vector.\+h@{vector.\+h}}
+\subsubsection[{destroy\+\_\+vector}]{\setlength{\rightskip}{0pt plus 5cm}void destroy\+\_\+vector (
+\begin{DoxyParamCaption}
+\item[{{\bf vector} $\ast$}]{vec}
+\end{DoxyParamCaption}
+)}}\label{vector_8h_ae4507bd5e60b29ef9aba2d68700d0f91}
+Destroys the given vector
+
+
+\begin{DoxyParams}{Parameters}
+{\em vec} & the vector to destroy \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 41 of file vector.\+c.
+
+\hypertarget{vector_8h_a7dd79f3bcd16a66117c6ef9e370f1f61}{\index{vector.\+h@{vector.\+h}!get\+\_\+vector\+\_\+item@{get\+\_\+vector\+\_\+item}}
+\index{get\+\_\+vector\+\_\+item@{get\+\_\+vector\+\_\+item}!vector.\+h@{vector.\+h}}
+\subsubsection[{get\+\_\+vector\+\_\+item}]{\setlength{\rightskip}{0pt plus 5cm}{\bf vector\+\_\+item} get\+\_\+vector\+\_\+item (
+\begin{DoxyParamCaption}
+\item[{{\bf vector} $\ast$}]{vec, }
+\item[{int}]{index}
+\end{DoxyParamCaption}
+)}}\label{vector_8h_a7dd79f3bcd16a66117c6ef9e370f1f61}
+Retrieves the vector\+\_\+item at the given index in the given vector
+
+
+\begin{DoxyParams}{Parameters}
+{\em vec} & vector the retrieve item from \\
+\hline
+{\em index} & the place to check \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+the vector Item 
+\end{DoxyReturn}
+
+
+Definition at line 33 of file vector.\+c.
+
+\hypertarget{vector_8h_aec48cd6ed5d9121dba223bdfa884ae48}{\index{vector.\+h@{vector.\+h}!push\+\_\+back\+\_\+item@{push\+\_\+back\+\_\+item}}
+\index{push\+\_\+back\+\_\+item@{push\+\_\+back\+\_\+item}!vector.\+h@{vector.\+h}}
+\subsubsection[{push\+\_\+back\+\_\+item}]{\setlength{\rightskip}{0pt plus 5cm}void push\+\_\+back\+\_\+item (
+\begin{DoxyParamCaption}
+\item[{{\bf vector} $\ast$}]{vec, }
+\item[{{\bf vector\+\_\+item}}]{item}
+\end{DoxyParamCaption}
+)}}\label{vector_8h_aec48cd6ed5d9121dba223bdfa884ae48}
+Push a vector\+\_\+item into the given vector
+
+
+\begin{DoxyParams}{Parameters}
+{\em vec} & the vector to push to \\
+\hline
+{\em vector\+\_\+item} & the item to push \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 19 of file vector.\+c.
+

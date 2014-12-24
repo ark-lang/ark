@@ -1,0 +1,106 @@
+\hypertarget{structcompiler}{\section{compiler Struct Reference}
+\label{structcompiler}\index{compiler@{compiler}}
+}
+
+
+{\ttfamily \#include $<$compiler.\+h$>$}
+
+\subsection*{Data Fields}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{structvector}{vector} $\ast$ \hyperlink{structcompiler_a646023978cbcf99e53312df6cdd99b8f}{ast}
+\item 
+\hyperlink{structjayfor__vm}{jayfor\+\_\+vm} $\ast$ \hyperlink{structcompiler_a5a5f893f1b70a8fd8b043428132b4efa}{vm}
+\item 
+\hyperlink{structhashmap}{hashmap} $\ast$ \hyperlink{structcompiler_a06ebce769c4c96b0e3eb5ae512975adf}{functions}
+\item 
+int $\ast$ \hyperlink{structcompiler_a64b4be20f18afc3c774441d2fcfe6c36}{bytecode}
+\item 
+int \hyperlink{structcompiler_ade7224f7f710766a20379dd19924b533}{global\+\_\+count}
+\item 
+int \hyperlink{structcompiler_af4bc3176982d6dd4cea51d6f647040ea}{initial\+\_\+bytecode\+\_\+size}
+\item 
+int \hyperlink{structcompiler_aa98dd05a2e85a0bcfa6a97968f86536a}{max\+\_\+bytecode\+\_\+size}
+\item 
+int \hyperlink{structcompiler_a29957a44dacbb53d07ba527174855e6b}{current\+\_\+ast\+\_\+node}
+\item 
+int \hyperlink{structcompiler_a2b9e1ca3ba1703a588f6d160eacad1aa}{current\+\_\+instruction}
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Compiler, takes our A\+S\+T and generates code for it. Also keeps track of functions, etc. Optimisations are on the todo list, but I want to get it working first. 
+
+Definition at line 20 of file compiler.\+h.
+
+
+
+\subsection{Field Documentation}
+\hypertarget{structcompiler_a646023978cbcf99e53312df6cdd99b8f}{\index{compiler@{compiler}!ast@{ast}}
+\index{ast@{ast}!compiler@{compiler}}
+\subsubsection[{ast}]{\setlength{\rightskip}{0pt plus 5cm}{\bf vector}$\ast$ ast}}\label{structcompiler_a646023978cbcf99e53312df6cdd99b8f}
+
+
+Definition at line 21 of file compiler.\+h.
+
+\hypertarget{structcompiler_a64b4be20f18afc3c774441d2fcfe6c36}{\index{compiler@{compiler}!bytecode@{bytecode}}
+\index{bytecode@{bytecode}!compiler@{compiler}}
+\subsubsection[{bytecode}]{\setlength{\rightskip}{0pt plus 5cm}int$\ast$ bytecode}}\label{structcompiler_a64b4be20f18afc3c774441d2fcfe6c36}
+
+
+Definition at line 24 of file compiler.\+h.
+
+\hypertarget{structcompiler_a29957a44dacbb53d07ba527174855e6b}{\index{compiler@{compiler}!current\+\_\+ast\+\_\+node@{current\+\_\+ast\+\_\+node}}
+\index{current\+\_\+ast\+\_\+node@{current\+\_\+ast\+\_\+node}!compiler@{compiler}}
+\subsubsection[{current\+\_\+ast\+\_\+node}]{\setlength{\rightskip}{0pt plus 5cm}int current\+\_\+ast\+\_\+node}}\label{structcompiler_a29957a44dacbb53d07ba527174855e6b}
+
+
+Definition at line 29 of file compiler.\+h.
+
+\hypertarget{structcompiler_a2b9e1ca3ba1703a588f6d160eacad1aa}{\index{compiler@{compiler}!current\+\_\+instruction@{current\+\_\+instruction}}
+\index{current\+\_\+instruction@{current\+\_\+instruction}!compiler@{compiler}}
+\subsubsection[{current\+\_\+instruction}]{\setlength{\rightskip}{0pt plus 5cm}int current\+\_\+instruction}}\label{structcompiler_a2b9e1ca3ba1703a588f6d160eacad1aa}
+
+
+Definition at line 30 of file compiler.\+h.
+
+\hypertarget{structcompiler_a06ebce769c4c96b0e3eb5ae512975adf}{\index{compiler@{compiler}!functions@{functions}}
+\index{functions@{functions}!compiler@{compiler}}
+\subsubsection[{functions}]{\setlength{\rightskip}{0pt plus 5cm}{\bf hashmap}$\ast$ functions}}\label{structcompiler_a06ebce769c4c96b0e3eb5ae512975adf}
+
+
+Definition at line 23 of file compiler.\+h.
+
+\hypertarget{structcompiler_ade7224f7f710766a20379dd19924b533}{\index{compiler@{compiler}!global\+\_\+count@{global\+\_\+count}}
+\index{global\+\_\+count@{global\+\_\+count}!compiler@{compiler}}
+\subsubsection[{global\+\_\+count}]{\setlength{\rightskip}{0pt plus 5cm}int global\+\_\+count}}\label{structcompiler_ade7224f7f710766a20379dd19924b533}
+
+
+Definition at line 26 of file compiler.\+h.
+
+\hypertarget{structcompiler_af4bc3176982d6dd4cea51d6f647040ea}{\index{compiler@{compiler}!initial\+\_\+bytecode\+\_\+size@{initial\+\_\+bytecode\+\_\+size}}
+\index{initial\+\_\+bytecode\+\_\+size@{initial\+\_\+bytecode\+\_\+size}!compiler@{compiler}}
+\subsubsection[{initial\+\_\+bytecode\+\_\+size}]{\setlength{\rightskip}{0pt plus 5cm}int initial\+\_\+bytecode\+\_\+size}}\label{structcompiler_af4bc3176982d6dd4cea51d6f647040ea}
+
+
+Definition at line 27 of file compiler.\+h.
+
+\hypertarget{structcompiler_aa98dd05a2e85a0bcfa6a97968f86536a}{\index{compiler@{compiler}!max\+\_\+bytecode\+\_\+size@{max\+\_\+bytecode\+\_\+size}}
+\index{max\+\_\+bytecode\+\_\+size@{max\+\_\+bytecode\+\_\+size}!compiler@{compiler}}
+\subsubsection[{max\+\_\+bytecode\+\_\+size}]{\setlength{\rightskip}{0pt plus 5cm}int max\+\_\+bytecode\+\_\+size}}\label{structcompiler_aa98dd05a2e85a0bcfa6a97968f86536a}
+
+
+Definition at line 28 of file compiler.\+h.
+
+\hypertarget{structcompiler_a5a5f893f1b70a8fd8b043428132b4efa}{\index{compiler@{compiler}!vm@{vm}}
+\index{vm@{vm}!compiler@{compiler}}
+\subsubsection[{vm}]{\setlength{\rightskip}{0pt plus 5cm}{\bf jayfor\+\_\+vm}$\ast$ vm}}\label{structcompiler_a5a5f893f1b70a8fd8b043428132b4efa}
+
+
+Definition at line 22 of file compiler.\+h.
+
+
+
+The documentation for this struct was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+includes/\hyperlink{compiler_8h}{compiler.\+h}\end{DoxyCompactItemize}
