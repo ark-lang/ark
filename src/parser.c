@@ -618,6 +618,7 @@ void *parse_variable_ast_node(parser *parser, bool global) {
 		variable_define_ast_node *def = create_variable_define_ast_node();
 		def->type = data_typeRaw;
 		def->name = variableNametoken;
+		def->is_global = global;
 
 		// parses the expression we're assigning to
 		expression_ast_node *expr = parse_expression_ast_node(parser);
@@ -650,6 +651,7 @@ void *parse_variable_ast_node(parser *parser, bool global) {
 		variable_define_ast_node *def = create_variable_define_ast_node();
 		def->type = data_typeRaw;
 		def->name = variableNametoken;
+		def->is_global = global;
 		
 		if (global) {
 			prepare_ast_node(parser, def, VARIABLE_DEF_ast_node);

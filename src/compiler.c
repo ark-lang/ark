@@ -8,6 +8,7 @@ compiler *create_compiler() {
 	self->bytecode = malloc(sizeof(*self->bytecode) * self->max_bytecode_size);
 	self->current_ast_node = 0;
 	self->functions = create_hashmap(128);
+	self->global_count = 0;
 	return self;
 }
 
@@ -26,8 +27,23 @@ void consume_ast_node(compiler *self) {
 void evaluate_expression_ast_node(compiler *self, expression_ast_node *expr) {
 	// O(n + m)
 	if (expr->value != NULL) {
-		append_instruction(self, ICONST);
-		append_instruction(self, atoi(expr->value->content));
+		int int_val = 0;
+		float float_val = 0;
+
+		if (sscanf(expr->value->content, "%d", &int_val)) {
+			printf("storing int: %d or %d\n", int_val, atoi(expr->value->content));
+			append_instruction(self, ICONST);
+			append_instruction(self, int_val);
+		}
+		else if (sscanf(expr->value->content, "%f", &float_val)) {
+			printf("storing flaot\n");
+			append_instruction(self, FCONST);
+			append_instruction(self, float_to_int_bits(float_val));
+		}
+		else {
+			printf(KRED "error: invalid number specified: %s\n" KNRM, expr->value->content);
+			exit(1);
+		}
 	}
 	else {
 		evaluate_expression_ast_node(self, expr->lhand);
@@ -44,7 +60,14 @@ void evaluate_expression_ast_node(compiler *self, expression_ast_node *expr) {
 }
 
 void generate_variable_declaration_code(compiler *self, variable_declare_ast_node *vdn) {
-	
+	evaluate_expression_ast_node(self, vdn->expr);
+	if (vdn->vdn->is_global) {
+		append_instruction(self, GSTORE);
+		append_instruction(self, self->global_count);
+		int current_global_address = self->global_count;
+		set_value_at_key(self->functions, vdn->vdn->name->content, &current_global_address, sizeof(int));
+		self->global_count++;
+	}
 }
 
 void generateFunctionCalleeCode(compiler *self, function_callee_ast_node *fcn) {
