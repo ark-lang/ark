@@ -34,7 +34,7 @@ void scan_file(scanner *self, const char* fileName) {
 
 			size_t fileLength = fread(self->contents, sizeof(char), fileSize, file);
 			if (!fileLength) {
-				printf(KYEL "warning: \"%s\" is empty\n" KNRM, fileName);
+				debug_message("warning: \"%s\" is empty\n", fileName);
 			}
 
 			self->contents[fileSize] = '\0';
