@@ -66,7 +66,8 @@ typedef enum {
 	FUNCTION_AST_NODE, FUNCTION_PROT_AST_NODE,
 	BLOCK_AST_NODE, FUNCTION_CALLEE_AST_NODE,
 	FUNCTION_RET_AST_NODE, FOR_LOOP_AST_NODE,
-	VARIABLE_REASSIGN_AST_NODE, INFINITE_LOOP_AST_NODE
+	VARIABLE_REASSIGN_AST_NODE, INFINITE_LOOP_AST_NODE,
+	BREAK_AST_NODE
 } ast_node_type;
 
 /**
@@ -142,6 +143,14 @@ typedef struct {
 	void *data;
 	ast_node_type type;
 } statement_ast_node;
+
+/**
+ * A node representing a break 
+ * from an inner loop
+ */
+typedef struct {
+	// NOTHING! :)
+} break_ast_node;
 
 /**
  * ast_node which represents a block of statements
@@ -240,7 +249,17 @@ typedef struct s_bool_expression_ast_node {
  */
 char parse_operand(parser *parser);
 
+/**
+ * Create an infinite loop ast node
+ * @return the infinite loop ast node
+ */
 infinite_loop_ast_node *create_infinite_loop_ast_node();
+
+/**
+ * Creat a break ast node 
+ * @return the break ast node
+ */
+break_ast_node *create_break_ast_node();
 
 /**
  * Create a new Variable Reassignment ast_node
@@ -331,6 +350,12 @@ function_ast_node *create_function_ast_node();
 function_prototype_ast_node *create_function_prototype_ast_node();
 
 /**
+ * Destroy the break ast node
+ * @param bn the node to destroy
+ */
+void destroy_break_ast_node(break_ast_node *bn);
+
+/**
  * Destroys a variable reassignement node
  * @param vrn the node to destroy
  */
@@ -344,56 +369,67 @@ void destroy_infinite_loop_ast_node(infinite_loop_ast_node *iln);
 
 /**
  * Destroys the given For Loop ast_node
+ * @param fln the node to destroy
  */
 void destroy_for_loop_ast_node(for_loop_ast_node *fln);
 
 /**
  * Destroy the given Statement ast_node
+ * @param sn the node to destroy
  */
 void destroy_statement_ast_node(statement_ast_node *sn);
 
 /**
  * Destroy the given Function Return ast_node 
+ * @param frn the node to destroy
  */
 void destroy_function_return_ast_node(function_return_ast_node *frn);
 
 /**
  * Destroy function callee ast_node
+ * @param fcn the node to destroy
  */
 void destroy_function_callee_ast_node(function_callee_ast_node *fcn);
 
 /**
  * Destroy an Expression ast_node
+ * @param expr the node to destroy
  */
 void destroy_expression_ast_node(expression_ast_node *expr);
 
 /**
  * Destroy a Variable Definition ast_node
+ * @param vdn the node to destroy
  */
 void destroy_variable_define_ast_node(variable_define_ast_node *vdn);
 
 /**
  * Destroy a Variable Declaration ast_node
+ * @param vdn the node to destroy
  */
 void destroy_variable_declare_ast_node(variable_declare_ast_node *vdn);
 
 /**
  * Destroy a Function Argument ast_node
+ * @param fan the node to destroy
  */
 void destroy_function_argument_ast_node(function_argument_ast_node *fan);
 
 /**
  * Destroy a Block ast_node
+ * @param bn the node to destroy
  */
 void destroy_block_ast_node(block_ast_node *bn);
 
 /**
  * Destroy a Function Prototype ast_node
+ * @param fpn the node to destroy
  */
 void destroy_function_prototype_ast_node(function_prototype_ast_node *fpn);
 
 /**
  * Destroy a Function ast_node
+ * @param fn the node to destroy
  */
 void destroy_function_ast_node(function_ast_node *fn);
 
@@ -581,6 +617,12 @@ function_ast_node *parse_function_ast_node(parser *parser);
  * @param parser the parser instance
  */
 function_callee_ast_node *parse_function_callee_ast_node(parser *parser);
+
+/**
+ * Utility method which parser the optional semi colon
+ * @param parser the parser instance
+ */
+void parse_optional_semi_colon(parser *parser);
 
 /**
  * Parses statements, function calls, while
