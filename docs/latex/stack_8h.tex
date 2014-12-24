@@ -1,0 +1,168 @@
+\hypertarget{stack_8h}{\section{includes/stack.h File Reference}
+\label{stack_8h}\index{includes/stack.\+h@{includes/stack.\+h}}
+}
+{\ttfamily \#include $<$stdio.\+h$>$}\\*
+{\ttfamily \#include $<$stdlib.\+h$>$}\\*
+{\ttfamily \#include \char`\"{}util.\+h\char`\"{}}\\*
+\subsection*{Data Structures}
+\begin{DoxyCompactItemize}
+\item 
+struct \hyperlink{struct_stack}{Stack}
+\end{DoxyCompactItemize}
+\subsection*{Typedefs}
+\begin{DoxyCompactItemize}
+\item 
+typedef void $\ast$ \hyperlink{stack_8h_a2fe7ea9a2959daba7ada826ed5d4a81a}{Stack\+Item}
+\end{DoxyCompactItemize}
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{struct_stack}{Stack} $\ast$ \hyperlink{stack_8h_a967e90a2360549cda6fc3c44c25ea644}{create\+\_\+stack} ()
+\item 
+void \hyperlink{stack_8h_a6f9260bceecc1d3474200dc9c781e6cf}{push\+\_\+to\+\_\+stack} (\hyperlink{struct_stack}{Stack} $\ast$stack, \hyperlink{stack_8h_a2fe7ea9a2959daba7ada826ed5d4a81a}{Stack\+Item} item)
+\item 
+void \hyperlink{stack_8h_a13f052dbe1301b85c08dfcbd42d6b71d}{push\+\_\+to\+\_\+stack\+\_\+at\+\_\+index} (\hyperlink{struct_stack}{Stack} $\ast$stack, \hyperlink{stack_8h_a2fe7ea9a2959daba7ada826ed5d4a81a}{Stack\+Item} item, int index)
+\end{DoxyCompactItemize}
+{\bf }\par
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{stack_8h_a2fe7ea9a2959daba7ada826ed5d4a81a}{Stack\+Item} \hyperlink{stack_8h_a8469a433ece5186fe68171d754f7778f}{get\+\_\+value\+\_\+from\+\_\+stack} (\hyperlink{struct_stack}{Stack} $\ast$stack, int index)
+\item 
+\hyperlink{stack_8h_a2fe7ea9a2959daba7ada826ed5d4a81a}{Stack\+Item} \hyperlink{stack_8h_ae041f925a54d18de94fd3b3822b674f4}{pop\+\_\+stack} (\hyperlink{struct_stack}{Stack} $\ast$stack)
+\item 
+void \hyperlink{stack_8h_a14178da8867a27fdba461ebdb3f96312}{destroy\+\_\+stack} (\hyperlink{struct_stack}{Stack} $\ast$stack)
+\end{DoxyCompactItemize}
+
+
+
+\subsection{Typedef Documentation}
+\hypertarget{stack_8h_a2fe7ea9a2959daba7ada826ed5d4a81a}{\index{stack.\+h@{stack.\+h}!Stack\+Item@{Stack\+Item}}
+\index{Stack\+Item@{Stack\+Item}!stack.\+h@{stack.\+h}}
+\subsubsection[{Stack\+Item}]{\setlength{\rightskip}{0pt plus 5cm}typedef void$\ast$ {\bf Stack\+Item}}}\label{stack_8h_a2fe7ea9a2959daba7ada826ed5d4a81a}
+typedef for void$\ast$ so we can change the type if need be 
+
+Definition at line 13 of file stack.\+h.
+
+
+
+\subsection{Function Documentation}
+\hypertarget{stack_8h_a967e90a2360549cda6fc3c44c25ea644}{\index{stack.\+h@{stack.\+h}!create\+\_\+stack@{create\+\_\+stack}}
+\index{create\+\_\+stack@{create\+\_\+stack}!stack.\+h@{stack.\+h}}
+\subsubsection[{create\+\_\+stack}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Stack}$\ast$ create\+\_\+stack (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{stack_8h_a967e90a2360549cda6fc3c44c25ea644}
+Create a new stack instance \begin{DoxyReturn}{Returns}
+the instance of the stack created 
+\end{DoxyReturn}
+
+
+Definition at line 3 of file stack.\+c.
+
+\hypertarget{stack_8h_a14178da8867a27fdba461ebdb3f96312}{\index{stack.\+h@{stack.\+h}!destroy\+\_\+stack@{destroy\+\_\+stack}}
+\index{destroy\+\_\+stack@{destroy\+\_\+stack}!stack.\+h@{stack.\+h}}
+\subsubsection[{destroy\+\_\+stack}]{\setlength{\rightskip}{0pt plus 5cm}void destroy\+\_\+stack (
+\begin{DoxyParamCaption}
+\item[{{\bf Stack} $\ast$}]{stack}
+\end{DoxyParamCaption}
+)}}\label{stack_8h_a14178da8867a27fdba461ebdb3f96312}
+Destroys the given stack
+
+
+\begin{DoxyParams}{Parameters}
+{\em stack} & stack to destroy \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 58 of file stack.\+c.
+
+\hypertarget{stack_8h_a8469a433ece5186fe68171d754f7778f}{\index{stack.\+h@{stack.\+h}!get\+\_\+value\+\_\+from\+\_\+stack@{get\+\_\+value\+\_\+from\+\_\+stack}}
+\index{get\+\_\+value\+\_\+from\+\_\+stack@{get\+\_\+value\+\_\+from\+\_\+stack}!stack.\+h@{stack.\+h}}
+\subsubsection[{get\+\_\+value\+\_\+from\+\_\+stack}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Stack\+Item} get\+\_\+value\+\_\+from\+\_\+stack (
+\begin{DoxyParamCaption}
+\item[{{\bf Stack} $\ast$}]{stack, }
+\item[{int}]{index}
+\end{DoxyParamCaption}
+)}}\label{stack_8h_a8469a433ece5186fe68171d754f7778f}
+Retrieve the value at the given index
+
+
+\begin{DoxyParams}{Parameters}
+{\em stack} & the stack to retrieve from \\
+\hline
+{\em index} & the index to check \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+the item at the givenindex\} 
+\end{DoxyReturn}
+
+
+Definition at line 19 of file stack.\+c.
+
+\hypertarget{stack_8h_ae041f925a54d18de94fd3b3822b674f4}{\index{stack.\+h@{stack.\+h}!pop\+\_\+stack@{pop\+\_\+stack}}
+\index{pop\+\_\+stack@{pop\+\_\+stack}!stack.\+h@{stack.\+h}}
+\subsubsection[{pop\+\_\+stack}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Stack\+Item} pop\+\_\+stack (
+\begin{DoxyParamCaption}
+\item[{{\bf Stack} $\ast$}]{stack}
+\end{DoxyParamCaption}
+)}}\label{stack_8h_ae041f925a54d18de94fd3b3822b674f4}
+Pops value from top of stack
+
+
+\begin{DoxyParams}{Parameters}
+{\em stack} & the stack to pop \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+the item we popped 
+\end{DoxyReturn}
+
+
+Definition at line 50 of file stack.\+c.
+
+\hypertarget{stack_8h_a6f9260bceecc1d3474200dc9c781e6cf}{\index{stack.\+h@{stack.\+h}!push\+\_\+to\+\_\+stack@{push\+\_\+to\+\_\+stack}}
+\index{push\+\_\+to\+\_\+stack@{push\+\_\+to\+\_\+stack}!stack.\+h@{stack.\+h}}
+\subsubsection[{push\+\_\+to\+\_\+stack}]{\setlength{\rightskip}{0pt plus 5cm}void push\+\_\+to\+\_\+stack (
+\begin{DoxyParamCaption}
+\item[{{\bf Stack} $\ast$}]{stack, }
+\item[{{\bf Stack\+Item}}]{item}
+\end{DoxyParamCaption}
+)}}\label{stack_8h_a6f9260bceecc1d3474200dc9c781e6cf}
+Push a value to the stack
+
+
+\begin{DoxyParams}{Parameters}
+{\em stack} & stack to push to \\
+\hline
+{\em item} & item to push to \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 46 of file stack.\+c.
+
+\hypertarget{stack_8h_a13f052dbe1301b85c08dfcbd42d6b71d}{\index{stack.\+h@{stack.\+h}!push\+\_\+to\+\_\+stack\+\_\+at\+\_\+index@{push\+\_\+to\+\_\+stack\+\_\+at\+\_\+index}}
+\index{push\+\_\+to\+\_\+stack\+\_\+at\+\_\+index@{push\+\_\+to\+\_\+stack\+\_\+at\+\_\+index}!stack.\+h@{stack.\+h}}
+\subsubsection[{push\+\_\+to\+\_\+stack\+\_\+at\+\_\+index}]{\setlength{\rightskip}{0pt plus 5cm}void push\+\_\+to\+\_\+stack\+\_\+at\+\_\+index (
+\begin{DoxyParamCaption}
+\item[{{\bf Stack} $\ast$}]{stack, }
+\item[{{\bf Stack\+Item}}]{item, }
+\item[{int}]{index}
+\end{DoxyParamCaption}
+)}}\label{stack_8h_a13f052dbe1301b85c08dfcbd42d6b71d}
+Push a value to the stack at the given index
+
+
+\begin{DoxyParams}{Parameters}
+{\em stack} & stack to push to \\
+\hline
+{\em item} & item to push to \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 27 of file stack.\+c.
+

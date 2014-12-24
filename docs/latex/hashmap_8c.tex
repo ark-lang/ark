@@ -1,0 +1,100 @@
+\hypertarget{hashmap_8c}{\section{src/hashmap.c File Reference}
+\label{hashmap_8c}\index{src/hashmap.\+c@{src/hashmap.\+c}}
+}
+{\ttfamily \#include \char`\"{}hashmap.\+h\char`\"{}}\\*
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{structhashmap}{hashmap} $\ast$ \hyperlink{hashmap_8c_aa4006975bfe2c01c0af1d16524901d0f}{create\+\_\+hashmap} (int size)
+\item 
+void \hyperlink{hashmap_8c_aedf6cc28bce764845343989261685662}{destroy\+\_\+hashmap} (\hyperlink{structhashmap}{hashmap} $\ast$map)
+\item 
+void \hyperlink{hashmap_8c_af025534f6d898f5afdea5e6419ad55bc}{set\+\_\+value\+\_\+at\+\_\+key} (\hyperlink{structhashmap}{hashmap} $\ast$map, char $\ast$key, void $\ast$value, size\+\_\+t length)
+\item 
+void $\ast$ \hyperlink{hashmap_8c_a84ba9edcd1d0b8a096d6d01f476105bc}{get\+\_\+value\+\_\+at\+\_\+key} (\hyperlink{structhashmap}{hashmap} $\ast$map, char $\ast$key)
+\end{DoxyCompactItemize}
+
+
+\subsection{Function Documentation}
+\hypertarget{hashmap_8c_aa4006975bfe2c01c0af1d16524901d0f}{\index{hashmap.\+c@{hashmap.\+c}!create\+\_\+hashmap@{create\+\_\+hashmap}}
+\index{create\+\_\+hashmap@{create\+\_\+hashmap}!hashmap.\+c@{hashmap.\+c}}
+\subsubsection[{create\+\_\+hashmap}]{\setlength{\rightskip}{0pt plus 5cm}{\bf hashmap}$\ast$ create\+\_\+hashmap (
+\begin{DoxyParamCaption}
+\item[{int}]{}
+\end{DoxyParamCaption}
+)}}\label{hashmap_8c_aa4006975bfe2c01c0af1d16524901d0f}
+Creates a new Hashmap 
+\begin{DoxyParams}{Parameters}
+{\em int} & the size of the hashmap \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+the hashmap instance 
+\end{DoxyReturn}
+
+
+Definition at line 21 of file hashmap.\+c.
+
+\hypertarget{hashmap_8c_aedf6cc28bce764845343989261685662}{\index{hashmap.\+c@{hashmap.\+c}!destroy\+\_\+hashmap@{destroy\+\_\+hashmap}}
+\index{destroy\+\_\+hashmap@{destroy\+\_\+hashmap}!hashmap.\+c@{hashmap.\+c}}
+\subsubsection[{destroy\+\_\+hashmap}]{\setlength{\rightskip}{0pt plus 5cm}void destroy\+\_\+hashmap (
+\begin{DoxyParamCaption}
+\item[{{\bf hashmap} $\ast$}]{map}
+\end{DoxyParamCaption}
+)}}\label{hashmap_8c_aedf6cc28bce764845343989261685662}
+Destroys the given hashmap 
+\begin{DoxyParams}{Parameters}
+{\em map} & the hashmap to destroy \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 34 of file hashmap.\+c.
+
+\hypertarget{hashmap_8c_a84ba9edcd1d0b8a096d6d01f476105bc}{\index{hashmap.\+c@{hashmap.\+c}!get\+\_\+value\+\_\+at\+\_\+key@{get\+\_\+value\+\_\+at\+\_\+key}}
+\index{get\+\_\+value\+\_\+at\+\_\+key@{get\+\_\+value\+\_\+at\+\_\+key}!hashmap.\+c@{hashmap.\+c}}
+\subsubsection[{get\+\_\+value\+\_\+at\+\_\+key}]{\setlength{\rightskip}{0pt plus 5cm}void$\ast$ get\+\_\+value\+\_\+at\+\_\+key (
+\begin{DoxyParamCaption}
+\item[{{\bf hashmap} $\ast$}]{map, }
+\item[{char $\ast$}]{str}
+\end{DoxyParamCaption}
+)}}\label{hashmap_8c_a84ba9edcd1d0b8a096d6d01f476105bc}
+Get the value at the key specified 
+\begin{DoxyParams}{Parameters}
+{\em map} & the map to search \\
+\hline
+{\em str} & the key to search for \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+the value in the map at the key 
+\end{DoxyReturn}
+
+
+Definition at line 93 of file hashmap.\+c.
+
+\hypertarget{hashmap_8c_af025534f6d898f5afdea5e6419ad55bc}{\index{hashmap.\+c@{hashmap.\+c}!set\+\_\+value\+\_\+at\+\_\+key@{set\+\_\+value\+\_\+at\+\_\+key}}
+\index{set\+\_\+value\+\_\+at\+\_\+key@{set\+\_\+value\+\_\+at\+\_\+key}!hashmap.\+c@{hashmap.\+c}}
+\subsubsection[{set\+\_\+value\+\_\+at\+\_\+key}]{\setlength{\rightskip}{0pt plus 5cm}void set\+\_\+value\+\_\+at\+\_\+key (
+\begin{DoxyParamCaption}
+\item[{{\bf hashmap} $\ast$}]{map, }
+\item[{char $\ast$}]{str, }
+\item[{void $\ast$}]{data, }
+\item[{size\+\_\+t}]{size}
+\end{DoxyParamCaption}
+)}}\label{hashmap_8c_af025534f6d898f5afdea5e6419ad55bc}
+Sets the value at the given key 
+\begin{DoxyParams}{Parameters}
+{\em map} & the map to set the value in \\
+\hline
+{\em str} & the key to place the value \\
+\hline
+{\em data} & the data to store \\
+\hline
+{\em size} & the size of the data being stored \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 52 of file hashmap.\+c.
+
