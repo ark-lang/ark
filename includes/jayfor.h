@@ -25,7 +25,7 @@ typedef struct {
  * The core of jayfor
  */
 typedef struct {
-	Scanner *scanner;
+	scanner *scanner;
 	Lexer *lexer;
 	parser *parser;
 	compiler *compiler;
