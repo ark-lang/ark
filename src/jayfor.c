@@ -129,7 +129,7 @@ void start_jayfor(jayfor *self) {
 	
 	if (EXECUTE_BYTECODE) {
 		self->j4vm = create_jayfor_vm();
-		start_jayfor_vm(self->j4vm, self->compiler->bytecode, self->compiler->current_instruction);
+		start_jayfor_vm(self->j4vm, self->compiler->bytecode);
 	}
 	else {
 		// output bytecode to file, overwrite existing
@@ -179,7 +179,7 @@ void run_vm_executable(jayfor *self) {
 		}
 	}
 
-	start_jayfor_vm(self->j4vm, bytecode, i);
+	start_jayfor_vm(self->j4vm, bytecode);
 }
 
 void destroy_jayfor(jayfor *self) {
