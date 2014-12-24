@@ -456,7 +456,7 @@ statement_ast_node *parse_for_loop_ast_node(parser *parser) {
 	 */
 
 	// for token
-	match_token_type_and_content(parser, IDENTIFIER, "for");					// FOR
+	match_token_type_and_content(parser, IDENTIFIER, FOR_LOOP_KEYWORD);		// FOR
 	
 	token *type_tok = match_token_type(parser, IDENTIFIER);					// DATA_TYPE
 	data_type type_raw = match_token_type_to_data_type(parser, type_tok);
@@ -607,6 +607,13 @@ void *parse_variable_ast_node(parser *parser, bool global) {
 	// convert the data type for enum
 	data_type data_typeRaw = match_token_type_to_data_type(parser, variabledata_type);
 
+	bool is_constant = false;
+
+	if (match_token_type_and_content(parser, IDENTIFIER, CONSTANT_KEYWORD, 0)) {
+		consume_token(parser);
+		is_constant = true;
+	}	
+
 	// name of the variable
 	token *variableNametoken = match_token_type(parser, IDENTIFIER);
 
@@ -616,6 +623,7 @@ void *parse_variable_ast_node(parser *parser, bool global) {
 
 		// create variable define ast_node
 		variable_define_ast_node *def = create_variable_define_ast_node();
+		def->is_constant = is_constant;
 		def->type = data_typeRaw;
 		def->name = variableNametoken;
 		def->is_global = global;
@@ -649,6 +657,7 @@ void *parse_variable_ast_node(parser *parser, bool global) {
 
 		// create variable define ast_node
 		variable_define_ast_node *def = create_variable_define_ast_node();
+		def->is_constant = is_constant;
 		def->type = data_typeRaw;
 		def->name = variableNametoken;
 		def->is_global = global;
@@ -890,7 +899,7 @@ function_callee_ast_node *parse_function_ast_nodeCall(parser *parser) {
 
 function_return_ast_node *parserparsereturnStatement(parser *parser) {
 	// consume the return keyword
-	match_token_type_and_content(parser, IDENTIFIER, "ret");
+	match_token_type_and_content(parser, IDENTIFIER, RETURN_KEYWORD);
 
 	function_return_ast_node *frn = create_function_return_ast_node();
 	frn->returnVals = create_vector();
@@ -940,13 +949,13 @@ function_return_ast_node *parserparsereturnStatement(parser *parser) {
 
 statement_ast_node *parse_statement_ast_node(parser *parser) {
 	// ret keyword	
-	if (check_token_type_and_content(parser, IDENTIFIER, "ret", 0)) {
+	if (check_token_type_and_content(parser, IDENTIFIER, RETURN_KEYWORD, 0)) {
 		statement_ast_node *sn = create_statement_ast_node();
 		sn->data = parserparsereturnStatement(parser); 
 		sn->type = FUNCTION_RET_AST_NODE;
 		return sn;
 	}
-	else if (check_token_type_and_content(parser, IDENTIFIER, "for", 0)) {
+	else if (check_token_type_and_content(parser, IDENTIFIER, FOR_LOOP_KEYWORD, 0)) {
 		return parse_for_loop_ast_node(parser);
 	}
 	else if (check_token_type(parser, IDENTIFIER, 0)) {
@@ -1015,7 +1024,7 @@ void start_parsing_token_stream(parser *parser) {
 			case IDENTIFIER:
 				// parse a variable if we have a variable
 				// given to us
-				if (!strcmp(tok->content, "fn")) {
+				if (!strcmp(tok->content, FUNCTION_KEYWORD)) {
 					parse_function_ast_node(parser);
 				} 
 				else if (check_token_type_is_valid_data_type(parser, tok)) {
@@ -1062,7 +1071,7 @@ data_type match_token_type_to_data_type(parser *parser, token *tok) {
 	exit(1);
 }
 
-void prepare_ast_node(parser *parser, void *data, ast_ast_node_type type) {
+void prepare_ast_node(parser *parser, void *data, ast_node_type type) {
 	ast_node *ast_node = malloc(sizeof(*ast_node));
 	ast_node->data = data;
 	ast_node->type = type;
