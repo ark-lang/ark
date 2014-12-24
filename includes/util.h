@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+/** the current version of jayfor */
 #define JAYFOR_VERSION "0.0.0"
 
 /**
@@ -13,16 +14,7 @@
  *
  * Update: on windows can confirm, it does not work
  */
-#ifdef _WIN32
-	#define KNRM  ""
-	#define KRED  ""
-	#define KGRN  ""
-	#define KYEL  ""
-	#define KBLU  ""
-	#define KMAG  ""
-	#define KCYN  ""
-	#define KWHT  ""
-#elif __linux || __APPLE__
+#if __linux || __APPLE__
 	#define KNRM  "\x1B[0m"
 	#define KRED  "\x1B[31m"
 	#define KGRN  "\x1B[32m"
@@ -31,6 +23,15 @@
 	#define KMAG  "\x1B[35m"
 	#define KCYN  "\x1B[36m"
 	#define KWHT  "\x1B[37m*"
+#else
+	#define KNRM  ""
+	#define KRED  ""
+	#define KGRN  ""
+	#define KYEL  ""
+	#define KBLU  ""
+	#define KMAG  ""
+	#define KCYN  ""
+	#define KWHT  ""
 #endif
 
 /** quick boolean implementation */
@@ -53,6 +54,11 @@ extern char* VM_EXECUTABLE_NAME;
 /** the name of the executable file */
 extern char* OUTPUT_EXECUTABLE_NAME;
 
+/**
+ * Emitts a debug message to the console if we are in DEBUG MODE
+ * @param msg           the message to print
+ * @param exit_on_error if we should exit on an error
+ */
 extern void debug_message(char *msg, bool exit_on_error); 
 
 #endif // BOOL_H
