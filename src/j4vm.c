@@ -17,10 +17,14 @@ object *retain_object(object *obj) {
 }
 
 void release_object(object *obj) {
-	if (!obj) debug_message("failed to release object, invalid object specified", false); return;
-	obj->ref_count--;
-	if (obj->ref_count <= 0)
+	if (!obj) {
+		debug_message("failed to release object, invalid object specified", false); 
+		obj->ref_count--;
+		return;
+	}
+	if (obj->ref_count <= 0) {
 		free(obj);
+	}
 }
 
 jayfor_vm *create_jayfor_vm() {
@@ -131,8 +135,9 @@ void destroy_jayfor_vm(jayfor_vm *jvm) {
 }
 
 bool object_is_true(object *obj) {
-	if (obj == false_object || obj == null_object) 
+	if (obj == false_object || obj == null_object) { 
 		return false;
+	}
 	return true;
 }
 
