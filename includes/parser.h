@@ -260,10 +260,21 @@ typedef struct s_bool_expression_ast_node {
 	struct s_bool_expression_ast_node *rhand;
 } bool_expression_ast_node;
 
+typedef struct  {
+	char *struct_name;
+	vector *statements;
+} structure_ast_node;
+
 /**
  * parser an operand
  */
 char parse_operand(parser *parser);
+
+/**
+ * Create a new structure node
+ * @return the structure node
+ */
+structure_ast_node *create_structure_ast_node();
 
 /**
  * Creates an enumeration node
@@ -378,6 +389,12 @@ function_ast_node *create_function_ast_node();
  * fn whatever(int x, int y): int
  */
 function_prototype_ast_node *create_function_prototype_ast_node();
+
+/**
+ * Destroys the given structure
+ * @param sn the node to destroy
+ */
+void destroy_structure_ast_node(structure_ast_node *sn);
 
 /**
  * Destroys the given enum ast node
@@ -699,6 +716,13 @@ bool check_token_type_is_valid_data_type(parser *parser, token *tok);
  * @return        the return ast node
  */
 function_return_ast_node *parse_return_statement_ast_node(parser *parser);
+
+/**
+ * Parses a structure node
+ * @param  parser the parser the parse with
+ * @return        the sturct node
+ */
+structure_ast_node *parse_structure_ast_node(parser *parser);
 
 /**
  * Parses a variable reassignment
