@@ -1,3 +1,10 @@
+struct faggot {
+	int x = 5;
+	struct okay {
+	
+	}
+}
+
 fn main(): void {
 	enum my_enum {
 		this = 0
