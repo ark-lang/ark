@@ -25,23 +25,23 @@ void consume_ast_node(compiler *self) {
 }
 
 void evaluate_expression_ast_node(compiler *self, expression_ast_node *expr) {
-
+	// TODO
 }
 
 void generate_variable_declaration_code(compiler *self, variable_declare_ast_node *vdn) {
-	
+	// TODO
 }
 
 void generateFunctionCalleeCode(compiler *self, function_callee_ast_node *fcn) {
-
+	// TODO
 }
 
 void generateFunctionReturnCode(compiler *self, function_return_ast_node *frn) {
+	// TODO
 }
 
-
 void generate_function_code(compiler *self, function_ast_node *func) {
-	
+	// TODO	
 }
 
 void start_compiler(compiler *self, vector *ast) {
