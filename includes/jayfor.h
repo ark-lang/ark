@@ -30,7 +30,6 @@ typedef struct {
 	parser *parser;
 	compiler *compiler;
 	jayfor_vm *j4vm;
-
 	char *filename;
 } jayfor;
 
