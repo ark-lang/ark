@@ -196,9 +196,19 @@ for_loop_ast_node *create_for_loop_ast_node() {
 	return fln;
 }
 
+structure_ast_node *create_structure_ast_node() {
+	structure_ast_node *sn = malloc(sizeof(*sn));
+	if (!sn) {
+		perror("malloc: failed to allocate memory for structure_ast_node");
+		exit(1);
+	}
+	sn->statements = create_vector();
+	return sn;
+}
+
 void destroy_variable_reassign_ast_node(variable_reassignment_ast_node *vrn) {
-	if (vrn != NULL) {
-		if (vrn->expr != NULL) {
+	if (!vrn) {
+		if (!vrn->expr) {
 			destroy_expression_ast_node(vrn->expr);
 		}
 		free(vrn);
@@ -207,22 +217,22 @@ void destroy_variable_reassign_ast_node(variable_reassignment_ast_node *vrn) {
 }
 
 void destroy_for_loop_ast_node(for_loop_ast_node *fln) {
-	if (fln != NULL) {
+	if (!fln) {
 		free(fln);
 		fln = NULL;
 	}
 }
 
 void destroy_break_ast_node(break_ast_node *bn) {
-	if (bn != NULL) {
+	if (!bn) {
 		free(bn);
 		bn = NULL;
 	}
 }
 
 void destroy_statement_ast_node(statement_ast_node *sn) {
-	if (sn != NULL) {
-		if (sn->data != NULL) {
+	if (!sn) {
+		if (!sn->data) {
 			switch (sn->type) {
 				case VARIABLE_DEF_AST_NODE:
 					destroy_variable_define_ast_node(sn->data);
@@ -260,12 +270,12 @@ void destroy_statement_ast_node(statement_ast_node *sn) {
 }
 
 void destroy_function_return_ast_node(function_return_ast_node *frn) {
-	if (frn != NULL) {
-		if (frn->returnVals != NULL) {
+	if (!frn) {
+		if (!frn->returnVals) {
 			int i;
 			for (i = 0; i < frn->returnVals->size; i++) {
 				expression_ast_node *temp = get_vector_item(frn->returnVals, i);
-				if (temp != NULL) {
+				if (!temp) {
 					destroy_expression_ast_node(temp);
 				}
 			}
@@ -277,11 +287,11 @@ void destroy_function_return_ast_node(function_return_ast_node *frn) {
 }
 
 void destroy_expression_ast_node(expression_ast_node *expr) {
-	if (expr != NULL) {
-		if (expr->lhand != NULL) {
+	if (!expr) {
+		if (!expr->lhand) {
 			destroy_expression_ast_node(expr->lhand);
 		}
-		if (expr->rhand != NULL) {
+		if (!expr->rhand) {
 			destroy_expression_ast_node(expr->rhand);
 		}
 		free(expr);
@@ -290,18 +300,18 @@ void destroy_expression_ast_node(expression_ast_node *expr) {
 }
 
 void destroy_variable_define_ast_node(variable_define_ast_node *vdn) {
-	if (vdn != NULL) {
+	if (!vdn) {
 		free(vdn);
 		vdn = NULL;
 	}
 }
 
 void destroy_variable_declare_ast_node(variable_declare_ast_node *vdn) {
-	if (vdn != NULL) {
-		if (vdn->vdn != NULL) {
+	if (!vdn) {
+		if (!vdn->vdn) {
 			destroy_variable_define_ast_node(vdn->vdn);
 		}
-		if (vdn->expr != NULL) {
+		if (!vdn->expr) {
 			destroy_expression_ast_node(vdn->expr);
 		}
 		free(vdn);
@@ -310,8 +320,8 @@ void destroy_variable_declare_ast_node(variable_declare_ast_node *vdn) {
 }
 
 void destroy_function_argument_ast_node(function_argument_ast_node *fan) {
-	if (fan != NULL) {
-		if (fan->value != NULL) {
+	if (!fan) {
+		if (!fan->value) {
 			destroy_expression_ast_node(fan->value);
 		}
 		free(fan);
@@ -320,8 +330,8 @@ void destroy_function_argument_ast_node(function_argument_ast_node *fan) {
 }
 
 void destroy_block_ast_node(block_ast_node *bn) {
-	if (bn != NULL) {
-		if (bn->statements != NULL) {
+	if (!bn) {
+		if (!bn->statements) {
 			destroy_vector(bn->statements);
 		}
 		free(bn);
@@ -330,8 +340,8 @@ void destroy_block_ast_node(block_ast_node *bn) {
 }
 
 void destroy_infinite_loop_ast_node(infinite_loop_ast_node *iln) {
-	if (iln != NULL) {
-		if (iln->body != NULL) {
+	if (!iln) {
+		if (!iln->body) {
 			destroy_block_ast_node(iln->body);
 		}
 		free(iln);
@@ -340,12 +350,12 @@ void destroy_infinite_loop_ast_node(infinite_loop_ast_node *iln) {
 }
 
 void destroy_function_prototype_ast_node(function_prototype_ast_node *fpn) {
-	if (fpn != NULL) {
-		if (fpn->args != NULL) {
+	if (!fpn) {
+		if (!fpn->args) {
 			int i;
 			for (i = 0; i < fpn->args->size; i++) {
 				statement_ast_node *sn = get_vector_item(fpn->args, i);
-				if (sn != NULL) {
+				if (!sn) {
 					destroy_statement_ast_node(sn);
 				}
 			}
@@ -357,14 +367,14 @@ void destroy_function_prototype_ast_node(function_prototype_ast_node *fpn) {
 }
 
 void destroy_function_ast_node(function_ast_node *fn) {
-	if (fn != NULL) {
-		if (fn->fpn != NULL) {
+	if (!fn) {
+		if (!fn->fpn) {
 			destroy_function_prototype_ast_node(fn->fpn);
 		}
-		if (fn->body != NULL) {
+		if (!fn->body) {
 			destroy_block_ast_node(fn->body);
 		}
-		if (fn->ret != NULL) {
+		if (fn->ret) {
 			destroy_vector(fn->ret);
 		}
 		free(fn);
@@ -373,8 +383,8 @@ void destroy_function_ast_node(function_ast_node *fn) {
 }
 
 void destroy_function_callee_ast_node(function_callee_ast_node *fcn) {
-	if (fcn != NULL) {
-		if (fcn->args != NULL) {
+	if (!fcn) {
+		if (!fcn->args) {
 			destroy_vector(fcn->args);
 		}
 		free(fcn);
@@ -383,11 +393,11 @@ void destroy_function_callee_ast_node(function_callee_ast_node *fcn) {
 }
 
 void destroybool_expression_ast_node(bool_expression_ast_node *ben) {
-    if (ben != NULL) {
-        if(ben->lhand != NULL) {
+    if (!ben) {
+        if(!ben->lhand) {
             destroybool_expression_ast_node(ben->lhand);
         }
-        if(ben->rhand != NULL) {
+        if(!ben->rhand) {
             destroybool_expression_ast_node(ben->rhand);
         }
         free(ben);
@@ -395,9 +405,19 @@ void destroybool_expression_ast_node(bool_expression_ast_node *ben) {
     }
 }
 
+void destroy_structure_ast_node(structure_ast_node *sn) {
+	if (!sn) {
+		if (!sn->statements) {
+			destroy_vector(sn->statements);
+		}
+		free(sn);
+		sn = NULL;
+	}
+}
+
 void destroy_enumeration_ast_node(enumeration_ast_node *en) {
-	if (en != NULL) {
-		if (en->enum_items != NULL) {
+	if (!en) {
+		if (!en->enum_items) {
 			int i;
 			for (i = 0; i < en->enum_items->size; i++) {
 				destroy_enum_item(get_vector_item(en->enum_items, i));
@@ -410,7 +430,7 @@ void destroy_enumeration_ast_node(enumeration_ast_node *en) {
 }
 
 void destroy_enum_item(enum_item *ei) {
-	if (ei != NULL) {
+	if (!ei) {
 		free(ei);
 		ei = NULL;
 	}
@@ -626,6 +646,12 @@ enumeration_ast_node *parse_enumeration_ast_node(parser *parser) {
 	}
 
 	return en;
+}
+
+structure_ast_node *parse_structure_ast_node(parser *parser) {
+	match_token_type_and_content(parser, IDENTIFIER, STRUCT_KEYWORD);
+
+	token *struct_name = match_token_type(parser, IDENTIFIER);
 }
 
 statement_ast_node *parse_for_loop_ast_node(parser *parser) {
@@ -1276,7 +1302,7 @@ void remove_ast_node(ast_node *ast_node) {
 	/**
 	 * This could probably be a lot more cleaner
 	 */
-	if (ast_node->data != NULL) {
+	if (!ast_node->data) {
 		switch (ast_node->type) {
 			case EXPRESSION_AST_NODE:
 				destroy_expression_ast_node(ast_node->data);
