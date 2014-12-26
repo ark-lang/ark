@@ -13,8 +13,8 @@
 
 // for defining expression types
 // values are somewhat arbitrary
-#define EXPR_LOGICAL_OPERATOR 	'L'
-#define EXPR_NUMBER				'N'
+#define EXPR_LOGICAL_OPERATOR 		'L'
+#define EXPR_NUMBER			'N'
 #define EXPR_STRING 			'S'
 #define EXPR_CHARACTER 			'C'
 #define EXPR_VARIABLE 			'V'
@@ -28,9 +28,9 @@
 #define STRUCT_KEYWORD	 	   	"struct"
 #define ENUM_KEYWORD	 	   	"enum"
 #define UNSAFE_KEYWORD	 	   	"unsafe"
-#define IF_STATEMENT_KEYWORD   	"if"
+#define IF_STATEMENT_KEYWORD   		"if"
 #define WHILE_LOOP_KEYWORD	   	"while"
-#define INFINITE_LOOP_KEYWORD  	"loop"
+#define INFINITE_LOOP_KEYWORD  		"loop"
 #define ELSE_KEYWORD		   	"else"
 #define MATCH_KEYWORD			"match"
 #define FOR_LOOP_KEYWORD		"for"
@@ -84,8 +84,7 @@ typedef struct {
  */
 typedef struct s_Expression {
 	char type;
-	token *value;
-	
+	token *value;	
 	struct s_Expression *lhand;
 	char operand;
 	struct s_Expression *rhand;
@@ -253,7 +252,6 @@ typedef struct {
 typedef struct s_bool_expression_ast_node {
 	char operand;
 	expression_ast_node *expr;
-
 	struct s_bool_expression_ast_node *lhand;
 	char firstCompar;
 	char secondCompar;
