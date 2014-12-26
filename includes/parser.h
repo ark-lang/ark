@@ -84,8 +84,7 @@ typedef struct {
  */
 typedef struct s_Expression {
 	char type;
-	token *value;
-	
+	token *value;	
 	struct s_Expression *lhand;
 	char operand;
 	struct s_Expression *rhand;
@@ -253,7 +252,6 @@ typedef struct {
 typedef struct s_bool_expression_ast_node {
 	char operand;
 	expression_ast_node *expr;
-
 	struct s_bool_expression_ast_node *lhand;
 	char firstCompar;
 	char secondCompar;
