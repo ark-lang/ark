@@ -648,10 +648,36 @@ enumeration_ast_node *parse_enumeration_ast_node(parser *parser) {
 	return en;
 }
 
+/*
+ * struct struct_name {
+ *     int x = 5;
+ *     object y;
+ *     struct another {
+ *     }
+ * }
+ */
 structure_ast_node *parse_structure_ast_node(parser *parser) {
 	match_token_type_and_content(parser, IDENTIFIER, STRUCT_KEYWORD);
-
 	token *struct_name = match_token_type(parser, IDENTIFIER);
+
+	structure_ast_node *sn = create_structure_ast_node();
+	sn->struct_name = struct_name->content;
+
+	if (check_token_type_and_content(parser, SEPARATOR, "{", 0)) {
+		consume_token(parser);
+
+		do {
+			if (check_token_type_and_content(parser, SEPARATOR, "}", 0)) {
+				consume_token(parser);
+				parse_optional_semi_colon(parser);
+			}
+
+			push_back_item(sn->statements, parse_variable_ast_node(parser, false));
+		}
+		while (true);
+	}
+
+	return sn;
 }
 
 statement_ast_node *parse_for_loop_ast_node(parser *parser) {
@@ -1155,6 +1181,12 @@ statement_ast_node *parse_statement_ast_node(parser *parser) {
 		sn->type = FUNCTION_RET_AST_NODE;
 		return sn;
 	}
+	else if (check_token_type_and_content(parser, IDENTIFIER, STRUCT_KEYWORD, 0)) {
+		statement_ast_node *sn = create_statement_ast_node();
+		sn->data = parse_structure_ast_node(parser);
+		sn->type = STRUCT_AST_NODE;
+		return sn;
+	}
 	else if (check_token_type_and_content(parser, IDENTIFIER, FOR_LOOP_KEYWORD, 0)) {
 		return parse_for_loop_ast_node(parser);
 	}
@@ -1238,12 +1270,14 @@ void start_parsing_token_stream(parser *parser) {
 		// get current token
 		token *tok = get_vector_item(parser->token_stream, parser->token_index);
 
+		// TODO: improve this
 		switch (tok->type) {
 			case IDENTIFIER:
-				// parse a variable if we have a variable
-				// given to us
 				if (!strcmp(tok->content, FUNCTION_KEYWORD)) {
 					parse_function_ast_node(parser);
+				}
+				else if (check_token_type_and_content(parser, IDENTIFIER, STRUCT_KEYWORD, 0)) {
+					prepare_ast_node(parser, parse_structure_ast_node(parser), STRUCT_AST_NODE);
 				}
 				else if (check_token_type_and_content(parser, IDENTIFIER, ENUM_KEYWORD, 0)) {
 					prepare_ast_node(parser, parse_enumeration_ast_node(parser), ENUM_AST_NODE);
