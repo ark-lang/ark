@@ -27,6 +27,38 @@ void release_object(object *obj) {
 	}
 }
 
+object *get_current_stack_item(jayfor_vm *vm) {
+	object *current = vm->stack_pointer;
+	return current;
+}
+
+object *vm_pop_stack(jayfor_vm *vm) {
+	vm->stack_pointer--;
+	return *vm->stack_pointer;
+}
+
+object *get_local(jayfor_vm *vm) {
+	return get_local_at_index(vm, *vm->instructions);
+}
+
+object *get_local_at_index(jayfor_vm *vm, int index) {
+	return vm->locals[index];
+}
+
+void set_local_at_index(jayfor_vm *vm, object *obj, int index) {
+	vm->locals[index] = obj;
+}
+
+void set_local(jayfor_vm *vm, object *obj) {
+	set_local_at_index(vm, obj, *vm->instructions);
+}
+
+void vm_push_object(jayfor_vm *vm, object *obj) {
+	assert(vm->stack_pointer - vm->stack < MAX_STACK_COUNT);
+	*(++vm->stack_pointer) = VALUE;		
+	retain_object(*vm->stack_pointer);
+}
+
 jayfor_vm *create_jayfor_vm() {
 	jayfor_vm *vm = malloc(sizeof(*vm));
 	true_object = retain_object(create_object());
@@ -53,29 +85,30 @@ void start_jayfor_vm(jayfor_vm *jvm, int *instructions) {
 				break;
 			}
 			case PUSH_SELF: {
-				STACK_PUSH(jvm, jvm->self);
+				vm_push_object(jvm, jvm->self);
 				break;
 			}
 			case PUSH_NULL: {
-				STACK_PUSH(jvm, null_object);
+				vm_push_object(jvm, null_object);
 				break;
 			}
 			case PUSH_BOOL: {
 				jvm->instructions++;
-				STACK_PUSH(jvm, *jvm->instructions ? true_object : false_object);
+				vm_push_object(jvm, *jvm->instructions ? true_object : false_object);
 				break;
 			}
 			case CALL: {
 				// todo
 				break;
 			}
-			case RETURN: {
+			case HALT: {
+				// not a very semantic opcode, TODO improve
 				goto cleanup;
 				break;
 			}
 			case GET_LOCAL: {
 				jvm->instructions++;
-				STACK_PUSH(jvm, jvm->locals[*jvm->instructions]);
+				vm_push_object(jvm, jvm->locals[*jvm->instructions]);
 				break;
 			}
 			case SET_LOCAL: {
