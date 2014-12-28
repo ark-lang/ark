@@ -27,21 +27,27 @@ void release_object(object *obj) {
 	}
 }
 
-object *get_current_stack_item(jayfor_vm *vm) {
+object *vm_peek(jayfor_vm *vm) {
 	object *current = *vm->stack_pointer;
 	return current;
 }
 
+void vm_set(jayfor_vm *vm, object *obj) {
+	*vm->stack_pointer = obj;
+}
+
 object *vm_pop(jayfor_vm *vm) {
 	vm->stack_pointer--;
-	return *vm->stack_pointer;
+	return vm_peek(vm);
 }
 
 void vm_push(jayfor_vm *vm, object *obj) {
-	assert(vm->stack_pointer - vm->stack < MAX_STACK_COUNT);
+	if (vm->stack_pointer - vm->stack > MAX_STACK_COUNT) {
+		error_message("stack overflow");
+	}
 	++vm->stack_pointer;
-	*vm->stack_pointer = obj;		
-	retain_object(*vm->stack_pointer);
+	vm_set(vm, obj);		
+	retain_object(vm_peek(vm));
 }
 
 object *get_local(jayfor_vm *vm) {
@@ -49,10 +55,16 @@ object *get_local(jayfor_vm *vm) {
 }
 
 object *get_local_at_index(jayfor_vm *vm, int index) {
+	if (index < 0 || index > MAX_LOCAL_COUNT) {
+		error_message("error: local index %d is out of bounds", index);
+	}
 	return vm->locals[index];
 }
 
 void set_local_at_index(jayfor_vm *vm, object *obj, int index) {
+	if (index < 0 || index > MAX_LOCAL_COUNT) {
+		error_message("error: local index %d is out of bounds", index);
+	}
 	vm->locals[index] = obj;
 }
 
@@ -103,7 +115,6 @@ void start_jayfor_vm(jayfor_vm *jvm, int *instructions) {
 				break;
 			}
 			case HALT: {
-				// not a very semantic opcode, TODO improve
 				goto cleanup;
 				break;
 			}
@@ -148,16 +159,16 @@ void start_jayfor_vm(jayfor_vm *jvm, int *instructions) {
 	}
 
 	cleanup:
-	debug_message("cleaning up virtual machine", false);
+	debug_message("cleaning up virtual machine\n");
 	release_object(jvm->self);
 	int i;
 	for (i = 0; i < MAX_LOCAL_COUNT; i++) {
-		if (jvm->locals[i]) {
-			debug_message("releasing local object", false);
+		if (!jvm->locals[i]) {
+			debug_message("releasing local object\n");
 			release_object(jvm->locals[i]);
 		}
 	}
-	debug_message("clearing stack", false);
+	debug_message("clearing stack\n");
 	while (jvm->stack_pointer > jvm->stack) {
 		release_object(vm_pop(jvm));
 	}
