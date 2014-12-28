@@ -1,5 +1,6 @@
 struct faggot {
-	int x = 5;
+	int x = 5
+	float y = 10
 }
 
 fn main(): void {
