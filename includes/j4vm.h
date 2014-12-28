@@ -13,23 +13,6 @@
 /** maximum number of stack items TODO: make dynamic */
 #define MAX_STACK_COUNT 10
 
-/**
- * Helper for pushing a value to the stack
- * @param  JVM   the JVM instance
- * @param  VALUE the value to push
- */
-#define STACK_PUSH(JVM, VALUE) do {															\
-							assert(JVM->stack_pointer - JVM->stack < MAX_STACK_COUNT);	\
-							*(++JVM->stack_pointer) = (VALUE);												\
-							retain_object(*JVM->stack_pointer);													\
-						  } while (0);
-
-/**
- * Pops a value from the stack
- * @param  JVM 	the JVM instance
- */
-#define STACK_POP(JVM)	(*JVM->stack_pointer--)
-
 /** OP CODES */
 enum {
 	CALL,
@@ -43,7 +26,7 @@ enum {
 	JUMP_UNLESS,
 	JUMP,
 	ADD,
-	RETURN,
+	HALT,
 };
 
 /** TYPES */
@@ -103,6 +86,10 @@ object *retain_object(object *obj);
 void release_object(object *obj);
 
 /** virtual machine stuff */
+
+object *vm_pop_stack(jayfor_vm *vm);
+
+void vm_push_object(jayfor_vm *vm, object *obj);
 
 /**
  * Creates a JVM installation
