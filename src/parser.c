@@ -97,6 +97,9 @@ variable_define_ast_node *create_variable_define_ast_node() {
 		exit(1);
 	}
 	vdn->name = NULL;
+	vdn->is_tuple = false;
+	vdn->is_constant = false;
+	vdn->is_global = false;
 	return vdn;
 }
 
@@ -107,7 +110,7 @@ variable_declare_ast_node *create_variable_declare_ast_node() {
 		exit(1);
 	}
 	vdn->vdn = NULL;
-	vdn->expr = NULL;
+	vdn->expressions = NULL;
 	return vdn;
 }
 
@@ -311,8 +314,15 @@ void destroy_variable_declare_ast_node(variable_declare_ast_node *vdn) {
 		if (!vdn->vdn) {
 			destroy_variable_define_ast_node(vdn->vdn);
 		}
-		if (!vdn->expr) {
-			destroy_expression_ast_node(vdn->expr);
+		if (!vdn->expressions) {
+			int i;
+			for (i = 0; i < vdn->expressions->size; i++) {
+				expression_ast_node *expr = get_vector_item(vdn->expressions, i);
+				if (!expr) {
+					destroy_expression_ast_node(expr);
+				}
+			}
+			destroy_vector(vdn->expressions);
 		}
 		free(vdn);
 		vdn = NULL;
@@ -822,7 +832,7 @@ expression_ast_node *parse_expression_ast_node(parser *parser) {
 
 void print_current_token(parser *parser) {
 	token *tok = peek_at_token_stream(parser, 0);
-	error_message("current token is type: %s, value: %s\n", token_NAMES[tok->type], tok->content);
+	printf("current token is type: %s, value: %s\n", token_NAMES[tok->type], tok->content);
 }
 
 void *parse_variable_ast_node(parser *parser, bool global) {
@@ -837,35 +847,98 @@ void *parse_variable_ast_node(parser *parser, bool global) {
 	}
 
 	// consume the int data type
-	token *variabledata_type = match_token_type(parser, IDENTIFIER);
+	token *variable_data_type = match_token_type(parser, IDENTIFIER);
 
 	// convert the data type for enum
-	data_type data_typeRaw = match_token_type_to_data_type(parser, variabledata_type);
+	data_type data_type_raw = match_token_type_to_data_type(parser, variable_data_type);
 
 	// name of the variable
-	token *variableNametoken = match_token_type(parser, IDENTIFIER);
+	token *variable_name_token = match_token_type(parser, IDENTIFIER);
+
+	// store def	
+	variable_define_ast_node *def = create_variable_define_ast_node();
+	def->tuple_values = create_vector();
+
+	// parse tuple section of variable
+	int num_of_tuples = 0;
+	if (check_token_type_and_content(parser, OPERATOR, "<", 0)) {
+		consume_token(parser);
+
+		// parse the contents of < ... >
+		do {
+			if (check_token_type_and_content(parser, OPERATOR, ">", 0)) {
+				if (num_of_tuples <= 0) {
+					error_message("error: empty tuples cannot be defined");
+				}
+				consume_token(parser);
+				break;
+			}
+			token *current_token = consume_token(parser);
+			data_type type = match_token_type_to_data_type(parser, current_token);
+			push_back_item(def->tuple_values, &type);
+
+			if (check_token_type_and_content(parser, SEPARATOR, ",", 0)) {
+				consume_token(parser);
+				if (check_token_type_and_content(parser, OPERATOR, ">", 0)) {
+					error_message("error: trailing comma in tuple definition");
+				}
+			}
+
+			num_of_tuples++;
+		}
+		while (true);
+
+		def->is_tuple = true;
+	}
 
 	if (check_token_type_and_content(parser, OPERATOR, "=", 0)) {
 		// consume the equals sign
 		consume_token(parser);
 
 		// create variable define ast_node
-		variable_define_ast_node *def = create_variable_define_ast_node();
 		def->is_constant = is_constant;
-		def->type = data_typeRaw;
-		def->name = variableNametoken;
+		def->type = data_type_raw;
+		def->name = variable_name_token;
 		def->is_global = global;
-
-		// parses the expression we're assigning to
-		expression_ast_node *expr = parse_expression_ast_node(parser);
 
 		// create the variable declare ast_node
 		variable_declare_ast_node *dec = create_variable_declare_ast_node();
 		dec->vdn = def;
-		dec->expr = expr;
+		dec->expressions = create_vector();
+
+		// parse tuple expressions
+		int num_of_tuples = 0;
+		if (check_token_type_and_content(parser, OPERATOR, "<", 0)) {
+			consume_token(parser);
+
+			do {
+				if (check_token_type_and_content(parser, OPERATOR, ">", 0)) {
+					if (num_of_tuples <= 0 || num_of_tuples != def->tuple_values->size) {
+						error_message("error: invalid number of tuples specified (given %d, needs %d)", num_of_tuples, def->tuple_values->size);
+					}
+					consume_token(parser);
+					break;
+				}
+
+				push_back_item(dec->expressions, parse_expression_ast_node(parser));
+
+				if (check_token_type_and_content(parser, SEPARATOR, ",", 0)) {
+					consume_token(parser);
+					if (check_token_type_and_content(parser, OPERATOR, ">", 0)) {
+						error_message("error: trailing comma in tuple declaration");
+					}
+				}
+
+				num_of_tuples++;
+			}
+			while (true);
+		}
+		else {
+			push_back_item(dec->expressions, parse_expression_ast_node(parser));
+		}
 
 		parse_optional_semi_colon(parser);
-
+		
 		if (global) {
 			prepare_ast_node(parser, dec, VARIABLE_DEC_AST_NODE);
 			return dec;
@@ -881,10 +954,9 @@ void *parse_variable_ast_node(parser *parser, bool global) {
 		parse_optional_semi_colon(parser);
 
 		// create variable define ast_node
-		variable_define_ast_node *def = create_variable_define_ast_node();
 		def->is_constant = is_constant;
-		def->type = data_typeRaw;
-		def->name = variableNametoken;
+		def->type = data_type_raw;
+		def->name = variable_name_token;
 		def->is_global = global;
 		
 		if (global) {
