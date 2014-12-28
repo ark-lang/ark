@@ -28,16 +28,16 @@ void release_object(object *obj) {
 }
 
 object *get_current_stack_item(jayfor_vm *vm) {
-	object *current = vm->stack_pointer;
+	object *current = *vm->stack_pointer;
 	return current;
 }
 
-object *vm_pop_stack(jayfor_vm *vm) {
+object *vm_pop(jayfor_vm *vm) {
 	vm->stack_pointer--;
 	return *vm->stack_pointer;
 }
 
-void vm_push_object(jayfor_vm *vm, object *obj) {
+void vm_push(jayfor_vm *vm, object *obj) {
 	assert(vm->stack_pointer - vm->stack < MAX_STACK_COUNT);
 	++vm->stack_pointer;
 	*vm->stack_pointer = obj;		
@@ -78,7 +78,7 @@ void start_jayfor_vm(jayfor_vm *jvm, int *instructions) {
 		switch (*jvm->instructions) {
 			case PUSH_NUMBER: {
 				jvm->instructions++;
-				vm_push_object(jvm, create_number((long) *jvm->instructions));
+				vm_push(jvm, create_number((long) *jvm->instructions));
 				break;
 			}
 			case PUSH_STRING: {
@@ -86,16 +86,16 @@ void start_jayfor_vm(jayfor_vm *jvm, int *instructions) {
 				break;
 			}
 			case PUSH_SELF: {
-				vm_push_object(jvm, jvm->self);
+				vm_push(jvm, jvm->self);
 				break;
 			}
 			case PUSH_NULL: {
-				vm_push_object(jvm, null_object);
+				vm_push(jvm, null_object);
 				break;
 			}
 			case PUSH_BOOL: {
 				jvm->instructions++;
-				vm_push_object(jvm, *jvm->instructions ? true_object : false_object);
+				vm_push(jvm, *jvm->instructions ? true_object : false_object);
 				break;
 			}
 			case CALL: {
@@ -109,18 +109,18 @@ void start_jayfor_vm(jayfor_vm *jvm, int *instructions) {
 			}
 			case GET_LOCAL: {
 				jvm->instructions++;
-				vm_push_object(jvm, vm_get_local(jvm));
+				vm_push(jvm, get_local(jvm));
 				break;
 			}
 			case SET_LOCAL: {
 				jvm->instructions++;
-				vm_set_local(jvm, vm_pop_stack(jvm));
+				set_local(jvm, vm_pop(jvm));
 				break;
 			}
 			case ADD: {
-				object *a = vm_pop_stack(jvm);
-				object *b = vm_pop_stack(jvm);
-				vm_push_object(jvm, create_number(number_value(a) + number_value(b)));
+				object *a = vm_pop(jvm);
+				object *b = vm_pop(jvm);
+				vm_push(jvm, create_number(number_value(a) + number_value(b)));
 				release_object(a);
 				release_object(b);
 				break;
@@ -128,7 +128,7 @@ void start_jayfor_vm(jayfor_vm *jvm, int *instructions) {
 			case JUMP_UNLESS: {
 				jvm->instructions++;
 				int offset = *jvm->instructions;
-				object *condition = vm_pop_stack(jvm);
+				object *condition = vm_pop(jvm);
 				if (!object_is_true(condition)) jvm->instructions += offset;
 				release_object(condition);
 				break;
@@ -159,7 +159,7 @@ void start_jayfor_vm(jayfor_vm *jvm, int *instructions) {
 	}
 	debug_message("clearing stack", false);
 	while (jvm->stack_pointer > jvm->stack) {
-		release_object(vm_pop_stack(jvm));
+		release_object(vm_pop(jvm));
 	}
 }
 
