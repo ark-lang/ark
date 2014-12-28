@@ -87,20 +87,62 @@ void release_object(object *obj);
 
 /** virtual machine stuff */
 
+/**
+ * Returns the object at the top of the stack
+ * @param  vm the vm to check
+ * @return    the object at the top
+ */
 object *vm_peek(jayfor_vm *vm);
 
+/**
+ * Set the object at the current index of the stack
+ * @param vm  the vms stack to set
+ * @param obj the object to set
+ */
 void vm_set(jayfor_vm *vm, object *obj);
 
+/**
+ * Pops the value from the top of the stack and returns it
+ * @param  vm the vm stack to pop
+ * @return    the object we popped
+ */
 object *vm_pop(jayfor_vm *vm);
 
+/**
+ * Pushes an item to the stack
+ * @param vm  the vms stack to push to
+ * @param obj the object to push
+ */
 void vm_push(jayfor_vm *vm, object *obj);
 
+/**
+ * Gets the local at the current index
+ * @param  vm the vms local to retrieve from
+ * @return    the local
+ */
 object *get_local(jayfor_vm *vm);
 
+/**
+ * Gets the local at the given index
+ * @param  vm    the vms local to retrieve from
+ * @param  index the index to check
+ * @return       the item at the given idnex
+ */
 object *get_local_at_index(jayfor_vm *vm, int index);
 
+/**
+ * Sets the local at the given index
+ * @param vm    the vms locals to set
+ * @param obj   the object to set 
+ * @param index the index to set at
+ */
 void set_local_at_index(jayfor_vm *vm, object *obj, int index);
 
+/**
+ * Sets the top most local
+ * @param vm  the vms locals to set
+ * @param obj the object to set
+ */
 void set_local(jayfor_vm *vm, object *obj);
 
 /**
