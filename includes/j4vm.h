@@ -87,7 +87,9 @@ void release_object(object *obj);
 
 /** virtual machine stuff */
 
-object *get_current_stack_item(jayfor_vm *vm);
+object *vm_peek(jayfor_vm *vm);
+
+void vm_set(jayfor_vm *vm, object *obj);
 
 object *vm_pop(jayfor_vm *vm);
 
