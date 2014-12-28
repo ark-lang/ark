@@ -13,8 +13,8 @@
 
 // for defining expression types
 // values are somewhat arbitrary
-#define EXPR_LOGICAL_OPERATOR 		'L'
-#define EXPR_NUMBER			'N'
+#define EXPR_LOGICAL_OPERATOR 	'L'
+#define EXPR_NUMBER				'N'
 #define EXPR_STRING 			'S'
 #define EXPR_CHARACTER 			'C'
 #define EXPR_VARIABLE 			'V'
@@ -28,9 +28,9 @@
 #define STRUCT_KEYWORD	 	   	"struct"
 #define ENUM_KEYWORD	 	   	"enum"
 #define UNSAFE_KEYWORD	 	   	"unsafe"
-#define IF_STATEMENT_KEYWORD   		"if"
+#define IF_STATEMENT_KEYWORD   	"if"
 #define WHILE_LOOP_KEYWORD	   	"while"
-#define INFINITE_LOOP_KEYWORD  		"loop"
+#define INFINITE_LOOP_KEYWORD  	"loop"
 #define ELSE_KEYWORD		   	"else"
 #define MATCH_KEYWORD			"match"
 #define FOR_LOOP_KEYWORD		"for"
