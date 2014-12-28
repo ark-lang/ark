@@ -619,7 +619,6 @@ enumeration_ast_node *parse_enumeration_ast_node(parser *parser) {
 							push_back_item(en->enum_items, item);
 
 							parse_optional_semi_colon(parser);
-							printf("pushed back %d as %s\n", enum_item_value_as_int, enum_item_name->content);
 						}
 						else {
 							token *errorneous_token = consume_token(parser);
