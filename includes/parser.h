@@ -29,6 +29,7 @@
 #define ENUM_KEYWORD	 	   	"enum"
 #define UNSAFE_KEYWORD	 	   	"unsafe"
 #define IF_STATEMENT_KEYWORD   	"if"
+#define TUPLE_KEYWORD			"tup"
 #define WHILE_LOOP_KEYWORD	   	"while"
 #define INFINITE_LOOP_KEYWORD  	"loop"
 #define ELSE_KEYWORD		   	"else"
@@ -95,10 +96,13 @@ typedef struct s_Expression {
  * Variable
  */
 typedef struct {
-	data_type type;		// type of data to store
-	token *name;		// name of the variable
-	bool is_global;		// is it in a global scope?
-	bool is_constant;	// is it a constant variable?
+	data_type type;			// type of data to store
+	token *name;			// name of the variable
+	vector *tuple_values;	// the value that the tuples are storing
+
+	bool is_global;			// is it in a global scope?
+	bool is_constant;		// is it a constant variable?
+	bool is_tuple;			// is the variable a tuple?
 } variable_define_ast_node;
 
 /** 
@@ -106,7 +110,7 @@ typedef struct {
  */
 typedef struct {
 	variable_define_ast_node *vdn;
-	expression_ast_node *expr;
+	vector *expressions;
 } variable_declare_ast_node;
 
 /**

@@ -3,6 +3,8 @@ struct faggot {
 	float y = 10
 }
 
+tup test<int, double> = <5, 3.5>
+
 fn main(): void {
 	enum my_enum {
 		this = 0
