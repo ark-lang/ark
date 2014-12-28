@@ -66,6 +66,20 @@ typedef struct {
 
 /** garbage collection */
 
+object *get_current_stack_item(jayfor_vm *vm);
+
+object *vm_pop_stack(jayfor_vm *vm);
+
+void vm_push_object(jayfor_vm *vm, object *obj);
+
+object *get_local(jayfor_vm *vm);
+
+object *get_local_at_index(jayfor_vm *vm, int index);
+
+void set_local_at_index(jayfor_vm *vm, object *obj, int index);
+
+void set_local(jayfor_vm *vm, object *obj);
+
 /**
  * Creates a new object
  * @return the object instance created
