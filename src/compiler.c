@@ -68,7 +68,7 @@ void start_compiler(compiler *self, vector *ast) {
 		consume_ast_node(self);
 	}
 
-	append_instruction(self, RETURN);
+	append_instruction(self, HALT);
 }
 
 void destroy_compiler(compiler *self) {
