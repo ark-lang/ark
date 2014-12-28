@@ -670,6 +670,7 @@ structure_ast_node *parse_structure_ast_node(parser *parser) {
 			if (check_token_type_and_content(parser, SEPARATOR, "}", 0)) {
 				consume_token(parser);
 				parse_optional_semi_colon(parser);
+				break;
 			}
 
 			push_back_item(sn->statements, parse_variable_ast_node(parser, false));
@@ -1282,7 +1283,8 @@ void start_parsing_token_stream(parser *parser) {
 				else if (check_token_type_and_content(parser, IDENTIFIER, ENUM_KEYWORD, 0)) {
 					prepare_ast_node(parser, parse_enumeration_ast_node(parser), ENUM_AST_NODE);
 				}
-				else if (check_token_type_is_valid_data_type(parser, tok) || check_token_type_and_content(parser, IDENTIFIER, CONSTANT_KEYWORD, 0)) {
+				else if (check_token_type_is_valid_data_type(parser, tok) 
+					|| check_token_type_and_content(parser, IDENTIFIER, CONSTANT_KEYWORD, 0)) {
 					parse_variable_ast_node(parser, true);
 				}
 				else if (check_token_type_and_content(parser, OPERATOR, "=", 1)) {
