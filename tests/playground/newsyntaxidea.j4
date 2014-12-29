@@ -36,7 +36,7 @@ fn add(int a, int b): <int, str> {
 		}
 	}
 
-	ret <(x + x), "test">
+	ret <(x + x), "FOR THE STREAK!">
 }
 
 fn do_some_shit(tup amazing): void {
