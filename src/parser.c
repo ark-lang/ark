@@ -642,8 +642,6 @@ enumeration_ast_node *parse_enumeration_ast_node(parser *parser) {
 						enum_item *item = create_enum_item(enum_item_name->content, enum_item_value_as_int);
 						push_back_item(en->enum_items, item);
 
-						printf("pushed back %d as %s\n", enum_item_value_as_int, enum_item_name->content);
-
 						parse_optional_semi_colon(parser);
 					}
 				}
