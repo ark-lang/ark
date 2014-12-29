@@ -19,7 +19,7 @@ int main(int argc, char** argv) {
 	double secondsTaken = ((double) timer) / CLOCKS_PER_SEC;
 	double msTaken = secondsTaken * 1000;
 
-	primary_message("Finished in %.3f/s (%.0f/ms)", secondsTaken, msTaken);
+	primary_message("Finished in %.6f/s (%.0f/ms)", secondsTaken, msTaken);
 
 	return 0;
 }
