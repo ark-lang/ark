@@ -19,6 +19,9 @@ static void parseArgument(argument *arg) {
 			break;
 		case 'e':
 			RUN_VM_EXECUTABLE = true;
+			if (!arg->next_argument) {
+				error_message("error: missing filename after '-e'");
+			}
 			VM_EXECUTABLE_NAME = arg->next_argument;
 			break;
 		case 'h':
@@ -28,19 +31,23 @@ static void parseArgument(argument *arg) {
 			printf("\t-v,\t shows current version\n");
 			printf("\t-d,\t logs extra debug information\n");
 			printf("\t-r,\t will compile and execute code instead of creating an executable\n");
-			printf("\t-o <name>.j4e,\t creates an executable with the given file name and extension\n");
+			printf("\t-e <name>,\t will compile and execute code, as well as create an executable\n");
+			printf("\t-o <name>,\t creates an executable with the given file name and extension\n");
 			printf("\n");
 			KNRM();
 			exit(1);
 			break;
 		case 'o':
+			if (!arg->next_argument) {
+				error_message("error: missing filename after '-o'");
+			}
 			OUTPUT_EXECUTABLE_NAME = arg->next_argument;
 			break;
 		case 'r':
 			EXECUTE_BYTECODE = true;
 			break;
 		default:
-			error_message("error: unrecognized argument %c\n", argument);
+			error_message("error: unrecognized command line option '-%s'\n", arg->argument);
 			break;
 	}
 }
@@ -72,10 +79,14 @@ jayfor *create_jayfor(int argc, char** argv) {
 
 			// set argument stuff
 			arg.argument = temp;
-			arg.next_argument = argv[i + 1];
-			
+			arg.next_argument = NULL;
+			if (argv[i + 1] != NULL) {
+				arg.next_argument = argv[i + 1];
+			}
+
 			// multiple arguments needed for -o, consume twice
-			if (!strcmp(arg.argument, "o")) {
+			// todo make this cleaner for when we expand
+			if (!strcmp(arg.argument, "o") || !strcmp(arg.argument, "e")) {
 				i += 2;
 			}
 
