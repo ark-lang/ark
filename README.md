@@ -65,7 +65,6 @@ JAYFOR is still in design stage. It's not quite working yet, stay tuned.
 
 # <a name="requirements"></a>Requirements
 * GCC/Clang
-* LLVM
 
 # <a name="syntax"></a>Syntax
 Check the SPECIFICATION.md file.
