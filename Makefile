@@ -1,10 +1,14 @@
 CC = clang
-C_FLAGS   = -o j4 -Wall -Iincludes/ 
+CPPC = clang++
+
+C_FLAGS = `llvm-config --cflags` -Wall -Iincludes/
 LLVM_FLAGS = `llvm-config --libs --cflags --ldflags core analysis executionengine jit interpreter native`
-C_SOURCES = src/*.c
+SOURCES = src/*.c
 
 all: ${SOURCES}
-	${CC} ${C_FLAGS} ${C_SOURCES} ${LLVM_FLAGS}
+	${CC} ${C_FLAGS} ${SOURCES} -c ${SOURCES}
+	${CPPC} *.o ${LLVM_FLAGS} -o j4
+	-rm *.o
 
 clean: 
 	-rm *.o
