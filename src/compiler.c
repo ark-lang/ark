@@ -12,14 +12,6 @@ compiler *create_compiler() {
 	return self;
 }
 
-void append_instruction(compiler *self, int instr) {
-	if (self->current_instruction >= self->max_bytecode_size) {
-		self->max_bytecode_size *= 2;
-		self->bytecode = realloc(self->bytecode, sizeof(*self->bytecode) * self->max_bytecode_size);
-	}
-	self->bytecode[self->current_instruction++] = instr;
-}
-
 void consume_ast_node(compiler *self) {
 	self->current_ast_node += 1;
 }
@@ -67,8 +59,6 @@ void start_compiler(compiler *self, vector *ast) {
 
 		consume_ast_node(self);
 	}
-
-	append_instruction(self, HALT);
 }
 
 void destroy_compiler(compiler *self) {
