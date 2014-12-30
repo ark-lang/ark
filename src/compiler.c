@@ -9,6 +9,9 @@ compiler *create_compiler() {
 	self->current_ast_node = 0;
 	self->functions = create_hashmap(128);
 	self->global_count = 0;
+
+	LLVMLinkInJIT();
+
 	return self;
 }
 
