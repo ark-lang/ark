@@ -16,6 +16,10 @@ void consume_ast_node(compiler *self) {
 	self->current_ast_node += 1;
 }
 
+void consume_ast_nodes(compiler *self, int amount) {
+	self->current_ast_node += amount;
+}
+
 void evaluate_expression_ast_node(compiler *self, expression_ast_node *expr) {
 	// TODO
 }
