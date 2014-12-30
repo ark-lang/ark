@@ -7,7 +7,6 @@
 
 #include "parser.h"
 #include "vector.h"
-#include "j4vm.h"
 #include "hashmap.h"
 
 /**
@@ -19,7 +18,6 @@
  */
 typedef struct {
 	vector *ast;
-	jayfor_vm *vm;
 	hashmap *functions;
 	int *bytecode;
 	int global_count;

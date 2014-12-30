@@ -10,7 +10,6 @@
 #include "parser.h"
 #include "scanner.h"
 #include "compiler.h"
-#include "j4vm.h"
 
 /**
  * For handling command line
@@ -29,7 +28,6 @@ typedef struct {
 	Lexer *lexer;
 	parser *parser;
 	compiler *compiler;
-	jayfor_vm *j4vm;
 	char *filename;
 } jayfor;
 
