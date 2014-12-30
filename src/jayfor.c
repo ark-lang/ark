@@ -106,13 +106,6 @@ jayfor *create_jayfor(int argc, char** argv) {
 	self->parser = NULL;
 	self->lexer = NULL;
 	self->compiler = NULL;
-	self->j4vm = NULL;
-
-	if (RUN_VM_EXECUTABLE) {
-		self->j4vm = create_jayfor_vm();
-		run_vm_executable(self);
-		return self;
-	}
 
 	return self;
 }
@@ -138,29 +131,23 @@ void start_jayfor(jayfor *self) {
 	self->compiler = create_compiler();
 	start_compiler(self->compiler, self->parser->parse_tree);
 	
-	if (EXECUTE_BYTECODE) {
-		self->j4vm = create_jayfor_vm();
-		start_jayfor_vm(self->j4vm, self->compiler->bytecode);
+	// output bytecode to file, overwrite existing
+	FILE *output = fopen(OUTPUT_EXECUTABLE_NAME, "wb");
+	if (!output) {
+		perror("fopen: failed to create executable\n");
+		exit(1);
 	}
-	else {
-		// output bytecode to file, overwrite existing
-		FILE *output = fopen(OUTPUT_EXECUTABLE_NAME, "wb");
-		if (!output) {
-			perror("fopen: failed to create executable\n");
-			exit(1);
-		}
 
-		int i;
-		for (i = 0; i < self->compiler->current_instruction; i++) {
-			// every 8 instructions, newline
-			if (i % 8 == 0 && i != 0) {
-				fprintf(output, "\n");
-			}
-			// print instruction as 4 digit number 
-			fprintf(output, "%04X ", self->compiler->bytecode[i]);
+	int i;
+	for (i = 0; i < self->compiler->current_instruction; i++) {
+		// every 8 instructions, newline
+		if (i % 8 == 0 && i != 0) {
+			fprintf(output, "\n");
 		}
-		fclose(output);
+		// print instruction as 4 digit number 
+		fprintf(output, "%04X ", self->compiler->bytecode[i]);
 	}
+	fclose(output);
 }
 
 void run_vm_executable(jayfor *self) {
@@ -189,8 +176,6 @@ void run_vm_executable(jayfor *self) {
 			}
 		}
 	}
-
-	start_jayfor_vm(self->j4vm, bytecode);
 }
 
 void destroy_jayfor(jayfor *self) {
@@ -200,6 +185,5 @@ void destroy_jayfor(jayfor *self) {
 		destroy_parser(self->parser);
 		destroy_compiler(self->compiler);
 	}
-	destroy_jayfor_vm(self->j4vm);
 	free(self);
 }
