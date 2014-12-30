@@ -28,4 +28,10 @@ extern void primary_message(const char *fmt, ...) {
 	vfprintf(stdout, fmt, arg);
 	KNRM();
 	va_end(arg);
+} 
+
+extern const char *get_filename_ext(const char *filename) {
+	const char *dot = strrchr(filename, '.');
+	if (!dot || dot == filename) return "";
+	return dot + 1;
 }
