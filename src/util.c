@@ -4,9 +4,14 @@ extern void debug_message(const char *fmt, ...) {
 	if (DEBUG_MODE) {
 		va_list arg;
 		va_start(arg, fmt);
-		KRED();
+		#if __linux || __APPLE__
+		fprintf(stdout, "\x1B[31m");
+		#endif
 		vfprintf(stdout, fmt, arg);
-		KNRM();
+		#if __linux || __APPLE__
+		fprintf(stdout, "\x1B[0m");
+		#endif
+		fprintf(stdout, "\n");
 		va_end(arg);
 	}
 }
@@ -14,9 +19,14 @@ extern void debug_message(const char *fmt, ...) {
 extern void error_message(const char *fmt, ...) {
 	va_list arg;
 	va_start(arg, fmt);
-	KYEL();
+	#if __linux || __APPLE__
+	fprintf(stdout, "\x1B[33m");
+	#endif
 	vfprintf(stdout, fmt, arg);
-	KNRM();
+	#if __linux || __APPLE__
+	fprintf(stdout, "\x1B[0m");
+	#endif
+	fprintf(stdout, "\n");
 	va_end(arg);
 	exit(1);
 }
@@ -24,9 +34,8 @@ extern void error_message(const char *fmt, ...) {
 extern void primary_message(const char *fmt, ...) {
 	va_list arg;
 	va_start(arg, fmt);
-	KGRN();
 	vfprintf(stdout, fmt, arg);
-	KNRM();
+	fprintf(stdout, "\n");
 	va_end(arg);
 } 
 
