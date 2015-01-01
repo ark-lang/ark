@@ -2,6 +2,6 @@ language: c
 compiler:
   - gcc
   - clang
-script: make
+script: make travis
 notifications:
   email: false
