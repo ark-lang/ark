@@ -25,7 +25,6 @@ static void parseArgument(argument *arg) {
 			VM_EXECUTABLE_NAME = arg->next_argument;
 			break;
 		case 'h':
-			KYEL();
 			printf("jayfor Argument List\n");
 			printf("\t-h,\t shows a help menu\n");
 			printf("\t-v,\t shows current version\n");
@@ -34,7 +33,6 @@ static void parseArgument(argument *arg) {
 			printf("\t-e <name>,\t will compile and execute code, as well as create an executable\n");
 			printf("\t-o <name>,\t creates an executable with the given file name and extension\n");
 			printf("\n");
-			KNRM();
 			exit(1);
 			break;
 		case 'o':
