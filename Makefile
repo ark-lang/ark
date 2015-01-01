@@ -9,7 +9,11 @@ SOURCES = src/*.c
 # this might just work...?
 travis: ${SOURCES}
 	${CC} ${C_FLAGS} ${SOURCES} -c ${SOURCES}
-	${CC}++ *.o ${LLVM_FLAGS} -o j4
+	ifeq ($(CC), gcc)
+		g++ *.o ${LLVM_FLAGS} -o j4
+	else
+		${CC}++ *.o ${LLVM_FLAGS} -o j4
+	endif
 	-rm *.o
 
 all: ${SOURCES}
