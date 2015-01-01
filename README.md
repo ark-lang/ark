@@ -64,7 +64,20 @@ or check out some actual code we use for the library [here](libs/math.j4).
 JAYFOR is still in design stage. It's not quite working yet, stay tuned.
 
 # <a name="requirements"></a>Requirements
-* GCC/Clang
+* Clang 3.0
+* LLVM 3.0
+
+## <a name="building"></a>Building
+Building is easy:
+
+    cd where_you_want_jayfor_to_be
+    git clone https://www.github.com/jayfor-lang/jayfor.git
+    cd jayfor
+    make
+
+Then to run a j4 program:
+
+    ./j4 tests/simple.j4
 
 # <a name="syntax"></a>Syntax
 Check the SPECIFICATION.md file.
