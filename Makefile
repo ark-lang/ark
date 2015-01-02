@@ -10,7 +10,7 @@ SOURCES = src/*.c
 BUILD_COMMAND = 
 
 ifeq ($(CC),gcc)
-	BUILD_COMMAND = g++ *.o ${LLVM_FLAGS} -o j4 -ldl 
+	BUILD_COMMAND = g++ *.o ${LLVM_FLAGS} -o j4 -ldl -ltinfo
 else
 	BUILD_COMMAND = ${CC}++ *.o ${LLVM_FLAGS} -o j4 
 endif
