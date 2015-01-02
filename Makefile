@@ -10,9 +10,9 @@ SOURCES = src/*.c
 BUILD_COMMAND = 
 
 ifeq ($(CC),gcc)
-	BUILD_COMMAND = g++ *.o ${LLVM_FLAGS} -o j4
+	BUILD_COMMAND = g++ *.o ${LLVM_FLAGS} -o j4 -ldl 
 else
-	BUILD_COMMAND = ${CC}++ *.o ${LLVM_FLAGS} -o j4
+	BUILD_COMMAND = ${CC}++ *.o ${LLVM_FLAGS} -o j4 
 endif
 
 # this might just work...?
