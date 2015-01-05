@@ -23,6 +23,7 @@
  */
 typedef struct {
 	vector *ast;
+	vector *refs;
 	hashmap *functions;
 
 	LLVMModuleRef module;
@@ -54,31 +55,47 @@ compiler *create_compiler();
 void append_instruction(compiler *self, int instr);
 
 /**
+ * Consumes the current node, and skips to the next
+ * @param self the compiler instance
+ */
+void consume_ast_node(compiler *self);
+
+LLVMValueRef generate_code(compiler *self, ast_node *node);
+
+/**
  * Generates code for a function
  * @param self the compiler instance
  * @param func the function node to generate code for
  */
-void generate_function_code(compiler *self, function_ast_node *func);
+LLVMValueRef generate_function_code(compiler *self, function_ast_node *func);
 
 /**
  * Evaluates an expression node
  * @param self the compiler instance
  * @param expr the expression to generate code for
  */
-void evaluate_expression_ast_node(compiler *self, expression_ast_node *expr);
-
-/**
- * Consumes the current node, and skips to the next
- * @param self the compiler instance
- */
-void consume_ast_node(compiler *self);
+LLVMValueRef evaluate_expression_ast_node(compiler *self, expression_ast_node *expr);
 
 /**
  * Geneartes code for a Variable Declaration
  * @param compiler the compiler instance
  * @param vdn the Variable Node to generate code for
  */
-void generate_variable_declaration_code(compiler *compiler, variable_declare_ast_node *vdn);
+LLVMValueRef generate_variable_declaration_code(compiler *compiler, variable_declare_ast_node *vdn);
+
+/**
+ * Generates code for a function call
+ * @param self the compiler instance
+ * @param fcn the function callee node to generate code for 
+ */
+LLVMValueRef generate_function_callee_code(compiler *self, function_callee_ast_node *fcn);
+
+/**
+ * Generates code for a function return
+ * @param self the compiler instance
+ * @param frn the function return node to generate code for 
+ */
+LLVMValueRef generate_function_return_code(compiler *self, function_return_ast_node *frn);
 
 /**
  * Starts the compiler
