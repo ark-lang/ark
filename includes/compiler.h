@@ -24,6 +24,13 @@
 typedef struct {
 	vector *ast;
 	hashmap *functions;
+
+	LLVMModuleRef module;
+	LLVMBuilderRef builder;
+	LLVMExecutionEngineRef engine;
+	LLVMPassManagerRef pass_manager;
+	char *llvm_error_message;
+
 	int *bytecode;
 	int global_count;
 	int initial_bytecode_size;
