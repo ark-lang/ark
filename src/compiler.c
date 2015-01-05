@@ -9,8 +9,29 @@ compiler *create_compiler() {
 	self->current_ast_node = 0;
 	self->functions = create_hashmap(128);
 	self->global_count = 0;
+	self->llvm_error_message = NULL;
 
+	self->module = LLVMModuleCreateWithName("j4");
+	self->builder = LLVMCreateBuilder();
+	LLVMInitializeNativeTarget();
 	LLVMLinkInJIT();
+
+	// create execution engine
+	if (!LLVMCreateExecutionEngineForModule(&self->engine, self->module, &self->llvm_error_message)) {
+		fprintf(stderr, "%s\n", self->llvm_error_message);
+		LLVMDisposeMessage(self->llvm_error_message);
+		exit(1);
+	}
+
+	// optimizations
+	self->pass_manager = LLVMCreateFunctionPassManagerForModule(self->module);
+	LLVMAddTargetData(LLVMGetExecutionEngineTargetData(self->engine), self->pass_manager);
+	LLVMAddPromoteMemoryToRegisterPass(self->pass_manager);
+	LLVMAddInstructionCombiningPass(self->pass_manager);
+	LLVMAddReassociatePass(self->pass_manager);
+	LLVMAddGVNPass(self->pass_manager);
+	LLVMAddCFGSimplificationPass(self->pass_manager);
+	LLVMInitializeFunctionPassManager(self->pass_manager);
 
 	return self;
 }
@@ -73,4 +94,8 @@ void destroy_compiler(compiler *self) {
 		free(self);
 		self = NULL;
 	}
+	LLVMDumpModule(self->module);
+	LLVMDisposePassManager(self->pass_manager);
+	LLVMDisposeBuilder(self->builder);
+	LLVMDisposeModule(self->module);
 }
