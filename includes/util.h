@@ -20,12 +20,6 @@ extern bool DEBUG_MODE;
 /** if we are going to execute the bytecode after generation */
 extern bool EXECUTE_BYTECODE;
 
-/** if we are running a vm executable */
-extern bool RUN_VM_EXECUTABLE;
-
-/** the name of vm executable name, if applicable */
-extern char* VM_EXECUTABLE_NAME;
-
 /** the name of the executable file */
 extern char* OUTPUT_EXECUTABLE_NAME;
 
