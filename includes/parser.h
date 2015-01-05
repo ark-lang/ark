@@ -187,6 +187,7 @@ typedef struct {
 typedef struct {
 	vector *args;
 	token *name;
+	vector *ret;
 } function_prototype_ast_node;
 
 /**
@@ -195,7 +196,6 @@ typedef struct {
 typedef struct {
 	function_prototype_ast_node *fpn;
 	block_ast_node *body;
-	vector *ret;
 	bool isTuple;
 	int numOfReturnValues;
 } function_ast_node;
