@@ -112,7 +112,7 @@ LLVMValueRef generate_function_prototype_code(compiler *self, function_prototype
 	unsigned int arg_count = fpn->args->size;
 
 	LLVMValueRef proto = LLVMGetNamedFunction(self->module, fpn->name->content);
-	if (!proto) {
+	if (proto) {
 		if (LLVMCountParams(proto) != arg_count) {
 			error_message("function `%s` with different argument count already exists\n", fpn->name->content);
 			return NULL;
@@ -122,20 +122,28 @@ LLVMValueRef generate_function_prototype_code(compiler *self, function_prototype
 			error_message("function `%s` exists with a body\n", fpn->name->content);
 			return NULL;
 		}
+
+		error_message("idk some shit up with the proto for `%s`\n", fpn->name->content);
 	}
 	else {
 		LLVMTypeRef *params = malloc(sizeof(LLVMTypeRef) * arg_count);
 		if (!params) {
 			error_message("error: failed to allocate memory for parameter list\n");
 		}
+
 		for (i = 0; i < arg_count; i++) {
 			function_argument_ast_node *arg = get_vector_item(fpn->args, i);
 			params[i] = get_type_ref(arg->type);
 		}
 
 		// get the first argument for now, tuples aren't supported just yet
-		function_argument_ast_node *arg = get_vector_item(fpn->ret, 0);
-		LLVMTypeRef func_type = LLVMFunctionType(get_type_ref(arg->type), params, arg_count, false);
+		data_type *arg = get_vector_item(fpn->ret, 0);
+		printf("%d\n", *arg);
+
+		exit(1);
+
+		LLVMTypeRef func_type = LLVMFunctionType(get_type_ref(*arg), params, arg_count, false);
+		
 		proto = LLVMAddFunction(self->module, fpn->name->content, func_type);
 		LLVMSetLinkage(proto, LLVMExternalLinkage);
 	}
@@ -157,8 +165,7 @@ LLVMValueRef generate_function_return_code(compiler *self, function_return_ast_n
 }
 
 LLVMValueRef generate_block_code(compiler *self, block_ast_node *ban) {
-
-	return NULL;
+	return NULL; // temporary
 }
 
 LLVMValueRef generate_function_code(compiler *self, function_ast_node *fan) {
@@ -175,7 +182,6 @@ LLVMValueRef generate_function_code(compiler *self, function_ast_node *fan) {
 	LLVMValueRef body = generate_block_code(self, fan->body);
 	if (!body) {
 		error_message("failed to generate code for `%s`'s body\n", fan->fpn->name->content);
-		// should probably delete the function
 	}
 
 	LLVMBuildRet(self->builder, body);
@@ -193,16 +199,10 @@ LLVMValueRef generate_code(compiler *self, ast_node *node) {
 	switch (node->type) {
 		case VARIABLE_DEC_AST_NODE:
 			return generate_variable_declaration_code(self, node->data);
-			break;
 		case FUNCTION_AST_NODE:
 			return generate_function_code(self, node->data);
-			break;
 		case FUNCTION_CALLEE_AST_NODE:
 			return generate_function_callee_code(self, node->data);
-			break;
-		case FUNCTION_RET_AST_NODE:
-			return generate_function_return_code(self, node->data);
-			break;
 		default:
 			debug_message("unrecognized node specified", true);
 			break;
