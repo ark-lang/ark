@@ -17,9 +17,6 @@ typedef enum {
 /** if we are in debug mode -- will print debug warnings */
 extern bool DEBUG_MODE;
 
-/** if we are going to execute the bytecode after generation */
-extern bool EXECUTE_BYTECODE;
-
 /** the name of the executable file */
 extern char* OUTPUT_EXECUTABLE_NAME;
 
