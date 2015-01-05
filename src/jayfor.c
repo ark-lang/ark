@@ -1,8 +1,6 @@
 #include "jayfor.h"
 
 bool DEBUG_MODE = false;
-bool EXECUTE_BYTECODE = false;
-bool RUN_VM_EXECUTABLE = false;
 char *OUTPUT_EXECUTABLE_NAME = "a.j4e";
 
 static void parseArgument(argument *arg) {
@@ -31,9 +29,6 @@ static void parseArgument(argument *arg) {
 				error_message("error: missing filename after '-o'");
 			}
 			OUTPUT_EXECUTABLE_NAME = arg->next_argument;
-			break;
-		case 'r':
-			EXECUTE_BYTECODE = true;
 			break;
 		default:
 			error_message("error: unrecognized command line option '-%s'\n", arg->argument);
@@ -112,11 +107,16 @@ void start_jayfor(jayfor *self) {
 
 	// initialise parser after we tokenize
 	self->parser = create_parser(self->lexer->token_stream);
+	debug_message("debug: created parser instance\n");
 
 	start_parsing_token_stream(self->parser);
+	debug_message("debug: finished parsing\n");
 
 	self->compiler = create_compiler();
+	debug_message("debug: created compiler instance\n");
+
 	start_compiler(self->compiler, self->parser->parse_tree);
+	debug_message("debug: finished compiling\n");
 }
 
 void destroy_jayfor(jayfor *self) {
