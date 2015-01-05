@@ -18,7 +18,7 @@ compiler *create_compiler() {
 	LLVMLinkInJIT();
 
 	// create execution engine
-	if (!LLVMCreateExecutionEngineForModule(&self->engine, self->module, &self->llvm_error_message)) {
+	if (LLVMCreateExecutionEngineForModule(&self->engine, self->module, &self->llvm_error_message)) {
 		fprintf(stderr, "%s\n", self->llvm_error_message);
 		LLVMDisposeMessage(self->llvm_error_message);
 		exit(1);
@@ -33,6 +33,7 @@ compiler *create_compiler() {
 	LLVMAddGVNPass(self->pass_manager);
 	LLVMAddCFGSimplificationPass(self->pass_manager);
 	LLVMInitializeFunctionPassManager(self->pass_manager);
+	debug_message("debug: finished setting up LLVM optimizations\n");
 
 	return self;
 }
@@ -109,6 +110,9 @@ LLVMValueRef generate_code(compiler *self, ast_node *node) {
 void start_compiler(compiler *self, vector *ast) {
 	self->ast = ast;
 
+	printf("parsing size of %d\n", self->ast->size);
+
+	int i = 0;
 	while (self->current_ast_node < self->ast->size) {
 		ast_node *current_ast_node = get_vector_item(self->ast, self->current_ast_node);
 
@@ -119,7 +123,10 @@ void start_compiler(compiler *self, vector *ast) {
 		else {
 			push_back_item(self->refs, temp_ref);
 		}
+
+		printf("generating code for node at index %d\n", i);
 		consume_ast_node(self);
+		i++;
 	}
 }
 
