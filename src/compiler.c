@@ -10,6 +10,7 @@ compiler *create_compiler() {
 	self->functions = create_hashmap(128);
 	self->global_count = 0;
 	self->llvm_error_message = NULL;
+	self->refs = create_vector();
 
 	self->module = LLVMModuleCreateWithName("j4");
 	self->builder = LLVMCreateBuilder();
@@ -44,24 +45,65 @@ void consume_ast_nodes(compiler *self, int amount) {
 	self->current_ast_node += amount;
 }
 
-void evaluate_expression_ast_node(compiler *self, expression_ast_node *expr) {
-	// TODO
+LLVMValueRef evaluate_expression_ast_node(compiler *self, expression_ast_node *expr) {
+	return NULL;
 }
 
-void generate_variable_declaration_code(compiler *self, variable_declare_ast_node *vdn) {
-	// TODO
+LLVMValueRef generate_variable_declaration_code(compiler *self, variable_declare_ast_node *vdn) {
+	return NULL;
 }
 
-void generateFunctionCalleeCode(compiler *self, function_callee_ast_node *fcn) {
-	// TODO
+LLVMValueRef generate_function_callee_code(compiler *self, function_callee_ast_node *fcn) {
+	LLVMValueRef func = LLVMGetNamedFunction(self->module, fcn->callee->content);
+	if (!func) {
+		printf("function not found in module!\n");
+	}
+
+	if (LLVMCountParams(func) != fcn->args->size) {
+		printf("number of arguments given doesn't match required argument size\n");
+	}
+
+	LLVMValueRef *args = malloc(sizeof(LLVMValueRef) * fcn->args->size);
+	unsigned int i;
+	unsigned int arg_count = fcn->args->size;
+	for (i = 0; i < arg_count; i++) {
+		args[i] = NULL;
+		if (args[i] == NULL) {
+			free(args);
+			printf("invalid argument given do some error here\n");
+		}
+	}
+	return LLVMBuildCall(self->builder, func, args, arg_count, "calltmp");
 }
 
-void generateFunctionReturnCode(compiler *self, function_return_ast_node *frn) {
-	// TODO
+LLVMValueRef generate_function_return_code(compiler *self, function_return_ast_node *frn) {
+	return NULL;
 }
 
-void generate_function_code(compiler *self, function_ast_node *func) {
-	// TODO	
+LLVMValueRef generate_function_code(compiler *self, function_ast_node *func) {
+	return NULL;
+}
+
+LLVMValueRef generate_code(compiler *self, ast_node *node) {
+	switch (node->type) {
+		case VARIABLE_DEC_AST_NODE:
+			return generate_variable_declaration_code(self, node->data);
+			break;
+		case FUNCTION_AST_NODE:
+			return generate_function_code(self, node->data);
+			break;
+		case FUNCTION_CALLEE_AST_NODE:
+			return generate_function_callee_code(self, node->data);
+			break;
+		case FUNCTION_RET_AST_NODE:
+			return generate_function_return_code(self, node->data);
+			break;
+		default:
+			debug_message("unrecognized node specified", true);
+			break;
+	}
+	debug_message("unknown node, why are you here?");
+	return NULL;
 }
 
 void start_compiler(compiler *self, vector *ast) {
@@ -70,21 +112,13 @@ void start_compiler(compiler *self, vector *ast) {
 	while (self->current_ast_node < self->ast->size) {
 		ast_node *current_ast_node = get_vector_item(self->ast, self->current_ast_node);
 
-		switch (current_ast_node->type) {
-		case VARIABLE_DEC_AST_NODE:
-			generate_variable_declaration_code(self, current_ast_node->data);
-			break;
-		case FUNCTION_AST_NODE:
-			generate_function_code(self, current_ast_node->data);
-			break;
-		case FUNCTION_CALLEE_AST_NODE:
-			generateFunctionCalleeCode(self, current_ast_node->data);
-			break;
-		default:
-			debug_message("unrecognized node specified", true);
-			break;
+		LLVMValueRef temp_ref = generate_code(self, current_ast_node);
+		if (temp_ref) {
+			printf("ast is null, dont add it to the thing\n");
 		}
-
+		else {
+			push_back_item(self->refs, temp_ref);
+		}
 		consume_ast_node(self);
 	}
 }
