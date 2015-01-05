@@ -1096,7 +1096,9 @@ function_ast_node *parse_function_ast_node(parser *parser) {
 					token *tok = consume_token(parser);
 					if (check_token_type_is_valid_data_type(parser, tok)) {
 						data_type rawdata_type = match_token_type_to_data_type(parser, tok);
-						push_back_item(fpn->ret, &rawdata_type);
+						int value = rawdata_type;
+						int *pushed_value = &value;
+						push_back_item(fpn->ret, pushed_value);
 						fn->numOfReturnValues++;
 					}
 					else {
