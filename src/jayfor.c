@@ -107,16 +107,10 @@ void start_jayfor(jayfor *self) {
 
 	// initialise parser after we tokenize
 	self->parser = create_parser(self->lexer->token_stream);
-	debug_message("debug: created parser instance\n");
-
 	start_parsing_token_stream(self->parser);
-	debug_message("debug: finished parsing\n");
 
 	self->compiler = create_compiler();
-	debug_message("debug: created compiler instance\n");
-
 	start_compiler(self->compiler, self->parser->parse_tree);
-	debug_message("debug: finished compiling\n");
 }
 
 void destroy_jayfor(jayfor *self) {

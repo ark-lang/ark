@@ -24,7 +24,7 @@
 typedef struct {
 	vector *ast;
 	vector *refs;
-	hashmap *functions;
+	hashmap *table;
 
 	LLVMModuleRef module;
 	LLVMBuilderRef builder;
