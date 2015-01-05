@@ -371,6 +371,9 @@ void destroy_function_prototype_ast_node(function_prototype_ast_node *fpn) {
 			}
 			destroy_vector(fpn->args);
 		}
+		if (!fpn->ret) {
+			destroy_vector(fpn->ret);
+		}
 		free(fpn);
 		fpn = NULL;
 	}
@@ -383,9 +386,6 @@ void destroy_function_ast_node(function_ast_node *fn) {
 		}
 		if (!fn->body) {
 			destroy_block_ast_node(fn->body);
-		}
-		if (fn->ret) {
-			destroy_vector(fn->ret);
 		}
 		free(fn);
 		fn = NULL;
@@ -1013,6 +1013,7 @@ function_ast_node *parse_function_ast_node(parser *parser) {
 	// Create function signature
 	function_prototype_ast_node *fpn = create_function_prototype_ast_node();
 	fpn->args = args;
+	fpn->ret = create_vector();
 	fpn->name = functionName;
 
 	// parameter list
@@ -1067,7 +1068,6 @@ function_ast_node *parse_function_ast_node(parser *parser) {
 		while (true);
 
 		function_ast_node *fn = create_function_ast_node();
-		fn->ret = create_vector();
 		fn->numOfReturnValues = 0;
 		fn->isTuple = false;
 
@@ -1096,7 +1096,7 @@ function_ast_node *parse_function_ast_node(parser *parser) {
 					token *tok = consume_token(parser);
 					if (check_token_type_is_valid_data_type(parser, tok)) {
 						data_type rawdata_type = match_token_type_to_data_type(parser, tok);
-						push_back_item(fn->ret, &rawdata_type);
+						push_back_item(fpn->ret, &rawdata_type);
 						fn->numOfReturnValues++;
 					}
 					else {
@@ -1115,7 +1115,7 @@ function_ast_node *parse_function_ast_node(parser *parser) {
 		else if (check_token_type(parser, IDENTIFIER, 0)) {
 			token *returnType = consume_token(parser);
 			data_type rawdata_type = match_token_type_to_data_type(parser, returnType);
-			push_back_item(fn->ret, &rawdata_type);
+			push_back_item(fpn->ret, &rawdata_type);
 			fn->numOfReturnValues += 1;
 		}
 		else {

@@ -7,7 +7,7 @@ compiler *create_compiler() {
 	self->max_bytecode_size = 32;
 	self->bytecode = malloc(sizeof(*self->bytecode) * self->max_bytecode_size);
 	self->current_ast_node = 0;
-	self->functions = create_hashmap(128);
+	self->table = create_hashmap(128);
 	self->global_count = 0;
 	self->llvm_error_message = NULL;
 	self->refs = create_vector();
@@ -33,7 +33,6 @@ compiler *create_compiler() {
 	LLVMAddGVNPass(self->pass_manager);
 	LLVMAddCFGSimplificationPass(self->pass_manager);
 	LLVMInitializeFunctionPassManager(self->pass_manager);
-	debug_message("debug: finished setting up LLVM optimizations\n");
 
 	return self;
 }
@@ -44,6 +43,37 @@ void consume_ast_node(compiler *self) {
 
 void consume_ast_nodes(compiler *self, int amount) {
 	self->current_ast_node += amount;
+}
+
+/**
+ * Different data types
+ */
+// typedef enum {
+// 	TYPE_INTEGER = 0, TYPE_STR, TYPE_DOUBLE, TYPE_FLOAT, TYPE_BOOL, TYPE_VOID,
+// 	TYPE_CHAR
+// } data_type;
+
+LLVMTypeRef get_type_ref(data_type type) {
+	switch (type) {
+		case TYPE_INTEGER: return LLVMInt32Type();
+		case TYPE_STR:
+			error_message("strings are unimplemented\n");
+			break;
+		case TYPE_DOUBLE: return LLVMDoubleType();
+		case TYPE_FLOAT: return LLVMFloatType();
+		case TYPE_BOOL:
+			error_message("bools are unimplemented\n");
+			break;
+		case TYPE_VOID: return LLVMVoidType();
+		case TYPE_CHAR:
+			error_message("chars are unimplemented\n");
+			break;
+		default:
+			error_message("unsupported data type `%d`\n", type);
+			break;
+	}
+	error_message("we should've thrown an error for type references, why are you here?\n");
+	return NULL;
 }
 
 LLVMValueRef evaluate_expression_ast_node(compiler *self, expression_ast_node *expr) {
@@ -57,7 +87,7 @@ LLVMValueRef generate_variable_declaration_code(compiler *self, variable_declare
 LLVMValueRef generate_function_callee_code(compiler *self, function_callee_ast_node *fcn) {
 	LLVMValueRef func = LLVMGetNamedFunction(self->module, fcn->callee->content);
 	if (!func) {
-		printf("function not found in module!\n");
+		printf("function `%s` not found in module!\n", fcn->callee->content);
 	}
 
 	if (LLVMCountParams(func) != fcn->args->size) {
@@ -77,12 +107,86 @@ LLVMValueRef generate_function_callee_code(compiler *self, function_callee_ast_n
 	return LLVMBuildCall(self->builder, func, args, arg_count, "calltmp");
 }
 
+LLVMValueRef generate_function_prototype_code(compiler *self, function_prototype_ast_node *fpn) {
+	unsigned int i;
+	unsigned int arg_count = fpn->args->size;
+
+	LLVMValueRef proto = LLVMGetNamedFunction(self->module, fpn->name->content);
+	if (!proto) {
+		if (LLVMCountParams(proto) != arg_count) {
+			error_message("function `%s` with different argument count already exists\n", fpn->name->content);
+			return NULL;
+		}
+
+		if (LLVMCountBasicBlocks(proto)) {
+			error_message("function `%s` exists with a body\n", fpn->name->content);
+			return NULL;
+		}
+	}
+	else {
+		LLVMTypeRef *params = malloc(sizeof(LLVMTypeRef) * arg_count);
+		if (!params) {
+			error_message("error: failed to allocate memory for parameter list\n");
+		}
+		for (i = 0; i < arg_count; i++) {
+			function_argument_ast_node *arg = get_vector_item(fpn->args, i);
+			params[i] = get_type_ref(arg->type);
+		}
+
+		// get the first argument for now, tuples aren't supported just yet
+		function_argument_ast_node *arg = get_vector_item(fpn->ret, 0);
+		LLVMTypeRef func_type = LLVMFunctionType(get_type_ref(arg->type), params, arg_count, false);
+		proto = LLVMAddFunction(self->module, fpn->name->content, func_type);
+		LLVMSetLinkage(proto, LLVMExternalLinkage);
+	}
+
+	for (i = 0; i < arg_count; i++) {
+		function_argument_ast_node *arg = get_vector_item(fpn->args, i);
+		LLVMValueRef param = LLVMGetParam(proto, i);
+		LLVMSetValueName(param, arg->name->content);
+
+		set_value_at_key(self->table, arg->name->content, arg, sizeof(arg));
+	}
+
+	return proto;
+}
+
 LLVMValueRef generate_function_return_code(compiler *self, function_return_ast_node *frn) {
+
 	return NULL;
 }
 
-LLVMValueRef generate_function_code(compiler *self, function_ast_node *func) {
+LLVMValueRef generate_block_code(compiler *self, block_ast_node *ban) {
+
 	return NULL;
+}
+
+LLVMValueRef generate_function_code(compiler *self, function_ast_node *fan) {
+	// first we generate the prototype
+	LLVMValueRef func = generate_function_prototype_code(self, fan->fpn);
+	if (!func) {
+		error_message("prototype for `%s` is dun goofed\n", fan->fpn->name->content);
+		return NULL;
+	}
+
+	LLVMBasicBlockRef block = LLVMAppendBasicBlock(func, "entry");
+	LLVMPositionBuilderAtEnd(self->builder, block);
+
+	LLVMValueRef body = generate_block_code(self, fan->body);
+	if (!body) {
+		error_message("failed to generate code for `%s`'s body\n", fan->fpn->name->content);
+		// should probably delete the function
+	}
+
+	LLVMBuildRet(self->builder, body);
+
+	if (LLVMVerifyFunction(func, LLVMPrintMessageAction)) {
+		error_message("invalid function `%s`\n", fan->fpn->name->content);
+		LLVMDeleteFunction(func);
+		return NULL;
+	}
+
+	return func;
 }
 
 LLVMValueRef generate_code(compiler *self, ast_node *node) {
@@ -109,8 +213,6 @@ LLVMValueRef generate_code(compiler *self, ast_node *node) {
 
 void start_compiler(compiler *self, vector *ast) {
 	self->ast = ast;
-
-	printf("parsing size of %d\n", self->ast->size);
 
 	int i = 0;
 	while (self->current_ast_node < self->ast->size) {
