@@ -42,6 +42,11 @@ break_ast_node *create_break_ast_node() {
 	return bn;
 }
 
+continue_ast_node *create_continue_ast_node() {
+	continue_ast_node *cn = allocate_ast_node(sizeof(continue_ast_node), "continue");
+	return cn;
+}
+
 variable_reassignment_ast_node *create_variable_reassign_ast_node() {
 	variable_reassignment_ast_node *vrn = allocate_ast_node(sizeof(variable_reassignment_ast_node), "variable reassignment");
 	vrn->name = NULL;
@@ -174,6 +179,12 @@ void destroy_break_ast_node(break_ast_node *bn) {
 	}
 }
 
+void destroy_continue_ast_node(continue_ast_node *cn) {
+	if (cn) {
+		free(cn);
+	}
+}
+
 void destroy_statement_ast_node(statement_ast_node *sn) {
 	if (sn) {
 		if (sn->data) {
@@ -201,6 +212,9 @@ void destroy_statement_ast_node(statement_ast_node *sn) {
 					break;
 				case BREAK_AST_NODE:
 					destroy_break_ast_node(sn->data);
+					break;
+				case CONTINUE_AST_NODE:
+					destroy_continue_ast_node(sn->data);
 					break;
 				case ENUM_AST_NODE:
 					destroy_enumeration_ast_node(sn->data);
@@ -1206,6 +1220,17 @@ statement_ast_node *parse_statement_ast_node(parser *parser) {
 		sn->data = create_break_ast_node();
 		sn->type = BREAK_AST_NODE;
 
+		parse_semi_colon(parser);
+
+		return sn;
+	}
+	else if (check_token_type_and_content(parser, IDENTIFIER, CONTINUE_KEYWORD, 0)) {
+		consume_token(parser);
+
+		statement_ast_node *sn = create_statement_ast_node();
+		sn->data = create_continue_ast_node();
+		sn->type = CONTINUE_AST_NODE;
+		
 		parse_semi_colon(parser);
 
 		return sn;
