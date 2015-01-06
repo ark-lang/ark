@@ -16,12 +16,10 @@ static const char* DATA_TYPES[] = {
 /** UTILITY FOR AST NODES */
 
 void *allocate_ast_node(size_t sz, const char* readable_type) {
-
 	assert(sz > 0);
 	void *ret = malloc(sz);
 
 	if(!ret) {
-
 		char buffer[256];
 		snprintf(buffer, 256, "malloc: failed to allocate memory for ast_node '%s'", readable_type);
 
