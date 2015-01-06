@@ -55,25 +55,25 @@ or check out some actual code we use for the library [here](libs/math.j4).
     // this is no longer a test for while loops
     // just some random code for testing
 
-    int a = (5 + 5)
-    int z = a
-    int a
-    char b = 'a'
+    int a = (5 + 5);
+    int z = a;
+    int a;
+    char b = 'a';
 
     fn add(int a, int b): int {
-        ret (a + b)
+        ret (a + b);
     }
 
     fn test(int a, int b, str x): <int, float, str> {
         for int x:(10, 0) {
-            add(a, b)
+            add(a, b);
         }
 
-        ret <a, 3.2, "test">
+        ret <a, 3.2, "test">;
     }
 
     fn main(int a, int b): void {
-        test(5, 5, "rand")
+        test(5, 5, "rand");
     }
 
 ## <a name="building"></a>Building
