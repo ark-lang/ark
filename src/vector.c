@@ -42,9 +42,7 @@ void destroy_vector(vector *vec) {
 	if (vec) {
 		if (vec->items) {
 			free(vec->items);
-			vec->items = NULL;
 		}
 		free(vec);
-		vec = NULL;
 	}
 }
