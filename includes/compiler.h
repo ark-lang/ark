@@ -40,6 +40,16 @@ typedef struct {
 	int current_instruction;
 } compiler;
 
+typedef struct {
+	LLVMValueRef allocation;
+	char *name;
+	data_type_w *type;
+} variable_info;
+
+variable_info *create_variable_info();
+
+void destroy_variable_info(variable_info *vinfo);
+
 /**
  * Creates an instance of the Compiler
  * @return the compiler instance
