@@ -39,6 +39,12 @@ vector_item get_vector_item(vector *vec, int index) {
 }
 
 void destroy_vector(vector *vec) {
-	free(vec->items);
-	free(vec);
+	if (vec) {
+		if (vec->items) {
+			free(vec->items);
+			vec->items = NULL;
+		}
+		free(vec);
+		vec = NULL;
+	}
 }
