@@ -10,6 +10,14 @@ Jayfor is a programming language written in C.
 * [Requirements](#requirements)
 * [License](#license)
 
+# Proposing Ideas
+If you have an idea for the language, post an issue with the format of `Proposal: proposal summary` into the [issues](http://github.com/jayfor-lang/jayfor/issues) section of the repository, for example:
+
+    Proposal: add X to this language because Y
+    Proposal: add X to this language to replace Y
+
+Please tag any proposals with the "proposal" label!
+
 # Unique(-ish) features
 * Semi-colons are optional
 * Tuples
@@ -22,8 +30,7 @@ Jayfor is a programming language written in C.
 Jayfor is a programming language in the early stages, so it's a lot easier to work on than
 say a more developed language like Rust.
 As we are a long way from hitting that stable 1.0, we have more time to experiment with the
-language, which means you can have a say in new syntax ideas, and so on. Already have an idea?
-Post an issue with the format of `Proposal: proposal summary` into the [issues](http://github.com/jayfor-lang/jayfor/issues) section of the repository.
+language, which means you can have a say in new syntax ideas, and so on. 
 
 Send a pull request to [http://github.com/jayfor-lang/jayfor](http://github.com/jayfor-lang/jayfor). Use [http://github.com/jayfor-lang/jayfor/issues](http://github.com/jayfor-lang/jayfor/issues) for discussion. Please note that we consider that you have granted non-exclusive right to your contributed code under the MIT License.
 **Please conform to the programming rules and write short, but meaningful commit messages.**
