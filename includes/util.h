@@ -5,14 +5,10 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
 /** the current version of jayfor */
 #define JAYFOR_VERSION "0.0.0"
-
-/** quick boolean implementation */
-typedef enum {
-	false, true
-} bool;
 
 /** if we are in debug mode -- will print debug warnings */
 extern bool DEBUG_MODE;
