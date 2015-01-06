@@ -5,6 +5,7 @@ LCXX = clang++
 # local stuff
 C_FLAGS = `llvm-config --cflags` -Wall -Iincludes/
 LLVM_FLAGS = `llvm-config --libs --cflags --ldflags core analysis executionengine jit interpreter native`
+TRAVIS_FLAGS = -ldl -ltinfo -pthread
 
 SOURCES = src/*.c
 
@@ -23,7 +24,7 @@ all: ${SOURCES}
 
 travis: ${SOURCES}
 	${CC} ${C_FLAGS} ${SOURCES} -c ${SOURCES}
-	${BUILD_COMMAND} ${EXTRA_TRAVIS_FLAGS}
+	${BUILD_COMMAND} ${TRAVIS_FLAGS}
 	-rm *.o
 
 clean: 
