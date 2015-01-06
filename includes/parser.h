@@ -126,8 +126,8 @@ typedef struct {
  * Function Return ast_node
  */
 typedef struct {
-	vector *returnVals;
-	int numOfReturnValues;
+	vector *return_vals;
+	int num_of_return_values;
 } function_return_ast_node;
 
 /**
@@ -196,8 +196,8 @@ typedef struct {
 typedef struct {
 	function_prototype_ast_node *fpn;
 	block_ast_node *body;
-	bool isTuple;
-	int numOfReturnValues;
+	bool is_tuple;
+	int num_of_return_values;
 } function_ast_node;
 
 /**
@@ -257,11 +257,14 @@ typedef struct s_bool_expression_ast_node {
 	char operand;
 	expression_ast_node *expr;
 	struct s_bool_expression_ast_node *lhand;
-	char firstCompar;
-	char secondCompar;
+	char first_compar;
+	char second_compar;
 	struct s_bool_expression_ast_node *rhand;
 } bool_expression_ast_node;
 
+/**
+ * Node for a Struct
+ */
 typedef struct  {
 	char *struct_name;
 	vector *statements;
