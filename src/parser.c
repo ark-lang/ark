@@ -1170,7 +1170,7 @@ void parse_semi_colon(parser *parser) {
 		consume_token(parser);
 	}
 	else {
-		error_messager("error: missing semi-colon!\n");
+		error_message("error: missing semi-colon!\n");
 	}
 }
 
