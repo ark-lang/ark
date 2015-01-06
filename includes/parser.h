@@ -26,7 +26,7 @@
 #define VOID_KEYWORD	 	   	"void"
 #define BREAK_KEYWORD	 	   	"break"
 #define CONTINUE_KEYWORD		"continue"
-#define RETURN_KEYWORD	 	   	"ret"
+#define RETURN_KEYWORD	 	   	"return"
 #define STRUCT_KEYWORD	 	   	"struct"
 #define ENUM_KEYWORD	 	   	"enum"
 #define UNSAFE_KEYWORD	 	   	"unsafe"
