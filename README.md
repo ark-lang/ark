@@ -65,7 +65,7 @@ or check out some actual code we use for the library [here](libs/math.j4).
     }
 
     fn test(int a, int b, str x): <int, float, str> {
-        for int x:(10, 0) {
+        for int whatever:(10, 0) {
             add(a, b);
         }
 
