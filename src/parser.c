@@ -215,21 +215,18 @@ void destroy_variable_reassign_ast_node(variable_reassignment_ast_node *vrn) {
 			destroy_expression_ast_node(vrn->expr);
 		}
 		free(vrn);
-		vrn = NULL;
 	}
 }
 
 void destroy_for_loop_ast_node(for_loop_ast_node *fln) {
 	if (fln) {
 		free(fln);
-		fln = NULL;
 	}
 }
 
 void destroy_break_ast_node(break_ast_node *bn) {
 	if (bn) {
 		free(bn);
-		bn = NULL;
 	}
 }
 
@@ -268,7 +265,6 @@ void destroy_statement_ast_node(statement_ast_node *sn) {
 			}
 		}
 		free(sn);
-		sn = NULL;
 	}
 }
 
@@ -285,7 +281,6 @@ void destroy_function_return_ast_node(function_return_ast_node *frn) {
 			destroy_vector(frn->return_vals);
 		}
 		free(frn);
-		frn = NULL;
 	}
 }
 
@@ -298,14 +293,12 @@ void destroy_expression_ast_node(expression_ast_node *expr) {
 			destroy_expression_ast_node(expr->rhand);
 		}
 		free(expr);
-		expr = NULL;
 	}
 }
 
 void destroy_variable_define_ast_node(variable_define_ast_node *vdn) {
 	if (vdn) {
 		free(vdn);
-		vdn = NULL;
 	}
 }
 
@@ -325,7 +318,6 @@ void destroy_variable_declare_ast_node(variable_declare_ast_node *vdn) {
 			destroy_vector(vdn->expressions);
 		}
 		free(vdn);
-		vdn = NULL;
 	}
 }
 
@@ -335,7 +327,6 @@ void destroy_function_argument_ast_node(function_argument_ast_node *fan) {
 			destroy_expression_ast_node(fan->value);
 		}
 		free(fan);
-		fan = NULL;
 	}
 }
 
@@ -345,7 +336,6 @@ void destroy_block_ast_node(block_ast_node *bn) {
 			destroy_vector(bn->statements);
 		}
 		free(bn);
-		bn = NULL;
 	}
 }
 
@@ -355,7 +345,6 @@ void destroy_infinite_loop_ast_node(infinite_loop_ast_node *iln) {
 			destroy_block_ast_node(iln->body);
 		}
 		free(iln);
-		iln = NULL;
 	}
 }
 
@@ -375,7 +364,6 @@ void destroy_function_prototype_ast_node(function_prototype_ast_node *fpn) {
 			destroy_vector(fpn->ret);
 		}
 		free(fpn);
-		fpn = NULL;
 	}
 }
 
@@ -388,7 +376,6 @@ void destroy_function_ast_node(function_ast_node *fn) {
 			destroy_block_ast_node(fn->body);
 		}
 		free(fn);
-		fn = NULL;
 	}
 }
 
@@ -398,7 +385,6 @@ void destroy_function_callee_ast_node(function_callee_ast_node *fcn) {
 			destroy_vector(fcn->args);
 		}
 		free(fcn);
-		fcn = NULL;
 	}
 }
 
@@ -411,7 +397,6 @@ void destroybool_expression_ast_node(bool_expression_ast_node *ben) {
             destroybool_expression_ast_node(ben->rhand);
         }
         free(ben); // goodbye, Ben! -- im hilarious
-        ben = NULL;
     }
 }
 
@@ -421,7 +406,6 @@ void destroy_structure_ast_node(structure_ast_node *sn) {
 			destroy_vector(sn->statements);
 		}
 		free(sn);
-		sn = NULL;
 	}
 }
 
@@ -435,14 +419,12 @@ void destroy_enumeration_ast_node(enumeration_ast_node *en) {
 			destroy_vector(en->enum_items);
 		}
 		free(en);
-		en = NULL;
 	}
 }
 
 void destroy_enum_item(enum_item *ei) {
 	if (ei) {
 		free(ei);
-		ei = NULL;
 	}
 }
 
@@ -1496,6 +1478,5 @@ void destroy_parser(parser *parser) {
 
 	if (parser) {
 		free(parser);
-		parser = NULL;
 	}
 }
