@@ -19,8 +19,6 @@ static void parseArgument(argument *arg) {
 			printf("\t-h,\t shows a help menu\n");
 			printf("\t-v,\t shows current version\n");
 			printf("\t-d,\t logs extra debug information\n");
-			printf("\t-r,\t will compile and execute code instead of creating an executable\n");
-			printf("\t-o <name>,\t creates an executable with the given file name and extension\n");
 			printf("\n");
 			exit(1);
 			break;
