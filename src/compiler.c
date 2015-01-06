@@ -37,6 +37,34 @@ compiler *create_compiler() {
 	return self;
 }
 
+variable_info *create_variable_info() {
+	variable_info *vinfo = malloc(sizeof(*vinfo));
+	if (!vinfo) {
+		perror("malloc: failed to allocate memory for variable info");
+		exit(1);
+	}
+	vinfo->allocation = NULL;
+	vinfo->type = malloc(sizeof(*vinfo->type));
+	if (!vinfo->type) {
+		perror("malloc: failed to allocate memory for variable type");
+		exit(1);
+	}
+	vinfo->type->value = TYPE_NULL;
+	vinfo->name = "";
+	return vinfo;
+}
+
+void destroy_variable_info(variable_info *vinfo) {
+	if (!vinfo) {
+		if (!vinfo->type) {
+			free(vinfo->type);
+			vinfo->type = NULL;
+		}
+		free(vinfo);
+		vinfo = NULL;
+	}
+}
+
 void consume_ast_node(compiler *self) {
 	self->current_ast_node += 1;
 }
@@ -77,10 +105,17 @@ LLVMTypeRef get_type_ref(data_type type) {
 }
 
 LLVMValueRef evaluate_expression_ast_node(compiler *self, expression_ast_node *expr) {
+	error_message("expressions unimplemented\n");
+	return NULL;
+}
+
+LLVMValueRef generate_variable_definition_code(compiler *self, variable_declare_ast_node *vdn) {
+
 	return NULL;
 }
 
 LLVMValueRef generate_variable_declaration_code(compiler *self, variable_declare_ast_node *vdn) {
+	error_message("variable declaration unimplemented\n");
 	return NULL;
 }
 
@@ -164,8 +199,7 @@ LLVMValueRef generate_function_return_code(compiler *self, function_return_ast_n
 LLVMValueRef generate_statement_code(compiler *self, statement_ast_node *sn) {
 	switch (sn->type) {
 		case VARIABLE_DEF_AST_NODE:
-			primary_message("variable def unimplemented\n");
-			break;
+			return generate_variable_definition_code(self, sn->data);
 		case VARIABLE_DEC_AST_NODE:
 			return generate_variable_declaration_code(self, sn->data);
 		case FUNCTION_CALLEE_AST_NODE:
@@ -198,7 +232,7 @@ LLVMValueRef generate_block_code(compiler *self, block_ast_node *ban) {
 	int i;
 	for (i = 0; i < ban->statements->size; i++) {
 		statement_ast_node *sn = get_vector_item(ban->statements, i);
-		// LLVMValueRef location = 
+		LLVMValueRef location = NULL;
 		LLVMBuildStore(self->builder, generate_statement_code(self, sn), location);
 	}
 	return NULL; // temporary
