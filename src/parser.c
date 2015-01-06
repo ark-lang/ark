@@ -1388,6 +1388,7 @@ data_type_w *match_token_type_to_data_type_w(parser *parser, token *tok) {
 	int size = sizeof(DATA_TYPES) / sizeof(DATA_TYPES[0]);
 	int i;
 	data_type_w *res = malloc(sizeof(*res));
+	res->value = 21;
 	if (!res) {
 		perror("malloc: failed to allocate memory for data_type_w");
 		exit(1);
@@ -1395,6 +1396,7 @@ data_type_w *match_token_type_to_data_type_w(parser *parser, token *tok) {
 	for (i = 0; i < size; i++) {
 		if (!strcmp(tok->content, DATA_TYPES[i])) {
 			res->value = i;
+			printf("Set res value to %d\n", i);
 			return res;
 		}
 	}
