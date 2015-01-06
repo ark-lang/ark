@@ -694,7 +694,7 @@ function_callee_ast_node *parse_function_callee_ast_node(parser *parser);
  * Utility method which parser the optional semi colon
  * @param parser the parser instance
  */
-void parse_optional_semi_colon(parser *parser);
+void parse_semi_colon(parser *parser);
 
 /**
  * Parses statements, function calls, while
