@@ -44,24 +44,14 @@ variable_info *create_variable_info() {
 		exit(1);
 	}
 	vinfo->allocation = NULL;
-	vinfo->type = malloc(sizeof(*vinfo->type));
-	if (!vinfo->type) {
-		perror("malloc: failed to allocate memory for variable type");
-		exit(1);
-	}
-	vinfo->type->value = TYPE_NULL;
+	vinfo->type = TYPE_NULL;
 	vinfo->name = "";
 	return vinfo;
 }
 
 void destroy_variable_info(variable_info *vinfo) {
 	if (!vinfo) {
-		if (!vinfo->type) {
-			free(vinfo->type);
-			vinfo->type = NULL;
-		}
 		free(vinfo);
-		vinfo = NULL;
 	}
 }
 
@@ -172,9 +162,9 @@ LLVMValueRef generate_function_prototype_code(compiler *self, function_prototype
 		}
 
 		// get the first argument for now, tuples aren't supported just yet
-		data_type_w *arg = get_vector_item(fpn->ret, 0);
+		data_type *arg = get_vector_item(fpn->ret, 0);
 
-		LLVMTypeRef func_type = LLVMFunctionType(get_type_ref(arg->value), params, arg_count, false);
+		LLVMTypeRef func_type = LLVMFunctionType(get_type_ref(*arg), params, arg_count, false);
 		
 		proto = LLVMAddFunction(self->module, fpn->name->content, func_type);
 		LLVMSetLinkage(proto, LLVMExternalLinkage);
