@@ -20,7 +20,7 @@ const char* get_token_name(token *tok) {
 }
 
 void destroy_token(token *token) {
-	if (token != NULL) {
+	if (token) {
 		free(token);
 		token = NULL;
 	}
@@ -225,7 +225,8 @@ void get_next_token(Lexer *lexer) {
 }
 
 void destroy_lexer(Lexer *lexer) {
-	if (lexer == NULL) return;
-	free(lexer);
-	lexer = NULL;
+	if (lexer) {
+		free(lexer);
+		lexer = NULL;
+	}
 }
