@@ -98,7 +98,7 @@ Then to run a j4 program:
     ./j4 tests/simple.j4
 
 # <a name="syntax"></a>Syntax
-Check the SPECIFICATION.md file.
+Check the REFERENCE.md file in misc/.
 
 # <a name="license"></a>License
 Jayfor is licensed under The MIT License. I have no idea
