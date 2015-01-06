@@ -60,7 +60,7 @@ or check out some actual code we use for the library [here](libs/math.j4).
     char b = 'a';
 
     fn add(int a, int b): int {
-        ret (a + b);
+        return (a + b);
     }
 
     fn test(int a, int b, str x): <int, float, str> {
@@ -68,7 +68,7 @@ or check out some actual code we use for the library [here](libs/math.j4).
             add(a, b);
         }
 
-        ret <a, 3.2, "test">;
+        return <a, 3.2, "test">;
     }
 
     fn main(int a, int b): void {
