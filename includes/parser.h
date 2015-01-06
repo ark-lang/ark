@@ -25,6 +25,7 @@
 #define FUNCTION_KEYWORD 	   	"fn"
 #define VOID_KEYWORD	 	   	"void"
 #define BREAK_KEYWORD	 	   	"break"
+#define CONTINUE_KEYWORD		"continue"
 #define RETURN_KEYWORD	 	   	"ret"
 #define STRUCT_KEYWORD	 	   	"struct"
 #define ENUM_KEYWORD	 	   	"enum"
@@ -69,7 +70,7 @@ typedef enum {
 	BLOCK_AST_NODE, FUNCTION_CALLEE_AST_NODE,
 	FUNCTION_RET_AST_NODE, FOR_LOOP_AST_NODE,
 	VARIABLE_REASSIGN_AST_NODE, INFINITE_LOOP_AST_NODE,
-	BREAK_AST_NODE, ENUM_AST_NODE, STRUCT_AST_NODE
+	BREAK_AST_NODE, CONTINUE_AST_NODE, ENUM_AST_NODE, STRUCT_AST_NODE
 } ast_node_type;
 
 /**
@@ -178,6 +179,14 @@ typedef struct {
 typedef struct {
 	// NOTHING! :)
 } break_ast_node;
+
+/**
+ * A node representing the
+ * continue keyword
+ */
+typedef struct {
+	// yay nothing
+} continue_ast_node;
 
 /**
  * ast_node which represents a block of statements
@@ -426,6 +435,13 @@ void destroy_enum_item(enum_item *ei);
  * @param bn the node to destroy
  */
 void destroy_break_ast_node(break_ast_node *bn);
+
+/**
+ * Destroy the continue ast node
+ * @param bn the node to destroy
+ */
+void destroy_continue_ast_node(continue_ast_node *bn);
+
 
 /**
  * Destroys a variable reassignement node

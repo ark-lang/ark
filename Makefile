@@ -4,7 +4,12 @@ LCXX = clang++
 
 # local stuff
 C_FLAGS = `llvm-config --cflags` -Wall -Iincludes/ -g
-LLVM_FLAGS = `llvm-config --libs --cflags --ldflags core analysis executionengine jit interpreter native` -lz -lncurses
+LLVM_FLAGS = `llvm-config --libs --cflags --ldflags core analysis executionengine jit interpreter native`
+LLVM_VERSION = $(shell llvm-config --version | grep ^llvm-version | sed 's/^.* //g')
+
+ifeq "$(LLVM_VERSION)" "3.5"
+	LLVM_FLAGS += -lz -lncurses
+endif
 
 TRAVIS_FLAGS = -ldl -ltinfo -pthread
 SOURCES = src/*.c
