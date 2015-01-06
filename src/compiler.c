@@ -138,7 +138,6 @@ LLVMValueRef generate_function_prototype_code(compiler *self, function_prototype
 
 		// get the first argument for now, tuples aren't supported just yet
 		data_type_w *arg = get_vector_item(fpn->ret, 0);
-		printf("%d\n", arg->value);
 
 		LLVMTypeRef func_type = LLVMFunctionType(get_type_ref(arg->value), params, arg_count, false);
 		
@@ -162,7 +161,45 @@ LLVMValueRef generate_function_return_code(compiler *self, function_return_ast_n
 	return NULL;
 }
 
+LLVMValueRef generate_statement_code(compiler *self, statement_ast_node *sn) {
+	switch (sn->type) {
+		case VARIABLE_DEF_AST_NODE:
+			primary_message("variable def unimplemented\n");
+			break;
+		case VARIABLE_DEC_AST_NODE:
+			return generate_variable_declaration_code(self, sn->data);
+		case FUNCTION_CALLEE_AST_NODE:
+			return generate_function_callee_code(self, sn->data);
+		case FUNCTION_RET_AST_NODE:
+			return generate_function_return_code(self, sn->data);
+		case VARIABLE_REASSIGN_AST_NODE:
+			primary_message("variable reassign unimplemented\n");
+			break;
+		case FOR_LOOP_AST_NODE:
+			primary_message("for loop unimplemented\n");
+			break;
+		case INFINITE_LOOP_AST_NODE:
+			primary_message("infinite loop unimplemented\n");
+			break;
+		case BREAK_AST_NODE:
+			primary_message("break unimplemented\n");
+			break;
+		case ENUM_AST_NODE:
+			primary_message("enum unimplemented\n");
+			break;
+		default: break;
+	}
+
+	printf("why is it returning null?\n");
+	return NULL;
+}
+
 LLVMValueRef generate_block_code(compiler *self, block_ast_node *ban) {
+	int i;
+	for (i = 0; i < ban->statements->size; i++) {
+		statement_ast_node *sn = get_vector_item(ban->statements, i);
+		generate_statement_code(self, sn);
+	}
 	return NULL; // temporary
 }
 
