@@ -123,6 +123,13 @@ typedef struct {
 } function_argument_ast_node;
 
 /**
+ * This is really stupid
+ */
+typedef struct {
+	int value;
+} data_type_w;
+
+/**
  * Function Return ast_node
  */
 typedef struct {
@@ -695,6 +702,14 @@ void parse_optional_semi_colon(parser *parser);
  * @param parser the parser instance
  */
 statement_ast_node *parse_statement_ast_node(parser *parser);
+
+/**
+ * Matches token type to the data type wrapper
+ * @param  parser parser to parse with
+ * @param  tok    the token to match
+ * @return        return the token as a data type wrapper
+ */
+data_type_w *match_token_type_to_data_type_w(parser *parser, token *tok);
 
 /**
  * Finds the appropriate Data Type from the given token
