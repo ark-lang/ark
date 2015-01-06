@@ -63,14 +63,6 @@ void consume_ast_nodes(compiler *self, int amount) {
 	self->current_ast_node += amount;
 }
 
-/**
- * Different data types
- */
-// typedef enum {
-// 	TYPE_INTEGER = 0, TYPE_STR, TYPE_DOUBLE, TYPE_FLOAT, TYPE_BOOL, TYPE_VOID,
-// 	TYPE_CHAR
-// } data_type;
-
 LLVMTypeRef get_type_ref(data_type type) {
 	printf("given %d\n", type);
 	switch (type) {
