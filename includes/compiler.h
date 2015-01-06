@@ -41,14 +41,30 @@ typedef struct {
 	int current_instruction;
 } compiler;
 
+/**
+ * Stores the information of a variable
+ *
+ * where its allocated
+ * it name
+ * and its type
+ */
 typedef struct {
 	LLVMValueRef allocation;
 	char *name;
 	data_type type;
 } variable_info;
 
+/**
+ * Creates a variable information thing
+ * (it holds information about a variable, ok?)
+ * @return the variable information holdy thing we just made
+ */
 variable_info *create_variable_info();
 
+/**
+ * Destroys variable information
+ * @param vinfo the given vinfo to destroy
+ */
 void destroy_variable_info(variable_info *vinfo);
 
 /**
