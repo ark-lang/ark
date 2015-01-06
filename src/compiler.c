@@ -198,7 +198,8 @@ LLVMValueRef generate_block_code(compiler *self, block_ast_node *ban) {
 	int i;
 	for (i = 0; i < ban->statements->size; i++) {
 		statement_ast_node *sn = get_vector_item(ban->statements, i);
-		generate_statement_code(self, sn);
+		// LLVMValueRef location = 
+		LLVMBuildStore(self->builder, generate_statement_code(self, sn), location);
 	}
 	return NULL; // temporary
 }
