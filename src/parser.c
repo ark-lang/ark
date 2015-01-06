@@ -62,7 +62,7 @@ function_return_ast_node *create_function_return_ast_node() {
 		perror("malloc: failed to allocate memory for Function Return ast_node");
 		exit(1);
 	}
-	frn->returnVals = NULL;
+	frn->return_vals = NULL;
 	return frn;
 }
 
@@ -274,15 +274,15 @@ void destroy_statement_ast_node(statement_ast_node *sn) {
 
 void destroy_function_return_ast_node(function_return_ast_node *frn) {
 	if (!frn) {
-		if (!frn->returnVals) {
+		if (!frn->return_vals) {
 			int i;
-			for (i = 0; i < frn->returnVals->size; i++) {
-				expression_ast_node *temp = get_vector_item(frn->returnVals, i);
+			for (i = 0; i < frn->return_vals->size; i++) {
+				expression_ast_node *temp = get_vector_item(frn->return_vals, i);
 				if (!temp) {
 					destroy_expression_ast_node(temp);
 				}
 			}
-			destroy_vector(frn->returnVals);
+			destroy_vector(frn->return_vals);
 		}
 		free(frn);
 		frn = NULL;
@@ -1028,11 +1028,11 @@ function_ast_node *parse_function_ast_node(parser *parser) {
 			}
 
 			token *argdata_type = match_token_type(parser, IDENTIFIER);
-			data_type argRawdata_type = match_token_type_to_data_type(parser, argdata_type);
+			data_type arg_raw_data_type = match_token_type_to_data_type(parser, argdata_type);
 			token *argName = match_token_type(parser, IDENTIFIER);
 
 			function_argument_ast_node *arg = create_function_argument_ast_node();
-			arg->type = argRawdata_type;
+			arg->type = arg_raw_data_type;
 			arg->name = argName;
 			arg->value = NULL;
 
@@ -1068,8 +1068,8 @@ function_ast_node *parse_function_ast_node(parser *parser) {
 		while (true);
 
 		function_ast_node *fn = create_function_ast_node();
-		fn->numOfReturnValues = 0;
-		fn->isTuple = false;
+		fn->num_of_return_values = 0;
+		fn->is_tuple = false;
 
 		if (check_token_type_and_content(parser, OPERATOR, ":", 0)) {
 			consume_token(parser);
@@ -1081,11 +1081,11 @@ function_ast_node *parse_function_ast_node(parser *parser) {
 		// START OF TUPLE
 		if (check_token_type_and_content(parser, OPERATOR, "<", 0)) {
 			consume_token(parser);
-			fn->isTuple = true;
+			fn->is_tuple = true;
 
 			do {
 				if (check_token_type_and_content(parser, OPERATOR, ">", 0)) {
-					if (fn->numOfReturnValues < 1) {
+					if (fn->num_of_return_values < 1) {
 						error_message("error: function expects a return type\n");
 					}
 					consume_token(parser); // eat
@@ -1095,11 +1095,9 @@ function_ast_node *parse_function_ast_node(parser *parser) {
 				if (check_token_type(parser, IDENTIFIER, 0)) {
 					token *tok = consume_token(parser);
 					if (check_token_type_is_valid_data_type(parser, tok)) {
-						data_type rawdata_type = match_token_type_to_data_type(parser, tok);
-						int value = rawdata_type;
-						int *pushed_value = &value;
-						push_back_item(fpn->ret, pushed_value);
-						fn->numOfReturnValues++;
+						data_type raw_data_type = match_token_type_to_data_type(parser, tok);
+						push_back_item(fpn->ret, &raw_data_type);
+						fn->num_of_return_values++;
 					}
 					else {
 						error_message("error: invalid data type specified: `%s`\n", tok->content);
@@ -1116,9 +1114,9 @@ function_ast_node *parse_function_ast_node(parser *parser) {
 		}
 		else if (check_token_type(parser, IDENTIFIER, 0)) {
 			token *returnType = consume_token(parser);
-			data_type rawdata_type = match_token_type_to_data_type(parser, returnType);
-			push_back_item(fpn->ret, &rawdata_type);
-			fn->numOfReturnValues += 1;
+			data_type raw_data_type = match_token_type_to_data_type(parser, returnType);
+			push_back_item(fpn->ret, &raw_data_type);
+			fn->num_of_return_values += 1;
 		}
 		else {
 			print_current_token(parser);
@@ -1199,8 +1197,8 @@ function_return_ast_node *parse_return_statement_ast_node(parser *parser) {
 	match_token_type_and_content(parser, IDENTIFIER, RETURN_KEYWORD);
 
 	function_return_ast_node *frn = create_function_return_ast_node();
-	frn->returnVals = create_vector();
-	frn->numOfReturnValues = 0;
+	frn->return_vals = create_vector();
+	frn->num_of_return_values = 0;
 
 	if (check_token_type_and_content(parser, OPERATOR, "<", 0)) {
 		consume_token(parser);
@@ -1213,13 +1211,13 @@ function_return_ast_node *parse_return_statement_ast_node(parser *parser) {
 			}
 
 			expression_ast_node *expr = parse_expression_ast_node(parser);
-			push_back_item(frn->returnVals, expr);
+			push_back_item(frn->return_vals, expr);
 			if (check_token_type_and_content(parser, SEPARATOR, ",", 0)) {
 				if (check_token_type_and_content(parser, OPERATOR, ">", 1)) {
 					error_message("error: trailing comma in return statement\n");
 				}
 				consume_token(parser);
-				frn->numOfReturnValues++;
+				frn->num_of_return_values++;
 			}
 		}
 		while (true);
@@ -1227,8 +1225,8 @@ function_return_ast_node *parse_return_statement_ast_node(parser *parser) {
 	else {
 		// only one return type
 		expression_ast_node *expr = parse_expression_ast_node(parser);
-		push_back_item(frn->returnVals, expr);
-		frn->numOfReturnValues++;
+		push_back_item(frn->return_vals, expr);
+		frn->num_of_return_values++;
 
 		// consume semi colon if present
 		parse_optional_semi_colon(parser);

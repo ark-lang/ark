@@ -140,8 +140,6 @@ LLVMValueRef generate_function_prototype_code(compiler *self, function_prototype
 		data_type *arg = get_vector_item(fpn->ret, 0);
 		printf("%d\n", *arg);
 
-		exit(1);
-
 		LLVMTypeRef func_type = LLVMFunctionType(get_type_ref(*arg), params, arg_count, false);
 		
 		proto = LLVMAddFunction(self->module, fpn->name->content, func_type);
