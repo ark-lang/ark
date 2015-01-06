@@ -48,10 +48,8 @@ void destroy_hashmap(hashmap *map) {
 	if (map) {
 		if (map->fields) {
 			free(map->fields);
-			map->fields = NULL;
 		}
 		free(map);
-		map = NULL;
 	}
 }
  

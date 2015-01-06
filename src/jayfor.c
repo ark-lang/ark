@@ -118,6 +118,5 @@ void destroy_jayfor(jayfor *self) {
 	destroy_compiler(self->compiler);
 	if (self) {
 		free(self);
-		self = NULL;
 	}
 }
