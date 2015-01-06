@@ -4,10 +4,10 @@ Jayfor is a programming language written in C.
 # Table of Contents/Resources
 * [About](#about)
 * [Reference](misc/REFERENCE.md)
+* [Contributing](#contributing)
 * [IRC](#IRC)
 * [Note](#note)
 * [Requirements](#requirements)
-* [Contributing](#contributing)
 * [License](#license)
 
 # Unique(-ish) features
@@ -16,6 +16,17 @@ Jayfor is a programming language written in C.
 * Default argument values
 * Reimagined syntax for annoying [traditional] features
   * do whiles, for loops, etc
+
+# <a name="contributing"></a>Contributing
+## Why should I contribute?
+Jayfor is a programming language in the early stages, so it's a lot easier to work on than
+say a more developed language like Rust.
+As we are a long way from hitting that stable 1.0, we have more time to experiment with the
+language, which means you can have a say in new syntax ideas, and so on. Already have an idea?
+Post an issue with the format of `Proposal: proposal summary` into the [issues](http://github.com/jayfor-lang/jayfor/issues) section of the repository.
+
+Send a pull request to [http://github.com/jayfor-lang/jayfor](http://github.com/jayfor-lang/jayfor). Use [http://github.com/jayfor-lang/jayfor/issues](http://github.com/jayfor-lang/jayfor/issues) for discussion. Please note that we consider that you have granted non-exclusive right to your contributed code under the MIT License.
+**Please conform to the programming rules and write short, but meaningful commit messages.**
 
 # <a name="IRC"></a>IRC
 We have an IRC channel, this is mostly where we discuss development related
@@ -64,8 +75,8 @@ or check out some actual code we use for the library [here](libs/math.j4).
 JAYFOR is still in design stage. It's not quite working yet, stay tuned.
 
 # <a name="requirements"></a>Requirements
-* Clang 3.0
-* LLVM 3.0
+* Clang 3.x
+* LLVM 3.x 
 
 ## <a name="building"></a>Building
 Building is easy:
@@ -81,10 +92,6 @@ Then to run a j4 program:
 
 # <a name="syntax"></a>Syntax
 Check the SPECIFICATION.md file.
-
-# <a name="contributing"></a>Contributing
-Send a pull request to [http://github.com/freefouran/jayfor](http://github.com/freefouran/jayfor). Use [http://github.com/freefouran/jayfor/issues](http://github.com/freefouran/jayfor/issues) for discussion. Please note that we consider that you have granted non-exclusive right to your contributed code under the MIT License.
-**Please conform to the coding rules and write short, but meaningful commit messages.**
 
 # <a name="license"></a>License
 Jayfor is licensed under The MIT License. I have no idea
