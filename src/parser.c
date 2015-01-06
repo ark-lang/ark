@@ -1095,8 +1095,8 @@ function_ast_node *parse_function_ast_node(parser *parser) {
 				if (check_token_type(parser, IDENTIFIER, 0)) {
 					token *tok = consume_token(parser);
 					if (check_token_type_is_valid_data_type(parser, tok)) {
-						data_type raw_data_type = match_token_type_to_data_type(parser, tok);
-						push_back_item(fpn->ret, &raw_data_type);
+						data_type_w *raw_data_type = match_token_type_to_data_type_w(parser, tok);
+						push_back_item(fpn->ret, raw_data_type);
 						fn->num_of_return_values++;
 					}
 					else {
@@ -1382,6 +1382,25 @@ bool check_token_type_is_valid_data_type(parser *parser, token *tok) {
 		}
 	}
 	return false;
+}
+
+data_type_w *match_token_type_to_data_type_w(parser *parser, token *tok) {
+	int size = sizeof(DATA_TYPES) / sizeof(DATA_TYPES[0]);
+	int i;
+	data_type_w *res = malloc(sizeof(*res));
+	if (!res) {
+		perror("malloc: failed to allocate memory for data_type_w");
+		exit(1);
+	}
+	for (i = 0; i < size; i++) {
+		if (!strcmp(tok->content, DATA_TYPES[i])) {
+			res->value = i;
+			return res;
+		}
+	}
+	free(res);
+	error_message("error: invalid data type specified: %s!\n", tok->content);
+	return 0;
 }
 
 data_type match_token_type_to_data_type(parser *parser, token *tok) {
