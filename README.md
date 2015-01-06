@@ -2,15 +2,15 @@
 Jayfor is a programming language written in C.
 
 # Table of Contents/Resources
-* [About](#about)
-* [Reference](misc/REFERENCE.md)
+* [Proposals](#proposals)
+* [Requirements](#requirements)
 * [Contributing](#contributing)
 * [IRC](#IRC)
-* [Note](#note)
-* [Requirements](#requirements)
+* [About](#about)
+* [Reference](misc/REFERENCE.md)
 * [License](#license)
 
-# Proposing Ideas
+# <a name="proposals"></a>Proposing Ideas
 If you have an idea for the language, post an issue with the format of `Proposal: proposal summary` into the [issues](http://github.com/jayfor-lang/jayfor/issues) section of the repository, for example:
 
     Proposal: add X to this language because Y
@@ -18,12 +18,9 @@ If you have an idea for the language, post an issue with the format of `Proposal
 
 Please tag any proposals with the "proposal" label!
 
-# Unique(-ish) features
-* Semi-colons are optional
-* Tuples
-* Default argument values
-* Reimagined syntax for annoying [traditional] features
-  * do whiles, for loops, etc
+# <a name="requirements"></a>Requirements
+* Clang 3.5
+* LLVM 3.5 
 
 # <a name="contributing"></a>Contributing
 ## Why should I contribute?
@@ -79,15 +76,10 @@ or check out some actual code we use for the library [here](libs/math.j4).
         test(5, 5, "rand")
     }
 
-# <a name="note"></a>Note
-JAYFOR is still in design stage. It's not quite working yet, stay tuned.
-
-# <a name="requirements"></a>Requirements
-* Clang 3.x
-* LLVM 3.x 
-
 ## <a name="building"></a>Building
 Building is easy:
+
+    // note, you atleast need LLVM 3.5!
 
     cd where_you_want_jayfor_to_be
     git clone https://www.github.com/jayfor-lang/jayfor.git
