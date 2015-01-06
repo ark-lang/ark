@@ -5,11 +5,11 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <llvm-c/Core.h>
-#include <llvm-c/Analysis.h>
-#include <llvm-c/ExecutionEngine.h>
-#include <llvm-c/Target.h>
-#include <llvm-c/Transforms/Scalar.h>
+#include <llvm-c-3.5/llvm-c/Core.h>
+#include <llvm-c-3.5/llvm-c/Analysis.h>
+#include <llvm-c-3.5/llvm-c/ExecutionEngine.h>
+#include <llvm-c-3.5/llvm-c/Target.h>
+#include <llvm-c-3.5/llvm-c/Transforms/Scalar.h>
 
 #include "parser.h"
 #include "vector.h"
