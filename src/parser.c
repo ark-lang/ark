@@ -210,8 +210,8 @@ structure_ast_node *create_structure_ast_node() {
 }
 
 void destroy_variable_reassign_ast_node(variable_reassignment_ast_node *vrn) {
-	if (!vrn) {
-		if (!vrn->expr) {
+	if (vrn) {
+		if (vrn->expr) {
 			destroy_expression_ast_node(vrn->expr);
 		}
 		free(vrn);
@@ -220,22 +220,22 @@ void destroy_variable_reassign_ast_node(variable_reassignment_ast_node *vrn) {
 }
 
 void destroy_for_loop_ast_node(for_loop_ast_node *fln) {
-	if (!fln) {
+	if (fln) {
 		free(fln);
 		fln = NULL;
 	}
 }
 
 void destroy_break_ast_node(break_ast_node *bn) {
-	if (!bn) {
+	if (bn) {
 		free(bn);
 		bn = NULL;
 	}
 }
 
 void destroy_statement_ast_node(statement_ast_node *sn) {
-	if (!sn) {
-		if (!sn->data) {
+	if (sn) {
+		if (sn->data) {
 			switch (sn->type) {
 				case VARIABLE_DEF_AST_NODE:
 					destroy_variable_define_ast_node(sn->data);
@@ -273,12 +273,12 @@ void destroy_statement_ast_node(statement_ast_node *sn) {
 }
 
 void destroy_function_return_ast_node(function_return_ast_node *frn) {
-	if (!frn) {
-		if (!frn->return_vals) {
+	if (frn) {
+		if (frn->return_vals) {
 			int i;
 			for (i = 0; i < frn->return_vals->size; i++) {
 				expression_ast_node *temp = get_vector_item(frn->return_vals, i);
-				if (!temp) {
+				if (temp) {
 					destroy_expression_ast_node(temp);
 				}
 			}
@@ -290,11 +290,11 @@ void destroy_function_return_ast_node(function_return_ast_node *frn) {
 }
 
 void destroy_expression_ast_node(expression_ast_node *expr) {
-	if (!expr) {
-		if (!expr->lhand) {
+	if (expr) {
+		if (expr->lhand) {
 			destroy_expression_ast_node(expr->lhand);
 		}
-		if (!expr->rhand) {
+		if (expr->rhand) {
 			destroy_expression_ast_node(expr->rhand);
 		}
 		free(expr);
@@ -303,22 +303,22 @@ void destroy_expression_ast_node(expression_ast_node *expr) {
 }
 
 void destroy_variable_define_ast_node(variable_define_ast_node *vdn) {
-	if (!vdn) {
+	if (vdn) {
 		free(vdn);
 		vdn = NULL;
 	}
 }
 
 void destroy_variable_declare_ast_node(variable_declare_ast_node *vdn) {
-	if (!vdn) {
-		if (!vdn->vdn) {
+	if (vdn) {
+		if (vdn->vdn) {
 			destroy_variable_define_ast_node(vdn->vdn);
 		}
-		if (!vdn->expressions) {
+		if (vdn->expressions) {
 			int i;
 			for (i = 0; i < vdn->expressions->size; i++) {
 				expression_ast_node *expr = get_vector_item(vdn->expressions, i);
-				if (!expr) {
+				if (expr) {
 					destroy_expression_ast_node(expr);
 				}
 			}
@@ -330,8 +330,8 @@ void destroy_variable_declare_ast_node(variable_declare_ast_node *vdn) {
 }
 
 void destroy_function_argument_ast_node(function_argument_ast_node *fan) {
-	if (!fan) {
-		if (!fan->value) {
+	if (fan) {
+		if (fan->value) {
 			destroy_expression_ast_node(fan->value);
 		}
 		free(fan);
@@ -340,8 +340,8 @@ void destroy_function_argument_ast_node(function_argument_ast_node *fan) {
 }
 
 void destroy_block_ast_node(block_ast_node *bn) {
-	if (!bn) {
-		if (!bn->statements) {
+	if (bn) {
+		if (bn->statements) {
 			destroy_vector(bn->statements);
 		}
 		free(bn);
@@ -350,8 +350,8 @@ void destroy_block_ast_node(block_ast_node *bn) {
 }
 
 void destroy_infinite_loop_ast_node(infinite_loop_ast_node *iln) {
-	if (!iln) {
-		if (!iln->body) {
+	if (iln) {
+		if (iln->body) {
 			destroy_block_ast_node(iln->body);
 		}
 		free(iln);
@@ -360,18 +360,18 @@ void destroy_infinite_loop_ast_node(infinite_loop_ast_node *iln) {
 }
 
 void destroy_function_prototype_ast_node(function_prototype_ast_node *fpn) {
-	if (!fpn) {
-		if (!fpn->args) {
+	if (fpn) {
+		if (fpn->args) {
 			int i;
 			for (i = 0; i < fpn->args->size; i++) {
 				statement_ast_node *sn = get_vector_item(fpn->args, i);
-				if (!sn) {
+				if (sn) {
 					destroy_statement_ast_node(sn);
 				}
 			}
 			destroy_vector(fpn->args);
 		}
-		if (!fpn->ret) {
+		if (fpn->ret) {
 			destroy_vector(fpn->ret);
 		}
 		free(fpn);
@@ -380,11 +380,11 @@ void destroy_function_prototype_ast_node(function_prototype_ast_node *fpn) {
 }
 
 void destroy_function_ast_node(function_ast_node *fn) {
-	if (!fn) {
-		if (!fn->fpn) {
+	if (fn) {
+		if (fn->fpn) {
 			destroy_function_prototype_ast_node(fn->fpn);
 		}
-		if (!fn->body) {
+		if (fn->body) {
 			destroy_block_ast_node(fn->body);
 		}
 		free(fn);
@@ -393,8 +393,8 @@ void destroy_function_ast_node(function_ast_node *fn) {
 }
 
 void destroy_function_callee_ast_node(function_callee_ast_node *fcn) {
-	if (!fcn) {
-		if (!fcn->args) {
+	if (fcn) {
+		if (fcn->args) {
 			destroy_vector(fcn->args);
 		}
 		free(fcn);
@@ -403,21 +403,21 @@ void destroy_function_callee_ast_node(function_callee_ast_node *fcn) {
 }
 
 void destroybool_expression_ast_node(bool_expression_ast_node *ben) {
-    if (!ben) {
-        if(!ben->lhand) {
+    if (ben) {
+        if(ben->lhand) {
             destroybool_expression_ast_node(ben->lhand);
         }
-        if(!ben->rhand) {
+        if(ben->rhand) {
             destroybool_expression_ast_node(ben->rhand);
         }
-        free(ben);
+        free(ben); // goodbye, Ben! -- im hilarious
         ben = NULL;
     }
 }
 
 void destroy_structure_ast_node(structure_ast_node *sn) {
-	if (!sn) {
-		if (!sn->statements) {
+	if (sn) {
+		if (sn->statements) {
 			destroy_vector(sn->statements);
 		}
 		free(sn);
@@ -426,8 +426,8 @@ void destroy_structure_ast_node(structure_ast_node *sn) {
 }
 
 void destroy_enumeration_ast_node(enumeration_ast_node *en) {
-	if (!en) {
-		if (!en->enum_items) {
+	if (en) {
+		if (en->enum_items) {
 			int i;
 			for (i = 0; i < en->enum_items->size; i++) {
 				destroy_enum_item(get_vector_item(en->enum_items, i));
@@ -440,7 +440,7 @@ void destroy_enumeration_ast_node(enumeration_ast_node *en) {
 }
 
 void destroy_enum_item(enum_item *ei) {
-	if (!ei) {
+	if (ei) {
 		free(ei);
 		ei = NULL;
 	}
@@ -1494,5 +1494,8 @@ void destroy_parser(parser *parser) {
 	}
 	destroy_vector(parser->parse_tree);
 
-	free(parser);
+	if (parser) {
+		free(parser);
+		parser = NULL;
+	}
 }

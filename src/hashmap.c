@@ -45,8 +45,14 @@ void destroy_hashmap(hashmap *map) {
 			free(field->entries);
 		}
 	}
-	free(map->fields);
-	free(map);
+	if (map) {
+		if (map->fields) {
+			free(map->fields);
+			map->fields = NULL;
+		}
+		free(map);
+		map = NULL;
+	}
 }
  
 void set_value_at_key(hashmap *map, char *key, void *value, size_t length) {
