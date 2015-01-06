@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
+#include <assert.h>
 
 #include "lexer.h"
 #include "util.h"
@@ -85,7 +86,7 @@ typedef struct {
  */
 typedef struct s_Expression {
 	char type;
-	token *value;	
+	token *value;
 	struct s_Expression *lhand;
 	char operand;
 	struct s_Expression *rhand;
@@ -105,7 +106,7 @@ typedef struct {
 	bool is_tuple;			// is the variable a tuple?
 } variable_define_ast_node;
 
-/** 
+/**
  * ast_node for a Variable being declared
  */
 typedef struct {
@@ -171,7 +172,7 @@ typedef struct {
 } enumeration_ast_node;
 
 /**
- * A node representing a break 
+ * A node representing a break
  * from an inner loop
  */
 typedef struct {
@@ -187,7 +188,7 @@ typedef struct {
 
 /**
  * Function prototype ast_node
- * 
+ *
  * i.e:
  *    fn func_name(type name, type name): type
  */
@@ -208,7 +209,7 @@ typedef struct {
 } function_ast_node;
 
 /**
- * Labelled for accessing 
+ * Labelled for accessing
  * certain parts of our
  * for loop
  */
@@ -249,16 +250,16 @@ typedef struct {
 
 /**
  * ast_node for Boolean Expressions
- * 
+ *
  * ???
  * !var
  * var
- * 
+ *
  * var == var
  * var != var
  * var && var
  * var || var
- * 
+ *
  */
 typedef struct s_bool_expression_ast_node {
 	char operand;
@@ -309,7 +310,7 @@ enum_item *create_enum_item(char *name, int value);
 infinite_loop_ast_node *create_infinite_loop_ast_node();
 
 /**
- * Creat a break ast node 
+ * Creat a break ast node
  * @return the break ast node
  */
 break_ast_node *create_break_ast_node();
@@ -346,7 +347,7 @@ statement_ast_node *create_statement_ast_node();
 
 /**
  * Creates a new Expression ast_node
- * 
+ *
  * a + b
  * 1 + 2
  * (a + b) - (1 + b)
@@ -355,16 +356,16 @@ expression_ast_node *create_expression_ast_node();
 
 /**
  * Creates a new Variable Define ast_node
- * 
+ *
  * int x;
  * int y;
- * double z; 
+ * double z;
  */
 variable_define_ast_node *create_variable_define_ast_node();
 
 /**
  * Creates a new Variable Declaration ast_node
- * 
+ *
  * int x = 5;
  * int d = 5 + 9;
  */
@@ -372,14 +373,14 @@ variable_declare_ast_node *create_variable_declare_ast_node();
 
 /**
  * Creates a new Function Argument ast_node
- * 
+ *
  * fn whatever(int x, int y, int z = 23): int {...
  */
 function_argument_ast_node *create_function_argument_ast_node();
 
 /**
  * Creates a new Block ast_node
- * 
+ *
  * {
  *    statement;
  * }
@@ -388,7 +389,7 @@ block_ast_node *create_block_ast_node();
 
 /**
  * Creates a new Function ast_node
- * 
+ *
  * fn whatever(int x, int y): int {
  *     ret x + y;
  * }
@@ -397,7 +398,7 @@ function_ast_node *create_function_ast_node();
 
 /**
  * Creates a new Function Prototype ast_node
- * 
+ *
  * fn whatever(int x, int y): int
  */
 function_prototype_ast_node *create_function_prototype_ast_node();
@@ -451,7 +452,7 @@ void destroy_for_loop_ast_node(for_loop_ast_node *fln);
 void destroy_statement_ast_node(statement_ast_node *sn);
 
 /**
- * Destroy the given Function Return ast_node 
+ * Destroy the given Function Return ast_node
  * @param frn the node to destroy
  */
 void destroy_function_return_ast_node(function_return_ast_node *frn);
@@ -507,7 +508,7 @@ void destroy_function_ast_node(function_ast_node *fn);
 /**
  * Prepares a ast_node to go into a vector, this will also
  * help with memory management
- * 
+ *
  * @param parser the parser instance for vector access
  * @param data the data to store
  * @param type the type of data
@@ -516,14 +517,14 @@ void prepare_ast_node(parser *parser, void *data, ast_node_type type);
 
 /**
  * Remove a ast_node
- * 
+ *
  * @param ast_node the ast_node to remove
  */
 void remove_ast_node(ast_node *ast_node);
 
 /**
  * Create a new parser instance
- * 
+ *
  * @param token_stream the token stream to parse
  * @return instance of parser
  */
@@ -531,7 +532,7 @@ parser *create_parser(vector *token_stream);
 
 /**
  * Advances to the next token
- * 
+ *
  * @param parser parser instance
  * @return the token we consumed
  */
@@ -540,7 +541,7 @@ token *consume_token(parser *parser);
 /**
  * Peek at the token that is {@ahead} tokens
  * away in the token stream
- * 
+ *
  * @param parser instance of parser
  * @param ahead how far ahead to peek
  * @return the token peeking at
@@ -550,7 +551,7 @@ token *peek_at_token_stream(parser *parser, int ahead);
 /**
  * Checks if the next token type is the same as the given
  * token type. If not, throws an error
- * 
+ *
  * @param parser instance of the parser
  * @param type the type to match
  * @return the token we matched
@@ -560,7 +561,7 @@ token *expect_token_type(parser *parser, token_type type);
 /**
  * Checks if the next tokens content is the same as the given
  * content. If not, throws an error
- * 
+ *
  * @param parser instance of the parser
  * @param type the type to match
  * @return the token we matched
@@ -571,7 +572,7 @@ token *expect_token_content(parser *parser, char *content);
  * Checks if the next token type is the same as the given
  * token type and the token content is the same as the given
  * content, if not, throws an error
- * 
+ *
  * @param parser instance of the parser
  * @param type the type to match
  * @param content content to match
@@ -582,7 +583,7 @@ token *expect_token_type_and_content(parser *parser, token_type type, char *cont
 /**
  * Checks if the current token type is the same as the given
  * token type. If not, throws an error
- * 
+ *
  * @param parser instance of the parser
  * @param type the type to match
  * @return the token we matched
@@ -592,7 +593,7 @@ token *match_token_type(parser *parser, token_type type);
 /**
  * Checks if the current tokens content is the same as the given
  * content. If not, throws an error
- * 
+ *
  * @param parser instance of the parser
  * @param type the type to match
  * @return the token we matched
@@ -603,7 +604,7 @@ token *match_token_content(parser *parser, char *content);
  * Checks if the current token type is the same as the given
  * token type and the token content is the same as the given
  * content, if not, throws an error
- * 
+ *
  * @param parser instance of the parser
  * @param type the type to match
  * @param content content to match
@@ -637,7 +638,7 @@ bool check_token_type_and_content(parser *parser, token_type type, char* content
 
 /**
  * Parses an expression: currently only parses a number!
- * 
+ *
  * @param parser the parser instance
  * @return the expression parsed
  */
@@ -655,7 +656,7 @@ void print_current_token(parser *parser);
 
 /**
  * Parses a variable
- * 
+ *
  * @param param the parser instance
  * @param global if the variable is globally declared
  */
@@ -677,14 +678,14 @@ statement_ast_node *parse_infinite_loop_ast_node(parser *parser);
 
 /**
  * Parses a function
- * 
+ *
  * @param parser the parser instance
  */
 function_ast_node *parse_function_ast_node(parser *parser);
 
 /**
  * Parses a function call
- * 
+ *
  * @param parser the parser instance
  */
 function_callee_ast_node *parse_function_callee_ast_node(parser *parser);
@@ -698,7 +699,7 @@ void parse_optional_semi_colon(parser *parser);
 /**
  * Parses statements, function calls, while
  * loops, etc
- * 
+ *
  * @param parser the parser instance
  */
 statement_ast_node *parse_statement_ast_node(parser *parser);
@@ -714,7 +715,7 @@ data_type_w *match_token_type_to_data_type_w(parser *parser, token *tok);
 /**
  * Finds the appropriate Data Type from the given token
  * will throw an error if invalid type
- * 
+ *
  * @param parser the parser instance
  * @param tok the token to check
  * @return the token as a data_type
@@ -746,7 +747,7 @@ structure_ast_node *parse_structure_ast_node(parser *parser);
 
 /**
  * Parses a variable reassignment
- * 
+ *
  * @parser the parser instance
  */
 variable_reassignment_ast_node *parse_reassignment_statement_ast_node(parser *parser);
@@ -760,7 +761,7 @@ void start_parsing_token_stream(parser *parser);
 
 /**
  * Destroy the given parser
- * 
+ *
  * @param parser the parser to destroy
  */
 void destroy_parser(parser *parser);
