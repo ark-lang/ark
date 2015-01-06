@@ -227,6 +227,5 @@ void get_next_token(Lexer *lexer) {
 void destroy_lexer(Lexer *lexer) {
 	if (lexer) {
 		free(lexer);
-		lexer = NULL;
 	}
 }
