@@ -58,6 +58,5 @@ StackItem pop_stack(Stack *stack) {
 void destroy_stack(Stack *stack) {
 	if (stack) {
 		free(stack);
-		stack = NULL;
 	}
 }

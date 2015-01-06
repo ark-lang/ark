@@ -305,7 +305,6 @@ void start_compiler(compiler *self, vector *ast) {
 void destroy_compiler(compiler *self) {
 	if (self != NULL) {
 		free(self);
-		self = NULL;
 	}
 	LLVMDumpModule(self->module);
 	LLVMDisposePassManager(self->pass_manager);
