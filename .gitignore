@@ -37,3 +37,5 @@ builds/
 .DS_Store
 *.swp
 *.swo
+
+*sublime-*
