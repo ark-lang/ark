@@ -2,9 +2,10 @@
 LCC = clang
 LCXX = clang++
 
-C_FLAGS = `llvm-config --cflags` -Wall -Iincludes/ -std=c11
-EXTRA_TRAVIS_FLAGS = -ldl -ltinfo -pthread
+# local stuff
+C_FLAGS = `llvm-config --cflags` -Wall -Iincludes/
 LLVM_FLAGS = `llvm-config --libs --cflags --ldflags core analysis executionengine jit interpreter native`
+
 SOURCES = src/*.c
 
 BUILD_COMMAND = 
