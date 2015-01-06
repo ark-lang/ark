@@ -2,7 +2,7 @@
 LCC = clang
 LCXX = clang++
 
-C_FLAGS = `llvm-config --cflags` -Wall -Iincludes/
+C_FLAGS = `llvm-config --cflags` -Wall -Iincludes/ -std=c99
 LLVM_FLAGS = `llvm-config --libs --cflags --ldflags core analysis executionengine jit interpreter native`
 SOURCES = src/*.c
 
