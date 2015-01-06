@@ -72,6 +72,7 @@ void consume_ast_nodes(compiler *self, int amount) {
 // } data_type;
 
 LLVMTypeRef get_type_ref(data_type type) {
+	printf("given %d\n", type);
 	switch (type) {
 		case TYPE_INTEGER: return LLVMInt32Type();
 		case TYPE_STR:
