@@ -19,7 +19,7 @@ endif
 
 all: ${SOURCES}
 	${LCC} ${C_FLAGS} ${SOURCES} -c ${SOURCES}
-	${LCXX} *.o ${LLVM_FLAGS} -o j4
+	${LCXX} *.o ${LLVM_FLAGS} -o j4 
 	-rm *.o
 
 travis: ${SOURCES}
