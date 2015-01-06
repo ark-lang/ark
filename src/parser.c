@@ -15,63 +15,57 @@ static const char* DATA_TYPES[] = {
 
 /** UTILITY FOR AST NODES */
 
-infinite_loop_ast_node *create_infinite_loop_ast_node() {
-	infinite_loop_ast_node *iln = malloc(sizeof(*iln));
-	if (!iln) {
-		perror("malloc: failed to allocate memory for Infinite Loop AST Node");
+void *allocate_ast_node(size_t sz, const char* readable_type) {
+
+	assert(sz > 0);
+	void *ret = malloc(sz);
+
+	if(!ret) {
+
+		char buffer[256];
+		snprintf(buffer, 256, "malloc: failed to allocate memory for ast_node '%s'", readable_type);
+
+		perror(buffer);
 		exit(1);
 	}
+
+	return ret;
+}
+
+
+infinite_loop_ast_node *create_infinite_loop_ast_node() {
+	infinite_loop_ast_node *iln = allocate_ast_node(sizeof(infinite_loop_ast_node), "infinite loop");
 	iln->body = NULL;
 	return iln;
 }
 
 break_ast_node *create_break_ast_node() {
-	break_ast_node *bn = malloc(sizeof(*bn));
-	if (!bn) {
-		perror("malloc: failed to allocate memory for Break AST NODE");
-		exit(1);
-	}
+	break_ast_node *bn = allocate_ast_node(sizeof(break_ast_node), "break");
 	return bn;
 }
 
 variable_reassignment_ast_node *create_variable_reassign_ast_node() {
-	variable_reassignment_ast_node *vrn = malloc(sizeof(*vrn));
-	if (!vrn) {
-		perror("malloc: failed to allocate memory for Variable Reassign ast_node");
-		exit(1);
-	}
+	variable_reassignment_ast_node *vrn = allocate_ast_node(sizeof(variable_reassignment_ast_node), "variable reassignment");
 	vrn->name = NULL;
 	vrn->expr = NULL;
 	return vrn;
 }
 
 statement_ast_node *create_statement_ast_node() {
-	statement_ast_node *sn = malloc(sizeof(*sn));
-	if (!sn) {
-		perror("malloc: failed to allocate memory for Statement ast_node");
-		exit(1);
-	}
+	statement_ast_node *sn = allocate_ast_node(sizeof(statement_ast_node), "statement");
 	sn->data = NULL;
 	sn->type = 0;
 	return sn;
 }
 
 function_return_ast_node *create_function_return_ast_node() {
-	function_return_ast_node *frn = malloc(sizeof(*frn));
-	if (!frn) {
-		perror("malloc: failed to allocate memory for Function Return ast_node");
-		exit(1);
-	}
+	function_return_ast_node *frn = allocate_ast_node(sizeof(function_return_ast_node), "function return");
 	frn->return_vals = NULL;
 	return frn;
 }
 
 expression_ast_node *create_expression_ast_node() {
-	expression_ast_node *expr = malloc(sizeof(*expr));
-	if (!expr) {
-		perror("malloc: failed to allocate memory for expression_ast_node");
-		exit(1);
-	}
+	expression_ast_node *expr = allocate_ast_node(sizeof(expression_ast_node), "expression");
 	expr->value = NULL;
 	expr->lhand = NULL;
 	expr->rhand = NULL;
@@ -79,11 +73,7 @@ expression_ast_node *create_expression_ast_node() {
 }
 
 bool_expression_ast_node *create_boolean_expression_ast_node() {
-    bool_expression_ast_node *boolExpr = malloc(sizeof(*boolExpr));
-    if (!boolExpr) {
-        perror("malloc: failed to allocate memory for bool_expression_ast_node");
-        exit(1);
-    }
+    bool_expression_ast_node *boolExpr = allocate_ast_node(sizeof(bool_expression_ast_node), "boolean expression");
     boolExpr->expr = NULL;
     boolExpr->lhand = NULL;
     boolExpr->rhand = NULL;
@@ -91,11 +81,7 @@ bool_expression_ast_node *create_boolean_expression_ast_node() {
 }
 
 variable_define_ast_node *create_variable_define_ast_node() {
-	variable_define_ast_node *vdn = malloc(sizeof(*vdn));
-	if (!vdn) {
-		perror("malloc: failed to allocate memory for variable_define_ast_node");
-		exit(1);
-	}
+	variable_define_ast_node *vdn = allocate_ast_node(sizeof(variable_define_ast_node), "variable definition");
 	vdn->name = NULL;
 	vdn->is_tuple = false;
 	vdn->is_constant = false;
@@ -104,114 +90,74 @@ variable_define_ast_node *create_variable_define_ast_node() {
 }
 
 variable_declare_ast_node *create_variable_declare_ast_node() {
-	variable_declare_ast_node *vdn = malloc(sizeof(*vdn));
-	if (!vdn) {
-		perror("malloc: failed to allocate memory for variable_declare_ast_node");
-		exit(1);
-	}
+	variable_declare_ast_node *vdn = allocate_ast_node(sizeof(variable_declare_ast_node), "variable declaration");
 	vdn->vdn = NULL;
 	vdn->expressions = NULL;
 	return vdn;
 }
 
 function_argument_ast_node *create_function_argument_ast_node() {
-	function_argument_ast_node *fan = malloc(sizeof(*fan));
-	if (!fan) {
-		perror("malloc: failed to allocate memory for function_argument_ast_node");
-		exit(1);
-	}
+	function_argument_ast_node *fan = allocate_ast_node(sizeof(function_argument_ast_node), "function argument");
 	fan->name = NULL;
 	fan->value = NULL;
 	return fan;
 }
 
 function_callee_ast_node *create_function_callee_ast_node() {
-	function_callee_ast_node *fcn = malloc(sizeof(*fcn));
-	if (!fcn) {
-		perror("malloc: failed to allocate memory for function_callee_ast_node");
-		exit(1);
-	}
+	function_callee_ast_node *fcn = allocate_ast_node(sizeof(function_callee_ast_node), "function callee");
 	fcn->callee = NULL;
 	fcn->args = NULL;
 	return fcn;
 }
 
 block_ast_node *create_block_ast_node() {
-	block_ast_node *bn = malloc(sizeof(*bn));
-	if (!bn) {
-		perror("malloc: failed to allocate memory for block_ast_node");
-		exit(1);
-	}
+	block_ast_node *bn = allocate_ast_node(sizeof(block_ast_node), "block");
 	bn->statements = NULL;
 	return bn;
 }
 
 function_prototype_ast_node *create_function_prototype_ast_node() {
-	function_prototype_ast_node *fpn = malloc(sizeof(*fpn));
-	if (!fpn) {
-		perror("malloc: failed to allocate memory for function_prototype_ast_node");
-		exit(1);
-	}
+	function_prototype_ast_node *fpn = allocate_ast_node(sizeof(function_prototype_ast_node), "function prototype");
 	fpn->args = NULL;
 	fpn->name = NULL;
 	return fpn;
 }
 
 enumeration_ast_node *create_enumeration_ast_node() {
-	enumeration_ast_node *en = malloc(sizeof(*en));
-	if (!en) {
-		perror("malloc: failed to create enum ast node");
-		exit(1);
-	}
+	enumeration_ast_node *en = allocate_ast_node(sizeof(enumeration_ast_node), "enum");
 	en->name = NULL;
 	en->enum_items = create_vector();
 	return en;
 }
 
 enum_item *create_enum_item(char *name, int value) {
-	enum_item *ei = malloc(sizeof(*ei));
-	if (!ei) {
-		perror("malloc: failed to allocate memory for enum item");
-		exit(1);
-	}
+	enum_item *ei = allocate_ast_node(sizeof(enum_item), "enum item");
 	ei->name = name;
 	ei->value = value;
 	return ei;
 }
 
 function_ast_node *create_function_ast_node() {
-	function_ast_node *fn = malloc(sizeof(*fn));
-	if (!fn) {
-		perror("malloc: failed to allocate memory for function_ast_node");
-		exit(1);
-	}
+	function_ast_node *fn = allocate_ast_node(sizeof(function_ast_node), "function");
 	fn->fpn = NULL;
 	fn->body = NULL;
 	return fn;
 }
 
 for_loop_ast_node *create_for_loop_ast_node() {
-	for_loop_ast_node *fln = malloc(sizeof(*fln));
-	if (!fln) {
-		perror("malloc: failed to allocate memory for for_loop_ast_node");
-		exit(1);
-	}
+	for_loop_ast_node *fln = allocate_ast_node(sizeof(for_loop_ast_node), "for loop");
 	return fln;
 }
 
 structure_ast_node *create_structure_ast_node() {
-	structure_ast_node *sn = malloc(sizeof(*sn));
-	if (!sn) {
-		perror("malloc: failed to allocate memory for structure_ast_node");
-		exit(1);
-	}
+	structure_ast_node *sn = allocate_ast_node(sizeof(structure_ast_node), "struct");
 	sn->statements = create_vector();
 	return sn;
 }
 
 void destroy_variable_reassign_ast_node(variable_reassignment_ast_node *vrn) {
-	if (!vrn) {
-		if (!vrn->expr) {
+	if (vrn) {
+		if (vrn->expr) {
 			destroy_expression_ast_node(vrn->expr);
 		}
 		free(vrn);
@@ -220,22 +166,22 @@ void destroy_variable_reassign_ast_node(variable_reassignment_ast_node *vrn) {
 }
 
 void destroy_for_loop_ast_node(for_loop_ast_node *fln) {
-	if (!fln) {
+	if (fln) {
 		free(fln);
 		fln = NULL;
 	}
 }
 
 void destroy_break_ast_node(break_ast_node *bn) {
-	if (!bn) {
+	if (bn) {
 		free(bn);
 		bn = NULL;
 	}
 }
 
 void destroy_statement_ast_node(statement_ast_node *sn) {
-	if (!sn) {
-		if (!sn->data) {
+	if (sn) {
+		if (sn->data) {
 			switch (sn->type) {
 				case VARIABLE_DEF_AST_NODE:
 					destroy_variable_define_ast_node(sn->data);
@@ -273,8 +219,8 @@ void destroy_statement_ast_node(statement_ast_node *sn) {
 }
 
 void destroy_function_return_ast_node(function_return_ast_node *frn) {
-	if (!frn) {
-		if (!frn->return_vals) {
+	if (frn) {
+		if (frn->return_vals) {
 			int i;
 			for (i = 0; i < frn->return_vals->size; i++) {
 				expression_ast_node *temp = get_vector_item(frn->return_vals, i);
@@ -290,11 +236,11 @@ void destroy_function_return_ast_node(function_return_ast_node *frn) {
 }
 
 void destroy_expression_ast_node(expression_ast_node *expr) {
-	if (!expr) {
-		if (!expr->lhand) {
+	if (expr) {
+		if (expr->lhand) {
 			destroy_expression_ast_node(expr->lhand);
 		}
-		if (!expr->rhand) {
+		if (expr->rhand) {
 			destroy_expression_ast_node(expr->rhand);
 		}
 		free(expr);
@@ -303,18 +249,18 @@ void destroy_expression_ast_node(expression_ast_node *expr) {
 }
 
 void destroy_variable_define_ast_node(variable_define_ast_node *vdn) {
-	if (!vdn) {
+	if (vdn) {
 		free(vdn);
 		vdn = NULL;
 	}
 }
 
 void destroy_variable_declare_ast_node(variable_declare_ast_node *vdn) {
-	if (!vdn) {
-		if (!vdn->vdn) {
+	if (vdn) {
+		if (vdn->vdn) {
 			destroy_variable_define_ast_node(vdn->vdn);
 		}
-		if (!vdn->expressions) {
+		if (vdn->expressions) {
 			int i;
 			for (i = 0; i < vdn->expressions->size; i++) {
 				expression_ast_node *expr = get_vector_item(vdn->expressions, i);
@@ -330,8 +276,8 @@ void destroy_variable_declare_ast_node(variable_declare_ast_node *vdn) {
 }
 
 void destroy_function_argument_ast_node(function_argument_ast_node *fan) {
-	if (!fan) {
-		if (!fan->value) {
+	if (fan) {
+		if (fan->value) {
 			destroy_expression_ast_node(fan->value);
 		}
 		free(fan);
@@ -340,8 +286,8 @@ void destroy_function_argument_ast_node(function_argument_ast_node *fan) {
 }
 
 void destroy_block_ast_node(block_ast_node *bn) {
-	if (!bn) {
-		if (!bn->statements) {
+	if (bn) {
+		if (bn->statements) {
 			destroy_vector(bn->statements);
 		}
 		free(bn);
@@ -350,8 +296,8 @@ void destroy_block_ast_node(block_ast_node *bn) {
 }
 
 void destroy_infinite_loop_ast_node(infinite_loop_ast_node *iln) {
-	if (!iln) {
-		if (!iln->body) {
+	if (iln) {
+		if (iln->body) {
 			destroy_block_ast_node(iln->body);
 		}
 		free(iln);
@@ -360,8 +306,8 @@ void destroy_infinite_loop_ast_node(infinite_loop_ast_node *iln) {
 }
 
 void destroy_function_prototype_ast_node(function_prototype_ast_node *fpn) {
-	if (!fpn) {
-		if (!fpn->args) {
+	if (fpn) {
+		if (fpn->args) {
 			int i;
 			for (i = 0; i < fpn->args->size; i++) {
 				statement_ast_node *sn = get_vector_item(fpn->args, i);
@@ -380,11 +326,11 @@ void destroy_function_prototype_ast_node(function_prototype_ast_node *fpn) {
 }
 
 void destroy_function_ast_node(function_ast_node *fn) {
-	if (!fn) {
-		if (!fn->fpn) {
+	if (fn) {
+		if (fn->fpn) {
 			destroy_function_prototype_ast_node(fn->fpn);
 		}
-		if (!fn->body) {
+		if (fn->body) {
 			destroy_block_ast_node(fn->body);
 		}
 		free(fn);
@@ -393,8 +339,8 @@ void destroy_function_ast_node(function_ast_node *fn) {
 }
 
 void destroy_function_callee_ast_node(function_callee_ast_node *fcn) {
-	if (!fcn) {
-		if (!fcn->args) {
+	if (fcn) {
+		if (fcn->args) {
 			destroy_vector(fcn->args);
 		}
 		free(fcn);
@@ -403,11 +349,11 @@ void destroy_function_callee_ast_node(function_callee_ast_node *fcn) {
 }
 
 void destroybool_expression_ast_node(bool_expression_ast_node *ben) {
-    if (!ben) {
-        if(!ben->lhand) {
+    if (ben) {
+        if(ben->lhand) {
             destroybool_expression_ast_node(ben->lhand);
         }
-        if(!ben->rhand) {
+        if(ben->rhand) {
             destroybool_expression_ast_node(ben->rhand);
         }
         free(ben);
@@ -416,8 +362,8 @@ void destroybool_expression_ast_node(bool_expression_ast_node *ben) {
 }
 
 void destroy_structure_ast_node(structure_ast_node *sn) {
-	if (!sn) {
-		if (!sn->statements) {
+	if (sn) {
+		if (sn->statements) {
 			destroy_vector(sn->statements);
 		}
 		free(sn);
@@ -426,8 +372,8 @@ void destroy_structure_ast_node(structure_ast_node *sn) {
 }
 
 void destroy_enumeration_ast_node(enumeration_ast_node *en) {
-	if (!en) {
-		if (!en->enum_items) {
+	if (en) {
+		if (en->enum_items) {
 			int i;
 			for (i = 0; i < en->enum_items->size; i++) {
 				destroy_enum_item(get_vector_item(en->enum_items, i));
@@ -440,7 +386,7 @@ void destroy_enumeration_ast_node(enumeration_ast_node *en) {
 }
 
 void destroy_enum_item(enum_item *ei) {
-	if (!ei) {
+	if (ei) {
 		free(ei);
 		ei = NULL;
 	}
@@ -571,12 +517,12 @@ char parse_operand(parser *parser) {
 
 enumeration_ast_node *parse_enumeration_ast_node(parser *parser) {
 	enumeration_ast_node *en = create_enumeration_ast_node();
-	
+
 	match_token_type_and_content(parser, IDENTIFIER, ENUM_KEYWORD); // ENUM
 
 	if (check_token_type(parser, IDENTIFIER, 0)) {
-		en->name = consume_token(parser);	
-		
+		en->name = consume_token(parser);
+
 		if (check_token_type_and_content(parser, SEPARATOR, "{", 0)) {
 			consume_token(parser);
 
@@ -586,7 +532,7 @@ enumeration_ast_node *parse_enumeration_ast_node(parser *parser) {
 					break;
 				}
 
-				
+
 				// ENUM_ITEM = 0
 				if (check_token_type(parser, IDENTIFIER, 0)) {
 					token *enum_item_name = consume_token(parser);
@@ -608,7 +554,7 @@ enumeration_ast_node *parse_enumeration_ast_node(parser *parser) {
 								if (!strcmp(prev_item_name, enum_item_name->content)) {
 									error_message("error: duplicate enum items: \"%s\"", enum_item_name->content, prev_item_name);
 								}
-	
+
 								// validate values are not duplicate
 								if (prev_item_value == enum_item_value_as_int) {
 									error_message("error: enum values cannot be the same: `%s = %d`", enum_item_name->content, enum_item_value_as_int);
@@ -637,7 +583,7 @@ enumeration_ast_node *parse_enumeration_ast_node(parser *parser) {
 							if (!strcmp(prev_item_name, enum_item_name->content)) {
 								error_message("error: duplicate enum items: \"%s\"", enum_item_name->content, prev_item_name);
 							}
-						} 
+						}
 
 						enum_item *item = create_enum_item(enum_item_name->content, enum_item_value_as_int);
 						push_back_item(en->enum_items, item);
@@ -691,16 +637,16 @@ structure_ast_node *parse_structure_ast_node(parser *parser) {
 statement_ast_node *parse_for_loop_ast_node(parser *parser) {
 	/**
 	 * for int x:(0, 10, 2) {
-	 * 
+	 *
 	 * }
 	 */
 
 	// for token
 	match_token_type_and_content(parser, IDENTIFIER, FOR_LOOP_KEYWORD);		// FOR
-	
+
 	token *type_tok = match_token_type(parser, IDENTIFIER);					// DATA_TYPE
 	data_type type_raw = match_token_type_to_data_type(parser, type_tok);
-	
+
 	token *indexName = match_token_type(parser, IDENTIFIER);					// INDEX_NAME
 
 	match_token_type_and_content(parser, OPERATOR, ":");						// PARAMS
@@ -737,7 +683,7 @@ statement_ast_node *parse_for_loop_ast_node(parser *parser) {
 				}
 			}
 			else if (check_token_type(parser, NUMBER, 0)) {
-				push_back_item(fln->params, consume_token(parser));	
+				push_back_item(fln->params, consume_token(parser));
 				if (check_token_type_and_content(parser, SEPARATOR, ",", 0)) {
 					if (check_token_type_and_content(parser, SEPARATOR, ")", 1)) {
 						error_message("error: trailing comma in for loop declaration!\n");
@@ -764,8 +710,8 @@ statement_ast_node *parse_for_loop_ast_node(parser *parser) {
 
 			paramCount++;
 		}
-		while (true);	
-	
+		while (true);
+
 		fln->body = parse_block_ast_node(parser);
 
 		statement_ast_node *sn = create_statement_ast_node();
@@ -852,7 +798,7 @@ void *parse_variable_ast_node(parser *parser, bool global) {
 	// name of the variable
 	token *variable_name_token = match_token_type(parser, IDENTIFIER);
 
-	// store def	
+	// store def
 	variable_define_ast_node *def = create_variable_define_ast_node();
 	def->tuple_values = create_vector();
 
@@ -935,7 +881,7 @@ void *parse_variable_ast_node(parser *parser, bool global) {
 		}
 
 		parse_optional_semi_colon(parser);
-		
+
 		if (global) {
 			prepare_ast_node(parser, dec, VARIABLE_DEC_AST_NODE);
 			return dec;
@@ -955,7 +901,7 @@ void *parse_variable_ast_node(parser *parser, bool global) {
 		def->type = data_type_raw;
 		def->name = variable_name_token;
 		def->is_global = global;
-		
+
 		if (global) {
 			prepare_ast_node(parser, def, VARIABLE_DEF_AST_NODE);
 			return def;
@@ -974,7 +920,7 @@ block_ast_node *parse_block_ast_node(parser *parser) {
 	block->statements = create_vector();
 
 	match_token_type_and_content(parser, SEPARATOR, "{");
-	
+
 	do {
 		// check if block is empty before we try parse some statements
 		if (check_token_type_and_content(parser, SEPARATOR, "}", 0)) {
@@ -991,16 +937,16 @@ block_ast_node *parse_block_ast_node(parser *parser) {
 
 statement_ast_node *parse_infinite_loop_ast_node(parser *parser) {
 	match_token_type(parser, IDENTIFIER);
-	
-	block_ast_node *body = parse_block_ast_node(parser);	
-	
+
+	block_ast_node *body = parse_block_ast_node(parser);
+
 	infinite_loop_ast_node *iln = create_infinite_loop_ast_node();
 	iln->body = body;
 
 	statement_ast_node *sn = create_statement_ast_node();
 	sn->data = iln;
 	sn->type = INFINITE_LOOP_AST_NODE;
-	
+
 	return sn;
 }
 
@@ -1244,10 +1190,10 @@ void parse_optional_semi_colon(parser *parser) {
 }
 
 statement_ast_node *parse_statement_ast_node(parser *parser) {
-	// ret keyword	
+	// ret keyword
 	if (check_token_type_and_content(parser, IDENTIFIER, RETURN_KEYWORD, 0)) {
 		statement_ast_node *sn = create_statement_ast_node();
-		sn->data = parse_return_statement_ast_node(parser); 
+		sn->data = parse_return_statement_ast_node(parser);
 		sn->type = FUNCTION_RET_AST_NODE;
 		return sn;
 	}
@@ -1283,7 +1229,7 @@ statement_ast_node *parse_statement_ast_node(parser *parser) {
 	}
 	else if (check_token_type(parser, IDENTIFIER, 0)) {
 		token *tok = peek_at_token_stream(parser, 0);
-		
+
 		// variable reassignment
 		if (check_token_type_and_content(parser, OPERATOR, "=", 1)) {
 			statement_ast_node *sn = create_statement_ast_node();
@@ -1352,7 +1298,7 @@ void start_parsing_token_stream(parser *parser) {
 				else if (check_token_type_and_content(parser, IDENTIFIER, ENUM_KEYWORD, 0)) {
 					prepare_ast_node(parser, parse_enumeration_ast_node(parser), ENUM_AST_NODE);
 				}
-				else if (check_token_type_is_valid_data_type(parser, tok) 
+				else if (check_token_type_is_valid_data_type(parser, tok)
 					|| check_token_type_and_content(parser, IDENTIFIER, CONSTANT_KEYWORD, 0)) {
 					parse_variable_ast_node(parser, true);
 				}
@@ -1433,7 +1379,7 @@ void remove_ast_node(ast_node *ast_node) {
 			case EXPRESSION_AST_NODE:
 				destroy_expression_ast_node(ast_node->data);
 				break;
-			case VARIABLE_DEF_AST_NODE: 
+			case VARIABLE_DEF_AST_NODE:
 				destroy_variable_define_ast_node(ast_node->data);
 				break;
 			case VARIABLE_DEC_AST_NODE:
