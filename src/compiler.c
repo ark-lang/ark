@@ -137,10 +137,10 @@ LLVMValueRef generate_function_prototype_code(compiler *self, function_prototype
 		}
 
 		// get the first argument for now, tuples aren't supported just yet
-		data_type *arg = get_vector_item(fpn->ret, 0);
-		printf("%d\n", *arg);
+		data_type_w *arg = get_vector_item(fpn->ret, 0);
+		printf("%d\n", arg->value);
 
-		LLVMTypeRef func_type = LLVMFunctionType(get_type_ref(*arg), params, arg_count, false);
+		LLVMTypeRef func_type = LLVMFunctionType(get_type_ref(arg->value), params, arg_count, false);
 		
 		proto = LLVMAddFunction(self->module, fpn->name->content, func_type);
 		LLVMSetLinkage(proto, LLVMExternalLinkage);
