@@ -3,7 +3,7 @@ LCC = clang
 LCXX = clang++
 
 # local stuff
-C_FLAGS = `llvm-config --cflags` -Wall -Iincludes/ -std=c99 -g
+C_FLAGS = `llvm-config --cflags` -Wall -Iincludes/ -g
 LLVM_FLAGS = `llvm-config --libs --cflags --ldflags core analysis executionengine jit interpreter native` -lz -lncurses
 
 TRAVIS_FLAGS = -ldl -ltinfo -pthread

@@ -546,7 +546,7 @@ enumeration_ast_node *parse_enumeration_ast_node(parser *parser) {
 							enum_item *item = create_enum_item(enum_item_name->content, enum_item_value_as_int);
 							push_back_item(en->enum_items, item);
 
-							parse_optional_semi_colon(parser);
+							parse_semi_colon(parser);
 						}
 						else {
 							token *errorneous_token = consume_token(parser);
@@ -570,7 +570,7 @@ enumeration_ast_node *parse_enumeration_ast_node(parser *parser) {
 						enum_item *item = create_enum_item(enum_item_name->content, enum_item_value_as_int);
 						push_back_item(en->enum_items, item);
 
-						parse_optional_semi_colon(parser);
+						parse_semi_colon(parser);
 					}
 				}
 
@@ -604,7 +604,7 @@ structure_ast_node *parse_structure_ast_node(parser *parser) {
 		do {
 			if (check_token_type_and_content(parser, SEPARATOR, "}", 0)) {
 				consume_token(parser);
-				parse_optional_semi_colon(parser);
+				parse_semi_colon(parser);
 				break;
 			}
 
@@ -862,7 +862,7 @@ void *parse_variable_ast_node(parser *parser, bool global) {
 			push_back_item(dec->expressions, parse_expression_ast_node(parser));
 		}
 
-		parse_optional_semi_colon(parser);
+		parse_semi_colon(parser);
 
 		if (global) {
 			prepare_ast_node(parser, dec, VARIABLE_DEC_AST_NODE);
@@ -876,7 +876,7 @@ void *parse_variable_ast_node(parser *parser, bool global) {
 		return sn;
 	}
 	else {
-		parse_optional_semi_colon(parser);
+		parse_semi_colon(parser);
 
 		// create variable define ast_node
 		def->is_constant = is_constant;
@@ -1106,7 +1106,7 @@ function_callee_ast_node *parse_function_callee_ast_node(parser *parser) {
 		}
 		while (true);
 
-		parse_optional_semi_colon(parser);
+		parse_semi_colon(parser);
 
 		// woo we got the function
 		function_callee_ast_node *fcn = create_function_callee_ast_node();
@@ -1134,7 +1134,7 @@ function_return_ast_node *parse_return_statement_ast_node(parser *parser) {
 		do {
 			if (check_token_type_and_content(parser, OPERATOR, ">", 0)) {
 				consume_token(parser);
-				parse_optional_semi_colon(parser);
+				parse_semi_colon(parser);
 				return frn;
 			}
 
@@ -1157,7 +1157,7 @@ function_return_ast_node *parse_return_statement_ast_node(parser *parser) {
 		frn->num_of_return_values++;
 
 		// consume semi colon if present
-		parse_optional_semi_colon(parser);
+		parse_semi_colon(parser);
 		return frn;
 	}
 
@@ -1165,9 +1165,12 @@ function_return_ast_node *parse_return_statement_ast_node(parser *parser) {
 	return NULL;
 }
 
-void parse_optional_semi_colon(parser *parser) {
+void parse_semi_colon(parser *parser) {
 	if (check_token_type_and_content(parser, SEPARATOR, ";", 0)) {
 		consume_token(parser);
+	}
+	else {
+		error_messager("error: missing semi-colon!\n");
 	}
 }
 
@@ -1205,7 +1208,7 @@ statement_ast_node *parse_statement_ast_node(parser *parser) {
 		sn->data = create_break_ast_node();
 		sn->type = BREAK_AST_NODE;
 
-		parse_optional_semi_colon(parser);
+		parse_semi_colon(parser);
 
 		return sn;
 	}
@@ -1250,7 +1253,7 @@ variable_reassignment_ast_node *parse_reassignment_statement_ast_node(parser *pa
 
 			expression_ast_node *expr = parse_expression_ast_node(parser);
 
-			parse_optional_semi_colon(parser);
+			parse_semi_colon(parser);
 
 			variable_reassignment_ast_node *vrn = create_variable_reassign_ast_node();
 			vrn->name = variableName;
