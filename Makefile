@@ -2,16 +2,16 @@
 LCC = clang
 LCXX = clang++
 
-C_FLAGS = `llvm-config --cflags` -Wall -Iincludes/ -std=c99
-LLVM_FLAGS = `llvm-config --libs --cflags --ldflags core analysis executionengine jit interpreter native`
+C_FLAGS = `llvm-config --cflags` -Wall -Iincludes/ -std=c99 -g
+LLVM_FLAGS = `llvm-config --libs --cflags --ldflags core analysis executionengine jit interpreter native` -lz -lncurses
 SOURCES = src/*.c
 
-BUILD_COMMAND = 
+BUILD_COMMAND =
 
 ifeq ($(CC),gcc)
 	BUILD_COMMAND = g++ *.o ${LLVM_FLAGS} -o j4 -ldl -ltinfo -pthread
 else
-	BUILD_COMMAND = ${CC}++ *.o ${LLVM_FLAGS} -o j4 
+	BUILD_COMMAND = ${CC}++ *.o ${LLVM_FLAGS} -o j4
 endif
 
 all: ${SOURCES}
@@ -24,7 +24,7 @@ travis: ${SOURCES}
 	${BUILD_COMMAND}
 	-rm *.o
 
-clean: 
+clean:
 	-rm *.o
 
 .PHONY: clean
