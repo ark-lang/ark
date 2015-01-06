@@ -118,5 +118,8 @@ void destroy_jayfor(jayfor *self) {
 	destroy_lexer(self->lexer);
 	destroy_parser(self->parser);
 	destroy_compiler(self->compiler);
-	free(self);
+	if (self) {
+		free(self);
+		self = NULL;
+	}
 }
