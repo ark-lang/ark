@@ -1,5 +1,5 @@
 fn test(int a, int b): int {
-	ret (a + b)	
+	ret (a + b);
 }
 
 test( 5, 5);
