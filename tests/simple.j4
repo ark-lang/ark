@@ -1,3 +1,4 @@
 fn main(): double {
 	int x;
+	return x;
 }
