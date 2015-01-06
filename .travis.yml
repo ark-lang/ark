@@ -5,11 +5,3 @@ compiler:
 script: make travis
 notifications:
   email: false
-deploy:
-  provider: releases
-  api-key: "bceac77b481952c3e81226d5a892927a0a2ce0eb"
-  file: "j4"
-  skip_cleanup: true
-  on:
-    tags: false
-    all_branches: true
