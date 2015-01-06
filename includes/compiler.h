@@ -44,7 +44,7 @@ typedef struct {
 typedef struct {
 	LLVMValueRef allocation;
 	char *name;
-	data_type_w *type;
+	data_type type;
 } variable_info;
 
 variable_info *create_variable_info();
