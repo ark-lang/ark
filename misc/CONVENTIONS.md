@@ -19,9 +19,9 @@ All comments must come **before** the line that is being talked about.
 Multi-line comments must be as follows:
 
     /* this comment is to demonstrate
-    * multi-line commenting conventions
-    * for the Jayfor project.
-    */
+     * multi-line commenting conventions
+     * for the Jayfor project.
+     */
 
 ===
 
