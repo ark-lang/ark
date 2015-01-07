@@ -92,7 +92,7 @@ LLVMValueRef evaluate_expression_ast_node(compiler *self, expression_ast_node *e
 }
 
 LLVMValueRef generate_variable_definition_code(compiler *self, variable_declare_ast_node *vdn) {
-	
+	error_message("definitions unimplemented\n");
 	return NULL;
 }
 
