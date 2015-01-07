@@ -1408,12 +1408,6 @@ void remove_ast_node(ast_node *ast_node) {
 
 void destroy_parser(parser *parser) {
 	int i;
-	for (i = 0; i < parser->token_stream->size; i++) {
-		token *tok = get_vector_item(parser->token_stream, i);
-		destroy_token(tok);
-	}
-	destroy_vector(parser->token_stream);
-
 	for (i = 0; i < parser->parse_tree->size; i++) {
 		ast_node *ast_node = get_vector_item(parser->parse_tree, i);
 		remove_ast_node(ast_node);
