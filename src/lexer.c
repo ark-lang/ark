@@ -226,6 +226,10 @@ void get_next_token(Lexer *lexer) {
 
 void destroy_lexer(Lexer *lexer) {
 	if (lexer) {
+		int i;
+		for (i = 0; i < lexer->token_stream->size; i++) {
+			printf("%d\n", i);
+		}
 		free(lexer);
 	}
 }
