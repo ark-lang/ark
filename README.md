@@ -29,6 +29,9 @@ say a more developed language like Rust.
 As we are a long way from hitting that stable 1.0, we have more time to experiment with the
 language, which means you can have a say in new syntax ideas, and so on.
 
+**Please read the `CONVENTIONS` file in the `misc/` folder to understand the coding patterns to be followed so as to maintain
+readability and uniformity throughout the project, before making any contributions.**
+
 Send a pull request to [http://github.com/jayfor-lang/jayfor](http://github.com/jayfor-lang/jayfor). Use [http://github.com/jayfor-lang/jayfor/issues](http://github.com/jayfor-lang/jayfor/issues) for discussion. Please note that we consider that you have granted non-exclusive right to your contributed code under the MIT License.
 **Please conform to the programming rules and write short, but meaningful commit messages.**
 
