@@ -227,7 +227,7 @@ typedef enum {
  */
 typedef struct {
 	data_type type;			// data type
-	token *indexName;		// index name
+	token *index_name;		// index name
 	vector *params;			// parameters (start, end, step)
 	block_ast_node *body;	// contents of for loop
 } for_loop_ast_node;
