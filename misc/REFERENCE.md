@@ -35,6 +35,7 @@ TO CHANGE. NOTHING IS FINAL*
 * Garbage Collection
 * No Pointers, pass by value, arrays passed by reference
 * Dynamic Memory Allocation, although we might try do Rusts lifetime thing
+* Statically Linked
 
 # <a name="lexical_structure"></a>Lexical Structure
 ## <a name="semi_colons"></a>Semi Colons

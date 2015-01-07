@@ -60,8 +60,11 @@ void skip_layout_and_comments(Lexer *lexer) {
 		while (true) {
 			consume_character(lexer);
 			if (lexer->char_index == '*' && peek_ahead(lexer, 1) == '/') {
+				// consume the comment symbols
 				consume_character(lexer);
 				consume_character(lexer);
+
+				// eat layout stuff like space etc
 				while (is_layout(lexer->char_index)) {
 					consume_character(lexer);
 				}
@@ -171,7 +174,10 @@ void get_next_token(Lexer *lexer) {
 	if (is_end_of_input(lexer->char_index)) {
 		lexer->current_token->type = END_OF_FILE;
 		lexer->current_token->content = "<END_OF_FILE>";
+		
 		lexer->running = false;	// stop lexing
+
+		// push last item onto token stream
 		push_back_item(lexer->token_stream, lexer->current_token);
 		return;
 	}
