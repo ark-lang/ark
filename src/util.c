@@ -46,8 +46,7 @@ const char *get_filename_ext(const char *filename) {
 }
 
 void *safe_malloc(size_t size) {
-	void *ret;
-	ret = malloc(size);
+	void *ret = malloc(size);
 	if (!ret) {
 		fprintf(stderr, "malloc: failed to allocate %ld bytes of memory: %s\n", (long)size, strerror(errno));
 		exit(1);
