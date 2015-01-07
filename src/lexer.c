@@ -181,7 +181,7 @@ void get_next_token(Lexer *lexer) {
 		push_back_item(lexer->token_stream, lexer->current_token);
 		return;
 	}
-	if (is_letter(lexer->char_index)) {
+	if (is_letter(lexer->char_index) || is_digit(lexer->char_index) || lexer->char_index == '_') {
 		lexer->current_token->type = IDENTIFIER;
 		recognize_identifier_token(lexer);
 	}
