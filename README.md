@@ -1,15 +1,6 @@
 # Jayfor - [![Build Status](https://travis-ci.org/jayfor-lang/jayfor.svg?branch=master)](https://travis-ci.org/jayfor-lang/jayfor)
 Jayfor is a programming language written in C.
 
-# Table of Contents/Resources
-* [Proposals](#proposals)
-* [Requirements](#requirements)
-* [Contributing](#contributing)
-* [IRC](#IRC)
-* [About](#about)
-* [Reference](misc/REFERENCE.md)
-* [License](#license)
-
 # <a name="proposals"></a>Proposing Ideas
 If you have an idea for the language, post an issue with the format: `Proposal: proposal summary` into the [issues](http://github.com/jayfor-lang/jayfor/issues) section of the repository, for example:
 
@@ -22,19 +13,6 @@ Please tag any proposals with the "proposal" label!
 * Clang 3.5
 * LLVM 3.5 
 
-# <a name="contributing"></a>Contributing
-## Why should I contribute?
-Jayfor is a programming language in the early stages, so it's a lot easier to work on than
-say a more developed language like Rust.
-As we are a long way from hitting that stable 1.0, we have more time to experiment with the
-language, which means you can have a say in new syntax ideas, and so on.
-
-**Please read the `CONVENTIONS` file in the `misc/` folder to understand the coding patterns to be followed so as to maintain
-readability and uniformity throughout the project, before making any contributions.**
-
-Send a pull request to [http://github.com/jayfor-lang/jayfor](http://github.com/jayfor-lang/jayfor). Use [http://github.com/jayfor-lang/jayfor/issues](http://github.com/jayfor-lang/jayfor/issues) for discussion. Please note that we consider that you have granted non-exclusive right to your contributed code under the MIT License.
-**Please conform to the programming rules and write short, but meaningful commit messages.**
-
 # <a name="IRC"></a>IRC
 We have an IRC channel, this is mostly where we discuss development related
 issues, syntax styles, and so on. Interested in contributing, come over
@@ -45,37 +23,6 @@ to our IRC channel:
     channel:    ##jayfor
 
 Since there aren't many of us, we're mostly active around 4pm GMT on weekdays.
-
-# <a name="about"></a>About
-Jayfor is a programming language written in C. It is still under
-heavy development. Jayfor is influenced from languages like Rust,
-C, C++, and Java. We like to keep things simple, safe and fast,
-but maintain a syntactically beautiful language.
-You can view the snippet of code below for a basic 'feel' of the language.
-
-    // this is no longer a test for while loops
-    // just some random code for testing
-
-    int a = (5 + 5);
-    int z = a;
-    int a;
-    char b = 'a';
-
-    fn add(int a, int b): int {
-        return (a + b);
-    }
-
-    fn test(int a, int b, str x): <int, float, str> {
-        for int whatever:(10, 0) {
-            add(a, b);
-        }
-
-        return <a, 3.2, "test">;
-    }
-
-    fn main(int a, int b): void {
-        test(5, 5, "rand");
-    }
 
 ## <a name="building"></a>Building
 Building is easy:
