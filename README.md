@@ -11,7 +11,7 @@ Jayfor is a programming language written in C.
 * [License](#license)
 
 # <a name="proposals"></a>Proposing Ideas
-If you have an idea for the language, post an issue with the format: `Proposal: proposal summary` into the [issues](http://github.com/jayfor-lang/jayfor/issues) section of the repository, for example:
+If you have an idea for the language, post an issue with the format of: `Proposal: proposal summary` into the [issues](http://github.com/jayfor-lang/jayfor/issues) section of the repository, for example:
 
     Proposal: add X to this language because Y
     Proposal: add X to this language to replace Y
