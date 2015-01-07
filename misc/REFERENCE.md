@@ -39,9 +39,7 @@ TO CHANGE. NOTHING IS FINAL*
 
 # <a name="lexical_structure"></a>Lexical Structure
 ## <a name="semi_colons"></a>Semi Colons
-It's important to note that semi colons are optional in the Jayfor programming language. This feature
-means that you are less likely to slip up on a "missing semi-colon" error. However, you should keep it
-consistent and stick with either no semi-colons or semi-colons.
+Statements in Jayfor are terminated by semicolons. 
 
 ## <a name="comments"></a>Comments
 Comments in Jayfor code follow the general C style of line and block comments. Nested
