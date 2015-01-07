@@ -48,10 +48,10 @@ and one forward slash:
 ## <a name="keywords"></a>Keywords
 
 	int 	bool	float	str 	void
-	enum	struct 	ret 	const 	true
+	enum	struct 	return 	const 	true
 	false 	match 	while 	for 	do
 	if 		else 	unsafe 	fn 		tup
-	char	break
+	char	break	continue
 
 ## <a name="expressions"></a>Expressions
 The following arithmetic operations are currently supported:
@@ -78,7 +78,7 @@ A function must also have a return type, which defines what value the function w
 the caller. This is specified after the colon operator, like so:
 
 	fn add(int a, int b): int {
-		ret (a + b);
+		return (a + b);
 	}
 
 ### <a name="tuples"></a>Tuples
@@ -95,16 +95,16 @@ statement must also follow this pattern:
 
 	fn get_population(str location): <int, int, int> {
 		if location == "New York" {
-			ret <5, 5, 5>;
+			return <5, 5, 5>;
 		}
-		ret <0, 0, 0>;
+		return <0, 0, 0>;
 	}
 
 ### <a name="single_line_functions"></a>Single Line Functions
 If a function only has one return statement, you may simplify it with the `=>` operator. For
 example, a function that adds two integers can be simplified to:
 
-	fn add(int a, int b): int => ret (a + b);
+	fn add(int a, int b): int => return (a + b);
 
 ### <a name="unsafe_functions"></a>Unsafe Functions
 If a function is later on deemed unsafe, you may use the `unsafe` keyword to give a compile
