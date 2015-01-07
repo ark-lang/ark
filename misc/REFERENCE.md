@@ -27,6 +27,14 @@ TO CHANGE. NOTHING IS FINAL*
   * [Data Structures](#data_structures)
   	* [Enumeration](#enumeration)
 
+# General Stuff
+
+* Functions treated as second class objects
+* Near to no type system
+* Statically Typed
+* Garbage Collection
+* No Pointers, pass by value, arrays passed by reference
+* Dynamic Memory Allocation, although we might try do Rusts lifetime thing
 
 # <a name="lexical_structure"></a>Lexical Structure
 ## <a name="semi_colons"></a>Semi Colons
@@ -126,6 +134,19 @@ curly `{}` braces. Within the braces, a list of statements are specified, which 
 if the aforementioned condition is true:
 
 	if condition {
+
+	}
+
+#### Null Checking
+You can also use the ? operator to null check objects, like so:
+
+	if ?condition {
+		// this only executed if condition is not null
+	}
+
+As opposed to the typical
+
+	if condition != null {
 
 	}
 
