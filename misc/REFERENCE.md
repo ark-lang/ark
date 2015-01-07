@@ -119,6 +119,8 @@ time warning if an unsafe warning were to be called, i.e:
 
 	unsafe fn allocate_memory(int size): void {
 		// some dangerous memory allocation
+		// some old code that was demmed dangerous
+		// whatever
 	}
 
 If a developer were to call this function, a warning would be printed to the console on compile
@@ -181,47 +183,50 @@ and a pair of curly `{}` braces:
 
 ### <a name="for"></a>For Loops
 The for loop has been simplified from its traditional syntax. A for loop is specified with the
-`for` keyword, a data type (int, float, etc...), and an index to keep track of the current
+`for` keyword, and an index to keep track of the current
 iteration. If you do not care about what iteration you are on, this can be replaced with an
 underscore `_`. The for loop must also be given a list of 2 - 3 parameters, the start of the loop,
 the end of the loop, and the step. The loops step is how much the `index` will be incremented by
 every iteration. It is an optional parameter, if no step is supplied it will default to either positive
-or negative 1 -- this depends on what the step and end arguments are. Here are some examples:
+or negative 1 -- this depends on what the step and end arguments are. Also note that there is no data
+type specified. This is because data types are inferred based on the values given in the parenthesis. Here are some examples:
 
-	for int index: (0, 10, 1) {
+	for index: (0, 10, 1) {
 
 	}
 
 	// same as the above
-	for int index: (0, 10) {
+	for index: (0, 10) {
 
 	} 
 
 	// start > end, which means that step
 	// wil decrement instead of increment
-	for int index: (10, 0) {
+	for index: (10, 0) {
 
 	}
 
-	for int _: (0, 10) {
+	for _: (0, 10) {
 		// we don't care about
 		// the index, just loop
 	}
 
 ### <a name="matches"></a>Matches
-We feel that the switch syntax is tedious, ugly, and not as semantic as it could be. Therefore we implemented
-a Rust like match:
+We feel that the switch syntax is tedious, ugly, and not as semantic as it could be. Therefore we implemented a Rust like match:
 
 	int value_to_match = 23;
 	int value = 5;
 	int another_value = 23;
 
 	match value_to_match {
-		value {
+		value == 2 {
 			// this will be skipped
 		}
-		another_value {
+		another_value == 3 {
 			// this is the result
+		}
+		this_value == true {
+
 		}
 		_ {
 			// this is a "default" in case value_to_match was for example 64
@@ -234,8 +239,8 @@ A `struct` is a data structure defined with the keyword `struct`. Here is an
 example of a struct:
 
 	struct vector {
-		float x
-		float y
+		float x;
+		float y;
 	}
 
 	// structs can be defined like so
@@ -245,14 +250,14 @@ example of a struct:
 
 	// which is short hand for
 	vector vec;
-	vec.x = 10
-	vec.y = 10
+	vec.x = 10;
+	vec.y = 10;
 
 You can also define a struct with default values, like so:
 
 	struct vector {
-		float x = 0
-		float y = 0
+		float x = 0;
+		float y = 0;
 	}
 
 ### <a name="enumeration"></a>Enumeration
@@ -285,7 +290,7 @@ an equal sign, like so:
 
 Enumerations are accessed with the double-colon operator, similar to C++:
 
-	PET_TYPE::DOG
+	PET_TYPE::DOG;
 
 You can match enumerations or use them in if statements:
 
