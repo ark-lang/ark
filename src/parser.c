@@ -160,6 +160,8 @@ void destroy_variable_reassign_ast_node(variable_reassignment_ast_node *vrn) {
 
 void destroy_for_loop_ast_node(for_loop_ast_node *fln) {
 	if (fln) {
+		destroy_vector(fln->params);
+		destroy_block_ast_node(fln->body);
 		free(fln);
 	}
 }
@@ -180,36 +182,16 @@ void destroy_statement_ast_node(statement_ast_node *sn) {
 	if (sn) {
 		if (sn->data) {
 			switch (sn->type) {
-				case VARIABLE_DEF_AST_NODE:
-					destroy_variable_define_ast_node(sn->data);
-					break;
-				case VARIABLE_DEC_AST_NODE:
-					destroy_variable_declare_ast_node(sn->data);
-					break;
-				case FUNCTION_CALLEE_AST_NODE:
-					destroy_function_callee_ast_node(sn->data);
-					break;
-				case FUNCTION_RET_AST_NODE:
-					destroy_function_ast_node(sn->data);
-					break;
-				case VARIABLE_REASSIGN_AST_NODE:
-					destroy_variable_reassign_ast_node(sn->data);
-					break;
-				case FOR_LOOP_AST_NODE:
-					destroy_for_loop_ast_node(sn->data);
-					break;
-				case INFINITE_LOOP_AST_NODE:
-					destroy_infinite_loop_ast_node(sn->data);
-					break;
-				case BREAK_AST_NODE:
-					destroy_break_ast_node(sn->data);
-					break;
-				case CONTINUE_AST_NODE:
-					destroy_continue_ast_node(sn->data);
-					break;
-				case ENUM_AST_NODE:
-					destroy_enumeration_ast_node(sn->data);
-					break;
+				case VARIABLE_DEF_AST_NODE: destroy_variable_define_ast_node(sn->data); break;
+				case VARIABLE_DEC_AST_NODE: destroy_variable_declare_ast_node(sn->data); break;
+				case FUNCTION_CALLEE_AST_NODE: destroy_function_callee_ast_node(sn->data); break;
+				case FUNCTION_RET_AST_NODE: destroy_function_ast_node(sn->data); break;
+				case VARIABLE_REASSIGN_AST_NODE: destroy_variable_reassign_ast_node(sn->data); break;
+				case FOR_LOOP_AST_NODE: destroy_for_loop_ast_node(sn->data); break;
+				case INFINITE_LOOP_AST_NODE: destroy_infinite_loop_ast_node(sn->data); break;
+				case BREAK_AST_NODE: destroy_break_ast_node(sn->data); break;
+				case CONTINUE_AST_NODE: destroy_continue_ast_node(sn->data); break;
+				case ENUM_AST_NODE: destroy_enumeration_ast_node(sn->data); break;
 				default: break;
 			}
 		}
@@ -623,11 +605,9 @@ statement_ast_node *parse_for_loop_ast_node(parser *parser) {
 	 */
 
 	// for token
-	match_token_type_and_content(parser, IDENTIFIER, FOR_LOOP_KEYWORD);		// FOR
+	match_token_type_and_content(parser, IDENTIFIER, FOR_LOOP_KEYWORD);			// FOR KEYWORd
 
-	token *type_tok = match_token_type(parser, IDENTIFIER);					// DATA_TYPE
-	data_type type_raw = match_token_type_to_data_type(parser, type_tok);
-
+	// todo inferred data types
 	token *indexName = match_token_type(parser, IDENTIFIER);					// INDEX_NAME
 
 	match_token_type_and_content(parser, OPERATOR, ":");						// PARAMS
@@ -637,6 +617,7 @@ statement_ast_node *parse_for_loop_ast_node(parser *parser) {
 	fln->indexName = indexName;
 	fln->params = create_vector();
 
+	// consume the args
 	if (check_token_type_and_content(parser, SEPARATOR, "(", 0)) {
 		consume_token(parser);
 
