@@ -1,6 +1,6 @@
 #include "util.h"
 
-extern void debug_message(const char *fmt, ...) {
+void debug_message(const char *fmt, ...) {
 	if (DEBUG_MODE) {
 		va_list arg;
 		va_start(arg, fmt);
@@ -16,7 +16,7 @@ extern void debug_message(const char *fmt, ...) {
 	}
 }
 
-extern void error_message(const char *fmt, ...) {
+void error_message(const char *fmt, ...) {
 	va_list arg;
 	va_start(arg, fmt);
 	#if __linux || __APPLE__
@@ -31,7 +31,7 @@ extern void error_message(const char *fmt, ...) {
 	exit(1);
 }
 
-extern void primary_message(const char *fmt, ...) {
+void primary_message(const char *fmt, ...) {
 	va_list arg;
 	va_start(arg, fmt);
 	vfprintf(stdout, fmt, arg);
@@ -39,8 +39,18 @@ extern void primary_message(const char *fmt, ...) {
 	va_end(arg);
 } 
 
-extern const char *get_filename_ext(const char *filename) {
+const char *get_filename_ext(const char *filename) {
 	const char *dot = strrchr(filename, '.');
 	if (!dot || dot == filename) return "";
 	return dot + 1;
+}
+
+void *safe_malloc(size_t size) {
+	void *ret;
+	ret = malloc(size);
+	if (!ret) {
+		fprintf(stderr, "malloc: failed to allocate %ld bytes of memory: %s\n", (long)size, strerror(errno));
+		exit(1);
+	}
+	return ret;
 }
