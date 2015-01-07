@@ -1,18 +1,10 @@
 #include "stack.h"
 
 Stack *create_stack() {
-	Stack *stack = malloc(sizeof(*stack));
-	if (!stack) {
-		perror("malloc: failed to allocate memory for stack");
-		exit(1);
-	}
+	Stack *stack = safe_malloc(sizeof(*stack));
 	stack->default_stack_size = 32;
 	stack->stack_pointer = -1;
-	stack->items = malloc(sizeof(*stack->items) * stack->default_stack_size);
-	if (!stack->items) {
-		perror("malloc: failed to allocate memory for stack items");
-		exit(1);
-	}
+	stack->items = safe_malloc(sizeof(*stack->items) * stack->default_stack_size);
 	return stack;
 }
 
