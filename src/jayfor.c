@@ -39,13 +39,8 @@ jayfor *create_jayfor(int argc, char** argv) {
 	if (argc <= 1) {
 		error_message("error: no input files\n");
 	}
-	jayfor *self = malloc(sizeof(*self));
+	jayfor *self = safe_malloc(sizeof(*self));
 	self->filename = NULL;
-
-	if (!self) {
-		perror("malloc: failed to allocate memory for jayfor");
-		exit(1);
-	}
 
 	int i;
 	// i = 1 to ignore first arg

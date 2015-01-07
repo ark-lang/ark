@@ -17,16 +17,7 @@ static const char* DATA_TYPES[] = {
 
 void *allocate_ast_node(size_t sz, const char* readable_type) {
 	assert(sz > 0);
-	void *ret = malloc(sz);
-
-	if(!ret) {
-		char buffer[256];
-		snprintf(buffer, 256, "malloc: failed to allocate memory for ast_node '%s'", readable_type);
-
-		perror(buffer);
-		exit(1);
-	}
-
+	void *ret = safe_malloc(sz);
 	return ret;
 }
 
@@ -389,11 +380,7 @@ void destroy_enum_item(enum_item *ei) {
 /** END ast_node FUNCTIONS */
 
 parser *create_parser(vector *token_stream) {
-	parser *parser = malloc(sizeof(*parser));
-	if (!parser) {
-		perror("malloc: failed to allocate memory for parser");
-		exit(1);
-	}
+	parser *parser = safe_malloc(sizeof(*parser));
 	parser->token_stream = token_stream;
 	parser->parse_tree = create_vector();
 	parser->token_index = 0;
@@ -1039,7 +1026,7 @@ function_ast_node *parse_function_ast_node(parser *parser) {
 						data_type raw_data_type = match_token_type_to_data_type(parser, tok);
 						
 						// put that shit on the heap
-						data_type *data_type = malloc(sizeof(data_type));
+						data_type *data_type = safe_malloc(sizeof(data_type));
 						*data_type = raw_data_type;
 						
 						push_back_item(fpn->ret, data_type);
@@ -1357,7 +1344,7 @@ data_type match_token_type_to_data_type(parser *parser, token *tok) {
 }
 
 void prepare_ast_node(parser *parser, void *data, ast_node_type type) {
-	ast_node *ast_node = malloc(sizeof(*ast_node));
+	ast_node *ast_node = safe_malloc(sizeof(*ast_node));
 	ast_node->data = data;
 	ast_node->type = type;
 	push_back_item(parser->parse_tree, ast_node);
