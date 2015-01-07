@@ -1,18 +1,10 @@
 #include "vector.h"
 
 vector *create_vector() {
-	vector *vec = malloc(sizeof(*vec));
-	if (!vec) {
-		perror("malloc: failed to allocate memory for vector");
-		exit(1);
-	}
+	vector *vec = safe_malloc(sizeof(*vec));
 	vec->size = 0;
 	vec->max_size = 2;
-	vec->items = malloc(sizeof(*vec->items) * vec->max_size);
-	if (!vec->items) {
-		perror("malloc: failed to allocate memory for vector contents");
-		exit(1);
-	}
+	vec->items = safe_malloc(sizeof(*vec->items) * vec->max_size);
 	return vec;
 }
 
