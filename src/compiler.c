@@ -14,6 +14,7 @@ compiler *create_compiler() {
 
 	self->module = LLVMModuleCreateWithName("j4");
 	self->builder = LLVMCreateBuilder();
+
 	LLVMInitializeNativeTarget();
 	LLVMLinkInJIT();
 
@@ -93,7 +94,7 @@ LLVMValueRef evaluate_expression_ast_node(compiler *self, expression_ast_node *e
 }
 
 LLVMValueRef generate_variable_definition_code(compiler *self, variable_declare_ast_node *vdn) {
-
+	
 	return NULL;
 }
 
@@ -144,23 +145,26 @@ LLVMValueRef generate_function_prototype_code(compiler *self, function_prototype
 		error_message("idk some shit up with the proto for `%s`\n", fpn->name->content);
 	}
 	else {
-		LLVMTypeRef *params = malloc(sizeof(LLVMTypeRef) * arg_count);
-		if (!params) {
-			error_message("error: failed to allocate memory for parameter list\n");
-		}
+		LLVMTypeRef *params = NULL;
+		if (!arg_count) {
+			params = malloc(sizeof(LLVMTypeRef) * arg_count);
+			if (!params) {
+				error_message("error: failed to allocate memory for parameter list\n");
+			}
 
-		for (i = 0; i < arg_count; i++) {
-			function_argument_ast_node *arg = get_vector_item(fpn->args, i);
-			params[i] = get_type_ref(arg->type);
+			for (i = 0; i < arg_count; i++) {
+				function_argument_ast_node *arg = get_vector_item(fpn->args, i);
+				params[i] = get_type_ref(arg->type);
+			}
 		}
 
 		// get the first argument for now, tuples aren't supported just yet
-		data_type *arg = get_vector_item(fpn->ret, 0);
+		data_type *return_val = get_vector_item(fpn->ret, 0);
 
-		LLVMTypeRef func_type = LLVMFunctionType(get_type_ref(*arg), params, arg_count, false);
-		
+		LLVMTypeRef return_type = get_type_ref(*return_val);
+		LLVMTypeRef func_type = LLVMFunctionType(return_type, params, arg_count, false);
+
 		proto = LLVMAddFunction(self->module, fpn->name->content, func_type);
-		LLVMSetLinkage(proto, LLVMExternalLinkage);
 	}
 
 	for (i = 0; i < arg_count; i++) {
@@ -204,7 +208,9 @@ LLVMValueRef generate_statement_code(compiler *self, statement_ast_node *sn) {
 		case ENUM_AST_NODE:
 			primary_message("enum unimplemented\n");
 			break;
-		default: break;
+		default: 
+			error_message("unknown node given %d\n", sn->type);
+			break;
 	}
 
 	printf("why is it returning null?\n");
@@ -216,7 +222,8 @@ LLVMValueRef generate_block_code(compiler *self, block_ast_node *ban) {
 	for (i = 0; i < ban->statements->size; i++) {
 		statement_ast_node *sn = get_vector_item(ban->statements, i);
 		LLVMValueRef location = NULL;
-		LLVMBuildStore(self->builder, generate_statement_code(self, sn), location);
+		LLVMValueRef statement_code = generate_statement_code(self, sn);
+		LLVMBuildStore(self->builder, statement_code, location);
 	}
 	return NULL; // temporary
 }
