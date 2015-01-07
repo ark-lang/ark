@@ -63,16 +63,18 @@ void consume_ast_nodes(compiler *self, int amount) {
 LLVMTypeRef get_type_ref(data_type type) {
 	printf("given %d\n", type);
 	switch (type) {
-		case TYPE_INTEGER: return LLVMInt32Type();
+		case TYPE_INTEGER: 
+			printf("integer\n");
+			return LLVMInt32Type();
 		case TYPE_STR:
 			error_message("strings are unimplemented\n");
 			break;
-		case TYPE_DOUBLE: return LLVMDoubleType();
-		case TYPE_FLOAT: return LLVMFloatType();
+		case TYPE_DOUBLE: printf("double\n"); return LLVMDoubleType();
+		case TYPE_FLOAT: printf("Float\n"); return LLVMFloatType();
 		case TYPE_BOOL:
 			error_message("bools are unimplemented\n");
 			break;
-		case TYPE_VOID: return LLVMVoidType();
+		case TYPE_VOID: printf("Void\n"); return LLVMVoidType();
 		case TYPE_CHAR:
 			error_message("chars are unimplemented\n");
 			break;
@@ -153,6 +155,7 @@ LLVMValueRef generate_function_prototype_code(compiler *self, function_prototype
 
 		// get the first argument for now, tuples aren't supported just yet
 		data_type *return_val = get_vector_item(fpn->ret, 0);
+		
 
 		LLVMTypeRef return_type = get_type_ref(*return_val);
 		LLVMTypeRef func_type = LLVMFunctionType(return_type, params, arg_count, false);
