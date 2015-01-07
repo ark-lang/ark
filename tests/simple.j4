@@ -1,4 +1,0 @@
-fn main(): int {
-	int x;
-	return x;
-}
