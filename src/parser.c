@@ -1026,10 +1026,10 @@ function_ast_node *parse_function_ast_node(parser *parser) {
 						data_type raw_data_type = match_token_type_to_data_type(parser, tok);
 						
 						// put that shit on the heap
-						data_type *data_type = safe_malloc(sizeof(data_type));
-						*data_type = raw_data_type;
+						data_type *_data_type = safe_malloc(sizeof(data_type));
+						*_data_type = raw_data_type;
 						
-						push_back_item(fpn->ret, data_type);
+						push_back_item(fpn->ret, _data_type);
 						fn->num_of_return_values++;
 					}
 					else {
