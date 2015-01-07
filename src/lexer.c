@@ -7,11 +7,7 @@ static const char* token_NAMES[] = {
 };
 
 token *create_token() {
-	token *token = malloc(sizeof(*token));
-	if (!token) {
-		perror("malloc: failed to allocate memory for token");
-		exit(1);
-	}
+	token *token = safe_malloc(sizeof(*token));
 	return token;
 }
 
@@ -27,11 +23,7 @@ void destroy_token(token *token) {
 }
 
 Lexer *create_lexer(char* input) {
-	Lexer *lexer = malloc(sizeof(*lexer));
-	if (!lexer) {
-		perror("malloc: failed to allocate memory for lexer");
-		exit(1);
-	}
+	Lexer *lexer = safe_malloc(sizeof(*lexer));
 	lexer->input = input;
 	lexer->pos = 0;
 	lexer->char_index = input[lexer->pos];
@@ -47,11 +39,7 @@ void consume_character(Lexer *lexer) {
 }
 
 char* flush_buffer(Lexer *lexer, int start, int length) {
-	char* result = malloc(sizeof(char) * (length + 1));
-	if (!result) { 
-		perror("malloc: failed to allocate memory for buffer flush"); 
-		exit(1);
-	}
+	char* result = safe_malloc(sizeof(char) * (length + 1));
 
 	strncpy(result, &lexer->input[start], length);
 	result[length] = '\0';

@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include "util.h"
 
 /**
  * vector_item typedef so we can change
