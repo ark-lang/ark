@@ -608,13 +608,14 @@ statement_ast_node *parse_for_loop_ast_node(parser *parser) {
 	match_token_type_and_content(parser, IDENTIFIER, FOR_LOOP_KEYWORD);			// FOR KEYWORd
 
 	// todo inferred data types
-	token *indexName = match_token_type(parser, IDENTIFIER);					// INDEX_NAME
+	token *index_name = match_token_type(parser, IDENTIFIER);					// INDEX_NAME
 
 	match_token_type_and_content(parser, OPERATOR, ":");						// PARAMS
 
+	// create node with the stuff we just got
 	for_loop_ast_node *fln = create_for_loop_ast_node();
-	fln->type = type_raw;
-	fln->indexName = indexName;
+	fln->type = TYPE_NULL;			// we don't know yet
+	fln->index_name = index_name;
 	fln->params = create_vector();
 
 	// consume the args
@@ -636,7 +637,9 @@ statement_ast_node *parse_for_loop_ast_node(parser *parser) {
 			}
 
 			if (check_token_type(parser, IDENTIFIER, 0)) {
-				push_back_item(fln->params, consume_token(parser));
+				token *tok = consume_token(parser);
+				fln->type = tok->type;
+				push_back_item(fln->params, tok);
 				if (check_token_type_and_content(parser, SEPARATOR, ",", 0)) {
 					if (check_token_type_and_content(parser, SEPARATOR, ")", 1)) {
 						error_message("error: trailing comma in for loop declaration!\n");
@@ -645,7 +648,9 @@ statement_ast_node *parse_for_loop_ast_node(parser *parser) {
 				}
 			}
 			else if (check_token_type(parser, NUMBER, 0)) {
-				push_back_item(fln->params, consume_token(parser));
+				token *tok = consume_token(parser);
+				fln->type = tok->type;
+				push_back_item(fln->params, tok);
 				if (check_token_type_and_content(parser, SEPARATOR, ",", 0)) {
 					if (check_token_type_and_content(parser, SEPARATOR, ")", 1)) {
 						error_message("error: trailing comma in for loop declaration!\n");
