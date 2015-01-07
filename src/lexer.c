@@ -174,7 +174,7 @@ void get_next_token(Lexer *lexer) {
 	if (is_end_of_input(lexer->char_index)) {
 		lexer->current_token->type = END_OF_FILE;
 		lexer->current_token->content = "<END_OF_FILE>";
-		
+
 		lexer->running = false;	// stop lexing
 
 		// push last item onto token stream
@@ -215,6 +215,7 @@ void get_next_token(Lexer *lexer) {
 	}
 
 	lexer->current_token->content = flush_buffer(lexer, startPos, lexer->pos - startPos);
+	printf("%s\n", lexer->current_token->content);
 	push_back_item(lexer->token_stream, lexer->current_token);
 }
 
@@ -222,7 +223,12 @@ void destroy_lexer(Lexer *lexer) {
 	if (lexer) {
 		int i;
 		for (i = 0; i < lexer->token_stream->size; i++) {
-			printf("%d\n", i);
+			token *tok = get_vector_item(lexer->token_stream, i);
+			// eof isnt malloc'd for content
+			if (tok->type != END_OF_FILE) {
+				free(tok->content);
+			}
+			destroy_token(tok);
 		}
 		free(lexer);
 	}
