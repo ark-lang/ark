@@ -4,13 +4,17 @@ Please conform to the following conventions when submitting code to sustain read
 
 ===
 
-##Comments
+## Snake Case
+We use snake case
+
+    like_this
+
+## Comments
 
 All comments must come **before** the line that is being talked about. 
 
-
     // this function is used to check for something
-    void checkSomething(int item);
+    void check_something(int item);
     
     // this line is used to add two numbers
     int x = 5 + 1;
@@ -18,10 +22,23 @@ All comments must come **before** the line that is being talked about.
 
 Multi-line comments must be as follows:
 
-    /* this comment is to demonstrate
+    /* 
+     * this comment is to demonstrate
      * multi-line commenting conventions
      * for the Jayfor project.
      */
+
+## Documentation
+Documentation comments with two asteriks, we use
+doxygen -- so conform to their system please :)
+
+    /**
+     * This is my documentation
+     * @param param1 this is doxygen
+     */
+
+All documentation should for functions should go in the
+header files!
 
 ===
 
@@ -31,7 +48,7 @@ Functions must be declared as per usual, and the opening brace must come on the 
 function after a single space.
 
     void test(int x, float y) { // <- the brace must be on the same line, after 1 space
-        return (x + y);
+        return x + y;
     }
 
 ===
@@ -40,11 +57,12 @@ function after a single space.
 
 If the `if` conditional must execute a single statement, use the braces anyway.
 
-    if(condition) {
+    if (condition) {
         x = 1 + 2;
-    } else {
-          x = 1 + 3;
-      }
+    } 
+    else {
+        x = 1 + 3;
+    }
 
 Instead of doing this:
 
@@ -55,7 +73,7 @@ This is to maintain consistency.
 
 **This rule applies to all other loops/conditionals, not just for the *if* conditional**.
 
-    for(int x = 1; x < 10; x++) {
+    for (int x = 1; x < 10; x++) {
         x = x + 1;
     }
 
