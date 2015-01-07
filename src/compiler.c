@@ -1,11 +1,11 @@
 #include "compiler.h"
 
 compiler *create_compiler() {
-	compiler *self = malloc(sizeof(*self));
+	compiler *self = safe_malloc(sizeof(*self));
 	self->ast = NULL;
 	self->current_instruction = 0;
 	self->max_bytecode_size = 32;
-	self->bytecode = malloc(sizeof(*self->bytecode) * self->max_bytecode_size);
+	self->bytecode = safe_malloc(sizeof(*self->bytecode) * self->max_bytecode_size);
 	self->current_ast_node = 0;
 	self->table = create_hashmap(128);
 	self->global_count = 0;
@@ -39,11 +39,7 @@ compiler *create_compiler() {
 }
 
 variable_info *create_variable_info() {
-	variable_info *vinfo = malloc(sizeof(*vinfo));
-	if (!vinfo) {
-		perror("malloc: failed to allocate memory for variable info");
-		exit(1);
-	}
+	variable_info *vinfo = safe_malloc(sizeof(*vinfo));
 	vinfo->allocation = NULL;
 	vinfo->type = TYPE_NULL;
 	vinfo->name = "";
@@ -115,7 +111,7 @@ LLVMValueRef generate_function_callee_code(compiler *self, function_callee_ast_n
 		printf("number of arguments given doesn't match required argument size\n");
 	}
 
-	LLVMValueRef *args = malloc(sizeof(LLVMValueRef) * fcn->args->size);
+	LLVMValueRef *args = safe_malloc(sizeof(LLVMValueRef) * fcn->args->size);
 	unsigned int i;
 	unsigned int arg_count = fcn->args->size;
 	for (i = 0; i < arg_count; i++) {
@@ -149,10 +145,7 @@ LLVMValueRef generate_function_prototype_code(compiler *self, function_prototype
 	else {
 		LLVMTypeRef *params = NULL;
 		if (!arg_count) {
-			params = malloc(sizeof(LLVMTypeRef) * arg_count);
-			if (!params) {
-				error_message("error: failed to allocate memory for parameter list\n");
-			}
+			params = safe_malloc(sizeof(LLVMTypeRef) * arg_count);
 
 			for (i = 0; i < arg_count; i++) {
 				function_argument_ast_node *arg = get_vector_item(fpn->args, i);
