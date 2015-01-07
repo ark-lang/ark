@@ -19,9 +19,9 @@ static int hashString(char *str, int max_hash) {
 }
  
 hashmap *create_hashmap(int size) {
-	hashmap *map = malloc(sizeof(hashmap));
+	hashmap *map = safe_malloc(sizeof(hashmap));
 	map->size = size;
-	map->fields = malloc(sizeof(hashmap_field) * size);
+	map->fields = safe_malloc(sizeof(hashmap_field) * size);
 	int i;
 	for(i = 0; i < size; i++) {
 		hashmap_field *field = map->fields + i;
@@ -79,7 +79,7 @@ void set_value_at_key(hashmap *map, char *key, void *value, size_t length) {
  
 	set_val:
 	if(value != NULL) {
-		entry->val = memcpy(malloc(length), value, length);
+		entry->val = memcpy(safe_malloc(length), value, length);
 		entry->len = length;
 	} else {
 		/* val is already freed. Key is left */
@@ -103,7 +103,8 @@ void *get_value_at_key(hashmap *map, char *key) {
 	for(i = 0; i < field->size; i++) {
 		entry = field->entries + i;
 		if(strcmp(entry->key, key) == 0) {
-			return memcpy(malloc(entry->len), entry->val, entry->len);
+			void *dst = safe_malloc(entry->len);
+			return memcpy(dst, entry->val, entry->len);
 		}
 	}
 	return NULL;

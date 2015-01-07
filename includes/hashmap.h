@@ -3,6 +3,8 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
+#include "util.h"
 
 typedef struct {
 	char *key;
