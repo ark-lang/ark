@@ -22,34 +22,34 @@ extern char* OUTPUT_EXECUTABLE_NAME;
  * @param msg           the message to print
  * @param ...			extra arguments
  */
-extern void debug_message(const char *fmt, ...);
+void debug_message(const char *fmt, ...);
 
 /**
  * Emitts an error message to the console, will also exit
  * @param msg           the message to print
  * @param ... 			extra arguments
  */
-extern void error_message(const char *fmt, ...);
+void error_message(const char *fmt, ...);
 
 /**
  * Emitts a primary message to the console
  * @param msg           the message to print
  * @param ... 			extra arguments
  */
-extern void primary_message(const char *fmt, ...);
+void primary_message(const char *fmt, ...);
 
 /**
  * Gets the extension of the given file
  * @param  filename the filename to get the extension
  * @return          the extension of the file given
  */
-extern const char *get_filename_ext(const char *filename);
+const char *get_filename_ext(const char *filename);
 
 /**
  * Safe malloc, dies if allocation fails
  * @param  size size of space to allocate
  * @return pointer to allocated data
  */
-extern void *safe_malloc(size_t size);
+void *safe_malloc(size_t size);
 
 #endif // BOOL_H
