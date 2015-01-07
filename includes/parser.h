@@ -30,6 +30,7 @@
 #define STRUCT_KEYWORD	 	   	"struct"
 #define ENUM_KEYWORD	 	   	"enum"
 #define UNSAFE_KEYWORD	 	   	"unsafe"
+#define UNDERSCORE_KEYWORD		"_"			// underscores are treated as identifiers
 #define IF_STATEMENT_KEYWORD   	"if"
 #define TUPLE_KEYWORD			"tup"
 #define WHILE_LOOP_KEYWORD	   	"while"
@@ -225,9 +226,9 @@ typedef enum {
  * A ast_node for a for loop
  */
 typedef struct {
-	data_type type;		// data type
-	token *indexName;	// index name
-	vector *params;		// parameters (start, end, step)
+	data_type type;			// data type
+	token *indexName;		// index name
+	vector *params;			// parameters (start, end, step)
 	block_ast_node *body;	// contents of for loop
 } for_loop_ast_node;
 
