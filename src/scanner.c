@@ -1,11 +1,7 @@
 #include "scanner.h"
 
 scanner *create_scanner() {
-	scanner *self = malloc(sizeof(*self));
-	if (!self) {
-		perror("malloc: failed to allocate memory for scanner");
-		exit(1);
-	}
+	scanner *self = safe_malloc(sizeof(*self));
 	self->contents = NULL;
 	return self;
 }
@@ -21,11 +17,7 @@ void scan_file(scanner *self, const char* fileName) {
 				exit(1);
 			}
 
-			self->contents = malloc(sizeof(*self->contents) * (fileSize + 1));
-			if (!self->contents) {
-				perror("malloc: failed to allocate memory for file");
-				exit(1);
-			}
+			self->contents = safe_malloc(sizeof(*self->contents) * (fileSize + 1));
 
 			if (fseek(file, 0, SEEK_SET)) {
 				perror("could not reset file index");
