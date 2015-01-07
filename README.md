@@ -48,8 +48,7 @@ Jayfor is a programming language written in C. It is still under
 heavy development. Jayfor is influenced from languages like Rust,
 C, C++, and Java. We like to keep things simple, safe and fast,
 but maintain a syntactically beautiful language.
-You can view the snippet of code below for a basic 'feel' of the language,
-or check out some actual code we use for the library [here](libs/math.j4).
+You can view the snippet of code below for a basic 'feel' of the language.
 
     // this is no longer a test for while loops
     // just some random code for testing
