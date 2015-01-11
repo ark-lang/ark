@@ -1,0 +1,17 @@
+use stdio;
+
+fn main(): int {
+	for i:(0, 100) {
+		match i {
+			i % 3 {
+				println("{}, fizz", i);
+			},
+			i % 5 {
+				println("{}, buzz", i);
+			},
+			i % 15 {
+				println("{}, fizzbuzz", i);
+			}
+		}
+	}
+}

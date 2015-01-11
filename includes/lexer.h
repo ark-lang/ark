@@ -10,7 +10,7 @@
 #include "util.h"
 #include "vector.h"
 
-/** Types of token */
+/** types of token */
 typedef enum {
 	END_OF_FILE, IDENTIFIER, NUMBER,
 	OPERATOR, SEPARATOR, ERRORNEOUS,
