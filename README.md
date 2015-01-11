@@ -15,6 +15,12 @@ into something more modern, and easier to use.
 * LLVM is used for the backend
 
 ## Contributing
+### Community
+We have an IRC where we discuss Jayfor things, and other stuff too:
+
+    channel: ##jayfor
+    server: irc.freenode.net
+
 ### Pull Requests
 All pull requests are welcome:
 
