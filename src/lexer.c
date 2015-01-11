@@ -42,7 +42,7 @@ const char* get_line_number_context(lexer *lexer, int line_num) {
 		}
 	}
 
-	result[result_size] = '\0';
+	result[result_index++] = '\0';
 	return result;
 }
 
