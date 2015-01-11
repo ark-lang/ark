@@ -1,12 +1,5 @@
 #include "parser.h"
 
-/** List of token names */
-static const char* token_NAMES[] = {
-	"END_OF_FILE", "IDENTIFIER", "NUMBER",
-	"OPERATOR", "SEPARATOR", "ERRORNEOUS",
-	"STRING", "CHARACTER", "UNKNOWN"
-};
-
 /** List of data types */
 static const char* DATA_TYPES[] = {
 	"int", "str", "double", "float", "bool",
@@ -14,6 +7,16 @@ static const char* DATA_TYPES[] = {
 };
 
 /** UTILITY FOR AST NODES */
+
+void parser_error(parser *parser, char *msg, token *tok, bool fatal_error) {
+	error_message("%d:%d %s", tok->line_number, tok->char_number, msg);
+	const char *error = get_token_context(parser->token_stream, tok, true);
+	printf("\t%s\n", error);
+	parser->exit_on_error = true;
+	if (fatal_error) {
+		exit(1);
+	}
+}
 
 void *allocate_ast_node(size_t sz, const char* readable_type) {
 	assert(sz > 0);
@@ -385,10 +388,7 @@ token *expect_token_type(parser *parser, token_type type) {
 		return consume_token(parser);
 	}
 	else {
-		error_message("expected %s but found `%s`\n", token_NAMES[type], tok->content);
-		const char *error = get_token_context(parser->token_stream, tok, true);
-		printf("\t%s\n", error);
-
+		parser_error(parser, "unrecognized token found", tok, true);
 		return NULL;
 	}
 }
@@ -399,9 +399,7 @@ token *expect_token_content(parser *parser, char *content) {
 		return consume_token(parser);
 	}
 	else {
-		error_message("expected %s but found `%s`\n", tok->content, content);
-		const char *error = get_token_context(parser->token_stream, tok, true);
-		printf("\t%s\n", error);
+		parser_error(parser, "unexpected token found", tok, true);
 		return NULL;
 	}
 }
@@ -412,9 +410,7 @@ token *expect_token_type_and_content(parser *parser, token_type type, char *cont
 		return consume_token(parser);
 	}
 	else {
-		error_message("expected %s but found `%s`\n", token_NAMES[type], tok->content);
-		const char *error = get_token_context(parser->token_stream, tok, true);
-		printf("\t%s\n", error);
+		parser_error(parser, "unexpected token found", tok, true);
 		return NULL;
 	}
 }
@@ -425,10 +421,7 @@ token *match_token_type(parser *parser, token_type type) {
 		return consume_token(parser);
 	}
 	else {
-		error_message("%d:%d expected %s but found `%s`", tok->line_number, tok->char_number, token_NAMES[type], tok->content);
-		const char *error = get_token_context(parser->token_stream, tok, true);
-		printf("\t%s\n", error);
-		exit(1);
+		parser_error(parser, "unexpected token found", tok, true);
 		return NULL;
 	}
 }
@@ -439,10 +432,7 @@ token *match_token_content(parser *parser, char *content) {
 		return consume_token(parser);
 	}
 	else {
-		error_message("%d:%d expected %s but found `%s`\n", tok->line_number, tok->char_number, tok->content, content);
-		const char *error = get_token_context(parser->token_stream, tok, true);
-		printf("\t%s\n", error);
-		exit(1);
+		parser_error(parser, "unexpected token found", tok, true);
 		return NULL;
 	}
 }
@@ -453,10 +443,7 @@ token *match_token_type_and_content(parser *parser, token_type type, char *conte
 		return consume_token(parser);
 	}
 	else {
-		error_message("%d:%d expected %s but found `%s`\n", tok->line_number, tok->char_number, token_NAMES[type], tok->content);
-		const char *error = get_token_context(parser->token_stream, tok, true);
-		printf("\t%s\n", error);
-		exit(1);
+		parser_error(parser, "unexpected token found", tok, true);
 		return NULL;
 	}
 }
@@ -490,10 +477,7 @@ char parse_operand(parser *parser) {
 		case '^': consume_token(parser); return tok_first_char;
 	}
 
-	error_message("%d:%d invalid operator ('%c') specified\n", tok->line_number, tok->char_number, tok->content[0]);
-	const char *error = get_token_context(parser->token_stream, tok, true);
-	printf("\t%s\n", error);
-	exit(1);
+	parser_error(parser, "invalid operator specified", tok, false);
 	return '\0';
 }
 
@@ -502,26 +486,29 @@ enumeration_ast_node *parse_enumeration_ast_node(parser *parser) {
 
 	match_token_type_and_content(parser, IDENTIFIER, ENUM_KEYWORD); // ENUM
 
+	// ENUMERATIONS NAME
 	if (check_token_type(parser, IDENTIFIER, 0)) {
 		token *enum_dec = consume_token(parser);
 		en->name = enum_dec;
 
-		if (check_token_type_and_content(parser, SEPARATOR, "{", 0)) {
+		// OPEN OF ENUM BLOCK
+		if (check_token_type_and_content(parser, SEPARATOR, BLOCK_OPENER, 0)) {
 			consume_token(parser);
 
+			// LOOP
 			do {
-				if (check_token_type_and_content(parser, SEPARATOR, "}", 0)) {
+
+				if (check_token_type_and_content(parser, SEPARATOR, BLOCK_CLOSER, 0)) {
 					consume_token(parser);
 					parse_semi_colon(parser);
 					break;
 				}
 
-				// ENUM_ITEM = 0
 				if (check_token_type(parser, IDENTIFIER, 0)) {
 					token *enum_item_name = consume_token(parser);
 
 					// setting the enum = to a value
-					if (check_token_type_and_content(parser, OPERATOR, "=", 0)) {
+					if (check_token_type_and_content(parser, OPERATOR, ASSIGNMENT_OPERATOR, 0)) {
 						consume_token(parser);
 
 						// to a number
@@ -540,34 +527,23 @@ enumeration_ast_node *parse_enumeration_ast_node(parser *parser) {
 
 								// validate names are not duplicate
 								if (!strcmp(prev_item_name, enum_item_name->content)) {
-									error_message("%d:%d duplicate enum items: \"%s\"", enum_item_name->line_number, enum_item_name->char_number, enum_item_name->content, prev_item_name);
-									const char *error = get_token_context(parser->token_stream, enum_item_name, true);
-									printf("\t%s\n", error);
-									exit(1);
+									parser_error(parser, "duplicate item in enumeration", enum_item_name, false);
 								}
 
 								// validate values are not duplicate
 								if (prev_item_value == enum_item_value_as_int) {
-									error_message("%d:%d enum values cannot be the same: `%s = %d`", enum_item_name->line_number, enum_item_name->char_number, enum_item_name->content, enum_item_value_as_int);
-									const char *error = get_token_context(parser->token_stream, enum_item_name, true);
-									printf("\t%s\n", error);
-									exit(1);
+									parser_error(parser, "duplicate item value in enumeration", enum_item_name, false);
 								}
 							}
 
 							// push it back
 							enum_item *item = create_enum_item(enum_item_name->content, enum_item_value_as_int);
 							push_back_item(en->enum_items, item);
-
-							parse_semi_colon(parser);
 						}
 						else {
-							token *errorneous_token = consume_token(parser);
-							error_message("%d:%d enum item expecting valid integer constant, found %s\n", errorneous_token->line_number, errorneous_token->char_number, errorneous_token->content);
-							const char *error = get_token_context(parser->token_stream, errorneous_token, true);
-							printf("\t%s\n", error);
-							exit(1);
+							parser_error(parser, "invalid integer literal assigned to enumeration item", consume_token(parser), false);
 						}
+
 					}
 					// ENUM_ITEM with no assignment
 					else {
@@ -580,28 +556,38 @@ enumeration_ast_node *parse_enumeration_ast_node(parser *parser) {
 
 							// validate name
 							if (!strcmp(prev_item_name, enum_item_name->content)) {
-								error_message("%d:%d duplicate enum items: \"%s\"", enum_item_name->line_number, enum_item_name->char_number, enum_item_name->content, prev_item_name);
-								const char *error = get_token_context(parser->token_stream, enum_item_name, true);
-								printf("\t%s\n", error);
-								exit(1);
+								parser_error(parser, "duplicate item in enumeration", enum_item_name, false);
 							}
 						}
 
 						enum_item *item = create_enum_item(enum_item_name->content, enum_item_value_as_int);
 						push_back_item(en->enum_items, item);
-
-						parse_semi_colon(parser);
 					}
 				}
+
+				if (check_token_type_and_content(parser, SEPARATOR, COMMA_SEPARATOR, 0)) {
+					consume_token(parser);
+					if (check_token_type_and_content(parser, SEPARATOR, BLOCK_CLOSER, 0)) {
+						parser_error(parser, "trailing comma in enumeration", consume_token(parser), false);
+						parse_semi_colon(parser);
+						break;
+					}
+				}
+				
+				if (check_token_type_and_content(parser, SEPARATOR, BLOCK_CLOSER, 0)) {
+					consume_token(parser);
+					if (check_token_type_and_content(parser, SEPARATOR, SEMI_COLON, 0)) {
+						parse_semi_colon(parser);
+						break;
+					}
+				}
+
 			}
 			while (true);
 
 			// empty enum, throw an error.
 			if (en->enum_items->size == 0) {
-				error_message("%d:%d use of empty enum\n", enum_dec->line_number, enum_dec->char_number);
-				const char *error = get_token_context(parser->token_stream, enum_dec, true);
-				printf("\t%s\n", error);
-				exit(1);
+				parser_error(parser, "empty enumeration", consume_token(parser), false);
 			}
 		}
 	}
@@ -671,17 +657,11 @@ statement_ast_node *parse_for_loop_ast_node(parser *parser) {
 
 		do {
 			if (param_count > 3) {
-				error_message("%d:%d for loop has one too many arguments (%d)\n", arg_opener->line_number, arg_opener->char_number, param_count);
-				const char *error = get_token_context(parser->token_stream, arg_opener, true);
-				printf("\t%s\n", error);
-				exit(1);
+				parser_error(parser, "too many parameters passed to for loop", consume_token(parser), false);
 			}
 			if (check_token_type_and_content(parser, SEPARATOR, ")", 0)) {
 				if (param_count < 2) {
-					error_message("%d:%d for loop expects a maximum of 3 arguments, you have %d\n", arg_opener->line_number, arg_opener->char_number, param_count);
-					const char *error = get_token_context(parser->token_stream, arg_opener, true);
-					printf("\t%s\n", error);
-					exit(1);
+					parser_error(parser, "too few parameters passed to for loop", arg_opener, false);
 				}
 				consume_token(parser);
 				break;
@@ -693,10 +673,7 @@ statement_ast_node *parse_for_loop_ast_node(parser *parser) {
 				push_back_item(fln->params, tok);
 				if (check_token_type_and_content(parser, SEPARATOR, ",", 0)) {
 					if (check_token_type_and_content(parser, SEPARATOR, ")", 1)) {
-						error_message("%d:%d trailing comma in for loop declaration!\n", tok->line_number, tok->char_number);
-						const char *error = get_token_context(parser->token_stream, tok, true);
-						printf("\t%s\n", error);
-						exit(1);
+						parser_error(parser, "trailing comma in for loop declaration", consume_token(parser), false);
 					}
 					consume_token(parser);
 				}
@@ -707,10 +684,7 @@ statement_ast_node *parse_for_loop_ast_node(parser *parser) {
 				push_back_item(fln->params, tok);
 				if (check_token_type_and_content(parser, SEPARATOR, ",", 0)) {
 					if (check_token_type_and_content(parser, SEPARATOR, ")", 1)) {
-						error_message("%d:%d trailing comma in for loop declaration!\n", tok->line_number, tok->char_number);
-						const char *error = get_token_context(parser->token_stream, tok, true);
-						printf("\t%s\n", error);
-						exit(1);
+						parser_error(parser, "trailing comma in for loop declaration", consume_token(parser), false);
 					}
 					consume_token(parser);
 				}
@@ -721,23 +695,14 @@ statement_ast_node *parse_for_loop_ast_node(parser *parser) {
 				push_back_item(fln->params, expr);
 				if (check_token_type_and_content(parser, SEPARATOR, ",", 0)) {
 					if (check_token_type_and_content(parser, SEPARATOR, ")", 1)) {
-						token *errorneous_token = consume_token(parser);
-						error_message("%d:%d trailing comma in for loop declaration!\n", errorneous_token->line_number, errorneous_token->char_number);
-						const char *error = get_token_context(parser->token_stream, errorneous_token, true);
-						printf("\t%s\n", error);
-						exit(1);
+						parser_error(parser, "trailing comma in for loop declaration", consume_token(parser), false);
 					}
 					consume_token(parser);
 				}
 			}
 			else {
-				token *temp_tok = consume_token(parser);
-				error_message("%d:%d expected a number or variable in for loop parameters, found:\n", temp_tok->line_number, temp_tok->char_number);
-				const char *error = get_token_context(parser->token_stream, temp_tok, true);
-				printf("\t%s\n", error);
-				exit(1);
-
-				return NULL;
+				parser_error(parser, "expected a number literal or a variable in for loop parameters", consume_token(parser), false);
+				break;
 			}
 
 			param_count++;
@@ -752,11 +717,7 @@ statement_ast_node *parse_for_loop_ast_node(parser *parser) {
 		return sn;
 	}
 
-	token *temp_tok = consume_token(parser);
-	error_message("%d:%d failed to parse for loop\n", temp_tok->line_number, temp_tok->char_number);
-	const char *error = get_token_context(parser->token_stream, temp_tok, false);
-	printf("\t%s\n", error);
-	exit(1);
+	parser_error(parser, "failed to parse for loop", consume_token(parser), true);
 	return NULL;
 }
 
@@ -799,10 +760,7 @@ int get_token_precedence(parser *parser) {
 			token_prec = 8;
 			break;
 		default:
-			error_message("%d:%d unsupported operator given in expression %c\n", tok->line_number, tok->char_number, token_value);
-			const char *error = get_token_context(parser->token_stream, tok, true);
-			printf("\t%s\n", error);
-
+			parser_error(parser, "unsupported operator given in expression", tok, false);
 			token_prec = -1;
 			break;
 	}
@@ -821,27 +779,22 @@ expression_ast_node *parse_number_expression(parser *parser) {
 expression_ast_node *parse_paren_expression(parser *parser) {
 	expression_ast_node *expr = create_expression_ast_node(); // the final expression
 	if (check_token_type_and_content(parser, SEPARATOR, "(", 0)) {
-		token *temp_tok = consume_token(parser);
+		consume_token(parser);
+		
 		expr->type = EXPR_PARENTHESIS;
 		expr->lhand = parse_expression_ast_node(parser);
 		expr->operand = parse_operand(parser);
 		expr->rhand = parse_expression_ast_node(parser);
+		
 		if (check_token_type_and_content(parser, SEPARATOR, ")", 0)) {
 			consume_token(parser);
 			return expr;
 		}
-		error_message("%d:%d missing closing parenthesis on expression\n", temp_tok->line_number, temp_tok->char_number);
-		const char *error = get_token_context(parser->token_stream, temp_tok, true);
-		printf("\t%s\n", error);
-		exit(1);
-		return NULL;
+
+		parser_error(parser, "missing closing parenthesis for expression", consume_token(parser), false);
 	}
 
-	token *temp_tok = consume_token(parser);
-	error_message("%d:%d could not parse parenthesis expression\n", temp_tok->line_number, temp_tok->char_number);
-	const char *error = get_token_context(parser->token_stream, temp_tok, false);
-	printf("\t%s\n", error);
-	exit(1);
+	parser_error(parser, "could not parse parenthesis expressions", consume_token(parser), true);
 	return NULL;
 }
 
@@ -927,11 +880,7 @@ void *parse_variable_ast_node(parser *parser, bool global) {
 		do {
 			if (check_token_type_and_content(parser, OPERATOR, ">", 0)) {
 				if (num_of_tuples <= 0) {
-					token *tok = consume_token(parser);
-					error_message("%d:%d empty tuples cannot be defined", tok->line_number, tok->char_number);
-					const char *error = get_token_context(parser->token_stream, tok, true);
-					printf("\t%s\n", error);
-					exit(1);
+					parser_error(parser, "empty tuple declared", consume_token(parser), false);
 				}
 				consume_token(parser);
 				break;
@@ -943,11 +892,8 @@ void *parse_variable_ast_node(parser *parser, bool global) {
 			if (check_token_type_and_content(parser, SEPARATOR, ",", 0)) {
 				consume_token(parser);
 				if (check_token_type_and_content(parser, OPERATOR, ">", 0)) {
-					token *tok = consume_token(parser);
-					error_message("%d:%d trailing comma in tuple definition", tok->line_number, tok->char_number);
-					const char *error = get_token_context(parser->token_stream, tok, true);
-					printf("\t%s\n", error);
-					exit(1);
+					parser_error(parser, "trailing comma in tuple definition", consume_token(parser), false);
+					break;
 				}
 			}
 
@@ -976,17 +922,13 @@ void *parse_variable_ast_node(parser *parser, bool global) {
 		// parse tuple expressions
 		int num_of_tuples = 0;
 		if (check_token_type_and_content(parser, OPERATOR, "<", 0)) {
-			token *tok =consume_token(parser);
+			consume_token(parser);
 
 			do {
 				if (check_token_type_and_content(parser, OPERATOR, ">", 0)) {
 					if (num_of_tuples <= 0 || num_of_tuples != def->tuple_values->size) {
-						error_message("%d:%d invalid number of tuples specified (given %d, needs %d)", tok->line_number, tok->char_number, num_of_tuples, def->tuple_values->size);
-						const char *error = get_token_context(parser->token_stream, tok, true);
-						printf("\t%s\n", error);
-						exit(1);
+						parser_error(parser, "tuple does not match signature", consume_token(parser), false);
 					}
-					consume_token(parser);
 					break;
 				}
 
@@ -995,12 +937,9 @@ void *parse_variable_ast_node(parser *parser, bool global) {
 				if (check_token_type_and_content(parser, SEPARATOR, ",", 0)) {
 					consume_token(parser);
 					if (check_token_type_and_content(parser, OPERATOR, ">", 0)) {
-						token *tok = consume_token(parser);
-						error_message("%d:%d trailing comma in tuple declaration", tok->line_number, tok->char_number);
-						const char *error = get_token_context(parser->token_stream, tok, true);
-						printf("\t%s\n", error);
-						exit(1);
+						parser_error(parser, "trailing comma in tuple declaration", consume_token(parser), false);
 					}
+					break;
 				}
 
 				num_of_tuples++;
@@ -1131,11 +1070,7 @@ function_ast_node *parse_function_ast_node(parser *parser) {
 			}
 			else if (check_token_type_and_content(parser, SEPARATOR, ",", 0)) {
 				if (check_token_type_and_content(parser, SEPARATOR, ")", 1)) {
-					token *tok = consume_token(parser);
-					error_message("%d:%d trailing comma at the end of argument list\n", tok->line_number, tok->char_number);
-					const char *error = get_token_context(parser->token_stream, tok, true);
-					printf("\t%s\n", error);
-					exit(1);
+					parser_error(parser, "trailing comma at the end of argument list", consume_token(parser), false);
 				}
 				consume_token(parser); // eat the comma
 				push_back_item(args, arg);
@@ -1156,11 +1091,7 @@ function_ast_node *parse_function_ast_node(parser *parser) {
 			consume_token(parser);
 		}
 		else {
-			token *tok = consume_token(parser);
-			error_message("%d:%d function signature missing colon\n", tok->line_number, tok->char_number);
-			const char *error = get_token_context(parser->token_stream, tok, true);
-			printf("\t%s\n", error);
-			exit(1);
+			parser_error(parser, "function signature missing colon", consume_token(parser), false);
 		}
 
 		// START OF TUPLE
@@ -1171,11 +1102,7 @@ function_ast_node *parse_function_ast_node(parser *parser) {
 			do {
 				if (check_token_type_and_content(parser, OPERATOR, ">", 0)) {
 					if (fn->num_of_return_values < 1) {
-						token *tok = consume_token(parser);
-						error_message("%d:%d function expects a return type\n", tok->line_number, tok->char_number);
-						const char *error = get_token_context(parser->token_stream, tok, true);
-						printf("\t%s\n", error);
-						exit(1);
+						parser_error(parser, "function expects a return type", consume_token(parser), false);
 					}
 					consume_token(parser); // eat
 					break;
@@ -1195,17 +1122,11 @@ function_ast_node *parse_function_ast_node(parser *parser) {
 						fn->num_of_return_values++;
 					}
 					else {
-						token *tok = consume_token(parser);
-						error_message("%d:%d invalid data type specified: `%s`\n", tok->line_number, tok->char_number, tok->content);
-						const char *error = get_token_context(parser->token_stream, tok, true);
-						printf("\t%s\n", error);
+						parser_error(parser, "invalid data type specified", consume_token(parser), false);
 					}
 					if (check_token_type_and_content(parser, SEPARATOR, ",", 0)) {
 						if (check_token_type_and_content(parser, OPERATOR, ">", 1)) {
-							token *tok = consume_token(parser);
-							error_message("%d:%d trailing comma in function declaraction\n", tok->line_number, tok->char_number);
-							const char *error = get_token_context(parser->token_stream, tok, true);
-							printf("\t%s\n", error);
+							parser_error(parser, "trailing comma in function declaration", consume_token(parser), false);
 						}
 						consume_token(parser);
 					}
@@ -1218,15 +1139,9 @@ function_ast_node *parse_function_ast_node(parser *parser) {
 			data_type raw_data_type = match_token_type_to_data_type(parser, returnType);
 			push_back_item(fpn->ret, &raw_data_type);
 			fn->num_of_return_values += 1;
-
-			// todo could be returning an object
 		}
 		else {
-			token *tok = consume_token(parser);
-			error_message("%d:%d function declaration return type expected\n", tok->line_number, tok->char_number);
-			const char *error = get_token_context(parser->token_stream, tok, true);
-			printf("\t%s\n", error);
-			exit(1);
+			parser_error(parser, "function declaration return type expected", consume_token(parser), false);
 		}
 
 		// start block
@@ -1238,22 +1153,14 @@ function_ast_node *parse_function_ast_node(parser *parser) {
 		return fn;
 	}
 	else {
-		token *tok = consume_token(parser);
-		error_message("%d:%d no parameter list provided\n", tok->line_number, tok->char_number);
-		const char *error = get_token_context(parser->token_stream, tok, true);
-		printf("\t%s\n", error);
-		exit(1);
+		parser_error(parser, "expecting a parameter list", consume_token(parser), false);
 	}
 
 	// just in case we fail to parse, free this shit
 	free(fpn);
 	fpn = NULL;
 
-	token *tok = consume_token(parser);
-	error_message("%d:%d failed to parse function\n", tok->line_number, tok->char_number);
-	const char *error = get_token_context(parser->token_stream, tok, true);
-	printf("\t%s\n", error);
-	exit(1);
+	parser_error(parser, "failed to parse function", consume_token(parser), true);
 	return NULL;
 }
 
@@ -1280,13 +1187,9 @@ function_callee_ast_node *parse_function_callee_ast_node(parser *parser) {
 
 			if (check_token_type_and_content(parser, SEPARATOR, ",", 0)) {
 				if (check_token_type_and_content(parser, SEPARATOR, ")", 1)) {
-					token *tok = consume_token(parser);
-					error_message("%d:%d trailing comma at the end of argument list\n", tok->line_number, tok->char_number);
-					const char *error = get_token_context(parser->token_stream, tok, true);
-					printf("\t%s\n", error);
-					exit(1);
+					parser_error(parser, "trailing comma at the end of argument list", consume_token(parser), false);
 				}
-				consume_token(parser); // eat the comma
+				consume_token(parser);
 				push_back_item(args, arg);
 			}
 			else if (check_token_type_and_content(parser, SEPARATOR, ")", 0)) {
@@ -1307,11 +1210,7 @@ function_callee_ast_node *parse_function_callee_ast_node(parser *parser) {
 		return fcn;
 	}
 
-	token *tok = consume_token(parser);
-	error_message("%d:%d failed to parse function call\n", tok->line_number, tok->char_number);
-	const char *error = get_token_context(parser->token_stream, tok, true);
-	printf("\t%s\n", error);
-	exit(1);
+	parser_error(parser, "failed to parse function call", consume_token(parser), true);
 	return NULL;
 }
 
@@ -1337,11 +1236,7 @@ function_return_ast_node *parse_return_statement_ast_node(parser *parser) {
 			push_back_item(frn->return_vals, expr);
 			if (check_token_type_and_content(parser, SEPARATOR, ",", 0)) {
 				if (check_token_type_and_content(parser, OPERATOR, ">", 1)) {
-					token *tok = consume_token(parser);
-					error_message("%d:%d trailing comma in return statement\n", tok->line_number, tok->char_number);
-					const char *error = get_token_context(parser->token_stream, tok, true);
-					printf("\t%s\n", error);
-					exit(1);
+					parser_error(parser, "trailing comma in return statement", consume_token(parser), false);
 				}
 				consume_token(parser);
 				frn->num_of_return_values++;
@@ -1360,12 +1255,7 @@ function_return_ast_node *parse_return_statement_ast_node(parser *parser) {
 		return frn;
 	}
 
-	token *tok = consume_token(parser);
-	error_message("%d:%d failed to parse return statement\n", tok->line_number, tok->char_number);
-	const char *error = get_token_context(parser->token_stream, tok, false);
-	printf("\t%s\n", error);
-	exit(1);
-	
+	parser_error(parser, "failed to parse return statement", consume_token(parser), true);
 	return NULL;
 }
 
@@ -1374,11 +1264,7 @@ void parse_semi_colon(parser *parser) {
 		consume_token(parser);
 	}
 	else {
-		token *tok = consume_token(parser);
-		error_message("%d:%d missing semi-colon\n", tok->line_number, tok->char_number);
-		const char *error = get_token_context(parser->token_stream, tok, true);
-		printf("\t%s\n", error);
-		exit(1);
+		parser_error(parser, "missing semi-colon", consume_token(parser), false);
 	}
 }
 
@@ -1454,19 +1340,11 @@ statement_ast_node *parse_statement_ast_node(parser *parser) {
 		}
 		// fuck knows
 		else {
-			token *tok = consume_token(parser);
-			error_message("%d:%d unrecognized identifier %s\n", tok->line_number, tok->char_number, tok->content);
-			const char *error = get_token_context(parser->token_stream, tok, true);
-			printf("\t%s\n", error);
-			exit(1);
+			parser_error(parser, "unrecognized identifier", consume_token(parser), false);
 		}
 	}
 
-	token *tok = peek_at_token_stream(parser, 0);
-	error_message("%d:%d error: unrecognized token %s(%s)\n", tok->line_number, tok->char_number, tok->content, token_NAMES[tok->type]);
-	const char *error = get_token_context(parser->token_stream, tok, true);
-	printf("\t%s\n", error);
-	exit(1);
+	parser_error(parser, "unrecognized token specified", consume_token(parser), true);
 	return NULL;
 }
 
@@ -1488,11 +1366,7 @@ variable_reassignment_ast_node *parse_reassignment_statement_ast_node(parser *pa
 		}
 	}
 
-	token *tok = consume_token(parser);
-	error_message("%d:%d failed to parse variable reassignment\n", tok->line_number, tok->char_number);
-	const char *error = get_token_context(parser->token_stream, tok, true);
-	printf("\t%s\n", error);
-	exit(1);
+	parser_error(parser, "failed to parse variable reassignment", consume_token(parser), true);
 	return NULL;
 }
 
@@ -1524,10 +1398,7 @@ void start_parsing_token_stream(parser *parser) {
 					prepare_ast_node(parser, parse_function_callee_ast_node(parser), FUNCTION_CALLEE_AST_NODE);
 				}
 				else {
-					error_message("%d:%d unrecognized identifier found: `%s`\n", tok->line_number, tok->char_number, tok->content);
-					const char *error = get_token_context(parser->token_stream, tok, true);
-					printf("\t%s\n", error);
-					exit(1);
+					parser_error(parser, "unrecognized identifier specified", consume_token(parser), false);
 				}
 				break;
 			case END_OF_FILE:
@@ -1556,10 +1427,8 @@ data_type match_token_type_to_data_type(parser *parser, token *tok) {
 			return i;
 		}
 	}
-	error_message("%d:%d unrecognized data type given\n", tok->line_number, tok->char_number);
-	const char *error = get_token_context(parser->token_stream, tok, true);
-	printf("\t%s\n", error);
-	exit(1);
+
+	parser_error(parser, "unrecognized data-type specified", consume_token(parser), true);
 	return 0;
 }
 
