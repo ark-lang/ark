@@ -270,8 +270,9 @@ LLVMValueRef generate_code(compiler *self, ast_node *node) {
 void start_compiler(compiler *self, vector *ast) {
 	self->ast = ast;
 
-	int i = 0;
-	while (self->current_ast_node < self->ast->size) {
+
+	int i;
+	for (i = self->current_ast_node; i < self->ast->size; i++) {
 		ast_node *current_ast_node = get_vector_item(self->ast, self->current_ast_node);
 
 		LLVMValueRef temp_ref = generate_code(self, current_ast_node);
@@ -284,7 +285,6 @@ void start_compiler(compiler *self, vector *ast) {
 
 		printf("generating code for node at index %d\n", i);
 		consume_ast_node(self);
-		i++;
 	}
 }
 
@@ -292,7 +292,6 @@ void destroy_compiler(compiler *self) {
 	if (self != NULL) {
 		free(self);
 	}
-	LLVMDumpModule(self->module);
 	LLVMDisposePassManager(self->pass_manager);
 	LLVMDisposeBuilder(self->builder);
 	LLVMDisposeModule(self->module);
