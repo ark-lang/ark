@@ -54,7 +54,7 @@ typedef struct {
 	int current_char;		// current character
 	int line_number;		// current line number
 	int char_number;		// current character at line
-	int start_pos;
+	int start_pos;			// keeps track of positions without comments
 	bool running;			// if lexer is running 
 } lexer;
 
@@ -130,16 +130,47 @@ void recognize_string_token(lexer *lexer);
  */
 void recognize_character_token(lexer *lexer);
 
+/**
+ * Recognizes the given operator and pushes it
+ * @param lexer the lexer for access to the token stream
+ */
 void recognize_operator_token(lexer *lexer);
 
+/**
+ * Recognizes the end of line token
+ * @param lexer the lexer for access to the token stream
+ */
 void recognize_end_of_line_token(lexer *lexer);
 
+/**
+ * Recognizes a separator token and pushes it
+ * to the tree
+ * @param lexer the lexer for access to the token stream
+ */
 void recognize_separator_token(lexer *lexer);
 
+/**
+ * Recognizes an errored token and pushes it to the
+ * tree
+ * @param lexer the lexer for access to the token stream
+ */
 void recognize_errorneous_token(lexer *lexer);
 
+/**
+ * Pushes a token to the token tree, also captures the 
+ * token content so you don't have to.
+ * 
+ * @param lexer the lexer for access to the token tree
+ * @param type  the type of token
+ */
 void push_token(lexer *lexer, int type);
 
+/**
+ * Pushes a token with content to the token tree
+ * @param lexer   the lexer for access to the token tree
+ * @param type    the type of token to push
+ * @param content the content to push
+ */
 void push_token_c(lexer *lexer, int type, char *content);
 
 /**
