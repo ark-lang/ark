@@ -22,10 +22,10 @@ void debug_message(const char *fmt, ...) {
 		va_start(arg, fmt);
 		char *temp = get_coloured_text("\x1B[33m", "debug: ");
 		fprintf(stdout, "%s", temp);
-		free(temp);
 		vfprintf(stdout, fmt, arg);
 		fprintf(stdout, "\n");
 		va_end(arg);
+		free(temp);
 	}
 }
 
