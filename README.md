@@ -14,7 +14,17 @@ into something more modern, and easier to use.
 * The compiler is written in C
 * LLVM is used for the backend
 
-## Proposals
+## Contributing
+### Pull Requests
+All pull requests are welcome:
+
+* Fork the project
+* Create your branch for the feature `git checkout -b toast`
+* Commit your changes                `git commit -am 'Makes toast'`
+* Push to the branch                 `git push origin toast`
+* Submit a Pull Request
+
+### Proposing a feature/change
 If you want to have a say in the language, feel free to post an Issue in the [Issue Handler](issues). We
 use proposals so that people can vote on the idea, since the smallest change can put Jayfor in a completely
 different direction. To help out the developers, please include the following in your Issue:
