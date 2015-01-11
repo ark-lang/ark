@@ -1,7 +1,10 @@
 #ifndef LEXER_H
 #define LEXER_H
 
-#define WEIRD_CHARACTER_ASCII_THRESHOLD 128
+/**
+ * This is C code Linguist, come on...
+ * 
+ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -10,17 +13,7 @@
 #include "util.h"
 #include "vector.h"
 
-/** Lexer stuff */
-typedef struct {
-	vector *token_stream;	// where the tokens are stored
-	char* input;			// input to lex
-	int pos;				// position in the input
-	int current_char;		// current character
-	int line_number;		// current line number
-	int char_number;		// current character at line
-	int start_pos;			// keeps track of positions without comments
-	bool running;			// if lexer is running 
-} lexer;
+#define WEIRD_CHARACTER_ASCII_THRESHOLD 128
 
 /** types of token */
 typedef enum {
@@ -44,23 +37,6 @@ typedef struct {
 } token;
 
 /**
- * Retrieves the line that a token is on
- * @param  lexer              the lexer instance
- * @param  tok                the token to get the context of
- * @param  colour_error_token whether or not to colour the errored token
- * @return                    the context as a string
- */
-const char* get_token_context(vector *stream, token *tok, bool colour_error_token);
-
-/**
- * Retrieves the line that a token is on
- * @param  lexer 	the lexer instance
- * @param  line_num the number to get context of
- * @return       	the context as a string
- */
-const char* get_line_number_context(vector *stream, int line_num);
-
-/**
  * Create an empty token
  * 
  * @return allocate memory for token
@@ -82,6 +58,35 @@ const char* get_token_name(token *token);
  * @param token token to free
  */
 void destroy_token(token *token);
+
+/** Lexer stuff */
+typedef struct {
+	char* input;			// input to lex
+	int pos;				// position in the input
+	int current_char;		// current character
+	int line_number;		// current line number
+	int char_number;		// current character at line
+	int start_pos;			// keeps track of positions without comments
+	bool running;			// if lexer is running 
+	vector *token_stream;	// where the tokens are stored
+} lexer;
+
+/**
+ * Retrieves the line that a token is on
+ * @param  lexer              the lexer instance
+ * @param  tok                the token to get the context of
+ * @param  colour_error_token whether or not to colour the errored token
+ * @return                    the context as a string
+ */
+const char* get_token_context(vector *stream, token *tok, bool colour_error_token);
+
+/**
+ * Retrieves the line that a token is on
+ * @param  lexer 	the lexer instance
+ * @param  line_num the number to get context of
+ * @return       	the context as a string
+ */
+const char* get_line_number_context(vector *stream, int line_num);
 
 /**
  * Create an instance of the Lexer
