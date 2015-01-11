@@ -562,6 +562,7 @@ enumeration_ast_node *parse_enumeration_ast_node(parser *parser) {
 				}
 			}
 			while (true);
+
 			// empty enum, throw an error.
 			if (en->enum_items->size == 0) {
 				error_message("error: use of empty enum\n");
@@ -572,14 +573,6 @@ enumeration_ast_node *parse_enumeration_ast_node(parser *parser) {
 	return en;
 }
 
-/*
- * struct struct_name {
- *     int x = 5;
- *     object y;
- *     struct another {
- *     }
- * }
- */
 structure_ast_node *parse_structure_ast_node(parser *parser) {
 	match_token_type_and_content(parser, IDENTIFIER, STRUCT_KEYWORD);
 	token *struct_name = match_token_type(parser, IDENTIFIER);
@@ -587,6 +580,7 @@ structure_ast_node *parse_structure_ast_node(parser *parser) {
 	structure_ast_node *sn = create_structure_ast_node();
 	sn->struct_name = struct_name->content;
 
+	// parses a block of statements
 	if (check_token_type_and_content(parser, SEPARATOR, "{", 0)) {
 		consume_token(parser);
 
@@ -597,6 +591,7 @@ structure_ast_node *parse_structure_ast_node(parser *parser) {
 				break;
 			}
 
+			// this should be cleaned up
 			push_back_item(sn->statements, parse_variable_ast_node(parser, false));
 		}
 		while (true);
@@ -630,15 +625,15 @@ statement_ast_node *parse_for_loop_ast_node(parser *parser) {
 	if (check_token_type_and_content(parser, SEPARATOR, "(", 0)) {
 		consume_token(parser);
 
-		int paramCount = 0;
+		int param_count = 0;
 
 		do {
-			if (paramCount > 3) {
-				error_message("error: for loop has one too many arguments %d\n", paramCount);
+			if (param_count > 3) {
+				error_message("error: for loop has one too many arguments %d\n", param_count);
 			}
 			if (check_token_type_and_content(parser, SEPARATOR, ")", 0)) {
-				if (paramCount < 2) {
-					error_message("error: for loop expects a maximum of 3 arguments, you have %d\n", paramCount);
+				if (param_count < 2) {
+					error_message("error: for loop expects a maximum of 3 arguments, you have %d\n", param_count);
 				}
 				consume_token(parser);
 				break;
@@ -683,7 +678,7 @@ statement_ast_node *parse_for_loop_ast_node(parser *parser) {
 				return NULL;
 			}
 
-			paramCount++;
+			param_count++;
 		}
 		while (true);
 
@@ -739,10 +734,11 @@ int get_token_precedence(parser *parser) {
 			break;
 		default:
 			error_message("unsupported operator given in expression %c\n", token_value);
+			token_prec = -1;
 			break;
 	}
 
-	if (token_prec <= 0) return token_prec;
+	if (token_prec <= 0) return token_prec = -1;
 	return token_prec;
 }
 
@@ -808,9 +804,13 @@ expression_ast_node *parse_expression_ast_node(parser *parser) {
 	if (check_token_type(parser, CHARACTER, 0)) {
 		return parse_character_expression(parser);
 	}
+
+	// identifier
 	if (check_token_type(parser, IDENTIFIER, 0)) {
 		return parse_identifier_expression(parser);
 	}
+
+	// expression with parenthesis
 	if (check_token_type_and_content(parser, SEPARATOR, "(", 0)) {
 		return parse_paren_expression(parser);
 	}
