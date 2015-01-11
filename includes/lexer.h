@@ -48,12 +48,12 @@ void destroy_token(token *token);
 
 /** Lexer stuff */
 typedef struct {
-	vector *token_stream;
+	vector *token_stream;	// where the tokens are stored
 	char* input;			// input to lex
 	int pos;				// position in the input
-	int char_index;			// current character
+	int current_char;		// current character
 	token* current_token;	// current token
-	int line_number;			// current line number
+	int line_number;		// current line number
 	bool running;			// if lexer is running 
 } Lexer;
 
@@ -66,15 +66,15 @@ typedef struct {
 Lexer *create_lexer(char* input);
 
 /**
- * Simple substring implementation,
- * used to flush buffer. This is malloc'd memory, so free it!
+ * Simple substring, basically extracts the token from
+ * the lexers input from [start .. start + length]
  * 
  * @param lexer instance of lexer
  * @param start start of the input
  * @param length of the input
  * @return string cut from buffer
  */
-char* flush_buffer(Lexer *lexer, int start, int length);
+char* extract_token(Lexer *lexer, int start, int length);
 
 /**
  * Advance to the next character, consuming the
@@ -160,14 +160,6 @@ void destroy_lexer(Lexer *lexer);
  */
 static inline bool is_end_of_input(char ch) { 
 	return ch == '\0'; 
-}
-
-/**
- * @return if the character given is a comment opener (#)
- * @param ch the character to check
- */
-static inline bool is_comment_opener(char ch) { 
-	return ch == '#'; 
 }
 
 /**
