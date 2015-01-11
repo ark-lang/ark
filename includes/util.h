@@ -18,6 +18,14 @@ extern bool DEBUG_MODE;
 extern char* OUTPUT_EXECUTABLE_NAME;
 
 /**
+ * Returns the text with the colour formatting
+ * @param  colour the colour to print with e.g \x1B[33m
+ * @param  text   the text to print in the colour
+ * @return        the text with colour formatting
+ */
+char* get_coloured_text(const char *colour, const char *text);
+
+/**
  * Emitts a debug message to the console if we are in DEBUG MODE
  * @param msg           the message to print
  * @param ...			extra arguments
