@@ -22,12 +22,17 @@
 #define EXPR_PARENTHESIS 		'P'
 
 #define CONSTANT_KEYWORD 	   	"const"
+#define BLOCK_OPENER			"{"
+#define BLOCK_CLOSER			"}"
+#define ASSIGNMENT_OPERATOR		"="
 #define FUNCTION_KEYWORD 	   	"fn"
 #define VOID_KEYWORD	 	   	"void"
 #define BREAK_KEYWORD	 	   	"break"
 #define CONTINUE_KEYWORD		"continue"
 #define RETURN_KEYWORD	 	   	"return"
 #define STRUCT_KEYWORD	 	   	"struct"
+#define COMMA_SEPARATOR			","
+#define SEMI_COLON				";"
 #define ENUM_KEYWORD	 	   	"enum"
 #define UNSAFE_KEYWORD	 	   	"unsafe"
 #define UNDERSCORE_KEYWORD		"_"			// underscores are treated as identifiers
@@ -45,11 +50,21 @@
  * parser contents
  */
 typedef struct {
+	// the token stream to parse
 	vector *token_stream;
+
+	// the parse tree being built
 	vector *parse_tree;
 
+	// the current token index in the stream
 	int token_index;
+
+	// if we're currently parsing
 	bool parsing;
+
+	// whether to exit on error
+	// after parsing
+	bool exit_on_error;
 } parser;
 
 /**
