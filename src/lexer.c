@@ -128,8 +128,8 @@ lexer *create_lexer(char* input) {
 	lexer->current_char = input[lexer->pos];
 	lexer->token_stream = create_vector();
 	lexer->running = true;
-	lexer->line_number = 0;
-	lexer->char_number = 0;
+	lexer->line_number = 1;
+	lexer->char_number = 1;
 	return lexer;
 }
 
