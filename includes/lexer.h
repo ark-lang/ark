@@ -45,11 +45,12 @@ typedef struct {
 
 /**
  * Retrieves the line that a token is on
- * @param  lexer he lexer instance
- * @param  tok   the token to get the context of
- * @return       the context as a string
+ * @param  lexer              the lexer instance
+ * @param  tok                the token to get the context of
+ * @param  colour_error_token whether or not to colour the errored token
+ * @return                    the context as a string
  */
-const char* get_token_context(lexer *lexer, token *tok);
+const char* get_token_context(lexer *lexer, token *tok, bool colour_error_token);
 
 /**
  * Retrieves the line that a token is on
