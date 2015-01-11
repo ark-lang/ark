@@ -461,17 +461,17 @@ bool check_token_type_and_content(parser *parser, token_type type, char* content
 
 char parse_operand(parser *parser) {
 	token *tok = peek_at_token_stream(parser, 0);
-	char tokChar = tok->content[0];
+	char tok_first_char = tok->content[0];
 
-	switch (tokChar) {
-		case '+': consume_token(parser); return tokChar;
-		case '-': consume_token(parser); return tokChar;
-		case '*': consume_token(parser); return tokChar;
-		case '/': consume_token(parser); return tokChar;
-		case '%': consume_token(parser); return tokChar;
-		case '>': consume_token(parser); return tokChar;
-		case '<': consume_token(parser); return tokChar;
-		case '^': consume_token(parser); return tokChar;
+	switch (tok_first_char) {
+		case '+': consume_token(parser); return tok_first_char;
+		case '-': consume_token(parser); return tok_first_char;
+		case '*': consume_token(parser); return tok_first_char;
+		case '/': consume_token(parser); return tok_first_char;
+		case '%': consume_token(parser); return tok_first_char;
+		case '>': consume_token(parser); return tok_first_char;
+		case '<': consume_token(parser); return tok_first_char;
+		case '^': consume_token(parser); return tok_first_char;
 	}
 
 	error_message("error: invalid operator ('%c') specified\n", tok->content[0]);
@@ -495,19 +495,23 @@ enumeration_ast_node *parse_enumeration_ast_node(parser *parser) {
 					break;
 				}
 
-
 				// ENUM_ITEM = 0
 				if (check_token_type(parser, IDENTIFIER, 0)) {
 					token *enum_item_name = consume_token(parser);
 
+					// setting the enum = to a value
 					if (check_token_type_and_content(parser, OPERATOR, "=", 0)) {
 						consume_token(parser);
 
+						// to a number
 						if (check_token_type(parser, NUMBER, 0)) {
 							token *enum_item_value = consume_token(parser);
 
+							// convert to int
 							int enum_item_value_as_int = atoi(enum_item_value->content);
 
+							// if we already have items in our enum
+							// make sure there are no duplicate values or names
 							if (en->enum_items->size >= 1) {
 								enum_item *prev_item = get_vector_item(en->enum_items, en->enum_items->size - 1);
 								int prev_item_value = prev_item->value;
@@ -524,6 +528,7 @@ enumeration_ast_node *parse_enumeration_ast_node(parser *parser) {
 								}
 							}
 
+							// push it back
 							enum_item *item = create_enum_item(enum_item_name->content, enum_item_value_as_int);
 							push_back_item(en->enum_items, item);
 
@@ -534,9 +539,10 @@ enumeration_ast_node *parse_enumeration_ast_node(parser *parser) {
 							error_message("error enum item expecting valid integer constant, found %s\n", errorneous_token->content);
 						}
 					}
-					// ENUM_ITEM
+					// ENUM_ITEM with no assignment
 					else {
 						int enum_item_value_as_int = 0;
+
 						if (en->enum_items->size >= 1) {
 							enum_item *prev_item = get_vector_item(en->enum_items, en->enum_items->size - 1);
 							enum_item_value_as_int = prev_item->value + 1;
@@ -554,10 +560,12 @@ enumeration_ast_node *parse_enumeration_ast_node(parser *parser) {
 						parse_semi_colon(parser);
 					}
 				}
-
-				// empty enum?
 			}
 			while (true);
+			// empty enum, throw an error.
+			if (en->enum_items->size == 0) {
+				error_message("error: use of empty enum\n");
+			}
 		}
 	}
 
@@ -691,32 +699,62 @@ statement_ast_node *parse_for_loop_ast_node(parser *parser) {
 	return NULL;
 }
 
-expression_ast_node *parse_expression_ast_node(parser *parser) {
-	expression_ast_node *expr = create_expression_ast_node(); // the final expression
+int get_token_precedence(parser *parser) {
+	token *tok = peek_at_token_stream(parser, 0);
+	char token_value = tok->content[0];
+	int token_prec = -1;
 
-	// number literal
-	if (check_token_type(parser, NUMBER, 0)) {
-		expr->type = EXPR_NUMBER;
-		expr->value = consume_token(parser);
-		return expr;
+	if (!isascii(token_value)) {
+		return token_prec;
 	}
-	// string literal
-	if (check_token_type(parser, STRING, 0)) {
-		expr->type = EXPR_STRING;
-		expr->value = consume_token(parser);
-		return expr;
+
+	switch (token_value) {
+		case '*':
+		case '/':
+		case '%':
+			token_prec = 1;
+			break;
+		case '+':
+		case '-':
+			token_prec = 2;
+			break;
+		case '<':
+		case '>':
+			token_prec = 3;
+			break;
+		case '&':
+			token_prec = 4;
+			break;
+		case '^':
+			token_prec = 5;
+			break;
+		case '|':
+			token_prec = 6;
+			break;
+		case '=':
+			token_prec = 7;
+			break;
+		case ',':
+			token_prec = 8;
+			break;
+		default:
+			error_message("unsupported operator given in expression %c\n", token_value);
+			break;
 	}
-	// character
-	if (check_token_type(parser, CHARACTER, 0)) {
-		expr->type = EXPR_CHARACTER;
-		expr->value = consume_token(parser);
-		return expr;
-	}
-	if (check_token_type(parser, IDENTIFIER, 0)) {
-		expr->type = EXPR_VARIABLE;
-		expr->value = consume_token(parser);
-		return expr;
-	}
+
+	if (token_prec <= 0) return token_prec;
+	return token_prec;
+}
+
+expression_ast_node *parse_number_expression(parser *parser) {
+	expression_ast_node *expr = create_expression_ast_node(); // the final expression
+	expr->type = EXPR_NUMBER;
+	expr->value = consume_token(parser);
+	return expr;
+}
+
+expression_ast_node *parse_paren_expression(parser *parser) {
+	expression_ast_node *expr = create_expression_ast_node(); // the final expression
 	if (check_token_type_and_content(parser, SEPARATOR, "(", 0)) {
 		consume_token(parser);
 		expr->type = EXPR_PARENTHESIS;
@@ -730,10 +768,52 @@ expression_ast_node *parse_expression_ast_node(parser *parser) {
 		error_message("error: missing closing parenthesis on expression\n");
 		return NULL;
 	}
-    if(check_token_type_and_content(parser, OPERATOR, "!", 0)) {
-        consume_token(parser);
-        expr->type = EXPR_LOGICAL_OPERATOR;
-    }
+
+	error_message("error: could not parse parenthesis expression\n");
+	return NULL;
+}
+
+expression_ast_node *parse_string_expression(parser *parser) {
+	expression_ast_node *expr = create_expression_ast_node(); // the final expression
+	expr->type = EXPR_STRING;
+	expr->value = consume_token(parser);
+	return expr;
+}
+
+expression_ast_node *parse_character_expression(parser *parser) {
+	expression_ast_node *expr = create_expression_ast_node(); // the final expression
+	expr->type = EXPR_CHARACTER;
+	expr->value = consume_token(parser);
+	return expr;
+}
+
+expression_ast_node *parse_identifier_expression(parser *parser) {
+	expression_ast_node *expr = create_expression_ast_node(); // the final expression
+	expr->type = EXPR_VARIABLE;
+	expr->value = consume_token(parser);
+	return expr;
+}
+
+expression_ast_node *parse_expression_ast_node(parser *parser) {
+
+	// number literal
+	if (check_token_type(parser, NUMBER, 0)) {
+		return parse_number_expression(parser);
+	}
+	// string literal
+	if (check_token_type(parser, STRING, 0)) {
+		return parse_string_expression(parser);
+	}
+	// character
+	if (check_token_type(parser, CHARACTER, 0)) {
+		return parse_character_expression(parser);
+	}
+	if (check_token_type(parser, IDENTIFIER, 0)) {
+		return parse_identifier_expression(parser);
+	}
+	if (check_token_type_and_content(parser, SEPARATOR, "(", 0)) {
+		return parse_paren_expression(parser);
+	}
 
 	print_current_token(parser);
 	error_message("error: failed to parse expression, only character, string and numbers are supported\n");
