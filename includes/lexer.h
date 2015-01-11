@@ -50,7 +50,7 @@ typedef struct {
  * @param  colour_error_token whether or not to colour the errored token
  * @return                    the context as a string
  */
-const char* get_token_context(lexer *lexer, token *tok, bool colour_error_token);
+const char* get_token_context(vector *stream, token *tok, bool colour_error_token);
 
 /**
  * Retrieves the line that a token is on
@@ -58,7 +58,7 @@ const char* get_token_context(lexer *lexer, token *tok, bool colour_error_token)
  * @param  line_num the number to get context of
  * @return       	the context as a string
  */
-const char* get_line_number_context(lexer *lexer, int line_num);
+const char* get_line_number_context(vector *stream, int line_num);
 
 /**
  * Create an empty token
