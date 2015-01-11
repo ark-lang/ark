@@ -603,8 +603,14 @@ structure_ast_node *parse_structure_ast_node(parser *parser) {
 
 statement_ast_node *parse_for_loop_ast_node(parser *parser) {
 	/**
-	 * for int x:(0, 10, 2) {
+	 * exclusive:
+	 * for x:(0 .. 10, 10) {
 	 *
+	 * }
+	 *
+	 * inclusive:
+	 * for y:(0 ... 10) {
+	 * 	
 	 * }
 	 */
 
