@@ -7,15 +7,18 @@ static const char* TOKEN_NAMES[] = {
 	"STRING", "CHARACTER", "UNKNOWN"
 };
 
-const char* get_token_context(lexer *lexer, token *tok, bool colour_error_token) {
+// this is the holy grail of messy, and needs a lot of work
+// i'm really considering writing some kind of string library
+// for the compiler...
+const char* get_token_context(vector *stream, token *tok, bool colour_error_token) {
 	int line_num = tok->line_number;
 	int result_size = 128;
 	int result_index = 0;
 	char *result = malloc(sizeof(char) * (result_size + 1));
 
 	int i;
-	for (i = 0; i < lexer->token_stream->size; i++) {
-		token *temp_tok = get_vector_item(lexer->token_stream, i);
+	for (i = 0; i < stream->size; i++) {
+		token *temp_tok = get_vector_item(stream, i);
 		if (temp_tok->line_number == line_num) {
 			size_t len = strlen(temp_tok->content);
 			int j;
@@ -63,14 +66,14 @@ const char* get_token_context(lexer *lexer, token *tok, bool colour_error_token)
 	return result;
 }
 
-const char* get_line_number_context(lexer *lexer, int line_num) {
+const char* get_line_number_context(vector *stream, int line_num) {
 	int result_size = 128;
 	int result_index = 0;
 	char *result = malloc(sizeof(char) * (result_size + 1));
 
 	int i;
-	for (i = 0; i < lexer->token_stream->size; i++) {
-		token *tok = get_vector_item(lexer->token_stream, i);
+	for (i = 0; i < stream->size; i++) {
+		token *tok = get_vector_item(stream, i);
 		if (tok->line_number == line_num) {
 			size_t len = strlen(tok->content);
 			int j;
@@ -194,7 +197,7 @@ void expect_character(lexer *lexer, char c) {
 		consume_character(lexer);
 	}
 	else {
-		printf("error: expected `%c` but found `%c`\n", c, lexer->current_char);
+		printf("expected `%c` but found `%c`\n", c, lexer->current_char);
 		exit(1);
 	}
 }
@@ -352,10 +355,6 @@ void get_next_token(lexer *lexer) {
 }
 
 void destroy_lexer(lexer *lexer) {
-	// print out lexer content stuff as a text
-	const char* str = get_token_context(lexer, get_vector_item(lexer->token_stream, 5), true);
-	printf("%s\n", str);
-
 	if (lexer) {
 		int i;
 		for (i = 0; i < lexer->token_stream->size; i++) {
