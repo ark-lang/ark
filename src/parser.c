@@ -492,6 +492,7 @@ enumeration_ast_node *parse_enumeration_ast_node(parser *parser) {
 			do {
 				if (check_token_type_and_content(parser, SEPARATOR, "}", 0)) {
 					consume_token(parser);
+					parse_semi_colon(parser);
 					break;
 				}
 
