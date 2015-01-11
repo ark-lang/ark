@@ -38,7 +38,6 @@ void error_message(const char *fmt, ...) {
 	vfprintf(stdout, fmt, arg);
 	fprintf(stdout, "\n");
 	va_end(arg);
-	exit(1);
 }
 
 void primary_message(const char *fmt, ...) {
