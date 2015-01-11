@@ -1,5 +1,5 @@
 fn add_values(): void {
-	for x:(0, 10) {
-	
+	for x(0, 10) {
+
 	}	
 }
