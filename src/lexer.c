@@ -7,8 +7,60 @@ static const char* TOKEN_NAMES[] = {
 	"STRING", "CHARACTER", "UNKNOWN"
 };
 
-const char* get_token_context(lexer *lexer, token *tok) {
-	return get_line_number_context(lexer, tok->line_number);
+const char* get_token_context(lexer *lexer, token *tok, bool colour_error_token) {
+	int line_num = tok->line_number;
+	int result_size = 128;
+	int result_index = 0;
+	char *result = malloc(sizeof(char) * (result_size + 1));
+
+	int i;
+	for (i = 0; i < lexer->token_stream->size; i++) {
+		token *temp_tok = get_vector_item(lexer->token_stream, i);
+		if (temp_tok->line_number == line_num) {
+			size_t len = strlen(temp_tok->content);
+			int j;
+			for (j = 0; j < len; j++) {
+				// just in case we need to realloc
+				if (result_index > result_size) {
+					result_size *= 2;
+					result = realloc(result, sizeof(char) * (result_size + 1));
+				}
+
+				// this is stupid, todo: clean up
+				if (colour_error_token && temp_tok == tok) {
+					char *prefix = "\x1B[31m";
+					size_t prefix_len = strlen(prefix);
+					int pl;
+					for (pl = 0; pl < prefix_len; pl++) {
+						result[result_index++] = prefix[pl];
+					}
+				}
+
+				result[result_index++] = temp_tok->content[j];
+
+				// this is stupid, todo: clean up
+				if (colour_error_token && temp_tok == tok) {
+					char *prefix = "\x1B[00m";
+					size_t prefix_len = strlen(prefix);
+					int pl;
+					for (pl = 0; pl < prefix_len; pl++) {
+						result[result_index++] = prefix[pl];
+					}
+				}
+			}
+
+			// just in case we need to realloc
+			if (result_index > result_size) {
+				result_size *= 2;
+				result = realloc(result, sizeof(char) * (result_size + 1));
+			}
+			// add a space so everything is cleaner
+			result[result_index++] = ' ';
+		}
+	}
+
+	result[result_index++] = '\0';
+	return result;
 }
 
 const char* get_line_number_context(lexer *lexer, int line_num) {
@@ -301,17 +353,14 @@ void get_next_token(lexer *lexer) {
 
 void destroy_lexer(lexer *lexer) {
 	// print out lexer content stuff as a text
-	int i;
-	for (i = 0; i < lexer->line_number; i++) {
-		const char* str = get_line_number_context(lexer, i);
-		printf("%d = %s\n", i, str);
-	}
+	const char* str = get_token_context(lexer, get_vector_item(lexer->token_stream, 5), true);
+	printf("%s\n", str);
 
 	if (lexer) {
 		int i;
 		for (i = 0; i < lexer->token_stream->size; i++) {
 			token *tok = get_vector_item(lexer->token_stream, i);
-			// eof isnt malloc'd for content
+			// eof's content isnt malloc'd so free would give us some errors
 			if (tok->type != END_OF_FILE) {
 				free(tok->content);
 			}

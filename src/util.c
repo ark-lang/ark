@@ -1,16 +1,29 @@
 #include "util.h"
 
+char* get_coloured_text(const char *colour, const char *text) {
+	#if __linux || __APPLE__
+	const char *prefix = colour;
+	const char *suffix = "\x1B[00m";
+	size_t alloc_size = sizeof(char) + (strlen(prefix) + strlen(text) + strlen(suffix) + 1);
+	char *result = malloc(alloc_size);
+	result = strcat(result, prefix);
+	result = strcat(result, text);
+	result = strcat(result, suffix);
+	result[alloc_size] = '\0';
+	return result;
+	#else
+	return text;
+	#endif
+}
+
 void debug_message(const char *fmt, ...) {
 	if (DEBUG_MODE) {
 		va_list arg;
 		va_start(arg, fmt);
-		#if __linux || __APPLE__
-		fprintf(stdout, "\x1B[31m");
-		#endif
+		char *temp = get_coloured_text("\x1B[33m", "debug: ");
+		fprintf(stdout, "%s", temp);
+		free(temp);
 		vfprintf(stdout, fmt, arg);
-		#if __linux || __APPLE__
-		fprintf(stdout, "\x1B[0m");
-		#endif
 		fprintf(stdout, "\n");
 		va_end(arg);
 	}
@@ -19,13 +32,10 @@ void debug_message(const char *fmt, ...) {
 void error_message(const char *fmt, ...) {
 	va_list arg;
 	va_start(arg, fmt);
-	#if __linux || __APPLE__
-	fprintf(stdout, "\x1B[33m");
-	#endif
+	char *temp = get_coloured_text("\x1B[31m", "error: ");
+	fprintf(stdout, "%s", temp);
+	free(temp);
 	vfprintf(stdout, fmt, arg);
-	#if __linux || __APPLE__
-	fprintf(stdout, "\x1B[0m");
-	#endif
 	fprintf(stdout, "\n");
 	va_end(arg);
 	exit(1);
