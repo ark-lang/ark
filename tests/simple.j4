@@ -3,7 +3,5 @@ enum Test {
 };
 
 fn main(): int {
-	for i:(0, 10) {
 
-	}
 }
