@@ -102,15 +102,20 @@ void start_jayfor(jayfor *self) {
 	self->parser = create_parser(self->lexer->token_stream);
 	start_parsing_token_stream(self->parser);
 
-	// self->compiler = create_compiler();
-	// start_compiler(self->compiler, self->parser->parse_tree);
+	// dont compile
+	if (!self->parser->exit_on_error) {
+		self->compiler = create_compiler();
+		start_compiler(self->compiler, self->parser->parse_tree);
+	}
 }
 
 void destroy_jayfor(jayfor *self) {
 	destroy_scanner(self->scanner);
 	destroy_lexer(self->lexer);
 	destroy_parser(self->parser);
-	// destroy_compiler(self->compiler);
+	if (!self->parser->exit_on_error) {
+		destroy_compiler(self->compiler);
+	}
 	if (self) {
 		free(self);
 	}
