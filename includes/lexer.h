@@ -10,6 +10,18 @@
 #include "util.h"
 #include "vector.h"
 
+/** Lexer stuff */
+typedef struct {
+	vector *token_stream;	// where the tokens are stored
+	char* input;			// input to lex
+	int pos;				// position in the input
+	int current_char;		// current character
+	int line_number;		// current line number
+	int char_number;		// current character at line
+	int start_pos;			// keeps track of positions without comments
+	bool running;			// if lexer is running 
+} lexer;
+
 /** types of token */
 typedef enum {
 	END_OF_FILE, IDENTIFIER, NUMBER,
@@ -17,18 +29,42 @@ typedef enum {
 	STRING, CHARACTER, UNKNOWN, SPECIAL_CHAR
 } token_type;
 
-/** Properties of a token or Lexeme */
+/**
+ * Token properties:
+ * type 		- the token type
+ * content 		- the token content
+ * line_number 	- the line number of the token
+ * char_number 	- the number of the char of the token
+ */
 typedef struct {
 	int type;
 	char* content;
+	int line_number;
+	int char_number;
 } token;
+
+/**
+ * Retrieves the line that a token is on
+ * @param  lexer he lexer instance
+ * @param  tok   the token to get the context of
+ * @return       the context as a string
+ */
+const char* get_token_context(lexer *lexer, token *tok);
+
+/**
+ * Retrieves the line that a token is on
+ * @param  lexer 	the lexer instance
+ * @param  line_num the number to get context of
+ * @return       	the context as a string
+ */
+const char* get_line_number_context(lexer *lexer, int line_num);
 
 /**
  * Create an empty token
  * 
  * @return allocate memory for token
  */
-token *create_token();
+token *create_token(lexer *lexer);
 
 /**
  * Get the name of the given token
@@ -45,18 +81,6 @@ const char* get_token_name(token *token);
  * @param token token to free
  */
 void destroy_token(token *token);
-
-/** Lexer stuff */
-typedef struct {
-	vector *token_stream;	// where the tokens are stored
-	char* input;			// input to lex
-	int pos;				// position in the input
-	int current_char;		// current character
-	int line_number;		// current line number
-	int char_number;		// current character at line
-	int start_pos;			// keeps track of positions without comments
-	bool running;			// if lexer is running 
-} lexer;
 
 /**
  * Create an instance of the Lexer
