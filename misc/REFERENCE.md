@@ -8,7 +8,10 @@ IN AS MUCH DETAIL AS POSSIBLE. ANYTHING SPECIFIED IN THIS DOCUMENT MAY BE SUBJEC
 TO CHANGE. NOTHING IS FINAL*
 
 # Table Of Contents
-* [Lexical Structure](#lexical_structure)
+* [General Stuff](#general)
+* [Pre-processor](#preprocessor)
+* [Memory Model](#memorymodel)
+* [Lexer/Parser Structure](#lexandparse)
   * [Semi Colons](#semi_colons)
   * [Comments](#comments)
   * [Keywords](#keywords)
@@ -27,18 +30,21 @@ TO CHANGE. NOTHING IS FINAL*
   * [Data Structures](#data_structures)
   	* [Enumeration](#enumeration)
 
-# General Stuff
+# <a name="general"></a>General Stuff
 
 * Functions treated as second class objects
 * Near to no type system
 * Statically Typed
 * Garbage Collection
-* No Pointers, pass by value, arrays passed by reference
+* ARC memory model
 * Dynamic Memory Allocation, although we might try do Rusts lifetime thing
 * Statically Linked
 
-# Preprocessor
-Jayfor will be statically linked, we're still yet to create a pre-processor,
+# <a name="memorymodel"></a>Memory Model
+
+
+# <a name="preprocessor"></a>Pre-processor
+Jayfor will be statically linked, *we're still yet to create a pre-processor*,
 but you would use the `use` pre-processor directive to include a file, like so:
 
 	use stdio
@@ -46,12 +52,10 @@ but you would use the `use` pre-processor directive to include a file, like so:
 Will use the standard input output library, which means you can call functions
 like `println`.
 
-# <a name="lexical_structure"></a>Lexical Structure
+# <a name="lexandparse"></a>Lexer/Parser Structure
 ## <a name="semi_colons"></a>Semi Colons
-Statements in Jayfor are terminated by semicolons. 
-
-## Operator Precedence
-todo
+Statements in Jayfor are terminated by semicolons. This is important as Jayfor
+is a strict language
 
 ## <a name="comments"></a>Comments
 Comments in Jayfor code follow the general C style of line and block comments. Nested
@@ -194,6 +198,9 @@ and a pair of curly `{}` braces:
 	}
 
 ### <a name="for"></a>For Loops
+todo, write about inferred type for the for loop
+and how .. is exclusive and ... is inclusive only 2 parameters now.
+
 The for loop has been simplified from its traditional syntax. A for loop is specified with the
 `for` keyword, and an index to keep track of the current
 iteration. If you do not care about what iteration you are on, this can be replaced with an
@@ -233,17 +240,17 @@ We feel that the switch syntax is tedious, ugly, and not as semantic as it could
 	match value_to_match {
 		value == 2 {
 			// this will be skipped
-		}
+		},
 		another_value == 3 {
 			// this is the result
-		}
+		},
 		this_value == true {
 
-		}
+		},
 		_ {
 			// this is a "default" in case value_to_match was for example 64
 		}
-	}
+	};
 
 ## <a name="data_structures"></a>Data Structures
 ### Structs
@@ -253,12 +260,12 @@ example of a struct:
 	struct vector {
 		float x;
 		float y;
-	}
+	};
 
 	// structs can be defined like so
 	vector vec = {
 		10, 10
-	}
+	};
 
 	// which is short hand for
 	vector vec;
@@ -270,34 +277,36 @@ You can also define a struct with default values, like so:
 	struct vector {
 		float x = 0;
 		float y = 0;
-	}
+	};
 
 ### <a name="enumeration"></a>Enumeration
 Enumerations are defined with the `enum` keyword, like so:
 
 	enum TRAFFIC_LIGHT {
-		RED
-		ORANGE
+		RED,
+		ORANGE,
 		GREEN
-	}
+	};
 
+Every value should be separated with a comma, except for the last value. As an
+enumeration is a statement, it *must* end with a semi-colon.
 By default, the values will always start from zero, and the next value in
 the enumeration will be incremented by 1. You can also change the default value with
 an equal sign, like so:
 
 	enum TRAFFIC_LIGHT {
-		RED = 10
-		ORANGE	// 11
+		RED = 10,
+		ORANGE,	// 11
 		GREEN	// 12
-	}
+	};
 
 	// or
 
 	enum PET_TYPE {
-		DOG = 10
-		CAT = 54
-		LIZARD = 61
-		DRAGON // 61
+		DOG = 10,
+		CAT = 54,
+		LIZARD = 61,
+		DRAGON, // this would be 62
 	}
 
 Enumerations are accessed with the double-colon operator, similar to C++:
@@ -316,14 +325,14 @@ You can match enumerations or use them in if statements:
 	match x to PET_TYPE {
 		DOG {
 			// im a dog
-		}
+		},
 		CAT {	
 			// im a cat
-		}
+		},
 		LIZARD {
 			// im a lizard
-		}
+		},
 		_ {
 			// no idea
 		}
-	}
+	};
