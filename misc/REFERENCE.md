@@ -37,12 +37,21 @@ TO CHANGE. NOTHING IS FINAL*
 * Dynamic Memory Allocation, although we might try do Rusts lifetime thing
 * Statically Linked
 
+# Preprocessor
+Jayfor will be statically linked, we're still yet to create a pre-processor,
+but you would use the `use` pre-processor directive to include a file, like so:
+
+	use stdio
+
+Will use the standard input output library, which means you can call functions
+like `println`.
+
 # <a name="lexical_structure"></a>Lexical Structure
 ## <a name="semi_colons"></a>Semi Colons
 Statements in Jayfor are terminated by semicolons. 
 
 ## Operator Precedence
-
+todo
 
 ## <a name="comments"></a>Comments
 Comments in Jayfor code follow the general C style of line and block comments. Nested
