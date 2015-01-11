@@ -1,7 +1,7 @@
 #include "lexer.h"
 
 // this is just for debugging
-static const char* token_NAMES[] = {
+static const char* TOKEN_NAMES[] = {
 	"END_OF_FILE", "IDENTIFIER", "NUMBER",
 	"OPERATOR", "SEPARATOR", "ERRORNEOUS",
 	"STRING", "CHARACTER", "UNKNOWN"
@@ -15,7 +15,7 @@ token *create_token() {
 }
 
 const char* get_token_name(token *tok) {
-	return token_NAMES[tok->type];
+	return TOKEN_NAMES[tok->type];
 }
 
 void destroy_token(token *token) {
@@ -27,16 +27,13 @@ void destroy_token(token *token) {
 
 lexer *create_lexer(char* input) {
 	lexer *lexer = safe_malloc(sizeof(*lexer));
-
 	lexer->input = input;
 	lexer->pos = 0;
 	lexer->current_char = input[lexer->pos];
 	lexer->token_stream = create_vector();
 	lexer->running = true;
-
 	lexer->line_number = 0;
 	lexer->char_number = 0;
-
 	return lexer;
 }
 
