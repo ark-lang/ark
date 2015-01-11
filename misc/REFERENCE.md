@@ -1,7 +1,7 @@
 # JAYFOR REFERENCE
 This is not an exact specification, but an effort to describe the langauge in
 as much detail as possible. This document does not serve as an introduction to
-the language, but as a reference. 
+the language, but as a reference.
 
 *DISCLAIMER: THE CONTENTS OF THIS REFERENCE ARE A GUIDE TO DESCRIBE THE LANGUAGE
 IN AS MUCH DETAIL AS POSSIBLE. ANYTHING SPECIFIED IN THIS DOCUMENT MAY BE SUBJECT
@@ -41,13 +41,45 @@ TO CHANGE. NOTHING IS FINAL*
 * Statically Linked
 
 # <a name="memorymodel"></a>Memory Model
+  Jayfor will use an Objective-C-like memory model, namely **reference counting**.
+    Reference counting is (what we think) a really efficient method to handle memory.
+    How it works is, every time memory is allocated, say for a structure in this
+    case, the program will hold a reference to that structure and "increment its
+    value by 1": which is to say it will make a valid reference to an instance of
+    that structure (as instantiated by you) in memory.
+    As more and more structures are added (or any other data structure/variable
+    for that matter), there will be individual references made to it,
+    which, when determined [by the program] to be useless, causes the reference to
+    be "decremented" so to speak, and the structure is eliminated from memory.
+
+  However, for those moments where you require the memory to be manually managed (which can
+    be necessary in certain situations), we have included the `unsafe` keyword,
+    which when used on a structure or a variable or a data structure for that
+    matter, **requires you to manually deallocate the said memory using the
+    `dealloc` keyword**.
+
+  Example:
+
+        unsafe struct Car {
+          str doorType,
+          int licensePlateNumber
+        };
+
+        Car mclaren;
+        mclaren.doorType = "Scissor"; // no idea
+        mclaren.licensePlateNumber = 2048;
+        // do something with aforementioned structure
+
+
+        // deallocate the @{mclaren} instance  
+        dealloc(mclaren);
 
 
 # <a name="preprocessor"></a>Pre-processor
 Jayfor will be statically linked, *we're still yet to create a pre-processor*,
 but you would use the `use` pre-processor directive to include a file, like so:
 
-	use stdio
+	use stdio;
 
 Will use the standard input output library, which means you can call functions
 like `println`.
@@ -67,7 +99,7 @@ and one forward slash:
 	/*
 		This is a block comment.
 	 */
-	
+
 ## <a name="keywords"></a>Keywords
 
 	int 	bool	float	str 	void
@@ -113,7 +145,7 @@ which they are declared as follows:
 
 A function returning a tuple is defined similarily to a function with a single return type. A
 colon must be specified, however, instead of a single data type; you must provide a tuple
-signature, denoted with an opening `<` and closing `>` angle bracket. The functions return 
+signature, denoted with an opening `<` and closing `>` angle bracket. The functions return
 statement must also follow this pattern:
 
 	fn get_population(str location): <int, int, int> {
@@ -146,7 +178,7 @@ time:
 
 ## <a name="conditionals"></a>Conditionals
 ### <a name="if"></a>If Statements
-In Jayfor, an if statement is denoted with the `if` keyword, a condition, and a pair of 
+In Jayfor, an if statement is denoted with the `if` keyword, a condition, and a pair of
 curly `{}` braces. Within the braces, a list of statements are specified, which will execute
 if the aforementioned condition is true:
 
@@ -217,7 +249,7 @@ type specified. This is because data types are inferred based on the values give
 	// same as the above
 	for index: (0, 10) {
 
-	} 
+	}
 
 	// start > end, which means that step
 	// wil decrement instead of increment
@@ -326,7 +358,7 @@ You can match enumerations or use them in if statements:
 		DOG {
 			// im a dog
 		},
-		CAT {	
+		CAT {
 			// im a cat
 		},
 		LIZARD {
