@@ -7,10 +7,51 @@ static const char* TOKEN_NAMES[] = {
 	"STRING", "CHARACTER", "UNKNOWN"
 };
 
-token *create_token() {
+const char* get_token_context(lexer *lexer, token *tok) {
+	return get_line_number_context(lexer, tok->line_number);
+}
+
+const char* get_line_number_context(lexer *lexer, int line_num) {
+	int result_size = 128;
+	int result_index = 0;
+	char *result = malloc(sizeof(char) * (result_size + 1));
+
+	int i;
+	for (i = 0; i < lexer->token_stream->size; i++) {
+		token *tok = get_vector_item(lexer->token_stream, i);
+		if (tok->line_number == line_num) {
+			size_t len = strlen(tok->content);
+			int j;
+			for (j = 0; j < len; j++) {
+				// just in case we need to realloc
+				if (result_index > result_size) {
+					result_size *= 2;
+					result = realloc(result, sizeof(char) * (result_size + 1));
+				}
+				// add the char to the result
+				result[result_index++] = tok->content[j];
+			}
+
+			// just in case we need to realloc
+			if (result_index > result_size) {
+				result_size *= 2;
+				result = realloc(result, sizeof(char) * (result_size + 1));
+			}
+			// add a space so everything is cleaner
+			result[result_index++] = ' ';
+		}
+	}
+
+	result[result_size] = '\0';
+	return result;
+}
+
+token *create_token(lexer *lexer) {
 	token *tok = safe_malloc(sizeof(*tok));
 	tok->type = UNKNOWN;
 	tok->content = NULL;
+	tok->line_number = lexer->line_number;
+	tok->char_number = lexer->char_number;
 	return tok;
 }
 
@@ -39,9 +80,8 @@ lexer *create_lexer(char* input) {
 
 void consume_character(lexer *lexer) {
 	if (lexer->current_char == '\n' || is_end_of_input(lexer->current_char)) {
-		lexer->char_number = 0;
+		lexer->char_number = 0;	// reset the char number back to zero
 		lexer->line_number++;
-		printf("new line %d\n", lexer->line_number);	
 	}
 	lexer->current_char = lexer->input[++lexer->pos];
 	lexer->char_number++;
@@ -108,6 +148,7 @@ void expect_character(lexer *lexer, char c) {
 }
 
 void recognize_end_of_input_token(lexer *lexer) {
+	consume_character(lexer);
 	push_token_c(lexer, END_OF_FILE, "<END_OF_FILE>");
 }
 
@@ -198,14 +239,14 @@ void recognize_errorneous_token(lexer *lexer) {
 }
 
 void push_token(lexer *lexer, int type) {
-	token *tok = create_token();
+	token *tok = create_token(lexer);
 	tok->type = type;
 	tok->content = extract_token(lexer, lexer->start_pos, lexer->pos - lexer->start_pos);
 	push_back_item(lexer->token_stream, tok);
 }
 
 void push_token_c(lexer *lexer, int type, char *content) {
-	token *tok = create_token();
+	token *tok = create_token(lexer);
 	tok->type = type;
 	tok->content = content;
 	push_back_item(lexer->token_stream, tok);
@@ -259,6 +300,13 @@ void get_next_token(lexer *lexer) {
 }
 
 void destroy_lexer(lexer *lexer) {
+	// print out lexer content stuff as a text
+	int i;
+	for (i = 0; i < lexer->line_number; i++) {
+		const char* str = get_line_number_context(lexer, i);
+		printf("%d = %s\n", i, str);
+	}
+
 	if (lexer) {
 		int i;
 		for (i = 0; i < lexer->token_stream->size; i++) {
