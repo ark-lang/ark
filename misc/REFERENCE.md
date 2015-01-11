@@ -61,15 +61,15 @@ TO CHANGE. NOTHING IS FINAL*
   Example:
 
         unsafe struct Car {
-          str doorType,
-          int licensePlateNumber
+            str doorType,
+            int licensePlateNumber
         };
 
         Car mclaren;
         mclaren.doorType = "Scissor"; // no idea
         mclaren.licensePlateNumber = 2048;
+        
         // do something with aforementioned structure
-
 
         // deallocate the @{mclaren} instance  
         dealloc(mclaren);
