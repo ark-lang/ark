@@ -1,49 +1,50 @@
 # Jayfor - [![Build Status](https://travis-ci.org/jayfor-lang/jayfor.svg?branch=master)](https://travis-ci.org/jayfor-lang/jayfor)
-Jayfor is a programming language written in C.
+Jayfor is a programming language written in C. The goals of this language are:
 
-# <a name="proposals"></a>Proposing Ideas
-If you have an idea for the language, post an issue with the format: `Proposal: proposal summary` into the [issues](http://github.com/jayfor-lang/jayfor/issues) section of the repository, for example:
+* Speed
+* Simplicity
+* Clean
 
-    Proposal: add X to this language because Y
-    Proposal: add X to this language to replace Y
+# Why?
+I created Jayfor as I love writing C, and I love the simplicity of C, yet I wanted to evolve C
+into something more modern, and easier to use.
 
-Please tag any proposals with the "proposal" label!
+# Status
+* The language is still in development
+* The compiler is written in C
+* LLVM is used for the backend
 
-# Examples
-There are some code examples in the `examples` folder.
+# Proposals
+If you want to have a say in the language, feel free to post an Issue in the [Issue Handler](issues). We
+use proposals so that people can vote on the idea, since the smallest change can put Jayfor in a completely
+different direction. To help out the developers, please include the following in your Issue:
 
-# Requirements
-* Clang 3.5
-* LLVM 3.5 
+    Title:
+    [PROPOSAL] - Proposal Summary.
 
-# IRC
-We have an IRC channel, this is mostly where we discuss development related
-issues, syntax styles, and so on. Interested in contributing to Jayfor, come over
-to our IRC channel:
+    Contents:
+    * What you are proposing
+    * Why you think it's a good idea
+    * If it's a syntax related proposal, post any ideas of syntax you can. This isn't mandatory, but will help.
 
-    server:     irc.freenode.net
-    port:       8001
-    channel:    ##jayfor
+# Building
+To build you will need **LLVM 3.4 or above**, and **clang**. If you don't have clang,
+you can change the [Makefile](Makefile) to use GCC or another compiler. Open your
+terminal and run the following:
 
-## Building
-Building is easy. **Please note that this langauge is still
-in design phase, so we can't promise anything will work!**
-
-    // note, you atleast need LLVM 3.4 or above
-    // if you build with 3.5 you may have to add
-    // additional linker options
-
-    cd where_you_want_jayfor_to_be
-    git clone https://www.github.com/jayfor-lang/jayfor.git
+    # clone the repository
+    git clone https://github.com/jayfor-lang/jayfor.git
+    
+    # cd into the repository
     cd jayfor
+
+    # build
     make
 
-Then to run a j4 program:
+    # run a program
+    ./j4 tests/simple.j4
 
-    ./j4 exampes/helloworld.j4
-
-# Syntax
-Check the REFERENCE.md file in misc/.
+If something doesn't work, feel free to post in the [Issues Handler](issues).
 
 # License
 Jayfor is licensed under The MIT License. I have no idea
