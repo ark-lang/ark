@@ -3,15 +3,15 @@ use stdio;
 fn main(): int {
 	for i:(0, 100) {
 		match i {
+			i % 15 == 0 {
+				println("{}, fizzbuzz", i);
+			}
 			i % 3 == 0 {
 				println("{}, fizz", i);
 			},
 			i % 5 == 0 {
 				println("{}, buzz", i);
 			},
-			i % 15 == 0 {
-				println("{}, fizzbuzz", i);
-			}
 		}
 	}
 	return 0;
