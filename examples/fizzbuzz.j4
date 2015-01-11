@@ -5,13 +5,13 @@ fn main(): int {
 		match i {
 			i % 15 == 0 {
 				println("{}, fizzbuzz", i);
-			}
+			},
 			i % 3 == 0 {
 				println("{}, fizz", i);
 			},
 			i % 5 == 0 {
 				println("{}, buzz", i);
-			},
+			}
 		}
 	}
 	return 0;
