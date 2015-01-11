@@ -41,6 +41,9 @@ TO CHANGE. NOTHING IS FINAL*
 ## <a name="semi_colons"></a>Semi Colons
 Statements in Jayfor are terminated by semicolons. 
 
+## Operator Precedence
+
+
 ## <a name="comments"></a>Comments
 Comments in Jayfor code follow the general C style of line and block comments. Nested
 comments are supported.
