@@ -25,7 +25,7 @@ typedef struct {
  */
 typedef struct {
 	scanner *scanner;
-	Lexer *lexer;
+	lexer *lexer;
 	parser *parser;
 	compiler *compiler;
 	char *filename;
