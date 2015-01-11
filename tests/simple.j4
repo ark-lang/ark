@@ -1,5 +1,9 @@
-fn add_values(): void {
-	for x(0, 10) {
+enum Test {
+	ADD
+};
 
-	}	
+fn main(): int {
+	for i:(0, 10) {
+
+	}
 }

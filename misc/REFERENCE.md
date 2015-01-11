@@ -41,38 +41,44 @@ TO CHANGE. NOTHING IS FINAL*
 * Statically Linked
 
 # <a name="memorymodel"></a>Memory Model
-  Jayfor will use an Objective-C-like memory model, namely **reference counting**.
-    Reference counting is (what we think) a really efficient method to handle memory.
-    How it works is, every time memory is allocated, say for a structure in this
-    case, the program will hold a reference to that structure and "increment its
-    value by 1": which is to say it will make a valid reference to an instance of
-    that structure (as instantiated by you) in memory.
-    As more and more structures are added (or any other data structure/variable
-    for that matter), there will be individual references made to it,
-    which, when determined [by the program] to be useless, causes the reference to
-    be "decremented" so to speak, and the structure is eliminated from memory.
+Jayfor will use an Objective-C-like memory model, namely **reference counting**.
+Reference counting is (what we think) a really efficient method to handle memory.
+How it works is, every time memory is allocated, say for a structure in this
+case, the program will hold a reference to that structure and "increment its
+value by 1": which is to say it will make a valid reference to an instance of
+that structure (as instantiated by you) in memory.
+As more and more structures are added (or any other data structure/variable
+for that matter), there will be individual references made to it,
+which, when determined [by the program] to be useless, causes the reference to
+be "decremented" so to speak, and the structure is eliminated from memory.
 
-  However, for those moments where you require the memory to be manually managed (which can
-    be necessary in certain situations), we have included the `unsafe` keyword,
-    which when used on a structure or a variable or a data structure for that
-    matter, **requires you to manually deallocate the said memory using the
-    `dealloc` keyword**.
+However, for those moments where you require the memory to be manually managed (which can
+be necessary in certain situations), we have included the `unsafe` keyword,
+which when used on a structure or a variable or a data structure for that
+matter, **requires you to manually deallocate the said memory using the
+`dealloc` keyword**.
 
-  Example:
+Example:
 
-        unsafe struct Car {
-            str doorType,
-            int licensePlateNumber
-        };
+	enum DoorType {
+		SCISSOR,
+		SUICIDE,
+		BUTTERFLY
+	}
 
-        Car mclaren;
-        mclaren.doorType = "Scissor"; // no idea
-        mclaren.licensePlateNumber = 2048;
-        
-        // do something with aforementioned structure
+    unsafe struct Car {
+        str door_type;
+        int license_plate_number;
+    };
 
-        // deallocate the @{mclaren} instance  
-        dealloc(mclaren);
+    Car 'mclaren = alloc(sizeof('mclaren));
+	mclaren.door_type = DoorType::SCISSOR;
+    mclaren.license_plate_number = 2048;
+
+    // do something with aforementioned structure
+
+    // deallocate the @{mclaren} instance  
+    dealloc(mclaren);
 
 
 # <a name="preprocessor"></a>Pre-processor
