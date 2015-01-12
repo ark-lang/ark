@@ -1,4 +1,4 @@
-# Jayfor - [![Build Status](https://travis-ci.org/jayfor-lang/jayfor.svg?branch=master)](https://travis-ci.org/jayfor-lang/jayfor)
+# <a href="http://jayfor-lang.github.io">Jayfor</a> - [![Build Status](https://travis-ci.org/jayfor-lang/jayfor.svg?branch=master)](https://travis-ci.org/jayfor-lang/jayfor)
 Jayfor is a programming language written in C. The goals of this language are:
 
 * Speed
