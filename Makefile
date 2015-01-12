@@ -13,6 +13,7 @@ ifeq "$(LLVM_VERSION)" "3.5" && "$(shell uname -s)" "Linux"
 endif
 ifeq "$(LLVM_VERSION)" "3.5"
 	LLVM_FLAGS += -lz -lncurses
+endif
 
 TRAVIS_FLAGS = -ldl -ltinfo -pthread
 SOURCES = src/*.c
