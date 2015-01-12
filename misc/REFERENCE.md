@@ -35,9 +35,8 @@ TO CHANGE. NOTHING IS FINAL*
 * Functions treated as second class objects
 * Near to no type system
 * Statically Typed
-* Garbage Collection
 * ARC memory model
-* Dynamic Memory Allocation, although we might try do Rusts lifetime thing
+* Dynamic Memory Allocation, although we might try do Rust's lifetime thing
 * Statically Linked
 
 # <a name="memorymodel"></a>Memory Model
