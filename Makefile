@@ -8,7 +8,7 @@ LLVM_FLAGS = `llvm-config --libs --system-libs --cflags --ldflags core analysis 
 LLVM_VERSION = $(shell llvm-config --version | grep ^llvm-version | sed 's/^.* //g')
 
  
-ifeq "$(LLVM_VERSION)" "3.5" && "$(shell uname -s)" "Linux"
+ifeq (("$(LLVM_VERSION)" "3.5" && "$(shell uname -s)" "Linux"),true)
 	LLVM_FLAGS = `llvm-config-3.5 --libs --system-libs --cflags --ldflags core analysis executionengine jit interpreter native -lz -lncurses`
 endif
 ifeq "$(LLVM_VERSION)" "3.5"
