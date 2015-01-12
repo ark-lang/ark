@@ -31,7 +31,7 @@ All pull requests are welcome:
 * Submit a Pull Request
 
 ### Proposing a feature/change
-If you want to have a say in the language, feel free to post an Issue in the [Issue Handler](issues). We
+If you want to have a say in the language, feel free to post an Issue in the [Issue Handler](https://github.com/jayfor-lang/jayfor/issues). We
 use proposals so that people can vote on the idea, since the smallest change can put Jayfor in a completely
 different direction. To help out the developers, please include the following in your Issue:
 
@@ -45,7 +45,7 @@ different direction. To help out the developers, please include the following in
 
 ## Building
 To build you will need **LLVM 3.4 or above**, and **clang**. If you don't have clang,
-you can change the [Makefile](Makefile) to use GCC or another compiler. Open your
+you can change the [Makefile](Makefile) to use **GCC** or another compiler. Open your
 terminal and run the following:
 
     # clone the repository
@@ -60,7 +60,7 @@ terminal and run the following:
     # run a program
     ./j4 tests/simple.j4
 
-If something doesn't work, feel free to post in the [Issues Handler](issues).
+If something doesn't work, feel free to post in the [Issues Handler](https://github.com/jayfor-lang/jayfor/issues).
 
 ## License
 Jayfor is licensed under The MIT License. I have no idea
