@@ -6,7 +6,7 @@ Jayfor is a programming language written in C. The goals of this language are:
 * Clean
 
 ## Why?
-I created Jayfor as I love writing C, and I love the simplicity of C, yet I wanted to evolve C
+We created Jayfor because we love writing C, and love the simplicity of C; we also wanted to evolve C
 into something more modern, and easier to use.
 
 ## Status
