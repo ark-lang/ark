@@ -80,7 +80,7 @@ variable_define_ast_node *create_variable_define_ast_node() {
 variable_declare_ast_node *create_variable_declare_ast_node() {
 	variable_declare_ast_node *vdn = allocate_ast_node(sizeof(variable_declare_ast_node), "variable declaration");
 	vdn->vdn = NULL;
-	vdn->expressions = NULL;
+	vdn->expression = NULL;
 	return vdn;
 }
 
@@ -202,6 +202,9 @@ void destroy_function_return_ast_node(function_return_ast_node *frn) {
 
 void destroy_expression_ast_node(expression_ast_node *expr) {
 	if (expr) {
+		if (expr->function_call && expr->type == EXPR_FUNCTION_CALL) {
+			destroy_function_callee_ast_node(expr->function_call);
+		}
 		if (expr->lhand) {
 			destroy_expression_ast_node(expr->lhand);
 		}
@@ -223,15 +226,8 @@ void destroy_variable_declare_ast_node(variable_declare_ast_node *vdn) {
 		if (vdn->vdn) {
 			destroy_variable_define_ast_node(vdn->vdn);
 		}
-		if (vdn->expressions) {
-			int i;
-			for (i = 0; i < vdn->expressions->size; i++) {
-				expression_ast_node *expr = get_vector_item(vdn->expressions, i);
-				if (expr) {
-					destroy_expression_ast_node(expr);
-				}
-			}
-			destroy_vector(vdn->expressions);
+		if (vdn->expression) {
+			destroy_expression_ast_node(vdn->expression);
 		}
 		free(vdn);
 	}
@@ -275,9 +271,6 @@ void destroy_function_prototype_ast_node(function_prototype_ast_node *fpn) {
 				}
 			}
 			destroy_vector(fpn->args);
-		}
-		if (fpn->ret) {
-			destroy_vector(fpn->ret);
 		}
 		free(fpn);
 	}
@@ -434,23 +427,27 @@ bool check_token_type_and_content(parser *parser, token_type type, char* content
 	return check_token_type(parser, type, ahead) && check_token_content(parser, content, ahead);
 }
 
-char parse_operand(parser *parser) {
-	token *tok = peek_at_token_stream(parser, 0);
-	char tok_first_char = tok->content[0];
+char* SUPPORTED_OPERANDS[] = {
+	"++", "--", 
+	"+=", "-=", "*=", "/=", "%="
+	"+", "-", "&", "-", "*", "/", "%",
+	">", "<", ">=", "<=", "^",
+};
 
-	switch (tok_first_char) {
-		case '+': consume_token(parser); return tok_first_char;
-		case '-': consume_token(parser); return tok_first_char;
-		case '*': consume_token(parser); return tok_first_char;
-		case '/': consume_token(parser); return tok_first_char;
-		case '%': consume_token(parser); return tok_first_char;
-		case '>': consume_token(parser); return tok_first_char;
-		case '<': consume_token(parser); return tok_first_char;
-		case '^': consume_token(parser); return tok_first_char;
+char *parse_operand(parser *parser) {
+	token *tok = peek_at_token_stream(parser, 0);
+
+	int i;
+	int operand_list_size = sizeof(SUPPORTED_OPERANDS) / sizeof(SUPPORTED_OPERANDS[0]);
+	for (i = 0; i < operand_list_size; i++) {
+		if (!strcmp(SUPPORTED_OPERANDS[i], tok->content)) {
+			consume_token(parser);
+			return SUPPORTED_OPERANDS[i];
+		}
 	}
 
-	parser_error(parser, "invalid operator specified", tok, false);
-	return '\0';
+	parser_error(parser, "invalid operator specified", tok, true);
+	return NULL;
 }
 
 enumeration_ast_node *parse_enumeration_ast_node(parser *parser) {
@@ -786,6 +783,11 @@ expression_ast_node *parse_character_expression(parser *parser) {
 
 expression_ast_node *parse_identifier_expression(parser *parser) {
 	expression_ast_node *expr = create_expression_ast_node(); // the final expression
+	if (check_token_type_and_content(parser, SEPARATOR, "(", 1)) {
+		expr->type = EXPR_FUNCTION_CALL;
+		expr->function_call = parse_function_callee_ast_node(parser);
+		return expr;
+	}
 	expr->type = EXPR_VARIABLE;
 	expr->value = consume_token(parser);
 	return expr;
@@ -797,10 +799,12 @@ expression_ast_node *parse_expression_ast_node(parser *parser) {
 	if (check_token_type(parser, NUMBER, 0)) {
 		return parse_number_expression(parser);
 	}
+
 	// string literal
 	if (check_token_type(parser, STRING, 0)) {
 		return parse_string_expression(parser);
 	}
+	
 	// character
 	if (check_token_type(parser, CHARACTER, 0)) {
 		return parse_character_expression(parser);
@@ -816,6 +820,11 @@ expression_ast_node *parse_expression_ast_node(parser *parser) {
 		return parse_paren_expression(parser);
 	}
 
+	// bin op precedence shit here
+
+	// function call
+
+	// error here
 	return NULL;
 }
 
@@ -849,14 +858,13 @@ void *parse_variable_ast_node(parser *parser, bool global) {
 		// create variable define ast_node
 		def->is_constant = is_constant;
 		def->type = data_type_raw;
-		def->name = variable_name_token;
+		def->name = variable_name_token->content;
 		def->is_global = global;
 
 		// create the variable declare ast_node
 		variable_declare_ast_node *dec = create_variable_declare_ast_node();
 		dec->vdn = def;
-		dec->expressions = create_vector();
-		push_back_item(dec->expressions, parse_expression_ast_node(parser));
+		dec->expression = parse_expression_ast_node(parser);
 
 		// parse semi colon
 		parse_semi_colon(parser);
@@ -879,7 +887,7 @@ void *parse_variable_ast_node(parser *parser, bool global) {
 		// create variable define ast_node
 		def->is_constant = is_constant;
 		def->type = data_type_raw;
-		def->name = variable_name_token;
+		def->name = variable_name_token->content;
 		def->is_global = global;
 
 		if (global) {
@@ -899,11 +907,11 @@ block_ast_node *parse_block_ast_node(parser *parser) {
 	block_ast_node *block = create_block_ast_node();
 	block->statements = create_vector();
 
-	match_token_type_and_content(parser, SEPARATOR, "{");
+	match_token_type_and_content(parser, SEPARATOR, BLOCK_OPENER);
 
 	do {
 		// check if block is empty before we try parse some statements
-		if (check_token_type_and_content(parser, SEPARATOR, "}", 0)) {
+		if (check_token_type_and_content(parser, SEPARATOR, BLOCK_CLOSER, 0)) {
 			consume_token(parser);
 			break;
 		}
@@ -939,7 +947,6 @@ function_ast_node *parse_function_ast_node(parser *parser) {
 	// Create function signature
 	function_prototype_ast_node *fpn = create_function_prototype_ast_node();
 	fpn->args = args;
-	fpn->ret = create_vector();
 	fpn->name = functionName;
 
 	// parameter list
@@ -955,14 +962,14 @@ function_ast_node *parse_function_ast_node(parser *parser) {
 
 			token *argdata_type = match_token_type(parser, IDENTIFIER);
 			data_type arg_raw_data_type = match_token_type_to_data_type(parser, argdata_type);
-			token *argName = match_token_type(parser, IDENTIFIER);
+			token *arg_name = match_token_type(parser, IDENTIFIER);
 
 			function_argument_ast_node *arg = create_function_argument_ast_node();
 			arg->type = arg_raw_data_type;
-			arg->name = argName;
+			arg->name = arg_name;
 			arg->value = NULL;
 
-			if (check_token_type_and_content(parser, OPERATOR, "=", 0)) {
+			if (check_token_type_and_content(parser, OPERATOR, ASSIGNMENT_OPERATOR, 0)) {
 				consume_token(parser);
 
 				// default expression
@@ -970,7 +977,7 @@ function_ast_node *parse_function_ast_node(parser *parser) {
 				arg->value = expr;
 				push_back_item(args, arg);
 
-				if (check_token_type_and_content(parser, SEPARATOR, ",", 0)) {
+				if (check_token_type_and_content(parser, SEPARATOR, COMMA_SEPARATOR, 0)) {
 					consume_token(parser);
 				}
 				else if (check_token_type_and_content(parser, SEPARATOR, ")", 0)) {
@@ -978,7 +985,7 @@ function_ast_node *parse_function_ast_node(parser *parser) {
 					break;
 				}
 			}
-			else if (check_token_type_and_content(parser, SEPARATOR, ",", 0)) {
+			else if (check_token_type_and_content(parser, SEPARATOR, COMMA_SEPARATOR, 0)) {
 				if (check_token_type_and_content(parser, SEPARATOR, ")", 1)) {
 					parser_error(parser, "trailing comma at the end of argument list", consume_token(parser), false);
 				}
@@ -1007,7 +1014,7 @@ function_ast_node *parse_function_ast_node(parser *parser) {
 		if (check_token_type(parser, IDENTIFIER, 0)) {
 			token *returnType = consume_token(parser);
 			data_type raw_data_type = match_token_type_to_data_type(parser, returnType);
-			push_back_item(fpn->ret, &raw_data_type);
+			fpn->ret = raw_data_type;
 		}
 		else {
 			parser_error(parser, "function declaration return type expected", consume_token(parser), false);
@@ -1073,9 +1080,10 @@ function_callee_ast_node *parse_function_callee_ast_node(parser *parser) {
 
 		// woo we got the function
 		function_callee_ast_node *fcn = create_function_callee_ast_node();
-		fcn->callee = callee;
+		fcn->callee = callee->content;
 		fcn->args = args;
 		prepare_ast_node(parser, fcn, FUNCTION_CALLEE_AST_NODE);
+
 		return fcn;
 	}
 
@@ -1100,7 +1108,7 @@ function_return_ast_node *parse_return_statement_ast_node(parser *parser) {
 }
 
 void parse_semi_colon(parser *parser) {
-	if (check_token_type_and_content(parser, SEPARATOR, ";", 0)) {
+	if (check_token_type_and_content(parser, SEPARATOR, SEMI_COLON, 0)) {
 		consume_token(parser);
 	}
 	else {
