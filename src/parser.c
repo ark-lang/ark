@@ -57,7 +57,7 @@ statement_ast_node *create_statement_ast_node() {
 
 function_return_ast_node *create_function_return_ast_node() {
 	function_return_ast_node *frn = allocate_ast_node(sizeof(function_return_ast_node), "function return");
-	frn->return_vals = NULL;
+	frn->return_val = NULL;
 	return frn;
 }
 
@@ -69,18 +69,9 @@ expression_ast_node *create_expression_ast_node() {
 	return expr;
 }
 
-bool_expression_ast_node *create_boolean_expression_ast_node() {
-    bool_expression_ast_node *boolExpr = allocate_ast_node(sizeof(bool_expression_ast_node), "boolean expression");
-    boolExpr->expr = NULL;
-    boolExpr->lhand = NULL;
-    boolExpr->rhand = NULL;
-    return boolExpr;
-}
-
 variable_define_ast_node *create_variable_define_ast_node() {
 	variable_define_ast_node *vdn = allocate_ast_node(sizeof(variable_define_ast_node), "variable definition");
 	vdn->name = NULL;
-	vdn->is_tuple = false;
 	vdn->is_constant = false;
 	vdn->is_global = false;
 	return vdn;
@@ -204,16 +195,7 @@ void destroy_statement_ast_node(statement_ast_node *sn) {
 
 void destroy_function_return_ast_node(function_return_ast_node *frn) {
 	if (frn) {
-		if (frn->return_vals) {
-			int i;
-			for (i = 0; i < frn->return_vals->size; i++) {
-				expression_ast_node *temp = get_vector_item(frn->return_vals, i);
-				if (temp) {
-					destroy_expression_ast_node(temp);
-				}
-			}
-			destroy_vector(frn->return_vals);
-		}
+		destroy_expression_ast_node(frn->return_val);
 		free(frn);
 	}
 }
@@ -322,18 +304,6 @@ void destroy_function_callee_ast_node(function_callee_ast_node *fcn) {
 	}
 }
 
-void destroybool_expression_ast_node(bool_expression_ast_node *ben) {
-    if (ben) {
-        if(ben->lhand) {
-            destroybool_expression_ast_node(ben->lhand);
-        }
-        if(ben->rhand) {
-            destroybool_expression_ast_node(ben->rhand);
-        }
-        free(ben); // goodbye, Ben! -- im hilarious
-    }
-}
-
 void destroy_structure_ast_node(structure_ast_node *sn) {
 	if (sn) {
 		if (sn->statements) {
@@ -370,7 +340,8 @@ parser *create_parser(vector *token_stream) {
 	parser->parse_tree = create_vector();
 	parser->token_index = 0;
 	parser->parsing = true;
-	parser->exit_on_error = false;
+	parser->exit_on_error = true;
+	parser->sym_table = create_hashmap(16);
 	return parser;
 }
 
@@ -870,40 +841,6 @@ void *parse_variable_ast_node(parser *parser, bool global) {
 
 	// store def
 	variable_define_ast_node *def = create_variable_define_ast_node();
-	def->tuple_values = create_vector();
-
-	// parse tuple section of variable
-	int num_of_tuples = 0;
-	if (check_token_type_and_content(parser, OPERATOR, "<", 0)) {
-		consume_token(parser);
-
-		// parse the contents of < ... >
-		do {
-			if (check_token_type_and_content(parser, OPERATOR, ">", 0)) {
-				if (num_of_tuples <= 0) {
-					parser_error(parser, "empty tuple declared", consume_token(parser), false);
-				}
-				consume_token(parser);
-				break;
-			}
-			token *current_token = consume_token(parser);
-			data_type type = match_token_type_to_data_type(parser, current_token);
-			push_back_item(def->tuple_values, &type);
-
-			if (check_token_type_and_content(parser, SEPARATOR, ",", 0)) {
-				consume_token(parser);
-				if (check_token_type_and_content(parser, OPERATOR, ">", 0)) {
-					parser_error(parser, "trailing comma in tuple definition", consume_token(parser), false);
-					break;
-				}
-			}
-
-			num_of_tuples++;
-		}
-		while (true);
-
-		def->is_tuple = true;
-	}
 
 	if (check_token_type_and_content(parser, OPERATOR, "=", 0)) {
 		// consume the equals sign
@@ -919,40 +856,12 @@ void *parse_variable_ast_node(parser *parser, bool global) {
 		variable_declare_ast_node *dec = create_variable_declare_ast_node();
 		dec->vdn = def;
 		dec->expressions = create_vector();
+		push_back_item(dec->expressions, parse_expression_ast_node(parser));
 
-		// parse tuple expressions
-		int num_of_tuples = 0;
-		if (check_token_type_and_content(parser, OPERATOR, "<", 0)) {
-			consume_token(parser);
-
-			do {
-				if (check_token_type_and_content(parser, OPERATOR, ">", 0)) {
-					if (num_of_tuples <= 0 || num_of_tuples != def->tuple_values->size) {
-						parser_error(parser, "tuple does not match signature", consume_token(parser), false);
-					}
-					break;
-				}
-
-				push_back_item(dec->expressions, parse_expression_ast_node(parser));
-
-				if (check_token_type_and_content(parser, SEPARATOR, ",", 0)) {
-					consume_token(parser);
-					if (check_token_type_and_content(parser, OPERATOR, ">", 0)) {
-						parser_error(parser, "trailing comma in tuple declaration", consume_token(parser), false);
-					}
-					break;
-				}
-
-				num_of_tuples++;
-			}
-			while (true);
-		}
-		else {
-			push_back_item(dec->expressions, parse_expression_ast_node(parser));
-		}
-
+		// parse semi colon
 		parse_semi_colon(parser);
 
+		// this is weird, we can probably clean this up
 		if (global) {
 			prepare_ast_node(parser, dec, VARIABLE_DEC_AST_NODE);
 			return dec;
@@ -1085,8 +994,6 @@ function_ast_node *parse_function_ast_node(parser *parser) {
 		while (true);
 
 		function_ast_node *fn = create_function_ast_node();
-		fn->num_of_return_values = 0;
-		fn->is_tuple = false;
 
 		if (check_token_type_and_content(parser, OPERATOR, ":", 0)) {
 			consume_token(parser);
@@ -1095,51 +1002,12 @@ function_ast_node *parse_function_ast_node(parser *parser) {
 			parser_error(parser, "function signature missing colon", consume_token(parser), false);
 		}
 
-		// START OF TUPLE
-		if (check_token_type_and_content(parser, OPERATOR, "<", 0)) {
-			consume_token(parser);
-			fn->is_tuple = true;
-
-			do {
-				if (check_token_type_and_content(parser, OPERATOR, ">", 0)) {
-					if (fn->num_of_return_values < 1) {
-						parser_error(parser, "function expects a return type", consume_token(parser), false);
-					}
-					consume_token(parser); // eat
-					break;
-				}
-
-				if (check_token_type(parser, IDENTIFIER, 0)) {
-					token *tok = consume_token(parser);
-					if (check_token_type_is_valid_data_type(parser, tok)) {
-						// get the data type
-						data_type raw_data_type = match_token_type_to_data_type(parser, tok);
-						
-						// put that shit on the heap
-						data_type *_data_type = safe_malloc(sizeof(data_type));
-						*_data_type = raw_data_type;
-						
-						push_back_item(fpn->ret, _data_type);
-						fn->num_of_return_values++;
-					}
-					else {
-						parser_error(parser, "invalid data type specified", consume_token(parser), false);
-					}
-					if (check_token_type_and_content(parser, SEPARATOR, ",", 0)) {
-						if (check_token_type_and_content(parser, OPERATOR, ">", 1)) {
-							parser_error(parser, "trailing comma in function declaration", consume_token(parser), false);
-						}
-						consume_token(parser);
-					}
-				}
-			}
-			while (true);
-		}
-		else if (check_token_type(parser, IDENTIFIER, 0)) {
+		// returns data type
+		// todo: let this return a struct... etc
+		if (check_token_type(parser, IDENTIFIER, 0)) {
 			token *returnType = consume_token(parser);
 			data_type raw_data_type = match_token_type_to_data_type(parser, returnType);
 			push_back_item(fpn->ret, &raw_data_type);
-			fn->num_of_return_values += 1;
 		}
 		else {
 			parser_error(parser, "function declaration return type expected", consume_token(parser), false);
@@ -1219,42 +1087,13 @@ function_return_ast_node *parse_return_statement_ast_node(parser *parser) {
 	// consume the return keyword
 	match_token_type_and_content(parser, IDENTIFIER, RETURN_KEYWORD);
 
+	// return value
 	function_return_ast_node *frn = create_function_return_ast_node();
-	frn->return_vals = create_vector();
-	frn->num_of_return_values = 0;
+	frn->return_val = parse_expression_ast_node(parser);
 
-	if (check_token_type_and_content(parser, OPERATOR, "<", 0)) {
-		consume_token(parser);
-
-		do {
-			if (check_token_type_and_content(parser, OPERATOR, ">", 0)) {
-				consume_token(parser);
-				parse_semi_colon(parser);
-				return frn;
-			}
-
-			expression_ast_node *expr = parse_expression_ast_node(parser);
-			push_back_item(frn->return_vals, expr);
-			if (check_token_type_and_content(parser, SEPARATOR, ",", 0)) {
-				if (check_token_type_and_content(parser, OPERATOR, ">", 1)) {
-					parser_error(parser, "trailing comma in return statement", consume_token(parser), false);
-				}
-				consume_token(parser);
-				frn->num_of_return_values++;
-			}
-		}
-		while (true);
-	}
-	else {
-		// only one return type
-		expression_ast_node *expr = parse_expression_ast_node(parser);
-		push_back_item(frn->return_vals, expr);
-		frn->num_of_return_values++;
-
-		// consume semi colon if present
-		parse_semi_colon(parser);
-		return frn;
-	}
+	// consume semi colon if present
+	parse_semi_colon(parser);
+	return frn;
 
 	parser_error(parser, "failed to parse return statement", consume_token(parser), true);
 	return NULL;
@@ -1503,6 +1342,7 @@ void destroy_parser(parser *parser) {
 		remove_ast_node(ast_node);
 	}
 	destroy_vector(parser->parse_tree);
+	destroy_hashmap(parser->sym_table);
 
 	if (parser) {
 		free(parser);
