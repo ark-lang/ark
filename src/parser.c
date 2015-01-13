@@ -6,6 +6,15 @@ static const char* DATA_TYPES[] = {
 	"void", "char", "tup"
 };
 
+/** Supported Operators */
+static char* SUPPORTED_OPERANDS[] = {
+	"++", "--", 
+	"+=", "-=", "*=", "/=", "%="
+	"+", "-", "&", "-", "*", "/", "%", "^",
+	">", "<", ">=", "<=", "==", "!=", "&&", "||",
+	""
+};
+
 /** UTILITY FOR AST NODES */
 
 void parser_error(parser *parser, char *msg, token *tok, bool fatal_error) {
@@ -20,7 +29,13 @@ void parser_error(parser *parser, char *msg, token *tok, bool fatal_error) {
 
 void *allocate_ast_node(size_t sz, const char* readable_type) {
 	assert(sz > 0);
-	void *ret = safe_malloc(sz);
+	// dont use safe malloc here because we can provide additional
+	// error info
+	void *ret = malloc(sz);
+	if (!ret) {
+		fprintf(stderr, "malloc: failed to allocate memory for %s", readable_type);
+		exit(1);
+	}
 	return ret;
 }
 
@@ -426,13 +441,6 @@ bool check_token_content(parser *parser, char* content, int ahead) {
 bool check_token_type_and_content(parser *parser, token_type type, char* content, int ahead) {
 	return check_token_type(parser, type, ahead) && check_token_content(parser, content, ahead);
 }
-
-char* SUPPORTED_OPERANDS[] = {
-	"++", "--", 
-	"+=", "-=", "*=", "/=", "%="
-	"+", "-", "&", "-", "*", "/", "%",
-	">", "<", ">=", "<=", "^",
-};
 
 char *parse_operand(parser *parser) {
 	token *tok = peek_at_token_stream(parser, 0);
