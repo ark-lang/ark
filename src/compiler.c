@@ -102,9 +102,9 @@ LLVMValueRef generate_variable_declaration_code(compiler *self, variable_declare
 }
 
 LLVMValueRef generate_function_callee_code(compiler *self, function_callee_ast_node *fcn) {
-	LLVMValueRef func = LLVMGetNamedFunction(self->module, fcn->callee->content);
+	LLVMValueRef func = LLVMGetNamedFunction(self->module, fcn->callee);
 	if (!func) {
-		printf("function `%s` not found in module!\n", fcn->callee->content);
+		printf("function `%s` not found in module!\n", fcn->callee);
 	}
 
 	if (LLVMCountParams(func) != fcn->args->size) {
@@ -153,11 +153,7 @@ LLVMValueRef generate_function_prototype_code(compiler *self, function_prototype
 			}
 		}
 
-		// get the first argument for now, tuples aren't supported just yet
-		data_type *return_val = get_vector_item(fpn->ret, 0);
-		
-
-		LLVMTypeRef return_type = get_type_ref(*return_val);
+		LLVMTypeRef return_type = get_type_ref(fpn->ret);
 		LLVMTypeRef func_type = LLVMFunctionType(return_type, params, arg_count, false);
 
 		proto = LLVMAddFunction(self->module, fpn->name->content, func_type);
