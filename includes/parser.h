@@ -20,6 +20,7 @@
 #define EXPR_CHARACTER 			'C'
 #define EXPR_VARIABLE 			'V'
 #define EXPR_PARENTHESIS 		'P'
+#define EXPR_FUNCTION_CALL		'F'
 
 #define CONSTANT_KEYWORD 	   	"const"
 #define BLOCK_OPENER			"{"
@@ -101,13 +102,25 @@ typedef struct {
 } ast_node;
 
 /**
+ * Function call
+ */
+typedef struct {
+	char *callee;
+	vector *args;
+} function_callee_ast_node;
+
+/**
  * ast_node for an Expression
  */
 typedef struct s_Expression {
 	char type;
+	
 	token *value;
+
+	function_callee_ast_node *function_call;
+
 	struct s_Expression *lhand;
-	char operand;
+	char *operand;
 	struct s_Expression *rhand;
 } expression_ast_node;
 
@@ -117,7 +130,7 @@ typedef struct s_Expression {
  */
 typedef struct {
 	data_type type;			// type of data to store
-	token *name;			// name of the variable
+	char *name;				// name of the variable
 
 	bool is_global;			// is it in a global scope?
 	bool is_constant;		// is it a constant variable?
@@ -128,7 +141,7 @@ typedef struct {
  */
 typedef struct {
 	variable_define_ast_node *vdn;
-	vector *expressions;
+	expression_ast_node *expression;
 } variable_declare_ast_node;
 
 /**
@@ -146,14 +159,6 @@ typedef struct {
 typedef struct {
 	expression_ast_node *return_val;
 } function_return_ast_node;
-
-/**
- * Function call
- */
-typedef struct {
-	token *callee;
-	vector *args;
-} function_callee_ast_node;
 
 /**
  * A ast_node for containing and identifying
@@ -212,7 +217,7 @@ typedef struct {
 typedef struct {
 	vector *args;
 	token *name;
-	vector *ret;
+	data_type ret;
 } function_prototype_ast_node;
 
 /**
@@ -272,9 +277,9 @@ typedef struct  {
 } structure_ast_node;
 
 /**
- * parser an operand
+ * parse an operand
  */
-char parse_operand(parser *parser);
+char *parse_operand(parser *parser);
 
 /**
  * Create a new structure node
