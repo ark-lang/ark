@@ -17,7 +17,6 @@ TO CHANGE. NOTHING IS FINAL*
   * [Keywords](#keywords)
   * [Expressions](#expressions)
   * [Functions](#functions)
-  	* [Tuples](#tuples)
   	* [Single Line Functions](#single_line_functions)
   	* [Unsafe Functions](#unsafe_functions)
   * [Conditionals](#conditionals)
@@ -107,11 +106,11 @@ and one forward slash:
 
 ## <a name="keywords"></a>Keywords
 
-	int 	bool	float	str 	void
-	enum	struct 	return 	const 	true
-	false 	match 	while 	for 	do
-	if 		else 	unsafe 	fn 		tup
-	char	break	continue
+	int 		bool		float		str 		void
+	enum		struct 		return 		const 		true
+	false 		match 		while 		for 		do
+	if 			else 		unsafe 		fn  		char	
+	break		continue
 
 ## <a name="expressions"></a>Expressions
 The following arithmetic operations are currently supported:
@@ -139,25 +138,6 @@ the caller. This is specified after the colon operator, like so:
 
 	fn add(int a, int b): int {
 		return (a + b);
-	}
-
-### <a name="tuples"></a>Tuples
-Functions may also return tuples. Tuples are denoted with a less than symbol `<`, a list
-of data types, and a greater than symbol `>`. A tuple is an explicit data type, through
-which they are declared as follows:
-
-	tup my_tuple<int, double, str> = <5, 5.3, "string">;
-
-A function returning a tuple is defined similarily to a function with a single return type. A
-colon must be specified, however, instead of a single data type; you must provide a tuple
-signature, denoted with an opening `<` and closing `>` angle bracket. The functions return
-statement must also follow this pattern:
-
-	fn get_population(str location): <int, int, int> {
-		if location == "New York" {
-			return <5, 5, 5>;
-		}
-		return <0, 0, 0>;
 	}
 
 ### <a name="single_line_functions"></a>Single Line Functions
