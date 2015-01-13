@@ -37,7 +37,6 @@
 #define UNSAFE_KEYWORD	 	   	"unsafe"
 #define UNDERSCORE_KEYWORD		"_"			// underscores are treated as identifiers
 #define IF_STATEMENT_KEYWORD   	"if"
-#define TUPLE_KEYWORD			"tup"
 #define WHILE_LOOP_KEYWORD	   	"while"
 #define INFINITE_LOOP_KEYWORD  	"loop"
 #define ELSE_KEYWORD		   	"else"
@@ -65,6 +64,9 @@ typedef struct {
 	// whether to exit on error
 	// after parsing
 	bool exit_on_error;
+
+	// hashmap for validation stuff 
+	hashmap *sym_table;
 } parser;
 
 /**
@@ -116,11 +118,9 @@ typedef struct s_Expression {
 typedef struct {
 	data_type type;			// type of data to store
 	token *name;			// name of the variable
-	vector *tuple_values;	// the value that the tuples are storing
 
 	bool is_global;			// is it in a global scope?
 	bool is_constant;		// is it a constant variable?
-	bool is_tuple;			// is the variable a tuple?
 } variable_define_ast_node;
 
 /**
@@ -144,8 +144,7 @@ typedef struct {
  * Function Return ast_node
  */
 typedef struct {
-	vector *return_vals;
-	int num_of_return_values;
+	expression_ast_node *return_val;
 } function_return_ast_node;
 
 /**
@@ -222,8 +221,6 @@ typedef struct {
 typedef struct {
 	function_prototype_ast_node *fpn;
 	block_ast_node *body;
-	bool is_tuple;
-	int num_of_return_values;
 } function_ast_node;
 
 /**
@@ -265,28 +262,6 @@ typedef struct {
 typedef struct {
 	block_ast_node *body;
 } infinite_loop_ast_node;
-
-/**
- * ast_node for Boolean Expressions
- *
- * ???
- * !var
- * var
- *
- * var == var
- * var != var
- * var && var
- * var || var
- *
- */
-typedef struct s_bool_expression_ast_node {
-	char operand;
-	expression_ast_node *expr;
-	struct s_bool_expression_ast_node *lhand;
-	char first_compar;
-	char second_compar;
-	struct s_bool_expression_ast_node *rhand;
-} bool_expression_ast_node;
 
 /**
  * Node for a Struct
@@ -347,11 +322,6 @@ for_loop_ast_node *create_for_loop_ast_node();
  * Create a new  Function Callee ast_node
  */
 function_callee_ast_node *create_function_callee_ast_node();
-
-/**
- * Create a new Boolean Expression ast_node
- */
-bool_expression_ast_node *create_boolean_expression_ast_node();
 
 /**
  * Create a new Function Return ast_node
