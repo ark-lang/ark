@@ -1,0 +1,7 @@
+// using the shorthands can get pretty messy
+// i'd suggest using them sparely, or styling
+// them like so
+fn add(int a, int b): int 
+	=> while true 
+		=> if (a > b) 
+			=> return (a + b)
