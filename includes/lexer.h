@@ -77,7 +77,7 @@ void destroy_token(token *token);
  * @param  colour_error_token whether or not to colour the errored token
  * @return                    the context as a string
  */
-const char* get_token_context(vector *stream, token *tok, bool colour_error_token);
+char* get_token_context(vector *stream, token *tok, bool colour_error_token);
 
 /**
  * Retrieves the line that a token is on
@@ -85,7 +85,7 @@ const char* get_token_context(vector *stream, token *tok, bool colour_error_toke
  * @param  line_num the number to get context of
  * @return       	the context as a string
  */
-const char* get_line_number_context(vector *stream, int line_num);
+char* get_line_number_context(vector *stream, int line_num);
 
 /**
  * Create an instance of the Lexer
