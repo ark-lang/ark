@@ -1,7 +1,7 @@
 int max = 10
 int result = 0
 
-fn add(int a, int b): int => while true {
+fn do_stuff(int a, int b): int => while true {
 	result = (result + (a + b))
 	if (result > 20) {
 		return result
@@ -9,5 +9,5 @@ fn add(int a, int b): int => while true {
 }
 
 fn main(): void {
-	int x = add(5, 5)
+	do_stuff(5, 5)
 }
