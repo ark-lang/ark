@@ -1045,19 +1045,30 @@ void *parse_variable_ast_node(parser *parser, bool global) {
 block_ast_node *parse_block_ast_node(parser *parser) {
 	block_ast_node *block = create_block_ast_node();
 	block->statements = create_vector();
+	block->single_statement = false;
 
-	match_token_type_and_content(parser, SEPARATOR, BLOCK_OPENER);
-
-	do {
-		// check if block is empty before we try parse some statements
-		if (check_token_type_and_content(parser, SEPARATOR, BLOCK_CLOSER, 0)) {
-			consume_token(parser);
-			break;
-		}
-
+	if (check_token_type_and_content(parser, OPERATOR, SINGLE_STATEMENT, 0)) {
+		consume_token(parser);
 		push_back_item(block->statements, parse_statement_ast_node(parser));
+		block->single_statement = true;
 	}
-	while (true);
+	else if (check_token_type_and_content(parser, SEPARATOR, BLOCK_OPENER, 0)) {
+		consume_token(parser);
+
+		do {
+			// check if block is empty before we try parse some statements
+			if (check_token_type_and_content(parser, SEPARATOR, BLOCK_CLOSER, 0)) {
+				consume_token(parser);
+				break;
+			}
+
+			push_back_item(block->statements, parse_statement_ast_node(parser));
+		}
+		while (true);
+	}
+	else {
+		parser_error(parser, "expected a multi-block or single-block statement", consume_token(parser), true);
+	}
 
 	return block;
 }
@@ -1157,20 +1168,7 @@ function_ast_node *parse_function_ast_node(parser *parser) {
 
 		// set function prototype
 		fn->fpn = fpn;
-		
-		// start block
-		if (check_token_type_and_content(parser, SEPARATOR, BLOCK_OPENER, 0)) {
-			fn->body = parse_block_ast_node(parser);
-		}
-		// start of short hand
-		else if (check_token_type_and_content(parser, OPERATOR, SINGLE_STATEMENT, 0)) {
-			// eat it
-			consume_token(parser);
-			fn->single_statement = parse_statement_ast_node(parser);
-		}
-		else {
-			parser_error(parser, "function expecting a function body or a shorthand assignemnt with `=>`", consume_token(parser), false);
-		}
+		fn->body = parse_block_ast_node(parser);
 		
 		prepare_ast_node(parser, fn, FUNCTION_AST_NODE);
 
