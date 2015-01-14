@@ -7,87 +7,6 @@ static const char* TOKEN_NAMES[] = {
 	"STRING", "CHARACTER", "UNKNOWN"
 };
 
-// this is the holy grail of messy, and needs a lot of work
-// i'm really considering writing some kind of string library
-// for the compiler...
-char* get_token_context(vector *stream, token *tok, bool colour_error_token) {
-	int line_num = tok->line_number;
-	int result_size = 128;
-	int result_index = 0;
-	char *result = malloc(sizeof(char) * (result_size + 1));
-	if (!result) {
-		perror("malloc: failed to malloc memory for token context");
-		exit(1);
-	}
-
-	int i;
-	for (i = 0; i < stream->size; i++) {
-		token *temp_tok = get_vector_item(stream, i);
-		if (temp_tok->line_number == line_num) {
-			size_t len = strlen(temp_tok->content);
-
-			int j;
-			for (j = 0; j < len; j++) {
-				// just in case we need to realloc
-				if (result_index >= result_size) {
-					result_size *= 2;
-					result = realloc(result, sizeof(char) * (result_size + 1));
-					if (!result) {
-						perror("failed to reallocate memory for token context");
-						exit(1);
-					}
-				}
-				result[result_index++] = temp_tok->content[j];
-			}
-
-			// add a space so everything is cleaner
-			result[result_index++] = ' ';
-		}
-	}
-
-	result[result_index++] = '\0';
-	return result;
-}
-
-char* get_line_number_context(vector *stream, int line_num) {
-	int result_size = 128;
-	int result_index = 0;
-	char *result = malloc(sizeof(char) * (result_size + 1));
-	if (!result) {
-		perror("malloc: failed to malloc memory for line number context");
-		exit(1);
-	}
-
-	int i;
-	for (i = 0; i < stream->size; i++) {
-		token *tok = get_vector_item(stream, i);
-		if (tok->line_number == line_num) {
-			size_t len = strlen(tok->content);
-			int j;
-			for (j = 0; j < len; j++) {
-				// just in case we need to realloc
-				if (result_index >= result_size) {
-					result_size *= 2;
-					result = realloc(result, sizeof(char) * (result_size + 1));
-					if (!result) {
-						perror("failed to reallocate memory for line number context");
-						exit(1);
-					}
-				}
-
-				// add the char to the result
-				result[result_index++] = tok->content[j];
-			}
-
-			// add a space so everything is cleaner
-			result[result_index++] = ' ';
-		}
-	}
-
-	result[result_index++] = '\0';
-	return result;
-}
-
 token *create_token(lexer *lexer) {
 	token *tok = safe_malloc(sizeof(*tok));
 	tok->type = UNKNOWN;
@@ -360,4 +279,87 @@ void destroy_lexer(lexer *lexer) {
 		}
 		free(lexer);
 	}
+}
+
+// the ugly functions can go down here
+
+// this is the holy grail of messy, and needs a lot of work
+// i'm really considering writing some kind of string library
+// for the compiler...
+char* get_token_context(vector *stream, token *tok, bool colour_error_token) {
+	int line_num = tok->line_number;
+	int result_size = 128;
+	int result_index = 0;
+	char *result = malloc(sizeof(char) * (result_size + 1));
+	if (!result) {
+		perror("malloc: failed to malloc memory for token context");
+		exit(1);
+	}
+
+	int i;
+	for (i = 0; i < stream->size; i++) {
+		token *temp_tok = get_vector_item(stream, i);
+		if (temp_tok->line_number == line_num) {
+			size_t len = strlen(temp_tok->content);
+
+			int j;
+			for (j = 0; j < len; j++) {
+				// just in case we need to realloc
+				if (result_index >= result_size) {
+					result_size *= 2;
+					result = realloc(result, sizeof(char) * (result_size + 1));
+					if (!result) {
+						perror("failed to reallocate memory for token context");
+						exit(1);
+					}
+				}
+				result[result_index++] = temp_tok->content[j];
+			}
+
+			// add a space so everything is cleaner
+			result[result_index++] = ' ';
+		}
+	}
+
+	result[result_index++] = '\0';
+	return result;
+}
+
+char* get_line_number_context(vector *stream, int line_num) {
+	int result_size = 128;
+	int result_index = 0;
+	char *result = malloc(sizeof(char) * (result_size + 1));
+	if (!result) {
+		perror("malloc: failed to malloc memory for line number context");
+		exit(1);
+	}
+
+	int i;
+	for (i = 0; i < stream->size; i++) {
+		token *tok = get_vector_item(stream, i);
+		if (tok->line_number == line_num) {
+			size_t len = strlen(tok->content);
+			int j;
+			for (j = 0; j < len; j++) {
+				// just in case we need to realloc
+				if (result_index >= result_size) {
+					result_size *= 2;
+					result = realloc(result, sizeof(char) * (result_size + 1));
+					if (!result) {
+						perror("failed to reallocate memory for line number context");
+						exit(1);
+					}
+				}
+
+				// add the char to the result
+				result[result_index++] = tok->content[j];
+			}
+
+			// add a space so everything is cleaner
+			result[result_index++] = ' ';
+		}
+	}
+
+	result[result_index++] = '\0';
+	return result;
 }

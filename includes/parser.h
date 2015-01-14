@@ -30,6 +30,8 @@
 #define FUNCTION_KEYWORD 	   	"fn"
 #define VOID_KEYWORD	 	   	"void"
 #define BREAK_KEYWORD	 	   	"break"
+#define TRUE_KEYWORD			"true"
+#define FALSE_KEYWORD			"false"
 #define CONTINUE_KEYWORD		"continue"
 #define RETURN_KEYWORD	 	   	"return"
 #define STRUCT_KEYWORD	 	   	"struct"
