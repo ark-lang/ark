@@ -34,6 +34,7 @@
 #define STRUCT_KEYWORD	 	   	"struct"
 #define COMMA_SEPARATOR			","
 #define SEMI_COLON				";"
+#define IF_KEYWORD				"if"
 #define ENUM_KEYWORD	 	   	"enum"
 #define UNSAFE_KEYWORD	 	   	"unsafe"
 #define UNDERSCORE_KEYWORD		"_"			// underscores are treated as identifiers
@@ -89,7 +90,8 @@ typedef enum {
 	BLOCK_AST_NODE, FUNCTION_CALLEE_AST_NODE,
 	FUNCTION_RET_AST_NODE, FOR_LOOP_AST_NODE,
 	VARIABLE_REASSIGN_AST_NODE, INFINITE_LOOP_AST_NODE,
-	BREAK_AST_NODE, CONTINUE_AST_NODE, ENUM_AST_NODE, STRUCT_AST_NODE
+	BREAK_AST_NODE, CONTINUE_AST_NODE, ENUM_AST_NODE, STRUCT_AST_NODE,
+	IF_STATEMENT_AST_NODE
 } ast_node_type;
 
 /**
@@ -277,6 +279,38 @@ typedef struct  {
 } structure_ast_node;
 
 /**
+ * ast_node to represent an if statement
+ */
+typedef struct {
+	expression_ast_node *condition;
+	block_ast_node *body;
+} if_statement_ast_node;
+
+/**
+ * ast_node to represent a while loop
+ */
+typedef struct {
+	expression_ast_node *condition;
+	block_ast_node *body;
+} while_ast_node;
+
+/**
+ * ast_node to represent a case for a match
+ */
+typedef struct {
+	statement_ast_node *statement;
+	block_ast_node *body;
+} match_case_ast_node;
+
+/**
+ * ast_node to represent a match
+ */
+typedef struct {
+	expression_ast_node *condition;
+	vector *cases;
+} match_ast_node;
+
+/**
  * parse an operand
  */
 char *parse_operand(parser *parser);
@@ -346,6 +380,26 @@ statement_ast_node *create_statement_ast_node();
  * (a + b) - (1 + b)
  */
 expression_ast_node *create_expression_ast_node();
+
+/**
+ * Creates a new if statement ast_node
+ */
+if_statement_ast_node *create_if_statement_ast_node();
+
+/**
+ * Creates a new while loop ast_node
+ */
+while_ast_node *create_while_ast_node();
+
+/**
+ * Creates a new match case ast_node
+ */
+match_case_ast_node *create_match_case_ast_node();
+
+/**
+ * Creates a new match ast_node
+ */
+match_ast_node *create_match_ast_node();
 
 /**
  * Creates a new Variable Define ast_node
@@ -432,6 +486,30 @@ void destroy_continue_ast_node(continue_ast_node *bn);
  * @param vrn the node to destroy
  */
 void destroy_variable_reassign_ast_node(variable_reassignment_ast_node *vrn);
+
+/**
+ * Destroys an if statement node
+ * @param isn the node to destroy
+ */
+void destroy_if_statement_ast_node(if_statement_ast_node *isn);
+
+/**
+ * Destroys a while loop node
+ * @param wan the node to destroy
+ */
+void destroy_while_ast_node(while_ast_node *wan);
+
+/**
+ * Destroys a match case node
+ * @param mcn the node to destroy
+ */
+void destroy_match_case_ast_node(match_case_ast_node *mcn);
+
+/**
+ * Destroys a match ast node
+ * @param mn the node to destroy
+ */
+void destroy_match_ast_node(match_ast_node *mn);
 
 /**
  * Destroys an infinite loop node
