@@ -1,0 +1,5 @@
+fn add(int a, int b): int => return (a + b)
+
+fn main(): int {
+	int x = add(5, 5)
+}
