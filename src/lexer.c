@@ -10,7 +10,7 @@ static const char* TOKEN_NAMES[] = {
 // this is the holy grail of messy, and needs a lot of work
 // i'm really considering writing some kind of string library
 // for the compiler...
-const char* get_token_context(vector *stream, token *tok, bool colour_error_token) {
+char* get_token_context(vector *stream, token *tok, bool colour_error_token) {
 	int line_num = tok->line_number;
 	int result_size = 128;
 	int result_index = 0;
@@ -54,7 +54,7 @@ const char* get_token_context(vector *stream, token *tok, bool colour_error_toke
 	return result;
 }
 
-const char* get_line_number_context(vector *stream, int line_num) {
+char* get_line_number_context(vector *stream, int line_num) {
 	int result_size = 128;
 	int result_index = 0;
 	char *result = malloc(sizeof(char) * (result_size + 1));
