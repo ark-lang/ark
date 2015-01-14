@@ -223,7 +223,7 @@ void destroy_statement_ast_node(statement_ast_node *sn) {
 				case ENUM_AST_NODE: destroy_enumeration_ast_node(sn->data); break;
 				case IF_STATEMENT_AST_NODE: destroy_if_statement_ast_node(sn->data); break;
 				case MATCH_STATEMENT_AST_NODE: destroy_match_ast_node(sn->data); break;
-				default: break;
+				default: printf("unrecognized being destroyed node %d\n", sn->type); break;
 			}
 		}
 		free(sn);
@@ -1469,7 +1469,5 @@ void destroy_parser(parser *parser) {
 	destroy_vector(parser->parse_tree);
 	destroy_hashmap(parser->sym_table);
 
-	if (parser) {
-		free(parser);
-	}
+	free(parser);
 }
