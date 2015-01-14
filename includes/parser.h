@@ -213,6 +213,7 @@ typedef struct {
  */
 typedef struct {
 	vector *statements;
+	bool single_statement;
 } block_ast_node;
 
 /**
