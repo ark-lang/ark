@@ -44,6 +44,7 @@ const char* get_token_context(vector *stream, token *tok, bool colour_error_toke
 					exit(1);
 				}
 			}
+
 			// add a space so everything is cleaner
 			result[result_index++] = ' ';
 		}

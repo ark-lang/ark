@@ -25,10 +25,11 @@ We have an IRC where we discuss Jayfor things, and other stuff too:
 All pull requests are welcome:
 
 * Fork the project
-* Create your branch for the feature `git checkout -b toast`
-* Commit your changes                `git commit -am 'Makes toast'`
-* Push to the branch                 `git push origin toast`
+* Clone the repository from your account `git clone git@github.com:your_user/jayfor.git`
+* Create your branch for the fix `git checkout -b jayfor-toast-fix`
+* Make your changes
 * Submit a Pull Request
+* **IMPORTANT** Please rebase on master everytime before you push to check for conflicts
 
 ### Proposing a feature/change
 If you want to have a say in the language, feel free to post an Issue in the [Issue Handler](https://github.com/jayfor-lang/jayfor/issues). We
