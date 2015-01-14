@@ -4,7 +4,7 @@ fn test(int a, int b): int {
 
 fn add(int a, int b): int => while true {
 	if ((a == 52) || (b == 23)) {
-		return (a + b);
+		return (a + b)
 	}
 }
 
