@@ -3,7 +3,7 @@
 /** List of data types */
 static const char* DATA_TYPES[] = {
 	"int", "str", "double", "float", "bool",
-	"void", "char", "tup"
+	"void", "char"
 };
 
 /** Supported Operators */
@@ -12,7 +12,6 @@ static char* SUPPORTED_OPERANDS[] = {
 	"+=", "-=", "*=", "/=", "%="
 	"+", "-", "&", "-", "*", "/", "%", "^",
 	">", "<", ">=", "<=", "==", "!=", "&&", "||",
-	""
 };
 
 /** UTILITY FOR AST NODES */
@@ -156,6 +155,27 @@ structure_ast_node *create_structure_ast_node() {
 	structure_ast_node *sn = allocate_ast_node(sizeof(structure_ast_node), "struct");
 	sn->statements = create_vector();
 	return sn;
+}
+
+if_statement_ast_node *create_if_statement_ast_node() {
+	if_statement_ast_node *isn = allocate_ast_node(sizeof(if_statement_ast_node), "if statement");
+	return isn;	
+}
+
+while_ast_node *create_while_ast_node() {
+	while_ast_node *wn = allocate_ast_node(sizeof(while_ast_node), "while loop");
+	return wn;
+}
+
+match_case_ast_node *create_match_case_ast_node() {
+	match_case_ast_node *mcn = allocate_ast_node(sizeof(match_case_ast_node), "match case");
+	return mcn;
+}
+
+match_ast_node *create_match_ast_node() {
+	match_ast_node *mn = allocate_ast_node(sizeof(match_ast_node), "match");
+	mn->cases = create_vector();
+	return mn;
 }
 
 void destroy_variable_reassign_ast_node(variable_reassignment_ast_node *vrn) {
@@ -334,6 +354,58 @@ void destroy_enumeration_ast_node(enumeration_ast_node *en) {
 	}
 }
 
+void destroy_if_statement_ast_node(if_statement_ast_node *isn) {
+	if (isn) {
+		if (isn->condition) {
+			destroy_expression_ast_node(isn->condition);
+		}
+		if (isn->body) {
+			destroy_block_ast_node(isn->body);
+		}
+		free(isn);
+	}
+}
+
+void destroy_while_ast_node(while_ast_node *wn) {
+	if (wn) {
+		if (wn->condition) {
+			destroy_expression_ast_node(wn->condition);
+		}
+		if (wn->body) {
+			destroy_block_ast_node(wn->body);
+		}
+		free(wn);
+	}
+}
+
+void destroy_match_case_ast_node(match_case_ast_node *mcn) {
+	if (mcn) {
+		if (mcn->statement) {
+			destroy_statement_ast_node(mcn->statement);
+		}
+		if (mcn->body) {
+			destroy_block_ast_node(mcn->body);
+		}
+		free(mcn);
+	}
+}
+
+void destroy_match_ast_node(match_ast_node *mn) {
+	if (mn) {
+		if (mn->condition) {
+			destroy_expression_ast_node(mn->condition);
+		}
+		if (mn->cases) {
+			int i;
+			for (i = 0; i < mn->cases->size; i++) {
+				destroy_match_case_ast_node(get_vector_item(mn->cases, i));
+			}
+			destroy_vector(mn->cases);
+		}
+		free(mn);
+	}
+}
+
 void destroy_enum_item(enum_item *ei) {
 	if (ei) {
 		free(ei);
@@ -456,6 +528,18 @@ char *parse_operand(parser *parser) {
 
 	parser_error(parser, "invalid operator specified", tok, true);
 	return NULL;
+}
+
+if_statement_ast_node *parse_if_statement_ast_node(parser *parser) {
+	if_statement_ast_node *en = create_if_statement_ast_node();
+
+	match_token_type_and_content(parser, IDENTIFIER, IF_KEYWORD);
+
+	expression_ast_node *expr = parse_expression_ast_node(parser);
+	en->condition = expr;
+	en->body = parse_block_ast_node(parser);
+
+	return en;
 }
 
 enumeration_ast_node *parse_enumeration_ast_node(parser *parser) {
@@ -791,11 +875,14 @@ expression_ast_node *parse_character_expression(parser *parser) {
 
 expression_ast_node *parse_identifier_expression(parser *parser) {
 	expression_ast_node *expr = create_expression_ast_node(); // the final expression
+	
+	// function call
 	if (check_token_type_and_content(parser, SEPARATOR, "(", 1)) {
 		expr->type = EXPR_FUNCTION_CALL;
 		expr->function_call = parse_function_callee_ast_node(parser);
 		return expr;
 	}
+
 	expr->type = EXPR_VARIABLE;
 	expr->value = consume_token(parser);
 	return expr;
@@ -830,16 +917,11 @@ expression_ast_node *parse_expression_ast_node(parser *parser) {
 
 	// bin op precedence shit here
 
-	// function call
-
 	// error here
 	return NULL;
 }
 
 void *parse_variable_ast_node(parser *parser, bool global) {
-	// TYPE NAME = 5;
-	// TYPE NAME;
-
 	bool is_constant = false;
 
 	if (check_token_type_and_content(parser, IDENTIFIER, CONSTANT_KEYWORD, 0)) {
@@ -859,7 +941,7 @@ void *parse_variable_ast_node(parser *parser, bool global) {
 	// store def
 	variable_define_ast_node *def = create_variable_define_ast_node();
 
-	if (check_token_type_and_content(parser, OPERATOR, "=", 0)) {
+	if (check_token_type_and_content(parser, OPERATOR, ASSIGNMENT_OPERATOR, 0)) {
 		// consume the equals sign
 		consume_token(parser);
 
@@ -1029,10 +1111,12 @@ function_ast_node *parse_function_ast_node(parser *parser) {
 		}
 
 		// start block
-		block_ast_node *body = parse_block_ast_node(parser);
-		fn->fpn = fpn;
-		fn->body = body;
-		prepare_ast_node(parser, fn, FUNCTION_AST_NODE);
+		if (check_token_type_and_content(parser, SEPARATOR, BLOCK_OPENER, 0)) {
+			block_ast_node *body = parse_block_ast_node(parser);
+			fn->fpn = fpn;
+			fn->body = body;
+			prepare_ast_node(parser, fn, FUNCTION_AST_NODE);
+		}
 
 		return fn;
 	}
@@ -1136,6 +1220,12 @@ statement_ast_node *parse_statement_ast_node(parser *parser) {
 		statement_ast_node *sn = create_statement_ast_node();
 		sn->data = parse_structure_ast_node(parser);
 		sn->type = STRUCT_AST_NODE;
+		return sn;
+	}
+	else if (check_token_type_and_content(parser, IDENTIFIER, IF_KEYWORD, 0)) {
+		statement_ast_node *sn = create_statement_ast_node();
+		sn->data = parse_if_statement_ast_node(parser);
+		sn->type = IF_STATEMENT_AST_NODE;
 		return sn;
 	}
 	else if (check_token_type_and_content(parser, IDENTIFIER, FOR_LOOP_KEYWORD, 0)) {
