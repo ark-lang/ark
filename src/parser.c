@@ -9,7 +9,7 @@ static const char* DATA_TYPES[] = {
 /** Supported Operators */
 static char* SUPPORTED_OPERANDS[] = {
 	"++", "--", 
-	"+=", "-=", "*=", "/=", "%="
+	"+=", "-=", "*=", "/=", "%=",
 	"+", "-", "&", "-", "*", "/", "%", "^",
 	">", "<", ">=", "<=", "==", "!=", "&&", "||",
 };
@@ -558,7 +558,6 @@ match_ast_node *parse_match_ast_node(parser *parser) {
 		do {
 			if (check_token_type_and_content(parser, SEPARATOR, BLOCK_CLOSER, 0)) {
 				consume_token(parser);
-				parse_semi_colon(parser);
 				break;
 			}
 
@@ -593,7 +592,6 @@ enumeration_ast_node *parse_enumeration_ast_node(parser *parser) {
 
 				if (check_token_type_and_content(parser, SEPARATOR, BLOCK_CLOSER, 0)) {
 					consume_token(parser);
-					parse_semi_colon(parser);
 					break;
 				}
 
@@ -662,17 +660,14 @@ enumeration_ast_node *parse_enumeration_ast_node(parser *parser) {
 					consume_token(parser);
 					if (check_token_type_and_content(parser, SEPARATOR, BLOCK_CLOSER, 0)) {
 						parser_error(parser, "trailing comma in enumeration", consume_token(parser), false);
-						parse_semi_colon(parser);
 						break;
 					}
 				}
 				
+				// we've finished parsing jump out
 				if (check_token_type_and_content(parser, SEPARATOR, BLOCK_CLOSER, 0)) {
 					consume_token(parser);
-					if (check_token_type_and_content(parser, SEPARATOR, SEMI_COLON, 0)) {
-						parse_semi_colon(parser);
-						break;
-					}
+					break;
 				}
 
 			}
@@ -702,7 +697,6 @@ structure_ast_node *parse_structure_ast_node(parser *parser) {
 		do {
 			if (check_token_type_and_content(parser, SEPARATOR, "}", 0)) {
 				consume_token(parser);
-				parse_semi_colon(parser);
 				break;
 			}
 
@@ -988,9 +982,6 @@ void *parse_variable_ast_node(parser *parser, bool global) {
 		dec->vdn = def;
 		dec->expression = parse_expression_ast_node(parser);
 
-		// parse semi colon
-		parse_semi_colon(parser);
-
 		// this is weird, we can probably clean this up
 		if (global) {
 			prepare_ast_node(parser, dec, VARIABLE_DEC_AST_NODE);
@@ -1004,8 +995,6 @@ void *parse_variable_ast_node(parser *parser, bool global) {
 		return sn;
 	}
 	else {
-		parse_semi_colon(parser);
-
 		// create variable define ast_node
 		def->is_constant = is_constant;
 		def->type = data_type_raw;
@@ -1142,13 +1131,24 @@ function_ast_node *parse_function_ast_node(parser *parser) {
 			parser_error(parser, "function declaration return type expected", consume_token(parser), false);
 		}
 
+		// set function prototype
+		fn->fpn = fpn;
+		
 		// start block
 		if (check_token_type_and_content(parser, SEPARATOR, BLOCK_OPENER, 0)) {
-			block_ast_node *body = parse_block_ast_node(parser);
-			fn->fpn = fpn;
-			fn->body = body;
-			prepare_ast_node(parser, fn, FUNCTION_AST_NODE);
+			fn->body = parse_block_ast_node(parser);
 		}
+		// start of short hand
+		else if (check_token_type_and_content(parser, OPERATOR, SINGLE_STATEMENT, 0)) {
+			// eat it
+			consume_token(parser);
+			fn->single_statement = parse_statement_ast_node(parser);
+		}
+		else {
+			parser_error(parser, "function expecting a function body or a shorthand assignemnt with `=>`", consume_token(parser), false);
+		}
+		
+		prepare_ast_node(parser, fn, FUNCTION_AST_NODE);
 
 		return fn;
 	}
@@ -1200,8 +1200,6 @@ function_callee_ast_node *parse_function_callee_ast_node(parser *parser) {
 		}
 		while (true);
 
-		parse_semi_colon(parser);
-
 		// woo we got the function
 		function_callee_ast_node *fcn = create_function_callee_ast_node();
 		fcn->callee = callee->content;
@@ -1223,21 +1221,10 @@ function_return_ast_node *parse_return_statement_ast_node(parser *parser) {
 	function_return_ast_node *frn = create_function_return_ast_node();
 	frn->return_val = parse_expression_ast_node(parser);
 
-	// consume semi colon if present
-	parse_semi_colon(parser);
 	return frn;
 
 	parser_error(parser, "failed to parse return statement", consume_token(parser), true);
 	return NULL;
-}
-
-void parse_semi_colon(parser *parser) {
-	if (check_token_type_and_content(parser, SEPARATOR, SEMI_COLON, 0)) {
-		consume_token(parser);
-	}
-	else {
-		parser_error(parser, "missing semi-colon", consume_token(parser), false);
-	}
 }
 
 statement_ast_node *parse_statement_ast_node(parser *parser) {
@@ -1286,8 +1273,6 @@ statement_ast_node *parse_statement_ast_node(parser *parser) {
 		sn->data = create_break_ast_node();
 		sn->type = BREAK_AST_NODE;
 
-		parse_semi_colon(parser);
-
 		return sn;
 	}
 	else if (check_token_type_and_content(parser, IDENTIFIER, CONTINUE_KEYWORD, 0)) {
@@ -1296,8 +1281,6 @@ statement_ast_node *parse_statement_ast_node(parser *parser) {
 		statement_ast_node *sn = create_statement_ast_node();
 		sn->data = create_continue_ast_node();
 		sn->type = CONTINUE_AST_NODE;
-		
-		parse_semi_colon(parser);
 
 		return sn;
 	}
@@ -1340,8 +1323,6 @@ variable_reassignment_ast_node *parse_reassignment_statement_ast_node(parser *pa
 			consume_token(parser);
 
 			expression_ast_node *expr = parse_expression_ast_node(parser);
-
-			parse_semi_colon(parser);
 
 			variable_reassignment_ast_node *vrn = create_variable_reassign_ast_node();
 			vrn->name = variableName;
