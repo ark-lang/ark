@@ -18,6 +18,7 @@ TO CHANGE. NOTHING IS FINAL*
   * [Functions](#functions)
   	* [Single Line Functions](#single_line_functions)
   	* [Unsafe Functions](#unsafe_functions)
+  * [Single Line Blocks](#single_line_blocks)
   * [Conditionals](#conditionals)
   	* [If Statements](#if)
   	* [While Loops](#if)
@@ -155,6 +156,52 @@ If a developer were to call this function, a warning would be printed to the con
 time:
 
 	""filename.j4":5:5: warning: use of unsafe function 'allocate_memory'!"
+
+## <a name="single_line_blocks"></a>Single Line Blocks
+To make single line blocks more clear to see, we've decided on using `=>` as a shorthand for any block
+statements, this is supported in most cases, except for the following, which are handled differently:
+
+* enumerations
+* structures
+* match
+
+### Functions
+
+	fn add(int a, int b): int => return (a + b)
+
+### While Loops
+
+	while true => something = (something + 1)
+
+### Infinite Loops
+
+	loop => something = (something + 1)
+
+### For Loops
+
+	for _:(0, 10) => something = (something + 1)
+
+### If Statements
+
+	if (a == 2) => return (a - 1)
+
+They can also be nested, e.g:
+
+	fn do_stuff(int a, int b): int => while (a >= 20) => something = (something + 1)
+
+However this can get messy pretty quickly, so we suggest formatting like so:
+
+	fn add(int a, int b): int 
+		=> while true 
+			=> if (a > b) 
+				=> return (a + b)
+
+And another formatting suggestion:
+
+	fn add(int a, int b): int 
+		=> while true 
+		=> if (a > b) 
+		=> return (a + b)
 
 ## <a name="conditionals"></a>Conditionals
 ### <a name="if"></a>If Statements
