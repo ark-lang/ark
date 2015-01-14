@@ -18,9 +18,10 @@ static char* SUPPORTED_OPERANDS[] = {
 
 void parser_error(parser *parser, char *msg, token *tok, bool fatal_error) {
 	error_message("%d:%d %s", tok->line_number, tok->char_number, msg);
-	const char *error = get_token_context(parser->token_stream, tok, true);
+	char *error = get_token_context(parser->token_stream, tok, true);
 	printf("\t%s\n", error);
 	parser->exit_on_error = true;
+	free(error);
 	if (fatal_error) {
 		exit(1);
 	}
