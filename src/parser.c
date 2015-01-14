@@ -63,10 +63,10 @@ variable_reassignment_ast_node *create_variable_reassign_ast_node() {
 	return vrn;
 }
 
-statement_ast_node *create_statement_ast_node() {
+statement_ast_node *create_statement_ast_node(void *data, ast_node_type type) {
 	statement_ast_node *sn = allocate_ast_node(sizeof(statement_ast_node), "statement");
-	sn->data = NULL;
-	sn->type = 0;
+	sn->data = data;
+	sn->type = type;
 	return sn;
 }
 
@@ -224,6 +224,7 @@ void destroy_statement_ast_node(statement_ast_node *sn) {
 				case ENUM_AST_NODE: destroy_enumeration_ast_node(sn->data); break;
 				case IF_STATEMENT_AST_NODE: destroy_if_statement_ast_node(sn->data); break;
 				case MATCH_STATEMENT_AST_NODE: destroy_match_ast_node(sn->data); break;
+				case WHILE_LOOP_AST_NODE: destroy_while_ast_node(sn->data); break;
 				default: printf("unrecognized being destroyed node %d\n", sn->type); break;
 			}
 		}
@@ -533,13 +534,23 @@ char *parse_operand(parser *parser) {
 	return NULL;
 }
 
+while_ast_node *parse_while_loop(parser *parser) {
+	while_ast_node *while_loop = create_while_ast_node();
+
+	match_token_type_and_content(parser, IDENTIFIER, WHILE_LOOP_KEYWORD);
+
+	while_loop->condition = parse_expression_ast_node(parser);
+	while_loop->body = parse_block_ast_node(parser);
+
+	return while_loop;
+}
+
 if_statement_ast_node *parse_if_statement_ast_node(parser *parser) {
 	if_statement_ast_node *en = create_if_statement_ast_node();
 
 	match_token_type_and_content(parser, IDENTIFIER, IF_KEYWORD);
 
-	expression_ast_node *expr = parse_expression_ast_node(parser);
-	en->condition = expr;
+	en->condition = parse_expression_ast_node(parser);
 	en->body = parse_block_ast_node(parser);
 
 	return en;
@@ -799,10 +810,7 @@ statement_ast_node *parse_for_loop_ast_node(parser *parser) {
 
 		fln->body = parse_block_ast_node(parser);
 
-		statement_ast_node *sn = create_statement_ast_node();
-		sn->type = FOR_LOOP_AST_NODE;
-		sn->data = fln;
-		return sn;
+		return create_statement_ast_node(fln, FOR_LOOP_AST_NODE);
 	}
 
 	parser_error(parser, "failed to parse for loop", consume_token(parser), true);
@@ -990,10 +998,7 @@ void *parse_variable_ast_node(parser *parser, bool global) {
 		}
 
 		// not global, pop it as a statement node
-		statement_ast_node *sn = create_statement_ast_node();
-		sn->data = dec;
-		sn->type = VARIABLE_DEC_AST_NODE;
-		return sn;
+		return create_statement_ast_node(dec, VARIABLE_DEC_AST_NODE);
 	}
 	else {
 		// create variable define ast_node
@@ -1008,10 +1013,7 @@ void *parse_variable_ast_node(parser *parser, bool global) {
 		}
 
 		// not global, pop it as a statement node
-		statement_ast_node *sn = create_statement_ast_node();
-		sn->data = def;
-		sn->type = VARIABLE_DEF_AST_NODE;
-		return sn;
+		return create_statement_ast_node(def, VARIABLE_DEF_AST_NODE);
 	}
 }
 
@@ -1043,11 +1045,7 @@ statement_ast_node *parse_infinite_loop_ast_node(parser *parser) {
 	infinite_loop_ast_node *iln = create_infinite_loop_ast_node();
 	iln->body = body;
 
-	statement_ast_node *sn = create_statement_ast_node();
-	sn->data = iln;
-	sn->type = INFINITE_LOOP_AST_NODE;
-
-	return sn;
+	return create_statement_ast_node(iln, INFINITE_LOOP_AST_NODE);
 }
 
 function_ast_node *parse_function_ast_node(parser *parser) {
@@ -1229,84 +1227,65 @@ function_return_ast_node *parse_return_statement_ast_node(parser *parser) {
 }
 
 statement_ast_node *parse_statement_ast_node(parser *parser) {
-	// ret keyword
+	// RETURN STATEMENTS
 	if (check_token_type_and_content(parser, IDENTIFIER, RETURN_KEYWORD, 0)) {
-		statement_ast_node *sn = create_statement_ast_node();
-		sn->data = parse_return_statement_ast_node(parser);
-		sn->type = FUNCTION_RET_AST_NODE;
-		return sn;
+		return create_statement_ast_node(parse_return_statement_ast_node(parser), FUNCTION_RET_AST_NODE);
 	}
+	// STRUCTURES
 	else if (check_token_type_and_content(parser, IDENTIFIER, STRUCT_KEYWORD, 0)) {
-		statement_ast_node *sn = create_statement_ast_node();
-		sn->data = parse_structure_ast_node(parser);
-		sn->type = STRUCT_AST_NODE;
-		return sn;
+		return create_statement_ast_node(parse_structure_ast_node(parser), STRUCT_AST_NODE);
 	}
+	// IF STATEMENTS
 	else if (check_token_type_and_content(parser, IDENTIFIER, IF_KEYWORD, 0)) {
-		statement_ast_node *sn = create_statement_ast_node();
-		sn->data = parse_if_statement_ast_node(parser);
-		sn->type = IF_STATEMENT_AST_NODE;
-		return sn;
+		return create_statement_ast_node(parse_if_statement_ast_node(parser), IF_STATEMENT_AST_NODE);
 	}
+	// MATCH STATEMENTS
 	else if (check_token_type_and_content(parser, IDENTIFIER, MATCH_KEYWORD, 0)) {
-		statement_ast_node *sn = create_statement_ast_node();
-		sn->data = parse_match_ast_node(parser);
-		sn->type = MATCH_STATEMENT_AST_NODE;
-		return sn;
+		return create_statement_ast_node(parse_match_ast_node(parser), MATCH_STATEMENT_AST_NODE);
 	}
+	// WHILE LOOPS
+	else if (check_token_type_and_content(parser, IDENTIFIER, WHILE_LOOP_KEYWORD, 0)) {
+		return create_statement_ast_node(parse_while_loop(parser), WHILE_LOOP_AST_NODE);
+	}
+	// FOR LOOPS
 	else if (check_token_type_and_content(parser, IDENTIFIER, FOR_LOOP_KEYWORD, 0)) {
 		return parse_for_loop_ast_node(parser);
 	}
+	// INFINITE LOOPS
 	else if (check_token_type_and_content(parser, IDENTIFIER, INFINITE_LOOP_KEYWORD, 0)) {
 		return parse_infinite_loop_ast_node(parser);
 	}
+	// ENUMERATION
 	else if (check_token_type_and_content(parser, IDENTIFIER, ENUM_KEYWORD, 0)) {
-		statement_ast_node *sn = create_statement_ast_node();
-		sn->data = parse_enumeration_ast_node(parser);
-		sn->type = ENUM_AST_NODE;
-		return sn;
+		return create_statement_ast_node(parse_enumeration_ast_node(parser), ENUM_AST_NODE);
 	}
+	// BREAK STATEMENTS
 	else if (check_token_type_and_content(parser, IDENTIFIER, BREAK_KEYWORD, 0)) {
-		// consume the token
 		consume_token(parser);
-
-		statement_ast_node *sn = create_statement_ast_node();
-		sn->data = create_break_ast_node();
-		sn->type = BREAK_AST_NODE;
-
-		return sn;
+		return create_statement_ast_node(create_break_ast_node(), BREAK_AST_NODE);
 	}
+	// CONTINUE STATEMENTS
 	else if (check_token_type_and_content(parser, IDENTIFIER, CONTINUE_KEYWORD, 0)) {
 		consume_token(parser);
-
-		statement_ast_node *sn = create_statement_ast_node();
-		sn->data = create_continue_ast_node();
-		sn->type = CONTINUE_AST_NODE;
-
-		return sn;
+		return create_statement_ast_node(create_continue_ast_node(), CONTINUE_AST_NODE);
 	}
+	// IDENTIFERS
 	else if (check_token_type(parser, IDENTIFIER, 0)) {
-		token *tok = peek_at_token_stream(parser, 0);
-
-		// variable reassignment
-		if (check_token_type_and_content(parser, OPERATOR, "=", 1)) {
-			statement_ast_node *sn = create_statement_ast_node();
-			sn->data = parse_reassignment_statement_ast_node(parser);
-			sn->type = VARIABLE_REASSIGN_AST_NODE;
-			return sn;
+		token *look_ahead = peek_at_token_stream(parser, 0);
+		
+		// VARIABLE REASSIGNMENT
+		if (check_token_type_and_content(parser, OPERATOR, ASSIGNMENT_OPERATOR, 1)) {
+			return create_statement_ast_node(parse_reassignment_statement_ast_node(parser), VARIABLE_REASSIGN_AST_NODE);
 		}
-		// function call
+		// FUNCITON CALL
 		else if (check_token_type_and_content(parser, SEPARATOR, "(", 1)) {
-			statement_ast_node *sn = create_statement_ast_node();
-			sn->data = parse_function_callee_ast_node(parser);
-			sn->type = FUNCTION_CALLEE_AST_NODE;
-			return sn;
+			return create_statement_ast_node(parse_function_callee_ast_node(parser), FUNCTION_CALLEE_AST_NODE);
 		}
-		// local variable
-		else if (check_token_type_is_valid_data_type(parser, tok)) {
+		// LOCAL VARIABLE
+		else if (check_token_type_is_valid_data_type(parser, look_ahead)) {
 			return parse_variable_ast_node(parser, false);
 		}
-		// fuck knows
+		// ERROR!!
 		else {
 			parser_error(parser, "unrecognized identifier", consume_token(parser), false);
 		}
