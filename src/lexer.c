@@ -25,24 +25,19 @@ char* get_token_context(vector *stream, token *tok, bool colour_error_token) {
 		token *temp_tok = get_vector_item(stream, i);
 		if (temp_tok->line_number == line_num) {
 			size_t len = strlen(temp_tok->content);
+
 			int j;
 			for (j = 0; j < len; j++) {
 				// just in case we need to realloc
-				if (result_index > result_size) {
+				if (result_index >= result_size) {
 					result_size *= 2;
 					result = realloc(result, sizeof(char) * (result_size + 1));
+					if (!result) {
+						perror("failed to reallocate memory for token context");
+						exit(1);
+					}
 				}
 				result[result_index++] = temp_tok->content[j];
-			}
-
-			// just in case we need to realloc
-			if (result_index > result_size) {
-				result_size *= 2;
-				result = realloc(result, sizeof(char) * (result_size + 1));
-				if (!result) {
-					perror("failed to reallocate memory for token context");
-					exit(1);
-				}
 			}
 
 			// add a space so everything is cleaner
@@ -71,23 +66,19 @@ char* get_line_number_context(vector *stream, int line_num) {
 			int j;
 			for (j = 0; j < len; j++) {
 				// just in case we need to realloc
-				if (result_index > result_size) {
+				if (result_index >= result_size) {
 					result_size *= 2;
 					result = realloc(result, sizeof(char) * (result_size + 1));
+					if (!result) {
+						perror("failed to reallocate memory for line number context");
+						exit(1);
+					}
 				}
+
 				// add the char to the result
 				result[result_index++] = tok->content[j];
 			}
 
-			// just in case we need to realloc
-			if (result_index > result_size) {
-				result_size *= 2;
-				result = realloc(result, sizeof(char) * (result_size + 1));
-				if (!result) {
-					perror("failed to reallocate memory for line number context");
-					exit(1);
-				}
-			}
 			// add a space so everything is cleaner
 			result[result_index++] = ' ';
 		}
