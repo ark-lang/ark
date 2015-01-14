@@ -221,6 +221,8 @@ void destroy_statement_ast_node(statement_ast_node *sn) {
 				case BREAK_AST_NODE: destroy_break_ast_node(sn->data); break;
 				case CONTINUE_AST_NODE: destroy_continue_ast_node(sn->data); break;
 				case ENUM_AST_NODE: destroy_enumeration_ast_node(sn->data); break;
+				case IF_STATEMENT_AST_NODE: destroy_if_statement_ast_node(sn->data); break;
+				case MATCH_STATEMENT_AST_NODE: destroy_match_ast_node(sn->data); break;
 				default: break;
 			}
 		}
@@ -540,6 +542,36 @@ if_statement_ast_node *parse_if_statement_ast_node(parser *parser) {
 	en->body = parse_block_ast_node(parser);
 
 	return en;
+}
+
+match_ast_node *parse_match_ast_node(parser *parser) {
+	match_ast_node *mn = create_match_ast_node();
+
+	match_token_type_and_content(parser, IDENTIFIER, MATCH_KEYWORD);
+
+	expression_ast_node *expr = parse_expression_ast_node(parser);
+	mn->condition = expr;
+
+	if (check_token_type_and_content(parser, SEPARATOR, BLOCK_OPENER, 0)) {
+		consume_token(parser);
+
+		do {
+			if (check_token_type_and_content(parser, SEPARATOR, BLOCK_CLOSER, 0)) {
+				consume_token(parser);
+				parse_semi_colon(parser);
+				break;
+			}
+
+		}
+		while (true);
+
+		// finished parsing blocks
+	}
+	else {
+		parser_error(parser, "match expected block denoted with `{}`", consume_token(parser), true);
+	}
+
+	return mn;
 }
 
 enumeration_ast_node *parse_enumeration_ast_node(parser *parser) {
@@ -1226,6 +1258,12 @@ statement_ast_node *parse_statement_ast_node(parser *parser) {
 		statement_ast_node *sn = create_statement_ast_node();
 		sn->data = parse_if_statement_ast_node(parser);
 		sn->type = IF_STATEMENT_AST_NODE;
+		return sn;
+	}
+	else if (check_token_type_and_content(parser, IDENTIFIER, MATCH_KEYWORD, 0)) {
+		statement_ast_node *sn = create_statement_ast_node();
+		sn->data = parse_match_ast_node(parser);
+		sn->type = MATCH_STATEMENT_AST_NODE;
 		return sn;
 	}
 	else if (check_token_type_and_content(parser, IDENTIFIER, FOR_LOOP_KEYWORD, 0)) {
