@@ -1,6 +1,4 @@
-enum Test {
-	ADD
-};
+// if statements work
 
 fn main(): int {
 	int x = 5;
