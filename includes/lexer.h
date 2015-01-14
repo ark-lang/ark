@@ -320,7 +320,7 @@ static inline bool is_character(char ch) {
  * @param ch the character to check
  */
 static inline bool is_operator(char ch) { 
-	return (strchr("+-*/=><!~?:&%^\"'", ch) != 0); 
+	return (strchr("+-*/=><!~?:|&%^\"'", ch) != 0); 
 }
 
 /**

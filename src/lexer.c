@@ -15,6 +15,10 @@ const char* get_token_context(vector *stream, token *tok, bool colour_error_toke
 	int result_size = 128;
 	int result_index = 0;
 	char *result = malloc(sizeof(char) * (result_size + 1));
+	if (!result) {
+		perror("malloc: failed to malloc memory for token context");
+		exit(1);
+	}
 
 	int i;
 	for (i = 0; i < stream->size; i++) {
@@ -28,34 +32,17 @@ const char* get_token_context(vector *stream, token *tok, bool colour_error_toke
 					result_size *= 2;
 					result = realloc(result, sizeof(char) * (result_size + 1));
 				}
-
-				// this is stupid, todo: clean up
-				if (colour_error_token && temp_tok == tok) {
-					char *prefix = "\x1B[31m";
-					size_t prefix_len = strlen(prefix);
-					int pl;
-					for (pl = 0; pl < prefix_len; pl++) {
-						result[result_index++] = prefix[pl];
-					}
-				}
-
 				result[result_index++] = temp_tok->content[j];
-
-				// this is stupid, todo: clean up
-				if (colour_error_token && temp_tok == tok) {
-					char *prefix = "\x1B[00m";
-					size_t prefix_len = strlen(prefix);
-					int pl;
-					for (pl = 0; pl < prefix_len; pl++) {
-						result[result_index++] = prefix[pl];
-					}
-				}
 			}
 
 			// just in case we need to realloc
 			if (result_index > result_size) {
 				result_size *= 2;
 				result = realloc(result, sizeof(char) * (result_size + 1));
+				if (!result) {
+					perror("failed to reallocate memory for token context");
+					exit(1);
+				}
 			}
 			// add a space so everything is cleaner
 			result[result_index++] = ' ';
@@ -70,6 +57,10 @@ const char* get_line_number_context(vector *stream, int line_num) {
 	int result_size = 128;
 	int result_index = 0;
 	char *result = malloc(sizeof(char) * (result_size + 1));
+	if (!result) {
+		perror("malloc: failed to malloc memory for line number context");
+		exit(1);
+	}
 
 	int i;
 	for (i = 0; i < stream->size; i++) {
@@ -91,6 +82,10 @@ const char* get_line_number_context(vector *stream, int line_num) {
 			if (result_index > result_size) {
 				result_size *= 2;
 				result = realloc(result, sizeof(char) * (result_size + 1));
+				if (!result) {
+					perror("failed to reallocate memory for line number context");
+					exit(1);
+				}
 			}
 			// add a space so everything is cleaner
 			result[result_index++] = ' ';
@@ -117,7 +112,6 @@ const char* get_token_name(token *tok) {
 void destroy_token(token *token) {
 	if (token) {
 		free(token);
-		token = NULL;
 	}
 }
 
@@ -276,6 +270,13 @@ void recognize_character_token(lexer *lexer) {
 
 void recognize_operator_token(lexer *lexer) {
 	consume_character(lexer);
+
+
+	// for double operators
+	if (is_operator(lexer->current_char)) {
+		consume_character(lexer);
+	}
+
 	push_token(lexer, OPERATOR);
 }
 
