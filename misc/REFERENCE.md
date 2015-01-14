@@ -12,7 +12,6 @@ TO CHANGE. NOTHING IS FINAL*
 * [Pre-processor](#preprocessor)
 * [Memory Model](#memorymodel)
 * [Lexer/Parser Structure](#lexandparse)
-  * [Semi Colons](#semi_colons)
   * [Comments](#comments)
   * [Keywords](#keywords)
   * [Expressions](#expressions)
@@ -65,34 +64,30 @@ Example:
 	}
 
     unsafe struct Car {
-        str door_type;
-        int license_plate_number;
-    };
+        str door_type
+        int license_plate_number
+    }
 
-    Car 'mclaren = alloc(sizeof('mclaren));
-	mclaren.door_type = DoorType::SCISSOR;
-    mclaren.license_plate_number = 2048;
+    Car 'mclaren = alloc(sizeof('mclaren))
+	mclaren.door_type = DoorType::SCISSOR
+    mclaren.license_plate_number = 2048
 
     // do something with aforementioned structure
 
     // deallocate the @{mclaren} instance  
-    dealloc(mclaren);
+    dealloc(mclaren)
 
 
 # <a name="preprocessor"></a>Pre-processor
 Jayfor will be statically linked, *we're still yet to create a pre-processor*,
 but you would use the `use` pre-processor directive to include a file, like so:
 
-	use stdio;
+	use stdio
 
 Will use the standard input output library, which means you can call functions
 like `println`.
 
 # <a name="lexandparse"></a>Lexer/Parser Structure
-## <a name="semi_colons"></a>Semi Colons
-Statements in Jayfor are terminated by semicolons. This is important as Jayfor
-is a strict language
-
 ## <a name="comments"></a>Comments
 Comments in Jayfor code follow the general C style of line and block comments. Nested
 comments are supported.
@@ -137,14 +132,14 @@ A function must also have a return type, which defines what value the function w
 the caller. This is specified after the colon operator, like so:
 
 	fn add(int a, int b): int {
-		return (a + b);
+		return (a + b)
 	}
 
 ### <a name="single_line_functions"></a>Single Line Functions
 If a function only has one return statement, you may simplify it with the `=>` operator. For
 example, a function that adds two integers can be simplified to:
 
-	fn add(int a, int b): int => return (a + b);
+	fn add(int a, int b): int => return (a + b)
 
 ### <a name="unsafe_functions"></a>Unsafe Functions
 If a function is later on deemed unsafe, you may use the `unsafe` keyword to give a compile
@@ -250,9 +245,9 @@ type specified. This is because data types are inferred based on the values give
 ### <a name="matches"></a>Matches
 We feel that the switch syntax is tedious, ugly, and not as semantic as it could be. Therefore we implemented a Rust like match:
 
-	int value_to_match = 23;
-	int value = 5;
-	int another_value = 23;
+	int value_to_match = 23
+	int value = 5
+	int another_value = 23
 
 	match value_to_match {
 		value == 2 {
@@ -267,7 +262,7 @@ We feel that the switch syntax is tedious, ugly, and not as semantic as it could
 		_ {
 			// this is a "default" in case value_to_match was for example 64
 		}
-	};
+	}
 
 ## <a name="data_structures"></a>Data Structures
 ### Structs
@@ -275,26 +270,26 @@ A `struct` is a data structure defined with the keyword `struct`. Here is an
 example of a struct:
 
 	struct vector {
-		float x;
-		float y;
-	};
+		float x
+		float y
+	}
 
 	// structs can be defined like so
 	vector vec = {
 		10, 10
-	};
+	}
 
 	// which is short hand for
-	vector vec;
-	vec.x = 10;
-	vec.y = 10;
+	vector vec
+	vec.x = 10
+	vec.y = 10
 
 You can also define a struct with default values, like so:
 
 	struct vector {
-		float x = 0;
-		float y = 0;
-	};
+		float x = 0
+		float y = 0
+	}
 
 ### <a name="enumeration"></a>Enumeration
 Enumerations are defined with the `enum` keyword, like so:
@@ -303,10 +298,10 @@ Enumerations are defined with the `enum` keyword, like so:
 		RED,
 		ORANGE,
 		GREEN
-	};
+	}
 
 Every value should be separated with a comma, except for the last value. As an
-enumeration is a statement, it *must* end with a semi-colon.
+enumeration is a statement.
 By default, the values will always start from zero, and the next value in
 the enumeration will be incremented by 1. You can also change the default value with
 an equal sign, like so:
@@ -315,7 +310,7 @@ an equal sign, like so:
 		RED = 10,
 		ORANGE,	// 11
 		GREEN	// 12
-	};
+	}
 
 	// or
 
@@ -328,12 +323,12 @@ an equal sign, like so:
 
 Enumerations are accessed with the double-colon operator, similar to C++:
 
-	PET_TYPE::DOG;
+	PET_TYPE::DOG
 
 You can match enumerations or use them in if statements:
 
 	// set it to dog
-	int x = PET_TYPE::DOG;
+	int x = PET_TYPE::DOG
 
 	if x == PET_TYPE::DOG {
 		/// do stuff
@@ -352,4 +347,4 @@ You can match enumerations or use them in if statements:
 		_ {
 			// no idea
 		}
-	};
+	}
