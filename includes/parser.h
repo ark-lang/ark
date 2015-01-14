@@ -22,6 +22,7 @@
 #define EXPR_PARENTHESIS 		'P'
 #define EXPR_FUNCTION_CALL		'F'
 
+// keywords
 #define CONSTANT_KEYWORD 	   	"const"
 #define BLOCK_OPENER			"{"
 #define BLOCK_CLOSER			"}"
@@ -35,6 +36,7 @@
 #define COMMA_SEPARATOR			","
 #define SEMI_COLON				";"
 #define IF_KEYWORD				"if"
+#define MATCH_KEYWORD			"match"
 #define ENUM_KEYWORD	 	   	"enum"
 #define UNSAFE_KEYWORD	 	   	"unsafe"
 #define UNDERSCORE_KEYWORD		"_"			// underscores are treated as identifiers
@@ -91,7 +93,7 @@ typedef enum {
 	FUNCTION_RET_AST_NODE, FOR_LOOP_AST_NODE,
 	VARIABLE_REASSIGN_AST_NODE, INFINITE_LOOP_AST_NODE,
 	BREAK_AST_NODE, CONTINUE_AST_NODE, ENUM_AST_NODE, STRUCT_AST_NODE,
-	IF_STATEMENT_AST_NODE
+	IF_STATEMENT_AST_NODE, MATCH_STATEMENT_AST_NODE
 } ast_node_type;
 
 /**
