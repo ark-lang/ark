@@ -918,6 +918,24 @@ expression_ast_node *parse_identifier_expression(parser *parser) {
 		return expr;
 	}
 
+	// eventually we can just write this into the standard library for j4 as a define macro
+	// or something, but for now true and false pushed as numbers 1 and 0
+	if (check_token_type_and_content(parser, IDENTIFIER, FALSE_KEYWORD, 0)) {
+		token *tok = consume_token(parser);
+		strcpy(tok->content, "0"); // change false to 0
+		expr->type = EXPR_NUMBER;
+		expr->value = tok;
+		return expr;
+	}
+
+	if (check_token_type_and_content(parser, IDENTIFIER, TRUE_KEYWORD, 0)) {
+		token *tok = consume_token(parser);
+		strcpy(tok->content, "1"); // false to 1
+		expr->type = EXPR_NUMBER;
+		expr->value = tok;
+		return expr;
+	}
+
 	expr->type = EXPR_VARIABLE;
 	expr->value = consume_token(parser);
 	return expr;
