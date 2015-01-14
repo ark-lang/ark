@@ -165,6 +165,8 @@ statements, this is supported in most cases, except for the following, which are
 * structures
 * match
 
+We feel like this is a nice syntactic sugar for small functions, however it can be used in the following (with examples):
+
 ### Functions
 
 	fn add(int a, int b): int => return (a + b)
