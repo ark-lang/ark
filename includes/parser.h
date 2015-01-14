@@ -35,6 +35,7 @@
 #define STRUCT_KEYWORD	 	   	"struct"
 #define COMMA_SEPARATOR			","
 #define SEMI_COLON				";"
+#define SINGLE_STATEMENT		"=>"		// cant think of a name for this operator
 #define IF_KEYWORD				"if"
 #define MATCH_KEYWORD			"match"
 #define ENUM_KEYWORD	 	   	"enum"
@@ -230,6 +231,7 @@ typedef struct {
 typedef struct {
 	function_prototype_ast_node *fpn;
 	block_ast_node *body;
+	statement_ast_node *single_statement;
 } function_ast_node;
 
 /**
@@ -769,12 +771,6 @@ function_ast_node *parse_function_ast_node(parser *parser);
  * @param parser the parser instance
  */
 function_callee_ast_node *parse_function_callee_ast_node(parser *parser);
-
-/**
- * Utility method which parser the optional semi colon
- * @param parser the parser instance
- */
-void parse_semi_colon(parser *parser);
 
 /**
  * Parses statements, function calls, while
