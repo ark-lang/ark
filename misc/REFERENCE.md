@@ -52,8 +52,7 @@ be "decremented" so to speak, and the structure is eliminated from memory.
 
 However, for those moments where you require the memory to be manually managed (which can
 be necessary in certain situations), we have included the `unsafe` keyword,
-which when used on a structure or a variable or a data structure for that
-matter, **requires you to manually deallocate the said memory using the
+which when used on a pointer, **requires you to manually deallocate the said memory using the
 `dealloc` keyword**.
 
 Example:
@@ -64,12 +63,12 @@ Example:
 		BUTTERFLY
 	}
 
-    unsafe struct Car {
+    struct Car {
         str door_type
         int license_plate_number
     }
 
-    Car 'mclaren = alloc(sizeof('mclaren))
+    unsafe Car 'mclaren = alloc(sizeof('mclaren))
 	mclaren.door_type = DoorType::SCISSOR
     mclaren.license_plate_number = 2048
 
