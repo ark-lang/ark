@@ -10,4 +10,5 @@ fn do_stuff(int a, int b): int => while true {
 
 fn main(): void {
 	do_stuff(5, 5)
+	do_stuff(5, 5)
 }
