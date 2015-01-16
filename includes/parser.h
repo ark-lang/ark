@@ -27,6 +27,8 @@
 #define BLOCK_OPENER			"{"
 #define BLOCK_CLOSER			"}"
 #define ASSIGNMENT_OPERATOR		"="
+#define POINTER_OPERATOR		"^"
+#define ADDRESS_OF_OPERATOR		"&"
 #define FUNCTION_KEYWORD 	   	"fn"
 #define VOID_KEYWORD	 	   	"void"
 #define BREAK_KEYWORD	 	   	"break"
@@ -116,15 +118,20 @@ typedef struct {
 	vector *args;
 } function_callee_ast_node;
 
+typedef enum {
+	DEREFERENCE,
+	ADDRESS_OF,
+	UNSPECIFIED
+} expression_pointer_option;
+
 /**
  * ast_node for an Expression
  */
 typedef struct s_Expression {
 	char type;
-	
 	token *value;
-
 	function_callee_ast_node *function_call;
+	expression_pointer_option pointer_option;
 
 	struct s_Expression *lhand;
 	char *operand;
@@ -141,6 +148,7 @@ typedef struct {
 
 	bool is_global;			// is it in a global scope?
 	bool is_constant;		// is it a constant variable?
+	bool is_pointer;		// is it a pointer?
 } variable_define_ast_node;
 
 /**
@@ -157,6 +165,7 @@ typedef struct {
 typedef struct {
 	data_type type;
 	token *name;
+	bool is_pointer;
 	expression_ast_node *value;
 } function_argument_ast_node;
 
@@ -235,6 +244,7 @@ typedef struct {
 	function_prototype_ast_node *fpn;
 	block_ast_node *body;
 	statement_ast_node *single_statement;
+	bool returns_pointer;
 } function_ast_node;
 
 /**
