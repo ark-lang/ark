@@ -92,10 +92,6 @@ void start_jayfor(jayfor *self) {
 		get_next_token(self->lexer);
 	}
 
-	// preproccess
-	self->pproc = create_preprocessor(self->lexer->token_stream);
-	start_preprocessing(self->pproc);
-
 	// initialise parser after we tokenize
 	self->parser = create_parser(self->lexer->token_stream);
 	start_parsing_token_stream(self->parser);
@@ -108,7 +104,6 @@ void start_jayfor(jayfor *self) {
 }
 
 void destroy_jayfor(jayfor *self) {
-	destroy_preprocessor(self->pproc);
 	destroy_scanner(self->scanner);
 	destroy_lexer(self->lexer);
 	destroy_parser(self->parser);
