@@ -9,6 +9,7 @@
 #include "lexer.h"
 #include "parser.h"
 #include "scanner.h"
+#include "preprocessor.h"
 #include "compiler.h"
 
 /**
@@ -28,6 +29,7 @@ typedef struct {
 	lexer *lexer;
 	parser *parser;
 	compiler *compiler;
+	preprocessor *pproc;
 	char *filename;
 } jayfor;
 
