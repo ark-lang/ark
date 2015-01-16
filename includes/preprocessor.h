@@ -8,12 +8,14 @@
  */
 
 #include "util.h"
+#include "lexer.h"
 #include "vector.h"
 
 #include <stdlib.h>
 
 typedef struct {
 	vector *token_stream;
+	int token_index;
 } preprocessor;
 
 preprocessor *create_preprocessor(vector *token_stream);
