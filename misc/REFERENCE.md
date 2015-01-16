@@ -92,6 +92,17 @@ and also clearer to see in expressions, for example:
 	int ^d = &y
 	int x = 5 * ^d
 
+Here's an example with some functions:
+
+	fn my_func(int a): ^int {
+		int ^x = alloc...
+		return x
+	}
+
+	fn takes_pointer_amazing(int ^a): int {
+		return ^a
+	}
+
 # <a name="preprocessor"></a>Pre-processor
 Jayfor will be statically linked, *we're still yet to create a pre-processor*,
 but you would use the `use` pre-processor directive to include a file, like so:
