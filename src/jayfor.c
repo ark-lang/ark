@@ -78,12 +78,6 @@ jayfor *create_jayfor(int argc, char** argv) {
 		}
 	}
 
-	self->scanner = NULL;
-	self->lexer = NULL;
-	self->parser = NULL;
-	self->lexer = NULL;
-	self->compiler = NULL;
-
 	return self;
 }
 
@@ -91,6 +85,9 @@ void start_jayfor(jayfor *self) {
 	// start actual useful shit here
 	self->scanner = create_scanner();
 	scan_file(self->scanner, self->filename);
+
+	self->pproc = create_preprocessor(self->scanner->contents);
+	char *processed_file = start_preprocessing(self->pproc);
 
 	self->lexer = create_lexer(self->scanner->contents);
 
@@ -110,13 +107,12 @@ void start_jayfor(jayfor *self) {
 }
 
 void destroy_jayfor(jayfor *self) {
+	destroy_preprocessor(self->pproc);
 	destroy_scanner(self->scanner);
 	destroy_lexer(self->lexer);
 	destroy_parser(self->parser);
 	if (!self->parser->exit_on_error) {
 		destroy_compiler(self->compiler);
 	}
-	if (self) {
-		free(self);
-	}
+	free(self);
 }
