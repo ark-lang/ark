@@ -1,20 +1,18 @@
 #include "preprocessor.h"
 
-preprocessor *create_preprocessor(char *file_content) {
+/**
+ * for now this will be a really badly implemented
+ * preprocessor for simplicity-sake
+ */
+
+preprocessor *create_preprocessor(vector *token_stream) {
 	preprocessor *self = safe_malloc(sizeof(*self));
-	self->file_content = file_content;
+	self->token_stream = token_stream;
 	return self;
 }
 
-char *start_preprocessing(preprocessor *self) {
-	int i;
-	size_t len = strlen(self->file_content);
+void start_preprocessing(preprocessor *self) {
 	
-	for (i = 0; i < len; i++) {
-		
-	}
-
-	return NULL;
 }
 
 void destroy_preprocessor(preprocessor *self) {
