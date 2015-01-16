@@ -8,17 +8,17 @@
  */
 
 #include "util.h"
+#include "vector.h"
 
 #include <stdlib.h>
 
 typedef struct {
-	char *file_content;
-	char *file_processed;
+	vector *token_stream;
 } preprocessor;
 
-preprocessor *create_preprocessor(char *file_content);
+preprocessor *create_preprocessor(vector *token_stream);
 
-char *start_preprocessing(preprocessor *self);
+void start_preprocessing(preprocessor *self);
 
 void destroy_preprocessor(preprocessor *self);
 

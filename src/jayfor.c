@@ -86,14 +86,15 @@ void start_jayfor(jayfor *self) {
 	self->scanner = create_scanner();
 	scan_file(self->scanner, self->filename);
 
-	self->pproc = create_preprocessor(self->scanner->contents);
-	char *processed_file = start_preprocessing(self->pproc);
-
+	// lex file
 	self->lexer = create_lexer(self->scanner->contents);
-
 	while (self->lexer->running) {
 		get_next_token(self->lexer);
 	}
+
+	// preproccess
+	self->pproc = create_preprocessor(self->lexer->token_stream);
+	start_preprocessing(self->pproc);
 
 	// initialise parser after we tokenize
 	self->parser = create_parser(self->lexer->token_stream);
