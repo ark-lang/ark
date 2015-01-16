@@ -11,6 +11,7 @@ TO CHANGE. NOTHING IS FINAL*
 * [General Stuff](#general)
 * [Pre-processor](#preprocessor)
 * [Memory Model](#memorymodel)
+* [Pointers](#pointers)
 * [Lexer/Parser Structure](#lexandparse)
   * [Comments](#comments)
   * [Keywords](#keywords)
@@ -68,7 +69,7 @@ Example:
         int license_plate_number
     }
 
-    unsafe Car 'mclaren = alloc(sizeof('mclaren))
+    unsafe Car ^mclaren = alloc(sizeof(^mclaren))
 	mclaren.door_type = DoorType::SCISSOR
     mclaren.license_plate_number = 2048
 
@@ -77,6 +78,19 @@ Example:
     // deallocate the @{mclaren} instance  
     dealloc(mclaren)
 
+# <a name="pointers"></a>Pointers
+Pointers are denoted with a `^`. We chose this over the traditional `*` because it's a lot easier to parse,
+and also clearer to see in expressions, for example:
+
+	// C example
+	int y = 10;
+	int *d = &y;
+	int x = 5 * *d;
+
+	// Jayfor
+	int y = 10
+	int ^d = &y
+	int x = 5 * ^d
 
 # <a name="preprocessor"></a>Pre-processor
 Jayfor will be statically linked, *we're still yet to create a pre-processor*,
