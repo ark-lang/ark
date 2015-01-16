@@ -53,7 +53,7 @@ be "decremented" so to speak, and the structure is eliminated from memory.
 However, for those moments where you require the memory to be manually managed (which can
 be necessary in certain situations), we have included the `unsafe` keyword,
 which when used on a pointer, **requires you to manually deallocate the said memory using the
-`dealloc` keyword**.
+`dealloc` function**.
 
 Example:
 
