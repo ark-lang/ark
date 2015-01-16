@@ -1,3 +1,5 @@
+!use something.j4
+
 enum Test {
 	ADD
 }
