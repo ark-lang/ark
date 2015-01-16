@@ -81,6 +81,7 @@ expression_ast_node *create_expression_ast_node() {
 	expr->value = NULL;
 	expr->lhand = NULL;
 	expr->rhand = NULL;
+	expr->pointer_option = UNSPECIFIED;
 	return expr;
 }
 
@@ -927,6 +928,9 @@ expression_ast_node *parse_identifier_expression(parser *parser) {
 
 expression_ast_node *parse_expression_ast_node(parser *parser) {
 
+	// we can probably replace the above functions in the standard library with
+	// a macro which does the translation for us
+
 	// false
 	if (check_token_type_and_content(parser, IDENTIFIER, FALSE_KEYWORD, 0)) {
 		expression_ast_node *expr= create_expression_ast_node();
@@ -939,7 +943,7 @@ expression_ast_node *parse_expression_ast_node(parser *parser) {
 
 	// true
 	if (check_token_type_and_content(parser, IDENTIFIER, TRUE_KEYWORD, 0)) {
-		expression_ast_node *expr= create_expression_ast_node();
+		expression_ast_node *expr = create_expression_ast_node();
 		token *tok = consume_token(parser);
 		strcpy(tok->content, "1"); // false to 1
 		expr->type = EXPR_NUMBER;
@@ -947,8 +951,35 @@ expression_ast_node *parse_expression_ast_node(parser *parser) {
 		return expr;
 	}
 
-	// we can probably replace the above functions in the standard library with
-	// a macro which does the translation for us
+	if (check_token_type_and_content(parser, OPERATOR, ADDRESS_OF_OPERATOR, 0)) {
+		if (check_token_type(parser, IDENTIFIER, 1)) {
+			// todo lookup if the value given
+			// a) exists
+			// b) is a variable (not pointer)
+			consume_token(parser);
+			expression_ast_node *expr = parse_identifier_expression(parser);
+			expr->pointer_option = ADDRESS_OF;
+			return expr;
+		}
+		else {
+			parser_error(parser, "cannot get address of constant value, or pointer", consume_token(parser), true);
+		}
+	}
+
+	if (check_token_type_and_content(parser, OPERATOR, POINTER_OPERATOR, 0)) {
+		if (check_token_type(parser, IDENTIFIER, 1)) {
+			// todo lookup if the value given
+			// a) exists
+			// b) is a pointer
+			consume_token(parser);
+			expression_ast_node *expr = parse_identifier_expression(parser);
+			expr->pointer_option = DEREFERENCE;
+			return expr;
+		}
+		else {
+			parser_error(parser, "invalid type argument of unary `^`", consume_token(parser), true);
+		}
+	}
 
 	// number literal
 	if (check_token_type(parser, NUMBER, 0)) {
@@ -995,6 +1026,13 @@ void *parse_variable_ast_node(parser *parser, bool global) {
 	// convert the data type for enum
 	data_type data_type_raw = match_token_type_to_data_type(parser, variable_data_type);
 
+	// is a pointer
+	bool is_pointer = false;
+	if (check_token_type_and_content(parser, OPERATOR, POINTER_OPERATOR, 0)) {
+		is_pointer = true;
+		consume_token(parser);
+	}
+
 	// name of the variable
 	token *variable_name_token = match_token_type(parser, IDENTIFIER);
 
@@ -1010,6 +1048,7 @@ void *parse_variable_ast_node(parser *parser, bool global) {
 		def->type = data_type_raw;
 		def->name = variable_name_token->content;
 		def->is_global = global;
+		def->is_pointer = is_pointer;
 
 		// create the variable declare ast_node
 		variable_declare_ast_node *dec = create_variable_declare_ast_node();
@@ -1031,6 +1070,7 @@ void *parse_variable_ast_node(parser *parser, bool global) {
 		def->type = data_type_raw;
 		def->name = variable_name_token->content;
 		def->is_global = global;
+		def->is_pointer = is_pointer;
 
 		if (global) {
 			prepare_ast_node(parser, def, VARIABLE_DEF_AST_NODE);
@@ -1106,13 +1146,24 @@ function_ast_node *parse_function_ast_node(parser *parser) {
 				break;
 			}
 
+			// data type
 			token *argdata_type = match_token_type(parser, IDENTIFIER);
 			data_type arg_raw_data_type = match_token_type_to_data_type(parser, argdata_type);
+
+			// look for ^
+			bool is_pointer = false;
+			if (check_token_type_and_content(parser, OPERATOR, POINTER_OPERATOR, 0)) {
+				is_pointer = true;
+				consume_token(parser);
+			}
+
+			// name of argument
 			token *arg_name = match_token_type(parser, IDENTIFIER);
 
 			function_argument_ast_node *arg = create_function_argument_ast_node();
 			arg->type = arg_raw_data_type;
 			arg->name = arg_name;
+			arg->is_pointer = is_pointer;
 			arg->value = NULL;
 
 			if (check_token_type_and_content(parser, OPERATOR, ASSIGNMENT_OPERATOR, 0)) {
@@ -1152,7 +1203,13 @@ function_ast_node *parse_function_ast_node(parser *parser) {
 			consume_token(parser);
 		}
 		else {
-			parser_error(parser, "function signature missing colon", consume_token(parser), false);
+			parser_error(parser, "function prototype missing colon", consume_token(parser), false);
+		}
+
+		bool returns_pointer = false;
+		if (check_token_type_and_content(parser, OPERATOR, POINTER_OPERATOR, 0)) {
+			returns_pointer = true;
+			consume_token(parser);
 		}
 
 		// returns data type
@@ -1161,6 +1218,7 @@ function_ast_node *parse_function_ast_node(parser *parser) {
 			token *returnType = consume_token(parser);
 			data_type raw_data_type = match_token_type_to_data_type(parser, returnType);
 			fpn->ret = raw_data_type;
+			fn->returns_pointer = returns_pointer;
 		}
 		else {
 			parser_error(parser, "function declaration return type expected", consume_token(parser), false);
