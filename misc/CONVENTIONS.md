@@ -25,7 +25,7 @@ Multi-line comments must be as follows:
     /* 
      * this comment is to demonstrate
      * multi-line commenting conventions
-     * for the Jayfor project.
+     * for the Ink project.
      */
 
 ## Documentation
