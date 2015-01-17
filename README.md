@@ -2,7 +2,7 @@
 
 ----
 
-# <a href="http://ink-lang.github.io">Ink</a> - [![Build Status](https://travis-ci.org/jayfor-lang/jayfor.svg?branch=master)](https://travis-ci.org/jayfor-lang/jayfor)
+# <a href="http://ink-lang.github.io">Ink</a> - [![Build Status](https://travis-ci.org/ink-lang/ink.svg?branch=master)](https://travis-ci.org/ink-lang/ink)
 Ink is a programming language written in C. The goals of this language are:
 
 * Speed
