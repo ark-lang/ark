@@ -1,4 +1,4 @@
-fn whatever(): int {
+fn whatever(int x): int {
 	match x {
 		(x == 5) {
 			return (x + 1)
@@ -9,5 +9,5 @@ fn whatever(): int {
 }
 
 fn main(): void {
-	whatever()
+	int z = whatever(21)
 }
