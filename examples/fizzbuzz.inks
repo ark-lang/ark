@@ -6,10 +6,10 @@ fn main(): int {
 			((i % 15) == 0) {
 				// println("{}, fizzbuzz", i);
 			}
-			((i % 3) == 0)  {
+			((i % 3) == 0) {
 				// println("{}, fizz", i);
 			}
-			((i % 5) == 0)  {
+			((i % 5) == 0) {
 				// println("{}, buzz", i);
 			}
 		}
