@@ -336,7 +336,7 @@ static inline bool is_separator(char ch) {
  * @param ch character to check
  */
 static inline bool is_special_char(char ch) { 
-	return (int) ch >= ASCII_CHARACTER_THRESHOLD; 
+	return ch >= ASCII_CHARACTER_THRESHOLD; 
 }
 
 /**
