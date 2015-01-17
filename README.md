@@ -1,4 +1,4 @@
-# ALERT: **We changed the name from Jayfor to Ink. Its the same project, just a different name.**
+### ALERT: **We changed the name from Jayfor to Ink. Its the same project, just a different name. [Here's why.](https://github.com/ink-lang/ink/issues/68)**
 
 ----
 
