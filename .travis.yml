@@ -18,4 +18,4 @@ deploy:
   on:
     tags: true
     all_branches: true
-    repo: jayfor-lang/jayfor
+    repo: ink-lang/ink
