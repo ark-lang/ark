@@ -12,10 +12,10 @@
 #define INKC_VERSION "0.0.0"
 
 /** if we are in debug mode -- will print debug warnings */
-bool DEBUG_MODE;
+extern bool DEBUG_MODE;
 
 /** the name of the executable file */
-char* OUTPUT_EXECUTABLE_NAME;
+extern char* OUTPUT_EXECUTABLE_NAME;
 
 /**
  * Returns the text with the colour formatting
