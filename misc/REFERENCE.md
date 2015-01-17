@@ -1,4 +1,4 @@
-# Ink REFERENCE
+# INK REFERENCE
 This is not an exact specification, but an effort to describe the langauge in
 as much detail as possible. This document does not serve as an introduction to
 the language, but as a reference.
