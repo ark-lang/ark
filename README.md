@@ -10,14 +10,14 @@ Ink is a programming language written in C. The goals of this language are:
 * Clean
 
 ## NOTE TO ALL THOSE INTERESTED/LURKERS
-Ink started off and will, for the moment, **be an educational project**. We'd love to see it go mainstream, but, as it stands, there are a lot of stable languages already out there. Its a tough challenge. So, for all those asking how good is this language/will this language be when compared to Go or Rust or *insert language here*, we want to clarify (again) that this project was in no manner started for the sole purpose of competing with languages already out there. Those that are interested in the project and like the idea are more than welcome to contribute to this language. Being in a tender stage of development, we still have a lot of features that we want to implement. But a majority of the suggestions come from you. So please don't hesitate to propose a change to the language, following the instructions mentioned somewhere below. Please do not expect too much from the language (at least not right now). Our priority is to get the language to a stage where it can compute and produce results. Any thoughts about competition or stance when compared to other languages **is the least of our priorities right now**. 
+Ink started off and will, for the moment, **be an educational project**. We'd love to see it go mainstream, but, as it stands, there are a lot of stable languages already out there. Its a tough challenge. So, for all those asking how good is this language/will this language be when compared to Go or Rust or *insert language here*, we want to clarify (again) that this project was in no manner started for the sole purpose of competing with languages already out there. Those that are interested in the project and like the idea are more than welcome to contribute to its growth (into something big). Being in a tender stage of development, we still have a lot of features that we want to implement. But a majority of the suggestions come from **you**. So please don't hesitate to propose a change to the language, following the instructions mentioned somewhere below. Please do not expect too much from the language (at least not right now). Our priority is to get the language to a stage where it can compute and produce results. Any thoughts about competition or stance when compared to other languages **is the least of our priorities right now**. 
 
 ## Why?
 We created Ink because we love writing C, and love the simplicity of C; we also wanted to evolve C
 into something more modern, and easier to use.
 
 ## Status
-* The language is still in development
+* The language is still in development. More information/specifics can be found in the `misc/` folder
 * The compiler is written in C
 * LLVM is used for the backend
 
