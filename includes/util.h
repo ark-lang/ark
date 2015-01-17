@@ -8,7 +8,7 @@
 #include <stdbool.h>
 #include <errno.h>
 
-/** the current version of jayfor */
+/** the current version of ink */
 #define INKC_VERSION "0.0.0"
 
 /** if we are in debug mode -- will print debug warnings */
