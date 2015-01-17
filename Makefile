@@ -4,14 +4,14 @@ LCXX = clang++
 
 # local stuff
 C_FLAGS = `llvm-config --cflags` -Wall -Iincludes/ -g
-LLVM_FLAGS = `llvm-config --system-libs --libs --cflags core analysis executionengine jit interpreter native`
+LLVM_FLAGS = `llvm-config --system-libs --libs --cflags --ldflags core analysis executionengine jit interpreter native`
 LLVM_VERSION = $(shell llvm-config --version | grep ^llvm-version | sed 's/^.* //g')
 
 # travis is a bitch so we setup its own stuff
 TRAVIS_LINK_STUFF = `llvm-config --libs --cflags --ldflags core analysis executionengine jit interpreter native`
 TRAVIS_FLAGS = -ldl -ltinfo -pthread
  
-# detect LLVM flags
+# detect LLVM flags and do additional tasks if host is Linux
 ifeq (("$(LLVM_VERSION)" "3.5" && "$(shell uname -s)" "Linux"),true)
 	LLVM_FLAGS = `llvm-config-3.5 --libs --system-libs --cflags --ldflags core analysis executionengine jit interpreter native -lz -lncurses`
 endif
