@@ -68,9 +68,14 @@ make -j4
 ./inkc tests/simple.ink
 ```
 
+Contributing
+------------
+
 Something not working? Open an [Issue](https://github.com/ink-lang/ink/issues)
 or send us a [Pull Request](https://github.com/ink-lang/ink/pulls)
 on GitHub.
+
+See [CONTRIBUTING.md](/CONTRIBUTING.md).
 
 License
 -------
