@@ -3,6 +3,6 @@
 // main entry point of the program
 fn main(): int {
 	// this function is inside the standard io library
-	println("hello, world");
-	return 0;
+	println("hello, world")
+	return 0
 }
