@@ -385,8 +385,8 @@ void destroy_while_ast_node(while_ast_node *wn) {
 
 void destroy_match_case_ast_node(match_case_ast_node *mcn) {
 	if (mcn) {
-		if (mcn->statement) {
-			destroy_statement_ast_node(mcn->statement);
+		if (mcn->condition) {
+			destroy_expression_ast_node(mcn->condition);
 		}
 		if (mcn->body) {
 			destroy_block_ast_node(mcn->body);
@@ -557,6 +557,15 @@ if_statement_ast_node *parse_if_statement_ast_node(parser *parser) {
 	return en;
 }
 
+match_case_ast_node *parse_match_case_ast_node(parser *parser) {
+	match_case_ast_node *case_node = create_match_case_ast_node();
+
+	case_node->condition = parse_expression_ast_node(parser);
+	case_node->body = parse_block_ast_node(parser);
+
+	return case_node;
+}
+
 match_ast_node *parse_match_ast_node(parser *parser) {
 	match_ast_node *mn = create_match_ast_node();
 
@@ -564,6 +573,7 @@ match_ast_node *parse_match_ast_node(parser *parser) {
 
 	expression_ast_node *expr = parse_expression_ast_node(parser);
 	mn->condition = expr;
+	mn->cases = create_vector();
 
 	if (check_token_type_and_content(parser, SEPARATOR, BLOCK_OPENER, 0)) {
 		consume_token(parser);
@@ -574,6 +584,7 @@ match_ast_node *parse_match_ast_node(parser *parser) {
 				break;
 			}
 
+			push_back_item(mn->cases, parse_match_case_ast_node(parser));
 		}
 		while (true);
 
