@@ -1,5 +1,5 @@
-#ifndef INK_LANG_G
-#define INK_LANG_G
+#ifndef INK_LANG_H
+#define INK_LANG_H
 
 #include <stdio.h>
 #include <stdlib.h>
