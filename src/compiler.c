@@ -164,7 +164,7 @@ LLVMValueRef generate_function_prototype_code(compiler *self, function_prototype
 		LLVMValueRef param = LLVMGetParam(proto, i);
 		LLVMSetValueName(param, arg->name->content);
 
-		set_value_at_key(self->table, arg->name->content, arg, sizeof(arg));
+		set_value_at_key(self->table, arg->name->content, arg);
 	}
 
 	return proto;
