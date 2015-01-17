@@ -1157,6 +1157,12 @@ function_ast_node *parse_function_ast_node(parser *parser) {
 				break;
 			}
 
+			bool is_constant = false;
+			if (check_token_type_and_content(parser, IDENTIFIER, CONSTANT_KEYWORD, 0)) {
+				is_constant = true;
+				consume_token(parser);
+			}
+
 			// data type
 			token *argdata_type = match_token_type(parser, IDENTIFIER);
 			data_type arg_raw_data_type = match_token_type_to_data_type(parser, argdata_type);
@@ -1175,6 +1181,7 @@ function_ast_node *parse_function_ast_node(parser *parser) {
 			arg->type = arg_raw_data_type;
 			arg->name = arg_name;
 			arg->is_pointer = is_pointer;
+			arg->is_constant = is_constant;
 			arg->value = NULL;
 
 			if (check_token_type_and_content(parser, OPERATOR, ASSIGNMENT_OPERATOR, 0)) {
@@ -1217,6 +1224,12 @@ function_ast_node *parse_function_ast_node(parser *parser) {
 			parser_error(parser, "function prototype missing colon", consume_token(parser), false);
 		}
 
+		bool is_constant = false;
+		if (check_token_type_and_content(parser, IDENTIFIER, CONSTANT_KEYWORD, 0)) {
+			is_constant = true;
+			consume_token(parser);
+		}
+
 		bool returns_pointer = false;
 		if (check_token_type_and_content(parser, OPERATOR, POINTER_OPERATOR, 0)) {
 			returns_pointer = true;
@@ -1230,6 +1243,7 @@ function_ast_node *parse_function_ast_node(parser *parser) {
 			data_type raw_data_type = match_token_type_to_data_type(parser, returnType);
 			fpn->ret = raw_data_type;
 			fn->returns_pointer = returns_pointer;
+			fn->is_constant = is_constant;
 		}
 		else {
 			parser_error(parser, "function declaration return type expected", consume_token(parser), false);

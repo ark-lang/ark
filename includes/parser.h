@@ -165,8 +165,10 @@ typedef struct {
 typedef struct {
 	data_type type;
 	token *name;
-	bool is_pointer;
 	expression_ast_node *value;
+
+	bool is_pointer;
+	bool is_constant;
 } function_argument_ast_node;
 
 /**
@@ -244,7 +246,9 @@ typedef struct {
 	function_prototype_ast_node *fpn;
 	block_ast_node *body;
 	statement_ast_node *single_statement;
+
 	bool returns_pointer;
+	bool is_constant;
 } function_ast_node;
 
 /**
