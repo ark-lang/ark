@@ -20,7 +20,10 @@ into something more modern, and easier to use.
 
 ## Contributing
 ### Community
-The IRC will be up soon.
+You can join us on IRC:
+
+    server: irc.freenode.net
+    channel: ##ink-lang
 
 ### Pull Requests
 All pull requests are welcome:
