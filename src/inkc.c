@@ -8,7 +8,7 @@ static void parse_argument(argument *arg) {
 
 	switch (argument) {
 		case 'v':
-			printf("inkc version: %s\n", JAYFOR_VERSION);
+			printf("inkc version: %s\n", INKC_VERSION);
 			exit(1);
 			break;
 		case 'd':

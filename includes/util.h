@@ -9,7 +9,7 @@
 #include <errno.h>
 
 /** the current version of jayfor */
-#define JAYFOR_VERSION "0.0.0"
+#define INKC_VERSION "0.0.0"
 
 /** if we are in debug mode -- will print debug warnings */
 bool DEBUG_MODE;
