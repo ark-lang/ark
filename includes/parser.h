@@ -315,15 +315,15 @@ typedef struct {
  * ast_node to represent a case for a match
  */
 typedef struct {
-	statement_ast_node *statement;
 	block_ast_node *body;
+	expression_ast_node *condition;
 } match_case_ast_node;
 
 /**
  * ast_node to represent a match
  */
 typedef struct {
-	expression_ast_node *condition;
+	expression_ast_node *condition;	// what we are matching
 	vector *cases;
 } match_ast_node;
 
