@@ -29,15 +29,15 @@ BUILD_COMMAND =
 
 # also for TRAVIS
 ifeq ($(CC),gcc)
-	BUILD_COMMAND = g++ *.o ${TRAVIS_LINK_STUFF} -o j4
+	BUILD_COMMAND = g++ *.o ${TRAVIS_LINK_STUFF} -o inkc
 else
-	BUILD_COMMAND = ${CC}++ *.o ${TRAVIS_LINK_STUFF} -o j4
+	BUILD_COMMAND = ${CC}++ *.o ${TRAVIS_LINK_STUFF} -o inkc
 endif
 
 # this is what should be built
 all: ${SOURCES}
 	${LCC} ${C_FLAGS} ${SOURCES} -c ${SOURCES}
-	${LCXX} *.o ${LLVM_FLAGS} -o j4 
+	${LCXX} *.o ${LLVM_FLAGS} -o inkc 
 	-rm *.o
 
 # this is for TRAVIS ONLY!!
