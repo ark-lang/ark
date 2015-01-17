@@ -722,7 +722,6 @@ structure_ast_node *parse_structure_ast_node(parser *parser) {
 				break;
 			}
 
-			// this should be cleaned up
 			push_back_item(sn->statements, parse_variable_ast_node(parser, false));
 		}
 		while (true);
