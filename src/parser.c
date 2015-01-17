@@ -587,8 +587,6 @@ match_ast_node *parse_match_ast_node(parser *parser) {
 			push_back_item(mn->cases, parse_match_case_ast_node(parser));
 		}
 		while (true);
-
-		// finished parsing blocks
 	}
 	else {
 		parser_error(parser, "match expected block denoted with `{}`", consume_token(parser), true);
