@@ -38,6 +38,7 @@ inkc *create_inkc(int argc, char** argv) {
 	// not enough args just throw an error
 	if (argc <= 1) {
 		error_message("error: no input files\n");
+		exit(1);
 	}
 	inkc *self = safe_malloc(sizeof(*self));
 	self->filename = NULL;
