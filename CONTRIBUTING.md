@@ -1,11 +1,13 @@
 Contributing
 ============
 
+We'd love your contributions, but we do have a few guidelines
+that we all go by here.
+
 Community
 ---------
 
-Having any problems? [Open an Issue](https://github.com/ink-lang/ink/issues).
-We will be creating an IRC room shortly.
+Having any problems? [Open an Issue](https://github.com/ink-lang/ink/issues). There is also an IRC room over on freenode: [##ink-lang](http://webchat.freenode.net/?channels=%23%23ink-lang).
 
 Pull Requests
 -------------
