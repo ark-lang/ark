@@ -1,16 +1,16 @@
 #include <stdio.h>
 #include <time.h>
 
-#include "jayfor.h"
+#include "inkc.h"
 
 int main(int argc, char** argv) {
 	// start the timer
 	clock_t timer = clock();
 
-	// jayfor stuff
-	jayfor *jayfor = create_jayfor(argc, argv);
-	start_jayfor(jayfor);
-	destroy_jayfor(jayfor);
+	// inkc stuff
+	inkc *inkc = create_inkc(argc, argv);
+	start_inkc(inkc);
+	destroy_inkc(inkc);
 
 	// finished timer
 	timer = clock() - timer;	// calculate time taken
