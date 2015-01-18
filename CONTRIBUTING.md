@@ -14,7 +14,15 @@ Pull Requests
 
 All pull requests are welcome. Please ensure that you rebase your commits
 against remote master prior to submitting a pull request, in order to
-prevent edit collisions.
+prevent edit collisions. Pull Requests will be judged by the following 4 
+developers:
+
+* Freefouran
+* CaptainChloride
+* Juddus
+* Ianhedoesit
+
+Who will merge it, if it's up to standard.
 
 Proposing a feature or change
 -----------------------------
@@ -47,15 +55,15 @@ Here is a good example (obviously fake):
 > example hello world file with the changes implemented:
 >
 > [`helloworld.inks`](/examples/helloworld.inks):
-> ```ink
-> 	// use stdio; -- doesn't work yet, no preprocessor
+> ```
+> 	 !use stdio
 >
->  // main entry point of the program
->  fn main(): int {
-> 	// this function is inside the standard io library
-> 	println("hello, world")
-> 	return 0
-> }
+>    // main entry point of the program
+>    fn main(): int {
+> 	    // this function is inside the standard io library
+> 	 	println("hello, world")
+> 	 	return 0
+> 	 }
 > ```
 
 Please ensure that you check back on the issue often and actively participate
