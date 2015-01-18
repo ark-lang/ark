@@ -425,7 +425,7 @@ parser *create_parser(vector *token_stream) {
 	parser->parse_tree = create_vector();
 	parser->token_index = 0;
 	parser->parsing = true;
-	parser->exit_on_error = true;
+	parser->exit_on_error = false;
 	parser->sym_table = create_hashmap(16);
 	return parser;
 }
@@ -519,7 +519,7 @@ bool check_token_type_and_content(parser *parser, token_type type, char* content
 	return check_token_type(parser, type, ahead) && check_token_content(parser, content, ahead);
 }
 
-char *parse_operand(parser *parser) {
+EXPRESSION_OPERAND parse_operand(parser *parser) {
 	token *tok = peek_at_token_stream(parser, 0);
 
 	int i;
@@ -527,12 +527,12 @@ char *parse_operand(parser *parser) {
 	for (i = 0; i < operand_list_size; i++) {
 		if (!strcmp(SUPPORTED_OPERANDS[i], tok->content)) {
 			consume_token(parser);
-			return SUPPORTED_OPERANDS[i];
+			return i;
 		}
 	}
 
 	parser_error(parser, "invalid operator specified", tok, true);
-	return NULL;
+	return OPER_ERRORNEOUS;
 }
 
 while_ast_node *parse_while_loop(parser *parser) {
@@ -722,7 +722,6 @@ structure_ast_node *parse_structure_ast_node(parser *parser) {
 				break;
 			}
 
-			// this should be cleaned up
 			push_back_item(sn->statements, parse_variable_ast_node(parser, false));
 		}
 		while (true);
