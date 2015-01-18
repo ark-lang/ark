@@ -7,12 +7,12 @@ compiler *create_compiler() {
 	self->max_bytecode_size = 32;
 	self->bytecode = safe_malloc(sizeof(*self->bytecode) * self->max_bytecode_size);
 	self->current_ast_node = 0;
-	self->table = create_hashmap(128);
+	self->table = create_hashmap(16);
 	self->global_count = 0;
 	self->llvm_error_message = NULL;
 	self->refs = create_vector();
 
-	self->module = LLVMModuleCreateWithName("j4");
+	self->module = LLVMModuleCreateWithName("ink");
 	self->builder = LLVMCreateBuilder();
 
 	LLVMInitializeNativeTarget();
@@ -34,7 +34,6 @@ compiler *create_compiler() {
 	LLVMAddGVNPass(self->pass_manager);
 	LLVMAddCFGSimplificationPass(self->pass_manager);
 	LLVMInitializeFunctionPassManager(self->pass_manager);
-
 	return self;
 }
 
@@ -60,11 +59,102 @@ void consume_ast_nodes(compiler *self, int amount) {
 	self->current_ast_node += amount;
 }
 
+LLVMValueRef generate_constant_number(compiler *self, double value, data_type type) {
+	return LLVMConstReal(get_type_ref(type), value);
+}
+
+LLVMValueRef generate_expression_ast_node(compiler *self, expression_ast_node *expr, data_type type) {
+	switch (expr->type) {
+		case EXPR_NUMBER: return generate_constant_number(self, atof(expr->value->content), type);
+		case EXPR_PARENTHESIS: {
+			LLVMValueRef lhand = generate_expression_ast_node(self, expr->lhand, type);
+			LLVMValueRef rhand = generate_expression_ast_node(self, expr->lhand, type);
+
+			if (!lhand || !rhand) {
+				printf("lhand or rhand is null\n");
+				break;
+			}
+
+			switch (expr->operand) {
+				case OPER_ADD: return LLVMBuildFAdd(self->builder, lhand, rhand, "add_temp");
+				case OPER_SUB: return LLVMBuildFSub(self->builder, lhand, rhand, "sub_temp");
+				case OPER_DIV: return LLVMBuildFDiv(self->builder, lhand, rhand, "div_temp");
+				case OPER_MUL: return LLVMBuildFMul(self->builder, lhand, rhand, "nul_temp");
+			}
+
+			break;
+		}
+		default:
+			printf("what type is %c = %s\n", expr->type, expr->value->content);
+			break;
+	}
+	return NULL;
+}
+
+LLVMValueRef generate_variable_definition_code(compiler *self, variable_define_ast_node *vdn) {
+	// zero is bad
+	LLVMValueRef value = generate_constant_number(self, 0.0, vdn->type);
+	return NULL;
+}
+
+LLVMValueRef generate_variable_declaration_code(compiler *self, variable_declare_ast_node *vdn) {
+	LLVMValueRef value = generate_expression_ast_node(self, vdn->expression, vdn->vdn->type);
+	LLVMValueRef lookup = get_value_at_key(self->table, vdn->vdn->name);
+	
+	if (lookup) {
+		printf("do an error here about the variable already existing or whatever\n");
+	}
+	else {
+		set_value_at_key(self->table, vdn->vdn->name, value);
+	}
+
+	return value;
+}
+
+LLVMValueRef generate_function_callee_code(compiler *self, function_callee_ast_node *fcn) {
+	return NULL;
+}
+
+LLVMValueRef generate_function_prototype_code(compiler *self, function_prototype_ast_node *fpn) {
+	return NULL;
+}
+
+LLVMValueRef generate_function_return_code(compiler *self, function_return_ast_node *frn) {
+
+	return NULL;
+}
+
+LLVMValueRef generate_statement_code(compiler *self, statement_ast_node *sn) {
+	
+	return NULL;
+}
+
+LLVMValueRef generate_block_code(compiler *self, block_ast_node *ban) {
+
+	return NULL;
+}
+
+LLVMValueRef generate_function_code(compiler *self, function_ast_node *fan) {
+
+	return NULL;
+}
+
+LLVMValueRef generate_code(compiler *self, ast_node *node) {
+	switch (node->type) {
+		case VARIABLE_DEC_AST_NODE: return generate_variable_declaration_code(self, node->data);
+		case VARIABLE_DEF_AST_NODE: return generate_variable_definition_code(self, node->data);
+		default:
+			printf("unrecognized node %d\n", node->type);
+			break;
+	}
+	printf("why are you generating code for nothing here what?\n");
+	return NULL;
+}
+
 LLVMTypeRef get_type_ref(data_type type) {
-	printf("given %d\n", type);
 	switch (type) {
 		case TYPE_INTEGER: 
-			printf("integer\n");
+			printf("int\n");
 			return LLVMInt32Type();
 		case TYPE_STR:
 			error_message("strings are unimplemented\n");
@@ -82,204 +172,24 @@ LLVMTypeRef get_type_ref(data_type type) {
 			error_message("unsupported data type `%d`\n", type);
 			break;
 	}
+
 	error_message("we should've thrown an error for type references, why are you here?\n");
-	return NULL;
-}
-
-LLVMValueRef evaluate_expression_ast_node(compiler *self, expression_ast_node *expr) {
-	error_message("expressions unimplemented\n");
-	return NULL;
-}
-
-LLVMValueRef generate_variable_definition_code(compiler *self, variable_declare_ast_node *vdn) {
-	error_message("definitions unimplemented\n");
-	return NULL;
-}
-
-LLVMValueRef generate_variable_declaration_code(compiler *self, variable_declare_ast_node *vdn) {
-	error_message("variable declaration unimplemented\n");
-	return NULL;
-}
-
-LLVMValueRef generate_function_callee_code(compiler *self, function_callee_ast_node *fcn) {
-	LLVMValueRef func = LLVMGetNamedFunction(self->module, fcn->callee);
-	if (!func) {
-		printf("function `%s` not found in module!\n", fcn->callee);
-	}
-
-	if (LLVMCountParams(func) != fcn->args->size) {
-		printf("number of arguments given doesn't match required argument size\n");
-	}
-
-	LLVMValueRef *args = safe_malloc(sizeof(LLVMValueRef) * fcn->args->size);
-	unsigned int i;
-	unsigned int arg_count = fcn->args->size;
-	for (i = 0; i < arg_count; i++) {
-		args[i] = NULL;
-		if (args[i] == NULL) {
-			free(args);
-			printf("invalid argument given do some error here\n");
-		}
-	}
-	return LLVMBuildCall(self->builder, func, args, arg_count, "calltmp");
-}
-
-LLVMValueRef generate_function_prototype_code(compiler *self, function_prototype_ast_node *fpn) {
-	unsigned int i;
-	unsigned int arg_count = fpn->args->size;
-
-	LLVMValueRef proto = LLVMGetNamedFunction(self->module, fpn->name->content);
-	if (proto) {
-		if (LLVMCountParams(proto) != arg_count) {
-			error_message("function `%s` with different argument count already exists\n", fpn->name->content);
-			return NULL;
-		}
-
-		if (LLVMCountBasicBlocks(proto)) {
-			error_message("function `%s` exists with a body\n", fpn->name->content);
-			return NULL;
-		}
-
-		error_message("idk some shit up with the proto for `%s`\n", fpn->name->content);
-	}
-	else {
-		LLVMTypeRef *params = NULL;
-		if (!arg_count) {
-			params = safe_malloc(sizeof(LLVMTypeRef) * arg_count);
-
-			for (i = 0; i < arg_count; i++) {
-				function_argument_ast_node *arg = get_vector_item(fpn->args, i);
-				params[i] = get_type_ref(arg->type);
-			}
-		}
-
-		LLVMTypeRef return_type = get_type_ref(fpn->ret);
-		LLVMTypeRef func_type = LLVMFunctionType(return_type, params, arg_count, false);
-
-		proto = LLVMAddFunction(self->module, fpn->name->content, func_type);
-	}
-
-	for (i = 0; i < arg_count; i++) {
-		function_argument_ast_node *arg = get_vector_item(fpn->args, i);
-		LLVMValueRef param = LLVMGetParam(proto, i);
-		LLVMSetValueName(param, arg->name->content);
-
-		set_value_at_key(self->table, arg->name->content, arg, sizeof(arg));
-	}
-
-	return proto;
-}
-
-LLVMValueRef generate_function_return_code(compiler *self, function_return_ast_node *frn) {
-
-	return NULL;
-}
-
-LLVMValueRef generate_statement_code(compiler *self, statement_ast_node *sn) {
-	switch (sn->type) {
-		case VARIABLE_DEF_AST_NODE:
-			return generate_variable_definition_code(self, sn->data);
-		case VARIABLE_DEC_AST_NODE:
-			return generate_variable_declaration_code(self, sn->data);
-		case FUNCTION_CALLEE_AST_NODE:
-			return generate_function_callee_code(self, sn->data);
-		case FUNCTION_RET_AST_NODE:
-			return generate_function_return_code(self, sn->data);
-		case VARIABLE_REASSIGN_AST_NODE:
-			primary_message("variable reassign unimplemented\n");
-			break;
-		case FOR_LOOP_AST_NODE:
-			primary_message("for loop unimplemented\n");
-			break;
-		case INFINITE_LOOP_AST_NODE:
-			primary_message("infinite loop unimplemented\n");
-			break;
-		case BREAK_AST_NODE:
-			primary_message("break unimplemented\n");
-			break;
-		case ENUM_AST_NODE:
-			primary_message("enum unimplemented\n");
-			break;
-		default: 
-			error_message("unknown node given %d\n", sn->type);
-			break;
-	}
-
-	printf("why is it returning null?\n");
-	return NULL;
-}
-
-LLVMValueRef generate_block_code(compiler *self, block_ast_node *ban) {
-	int i;
-	for (i = 0; i < ban->statements->size; i++) {
-		statement_ast_node *sn = get_vector_item(ban->statements, i);
-		LLVMValueRef location = NULL;
-		LLVMValueRef statement_code = generate_statement_code(self, sn);
-		LLVMBuildStore(self->builder, statement_code, location);
-	}
-	return NULL; // temporary
-}
-
-LLVMValueRef generate_function_code(compiler *self, function_ast_node *fan) {
-	// first we generate the prototype
-	LLVMValueRef func = generate_function_prototype_code(self, fan->fpn);
-	if (!func) {
-		error_message("prototype for `%s` is dun goofed\n", fan->fpn->name->content);
-		return NULL;
-	}
-
-	LLVMBasicBlockRef block = LLVMAppendBasicBlock(func, "entry");
-	LLVMPositionBuilderAtEnd(self->builder, block);
-
-	LLVMValueRef body = generate_block_code(self, fan->body);
-	if (!body) {
-		error_message("failed to generate code for `%s`'s body\n", fan->fpn->name->content);
-	}
-
-	LLVMBuildRet(self->builder, body);
-
-	if (LLVMVerifyFunction(func, LLVMPrintMessageAction)) {
-		error_message("invalid function `%s`\n", fan->fpn->name->content);
-		LLVMDeleteFunction(func);
-		return NULL;
-	}
-
-	return func;
-}
-
-LLVMValueRef generate_code(compiler *self, ast_node *node) {
-	switch (node->type) {
-		case VARIABLE_DEC_AST_NODE:
-			return generate_variable_declaration_code(self, node->data);
-		case FUNCTION_AST_NODE:
-			return generate_function_code(self, node->data);
-		case FUNCTION_CALLEE_AST_NODE:
-			return generate_function_callee_code(self, node->data);
-		default:
-			debug_message("unrecognized node specified", true);
-			break;
-	}
-	debug_message("unknown node, why are you here?");
 	return NULL;
 }
 
 void start_compiler(compiler *self, vector *ast) {
 	self->ast = ast;
 
-
 	int i;
 	for (i = self->current_ast_node; i < self->ast->size; i++) {
 		ast_node *current_ast_node = get_vector_item(self->ast, self->current_ast_node);
-
 		LLVMValueRef temp_ref = generate_code(self, current_ast_node);
 		if (temp_ref) {
-			printf("ast is null, dont add it to the thing\n");
-		}
-		else {
 			push_back_item(self->refs, temp_ref);
 		}
-
-		printf("generating code for node at index %d\n", i);
+		else {
+			printf("ast is null, dont add it to the thing\n");
+		}
 		consume_ast_node(self);
 	}
 }
