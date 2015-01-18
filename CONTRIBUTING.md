@@ -54,7 +54,7 @@ Here is a good example (obviously fake):
 > to having to use special functionality in a text editor. Here is the
 > example hello world file with the changes implemented:
 >
-> [`helloworld.inks`](/examples/helloworld.inks):
+> [`helloworld.ink`](/examples/helloworld.ink):
 > ```
 > 	 !use stdio
 >
