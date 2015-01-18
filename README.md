@@ -1,11 +1,7 @@
-### ALERT: **Jayfor is now Ink. Its the same project, just a different name. [Here's why](https://github.com/ink-lang/ink/issues/68).**
-
-----
-
 [Ink](http://ink-lang.github.io) [![BuildStatus](https://travis-ci.org/ink-lang/ink.svg?branch=master)](https://travis-ci.org/ink-lang/ink)
 ===
 
-is a programming language written in C. The goals of this language are:
+Ink is a programming language written in C. The goals of this language are:
 
 * Speed
 * Simplicity
@@ -14,28 +10,19 @@ is a programming language written in C. The goals of this language are:
 We created Ink because we love writing C, and love the simplicity of C; we also wanted to evolve C
 into something more modern, and easier to use.
 
-IMPORTANT
----------
-
-Ink started off and will, for the moment, **be an educational
-project**. We'd love to see it go mainstream, but, as it stands,
-there are a lot of stable languages already out there. Its a
-tough challenge. So, for all those asking how good is this
-language/will this language be when compared to Go or Rust or
-`[insert language here]`, we want to clarify (again) that this
-project was in no manner started for the sole purpose of competing
-with languages already out there. Those that are interested in the
-project and like the idea are more than welcome to contribute to its
-growth (into something big). Being in a tender stage of development,
-we still have a lot of features that we want to implement. But a
-majority of the suggestions come from **you**. So please don't
-hesitate to propose a change to the language (or better yet,
-a pull request!), following the instructions mentioned somewhere
-below. Please do not expect too much from the language (at least not
-at the moment). Our priority is to get the language to a stage where
-it can compute and produce results. Any thoughts about competition
-or stance when compared to other languages **is the least of our
-priorities right now**. 
+Diclaimer
+------
+I [freefouran] personally started this project with a friend [CaptainChloride] for fun, we're not
+trying to revolutionize anything, it's a small project we're doing for fun and learning. The project
+is still in it's early stages of development, and is far from complete. We're currently trying to
+implement the core of the language, so it will be pretty much identical to C, with a few quirks here
+and there. Once we've got that down we're going to implement all the funky stuff, this is where **you**
+can decide what you would like to see in the language, it could be anything, and you can try and implement
+it yourself, or just post an issue and see if someone likes the idea and is willing to implement it for you.
+Since we're both young (16 and 17), we have loads of exams, school work, jobs, which means we can't 
+work on the language 24/7, but the more contributors we get, the quick the language gets done. If you're
+an active contributor, there's also a good chance that you will be added to the **official developer team**,
+ooooooooooooooohhhh, exciting.
 
 Status
 ------
