@@ -53,7 +53,7 @@ To build you will need:
  - A suitable GNU C compiler (any one of the below will do fine):
    - [`clang >= 3.4.0`](http://llvm.org/releases/download.html)
    - [`gcc >= 4.8.1`](https://gcc.gnu.org/) (change `LCC` and 
-     `LCXX` in the [makefile](/makefile) to `gcc` and `g++`, respectively)
+     `LCXX` in the [makefile](/Makefile) to `gcc` and `g++`, respectively)
 
 ```bash
 # clone the repository

@@ -59,13 +59,6 @@ void consume_ast_nodes(compiler *self, int amount) {
 	self->current_ast_node += amount;
 }
 
-ast_node *create_ast_node(void *data, ast_node_type type) {
-	ast_node *ast_node = safe_malloc(sizeof(*ast_node));
-	ast_node->data = data;
-	ast_node->type = type;
-	return ast_node;
-}
-
 LLVMValueRef generate_constant_number(compiler *self, double value, data_type type) {
 	return LLVMConstReal(get_type_ref(type), value);
 }
@@ -74,12 +67,8 @@ LLVMValueRef generate_expression_ast_node(compiler *self, expression_ast_node *e
 	switch (expr->type) {
 		case EXPR_NUMBER: return generate_constant_number(self, atof(expr->value->content), type);
 		case EXPR_PARENTHESIS: {
-			ast_node *lhand_ast = create_ast_node(expr->lhand, EXPRESSION_AST_NODE);
-			ast_node *rhand_ast = create_ast_node(expr->rhand, EXPRESSION_AST_NODE);
-			LLVMValueRef lhand = generate_code(self, lhand_ast);
-			LLVMValueRef rhand = generate_code(self, rhand_ast);
-			free(lhand_ast);
-			free(rhand_ast);
+			LLVMValueRef lhand = generate_expression_ast_node(self, expr->lhand, expr->lhand->type);
+			LLVMValueRef rhand = generate_expression_ast_node(self, expr->lhand, expr->rhand->type);
 
 			if (!lhand || !rhand) {
 				printf("lhand or rhand is null\n");
@@ -88,9 +77,9 @@ LLVMValueRef generate_expression_ast_node(compiler *self, expression_ast_node *e
 
 			switch (expr->operand) {
 				case OPER_ADD: return LLVMBuildFAdd(self->builder, lhand, rhand, "add_temp");
-				case OPER_SUB: return LLVMBuildFSub(self->builder, lhand, rhand, "add_temp");
-				case OPER_DIV: return LLVMBuildFDiv(self->builder, lhand, rhand, "add_temp");
-				case OPER_MUL: return LLVMBuildFMul(self->builder, lhand, rhand, "add_temp");
+				case OPER_SUB: return LLVMBuildFSub(self->builder, lhand, rhand, "sub_temp");
+				case OPER_DIV: return LLVMBuildFDiv(self->builder, lhand, rhand, "div_temp");
+				case OPER_MUL: return LLVMBuildFMul(self->builder, lhand, rhand, "nul_temp");
 			}
 			break;
 		}
