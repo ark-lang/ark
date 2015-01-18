@@ -425,7 +425,7 @@ parser *create_parser(vector *token_stream) {
 	parser->parse_tree = create_vector();
 	parser->token_index = 0;
 	parser->parsing = true;
-	parser->exit_on_error = true;
+	parser->exit_on_error = false;
 	parser->sym_table = create_hashmap(16);
 	return parser;
 }
