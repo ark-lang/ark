@@ -67,8 +67,8 @@ LLVMValueRef generate_expression_ast_node(compiler *self, expression_ast_node *e
 	switch (expr->type) {
 		case EXPR_NUMBER: return generate_constant_number(self, atof(expr->value->content), type);
 		case EXPR_PARENTHESIS: {
-			LLVMValueRef lhand = generate_expression_ast_node(self, expr->lhand, expr->lhand->type);
-			LLVMValueRef rhand = generate_expression_ast_node(self, expr->lhand, expr->rhand->type);
+			LLVMValueRef lhand = generate_expression_ast_node(self, expr->lhand, type);
+			LLVMValueRef rhand = generate_expression_ast_node(self, expr->lhand, type);
 
 			if (!lhand || !rhand) {
 				printf("lhand or rhand is null\n");
@@ -81,6 +81,7 @@ LLVMValueRef generate_expression_ast_node(compiler *self, expression_ast_node *e
 				case OPER_DIV: return LLVMBuildFDiv(self->builder, lhand, rhand, "div_temp");
 				case OPER_MUL: return LLVMBuildFMul(self->builder, lhand, rhand, "nul_temp");
 			}
+
 			break;
 		}
 		default:
@@ -99,6 +100,7 @@ LLVMValueRef generate_variable_definition_code(compiler *self, variable_define_a
 LLVMValueRef generate_variable_declaration_code(compiler *self, variable_declare_ast_node *vdn) {
 	LLVMValueRef value = generate_expression_ast_node(self, vdn->expression, vdn->vdn->type);
 	LLVMValueRef lookup = get_value_at_key(self->table, vdn->vdn->name);
+	
 	if (lookup) {
 		printf("do an error here about the variable already existing or whatever\n");
 	}
@@ -106,7 +108,7 @@ LLVMValueRef generate_variable_declaration_code(compiler *self, variable_declare
 		set_value_at_key(self->table, vdn->vdn->name, value);
 	}
 
-	return NULL;
+	return value;
 }
 
 LLVMValueRef generate_function_callee_code(compiler *self, function_callee_ast_node *fcn) {
@@ -145,6 +147,7 @@ LLVMValueRef generate_code(compiler *self, ast_node *node) {
 			printf("unrecognized node %d\n", node->type);
 			break;
 	}
+	printf("why are you generating code for nothing here what?\n");
 	return NULL;
 }
 
@@ -182,10 +185,10 @@ void start_compiler(compiler *self, vector *ast) {
 		ast_node *current_ast_node = get_vector_item(self->ast, self->current_ast_node);
 		LLVMValueRef temp_ref = generate_code(self, current_ast_node);
 		if (temp_ref) {
-			printf("ast is null, dont add it to the thing\n");
+			push_back_item(self->refs, temp_ref);
 		}
 		else {
-			push_back_item(self->refs, temp_ref);
+			printf("ast is null, dont add it to the thing\n");
 		}
 		consume_ast_node(self);
 	}
