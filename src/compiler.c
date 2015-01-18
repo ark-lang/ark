@@ -59,6 +59,13 @@ void consume_ast_nodes(compiler *self, int amount) {
 	self->current_ast_node += amount;
 }
 
+ast_node *create_ast_node(void *data, ast_node_type type) {
+	ast_node *ast_node = safe_malloc(sizeof(*ast_node));
+	ast_node->data = data;
+	ast_node->type = type;
+	return ast_node;
+}
+
 LLVMValueRef generate_constant_number(compiler *self, double value, data_type type) {
 	return LLVMConstReal(get_type_ref(type), value);
 }
@@ -66,6 +73,27 @@ LLVMValueRef generate_constant_number(compiler *self, double value, data_type ty
 LLVMValueRef generate_expression_ast_node(compiler *self, expression_ast_node *expr, data_type type) {
 	switch (expr->type) {
 		case EXPR_NUMBER: return generate_constant_number(self, atof(expr->value->content), type);
+		case EXPR_PARENTHESIS: {
+			ast_node *lhand_ast = create_ast_node(expr->lhand, EXPRESSION_AST_NODE);
+			ast_node *rhand_ast = create_ast_node(expr->rhand, EXPRESSION_AST_NODE);
+			LLVMValueRef lhand = generate_code(self, lhand_ast);
+			LLVMValueRef rhand = generate_code(self, rhand_ast);
+			free(lhand_ast);
+			free(rhand_ast);
+
+			if (!lhand || !rhand) {
+				printf("lhand or rhand is null\n");
+				break;
+			}
+
+			switch (expr->operand) {
+				case OPER_ADD: return LLVMBuildFAdd(self->builder, lhand, rhand, "add_temp");
+				case OPER_SUB: return LLVMBuildFSub(self->builder, lhand, rhand, "add_temp");
+				case OPER_DIV: return LLVMBuildFDiv(self->builder, lhand, rhand, "add_temp");
+				case OPER_MUL: return LLVMBuildFMul(self->builder, lhand, rhand, "add_temp");
+			}
+			break;
+		}
 		default:
 			printf("what type is %c = %s\n", expr->type, expr->value->content);
 			break;
@@ -74,12 +102,21 @@ LLVMValueRef generate_expression_ast_node(compiler *self, expression_ast_node *e
 }
 
 LLVMValueRef generate_variable_definition_code(compiler *self, variable_define_ast_node *vdn) {
-	generate_constant_number(self, 0.0, vdn->type);
+	// zero is bad
+	LLVMValueRef value = generate_constant_number(self, 0.0, vdn->type);
 	return NULL;
 }
 
 LLVMValueRef generate_variable_declaration_code(compiler *self, variable_declare_ast_node *vdn) {
-	generate_expression_ast_node(self, vdn->expression, vdn->vdn->type);
+	LLVMValueRef value = generate_expression_ast_node(self, vdn->expression, vdn->vdn->type);
+	LLVMValueRef lookup = get_value_at_key(self->table, vdn->vdn->name);
+	if (lookup) {
+		printf("do an error here about the variable already existing or whatever\n");
+	}
+	else {
+		set_value_at_key(self->table, vdn->vdn->name, value);
+	}
+
 	return NULL;
 }
 
