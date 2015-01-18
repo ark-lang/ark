@@ -48,8 +48,7 @@ void *get_value_at_key(hashmap *map, char* str);
  * @param map the map to set the value in
  * @param str the key to place the value
  * @param data the data to store
- * @param size the size of the data being stored
  */
-void set_value_at_key(hashmap  *map, char* str, void* data, size_t size);
+void set_value_at_key(hashmap *map, char* str, void* data);
 
 #endif // hashmap_H
