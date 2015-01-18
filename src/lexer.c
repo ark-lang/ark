@@ -233,13 +233,13 @@ void get_next_token(lexer *lexer) {
 		lexer->running = false;	// stop lexing
 		return;
 	}
-	if (is_letter(lexer->current_char) || is_digit(lexer->current_char) || lexer->current_char == '_') {
-		// ident
-		recognize_identifier_token(lexer);
-	}
-	else if (is_digit(lexer->current_char) || lexer->current_char == '.') {
+	if (is_digit(lexer->current_char) || lexer->current_char == '.') {
 		// number
 		recognize_number_token(lexer);
+	}
+	else if (is_letter(lexer->current_char) || is_digit(lexer->current_char) || lexer->current_char == '_') {
+		// ident
+		recognize_identifier_token(lexer);
 	}
 	else if (is_string(lexer->current_char)) {
 		// string
