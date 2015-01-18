@@ -124,6 +124,15 @@ typedef enum {
 	UNSPECIFIED
 } expression_pointer_option;
 
+/** Supported Operators */
+typedef enum {
+	OPER_INCREMENT, OPER_DECREMENT,
+	OPER_INCREMENT_BY, OPER_DECREMENT_BY, OPER_MULTI_BY, OPER_DIV_BY, OPER_MOD_BY,
+	OPER_ADD, OPER_SUB, OPER_BIT_AND, OPER_MUL, OPER_DIV, OPER_MOD, OPER_POW,
+	OPER_GREATER, OPER_LESS, OPER_GREATER_EQUAL, OPER_LESS_EQUAL, OPER_EQUAL_TO, OPER_NOT_EQUAL_TO,
+	OPER_AND, OPER_OR, OPER_ERRORNEOUS
+} EXPRESSION_OPERAND;
+
 /**
  * ast_node for an Expression
  */
@@ -134,7 +143,7 @@ typedef struct s_Expression {
 	expression_pointer_option pointer_option;
 
 	struct s_Expression *lhand;
-	char *operand;
+	EXPRESSION_OPERAND operand;
 	struct s_Expression *rhand;
 } expression_ast_node;
 
@@ -334,7 +343,7 @@ typedef struct {
 /**
  * parse an operand
  */
-char *parse_operand(parser *parser);
+EXPRESSION_OPERAND parse_operand(parser *parser);
 
 /**
  * Create a new structure node
