@@ -53,11 +53,12 @@ void destroy_hashmap(hashmap *map) {
 	}
 }
  
-void set_value_at_key(hashmap *map, char *key, void *value, size_t length) {
+void set_value_at_key(hashmap *map, char *key, void *value) {
 	int hash = hashString(key, map->size - 1);
 	hashmap_field *field = map->fields + hash;
 	hashmap_entry *entry;
- 
+ 	size_t length = sizeof(*value);
+
 	int i;
 	/* Check if entry with the same key already exists in field. */
 	for(i = 0; i < field->size; i++) {

@@ -71,7 +71,7 @@ inkc *create_inkc(int argc, char** argv) {
 			// parse the argument
 			parse_argument(&arg);
 		}
-		else if (strstr(argv[i], ".inks")) {
+		else if (strstr(argv[i], ".ink")) {
 			self->filename = argv[i];
 		}
 		else {
