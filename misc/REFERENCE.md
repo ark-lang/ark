@@ -179,7 +179,7 @@ time warning if an unsafe warning were to be called, i.e:
 If a developer were to call this function, a warning would be printed to the console on compile
 time:
 
-	""filename.j4":5:5: warning: use of unsafe function 'allocate_memory'!"
+	""filename.inks":5:5: warning: use of unsafe function 'allocate_memory'!"
 
 ## <a name="single_line_blocks"></a>Single Line Blocks
 To make single line blocks more clear to see, we've decided on using `=>` as a shorthand for any block
