@@ -63,10 +63,10 @@ git clone -v https://github.com/ink-lang/ink.git
 cd ink
 
 # build
-make -j4
+make
 
 # run a program
-./inkc tests/simple.ink
+./inkc tests/parser-tests/const.ink
 ```
 
 Contributing
