@@ -519,7 +519,7 @@ bool check_token_type_and_content(parser *parser, token_type type, char* content
 	return check_token_type(parser, type, ahead) && check_token_content(parser, content, ahead);
 }
 
-EXPRESSION_OPERAND parse_operand(parser *parser) {
+int parse_operand(parser *parser) {
 	token *tok = peek_at_token_stream(parser, 0);
 
 	int i;
@@ -826,54 +826,6 @@ statement_ast_node *parse_for_loop_ast_node(parser *parser) {
 	return NULL;
 }
 
-int get_token_precedence(parser *parser) {
-	token *tok = peek_at_token_stream(parser, 0);
-	char token_value = tok->content[0];
-	int token_prec = -1;
-
-	if (!isascii(token_value)) {
-		return token_prec;
-	}
-
-	switch (token_value) {
-		case '*':
-		case '/':
-		case '%':
-			token_prec = 1;
-			break;
-		case '+':
-		case '-':
-			token_prec = 2;
-			break;
-		case '<':
-		case '>':
-			token_prec = 3;
-			break;
-		case '&':
-			token_prec = 4;
-			break;
-		case '^':
-			token_prec = 5;
-			break;
-		case '|':
-			token_prec = 6;
-			break;
-		case '=':
-			token_prec = 7;
-			break;
-		case ',':
-			token_prec = 8;
-			break;
-		default:
-			parser_error(parser, "unsupported operator given in expression", tok, false);
-			token_prec = -1;
-			break;
-	}
-
-	if (token_prec <= 0) return token_prec = -1;
-	return token_prec;
-}
-
 expression_ast_node *parse_number_expression(parser *parser) {
 	expression_ast_node *expr = create_expression_ast_node(); // the final expression
 	expr->type = EXPR_NUMBER;
@@ -1013,8 +965,6 @@ expression_ast_node *parse_expression_ast_node(parser *parser) {
 	if (check_token_type_and_content(parser, SEPARATOR, "(", 0)) {
 		return parse_paren_expression(parser);
 	}
-
-	// bin op precedence shit here
 
 	// error here
 	return NULL;
