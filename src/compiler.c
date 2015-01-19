@@ -92,8 +92,7 @@ LLVMValueRef generate_expression_ast_node(compiler *self, expression_ast_node *e
 }
 
 LLVMValueRef generate_variable_definition_code(compiler *self, variable_define_ast_node *vdn) {
-	// zero is bad
-	LLVMValueRef value = generate_constant_number(self, 0.0, vdn->type);
+	
 	return NULL;
 }
 
