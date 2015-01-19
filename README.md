@@ -28,7 +28,7 @@ Status
 ------
 
 The language is still in development. More information/specifics
-can be found in [`/misc/`](/misc/). The compiler is written in C
+can be found in [`/docs/`](/docs/). The compiler is written in C
 and LLVM is used for the backend.
 
 Building
