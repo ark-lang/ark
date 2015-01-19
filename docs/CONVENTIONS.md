@@ -2,23 +2,20 @@
 
 Please conform to the following conventions when submitting code to sustain readability.
 
-===
-
 ## Snake Case
 We use snake case
 
     like_this
 
 ## Comments
+Single line comments can be either before the statement or after, like so:
 
-All comments must come **before** the line that is being talked about. 
+    // hi
+    int x = 5;
 
-    // this function is used to check for something
-    void check_something(int item);
-    
-    // this line is used to add two numbers
-    int x = 5 + 1;
+    int x = 5; // hi
 
+The first option is preferred, though.
 
 Multi-line comments must be as follows:
 
@@ -28,7 +25,7 @@ Multi-line comments must be as follows:
      * for the Ink project.
      */
 
-## Documentation
+### Documentation Comments
 Documentation comments with two asteriks, we use
 doxygen -- so conform to their system please :)
 
@@ -37,7 +34,7 @@ doxygen -- so conform to their system please :)
      * @param param1 this is doxygen
      */
 
-All documentation should for functions should go in the
+All documentation for functions should go in the
 header files!
 
 ===
@@ -69,7 +66,7 @@ Instead of doing this:
     if(condition)
         x = 1 + 2;
 
-This is to maintain consistency.
+This is to maintain consistency, and avoid potential errors.
 
 **This rule applies to all other loops/conditionals, not just for the *if* conditional**.
 
@@ -94,4 +91,4 @@ Example:
 
 Using IDEs is not recommended, considering that we have a Makefile and all of the work was done on Vim and Sublime Text. Please 
 refrain from using any IDEs (it can cause problems later on and add unnecessary files). Use the command line for building the 
-project and text editor to edit the programs.
+project and text editor to edit the programs. If you insist on using an IDE, please add any files that it creates to the gitignore.
