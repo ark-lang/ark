@@ -10,8 +10,49 @@ Ink is a programming language written in C. The goals of this language are:
 We created Ink because we love writing C, and love the simplicity of C; we also wanted to evolve C
 into something more modern, and easier to use.
 
+A taste of Ink
+------
+Warning, this is still (potentially) subject to change.
+
+	struct Whatever {
+		int x = 10
+		int y
+	}
+
+	fn do_stuff(int a, int b): int {
+		int x = 5
+		while ((a + b) > 10) => x = (x + 1)
+
+		match x {
+			(x == 12) {
+				loop {
+					if ((a + x) > 21) => break
+				}
+				return x
+			}
+			(x < 2) {
+				for _ :(a, b) {
+					a = (x + 1)
+				}
+			}
+			(x == 29) => return a
+			_ {
+				return 1337
+			}
+		}
+
+		if (x > 21) {
+			return (x - 21)
+		}
+	}
+
+	fn main() {
+		do_stuff(125, 25)
+	}
+
 Diclaimer
 ------
+
 I [freefouran] personally started this project with a friend [CaptainChloride] for fun, we're not
 trying to revolutionize anything, it's a small project we're doing for fun and learning. The project
 is still in it's early stages of development, and is far from complete. We're currently trying to
