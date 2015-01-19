@@ -425,7 +425,7 @@ parser *create_parser(vector *token_stream) {
 	parser->parse_tree = create_vector();
 	parser->token_index = 0;
 	parser->parsing = true;
-	parser->exit_on_error = false;
+	parser->exit_on_error = true;
 	parser->sym_table = create_hashmap(16);
 	return parser;
 }
@@ -1166,34 +1166,42 @@ function_ast_node *parse_function_ast_node(parser *parser) {
 
 		if (check_token_type_and_content(parser, OPERATOR, ":", 0)) {
 			consume_token(parser);
+
+			bool is_constant = false;
+			if (check_token_type_and_content(parser, IDENTIFIER, CONSTANT_KEYWORD, 0)) {
+				is_constant = true;
+				consume_token(parser);
+			}
+
+			bool returns_pointer = false;
+			if (check_token_type_and_content(parser, OPERATOR, POINTER_OPERATOR, 0)) {
+				returns_pointer = true;
+				consume_token(parser);
+			}
+
+			// returns data type
+			// todo: let this return a struct... etc
+			if (check_token_type(parser, IDENTIFIER, 0)) {
+				token *return_type = consume_token(parser);
+				data_type raw_data_type = match_token_type_to_data_type(parser, return_type);
+				fpn->ret = raw_data_type;
+				fn->returns_pointer = returns_pointer;
+				fn->is_constant = is_constant;
+			}
+			else {
+				parser_error(parser, "function declaration return type expected", consume_token(parser), false);
+			}
+		}
+		else if (check_token_type(parser, IDENTIFIER, 0)) {
+			// if they do for example
+			//              V forgot the :!!!!
+			// fn whatever() int {
+			// }
+			parser_error(parser, "found an identifier after function argument list, perhaps you missed a colon?", consume_token(parser), false);
 		}
 		else {
-			parser_error(parser, "function prototype missing colon", consume_token(parser), false);
-		}
-
-		bool is_constant = false;
-		if (check_token_type_and_content(parser, IDENTIFIER, CONSTANT_KEYWORD, 0)) {
-			is_constant = true;
-			consume_token(parser);
-		}
-
-		bool returns_pointer = false;
-		if (check_token_type_and_content(parser, OPERATOR, POINTER_OPERATOR, 0)) {
-			returns_pointer = true;
-			consume_token(parser);
-		}
-
-		// returns data type
-		// todo: let this return a struct... etc
-		if (check_token_type(parser, IDENTIFIER, 0)) {
-			token *returnType = consume_token(parser);
-			data_type raw_data_type = match_token_type_to_data_type(parser, returnType);
-			fpn->ret = raw_data_type;
-			fn->returns_pointer = returns_pointer;
-			fn->is_constant = is_constant;
-		}
-		else {
-			parser_error(parser, "function declaration return type expected", consume_token(parser), false);
+			data_type void_type = TYPE_VOID;
+			fpn->ret = void_type;
 		}
 
 		// set function prototype
