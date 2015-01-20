@@ -45,7 +45,7 @@ inkc *create_inkc(int argc, char** argv) {
 
 	// not enough args just throw an error
 	if (argc <= 1) {
-		error_message("error: no input files\n");
+		error_message("error: no input files");
 		return self;
 	}
 
