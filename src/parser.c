@@ -554,6 +554,20 @@ if_statement_ast_node *parse_if_statement_ast_node(parser *parser) {
 	en->condition = parse_expression_ast_node(parser);
 	en->body = parse_block_ast_node(parser);
 
+	// spoilers!
+	// int num_elses = 0;
+	// if (check_token_type_and_content(parser, IDENTIFIER, ELSE_KEYWORD, 0)) {
+	// 	consume_token(parser);
+
+	// 	if (check_token_type_and_content(parser, IDENTIFIER, IF_KEYWORD, 0)) {
+
+	// 	}
+	// }
+	// else if (check_token_type_and_content(parser, IDENTIFIER, ELSE_IF_KEYWORD, 0)) {
+		
+	// }
+	
+
 	return en;
 }
 
