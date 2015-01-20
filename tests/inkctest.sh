@@ -7,8 +7,9 @@ for filename in parser-tests/*.ink; do
 	OUTPUT="$(inkc $filename)"
 	((NUM++))
 	if [[ $OUTPUT != "Finished"* ]]; then
-		echo "Failed to parse $filename, ($NUM/$TOTAL)"
-		set -e
+		echo "Failed to parse '$filename', ($NUM/$TOTAL)"
+		echo "$OUTPUT"
+		exit 1
 	fi
 done
 
