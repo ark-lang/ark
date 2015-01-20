@@ -15,7 +15,7 @@ A taste of Ink
 Warning, this is still (potentially) subject to change. Also a disclaimer,
 the syntax below is very incosistent and is just to show what's possible in the 
 language.
-
+```rust
 	struct Whatever {
 		int x = 10
 		int y
@@ -51,7 +51,7 @@ language.
 	fn main() {
 		do_stuff(125, 25)
 	}
-
+```
 Diclaimer
 ------
 
