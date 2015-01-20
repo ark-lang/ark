@@ -29,9 +29,9 @@ BUILD_COMMAND =
 
 # also for TRAVIS
 ifeq ($(CC),gcc)
-	BUILD_COMMAND = g++ *.o ${TRAVIS_LINK_STUFF} -o bin/inkc
+	BUILD_COMMAND = g++ *.o ${TRAVIS_LINK_STUFF} -o inkc
 else
-	BUILD_COMMAND = ${CC}++ *.o ${TRAVIS_LINK_STUFF} -o bin/inkc
+	BUILD_COMMAND = ${CC}++ *.o ${TRAVIS_LINK_STUFF} -o inkc
 endif
 
 # this is what should be built
@@ -44,7 +44,7 @@ all: ${SOURCES}
 # this is for TRAVIS ONLY!!
 travis: ${SOURCES}
 	${CC} ${C_FLAGS} ${SOURCES} -c ${SOURCES}
-	${BUILD_COMMAND} ${TRAVIS_FLAGS} -i inkc
+	${BUILD_COMMAND} ${TRAVIS_FLAGS}
 	-rm *.o
 
 # clean stuff up
