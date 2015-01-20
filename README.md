@@ -52,21 +52,6 @@ fn main() {
 	do_stuff(125, 25)
 }
 ```
-Diclaimer
-------
-
-I [freefouran] personally started this project with a friend [CaptainChloride] for fun, we're not
-trying to revolutionize anything, it's a small project we're doing for fun and learning. The project
-is still in it's early stages of development, and is far from complete. We're currently trying to
-implement the core of the language, so it will be pretty much identical to C, with a few quirks here
-and there. Once we've got that down we're going to implement all the funky stuff, this is where **you**
-can decide what you would like to see in the language, it could be anything, and you can try and implement
-it yourself, or just post an issue and see if someone likes the idea and is willing to implement it for you.
-Since we're both young (16 and 17), we have loads of exams, school work, jobs, which means we can't 
-work on the language 24/7, but the more contributors we get, the quick the language gets done. If you're
-an active contributor, there's also a good chance that you will be added to the **official developer team**,
-ooooooooooooooohhhh, exciting.
-
 Status
 ------
 
