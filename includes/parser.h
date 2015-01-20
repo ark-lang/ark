@@ -308,12 +308,20 @@ typedef struct  {
 	vector *statements;
 } structure_ast_node;
 
+typedef enum {
+	IF_STATEMENT,
+	ELSE_STATEMENT
+} STATEMENT_TYPE;
+
 /**
  * ast_node to represent an if statement
  */
 typedef struct {
+	int statment_type;
+
 	expression_ast_node *condition;
 	block_ast_node *body;
+	block_ast_node *else_statement;
 } if_statement_ast_node;
 
 /**
