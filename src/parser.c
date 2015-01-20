@@ -28,7 +28,6 @@ void parser_error(parser *parser, char *msg, token *tok, bool fatal_error) {
 }
 
 void *allocate_ast_node(size_t sz, const char* readable_type) {
-	assert(sz > 0);
 	// dont use safe malloc here because we can provide additional
 	// error info
 	void *ret = malloc(sz);
@@ -1510,13 +1509,15 @@ void remove_ast_node(ast_node *ast_node) {
 }
 
 void destroy_parser(parser *parser) {
-	int i;
-	for (i = 0; i < parser->parse_tree->size; i++) {
-		ast_node *ast_node = get_vector_item(parser->parse_tree, i);
-		remove_ast_node(ast_node);
-	}
-	destroy_vector(parser->parse_tree);
-	destroy_hashmap(parser->sym_table);
+	if (parser) {
+		int i;
+		for (i = 0; i < parser->parse_tree->size; i++) {
+			ast_node *ast_node = get_vector_item(parser->parse_tree, i);
+			remove_ast_node(ast_node);
+		}
+		destroy_vector(parser->parse_tree);
+		destroy_hashmap(parser->sym_table);
 
-	free(parser);
+		free(parser);
+	}
 }
