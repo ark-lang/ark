@@ -35,13 +35,19 @@ static void parse_argument(argument *arg) {
 }
 
 inkc *create_inkc(int argc, char** argv) {
+	inkc *self = safe_malloc(sizeof(*self));
+	self->filename = NULL;
+	self->scanner = NULL;
+	self->lexer = NULL;
+	self->parser = NULL;
+	self->compiler = NULL;
+	self->pproc = NULL;
+
 	// not enough args just throw an error
 	if (argc <= 1) {
 		error_message("error: no input files\n");
-		exit(1);
+		return self;
 	}
-	inkc *self = safe_malloc(sizeof(*self));
-	self->filename = NULL;
 
 	int i;
 	// i = 1 to ignore first arg
@@ -83,6 +89,10 @@ inkc *create_inkc(int argc, char** argv) {
 }
 
 void start_inkc(inkc *self) {
+	if (self->filename == NULL) {
+		return;
+	}
+
 	// start actual useful shit here
 	self->scanner = create_scanner();
 	scan_file(self->scanner, self->filename);
@@ -108,7 +118,7 @@ void destroy_inkc(inkc *self) {
 	destroy_scanner(self->scanner);
 	destroy_lexer(self->lexer);
 	destroy_parser(self->parser);
-	if (!self->parser->exit_on_error) {
+	if (self->parser != NULL && !self->parser->exit_on_error) {
 		destroy_compiler(self->compiler);
 	}
 	free(self);
