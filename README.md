@@ -16,41 +16,41 @@ Warning, this is still (potentially) subject to change. Also a disclaimer,
 the syntax below is very incosistent and is just to show what's possible in the 
 language.
 ```rust
-	struct Whatever {
-		int x = 10
-		int y
-	}
+struct Whatever {
+	int x = 10
+	int y
+}
 
-	fn do_stuff(int a, int b): int {
-		int x = 5
-		while ((a + b) > 10) => x = (x + 1)
+fn do_stuff(int a, int b): int {
+	int x = 5
+	while ((a + b) > 10) => x = (x + 1)
 
-		match x {
-			(x == 12) {
-				loop {
-					if ((a + x) > 21) => break
-				}
-				return x
+	match x {
+		(x == 12) {
+			loop {
+				if ((a + x) > 21) => break
 			}
-			(x < 2) {
-				for _ :(a, b) {
-					a = (x + 1)
-				}
-			}
-			(x == 29) => return a
-			_ {
-				return 1337
+			return x
+		}
+		(x < 2) {
+			for _ :(a, b) {
+				a = (x + 1)
 			}
 		}
-
-		if (x > 21) {
-			return (x - 21)
+		(x == 29) => return a
+		_ {
+			return 1337
 		}
 	}
 
-	fn main() {
-		do_stuff(125, 25)
+	if (x > 21) {
+		return (x - 21)
 	}
+}
+
+fn main() {
+	do_stuff(125, 25)
+}
 ```
 Diclaimer
 ------
