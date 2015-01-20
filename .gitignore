@@ -27,10 +27,7 @@
 *.i*86
 *.x86_64
 *.hex
-j4
-inkc
-
-*.j4e
+bin/*
 
 # Other
 builds/
