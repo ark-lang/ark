@@ -619,6 +619,7 @@ enumeration_ast_node *parse_enumeration_ast_node(parser *parser) {
 			// LOOP
 			do {
 
+				// eat the last brace
 				if (check_token_type_and_content(parser, SEPARATOR, BLOCK_CLOSER, 0)) {
 					consume_token(parser);
 					break;
