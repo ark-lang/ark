@@ -12,7 +12,11 @@ char* get_coloured_text(const char *colour, const char *text) {
 	result[alloc_size] = '\0';
 	return result;
 	#else
-	return text;
+	// we have to malloc to avoid a seg fault
+	// since xyz_message functions free this memory
+	char *result = safe_malloc(sizeof(char) * strlen(text));
+	result = strcpy(result, text);
+	return result;
 	#endif
 }
 
@@ -22,10 +26,10 @@ void debug_message(const char *fmt, ...) {
 		va_start(arg, fmt);
 		char *temp = get_coloured_text("\x1B[33m", "debug: ");
 		fprintf(stdout, "%s", temp);
+		free(temp);
 		vfprintf(stdout, fmt, arg);
 		fprintf(stdout, "\n");
 		va_end(arg);
-		free(temp);
 	}
 }
 
