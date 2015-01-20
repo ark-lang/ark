@@ -29,25 +29,27 @@ BUILD_COMMAND =
 
 # also for TRAVIS
 ifeq ($(CC),gcc)
-	BUILD_COMMAND = g++ *.o ${TRAVIS_LINK_STUFF} -o inkc
+	BUILD_COMMAND = g++ *.o ${TRAVIS_LINK_STUFF} -o bin/inkc
 else
-	BUILD_COMMAND = ${CC}++ *.o ${TRAVIS_LINK_STUFF} -o inkc
+	BUILD_COMMAND = ${CC}++ *.o ${TRAVIS_LINK_STUFF} -o bin/inkc
 endif
 
 # this is what should be built
 all: ${SOURCES}
 	${LCC} ${C_FLAGS} ${SOURCES} -c ${SOURCES}
-	${LCXX} *.o ${LLVM_FLAGS} -o inkc 
+	mkdir -p bin
+	${LCXX} *.o ${LLVM_FLAGS} -o bin/inkc 
 	-rm *.o
 
 # this is for TRAVIS ONLY!!
 travis: ${SOURCES}
 	${CC} ${C_FLAGS} ${SOURCES} -c ${SOURCES}
-	${BUILD_COMMAND} ${TRAVIS_FLAGS}
+	${BUILD_COMMAND} ${TRAVIS_FLAGS} -i inkc
 	-rm *.o
 
 # clean stuff up
 clean:
 	-rm *.o
+	-rm bin/inkc
 
 .PHONY: clean
