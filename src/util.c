@@ -1,23 +1,23 @@
 #include "util.h"
 
 char* get_coloured_text(const char *colour, const char *text) {
-	#if __linux || __APPLE__
-	const char *prefix = colour;
-	const char *suffix = "\x1B[00m";
-	size_t alloc_size = sizeof(char) + (strlen(prefix) + strlen(text) + strlen(suffix) + 1);
-	char *result = malloc(alloc_size);
-	result = strcat(result, prefix);
-	result = strcat(result, text);
-	result = strcat(result, suffix);
-	result[alloc_size] = '\0';
-	return result;
-	#else
+	// #if __linux || __APPLE__
+	// const char *prefix = colour;
+	// const char *suffix = "\x1B[00m";
+	// size_t alloc_size = sizeof(char) + (strlen(prefix) + strlen(text) + strlen(suffix) + 1);
+	// char *result = malloc(alloc_size);
+	// result = strcat(result, prefix);
+	// result = strcat(result, text);
+	// result = strcat(result, suffix);
+	// result[alloc_size] = '\0';
+	// return result;
+	// #else
 	// we have to malloc to avoid a seg fault
 	// since xyz_message functions free this memory
 	char *result = safe_malloc(sizeof(char) * strlen(text));
 	result = strcpy(result, text);
 	return result;
-	#endif
+	// #endif
 }
 
 void debug_message(const char *fmt, ...) {
