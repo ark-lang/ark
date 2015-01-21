@@ -92,7 +92,7 @@ typedef struct {
  */
 typedef enum {
 	TYPE_INTEGER = 0, TYPE_STR, TYPE_DOUBLE, TYPE_FLOAT, TYPE_BOOL, TYPE_VOID,
-	TYPE_CHAR, TYPE_NULL
+	TYPE_CHAR, TYPE_STRUCT, TYPE_NULL
 } data_type;
 
 /**
@@ -118,6 +118,14 @@ typedef struct {
 	void *data;
 	ast_node_type type;
 } ast_node;
+
+/**
+ * Node for a Struct
+ */
+typedef struct  {
+	char *struct_name;
+	vector *statements;
+} structure_ast_node;
 
 /**
  * Function call
@@ -154,6 +162,7 @@ typedef struct s_Expression {
 typedef struct {
 	data_type type;			// type of data to store
 	char *name;				// name of the variable
+	structure_ast_node *struct_owner; // the owner of the variable?
 
 	bool is_global;			// is it in a global scope?
 	bool is_constant;		// is it a constant variable?
@@ -299,14 +308,6 @@ typedef struct {
 typedef struct {
 	block_ast_node *body;
 } infinite_loop_ast_node;
-
-/**
- * Node for a Struct
- */
-typedef struct  {
-	char *struct_name;
-	vector *statements;
-} structure_ast_node;
 
 typedef enum {
 	IF_STATEMENT,
