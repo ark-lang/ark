@@ -1,3 +1,5 @@
+**The name is in the works**
+
 [Ink](http://ink-lang.github.io) [![BuildStatus](https://travis-ci.org/ink-lang/ink.svg?branch=master)](https://travis-ci.org/ink-lang/ink)
 ===
 
