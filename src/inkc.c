@@ -89,6 +89,8 @@ inkc *create_inkc(int argc, char** argv) {
 }
 
 void start_inkc(inkc *self) {
+	// filename is null, so we should exit
+	// out of here
 	if (self->filename == NULL) {
 		return;
 	}
@@ -107,9 +109,9 @@ void start_inkc(inkc *self) {
 	self->parser = create_parser(self->lexer->token_stream);
 	start_parsing_token_stream(self->parser);
 
-	// dont compile
+	// create it anyways
+	self->compiler = create_compiler();
 	if (!self->parser->exit_on_error) {
-		self->compiler = create_compiler();
 		start_compiler(self->compiler, self->parser->parse_tree);
 	}
 }
@@ -118,8 +120,6 @@ void destroy_inkc(inkc *self) {
 	destroy_scanner(self->scanner);
 	destroy_lexer(self->lexer);
 	destroy_parser(self->parser);
-	if (self->parser != NULL && !self->parser->exit_on_error) {
-		destroy_compiler(self->compiler);
-	}
+	destroy_compiler(self->compiler);
 	free(self);
 }
