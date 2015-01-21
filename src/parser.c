@@ -38,7 +38,6 @@ void *allocate_ast_node(size_t sz, const char* readable_type) {
 	return ret;
 }
 
-
 infinite_loop_ast_node *create_infinite_loop_ast_node() {
 	infinite_loop_ast_node *iln = allocate_ast_node(sizeof(infinite_loop_ast_node), "infinite loop");
 	iln->body = NULL;
@@ -225,7 +224,7 @@ void destroy_statement_ast_node(statement_ast_node *sn) {
 				case IF_STATEMENT_AST_NODE: destroy_if_statement_ast_node(sn->data); break;
 				case MATCH_STATEMENT_AST_NODE: destroy_match_ast_node(sn->data); break;
 				case WHILE_LOOP_AST_NODE: destroy_while_ast_node(sn->data); break;
-				default: printf("unrecognized being destroyed node %d\n", sn->type); break;
+				default: printf("trying to destroy unrecognized statement node %d\n", sn->type); break;
 			}
 		}
 		free(sn);
@@ -530,7 +529,7 @@ int parse_operand(parser *parser) {
 		}
 	}
 
-	parser_error(parser, "invalid operator specified", tok, true);
+	parser_error(parser, "unsupported operator specified", tok, true);
 	return OPER_ERRORNEOUS;
 }
 
