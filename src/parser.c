@@ -1336,6 +1336,7 @@ statement_ast_node *parse_statement_ast_node(parser *parser) {
 		else if (check_token_type_is_valid_data_type(parser, look_ahead)) {
 			return parse_variable_ast_node(parser, false);
 		}
+		//TODO: check if this is a struct from the hashmap??
 		// ERROR!!
 		else {
 			parser_error(parser, "unrecognized identifier", consume_token(parser), false);
