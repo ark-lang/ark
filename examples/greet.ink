@@ -10,5 +10,7 @@ fn greet(Person p): int {
 
 fn main(): int {
 	p = Person
+	p.name = "Jon"
+	p.age = 99
 	greet(p)
 }
