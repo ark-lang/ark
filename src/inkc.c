@@ -45,7 +45,7 @@ inkc *create_inkc(int argc, char** argv) {
 
 	// not enough args just throw an error
 	if (argc <= 1) {
-		error_message("error: no input files");
+		error_message("no input files");
 		return self;
 	}
 
@@ -81,7 +81,7 @@ inkc *create_inkc(int argc, char** argv) {
 			self->filename = argv[i];
 		}
 		else {
-			error_message("error: argument not recognized: %s\n", argv[i]);
+			error_message("argument not recognized: %s\n", argv[i]);
 		}
 	}
 
