@@ -719,11 +719,11 @@ structure_ast_node *parse_structure_ast_node(parser *parser) {
 	sn->struct_name = struct_name->content;
 
 	// parses a block of statements
-	if (check_token_type_and_content(parser, SEPARATOR, "{", 0)) {
+	if (check_token_type_and_content(parser, SEPARATOR, BLOCK_OPENER, 0)) {
 		consume_token(parser);
 
 		do {
-			if (check_token_type_and_content(parser, SEPARATOR, "}", 0)) {
+			if (check_token_type_and_content(parser, SEPARATOR, BLOCK_CLOSER, 0)) {
 				consume_token(parser);
 				break;
 			}
@@ -737,18 +737,6 @@ structure_ast_node *parse_structure_ast_node(parser *parser) {
 }
 
 statement_ast_node *parse_for_loop_ast_node(parser *parser) {
-	/**
-	 * exclusive:
-	 * for x:(0 .. 10, 10) {
-	 *
-	 * }
-	 *
-	 * inclusive:
-	 * for y:(0 ... 10) {
-	 * 	
-	 * }
-	 */
-
 	// for token
 	match_token_type_and_content(parser, IDENTIFIER, FOR_LOOP_KEYWORD);			// FOR KEYWORd
 
@@ -986,8 +974,7 @@ void *parse_variable_ast_node(parser *parser, bool global) {
 
 	// consume the int data type
 	token *variable_data_type = match_token_type(parser, IDENTIFIER);
-
-	// convert the data type for enum
+	variable_define_ast_node *def = create_variable_define_ast_node();
 	data_type data_type_raw = match_token_type_to_data_type(parser, variable_data_type);
 
 	// is a pointer
@@ -999,9 +986,6 @@ void *parse_variable_ast_node(parser *parser, bool global) {
 
 	// name of the variable
 	token *variable_name_token = match_token_type(parser, IDENTIFIER);
-
-	// store def
-	variable_define_ast_node *def = create_variable_define_ast_node();
 
 	if (check_token_type_and_content(parser, OPERATOR, ASSIGNMENT_OPERATOR, 0)) {
 		// consume the equals sign
