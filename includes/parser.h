@@ -39,8 +39,9 @@
 #define STRUCT_KEYWORD	 	   	"struct"
 #define COMMA_SEPARATOR			","
 #define SEMI_COLON				";"
-#define SINGLE_STATEMENT		"=>"		// cant think of a name for this operator
+#define SINGLE_STATEMENT		"->"		// cant think of a name for this operator
 #define IF_KEYWORD				"if"
+#define ELSE_KEYWORD			"else"
 #define MATCH_KEYWORD			"match"
 #define ENUM_KEYWORD	 	   	"enum"
 #define UNSAFE_KEYWORD	 	   	"unsafe"
@@ -53,6 +54,14 @@
 #define FOR_LOOP_KEYWORD		"for"
 #define TRUE_KEYWORD			"true"
 #define FALSE_KEYWORD			"false"
+
+typedef enum {
+	OPER_INCREMENT, OPER_DECREMENT,
+	OPER_INCREMENT_BY, OPER_DECREMENT_BY, OPER_MULTI_BY, OPER_DIV_BY, OPER_MOD_BY,
+	OPER_ADD, OPER_SUB, OPER_BIT_AND, OPER_MUL, OPER_DIV, OPER_MOD, OPER_POW,
+	OPER_GREATER, OPER_LESS, OPER_GREATER_EQUAL, OPER_LESS_EQUAL, OPER_EQUAL_TO, OPER_NOT_EQUAL_TO,
+	OPER_AND, OPER_OR, OPER_ERRORNEOUS
+} EXPRESSION_OPERAND;
 
 /**
  * parser contents
@@ -83,7 +92,7 @@ typedef struct {
  */
 typedef enum {
 	TYPE_INTEGER = 0, TYPE_STR, TYPE_DOUBLE, TYPE_FLOAT, TYPE_BOOL, TYPE_VOID,
-	TYPE_CHAR, TYPE_NULL
+	TYPE_CHAR, TYPE_STRUCT, TYPE_NULL
 } data_type;
 
 /**
@@ -111,6 +120,14 @@ typedef struct {
 } ast_node;
 
 /**
+ * Node for a Struct
+ */
+typedef struct  {
+	char *struct_name;
+	vector *statements;
+} structure_ast_node;
+
+/**
  * Function call
  */
 typedef struct {
@@ -124,15 +141,6 @@ typedef enum {
 	UNSPECIFIED
 } expression_pointer_option;
 
-/** Supported Operators */
-typedef enum {
-	OPER_INCREMENT, OPER_DECREMENT,
-	OPER_INCREMENT_BY, OPER_DECREMENT_BY, OPER_MULTI_BY, OPER_DIV_BY, OPER_MOD_BY,
-	OPER_ADD, OPER_SUB, OPER_BIT_AND, OPER_MUL, OPER_DIV, OPER_MOD, OPER_POW,
-	OPER_GREATER, OPER_LESS, OPER_GREATER_EQUAL, OPER_LESS_EQUAL, OPER_EQUAL_TO, OPER_NOT_EQUAL_TO,
-	OPER_AND, OPER_OR, OPER_ERRORNEOUS
-} EXPRESSION_OPERAND;
-
 /**
  * ast_node for an Expression
  */
@@ -143,7 +151,7 @@ typedef struct s_Expression {
 	expression_pointer_option pointer_option;
 
 	struct s_Expression *lhand;
-	EXPRESSION_OPERAND operand;
+	int operand;
 	struct s_Expression *rhand;
 } expression_ast_node;
 
@@ -154,6 +162,7 @@ typedef struct s_Expression {
 typedef struct {
 	data_type type;			// type of data to store
 	char *name;				// name of the variable
+	structure_ast_node *struct_owner; // the owner of the variable?
 
 	bool is_global;			// is it in a global scope?
 	bool is_constant;		// is it a constant variable?
@@ -300,20 +309,20 @@ typedef struct {
 	block_ast_node *body;
 } infinite_loop_ast_node;
 
-/**
- * Node for a Struct
- */
-typedef struct  {
-	char *struct_name;
-	vector *statements;
-} structure_ast_node;
+typedef enum {
+	IF_STATEMENT,
+	ELSE_STATEMENT
+} STATEMENT_TYPE;
 
 /**
  * ast_node to represent an if statement
  */
 typedef struct {
+	int statment_type;
+
 	expression_ast_node *condition;
 	block_ast_node *body;
+	block_ast_node *else_statement;
 } if_statement_ast_node;
 
 /**
@@ -343,7 +352,7 @@ typedef struct {
 /**
  * parse an operand
  */
-EXPRESSION_OPERAND parse_operand(parser *parser);
+int parse_operand(parser *parser);
 
 /**
  * Create a new structure node
