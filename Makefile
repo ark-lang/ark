@@ -41,6 +41,13 @@ all: ${SOURCES}
 	${LCXX} *.o ${LLVM_FLAGS} -o bin/inkc 
 	-rm *.o
 
+# windows build?
+win: ${SOURCES}
+	i586-mingw32msvc-gcc ${C_FLAGS} ${SOURCES} -c ${SOURCES}
+	mkdir -p bin
+	i586-mingw32msvc-g++ *.o ${LLVM_FLAGS} -o bin/inkc 
+	-rm *.o
+
 # this is for TRAVIS ONLY!!
 travis: ${SOURCES}
 	${CC} ${C_FLAGS} ${SOURCES} -c ${SOURCES}
