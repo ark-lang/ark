@@ -3,7 +3,7 @@ fn whatever(int x): int {
 		(x == 5) {
 			return (x + 1)
 		}
-		(x != 12) => return (x - 1)
+		(x != 12) -> return (x - 1)
 	}
 	return 5
 }
