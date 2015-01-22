@@ -35,13 +35,19 @@ static void parse_argument(argument *arg) {
 }
 
 inkc *create_inkc(int argc, char** argv) {
-	// not enough args just throw an error
-	if (argc <= 1) {
-		error_message("error: no input files\n");
-		exit(1);
-	}
 	inkc *self = safe_malloc(sizeof(*self));
 	self->filename = NULL;
+	self->scanner = NULL;
+	self->lexer = NULL;
+	self->parser = NULL;
+	self->compiler = NULL;
+	self->pproc = NULL;
+
+	// not enough args just throw an error
+	if (argc <= 1) {
+		error_message("no input files");
+		return self;
+	}
 
 	int i;
 	// i = 1 to ignore first arg
@@ -75,7 +81,7 @@ inkc *create_inkc(int argc, char** argv) {
 			self->filename = argv[i];
 		}
 		else {
-			error_message("error: argument not recognized: %s\n", argv[i]);
+			error_message("argument not recognized: %s\n", argv[i]);
 		}
 	}
 
@@ -83,6 +89,12 @@ inkc *create_inkc(int argc, char** argv) {
 }
 
 void start_inkc(inkc *self) {
+	// filename is null, so we should exit
+	// out of here
+	if (self->filename == NULL) {
+		return;
+	}
+
 	// start actual useful shit here
 	self->scanner = create_scanner();
 	scan_file(self->scanner, self->filename);
@@ -97,9 +109,9 @@ void start_inkc(inkc *self) {
 	self->parser = create_parser(self->lexer->token_stream);
 	start_parsing_token_stream(self->parser);
 
-	// dont compile
+	// create it anyways
+	self->compiler = create_compiler();
 	if (!self->parser->exit_on_error) {
-		self->compiler = create_compiler();
 		start_compiler(self->compiler, self->parser->parse_tree);
 	}
 }
@@ -108,8 +120,6 @@ void destroy_inkc(inkc *self) {
 	destroy_scanner(self->scanner);
 	destroy_lexer(self->lexer);
 	destroy_parser(self->parser);
-	if (!self->parser->exit_on_error) {
-		destroy_compiler(self->compiler);
-	}
+	destroy_compiler(self->compiler);
 	free(self);
 }
