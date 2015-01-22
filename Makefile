@@ -37,7 +37,8 @@ endif
 # this is what should be built
 all: ${SOURCES}
 	${LCC} ${C_FLAGS} ${SOURCES} -c ${SOURCES}
-	${LCXX} *.o ${LLVM_FLAGS} -o inkc 
+	mkdir -p bin
+	${LCXX} *.o ${LLVM_FLAGS} -o bin/inkc 
 	-rm *.o
 
 # this is for TRAVIS ONLY!!
@@ -49,5 +50,6 @@ travis: ${SOURCES}
 # clean stuff up
 clean:
 	-rm *.o
+	-rm bin/inkc
 
 .PHONY: clean
