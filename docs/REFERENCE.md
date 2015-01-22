@@ -161,10 +161,10 @@ the caller. This is specified after the colon operator, like so:
 	}
 
 ### <a name="single_line_functions"></a>Single Line Functions
-If a function only has one return statement, you may simplify it with the `=>` operator. For
+If a function only has one return statement, you may simplify it with the `->` operator. For
 example, a function that adds two integers can be simplified to:
 
-	fn add(int a, int b): int => return (a + b)
+	fn add(int a, int b): int -> return (a + b)
 
 ### <a name="unsafe_functions"></a>Unsafe Functions
 If a function is later on deemed unsafe, you may use the `unsafe` keyword to give a compile
@@ -182,7 +182,7 @@ time:
 	""filename.inks":5:5: warning: use of unsafe function 'allocate_memory'!"
 
 ## <a name="single_line_blocks"></a>Single Line Blocks
-To make single line blocks more clear to see, we've decided on using `=>` as a shorthand for any block
+To make single line blocks more clear to see, we've decided on using `->` as a shorthand for any block
 statements, this is supported in most cases, except for the following, which are handled differently:
 
 * enumerations
@@ -193,41 +193,41 @@ We feel like this is a nice syntactic sugar for small functions, however it can 
 
 ### Functions
 
-	fn add(int a, int b): int => return (a + b)
+	fn add(int a, int b): int -> return (a + b)
 
 ### While Loops
 
-	while true => something = (something + 1)
+	while true -> something = (something + 1)
 
 ### Infinite Loops
 
-	loop => something = (something + 1)
+	loop -> something = (something + 1)
 
 ### For Loops
 
-	for _:(0, 10) => something = (something + 1)
+	for _:(0, 10) -> something = (something + 1)
 
 ### If Statements
 
-	if (a == 2) => return (a - 1)
+	if (a == 2) -> return (a - 1)
 
 They can also be nested, e.g:
 
-	fn do_stuff(int a, int b): int => while (a >= 20) => something = (something + 1)
+	fn do_stuff(int a, int b): int -> while (a >= 20) -> something = (something + 1)
 
 However this can get messy pretty quickly, so we suggest formatting like so:
 
 	fn add(int a, int b): int 
-		=> while true 
-			=> if (a > b) 
-				=> return (a + b)
+		-> while true 
+			-> if (a > b) 
+				-> return (a + b)
 
 And another formatting suggestion:
 
 	fn add(int a, int b): int 
-		=> while true 
-		=> if (a > b) 
-		=> return (a + b)
+		-> while true 
+		-> if (a > b) 
+		-> return (a + b)
 
 ## <a name="conditionals"></a>Conditionals
 ### <a name="if"></a>If Statements
