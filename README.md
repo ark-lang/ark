@@ -12,6 +12,14 @@ Ink is a programming language written in C. The goals of this language are:
 We created Ink because we love writing C, and love the simplicity of C; we also wanted to evolve C
 into something more modern, and easier to use.
 
+IRC
+------
+We have an IRC where we discuss Ink, and other stuff too, come join! If you want to help contribute,
+we highly suggest you join the IRC :)
+
+* server: irc.freenode.net
+* channel: ##ink-lang
+
 A taste of Ink
 ------
 Warning, this is still (potentially) subject to change. Also a disclaimer,
@@ -25,12 +33,12 @@ struct Whatever {
 
 fn do_stuff(int a, int b): int {
 	int x = 5
-	while ((a + b) > 10) => x = (x + 1)
+	while ((a + b) > 10) -> x = (x + 1)
 
 	match x {
 		(x == 12) {
 			loop {
-				if ((a + x) > 21) => break
+				if ((a + x) > 21) -> break
 			}
 			return x
 		}
@@ -39,7 +47,7 @@ fn do_stuff(int a, int b): int {
 				a = (x + 1)
 			}
 		}
-		(x == 29) => return a
+		(x == 29) -> return a
 		_ {
 			return 1337
 		}

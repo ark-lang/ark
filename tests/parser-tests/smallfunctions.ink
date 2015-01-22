@@ -1,4 +1,4 @@
-fn add(int a, int b): int => return (a + b)
+fn add(int a, int b): int -> return (a + b)
 
 fn test(int a, int b): void {
 	int a = 5

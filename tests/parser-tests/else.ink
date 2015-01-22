@@ -10,7 +10,7 @@ fn main() {
 	if x {
 
 	}
-	else => x = 21
+	else -> x = 21
 
-	if (x > 50) => x = 59 else => x = (x + x)
+	if (x > 50) -> x = 59 else -> x = (x + x)
 }
