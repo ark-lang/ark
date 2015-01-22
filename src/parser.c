@@ -28,7 +28,6 @@ void parser_error(parser *parser, char *msg, token *tok, bool fatal_error) {
 }
 
 void *allocate_ast_node(size_t sz, const char* readable_type) {
-	assert(sz > 0);
 	// dont use safe malloc here because we can provide additional
 	// error info
 	void *ret = malloc(sz);
@@ -38,7 +37,6 @@ void *allocate_ast_node(size_t sz, const char* readable_type) {
 	}
 	return ret;
 }
-
 
 infinite_loop_ast_node *create_infinite_loop_ast_node() {
 	infinite_loop_ast_node *iln = allocate_ast_node(sizeof(infinite_loop_ast_node), "infinite loop");
@@ -226,7 +224,7 @@ void destroy_statement_ast_node(statement_ast_node *sn) {
 				case IF_STATEMENT_AST_NODE: destroy_if_statement_ast_node(sn->data); break;
 				case MATCH_STATEMENT_AST_NODE: destroy_match_ast_node(sn->data); break;
 				case WHILE_LOOP_AST_NODE: destroy_while_ast_node(sn->data); break;
-				default: printf("unrecognized being destroyed node %d\n", sn->type); break;
+				default: printf("trying to destroy unrecognized statement node %d\n", sn->type); break;
 			}
 		}
 		free(sn);
@@ -425,7 +423,7 @@ parser *create_parser(vector *token_stream) {
 	parser->parse_tree = create_vector();
 	parser->token_index = 0;
 	parser->parsing = true;
-	parser->exit_on_error = false;
+	parser->exit_on_error = true;
 	parser->sym_table = create_hashmap(16);
 	return parser;
 }
@@ -519,7 +517,7 @@ bool check_token_type_and_content(parser *parser, token_type type, char* content
 	return check_token_type(parser, type, ahead) && check_token_content(parser, content, ahead);
 }
 
-EXPRESSION_OPERAND parse_operand(parser *parser) {
+int parse_operand(parser *parser) {
 	token *tok = peek_at_token_stream(parser, 0);
 
 	int i;
@@ -531,7 +529,7 @@ EXPRESSION_OPERAND parse_operand(parser *parser) {
 		}
 	}
 
-	parser_error(parser, "invalid operator specified", tok, true);
+	parser_error(parser, "unsupported operator specified", tok, true);
 	return OPER_ERRORNEOUS;
 }
 
@@ -553,6 +551,13 @@ if_statement_ast_node *parse_if_statement_ast_node(parser *parser) {
 
 	en->condition = parse_expression_ast_node(parser);
 	en->body = parse_block_ast_node(parser);
+	en->statment_type = IF_STATEMENT;
+
+	if (check_token_type_and_content(parser, IDENTIFIER, ELSE_KEYWORD, 0)) {
+		consume_token(parser);
+		en->statment_type = ELSE_STATEMENT;
+		en->else_statement = parse_block_ast_node(parser);
+	}
 
 	return en;
 }
@@ -612,6 +617,7 @@ enumeration_ast_node *parse_enumeration_ast_node(parser *parser) {
 			// LOOP
 			do {
 
+				// eat the last brace
 				if (check_token_type_and_content(parser, SEPARATOR, BLOCK_CLOSER, 0)) {
 					consume_token(parser);
 					break;
@@ -713,11 +719,11 @@ structure_ast_node *parse_structure_ast_node(parser *parser) {
 	sn->struct_name = struct_name->content;
 
 	// parses a block of statements
-	if (check_token_type_and_content(parser, SEPARATOR, "{", 0)) {
+	if (check_token_type_and_content(parser, SEPARATOR, BLOCK_OPENER, 0)) {
 		consume_token(parser);
 
 		do {
-			if (check_token_type_and_content(parser, SEPARATOR, "}", 0)) {
+			if (check_token_type_and_content(parser, SEPARATOR, BLOCK_CLOSER, 0)) {
 				consume_token(parser);
 				break;
 			}
@@ -731,18 +737,6 @@ structure_ast_node *parse_structure_ast_node(parser *parser) {
 }
 
 statement_ast_node *parse_for_loop_ast_node(parser *parser) {
-	/**
-	 * exclusive:
-	 * for x:(0 .. 10, 10) {
-	 *
-	 * }
-	 *
-	 * inclusive:
-	 * for y:(0 ... 10) {
-	 * 	
-	 * }
-	 */
-
 	// for token
 	match_token_type_and_content(parser, IDENTIFIER, FOR_LOOP_KEYWORD);			// FOR KEYWORd
 
@@ -824,54 +818,6 @@ statement_ast_node *parse_for_loop_ast_node(parser *parser) {
 
 	parser_error(parser, "failed to parse for loop", consume_token(parser), true);
 	return NULL;
-}
-
-int get_token_precedence(parser *parser) {
-	token *tok = peek_at_token_stream(parser, 0);
-	char token_value = tok->content[0];
-	int token_prec = -1;
-
-	if (!isascii(token_value)) {
-		return token_prec;
-	}
-
-	switch (token_value) {
-		case '*':
-		case '/':
-		case '%':
-			token_prec = 1;
-			break;
-		case '+':
-		case '-':
-			token_prec = 2;
-			break;
-		case '<':
-		case '>':
-			token_prec = 3;
-			break;
-		case '&':
-			token_prec = 4;
-			break;
-		case '^':
-			token_prec = 5;
-			break;
-		case '|':
-			token_prec = 6;
-			break;
-		case '=':
-			token_prec = 7;
-			break;
-		case ',':
-			token_prec = 8;
-			break;
-		default:
-			parser_error(parser, "unsupported operator given in expression", tok, false);
-			token_prec = -1;
-			break;
-	}
-
-	if (token_prec <= 0) return token_prec = -1;
-	return token_prec;
 }
 
 expression_ast_node *parse_number_expression(parser *parser) {
@@ -1014,8 +960,6 @@ expression_ast_node *parse_expression_ast_node(parser *parser) {
 		return parse_paren_expression(parser);
 	}
 
-	// bin op precedence shit here
-
 	// error here
 	return NULL;
 }
@@ -1030,8 +974,7 @@ void *parse_variable_ast_node(parser *parser, bool global) {
 
 	// consume the int data type
 	token *variable_data_type = match_token_type(parser, IDENTIFIER);
-
-	// convert the data type for enum
+	variable_define_ast_node *def = create_variable_define_ast_node();
 	data_type data_type_raw = match_token_type_to_data_type(parser, variable_data_type);
 
 	// is a pointer
@@ -1043,9 +986,6 @@ void *parse_variable_ast_node(parser *parser, bool global) {
 
 	// name of the variable
 	token *variable_name_token = match_token_type(parser, IDENTIFIER);
-
-	// store def
-	variable_define_ast_node *def = create_variable_define_ast_node();
 
 	if (check_token_type_and_content(parser, OPERATOR, ASSIGNMENT_OPERATOR, 0)) {
 		// consume the equals sign
@@ -1216,34 +1156,42 @@ function_ast_node *parse_function_ast_node(parser *parser) {
 
 		if (check_token_type_and_content(parser, OPERATOR, ":", 0)) {
 			consume_token(parser);
+
+			bool is_constant = false;
+			if (check_token_type_and_content(parser, IDENTIFIER, CONSTANT_KEYWORD, 0)) {
+				is_constant = true;
+				consume_token(parser);
+			}
+
+			bool returns_pointer = false;
+			if (check_token_type_and_content(parser, OPERATOR, POINTER_OPERATOR, 0)) {
+				returns_pointer = true;
+				consume_token(parser);
+			}
+
+			// returns data type
+			// todo: let this return a struct... etc
+			if (check_token_type(parser, IDENTIFIER, 0)) {
+				token *return_type = consume_token(parser);
+				data_type raw_data_type = match_token_type_to_data_type(parser, return_type);
+				fpn->ret = raw_data_type;
+				fn->returns_pointer = returns_pointer;
+				fn->is_constant = is_constant;
+			}
+			else {
+				parser_error(parser, "function declaration return type expected", consume_token(parser), false);
+			}
+		}
+		else if (check_token_type(parser, IDENTIFIER, 0)) {
+			// if they do for example
+			//              V forgot the :!!!!
+			// fn whatever() int {
+			// }
+			parser_error(parser, "found an identifier after function argument list, perhaps you missed a colon?", consume_token(parser), false);
 		}
 		else {
-			parser_error(parser, "function prototype missing colon", consume_token(parser), false);
-		}
-
-		bool is_constant = false;
-		if (check_token_type_and_content(parser, IDENTIFIER, CONSTANT_KEYWORD, 0)) {
-			is_constant = true;
-			consume_token(parser);
-		}
-
-		bool returns_pointer = false;
-		if (check_token_type_and_content(parser, OPERATOR, POINTER_OPERATOR, 0)) {
-			returns_pointer = true;
-			consume_token(parser);
-		}
-
-		// returns data type
-		// todo: let this return a struct... etc
-		if (check_token_type(parser, IDENTIFIER, 0)) {
-			token *returnType = consume_token(parser);
-			data_type raw_data_type = match_token_type_to_data_type(parser, returnType);
-			fpn->ret = raw_data_type;
-			fn->returns_pointer = returns_pointer;
-			fn->is_constant = is_constant;
-		}
-		else {
-			parser_error(parser, "function declaration return type expected", consume_token(parser), false);
+			data_type void_type = TYPE_VOID;
+			fpn->ret = void_type;
 		}
 
 		// set function prototype
@@ -1388,6 +1336,7 @@ statement_ast_node *parse_statement_ast_node(parser *parser) {
 		else if (check_token_type_is_valid_data_type(parser, look_ahead)) {
 			return parse_variable_ast_node(parser, false);
 		}
+		//TODO: check if this is a struct from the hashmap??
 		// ERROR!!
 		else {
 			parser_error(parser, "unrecognized identifier", consume_token(parser), false);
@@ -1544,13 +1493,15 @@ void remove_ast_node(ast_node *ast_node) {
 }
 
 void destroy_parser(parser *parser) {
-	int i;
-	for (i = 0; i < parser->parse_tree->size; i++) {
-		ast_node *ast_node = get_vector_item(parser->parse_tree, i);
-		remove_ast_node(ast_node);
-	}
-	destroy_vector(parser->parse_tree);
-	destroy_hashmap(parser->sym_table);
+	if (parser) {
+		int i;
+		for (i = 0; i < parser->parse_tree->size; i++) {
+			ast_node *ast_node = get_vector_item(parser->parse_tree, i);
+			remove_ast_node(ast_node);
+		}
+		destroy_vector(parser->parse_tree);
+		destroy_hashmap(parser->sym_table);
 
-	free(parser);
+		free(parser);
+	}
 }

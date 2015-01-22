@@ -1,3 +1,5 @@
+**The name is in the works**
+
 [Ink](http://ink-lang.github.io) [![BuildStatus](https://travis-ci.org/ink-lang/ink.svg?branch=master)](https://travis-ci.org/ink-lang/ink)
 ===
 
@@ -10,25 +12,61 @@ Ink is a programming language written in C. The goals of this language are:
 We created Ink because we love writing C, and love the simplicity of C; we also wanted to evolve C
 into something more modern, and easier to use.
 
-Diclaimer
+IRC
 ------
-I [freefouran] personally started this project with a friend [CaptainChloride] for fun, we're not
-trying to revolutionize anything, it's a small project we're doing for fun and learning. The project
-is still in it's early stages of development, and is far from complete. We're currently trying to
-implement the core of the language, so it will be pretty much identical to C, with a few quirks here
-and there. Once we've got that down we're going to implement all the funky stuff, this is where **you**
-can decide what you would like to see in the language, it could be anything, and you can try and implement
-it yourself, or just post an issue and see if someone likes the idea and is willing to implement it for you.
-Since we're both young (16 and 17), we have loads of exams, school work, jobs, which means we can't 
-work on the language 24/7, but the more contributors we get, the quick the language gets done. If you're
-an active contributor, there's also a good chance that you will be added to the **official developer team**,
-ooooooooooooooohhhh, exciting.
+We have an IRC where we discuss Ink, and other stuff too, come join! If you want to help contribute,
+we highly suggest you join the IRC :)
 
+* server: irc.freenode.net
+* channel: ##ink-lang
+
+A taste of Ink
+------
+Warning, this is still (potentially) subject to change. Also a disclaimer,
+the syntax below is very incosistent and is just to show what's possible in the 
+language.
+```rust
+struct Whatever {
+	int x = 10
+	int y
+}
+
+fn do_stuff(int a, int b): int {
+	int x = 5
+	while ((a + b) > 10) -> x = (x + 1)
+
+	match x {
+		(x == 12) {
+			loop {
+				if ((a + x) > 21) -> break
+			}
+			return x
+		}
+		(x < 2) {
+			for _ :(a, b) {
+				a = (x + 1)
+			}
+		}
+		(x == 29) -> return a
+		_ {
+			return 1337
+		}
+	}
+
+	if (x > 21) {
+		return (x - 21)
+	}
+}
+
+fn main() {
+	do_stuff(125, 25)
+}
+```
 Status
 ------
 
 The language is still in development. More information/specifics
-can be found in [`/misc/`](/misc/). The compiler is written in C
+can be found in [`/docs/`](/docs/). The compiler is written in C
 and LLVM is used for the backend.
 
 Building
