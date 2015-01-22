@@ -1,7 +1,7 @@
 int max = 10
 int result = 0
 
-fn do_stuff(int a, int b): int => while true {
+fn do_stuff(int a, int b): int -> while true {
 	result = (result + (a + b))
 	if (result > 20) {
 		return result
