@@ -1,19 +1,23 @@
 #include "util.h"
 
 char* get_coloured_text(const char *colour, const char *text) {
-	#if __linux || __APPLE__
-	const char *prefix = colour;
-	const char *suffix = "\x1B[00m";
-	size_t alloc_size = sizeof(char) + (strlen(prefix) + strlen(text) + strlen(suffix) + 1);
-	char *result = malloc(alloc_size);
-	result = strcat(result, prefix);
-	result = strcat(result, text);
-	result = strcat(result, suffix);
-	result[alloc_size] = '\0';
+	// #if __linux || __APPLE__
+	// const char *prefix = colour;
+	// const char *suffix = "\x1B[00m";
+	// size_t alloc_size = sizeof(char) + (strlen(prefix) + strlen(text) + strlen(suffix) + 1);
+	// char *result = malloc(alloc_size);
+	// result = strcat(result, prefix);
+	// result = strcat(result, text);
+	// result = strcat(result, suffix);
+	// result[alloc_size] = '\0';
+	// return result;
+	// #else
+	// we have to malloc to avoid a seg fault
+	// since xyz_message functions free this memory
+	char *result = safe_malloc(sizeof(char) * strlen(text));
+	result = strcpy(result, text);
 	return result;
-	#else
-	return text;
-	#endif
+	// #endif
 }
 
 void debug_message(const char *fmt, ...) {
@@ -22,10 +26,10 @@ void debug_message(const char *fmt, ...) {
 		va_start(arg, fmt);
 		char *temp = get_coloured_text("\x1B[33m", "debug: ");
 		fprintf(stdout, "%s", temp);
+		free(temp);
 		vfprintf(stdout, fmt, arg);
 		fprintf(stdout, "\n");
 		va_end(arg);
-		free(temp);
 	}
 }
 
