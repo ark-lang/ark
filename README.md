@@ -33,12 +33,12 @@ struct Whatever {
 
 fn do_stuff(int a, int b): int {
 	int x = 5
-	while ((a + b) > 10) => x = (x + 1)
+	while ((a + b) > 10) -> x = (x + 1)
 
 	match x {
 		(x == 12) {
 			loop {
-				if ((a + x) > 21) => break
+				if ((a + x) > 21) -> break
 			}
 			return x
 		}
@@ -47,7 +47,7 @@ fn do_stuff(int a, int b): int {
 				a = (x + 1)
 			}
 		}
-		(x == 29) => return a
+		(x == 29) -> return a
 		_ {
 			return 1337
 		}
