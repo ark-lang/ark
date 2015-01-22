@@ -39,7 +39,7 @@
 #define STRUCT_KEYWORD	 	   	"struct"
 #define COMMA_SEPARATOR			","
 #define SEMI_COLON				";"
-#define SINGLE_STATEMENT		"=>"		// cant think of a name for this operator
+#define SINGLE_STATEMENT		"->"		// cant think of a name for this operator
 #define IF_KEYWORD				"if"
 #define ELSE_KEYWORD			"else"
 #define MATCH_KEYWORD			"match"
