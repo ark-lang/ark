@@ -29,23 +29,23 @@ BUILD_COMMAND =
 
 # also for TRAVIS
 ifeq ($(CC),gcc)
-	BUILD_COMMAND = g++ *.o ${TRAVIS_LINK_STUFF} -o inkc
+	BUILD_COMMAND = g++ *.o ${TRAVIS_LINK_STUFF} -o alloyc-linux
 else
-	BUILD_COMMAND = ${CC}++ *.o ${TRAVIS_LINK_STUFF} -o inkc
+	BUILD_COMMAND = ${CC}++ *.o ${TRAVIS_LINK_STUFF} -o alloyc-linux
 endif
 
 # this is what should be built
 all: ${SOURCES}
 	${LCC} ${C_FLAGS} ${SOURCES} -c ${SOURCES}
 	mkdir -p bin
-	${LCXX} *.o ${LLVM_FLAGS} -o bin/inkc 
+	${LCXX} *.o ${LLVM_FLAGS} -o bin/alloyc 
 	-rm *.o
 
 # windows build?
 win: ${SOURCES}
 	i586-mingw32msvc-gcc ${C_FLAGS} ${SOURCES} -c ${SOURCES}
 	mkdir -p bin
-	i586-mingw32msvc-g++ *.o ${LLVM_FLAGS} -o bin/inkc 
+	i586-mingw32msvc-g++ *.o ${LLVM_FLAGS} -o bin/alloyc 
 	-rm *.o
 
 # this is for TRAVIS ONLY!!
@@ -57,6 +57,6 @@ travis: ${SOURCES}
 # clean stuff up
 clean:
 	-rm *.o
-	-rm bin/inkc
+	-rm bin/alloyc
 
 .PHONY: clean

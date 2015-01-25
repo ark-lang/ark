@@ -1,5 +1,5 @@
-#ifndef INK_LANG_H
-#define INK_LANG_H
+#ifndef ALLOY_LANG_H
+#define ALLOY_LANG_H
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -23,7 +23,7 @@ typedef struct {
 } argument;
 
 /**
- * The core of inkc
+ * The core of alloyc
  */
 typedef struct {
 	scanner *scanner;
@@ -33,35 +33,35 @@ typedef struct {
 	preprocessor *pproc;
     semantic *semantic;
 	char *filename;
-} inkc;
+} alloyc;
 
 /**
- * Creates a new inkc instance
+ * Creates a new alloyc instance
  * 
  * @argc number of arguments
  * @argv argument list
- * @return instance of inkc
+ * @return instance of alloyc
  */
-inkc *create_inkc(int argc, char** argv);
+alloyc *create_alloyc(int argc, char** argv);
 
 /**
- * Start the inkc stuff
+ * Start the alloyc stuff
  * 
- * @param inkc instance to start
+ * @param alloyc instance to start
  */
-void start_inkc(inkc *self);
+void start_alloyc(alloyc *self);
 
 /**
  * Runs the bytecode in the VM
- * @param self the inkc instance
+ * @param self the alloyc instance
  */
-void run_vm_executable(inkc *self);
+void run_vm_executable(alloyc *self);
 
 /**
- * Destroy the given inkc instance
+ * Destroy the given alloyc instance
  * 
- * @param inkc instance to destroy
+ * @param alloyc instance to destroy
  */
-void destroy_inkc(inkc *self);
+void destroy_alloyc(alloyc *self);
 
 #endif // INK_LANG_H
