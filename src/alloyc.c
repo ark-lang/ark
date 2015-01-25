@@ -1,4 +1,4 @@
-#include "inkc.h"
+#include "alloyc.h"
 
 bool DEBUG_MODE = false;
 char *OUTPUT_EXECUTABLE_NAME = "a";
@@ -8,14 +8,14 @@ static void parse_argument(argument *arg) {
 
 	switch (argument) {
 		case 'v':
-			printf("inkc version: %s\n", INKC_VERSION);
+			printf("alloyc version: %s\n", ALLOYC_VERSION);
 			exit(1);
 			break;
 		case 'd':
 			DEBUG_MODE = true;
 			break;
 		case 'h':
-			printf("Ink-Lang Argument List\n");
+			printf("Alloy-Lang Argument List\n");
 			printf("\t-h,\t shows a help menu\n");
 			printf("\t-v,\t shows current version\n");
 			printf("\t-d,\t logs extra debug information\n");
@@ -34,8 +34,8 @@ static void parse_argument(argument *arg) {
 	}
 }
 
-inkc *create_inkc(int argc, char** argv) {
-	inkc *self = safe_malloc(sizeof(*self));
+alloyc *create_alloyc(int argc, char** argv) {
+	alloyc *self = safe_malloc(sizeof(*self));
 	self->filename = NULL;
 	self->scanner = NULL;
 	self->lexer = NULL;
@@ -78,7 +78,7 @@ inkc *create_inkc(int argc, char** argv) {
 			// parse the argument
 			parse_argument(&arg);
 		}
-		else if (strstr(argv[i], ".ink")) {
+		else if (strstr(argv[i], ".alloy")) {
 			self->filename = argv[i];
 		}
 		else {
@@ -89,7 +89,7 @@ inkc *create_inkc(int argc, char** argv) {
 	return self;
 }
 
-void start_inkc(inkc *self) {
+void start_alloyc(alloyc *self) {
 	// filename is null, so we should exit
 	// out of here
 	if (self->filename == NULL) {
@@ -114,7 +114,7 @@ void start_inkc(inkc *self) {
 	start_analysis(self->semantic);
 }
 
-void destroy_inkc(inkc *self) {
+void destroy_alloyc(alloyc *self) {
 	destroy_scanner(self->scanner);
 	destroy_lexer(self->lexer);
 	destroy_parser(self->parser);

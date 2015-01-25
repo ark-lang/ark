@@ -1,26 +1,26 @@
 **The name is in the works**
 
-[Ink](http://ink-lang.github.io) [![BuildStatus](https://travis-ci.org/ink-lang/ink.svg?branch=master)](https://travis-ci.org/ink-lang/ink)
+[Alloy](http://alloy-lang.github.io) [![BuildStatus](https://travis-ci.org/alloy-lang/alloy.svg?branch=master)](https://travis-ci.org/alloy-lang/alloy)
 ===
 
-Ink is a programming language written in C. The goals of this language are:
+Alloy is a programming language written in C. The goals of this language are:
 
 * Speed
 * Simplicity
 * Cleanliness
 
-We created Ink because we love writing C, and love the simplicity of C; we also wanted to evolve C
+We created Alloy because we love writing C, and love the simplicity of C; we also wanted to evolve C
 into something more modern, and easier to use.
 
 IRC
 ------
-We have an IRC where we discuss Ink, and other stuff too, come join! If you want to help contribute,
+We have an IRC where we discuss Alloy, and other stuff too, come join! If you want to help contribute,
 we highly suggest you join the IRC :)
 
 * server: irc.freenode.net
-* channel: ##ink-lang
+* channel: #alloy-lang
 
-A taste of Ink
+A taste of Alloy
 ------
 Warning, this is still (potentially) subject to change. Also a disclaimer,
 the syntax below is very incosistent and is just to show what's possible in the 
@@ -82,23 +82,23 @@ To build you will need:
 
 ```bash
 # clone the repository
-git clone -v https://github.com/ink-lang/ink.git
+git clone -v https://github.com/alloy-lang/alloy.git
     
 # cd into the repository
-cd ink
+cd alloy
 
 # build
 make
 
 # run a program
-./inkc tests/parser-tests/const.ink
+./alloyc tests/parser-tests/const.alloy
 ```
 
 Contributing
 ------------
 
-Something not working? Open an [Issue](https://github.com/ink-lang/ink/issues)
-or send us a [Pull Request](https://github.com/ink-lang/ink/pulls)
+Something not working? Open an [Issue](https://github.com/alloy-lang/alloy/issues)
+or send us a [Pull Request](https://github.com/alloy-lang/alloy/pulls)
 on GitHub.
 
 See [CONTRIBUTING.md](/CONTRIBUTING.md).
@@ -106,4 +106,4 @@ See [CONTRIBUTING.md](/CONTRIBUTING.md).
 License
 -------
 
-Ink is licensed under the [MIT License](/LICENSE.md).
+Alloy is licensed under the [MIT License](/LICENSE.md).
