@@ -111,6 +111,7 @@ void start_inkc(inkc *self) {
 	start_parsing_token_stream(self->parser);
 
 	self->semantic = create_semantic_analyser(self->parser->parse_tree);
+	start_analysis(self->semantic);
 }
 
 void destroy_inkc(inkc *self) {
