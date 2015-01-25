@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include "semantic.h"
 #include "util.h"
 #include "lexer.h"
 #include "parser.h"
@@ -30,6 +31,7 @@ typedef struct {
 	parser *parser;
 	compiler *compiler;
 	preprocessor *pproc;
+    semantic *semantic;
 	char *filename;
 } inkc;
 
