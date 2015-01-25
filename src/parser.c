@@ -747,7 +747,6 @@ statement_ast_node *parse_for_loop_ast_node(parser *parser) {
 
 	// create node with the stuff we just got
 	for_loop_ast_node *fln = create_for_loop_ast_node();
-	fln->type = TYPE_NULL;			// we don't know yet
 	fln->index_name = index_name;
 	fln->params = create_vector();
 
@@ -771,7 +770,7 @@ statement_ast_node *parse_for_loop_ast_node(parser *parser) {
 
 			if (check_token_type(parser, IDENTIFIER, 0)) {
 				token *tok = consume_token(parser);
-				fln->type = tok->type;
+				fln->type = tok;
 				push_back_item(fln->params, tok);
 				if (check_token_type_and_content(parser, SEPARATOR, ",", 0)) {
 					if (check_token_type_and_content(parser, SEPARATOR, ")", 1)) {
@@ -782,7 +781,7 @@ statement_ast_node *parse_for_loop_ast_node(parser *parser) {
 			}
 			else if (check_token_type(parser, NUMBER, 0)) {
 				token *tok = consume_token(parser);
-				fln->type = tok->type;
+				fln->type = tok;
 				push_back_item(fln->params, tok);
 				if (check_token_type_and_content(parser, SEPARATOR, ",", 0)) {
 					if (check_token_type_and_content(parser, SEPARATOR, ")", 1)) {
@@ -975,7 +974,6 @@ void *parse_variable_ast_node(parser *parser, bool global) {
 	// consume the int data type
 	token *variable_data_type = match_token_type(parser, IDENTIFIER);
 	variable_define_ast_node *def = create_variable_define_ast_node();
-	data_type data_type_raw = match_token_type_to_data_type(parser, variable_data_type);
 
 	// is a pointer
 	bool is_pointer = false;
@@ -993,7 +991,7 @@ void *parse_variable_ast_node(parser *parser, bool global) {
 
 		// create variable define ast_node
 		def->is_constant = is_constant;
-		def->type = data_type_raw;
+		def->type = variable_data_type;
 		def->name = variable_name_token->content;
 		def->is_global = global;
 		def->is_pointer = is_pointer;
@@ -1015,7 +1013,7 @@ void *parse_variable_ast_node(parser *parser, bool global) {
 	else {
 		// create variable define ast_node
 		def->is_constant = is_constant;
-		def->type = data_type_raw;
+		def->type = variable_data_type;
 		def->name = variable_name_token->content;
 		def->is_global = global;
 		def->is_pointer = is_pointer;
@@ -1102,7 +1100,6 @@ function_ast_node *parse_function_ast_node(parser *parser) {
 
 			// data type
 			token *argdata_type = match_token_type(parser, IDENTIFIER);
-			data_type arg_raw_data_type = match_token_type_to_data_type(parser, argdata_type);
 
 			// look for ^
 			bool is_pointer = false;
@@ -1115,7 +1112,7 @@ function_ast_node *parse_function_ast_node(parser *parser) {
 			token *arg_name = match_token_type(parser, IDENTIFIER);
 
 			function_argument_ast_node *arg = create_function_argument_ast_node();
-			arg->type = arg_raw_data_type;
+			arg->type = argdata_type;
 			arg->name = arg_name;
 			arg->is_pointer = is_pointer;
 			arg->is_constant = is_constant;
@@ -1173,8 +1170,7 @@ function_ast_node *parse_function_ast_node(parser *parser) {
 			// todo: let this return a struct... etc
 			if (check_token_type(parser, IDENTIFIER, 0)) {
 				token *return_type = consume_token(parser);
-				data_type raw_data_type = match_token_type_to_data_type(parser, return_type);
-				fpn->ret = raw_data_type;
+				fpn->return_type = return_type;
 				fn->returns_pointer = returns_pointer;
 				fn->is_constant = is_constant;
 			}
@@ -1190,8 +1186,8 @@ function_ast_node *parse_function_ast_node(parser *parser) {
 			parser_error(parser, "found an identifier after function argument list, perhaps you missed a colon?", consume_token(parser), false);
 		}
 		else {
-			data_type void_type = TYPE_VOID;
-			fpn->ret = void_type;
+			// todo set to void, idk?
+			fpn->return_type = NULL;
 		}
 
 		// set function prototype
@@ -1322,8 +1318,6 @@ statement_ast_node *parse_statement_ast_node(parser *parser) {
 	}
 	// IDENTIFERS
 	else if (check_token_type(parser, IDENTIFIER, 0)) {
-		token *look_ahead = peek_at_token_stream(parser, 0);
-		
 		// VARIABLE REASSIGNMENT
 		if (check_token_type_and_content(parser, OPERATOR, ASSIGNMENT_OPERATOR, 1)) {
 			return create_statement_ast_node(parse_reassignment_statement_ast_node(parser), VARIABLE_REASSIGN_AST_NODE);
@@ -1332,14 +1326,9 @@ statement_ast_node *parse_statement_ast_node(parser *parser) {
 		else if (check_token_type_and_content(parser, SEPARATOR, "(", 1)) {
 			return create_statement_ast_node(parse_function_callee_ast_node(parser), FUNCTION_CALLEE_AST_NODE);
 		}
-		// LOCAL VARIABLE
-		else if (check_token_type_is_valid_data_type(parser, look_ahead)) {
-			return parse_variable_ast_node(parser, false);
-		}
-		//TODO: check if this is a struct from the hashmap??
-		// ERROR!!
+		// no clue we should sort this out.
 		else {
-			parser_error(parser, "unrecognized identifier", consume_token(parser), false);
+			return parse_variable_ast_node(parser, false);
 		}
 	}
 
@@ -1384,10 +1373,6 @@ void start_parsing_token_stream(parser *parser) {
 				else if (check_token_type_and_content(parser, IDENTIFIER, ENUM_KEYWORD, 0)) {
 					prepare_ast_node(parser, parse_enumeration_ast_node(parser), ENUM_AST_NODE);
 				}
-				else if (check_token_type_is_valid_data_type(parser, tok)
-					|| check_token_type_and_content(parser, IDENTIFIER, CONSTANT_KEYWORD, 0)) {
-					parse_variable_ast_node(parser, true);
-				}
 				else if (check_token_type_and_content(parser, OPERATOR, "=", 1)) {
 					parse_reassignment_statement_ast_node(parser);
 				}
@@ -1395,7 +1380,7 @@ void start_parsing_token_stream(parser *parser) {
 					prepare_ast_node(parser, parse_function_callee_ast_node(parser), FUNCTION_CALLEE_AST_NODE);
 				}
 				else {
-					parser_error(parser, "unrecognized identifier specified", consume_token(parser), false);
+					parse_variable_ast_node(parser, true);
 				}
 				break;
 			case END_OF_FILE:
@@ -1414,19 +1399,6 @@ bool check_token_type_is_valid_data_type(parser *parser, token *tok) {
 		}
 	}
 	return false;
-}
-
-data_type match_token_type_to_data_type(parser *parser, token *tok) {
-	int size = sizeof(DATA_TYPES) / sizeof(DATA_TYPES[0]);
-	int i;
-	for (i = 0; i < size; i++) {
-		if (!strcmp(tok->content, DATA_TYPES[i])) {
-			return i;
-		}
-	}
-
-	parser_error(parser, "unrecognized data-type specified", consume_token(parser), true);
-	return 0;
 }
 
 void prepare_ast_node(parser *parser, void *data, ast_node_type type) {
