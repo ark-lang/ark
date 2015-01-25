@@ -9,7 +9,7 @@
 #include <errno.h>
 
 /** the current version of ink */
-#define INKC_VERSION "0.0.0"
+#define ALLOYC_VERSION "0.0.0"
 
 /** if we are in debug mode -- will print debug warnings */
 extern bool DEBUG_MODE;

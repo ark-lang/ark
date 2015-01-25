@@ -1,10 +1,10 @@
 #!/bin/bash
-TOTAL=$(find parser-tests/*.ink -type f | wc -l)
+TOTAL=$(find parser-tests/*.alloy -type f | wc -l)
 OUTPUT="$(ls)"
 NUM=0
 
-for filename in parser-tests/*.ink; do
-	OUTPUT="$(inkc $filename)"
+for filename in parser-tests/*.alloy; do
+	OUTPUT="$(alloyc $filename)"
 	((NUM++))
 	if [[ $OUTPUT != "Finished"* ]]; then
 		echo "Failed to parse '$filename', ($NUM/$TOTAL)"
