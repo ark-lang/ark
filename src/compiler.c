@@ -59,16 +59,16 @@ void consume_ast_nodes(compiler *self, int amount) {
 	self->current_ast_node += amount;
 }
 
-LLVMValueRef generate_constant_number(compiler *self, double value, data_type type) {
-	return LLVMConstReal(get_type_ref(type), value);
+LLVMValueRef generate_constant_number(compiler *self, double value, token *data_type) {
+	return LLVMConstReal(get_type_ref(data_type), value);
 }
 
-LLVMValueRef generate_expression_ast_node(compiler *self, expression_ast_node *expr, data_type type) {
+LLVMValueRef generate_expression_ast_node(compiler *self, expression_ast_node *expr, token *data_type) {
 	switch (expr->type) {
-		case EXPR_NUMBER: return generate_constant_number(self, atof(expr->value->content), type);
+		case EXPR_NUMBER: return generate_constant_number(self, atof(expr->value->content), data_type);
 		case EXPR_PARENTHESIS: {
-			LLVMValueRef lhand = generate_expression_ast_node(self, expr->lhand, type);
-			LLVMValueRef rhand = generate_expression_ast_node(self, expr->lhand, type);
+			LLVMValueRef lhand = generate_expression_ast_node(self, expr->lhand, data_type);
+			LLVMValueRef rhand = generate_expression_ast_node(self, expr->lhand, data_type);
 
 			if (!lhand || !rhand) {
 				printf("lhand or rhand is null\n");
@@ -150,28 +150,12 @@ LLVMValueRef generate_code(compiler *self, ast_node *node) {
 	return NULL;
 }
 
-LLVMTypeRef get_type_ref(data_type type) {
-	switch (type) {
-		case TYPE_INTEGER: 
-			printf("int\n");
-			return LLVMInt32Type();
-		case TYPE_STR:
-			error_message("strings are unimplemented\n");
-			break;
-		case TYPE_DOUBLE: printf("double\n"); return LLVMDoubleType();
-		case TYPE_FLOAT: printf("Float\n"); return LLVMFloatType();
-		case TYPE_BOOL:
-			error_message("bools are unimplemented\n");
-			break;
-		case TYPE_VOID: printf("Void\n"); return LLVMVoidType();
-		case TYPE_CHAR:
-			error_message("chars are unimplemented\n");
-			break;
-		default:
-			error_message("unsupported data type `%d`\n", type);
-			break;
+LLVMTypeRef get_type_ref(token *type) {
+	if (!strcmp(type->content, "int")) {
+		return LLVMInt32Type();
 	}
 
+	printf("felix hasn't done this yet :(\n");
 	error_message("we should've thrown an error for type references, why are you here?\n");
 	return NULL;
 }

@@ -87,7 +87,7 @@ void append_instruction(compiler *self, int instr);
  */
 void consume_ast_node(compiler *self);
 
-LLVMValueRef generate_constant_number(compiler *self, double value, data_type type);
+LLVMValueRef generate_constant_number(compiler *self, double value, token *type);
 
 LLVMValueRef generate_code(compiler *self, ast_node *node);
 
@@ -103,7 +103,7 @@ LLVMValueRef generate_function_code(compiler *self, function_ast_node *func);
  * @param self the compiler instance
  * @param expr the expression to generate code for
  */
-LLVMValueRef generate_expression_ast_node(compiler *self, expression_ast_node *expr, data_type type);
+LLVMValueRef generate_expression_ast_node(compiler *self, expression_ast_node *expr, token *type);
 
 /**
  * Geneartes code for a Variable Declaration
@@ -131,7 +131,7 @@ LLVMValueRef generate_function_return_code(compiler *self, function_return_ast_n
  * @param  type the type to retrieve
  * @return      the type reference of the given data type
  */
-LLVMTypeRef get_type_ref(data_type type);
+LLVMTypeRef get_type_ref(token *type);
 
 /**
  * Starts the compiler
