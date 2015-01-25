@@ -1,16 +1,16 @@
 #include <stdio.h>
 #include <time.h>
 
-#include "inkc.h"
+#include "alloyc.h"
 
 int main(int argc, char** argv) {
 	// start the timer
 	clock_t timer = clock();
 
-	// inkc stuff
-	inkc *inkc = create_inkc(argc, argv);
-	start_inkc(inkc);
-	destroy_inkc(inkc);
+	// alloyc stuff
+	alloyc *alloyc = create_alloyc(argc, argv);
+	start_alloyc(alloyc);
+	destroy_alloyc(alloyc);
 
 	// finished timer
 	timer = clock() - timer;	// calculate time taken

@@ -1,0 +1,6 @@
+// returns a const pointer er mer gerd
+fn whatever(const int x): const ^int {
+	// this would error since it's constant and
+    // we're changing it
+    x = 12
+}

@@ -7,7 +7,7 @@ that we all go by here.
 Community
 ---------
 
-Having any problems? [Open an Issue](https://github.com/ink-lang/ink/issues). There is also an IRC room over on freenode: [##ink-lang](http://webchat.freenode.net/?channels=%23%23ink-lang).
+Having any problems? [Open an Issue](https://github.com/alloy-lang/alloy/issues). There is also an IRC room over on freenode: [#alloy-lang](http://webchat.freenode.net/?channels=%23alloy-lang).
 
 Pull Requests
 -------------
@@ -28,8 +28,8 @@ Proposing a feature or change
 -----------------------------
 
 If you want to have a say in the language, feel free to
-[open an issue](https://github.com/ink-lang/ink/issues). We use proposals
-so that people can vote on the idea, since the smallest change can put Ink
+[open an issue](https://github.com/alloy-lang/alloy/issues). We use proposals
+so that people can vote on the idea, since the smallest change can put Alloy
 in a completely different direction. To help us all out, please include
 the following when submitting your issue:
 
@@ -48,13 +48,13 @@ Here is a good example (obviously fake):
 > [Feature] Require Line Numbers
 > ==============================
 >
-> Ink should require line numbers to be prepended at the start of each
-> line in Ink files. This will make it much easier to debug Ink programs,
+> Alloy should require line numbers to be prepended at the start of each
+> line in Alloy files. This will make it much easier to debug Alloy programs,
 > as it will be easier to find the line where a problem occurs, as opposed
 > to having to use special functionality in a text editor. Here is the
 > example hello world file with the changes implemented:
 >
-> [`helloworld.ink`](/examples/helloworld.ink):
+> [`helloworld.alloy`](/examples/helloworld.alloy):
 > ```
 > 	 !use stdio
 >
