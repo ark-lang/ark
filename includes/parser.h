@@ -160,7 +160,7 @@ typedef struct s_Expression {
  * Variable
  */
 typedef struct {
-	data_type type;			// type of data to store
+	token *type;
 	char *name;				// name of the variable
 	structure_ast_node *struct_owner; // the owner of the variable?
 
@@ -181,7 +181,7 @@ typedef struct {
  * An argument for a function
  */
 typedef struct {
-	data_type type;
+	token *type;
 	token *name;
 	expression_ast_node *value;
 
@@ -254,7 +254,7 @@ typedef struct {
 typedef struct {
 	vector *args;
 	token *name;
-	data_type ret;
+	token *return_type;
 } function_prototype_ast_node;
 
 /**
@@ -284,7 +284,7 @@ typedef enum {
  * A ast_node for a for loop
  */
 typedef struct {
-	data_type type;			// data type
+	token *type;
 	token *index_name;		// index name
 	vector *params;			// parameters (start, end, step)
 	block_ast_node *body;	// contents of for loop
@@ -814,16 +814,6 @@ function_callee_ast_node *parse_function_callee_ast_node(parser *parser);
  * @param parser the parser instance
  */
 statement_ast_node *parse_statement_ast_node(parser *parser);
-
-/**
- * Finds the appropriate Data Type from the given token
- * will throw an error if invalid type
- *
- * @param parser the parser instance
- * @param tok the token to check
- * @return the token as a data_type
- */
-data_type match_token_type_to_data_type(parser *parser, token *tok);
 
 /**
  * Returns if the given token is a data type
