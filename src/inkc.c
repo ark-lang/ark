@@ -42,6 +42,7 @@ inkc *create_inkc(int argc, char** argv) {
 	self->parser = NULL;
 	self->compiler = NULL;
 	self->pproc = NULL;
+	self->semantic = NULL;
 
 	// not enough args just throw an error
 	if (argc <= 1) {
@@ -109,17 +110,13 @@ void start_inkc(inkc *self) {
 	self->parser = create_parser(self->lexer->token_stream);
 	start_parsing_token_stream(self->parser);
 
-	// create it anyways
-	self->compiler = create_compiler();
-	if (!self->parser->exit_on_error) {
-		start_compiler(self->compiler, self->parser->parse_tree);
-	}
+	self->semantic = create_semantic_analyser(self->parser->parse_tree);
 }
 
 void destroy_inkc(inkc *self) {
 	destroy_scanner(self->scanner);
 	destroy_lexer(self->lexer);
 	destroy_parser(self->parser);
-	destroy_compiler(self->compiler);
+	destroy_semantic_analyser(self->semantic);
 	free(self);
 }
