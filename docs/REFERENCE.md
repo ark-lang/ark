@@ -1,4 +1,4 @@
-# INK REFERENCE
+# ALLOY REFERENCE
 This is not an exact specification, but an effort to describe the langauge in
 as much detail as possible. This document does not serve as an introduction to
 the language, but as a reference.
@@ -40,7 +40,7 @@ TO CHANGE. NOTHING IS FINAL*
 * Statically Linked
 
 # <a name="memorymodel"></a>Memory Model
-Ink will use an Objective-C-like memory model, namely **reference counting**.
+Alloy will use an Objective-C-like memory model, namely **reference counting**.
 Reference counting is (what we think) a really efficient method to handle memory.
 How it works is, every time memory is allocated, say for a structure in this
 case, the program will hold a reference to that structure and "increment its
@@ -104,7 +104,7 @@ Here's an example with some functions:
 	}
 
 # <a name="preprocessor"></a>Pre-processor
-Ink will be statically linked, *we're still yet to create a pre-processor*,
+Alloy will be statically linked, *we're still yet to create a pre-processor*,
 but you would use the `use` pre-processor directive to include a file, like so:
 
 	use stdio
@@ -114,7 +114,7 @@ like `println`.
 
 # <a name="lexandparse"></a>Lexer/Parser Structure
 ## <a name="comments"></a>Comments
-Comments in Ink code follow the general C style of line and block comments. Nested
+Comments in Alloy code follow the general C style of line and block comments. Nested
 comments are supported.
 Line comments begin with exactly two forward slashes, and block comments begin with
 exactly one forward slash and repeated asterisks, and are closed with exactly one asterisks
@@ -137,7 +137,7 @@ The following arithmetic operations are currently supported:
 
 	+	-	/	*	%
 
-Ink does not have operator precedence parsing as of writing this document, this is subject
+Alloy does not have operator precedence parsing as of writing this document, this is subject
 to change, but for now expressions precedence must be explicitly defined with brackets `()`.
 For example:
 
@@ -231,7 +231,7 @@ And another formatting suggestion:
 
 ## <a name="conditionals"></a>Conditionals
 ### <a name="if"></a>If Statements
-In Ink, an if statement is denoted with the `if` keyword, a condition, and a pair of
+In Alloy, an if statement is denoted with the `if` keyword, a condition, and a pair of
 curly `{}` braces. Within the braces, a list of statements are specified, which will execute
 if the aforementioned condition is true:
 
