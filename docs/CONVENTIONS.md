@@ -22,7 +22,7 @@ Multi-line comments must be as follows:
     /* 
      * this comment is to demonstrate
      * multi-line commenting conventions
-     * for the Ink project.
+     * for the Alloy project.
      */
 
 ### Documentation Comments
