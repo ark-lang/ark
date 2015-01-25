@@ -67,7 +67,7 @@ Status
 
 The language is still in development. More information/specifics
 can be found in [`/docs/`](/docs/). The compiler is written in C
-and LLVM is used for the backend.
+and uses LLVM as its backend.
 
 Building
 --------
