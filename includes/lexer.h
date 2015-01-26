@@ -41,6 +41,7 @@ typedef struct {
 	int pos;				// position in the input
 	int current_char;		// current character
 	int line_number;		// current line number
+	size_t input_size;		// sizeof lexer input
 	int char_number;		// current character at line
 	int start_pos;			// keeps track of positions without comments
 	bool running;			// if lexer is running 
