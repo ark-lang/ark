@@ -1,6 +1,15 @@
 [Alloy](http://alloy-lang.github.io) [![BuildStatus](https://travis-ci.org/alloy-lang/alloy.svg?branch=master)](https://travis-ci.org/alloy-lang/alloy)
 ===
 
+Why the name change?
+------
+Apparently Ink is an already existing language, that's been in development for 3 years. Rather than
+hassling with the purchasing of domains/channels from it's current creator, we thought we'd just
+choose a name that wasn't already taken. We **promise** this will be the last time we change the name!
+
+About Alloy
+------
+
 Alloy (formerly Jayfor/Ink) is a programming language written in C. The goals of this language are:
 
 * Speed
