@@ -29,6 +29,7 @@ void destroy_token(token *token) {
 lexer *create_lexer(char* input) {
 	lexer *lexer = safe_malloc(sizeof(*lexer));
 	lexer->input = input;
+	lexer->input_size = strlen(lexer->input);
 	lexer->pos = 0;
 	lexer->current_char = input[lexer->pos];
 	lexer->token_stream = create_vector();
@@ -39,6 +40,11 @@ lexer *create_lexer(char* input) {
 }
 
 void consume_character(lexer *lexer) {
+	if (lexer->pos >= lexer->input_size) {
+		error_message("reached end of input");
+		destroy_lexer(lexer);
+		exit(1);
+	}
 	if (lexer->current_char == '\n' || is_end_of_input(lexer->current_char)) {
 		lexer->char_number = 0;	// reset the char number back to zero
 		lexer->line_number++;
@@ -66,13 +72,13 @@ void skip_layout_and_comments(lexer *lexer) {
 		consume_character(lexer);
 
 		while (true) {
+			consume_character(lexer);
+
 			if (is_end_of_input(lexer->current_char)) {
-				printf("oah shit\n");
+				error_message("unterminated block comment");
 				destroy_lexer(lexer);
 				exit(1);
 			}
-
-			consume_character(lexer);
 
 			if (lexer->current_char == '*' && peek_ahead(lexer, 1) == '/') {
 				// consume the comment symbols
