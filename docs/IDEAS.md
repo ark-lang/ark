@@ -49,6 +49,3 @@ Which is the same as
 ------
 
 ## Memory Model
-Goals:
-
-* No Garbage Collection
