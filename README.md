@@ -98,7 +98,12 @@ cd alloy
 make
 
 # run a program
-./alloyc tests/parser-tests/const.alloy
+cd tests
+
+# run the test bash script
+# if some of these fail, it might be because
+# the developers have changed the document
+./alloyctest.sh
 ```
 
 Contributing
