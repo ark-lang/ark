@@ -9,21 +9,17 @@
 #include <errno.h>
 
 /** the current version of ink */
-#define ALLOYC_VERSION "0.0.0"
+#define ALLOYC_VERSION "0.0.1"
+
+#define GET_RED_TEXT(x) "\x1B[31m" x "\x1B[00m"
+
+#define GET_ORANGE_TEXT(x) "\x1B[33m" x "\x1B[00m"
 
 /** if we are in debug mode -- will print debug warnings */
 extern bool DEBUG_MODE;
 
 /** the name of the executable file */
 extern char* OUTPUT_EXECUTABLE_NAME;
-
-/**
- * Returns the text with the colour formatting
- * @param  colour the colour to print with e.g \x1B[33m
- * @param  text   the text to print in the colour
- * @return        the text with colour formatting
- */
-char* get_coloured_text(const char *colour, const char *text);
 
 /**
  * Emitts a debug message to the console if we are in DEBUG MODE
