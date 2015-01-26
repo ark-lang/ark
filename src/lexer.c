@@ -66,7 +66,14 @@ void skip_layout_and_comments(lexer *lexer) {
 		consume_character(lexer);
 
 		while (true) {
+			if (is_end_of_input(lexer->current_char)) {
+				printf("oah shit\n");
+				destroy_lexer(lexer);
+				exit(1);
+			}
+
 			consume_character(lexer);
+
 			if (lexer->current_char == '*' && peek_ahead(lexer, 1) == '/') {
 				// consume the comment symbols
 				consume_character(lexer);
