@@ -45,3 +45,10 @@ Which is the same as
     a[1] = 11
     a[2] = 12
     a[3] = 13
+
+------
+
+## Memory Model
+Goals:
+
+* No Garbage Collection
