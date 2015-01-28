@@ -40,7 +40,7 @@ lexer *create_lexer(char* input) {
 }
 
 void consume_character(lexer *lexer) {
-	if (lexer->pos >= lexer->input_size) {
+	if (lexer->pos > lexer->input_size) {
 		error_message("reached end of input");
 		destroy_lexer(lexer);
 		exit(1);
