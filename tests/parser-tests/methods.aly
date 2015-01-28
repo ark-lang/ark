@@ -1,0 +1,8 @@
+// this is for method parsing tests
+struct Test {
+    int x
+}
+
+fn (Test t) do_thing() {
+    println("cool")
+}
