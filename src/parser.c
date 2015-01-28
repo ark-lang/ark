@@ -38,6 +38,14 @@ void *allocate_ast_node(size_t sz, const char* readable_type) {
 	return ret;
 }
 
+function_owner *create_function_owner_ast_node() {
+	function_owner *fo = allocate_ast_node(sizeof(function_owner), "function owner");
+	fo->owner = NULL;
+	fo->alias = NULL;
+	fo->is_pointer = false;
+	return fo;
+}
+
 infinite_loop_ast_node *create_infinite_loop_ast_node() {
 	infinite_loop_ast_node *iln = allocate_ast_node(sizeof(infinite_loop_ast_node), "infinite loop");
 	iln->body = NULL;
@@ -192,6 +200,12 @@ void destroy_for_loop_ast_node(for_loop_ast_node *fln) {
 		destroy_vector(fln->params);
 		destroy_block_ast_node(fln->body);
 		free(fln);
+	}
+}
+
+void destroy_function_owner_ast_node(function_owner *fo) {
+	if (fo) {
+		free(fo);
 	}
 }
 
@@ -1073,6 +1087,40 @@ statement_ast_node *parse_infinite_loop_ast_node(parser *parser) {
 function_ast_node *parse_function_ast_node(parser *parser) {
 	match_token_type(parser, IDENTIFIER);	// consume the fn keyword
 
+	function_owner *fo = NULL;
+	
+	/** we're specifying an owner, so it's a method! */
+	if (check_token_type_and_content(parser, SEPARATOR, "(", 0)) {
+		consume_token(parser);
+
+		fo = create_function_owner_ast_node();
+		if (check_token_type(parser, IDENTIFIER, 0)) {
+			fo->owner = consume_token(parser);
+			
+			// check if the owner is a pointer or not
+			if (check_token_type_and_content(parser, OPERATOR, POINTER_OPERATOR, 0)) {
+				fo->is_pointer = true;
+			}
+
+			// check if we give an owner
+			if (check_token_type(parser, IDENTIFIER, 0)) {
+				fo->alias = consume_token(parser);
+			}
+			else {
+				parser_error(parser, "method expected identifier to specify an alias for the method owner", consume_token(parser), false);
+				destroy_function_owner_ast_node(fo);
+			}
+
+			if (check_token_type_and_content(parser, SEPARATOR, ")", 0)) {
+				consume_token(parser);
+			}
+		}
+		else {
+			parser_error(parser, "method expected an identifier to specify ownership", consume_token(parser), false);
+			destroy_function_owner_ast_node(fo);
+		}
+	}
+
 	token *functionName = match_token_type(parser, IDENTIFIER); // name of function
 	vector *args = create_vector();
 
@@ -1080,6 +1128,7 @@ function_ast_node *parse_function_ast_node(parser *parser) {
 	function_prototype_ast_node *fpn = create_function_prototype_ast_node();
 	fpn->args = args;
 	fpn->name = functionName;
+	fpn->fo = fo;
 
 	// parameter list
 	if (check_token_type_and_content(parser, SEPARATOR, "(", 0)) {
