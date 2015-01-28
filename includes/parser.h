@@ -135,6 +135,11 @@ typedef struct {
 	vector *args;
 } function_callee_ast_node;
 
+/**
+ * pointer types, e.g are we
+ * dereferencing, getting the address of something,
+ * or is it unspecified
+ */
 typedef enum {
 	DEREFERENCE,
 	ADDRESS_OF,
@@ -176,6 +181,17 @@ typedef struct {
 	variable_define_ast_node *vdn;
 	expression_ast_node *expression;
 } variable_declare_ast_node;
+
+/**
+ * The owner of a function, i.e what makes
+ * a function a method
+ */
+typedef struct {
+	token *owner;
+	token *alias;
+
+	bool is_pointer;
+} function_owner;
 
 /**
  * An argument for a function
@@ -252,8 +268,16 @@ typedef struct {
  *    fn func_name(type name, type name): type
  */
 typedef struct {
+	/** function arguments */
 	vector *args;
+
+	/** function owner */
+	function_owner *fo;
+	
+	/** name of the function */
 	token *name;
+	
+	/** the return type of the function */
 	token *return_type;
 } function_prototype_ast_node;
 
@@ -261,11 +285,19 @@ typedef struct {
  * Function declaration ast_node
  */
 typedef struct {
+	/** function prototype of the function */
 	function_prototype_ast_node *fpn;
+
+	/** functions body */
 	block_ast_node *body;
+
+	/** if the function is a single statement, i.e -> */
 	statement_ast_node *single_statement;
 
+	/** does the function return a pointer */
 	bool returns_pointer;
+
+	/** does the function return a constant value */
 	bool is_constant;
 } function_ast_node;
 
@@ -284,31 +316,42 @@ typedef enum {
  * A ast_node for a for loop
  */
 typedef struct {
+	/** the for loop type */
 	token *type;
-	token *index_name;		// index name
-	vector *params;			// parameters (start, end, step)
-	block_ast_node *body;	// contents of for loop
+
+	/** the name of the for loops index i.e current iteration variable */
+	token *index_name;		
+
+	/** parameters for the for loop */
+	vector *params;			
+
+	/** for loops body, things to do every iteration */
+	block_ast_node *body;	
 } for_loop_ast_node;
 
 /**
  * ast_node for variable re-assignment
  */
 typedef struct {
+	/** the variable being re-assigned, or it's identifier */
 	token *name;
+
+	/** the expression to re-assign it to */
 	expression_ast_node *expr;
 } variable_reassignment_ast_node;
 
 /**
  * A node for an infinite loop
- *
- * loop {
- * 		// statements
- * }
  */
 typedef struct {
+	/** things to do while looping */
 	block_ast_node *body;
 } infinite_loop_ast_node;
 
+/**
+ * Helper enumeration for the if
+ * statements
+ */
 typedef enum {
 	IF_STATEMENT,
 	ELSE_STATEMENT
@@ -318,10 +361,16 @@ typedef enum {
  * ast_node to represent an if statement
  */
 typedef struct {
+	/** statement type */
 	int statment_type;
 
+	/** the condition to check */
 	expression_ast_node *condition;
+
+	/** body of the if statement */
 	block_ast_node *body;
+
+	/** things to do if the condition is false */
 	block_ast_node *else_statement;
 } if_statement_ast_node;
 
@@ -329,7 +378,10 @@ typedef struct {
  * ast_node to represent a while loop
  */
 typedef struct {
+	/** condition to check */
 	expression_ast_node *condition;
+
+	/** things to do during each iteration */
 	block_ast_node *body;
 } while_ast_node;
 
@@ -337,15 +389,21 @@ typedef struct {
  * ast_node to represent a case for a match
  */
 typedef struct {
-	block_ast_node *body;
+	/** the condition of the match */
 	expression_ast_node *condition;
+
+	/** things to do if the cases condition is true */
+	block_ast_node *body;
 } match_case_ast_node;
 
 /**
  * ast_node to represent a match
  */
 typedef struct {
-	expression_ast_node *condition;	// what we are matching
+	/** what value we are matching */
+	expression_ast_node *condition;
+
+	/** the cases in the match statement */
 	vector *cases;
 } match_ast_node;
 
@@ -373,6 +431,12 @@ enumeration_ast_node *create_enumeration_ast_node();
  * @return       [description]
  */
 enum_item *create_enum_item(char *name, int value);
+
+/**
+ * Creats a function owner ast node
+ * @return the function owner struct address thing
+ */
+function_owner *create_function_owner_ast_node();
 
 /**
  * Create an infinite loop ast node
@@ -508,6 +572,12 @@ void destroy_enumeration_ast_node(enumeration_ast_node *en);
 void destroy_enum_item(enum_item *ei);
 
 /**
+ * Destroys the given function owner ast node
+ * @param fo the function owner ast node to destroy
+ */
+void destroy_function_owner_ast_node(function_owner *fo);
+
+/**
  * Destroy the break ast node
  * @param bn the node to destroy
  */
@@ -518,7 +588,6 @@ void destroy_break_ast_node(break_ast_node *bn);
  * @param bn the node to destroy
  */
 void destroy_continue_ast_node(continue_ast_node *bn);
-
 
 /**
  * Destroys a variable reassignement node
