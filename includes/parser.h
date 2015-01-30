@@ -24,6 +24,7 @@
 
 // keywords
 #define CONSTANT_KEYWORD 	   	"const"
+#define ANON_STRUCT_KEYWORD		"anon"
 #define BLOCK_OPENER			"{"
 #define BLOCK_CLOSER			"}"
 #define ASSIGNMENT_OPERATOR		"="
@@ -107,7 +108,8 @@ typedef enum {
 	FUNCTION_RET_AST_NODE, FOR_LOOP_AST_NODE,
 	VARIABLE_REASSIGN_AST_NODE, INFINITE_LOOP_AST_NODE,
 	BREAK_AST_NODE, CONTINUE_AST_NODE, ENUM_AST_NODE, STRUCT_AST_NODE,
-	IF_STATEMENT_AST_NODE, MATCH_STATEMENT_AST_NODE, WHILE_LOOP_AST_NODE
+	IF_STATEMENT_AST_NODE, MATCH_STATEMENT_AST_NODE, WHILE_LOOP_AST_NODE,
+	ANON_AST_NODE
 } ast_node_type;
 
 /**
@@ -341,6 +343,18 @@ typedef struct {
 } variable_reassignment_ast_node;
 
 /**
+ * an abstract syntax node for an enumerated structure,
+ * it contains a name which is stored as a token so we can
+ * get additional information for error checking. It also contains
+ * a vector, which will store all of the structs that we're linking
+ * too (as Tokens)
+ */
+typedef struct {
+	token *name;
+	vector *structs;
+} enumerated_structure_ast_node;
+
+/**
  * A node for an infinite loop
  */
 typedef struct {
@@ -411,6 +425,12 @@ typedef struct {
  * parse an operand
  */
 int parse_operand(parser *parser);
+
+/**
+ * Create an enumerated structure abstract syntax tree node
+ * @return the ast node we created
+ */
+enumerated_structure_ast_node *create_enumerated_structure_ast_node();
 
 /**
  * Create a new structure node
@@ -552,6 +572,12 @@ function_ast_node *create_function_ast_node();
  * fn whatever(int x, int y): int
  */
 function_prototype_ast_node *create_function_prototype_ast_node();
+
+/**
+ * Destroys the given enumerated structure ast node
+ * @param es es the node to destroy
+ */
+void destroy_enumerated_structure_ast_node(enumerated_structure_ast_node *es);
 
 /**
  * Destroys the given structure
