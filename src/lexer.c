@@ -232,8 +232,8 @@ void push_token_c(lexer *lexer, int type, char *content) {
 	push_back_item(lexer->token_stream, tok);
 }
 
-char peek_ahead(lexer *lexer, int ahead) {
-	return lexer->input[lexer->pos + ahead];
+char peek_ahead(lexer *lexer, int offset) {
+	return lexer->input[lexer->pos + offset];
 }
 
 void get_next_token(lexer *lexer) {
