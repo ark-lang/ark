@@ -140,6 +140,13 @@ enumeration_ast_node *create_enumeration_ast_node() {
 	return en;
 }
 
+enumerated_structure_ast_node *create_enumerated_structure_ast_node() {
+	enumerated_structure_ast_node *es = allocate_ast_node(sizeof(enumeration_ast_node), "enum");
+	es->name = NULL;
+	es->structs = NULL;
+	return es;
+}
+
 enum_item *create_enum_item(char *name, int value) {
 	enum_item *ei = allocate_ast_node(sizeof(enum_item), "enum item");
 	ei->name = name;
@@ -219,6 +226,13 @@ void destroy_continue_ast_node(continue_ast_node *cn) {
 	if (cn) {
 		free(cn);
 	}
+}
+
+void destroy_enumerated_structure_ast_node(enumerated_structure_ast_node *es) {
+	if (es) {
+		destroy_vector(es->structs);
+		free(es);
+	}	
 }
 
 void destroy_statement_ast_node(statement_ast_node *sn) {
@@ -723,6 +737,29 @@ enumeration_ast_node *parse_enumeration_ast_node(parser *parser) {
 	}
 
 	return en;
+}
+
+enumerated_structure_ast_node *parse_enumerated_structure_ast_node(parser *parser) {
+	enumerated_structure_ast_node *es = create_enumerated_structure_ast_node();
+	
+	match_token_type_and_content(parser, IDENTIFIER, ANON_STRUCT_KEYWORD);
+	token *estruct_name = match_token_type(parser, IDENTIFIER);
+	es->name = estruct_name;
+	es->structs = create_vector();
+
+	if (check_token_type_and_content(parser, SEPARATOR, BLOCK_OPENER, 0)) {
+		consume_token(parser);
+		do {
+			if (check_token_type_and_content(parser, SEPARATOR, BLOCK_CLOSER, 0)) {
+				consume_token(parser);
+				break;
+			}
+			push_back_item(es->structs, match_token_type(parser, IDENTIFIER));
+		}
+		while (true);
+	}
+
+	return es;
 }
 
 structure_ast_node *parse_structure_ast_node(parser *parser) {
@@ -1419,6 +1456,9 @@ void start_parsing_token_stream(parser *parser) {
 				else if (check_token_type_and_content(parser, IDENTIFIER, STRUCT_KEYWORD, 0)) {
 					prepare_ast_node(parser, parse_structure_ast_node(parser), STRUCT_AST_NODE);
 				}
+				else if (check_token_type_and_content(parser, IDENTIFIER, ANON_STRUCT_KEYWORD, 0)) {
+					prepare_ast_node(parser, parse_enumerated_structure_ast_node(parser), ANON_AST_NODE);
+				}
 				else if (check_token_type_and_content(parser, IDENTIFIER, ENUM_KEYWORD, 0)) {
 					prepare_ast_node(parser, parse_enumeration_ast_node(parser), ENUM_AST_NODE);
 				}
@@ -1483,6 +1523,9 @@ void remove_ast_node(ast_node *ast_node) {
 				break;
 			case BLOCK_AST_NODE:
 				destroy_block_ast_node(ast_node->data);
+				break;
+			case ANON_AST_NODE:
+				destroy_enumerated_structure_ast_node(ast_node->data);
 				break;
 			case FUNCTION_CALLEE_AST_NODE:
 				destroy_function_callee_ast_node(ast_node->data);
