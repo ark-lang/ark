@@ -422,6 +422,12 @@ typedef struct {
 } match_ast_node;
 
 /**
+ * Attempts to safely exit from the parser
+ * @param parser the parser to exit
+ */
+void exit_parser(parser *parser);
+
+/**
  * parse an operand
  */
 int parse_operand(parser *parser);
