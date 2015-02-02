@@ -16,7 +16,7 @@ void push_back_item(vector *vec, vector_item item) {
 		vec->items = realloc(vec->items, sizeof(*vec->items) * vec->max_size);
 		if (!vec->items) {
 			perror("realloc: failed to allocate memory for vector contents");
-			exit(1);
+			return;
 		}
 	}
 	vec->items[vec->size++] = item;
@@ -25,7 +25,7 @@ void push_back_item(vector *vec, vector_item item) {
 vector_item get_vector_item(vector *vec, int index) {
 	if (index > vec->size) {
 		printf("index out of vector bounds, index: %d, size: %d\n", index, vec->size);
-		exit(1);
+		return NULL;
 	}
 	return vec->items[index];
 }

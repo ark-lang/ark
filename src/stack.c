@@ -26,7 +26,7 @@ void push_to_stack_at_index(Stack *stack, StackItem item, int index) {
 		StackItem *tmp = realloc(stack->items, sizeof(*stack->items) * stack->default_stack_size);
 		if (!tmp) {
 			perror("realloc: failed to allocate memory for stack items");
-			exit(1);
+			return;
 		}
 		else {
 			stack->items = tmp;

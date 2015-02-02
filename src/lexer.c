@@ -43,7 +43,7 @@ void consume_character(lexer *lexer) {
 	if (lexer->pos > lexer->input_size) {
 		error_message("reached end of input");
 		destroy_lexer(lexer);
-		exit(1);
+		return;
 	}
 	if (lexer->current_char == '\n' || is_end_of_input(lexer->current_char)) {
 		lexer->char_number = 0;	// reset the char number back to zero
@@ -77,7 +77,7 @@ void skip_layout_and_comments(lexer *lexer) {
 			if (is_end_of_input(lexer->current_char)) {
 				error_message("unterminated block comment");
 				destroy_lexer(lexer);
-				exit(1);
+				return;
 			}
 
 			if (lexer->current_char == '*' && peek_ahead(lexer, 1) == '/') {
@@ -116,7 +116,7 @@ void expect_character(lexer *lexer, char c) {
 	}
 	else {
 		printf("expected `%c` but found `%c`\n", c, lexer->current_char);
-		exit(1);
+		return;
 	}
 }
 
@@ -184,7 +184,7 @@ void recognize_character_token(lexer *lexer) {
 	}
 	else {
 		printf("error: empty character constant\n");
-		exit(1);
+		return;
 	}
 
 	expect_character(lexer, '\'');
@@ -306,7 +306,7 @@ char* get_token_context(vector *stream, token *tok, bool colour_error_token) {
 	char *result = malloc(sizeof(char) * (result_size + 1));
 	if (!result) {
 		perror("malloc: failed to malloc memory for token context");
-		exit(1);
+		return NULL;
 	}
 
 	int i;
@@ -323,7 +323,7 @@ char* get_token_context(vector *stream, token *tok, bool colour_error_token) {
 					result = realloc(result, sizeof(char) * (result_size + 1));
 					if (!result) {
 						perror("failed to reallocate memory for token context");
-						exit(1);
+						return NULL;
 					}
 				}
 				result[result_index++] = temp_tok->content[j];
@@ -344,7 +344,7 @@ char* get_line_number_context(vector *stream, int line_num) {
 	char *result = malloc(sizeof(char) * (result_size + 1));
 	if (!result) {
 		perror("malloc: failed to malloc memory for line number context");
-		exit(1);
+		return NULL;
 	}
 
 	int i;
@@ -360,7 +360,7 @@ char* get_line_number_context(vector *stream, int line_num) {
 					result = realloc(result, sizeof(char) * (result_size + 1));
 					if (!result) {
 						perror("failed to reallocate memory for line number context");
-						exit(1);
+						return NULL;
 					}
 				}
 

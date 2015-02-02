@@ -14,14 +14,14 @@ void scan_file(scanner *self, const char* fileName) {
 			long fileSize = ftell(file);
 			if (fileSize == -1) {
 				perror("ftell: could not read filesize");
-				exit(1);
+				return;
 			}
 
 			self->contents = safe_malloc(sizeof(*self->contents) * (fileSize + 1));
 
 			if (fseek(file, 0, SEEK_SET)) {
 				perror("could not reset file index");
-				exit(1);
+				return;
 			}
 
 			size_t fileLength = fread(self->contents, sizeof(char), fileSize, file);
@@ -36,7 +36,7 @@ void scan_file(scanner *self, const char* fileName) {
 	else {
 		perror("fopen: could not read file");
 		printf("file: %s\n", fileName);
-		exit(1);
+		return;
 	}
 }
 
