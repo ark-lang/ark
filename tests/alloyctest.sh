@@ -1,9 +1,9 @@
 #!/bin/bash
-TOTAL=$(find parser-tests/*.aly -type f | wc -l)
+TOTAL=$(find parser-tests/*.ay -type f | wc -l)
 OUTPUT="$(ls)"
 NUM=0
 
-for filename in parser-tests/*.aly; do
+for filename in parser-tests/*.ay; do
 	OUTPUT="$(alloyc $filename)"
 	((NUM++))
 	if [[ $OUTPUT != *"Finished"* ]]; then
