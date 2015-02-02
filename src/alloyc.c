@@ -9,8 +9,7 @@ static void parse_argument(argument *arg) {
 	switch (argument) {
 		case 'v':
 			printf("alloyc version: %s\n", ALLOYC_VERSION);
-			exit(1);
-			break;
+			return;
 		case 'd':
 			DEBUG_MODE = true;
 			break;
@@ -20,8 +19,7 @@ static void parse_argument(argument *arg) {
 			printf("\t-v,\t shows current version\n");
 			printf("\t-d,\t logs extra debug information\n");
 			printf("\n");
-			exit(1);
-			break;
+			return;
 		case 'o':
 			if (!arg->next_argument) {
 				error_message("error: missing filename after '-o'");
@@ -109,6 +107,12 @@ void start_alloyc(alloyc *self) {
 	// initialise parser after we tokenize
 	self->parser = create_parser(self->lexer->token_stream);
 	start_parsing_token_stream(self->parser);
+
+	// failed parsing stage
+	if (self->parser->exit_on_error) {
+		// don't do stuff after this
+		return;
+	}
 
 	self->semantic = create_semantic_analyser(self->parser->parse_tree);
 	start_analysis(self->semantic);
