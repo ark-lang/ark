@@ -22,7 +22,7 @@ compiler *create_compiler() {
 	if (LLVMCreateExecutionEngineForModule(&self->engine, self->module, &self->llvm_error_message)) {
 		fprintf(stderr, "%s\n", self->llvm_error_message);
 		LLVMDisposeMessage(self->llvm_error_message);
-		exit(1);
+		return NULL;
 	}
 
 	// optimizations
