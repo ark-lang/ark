@@ -78,7 +78,7 @@ alloyc *create_alloyc(int argc, char** argv) {
 			// parse the argument
 			parse_argument(&arg);
 		}
-		else if (strstr(argv[i], ".aly")) {
+		else if (strstr(argv[i], ".ay")) {
 			self->filename = argv[i];
 		}
 		else {
