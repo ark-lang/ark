@@ -16,14 +16,19 @@ static char* SUPPORTED_OPERANDS[] = {
 
 /** UTILITY FOR AST NODES */
 
+void exit_parser(parser *parser) {
+	parser->parsing = false;
+	parser->exit_on_error = true;
+}
+
 void parser_error(parser *parser, char *msg, token *tok, bool fatal_error) {
 	error_message("%d:%d %s", tok->line_number, tok->char_number, msg);
 	char *error = get_token_context(parser->token_stream, tok, true);
 	printf("\t%s\n", error);
-	parser->exit_on_error = true;
+	parser->exit_on_error = fatal_error;
 	free(error);
 	if (fatal_error) {
-		exit(1);
+		parser->parsing = false;
 	}
 }
 
@@ -33,7 +38,7 @@ void *allocate_ast_node(size_t sz, const char* readable_type) {
 	void *ret = malloc(sz);
 	if (!ret) {
 		fprintf(stderr, "malloc: failed to allocate memory for %s", readable_type);
-		exit(1);
+		return NULL;
 	}
 	return ret;
 }
