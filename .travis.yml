@@ -11,7 +11,7 @@ before_install:
  - sudo dpkg -i ./premake4_4.3+repack1-2_amd64.deb
  - rm -v ./premake4_4.3+repack1-2_amd64.deb
  
-script: .travis.sh
+script: ./.travis.sh
 
 notifications:
     email: false
