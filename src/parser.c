@@ -8,7 +8,7 @@ static const char* DATA_TYPES[] = {
 
 /** Supported Operators */
 static char* SUPPORTED_OPERANDS[] = {
-	"++", "--", 
+	"++", "--",
 	"+=", "-=", "*=", "/=", "%=",
 	"+", "-", "&", "-", "*", "/", "%", "^", "**",
 	">", "<", ">=", "<=", "==", "!=", "&&", "||",
@@ -179,7 +179,7 @@ structure_ast_node *create_structure_ast_node() {
 
 if_statement_ast_node *create_if_statement_ast_node() {
 	if_statement_ast_node *isn = allocate_ast_node(sizeof(if_statement_ast_node), "if statement");
-	return isn;	
+	return isn;
 }
 
 while_ast_node *create_while_ast_node() {
@@ -237,7 +237,7 @@ void destroy_enumerated_structure_ast_node(enumerated_structure_ast_node *es) {
 	if (es) {
 		destroy_vector(es->structs);
 		free(es);
-	}	
+	}
 }
 
 void destroy_statement_ast_node(statement_ast_node *sn) {
@@ -724,7 +724,7 @@ enumeration_ast_node *parse_enumeration_ast_node(parser *parser) {
 						break;
 					}
 				}
-				
+
 				// we've finished parsing jump out
 				if (check_token_type_and_content(parser, SEPARATOR, BLOCK_CLOSER, 0)) {
 					consume_token(parser);
@@ -746,7 +746,7 @@ enumeration_ast_node *parse_enumeration_ast_node(parser *parser) {
 
 enumerated_structure_ast_node *parse_enumerated_structure_ast_node(parser *parser) {
 	enumerated_structure_ast_node *es = create_enumerated_structure_ast_node();
-	
+
 	match_token_type_and_content(parser, IDENTIFIER, ANON_STRUCT_KEYWORD);
 	token *estruct_name = match_token_type(parser, IDENTIFIER);
 	es->name = estruct_name;
@@ -794,9 +794,9 @@ structure_ast_node *parse_structure_ast_node(parser *parser) {
 
 statement_ast_node *parse_for_loop_ast_node(parser *parser) {
 	// for token
-	match_token_type_and_content(parser, IDENTIFIER, FOR_LOOP_KEYWORD);			// FOR KEYWORd
+	match_token_type_and_content(parser, IDENTIFIER, FOR_LOOP_KEYWORD);			// FOR KEYWORD
 
-	// todo inferred data types
+	// TODO: inferred data types
 	token *index_name = match_token_type(parser, IDENTIFIER);					// INDEX_NAME
 
 	match_token_type_and_content(parser, OPERATOR, ":");						// PARAMS
@@ -886,12 +886,12 @@ expression_ast_node *parse_paren_expression(parser *parser) {
 	expression_ast_node *expr = create_expression_ast_node(); // the final expression
 	if (check_token_type_and_content(parser, SEPARATOR, "(", 0)) {
 		consume_token(parser);
-		
+
 		expr->type = EXPR_PARENTHESIS;
 		expr->lhand = parse_expression_ast_node(parser);
 		expr->operand = parse_operand(parser);
 		expr->rhand = parse_expression_ast_node(parser);
-		
+
 		if (check_token_type_and_content(parser, SEPARATOR, ")", 0)) {
 			consume_token(parser);
 			return expr;
@@ -920,7 +920,7 @@ expression_ast_node *parse_character_expression(parser *parser) {
 
 expression_ast_node *parse_identifier_expression(parser *parser) {
 	expression_ast_node *expr = create_expression_ast_node(); // the final expression
-	
+
 	// function call
 	if (check_token_type_and_content(parser, SEPARATOR, "(", 1)) {
 		expr->type = EXPR_FUNCTION_CALL;
@@ -930,6 +930,7 @@ expression_ast_node *parse_identifier_expression(parser *parser) {
 
 	// it's going to be a variable
 	expr->type = EXPR_VARIABLE;
+	// if(consume_token(parser) == "-") { TODO: negative number check }
 	expr->value = consume_token(parser);
 
 	return expr;
@@ -962,7 +963,7 @@ expression_ast_node *parse_expression_ast_node(parser *parser) {
 
 	if (check_token_type_and_content(parser, OPERATOR, ADDRESS_OF_OPERATOR, 0)) {
 		if (check_token_type(parser, IDENTIFIER, 1)) {
-			// todo lookup if the value given
+			// TODO: lookup if the value given
 			// a) exists
 			// b) is a variable (not pointer)
 			consume_token(parser);
@@ -977,7 +978,7 @@ expression_ast_node *parse_expression_ast_node(parser *parser) {
 
 	if (check_token_type_and_content(parser, OPERATOR, POINTER_OPERATOR, 0)) {
 		if (check_token_type(parser, IDENTIFIER, 1)) {
-			// todo lookup if the value given
+			// TODO: lookup if the value given
 			// a) exists
 			// b) is a pointer
 			consume_token(parser);
@@ -999,7 +1000,7 @@ expression_ast_node *parse_expression_ast_node(parser *parser) {
 	if (check_token_type(parser, STRING, 0)) {
 		return parse_string_expression(parser);
 	}
-	
+
 	// character
 	if (check_token_type(parser, CHARACTER, 0)) {
 		return parse_character_expression(parser);
@@ -1046,6 +1047,11 @@ void *parse_variable_ast_node(parser *parser, bool global) {
 		consume_token(parser);
 
 		// create variable define ast_node
+
+		/* TODO: consume token and check if it is "-" followed by the number
+		 * if it is "-" followed by the number, it is negative - ergo, do shit
+		 */
+
 		def->is_constant = is_constant;
 		def->type = variable_data_type;
 		def->name = variable_name_token->content;
@@ -1130,15 +1136,15 @@ function_ast_node *parse_function_ast_node(parser *parser) {
 	match_token_type(parser, IDENTIFIER);	// consume the fn keyword
 
 	function_owner *fo = NULL;
-	
-	/** we're specifying an owner, so it's a method! */
+
+	// we're specifying an owner, so it's a method!
 	if (check_token_type_and_content(parser, SEPARATOR, "(", 0)) {
 		consume_token(parser);
 
 		fo = create_function_owner_ast_node();
 		if (check_token_type(parser, IDENTIFIER, 0)) {
 			fo->owner = consume_token(parser);
-			
+
 			// check if the owner is a pointer or not
 			if (check_token_type_and_content(parser, OPERATOR, POINTER_OPERATOR, 0)) {
 				fo->is_pointer = true;
@@ -1258,7 +1264,7 @@ function_ast_node *parse_function_ast_node(parser *parser) {
 			}
 
 			// returns data type
-			// todo: let this return a struct... etc
+			// TODO: let this return a struct... etc
 			if (check_token_type(parser, IDENTIFIER, 0)) {
 				token *return_type = consume_token(parser);
 				fpn->return_type = return_type;
@@ -1277,14 +1283,14 @@ function_ast_node *parse_function_ast_node(parser *parser) {
 			parser_error(parser, "found an identifier after function argument list, perhaps you missed a colon?", consume_token(parser), false);
 		}
 		else {
-			// todo set to void, idk?
+			// TODO: set to void, idk?
 			fpn->return_type = NULL;
 		}
 
 		// set function prototype
 		fn->fpn = fpn;
 		fn->body = parse_block_ast_node(parser);
-		
+
 		prepare_ast_node(parser, fn, FUNCTION_AST_NODE);
 
 		return fn;
