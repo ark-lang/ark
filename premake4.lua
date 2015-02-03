@@ -1,21 +1,40 @@
 solution "alloy"
 	configurations { "Debug", "Release" }
 
+	-- missing function
+	if not os.outputof then
+		function os.outputof(cmd)
+			local pipe = io.popen(cmd)
+			local result = pipe:read('*a')
+			pipe:close()
+
+			result = result:gsub ("\n", " ")
+
+			return result
+		end
+	end
+
 	-- get data from shell
 	LLVM_OPTIONS	= "--system-libs --libs "
-	LLVM_CONFIG	= "core analysis executionengine jit interpreter native "
-	LLVM_CFLAGS	= "$(" .. "llvm-config --cflags " .. LLVM_OPTIONS .. LLVM_CONFIG .. ")"
-	LLVM_LFLAGS	= "$(" .. "llvm-config --ldflags " .. LLVM_OPTIONS .. LLVM_CONFIG .. ")"
+	LLVM_CFLAGS	= os.outputof ("llvm-config --cflags ")
+	LLVM_LFLAGS	= os.outputof ("llvm-config --ldflags " .. LLVM_OPTIONS .. "all")
+
+	-- sanitize inputs
+--	LLVM_CFLAGS	= string.gsub (LLVM_CFLAGS, "\n", " ")
+--	LLVM_LFLAGS	= string.gsub (LLVM_LFLAGS, "\n", " ")
 	
 	-- common settings
 	defines { "_GNU_SOURCE", "__STDC_LIMIT_MACROS", "__STDC_CONSTANT_MACROS" }
-	buildoptions { LLVM_CFLAGS, "-pthread", "-xc" }
+	buildoptions { LLVM_CFLAGS, "-pthread", "-xc", "-O0" }
 	includedirs { "includes" }
-	links { "dl", "ncurses", "z" }
-	linkoptions { LLVM_LFLAGS, "-pthread", "-Wl,--as-needed -ltinfo" }
+	links { "dl" }
+	linkoptions { LLVM_LFLAGS, "-pthread" }
+	if os.is ("linux") then
+		linkoptions { "-Wl,--as-needed -ltinfo" }
+	end
 
 	configuration "Debug"
-		flags { "Symbols", "ExtraWarnings", "FatalWarnings" }
+		flags { "Symbols", "ExtraWarnings" }
 
 	configuration "Release"
 		buildoptions { "-march=native", "-O2" }
