@@ -1,21 +1,30 @@
 language: c
 
 compiler:
-- gcc
-- clang
+ - gcc
+ - clang
 
-script: make travis
+before_install:
+ - sudo apt-get update -qq
+ - sudo apt-get install -y liblua5.1-0
+ - wget http://mirrors.kernel.org/ubuntu/pool/universe/p/premake4/premake4_4.3+repack1-2_amd64.deb
+ - sudo dpkg -i ./premake4_4.3+repack1-2_amd64.deb
+ - rm -v ./premake4_4.3+repack1-2_amd64.deb
+ 
+script:
+ - premake4 gmake
+ - make
 
 notifications:
-  email: false
+	email: false
 
 deploy:
-  provider: releases
-  skip_cleanup: true
-  api_key:
-    secure: GN+DA/sFpSo5wEAOI/DWintVrMgPZ6F4t1FlZqHEjxp/qU6rpuYtvcs56TahgSbPWuo2CHw4q/fQkElJDTysqrZG3H8AkdiRu/7bvJNyvJsbPjArKW8pOw531Y6fvjsuxSLoKZoFtmbE93HLJQvoBiaxo6pGOmR+lA39XnSHfgQ=
-  file: alloyc-linux
-  on:
-    tags: true
-    all_branches: true
-    repo: alloy-lang/alloy
+	provider: releases
+	skip_cleanup: true
+	api_key:
+		secure: GN+DA/sFpSo5wEAOI/DWintVrMgPZ6F4t1FlZqHEjxp/qU6rpuYtvcs56TahgSbPWuo2CHw4q/fQkElJDTysqrZG3H8AkdiRu/7bvJNyvJsbPjArKW8pOw531Y6fvjsuxSLoKZoFtmbE93HLJQvoBiaxo6pGOmR+lA39XnSHfgQ=
+	file: alloyc-linux
+	on:
+		tags: true
+		all_branches: true
+		repo: alloy-lang/alloy
