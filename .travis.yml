@@ -11,9 +11,7 @@ before_install:
  - sudo dpkg -i ./premake4_4.3+repack1-2_amd64.deb
  - rm -v ./premake4_4.3+repack1-2_amd64.deb
  
-script:
- - premake4 gmake
- - make
+script: .travis.sh
 
 notifications:
     email: false
