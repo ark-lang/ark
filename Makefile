@@ -56,7 +56,6 @@ travis: ${SOURCES}
 
 # clean stuff up
 clean:
-	-rm *.o
 	-rm bin/alloyc
 
 .PHONY: clean
