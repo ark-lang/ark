@@ -5,10 +5,10 @@ compiler:
  - clang
 
 before_install:
- - sudo apt-add-repository -y 'deb http://llvm.org/apt/precise/ llvm-toolchain-precise main'
+ - sudo apt-add-repository -y 'deb http://llvm.org/apt/precise/ llvm-toolchain-precise-3.5 main'
  - sudo apt-add-repository -y 'deb http://ppa.launchpad.net/ubuntu-toolchain-r/test/ubuntu precise main'
  - sudo apt-get update -qq
- - sudo apt-get install -y liblua5.1-0 clang-3.4 libclang-common-3.4-dev libclang-3.4-dev libclang1-3.4 libclang1-3.4-dbg libllvm3.4 libllvm3.4-dbg llvm-3.4 llvm-3.4-dev llvm-3.4-runtime
+ - sudo apt-get install -y liblua5.1-0 clang-3.5 libclang-common-3.5-dev libclang-3.5-dev libclang1-3.5 libclang1-3.5-dbg libllvm3.5 libllvm3.5-dbg llvm-3.5 llvm-3.5-dev llvm-3.5-runtime
  - wget http://mirrors.kernel.org/ubuntu/pool/universe/p/premake4/premake4_4.3+repack1-2_amd64.deb
  - sudo dpkg -i ./premake4_4.3+repack1-2_amd64.deb
  - rm -v ./premake4_4.3+repack1-2_amd64.deb
