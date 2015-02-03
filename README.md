@@ -81,7 +81,7 @@ Building
 
 To build you will need:
 
- - [`llvm >= 3.4`](http://llvm.org/releases/download.html)
+ - [`llvm >= 3.5`](http://llvm.org/releases/download.html)
  - [`premake4 >= 4.1`](http://industriousone.com/premake/download)
  - A suitable GNU C compiler (any one of the below will do fine):
    - [`clang >= 3.4.0`](http://llvm.org/releases/download.html)
