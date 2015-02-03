@@ -3,9 +3,9 @@ solution "alloy"
 
 	-- get data from shell
 	LLVM_OPTIONS	= "--system-libs --libs "
-	LLVM_CONFIG	= "core analysis executionengine jit interpreter native"
-	LLVM_CFLAGS	= "`" .. "llvm-config --cflags " .. LLVM_OPTIONS .. LLVM_CONFIG .. "`"
-	LLVM_LFLAGS	= "`" .. "llvm-config --ldflags " .. LLVM_OPTIONS .. LLVM_CONFIG .. "`"
+	LLVM_CONFIG	= "core analysis executionengine jit interpreter native "
+	LLVM_CFLAGS	= "$(" .. "llvm-config --cflags " .. LLVM_OPTIONS .. LLVM_CONFIG .. ")"
+	LLVM_LFLAGS	= "$(" .. "llvm-config --ldflags " .. LLVM_OPTIONS .. LLVM_CONFIG .. ")"
 	
 	-- common settings
 	defines { "_GNU_SOURCE" }
