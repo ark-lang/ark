@@ -37,7 +37,7 @@ const char *get_filename_ext(const char *filename) {
 }
 
 void *safe_malloc(size_t size) {
-	void *ret = malloc(size);
-	assert(ret);
-	return ret;
+	void *mem_chunk = malloc(size);
+	assert(mem_chunk);
+	return mem_chunk;
 }
