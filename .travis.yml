@@ -1,10 +1,15 @@
 language: c
 
+before_install:
+  - sudo bash -c "echo 'deb http://lgp203.free.fr/ubuntu quantal universe' >> /etc/apt/sources.list.d/lgp203.free.fr.source.list"
+  - sudo apt-get update
+install: sudo apt-get install --force-yes make premake4
+
 compiler:
 - gcc
 - clang
 
-script: make travis
+script: premake4 embed && premake4 gmake && make
 
 notifications:
   email: false
