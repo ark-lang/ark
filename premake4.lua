@@ -8,7 +8,7 @@ solution "alloy"
 	LLVM_LFLAGS	= "$(" .. "llvm-config --ldflags " .. LLVM_OPTIONS .. LLVM_CONFIG .. ")"
 	
 	-- common settings
-	defines { "_GNU_SOURCE" }
+	defines { "_GNU_SOURCE", "__STDC_LIMIT_MACROS", "__STDC_CONSTANT_MACROS" }
 	buildoptions { LLVM_CFLAGS, "-pthread", "-xc" }
 	includedirs { "includes" }
 	links { "dl", "ncurses", "z" }
