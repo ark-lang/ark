@@ -16,7 +16,6 @@ compiler *create_compiler() {
 	self->builder = LLVMCreateBuilder();
 
 	LLVMInitializeNativeTarget();
-	LLVMLinkInJIT();
 
 	// create execution engine
 	if (LLVMCreateExecutionEngineForModule(&self->engine, self->module, &self->llvm_error_message)) {
