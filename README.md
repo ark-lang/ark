@@ -81,7 +81,8 @@ Building
 
 To build you will need:
 
- - [`LLVM >= 3.4`](http://llvm.org/releases/download.html)
+ - [`llvm >= 3.6`](http://llvm.org/releases/download.html)
+ - [`premake4 >= 4.1`](http://industriousone.com/premake/download)
  - A suitable GNU C compiler (any one of the below will do fine):
    - [`clang >= 3.4.0`](http://llvm.org/releases/download.html)
    - [`gcc >= 4.8.1`](https://gcc.gnu.org/) (change `LCC` and 
@@ -95,6 +96,7 @@ git clone -v https://github.com/alloy-lang/alloy.git
 cd alloy
 
 # build
+premake4 gmake
 make
 
 # run a program
