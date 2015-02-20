@@ -1,6 +1,10 @@
 [Alloy™](http://alloy-lang.github.io) [![BuildStatus](https://travis-ci.org/alloy-lang/alloy.svg?branch=master)](https://travis-ci.org/alloy-lang/alloy)
 ========
 
+Notice
+------
+This project is written and maintained by students who have jobs, and other stuff to deal with. We can't promise that we will work on it 24/7, but we try our best.
+
 Why the name change?
 ------
 Apparently Ink is an already existing language, that's been in development for 3 years. Rather than
