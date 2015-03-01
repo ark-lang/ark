@@ -17,12 +17,15 @@ against remote master prior to submitting a pull request, in order to
 prevent edit collisions. Pull Requests will be judged by the following 4 
 developers:
 
-* Freefouran
-* CaptainChloride
-* Juddus
-* Ianhedoesit
+- Freefouran
+- felixangell
+- CaptainChloride
+- Juddus
+- haneefmubrarak
+- Ianhedoesit
 
-Who will merge it, if it's up to standard.
+If it seems good, we'll merge it. Please remember to ensure that your
+code builds and runs as per the directions over at [README.md](/README.md).
 
 Proposing a feature or change
 -----------------------------
