@@ -250,7 +250,7 @@ void get_next_token(lexer *lexer) {
 		// number
 		recognize_number_token(lexer);
 	}
-	else if (is_letter(lexer->current_char) || is_digit(lexer->current_char) || lexer->current_char == '_') {
+	else if (is_letter_or_digit(lexer->current_char) || lexer->current_char == '_') {
 		// ident
 		recognize_identifier_token(lexer);
 	}
