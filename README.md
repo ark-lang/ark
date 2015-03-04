@@ -1,9 +1,10 @@
 Alloy™
 ========
 
-Notice
+Latest Notice
 ------
-This project is written and maintained by students who have jobs, and other stuff to deal with. We can't promise that we will work on it 24/7, but we try our best.
+I've removed some members, the team will now be the core members on the project. If you want to contribute, feel free to send a PR. The project will still continue, I just felt that when I added more members people were taking the project more seriously than it actually is. I created this language as a fun side project, perhaps if it kicks off I will take it more seriously and enforce some stricter rules on the code base, but as it stands now I just want to work on it when I feel like it. Development should continue as usual.
+Cheers, Felix :)
 
 Why the name change?
 ------
