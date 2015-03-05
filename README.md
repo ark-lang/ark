@@ -1,4 +1,4 @@
-Alloy™
+[Alloy™](http://alloy-lang.github.io) [![BuildStatus](https://travis-ci.org/alloy-lang/alloy.svg?branch=master)](https://travis-ci.org/alloy-lang/alloy)
 ========
 
 Latest Notice
