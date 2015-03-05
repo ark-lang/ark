@@ -2,27 +2,27 @@ Contributing
 ============
 
 We'd love your contributions, but we do have a few guidelines
-that we all go by here.
+that we go by here.
 
 Community
 ---------
 
 Having any problems? [Open an Issue](https://github.com/alloy-lang/alloy/issues). There is also an IRC room over on freenode: [#alloy-lang](http://webchat.freenode.net/?channels=%23alloy-lang).
 
+It's recommended that you open an issue than head over to the IRC since we rarely go there given our tight schedules. Issues will however be responded to ASAP. 
+
 Pull Requests
 -------------
 
 All pull requests are welcome. Please ensure that you rebase your commits
 against remote master prior to submitting a pull request, in order to
-prevent edit collisions. Pull Requests will be judged by the following 4 
+prevent edit collisions. Pull Requests will be judged by the following 2 
 developers:
 
-* Freefouran
-* CaptainChloride
-* Juddus
-* Ianhedoesit
+* felixangell
+* vnev
 
-Who will merge it, if it's up to standard.
+who will merge it if it's up to standard.
 
 Proposing a feature or change
 -----------------------------
@@ -54,7 +54,7 @@ Here is a good example (obviously fake):
 > to having to use special functionality in a text editor. Here is the
 > example hello world file with the changes implemented:
 >
-> [`helloworld.alloy`](/examples/helloworld.alloy):
+> [`helloworld.ay`](/examples/helloworld.ay):
 > ```
 > 	 !use stdio
 >
