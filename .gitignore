@@ -4,13 +4,9 @@
 *.obj
 *.elf
 
-# Preprocessed files
+# Precompiled Headers
 *.gch
 *.pch
-Makefile
-
-# Premake output
-obj/
 
 # Libraries
 *.lib
