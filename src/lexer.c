@@ -45,10 +45,15 @@ void consume_character(lexer *lexer) {
 		destroy_lexer(lexer);
 		return;
 	}
-	if (lexer->current_char == '\n' || is_end_of_input(lexer->current_char)) {
+	// stop consuming if we hit the end of the file
+	if(is_end_of_input(lexer->current_char)) {
+        return;
+    	}
+    	else if(lexer->current_char == '\n') {
 		lexer->char_number = 0;	// reset the char number back to zero
 		lexer->line_number++;
 	}
+    
 	lexer->current_char = lexer->input[++lexer->pos];
 	lexer->char_number++;
 }
