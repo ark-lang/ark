@@ -436,19 +436,19 @@ int parse_operand(parser *parser);
  * Create an enumerated structure abstract syntax tree node
  * @return the ast node we created
  */
-enumerated_structure_ast_node *create_enumerated_structure_ast_node();
+enumerated_structure_ast_node* create_enumerated_structure_ast_node();
 
 /**
  * Create a new structure node
  * @return the structure node
  */
-structure_ast_node *create_structure_ast_node();
+structure_ast_node* create_structure_ast_node();
 
 /**
  * Creates an enumeration node
  * @return the enum node we created
  */
-enumeration_ast_node *create_enumeration_ast_node();
+enumeration_ast_node* create_enumeration_ast_node();
 
 /**
  * Creates an enumeration item and fills it with values
@@ -456,50 +456,50 @@ enumeration_ast_node *create_enumeration_ast_node();
  * @param  value the value it stores
  * @return       [description]
  */
-enum_item *create_enum_item(char *name, int value);
+enum_item* create_enum_item(char *name, int value);
 
 /**
  * Creats a function owner ast node
  * @return the function owner struct address thing
  */
-function_owner *create_function_owner_ast_node();
+function_owner* create_function_owner_ast_node();
 
 /**
  * Create an infinite loop ast node
  * @return the infinite loop ast node
  */
-infinite_loop_ast_node *create_infinite_loop_ast_node();
+infinite_loop_ast_node* create_infinite_loop_ast_node();
 
 /**
  * Creat a break ast node
  * @return the break ast node
  */
-break_ast_node *create_break_ast_node();
+break_ast_node* create_break_ast_node();
 
 /**
  * Create a new Variable Reassignment ast_node
  */
-variable_reassignment_ast_node *create_variable_reassign_ast_node();
+variable_reassignment_ast_node* create_variable_reassign_ast_node();
 
 /**
  * Create a new For Loop ast_node
  */
-for_loop_ast_node *create_for_loop_ast_node();
+for_loop_ast_node* create_for_loop_ast_node();
 
 /**
  * Create a new  Function Callee ast_node
  */
-function_callee_ast_node *create_function_callee_ast_node();
+function_callee_ast_node* create_function_callee_ast_node();
 
 /**
  * Create a new Function Return ast_node
  */
-function_return_ast_node *create_function_return_ast_node();
+function_return_ast_node* create_function_return_ast_node();
 
 /**
  * Create a new Statement ast_node
  */
-statement_ast_node *create_statement_ast_node();
+statement_ast_node* create_statement_ast_node();
 
 /**
  * Creates a new Expression ast_node
@@ -508,27 +508,27 @@ statement_ast_node *create_statement_ast_node();
  * 1 + 2
  * (a + b) - (1 + b)
  */
-expression_ast_node *create_expression_ast_node();
+expression_ast_node* create_expression_ast_node();
 
 /**
  * Creates a new if statement ast_node
  */
-if_statement_ast_node *create_if_statement_ast_node();
+if_statement_ast_node* create_if_statement_ast_node();
 
 /**
  * Creates a new while loop ast_node
  */
-while_ast_node *create_while_ast_node();
+while_ast_node* create_while_ast_node();
 
 /**
  * Creates a new match case ast_node
  */
-match_case_ast_node *create_match_case_ast_node();
+match_case_ast_node* create_match_case_ast_node();
 
 /**
  * Creates a new match ast_node
  */
-match_ast_node *create_match_ast_node();
+match_ast_node* create_match_ast_node();
 
 /**
  * Creates a new Variable Define ast_node
@@ -537,7 +537,7 @@ match_ast_node *create_match_ast_node();
  * int y;
  * double z;
  */
-variable_define_ast_node *create_variable_define_ast_node();
+variable_define_ast_node* create_variable_define_ast_node();
 
 /**
  * Creates a new Variable Declaration ast_node
@@ -545,14 +545,14 @@ variable_define_ast_node *create_variable_define_ast_node();
  * int x = 5;
  * int d = 5 + 9;
  */
-variable_declare_ast_node *create_variable_declare_ast_node();
+variable_declare_ast_node* create_variable_declare_ast_node();
 
 /**
  * Creates a new Function Argument ast_node
  *
  * fn whatever(int x, int y, int z = 23): int {...
  */
-function_argument_ast_node *create_function_argument_ast_node();
+function_argument_ast_node* create_function_argument_ast_node();
 
 /**
  * Creates a new Block ast_node
@@ -561,7 +561,7 @@ function_argument_ast_node *create_function_argument_ast_node();
  *    statement;
  * }
  */
-block_ast_node *create_block_ast_node();
+block_ast_node* create_block_ast_node();
 
 /**
  * Creates a new Function ast_node
@@ -570,14 +570,14 @@ block_ast_node *create_block_ast_node();
  *     ret x + y;
  * }
  */
-function_ast_node *create_function_ast_node();
+function_ast_node* create_function_ast_node();
 
 /**
  * Creates a new Function Prototype ast_node
  *
  * fn whatever(int x, int y): int
  */
-function_prototype_ast_node *create_function_prototype_ast_node();
+function_prototype_ast_node* create_function_prototype_ast_node();
 
 /**
  * Destroys the given enumerated structure ast node
@@ -746,7 +746,7 @@ void remove_ast_node(ast_node *ast_node);
  * @param token_stream the token stream to parse
  * @return instance of parser
  */
-parser *create_parser(vector *token_stream);
+parser* create_parser(vector *token_stream);
 
 /**
  * Advances to the next token
@@ -754,8 +754,8 @@ parser *create_parser(vector *token_stream);
  * @param parser parser instance
  * @return the token we consumed
  */
-token *consume_token(parser *parser);
-
+token* consume_token(parser *parser);
+ 
 /**
  * Peek at the token that is {@ahead} tokens
  * away in the token stream
@@ -764,7 +764,7 @@ token *consume_token(parser *parser);
  * @param ahead how far ahead to peek
  * @return the token peeking at
  */
-token *peek_at_token_stream(parser *parser, int ahead);
+token* peek_at_token_stream(parser *parser, int ahead);
 
 /**
  * Checks if the next token type is the same as the given
@@ -774,7 +774,7 @@ token *peek_at_token_stream(parser *parser, int ahead);
  * @param type the type to match
  * @return the token we matched
  */
-token *expect_token_type(parser *parser, token_type type);
+token* expect_token_type(parser *parser, token_type type);
 
 /**
  * Checks if the next tokens content is the same as the given
@@ -784,7 +784,7 @@ token *expect_token_type(parser *parser, token_type type);
  * @param type the type to match
  * @return the token we matched
  */
-token *expect_token_content(parser *parser, char *content);
+token* expect_token_content(parser *parser, char *content);
 
 /**
  * Checks if the next token type is the same as the given
@@ -796,7 +796,7 @@ token *expect_token_content(parser *parser, char *content);
  * @param content content to match
  * @return the token we matched
  */
-token *expect_token_type_and_content(parser *parser, token_type type, char *content);
+token* expect_token_type_and_content(parser *parser, token_type type, char *content);
 
 /**
  * Checks if the current token type is the same as the given
@@ -806,7 +806,7 @@ token *expect_token_type_and_content(parser *parser, token_type type, char *cont
  * @param type the type to match
  * @return the token we matched
  */
-token *match_token_type(parser *parser, token_type type);
+token* match_token_type(parser *parser, token_type type);
 
 /**
  * Checks if the current tokens content is the same as the given
@@ -816,7 +816,7 @@ token *match_token_type(parser *parser, token_type type);
  * @param type the type to match
  * @return the token we matched
  */
-token *match_token_content(parser *parser, char *content);
+token* match_token_content(parser *parser, char *content);
 
 /**
  * Checks if the current token type is the same as the given
@@ -828,7 +828,7 @@ token *match_token_content(parser *parser, char *content);
  * @param content content to match
  * @return the token we matched
  */
-token *match_token_type_and_content(parser *parser, token_type type, char *content);
+token* match_token_type_and_content(parser *parser, token_type type, char *content);
 
 /**
  * if the token at the given index is the same type as the given one
@@ -860,12 +860,12 @@ bool check_token_type_and_content(parser *parser, token_type type, char* content
  * @param parser the parser instance
  * @return the expression parsed
  */
-expression_ast_node *parse_expression_ast_node(parser *parser);
+expression_ast_node* parse_expression_ast_node(parser *parser);
 
 /**
  * Parses a For Loop statement
  */
-statement_ast_node *parse_for_loop_ast_node(parser *parser);
+statement_ast_node* parse_for_loop_ast_node(parser *parser);
 
 /**
  * Prints the type and content of the current token
@@ -878,35 +878,35 @@ void print_current_token(parser *parser);
  * @param param the parser instance
  * @param global if the variable is globally declared
  */
-void *parse_variable_ast_node(parser *parser, bool global);
+void* parse_variable_ast_node(parser *parser, bool global);
 
 /**
  * Parses a block of statements
  *
  * @param parser the parser instance
  */
-block_ast_node *parse_block_ast_node(parser *parser);
+block_ast_node* parse_block_ast_node(parser *parser);
 
 /**
  * Parses an infinite loop ast node
  * @param  parser the parser to parse with
  * @return        the loop node as a statement node
  */
-statement_ast_node *parse_infinite_loop_ast_node(parser *parser);
+statement_ast_node* parse_infinite_loop_ast_node(parser *parser);
 
 /**
  * Parses a function
  *
  * @param parser the parser instance
  */
-function_ast_node *parse_function_ast_node(parser *parser);
+function_ast_node* parse_function_ast_node(parser *parser);
 
 /**
  * Parses a function call
  *
  * @param parser the parser instance
  */
-function_callee_ast_node *parse_function_callee_ast_node(parser *parser);
+function_callee_ast_node* parse_function_callee_ast_node(parser *parser);
 
 /**
  * Parses statements, function calls, while
@@ -914,7 +914,7 @@ function_callee_ast_node *parse_function_callee_ast_node(parser *parser);
  *
  * @param parser the parser instance
  */
-statement_ast_node *parse_statement_ast_node(parser *parser);
+statement_ast_node* parse_statement_ast_node(parser *parser);
 
 /**
  * Returns if the given token is a data type
@@ -930,21 +930,21 @@ bool check_token_type_is_valid_data_type(parser *parser, token *tok);
  * @param  parser the parser to parse with
  * @return        the return ast node
  */
-function_return_ast_node *parse_return_statement_ast_node(parser *parser);
+function_return_ast_node* parse_return_statement_ast_node(parser *parser);
 
 /**
  * Parses a structure node
  * @param  parser the parser the parse with
  * @return        the sturct node
  */
-structure_ast_node *parse_structure_ast_node(parser *parser);
+structure_ast_node* parse_structure_ast_node(parser *parser);
 
 /**
  * Parses a variable reassignment
  *
  * @parser the parser instance
  */
-variable_reassignment_ast_node *parse_reassignment_statement_ast_node(parser *parser);
+variable_reassignment_ast_node* parse_reassignment_statement_ast_node(parser *parser);
 
 /**
  * Start parsing

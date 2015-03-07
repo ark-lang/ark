@@ -19,7 +19,7 @@ typedef struct {
  * Creates an instance of a scanner
  * @return the scanner
  */
-scanner *create_scanner();
+scanner* create_scanner();
 
 /**
  * Reads the given file into

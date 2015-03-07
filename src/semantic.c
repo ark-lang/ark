@@ -1,6 +1,6 @@
 #include "semantic.h"
 
-semantic *create_semantic_analyser(vector *tree) {
+semantic* create_semantic_analyser(vector *tree) {
     semantic *self = safe_malloc(sizeof(*self));
     self->tree = tree;
     self->current_node = 0;

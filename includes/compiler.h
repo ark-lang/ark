@@ -59,7 +59,7 @@ typedef struct {
  * (it holds information about a variable, ok?)
  * @return the variable information holdy thing we just made
  */
-variable_info *create_variable_info();
+variable_info* create_variable_info();
 
 /**
  * Destroys variable information
@@ -71,7 +71,7 @@ void destroy_variable_info(variable_info *vinfo);
  * Creates an instance of the Compiler
  * @return the compiler instance
  */
-compiler *create_compiler();
+compiler* create_compiler();
 
 /**
  * Appends an instruction to our bytecode that we

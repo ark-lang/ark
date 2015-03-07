@@ -1,6 +1,6 @@
 #include "compiler.h"
 
-compiler *create_compiler() {
+compiler* create_compiler() {
 	compiler *self = safe_malloc(sizeof(*self));
 	self->ast = NULL;
 	self->current_instruction = 0;

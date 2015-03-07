@@ -18,7 +18,7 @@ static int hashString(char *str, int max_hash) {
 	return hash;
 }
  
-hashmap *create_hashmap(int size) {
+hashmap* create_hashmap(int size) {
 	hashmap *map = safe_malloc(sizeof(hashmap));
 	map->size = size;
 	map->fields = safe_malloc(sizeof(hashmap_field) * size);
@@ -95,7 +95,7 @@ void set_value_at_key(hashmap *map, char *key, void *value) {
 	}
 }
  
-void *get_value_at_key(hashmap *map, char *key) {
+void* get_value_at_key(hashmap *map, char *key) {
 	int hash = hashString(key, map->size - 1);
 	hashmap_field *field = map->fields + hash;
 	hashmap_entry *entry;

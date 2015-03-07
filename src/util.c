@@ -30,13 +30,13 @@ void primary_message(const char *fmt, ...) {
 	va_end(arg);
 } 
 
-const char *get_filename_ext(const char *filename) {
+const char* get_filename_ext(const char *filename) {
 	const char *dot = strrchr(filename, '.');
 	if (!dot || dot == filename) return "";
 	return dot + 1;
 }
 
-void *safe_malloc(size_t size) {
+void* safe_malloc(size_t size) {
 	void *mem_chunk = malloc(size);
 	assert(mem_chunk);
 	return mem_chunk;

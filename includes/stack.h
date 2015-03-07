@@ -25,7 +25,7 @@ typedef struct {
  * Create a new stack instance
  * @return the instance of the stack created
  */
-Stack *create_stack();
+Stack* create_stack();
 
 /**
  * Push a value to the stack

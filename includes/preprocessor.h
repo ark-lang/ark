@@ -18,7 +18,7 @@ typedef struct {
 	int token_index;
 } preprocessor;
 
-preprocessor *create_preprocessor(vector *token_stream);
+preprocessor* create_preprocessor(vector *token_stream);
 
 void start_preprocessing(preprocessor *self);
 

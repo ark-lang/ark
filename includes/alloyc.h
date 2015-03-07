@@ -42,7 +42,7 @@ typedef struct {
  * @argv argument list
  * @return instance of alloyc
  */
-alloyc *create_alloyc(int argc, char** argv);
+alloyc* create_alloyc(int argc, char** argv);
 
 /**
  * Start the alloyc stuff

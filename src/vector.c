@@ -1,6 +1,6 @@
 #include "vector.h"
 
-vector *create_vector() {
+vector* create_vector() {
 	vector *vec = safe_malloc(sizeof(*vec));
 	vec->size = 0;
 	vec->max_size = 2;
