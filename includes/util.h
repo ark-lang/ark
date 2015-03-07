@@ -48,13 +48,13 @@ void primary_message(const char *fmt, ...);
  * @param  filename the filename to get the extension
  * @return          the extension of the file given
  */
-const char *get_filename_ext(const char *filename);
+const char* get_filename_ext(const char *filename);
 
 /**
  * Safe malloc, dies if allocation fails
  * @param  size size of space to allocate
  * @return pointer to allocated data
  */
-void *safe_malloc(size_t size);
+void* safe_malloc(size_t size);
 
 #endif // BOOL_H

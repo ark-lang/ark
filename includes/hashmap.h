@@ -27,7 +27,7 @@ typedef struct {
  * @param int the size of the hashmap
  * @return the hashmap instance
  */
-hashmap *create_hashmap(int);
+hashmap* create_hashmap(int);
 
 /**
  * Destroys the given hashmap
@@ -41,7 +41,7 @@ void destroy_hashmap(hashmap *map);
  * @param str the key to search for
  * @return the value in the map at the key
  */
-void *get_value_at_key(hashmap *map, char* str);
+void* get_value_at_key(hashmap *map, char* str);
 
 /**
  * Sets the value at the given key

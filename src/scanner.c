@@ -1,6 +1,6 @@
 #include "scanner.h"
 
-scanner *create_scanner() {
+scanner* create_scanner() {
 	scanner *self = safe_malloc(sizeof(*self));
 	self->contents = NULL;
 	return self;

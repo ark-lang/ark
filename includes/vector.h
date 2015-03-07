@@ -25,7 +25,7 @@ typedef struct {
  * 
  * @return the vector instance
  */
-vector *create_vector();
+vector* create_vector();
 
 /**
  * Push a vector_item into the given vector

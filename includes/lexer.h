@@ -53,7 +53,7 @@ typedef struct {
  * 
  * @return allocate memory for token
  */
-token *create_token(lexer *lexer);
+token* create_token(lexer *lexer);
 
 /**
  * Get the name of the given token
@@ -94,7 +94,7 @@ char* get_line_number_context(vector *stream, int line_num);
  * @param input the input to lex
  * @return instance of Lexer
  */
-lexer *create_lexer(char* input);
+lexer* create_lexer(char* input);
 
 /**
  * Simple substring, basically extracts the token from

@@ -7,7 +7,7 @@ static const char* TOKEN_NAMES[] = {
 	"STRING", "CHARACTER", "UNKNOWN"
 };
 
-token *create_token(lexer *lexer) {
+token* create_token(lexer *lexer) {
 	token *tok = safe_malloc(sizeof(*tok));
 	tok->type = UNKNOWN;
 	tok->content = NULL;
@@ -26,7 +26,7 @@ void destroy_token(token *token) {
 	}
 }
 
-lexer *create_lexer(char* input) {
+lexer* create_lexer(char* input) {
 	lexer *lexer = safe_malloc(sizeof(*lexer));
 	lexer->input = input;
 	lexer->input_size = strlen(lexer->input);

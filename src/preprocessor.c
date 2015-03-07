@@ -15,7 +15,7 @@
  * c's preproccessor just does a replace on all instances.
  */
 
-preprocessor *create_preprocessor(vector *token_stream) {
+preprocessor* create_preprocessor(vector *token_stream) {
 	preprocessor *self = safe_malloc(sizeof(*self));
 	self->token_stream = token_stream;
 	self->token_index = 0;

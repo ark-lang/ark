@@ -32,7 +32,7 @@ void parser_error(parser *parser, char *msg, token *tok, bool fatal_error) {
 	}
 }
 
-void *allocate_ast_node(size_t sz, const char* readable_type) {
+void* allocate_ast_node(size_t sz, const char* readable_type) {
 	// dont use safe malloc here because we can provide additional
 	// error info
 	void *ret = malloc(sz);
@@ -43,7 +43,7 @@ void *allocate_ast_node(size_t sz, const char* readable_type) {
 	return ret;
 }
 
-function_owner *create_function_owner_ast_node() {
+function_owner* create_function_owner_ast_node() {
 	function_owner *fo = allocate_ast_node(sizeof(function_owner), "function owner");
 	fo->owner = NULL;
 	fo->alias = NULL;
@@ -51,43 +51,43 @@ function_owner *create_function_owner_ast_node() {
 	return fo;
 }
 
-infinite_loop_ast_node *create_infinite_loop_ast_node() {
+infinite_loop_ast_node* create_infinite_loop_ast_node() {
 	infinite_loop_ast_node *iln = allocate_ast_node(sizeof(infinite_loop_ast_node), "infinite loop");
 	iln->body = NULL;
 	return iln;
 }
 
-break_ast_node *create_break_ast_node() {
+break_ast_node* create_break_ast_node() {
 	break_ast_node *bn = allocate_ast_node(sizeof(break_ast_node), "break");
 	return bn;
 }
 
-continue_ast_node *create_continue_ast_node() {
+continue_ast_node* create_continue_ast_node() {
 	continue_ast_node *cn = allocate_ast_node(sizeof(continue_ast_node), "continue");
 	return cn;
 }
 
-variable_reassignment_ast_node *create_variable_reassign_ast_node() {
+variable_reassignment_ast_node* create_variable_reassign_ast_node() {
 	variable_reassignment_ast_node *vrn = allocate_ast_node(sizeof(variable_reassignment_ast_node), "variable reassignment");
 	vrn->name = NULL;
 	vrn->expr = NULL;
 	return vrn;
 }
 
-statement_ast_node *create_statement_ast_node(void *data, ast_node_type type) {
+statement_ast_node* create_statement_ast_node(void *data, ast_node_type type) {
 	statement_ast_node *sn = allocate_ast_node(sizeof(statement_ast_node), "statement");
 	sn->data = data;
 	sn->type = type;
 	return sn;
 }
 
-function_return_ast_node *create_function_return_ast_node() {
+function_return_ast_node* create_function_return_ast_node() {
 	function_return_ast_node *frn = allocate_ast_node(sizeof(function_return_ast_node), "function return");
 	frn->return_val = NULL;
 	return frn;
 }
 
-expression_ast_node *create_expression_ast_node() {
+expression_ast_node* create_expression_ast_node() {
 	expression_ast_node *expr = allocate_ast_node(sizeof(expression_ast_node), "expression");
 	expr->value = NULL;
 	expr->lhand = NULL;
@@ -96,7 +96,7 @@ expression_ast_node *create_expression_ast_node() {
 	return expr;
 }
 
-variable_define_ast_node *create_variable_define_ast_node() {
+variable_define_ast_node* create_variable_define_ast_node() {
 	variable_define_ast_node *vdn = allocate_ast_node(sizeof(variable_define_ast_node), "variable definition");
 	vdn->name = NULL;
 	vdn->is_constant = false;
@@ -104,95 +104,95 @@ variable_define_ast_node *create_variable_define_ast_node() {
 	return vdn;
 }
 
-variable_declare_ast_node *create_variable_declare_ast_node() {
+variable_declare_ast_node* create_variable_declare_ast_node() {
 	variable_declare_ast_node *vdn = allocate_ast_node(sizeof(variable_declare_ast_node), "variable declaration");
 	vdn->vdn = NULL;
 	vdn->expression = NULL;
 	return vdn;
 }
 
-function_argument_ast_node *create_function_argument_ast_node() {
+function_argument_ast_node* create_function_argument_ast_node() {
 	function_argument_ast_node *fan = allocate_ast_node(sizeof(function_argument_ast_node), "function argument");
 	fan->name = NULL;
 	fan->value = NULL;
 	return fan;
 }
 
-function_callee_ast_node *create_function_callee_ast_node() {
+function_callee_ast_node* create_function_callee_ast_node() {
 	function_callee_ast_node *fcn = allocate_ast_node(sizeof(function_callee_ast_node), "function callee");
 	fcn->callee = NULL;
 	fcn->args = NULL;
 	return fcn;
 }
 
-block_ast_node *create_block_ast_node() {
+block_ast_node* create_block_ast_node() {
 	block_ast_node *bn = allocate_ast_node(sizeof(block_ast_node), "block");
 	bn->statements = NULL;
 	return bn;
 }
 
-function_prototype_ast_node *create_function_prototype_ast_node() {
+function_prototype_ast_node* create_function_prototype_ast_node() {
 	function_prototype_ast_node *fpn = allocate_ast_node(sizeof(function_prototype_ast_node), "function prototype");
 	fpn->args = NULL;
 	fpn->name = NULL;
 	return fpn;
 }
 
-enumeration_ast_node *create_enumeration_ast_node() {
+enumeration_ast_node* create_enumeration_ast_node() {
 	enumeration_ast_node *en = allocate_ast_node(sizeof(enumeration_ast_node), "enum");
 	en->name = NULL;
 	en->enum_items = create_vector();
 	return en;
 }
 
-enumerated_structure_ast_node *create_enumerated_structure_ast_node() {
+enumerated_structure_ast_node* create_enumerated_structure_ast_node() {
 	enumerated_structure_ast_node *es = allocate_ast_node(sizeof(enumeration_ast_node), "enum");
 	es->name = NULL;
 	es->structs = NULL;
 	return es;
 }
 
-enum_item *create_enum_item(char *name, int value) {
+enum_item* create_enum_item(char *name, int value) {
 	enum_item *ei = allocate_ast_node(sizeof(enum_item), "enum item");
 	ei->name = name;
 	ei->value = value;
 	return ei;
 }
 
-function_ast_node *create_function_ast_node() {
+function_ast_node* create_function_ast_node() {
 	function_ast_node *fn = allocate_ast_node(sizeof(function_ast_node), "function");
 	fn->fpn = NULL;
 	fn->body = NULL;
 	return fn;
 }
 
-for_loop_ast_node *create_for_loop_ast_node() {
+for_loop_ast_node* create_for_loop_ast_node() {
 	for_loop_ast_node *fln = allocate_ast_node(sizeof(for_loop_ast_node), "for loop");
 	return fln;
 }
 
-structure_ast_node *create_structure_ast_node() {
+structure_ast_node* create_structure_ast_node() {
 	structure_ast_node *sn = allocate_ast_node(sizeof(structure_ast_node), "struct");
 	sn->statements = create_vector();
 	return sn;
 }
 
-if_statement_ast_node *create_if_statement_ast_node() {
+if_statement_ast_node* create_if_statement_ast_node() {
 	if_statement_ast_node *isn = allocate_ast_node(sizeof(if_statement_ast_node), "if statement");
 	return isn;
 }
 
-while_ast_node *create_while_ast_node() {
+while_ast_node* create_while_ast_node() {
 	while_ast_node *wn = allocate_ast_node(sizeof(while_ast_node), "while loop");
 	return wn;
 }
 
-match_case_ast_node *create_match_case_ast_node() {
+match_case_ast_node* create_match_case_ast_node() {
 	match_case_ast_node *mcn = allocate_ast_node(sizeof(match_case_ast_node), "match case");
 	return mcn;
 }
 
-match_ast_node *create_match_ast_node() {
+match_ast_node* create_match_ast_node() {
 	match_ast_node *mn = allocate_ast_node(sizeof(match_ast_node), "match");
 	mn->cases = create_vector();
 	return mn;
@@ -450,7 +450,7 @@ void destroy_enum_item(enum_item *ei) {
 
 /** END AST_NODE FUNCTIONS */
 
-parser *create_parser(vector *token_stream) {
+parser* create_parser(vector *token_stream) {
 	parser *parser = safe_malloc(sizeof(*parser));
 	parser->token_stream = token_stream;
 	parser->parse_tree = create_vector();
@@ -461,16 +461,16 @@ parser *create_parser(vector *token_stream) {
 	return parser;
 }
 
-token *consume_token(parser *parser) {
+token* consume_token(parser *parser) {
 	// return the token we are consuming, then increment token index
 	return get_vector_item(parser->token_stream, parser->token_index++);
 }
 
-token *peek_at_token_stream(parser *parser, int ahead) {
+token* peek_at_token_stream(parser *parser, int ahead) {
 	return get_vector_item(parser->token_stream, parser->token_index + ahead);
 }
 
-token *expect_token_type(parser *parser, token_type type) {
+token* expect_token_type(parser *parser, token_type type) {
 	token *tok = peek_at_token_stream(parser, 1);
 	if (tok->type == type) {
 		return consume_token(parser);
@@ -481,7 +481,7 @@ token *expect_token_type(parser *parser, token_type type) {
 	}
 }
 
-token *expect_token_content(parser *parser, char *content) {
+token* expect_token_content(parser *parser, char *content) {
 	token *tok = peek_at_token_stream(parser, 1);
 	if (!strcmp(tok->content, content)) {
 		return consume_token(parser);
@@ -492,7 +492,7 @@ token *expect_token_content(parser *parser, char *content) {
 	}
 }
 
-token *expect_token_type_and_content(parser *parser, token_type type, char *content) {
+token* expect_token_type_and_content(parser *parser, token_type type, char *content) {
 	token *tok = peek_at_token_stream(parser, 1);
 	if (tok->type == type && !strcmp(tok->content, content)) {
 		return consume_token(parser);
@@ -503,7 +503,7 @@ token *expect_token_type_and_content(parser *parser, token_type type, char *cont
 	}
 }
 
-token *match_token_type(parser *parser, token_type type) {
+token* match_token_type(parser *parser, token_type type) {
 	token *tok = peek_at_token_stream(parser, 0);
 	if (tok->type == type) {
 		return consume_token(parser);
@@ -514,7 +514,7 @@ token *match_token_type(parser *parser, token_type type) {
 	}
 }
 
-token *match_token_content(parser *parser, char *content) {
+token* match_token_content(parser *parser, char *content) {
 	token *tok = peek_at_token_stream(parser, 0);
 	if (!strcmp(tok->content, content)) {
 		return consume_token(parser);
@@ -525,7 +525,7 @@ token *match_token_content(parser *parser, char *content) {
 	}
 }
 
-token *match_token_type_and_content(parser *parser, token_type type, char *content) {
+token* match_token_type_and_content(parser *parser, token_type type, char *content) {
 	token *tok = peek_at_token_stream(parser, 0);
 	if (tok->type == type && !strcmp(tok->content, content)) {
 		return consume_token(parser);
@@ -566,7 +566,7 @@ int parse_operand(parser *parser) {
 	return OPER_ERRORNEOUS;
 }
 
-while_ast_node *parse_while_loop(parser *parser) {
+while_ast_node* parse_while_loop(parser *parser) {
 	while_ast_node *while_loop = create_while_ast_node();
 
 	match_token_type_and_content(parser, IDENTIFIER, WHILE_LOOP_KEYWORD);
@@ -577,7 +577,7 @@ while_ast_node *parse_while_loop(parser *parser) {
 	return while_loop;
 }
 
-if_statement_ast_node *parse_if_statement_ast_node(parser *parser) {
+if_statement_ast_node* parse_if_statement_ast_node(parser *parser) {
 	if_statement_ast_node *en = create_if_statement_ast_node();
 
 	match_token_type_and_content(parser, IDENTIFIER, IF_KEYWORD);
@@ -595,7 +595,7 @@ if_statement_ast_node *parse_if_statement_ast_node(parser *parser) {
 	return en;
 }
 
-match_case_ast_node *parse_match_case_ast_node(parser *parser) {
+match_case_ast_node* parse_match_case_ast_node(parser *parser) {
 	match_case_ast_node *case_node = create_match_case_ast_node();
 
 	case_node->condition = parse_expression_ast_node(parser);
@@ -604,7 +604,7 @@ match_case_ast_node *parse_match_case_ast_node(parser *parser) {
 	return case_node;
 }
 
-match_ast_node *parse_match_ast_node(parser *parser) {
+match_ast_node* parse_match_ast_node(parser *parser) {
 	match_ast_node *mn = create_match_ast_node();
 
 	match_token_type_and_content(parser, IDENTIFIER, MATCH_KEYWORD);
@@ -633,7 +633,7 @@ match_ast_node *parse_match_ast_node(parser *parser) {
 	return mn;
 }
 
-enumeration_ast_node *parse_enumeration_ast_node(parser *parser) {
+enumeration_ast_node* parse_enumeration_ast_node(parser *parser) {
 	enumeration_ast_node *en = create_enumeration_ast_node();
 
 	match_token_type_and_content(parser, IDENTIFIER, ENUM_KEYWORD); // ENUM
@@ -744,7 +744,7 @@ enumeration_ast_node *parse_enumeration_ast_node(parser *parser) {
 	return en;
 }
 
-enumerated_structure_ast_node *parse_enumerated_structure_ast_node(parser *parser) {
+enumerated_structure_ast_node* parse_enumerated_structure_ast_node(parser *parser) {
 	enumerated_structure_ast_node *es = create_enumerated_structure_ast_node();
 
 	match_token_type_and_content(parser, IDENTIFIER, ANON_STRUCT_KEYWORD);
@@ -767,7 +767,7 @@ enumerated_structure_ast_node *parse_enumerated_structure_ast_node(parser *parse
 	return es;
 }
 
-structure_ast_node *parse_structure_ast_node(parser *parser) {
+structure_ast_node* parse_structure_ast_node(parser *parser) {
 	match_token_type_and_content(parser, IDENTIFIER, STRUCT_KEYWORD);
 	token *struct_name = match_token_type(parser, IDENTIFIER);
 
@@ -792,7 +792,7 @@ structure_ast_node *parse_structure_ast_node(parser *parser) {
 	return sn;
 }
 
-statement_ast_node *parse_for_loop_ast_node(parser *parser) {
+statement_ast_node* parse_for_loop_ast_node(parser *parser) {
 	// for token
 	match_token_type_and_content(parser, IDENTIFIER, FOR_LOOP_KEYWORD);			// FOR KEYWORD
 
@@ -875,14 +875,14 @@ statement_ast_node *parse_for_loop_ast_node(parser *parser) {
 	return NULL;
 }
 
-expression_ast_node *parse_number_expression(parser *parser) {
+expression_ast_node* parse_number_expression(parser *parser) {
 	expression_ast_node *expr = create_expression_ast_node(); // the final expression
 	expr->type = EXPR_NUMBER;
 	expr->value = consume_token(parser);
 	return expr;
 }
 
-expression_ast_node *parse_paren_expression(parser *parser) {
+expression_ast_node* parse_paren_expression(parser *parser) {
 	expression_ast_node *expr = create_expression_ast_node(); // the final expression
 	if (check_token_type_and_content(parser, SEPARATOR, "(", 0)) {
 		consume_token(parser);
@@ -904,21 +904,21 @@ expression_ast_node *parse_paren_expression(parser *parser) {
 	return NULL;
 }
 
-expression_ast_node *parse_string_expression(parser *parser) {
+expression_ast_node* parse_string_expression(parser *parser) {
 	expression_ast_node *expr = create_expression_ast_node(); // the final expression
 	expr->type = EXPR_STRING;
 	expr->value = consume_token(parser);
 	return expr;
 }
 
-expression_ast_node *parse_character_expression(parser *parser) {
+expression_ast_node* parse_character_expression(parser *parser) {
 	expression_ast_node *expr = create_expression_ast_node(); // the final expression
 	expr->type = EXPR_CHARACTER;
 	expr->value = consume_token(parser);
 	return expr;
 }
 
-expression_ast_node *parse_identifier_expression(parser *parser) {
+expression_ast_node* parse_identifier_expression(parser *parser) {
 	expression_ast_node *expr = create_expression_ast_node(); // the final expression
 
 	// function call
@@ -936,7 +936,7 @@ expression_ast_node *parse_identifier_expression(parser *parser) {
 	return expr;
 }
 
-expression_ast_node *parse_expression_ast_node(parser *parser) {
+expression_ast_node* parse_expression_ast_node(parser *parser) {
 
 	// we can probably replace the above functions in the standard library with
 	// a macro which does the translation for us
@@ -1020,7 +1020,7 @@ expression_ast_node *parse_expression_ast_node(parser *parser) {
 	return NULL;
 }
 
-void *parse_variable_ast_node(parser *parser, bool global) {
+void* parse_variable_ast_node(parser *parser, bool global) {
 	bool is_constant = false;
 
 	if (check_token_type_and_content(parser, IDENTIFIER, CONSTANT_KEYWORD, 0)) {
@@ -1090,7 +1090,7 @@ void *parse_variable_ast_node(parser *parser, bool global) {
 	}
 }
 
-block_ast_node *parse_block_ast_node(parser *parser) {
+block_ast_node* parse_block_ast_node(parser *parser) {
 	block_ast_node *block = create_block_ast_node();
 	block->statements = create_vector();
 	block->single_statement = false;
@@ -1121,7 +1121,7 @@ block_ast_node *parse_block_ast_node(parser *parser) {
 	return block;
 }
 
-statement_ast_node *parse_infinite_loop_ast_node(parser *parser) {
+statement_ast_node* parse_infinite_loop_ast_node(parser *parser) {
 	match_token_type(parser, IDENTIFIER);
 
 	block_ast_node *body = parse_block_ast_node(parser);
@@ -1132,7 +1132,7 @@ statement_ast_node *parse_infinite_loop_ast_node(parser *parser) {
 	return create_statement_ast_node(iln, INFINITE_LOOP_AST_NODE);
 }
 
-function_ast_node *parse_function_ast_node(parser *parser) {
+function_ast_node* parse_function_ast_node(parser *parser) {
 	match_token_type(parser, IDENTIFIER);	// consume the fn keyword
 
 	function_owner *fo = NULL;
@@ -1307,7 +1307,7 @@ function_ast_node *parse_function_ast_node(parser *parser) {
 	return NULL;
 }
 
-function_callee_ast_node *parse_function_callee_ast_node(parser *parser) {
+function_callee_ast_node* parse_function_callee_ast_node(parser *parser) {
 	// consume function name
 	token *callee = match_token_type(parser, IDENTIFIER);
 
@@ -1356,7 +1356,7 @@ function_callee_ast_node *parse_function_callee_ast_node(parser *parser) {
 	return NULL;
 }
 
-function_return_ast_node *parse_return_statement_ast_node(parser *parser) {
+function_return_ast_node* parse_return_statement_ast_node(parser *parser) {
 	// consume the return keyword
 	match_token_type_and_content(parser, IDENTIFIER, RETURN_KEYWORD);
 
@@ -1370,7 +1370,7 @@ function_return_ast_node *parse_return_statement_ast_node(parser *parser) {
 	return NULL;
 }
 
-statement_ast_node *parse_statement_ast_node(parser *parser) {
+statement_ast_node* parse_statement_ast_node(parser *parser) {
 	// RETURN STATEMENTS
 	if (check_token_type_and_content(parser, IDENTIFIER, RETURN_KEYWORD, 0)) {
 		return create_statement_ast_node(parse_return_statement_ast_node(parser), FUNCTION_RET_AST_NODE);
@@ -1433,7 +1433,7 @@ statement_ast_node *parse_statement_ast_node(parser *parser) {
 	return NULL;
 }
 
-variable_reassignment_ast_node *parse_reassignment_statement_ast_node(parser *parser) {
+variable_reassignment_ast_node* parse_reassignment_statement_ast_node(parser *parser) {
 	if (check_token_type(parser, IDENTIFIER, 0)) {
 		token *variableName = consume_token(parser);
 

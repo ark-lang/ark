@@ -32,7 +32,7 @@ static void parse_argument(argument *arg) {
 	}
 }
 
-alloyc *create_alloyc(int argc, char** argv) {
+alloyc* create_alloyc(int argc, char** argv) {
 	alloyc *self = safe_malloc(sizeof(*self));
 	self->filename = NULL;
 	self->scanner = NULL;

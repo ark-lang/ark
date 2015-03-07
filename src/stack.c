@@ -1,6 +1,6 @@
 #include "stack.h"
 
-Stack *create_stack() {
+Stack* create_stack() {
 	Stack *stack = safe_malloc(sizeof(*stack));
 	stack->default_stack_size = 32;
 	stack->stack_pointer = -1;
