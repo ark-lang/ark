@@ -1347,7 +1347,6 @@ function_callee_ast_node *parse_function_callee_ast_node(parser *parser) {
 		function_callee_ast_node *fcn = create_function_callee_ast_node();
 		fcn->callee = callee->content;
 		fcn->args = args;
-		prepare_ast_node(parser, fcn, FUNCTION_CALLEE_AST_NODE);
 
 		return fcn;
 	}
@@ -1475,9 +1474,6 @@ void start_parsing_token_stream(parser *parser) {
 				}
 				else if (check_token_type_and_content(parser, OPERATOR, "=", 1)) {
 					parse_reassignment_statement_ast_node(parser);
-				}
-				else if (check_token_type_and_content(parser, SEPARATOR, "(", 1)) {
-					prepare_ast_node(parser, parse_function_callee_ast_node(parser), FUNCTION_CALLEE_AST_NODE);
 				}
 				else {
 					parse_variable_ast_node(parser, true);
