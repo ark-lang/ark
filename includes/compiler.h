@@ -36,27 +36,27 @@ typedef struct {
 	int current_instruction;
 } compiler;
 
-void append_to_file(compiler *self, char *str);
-
-void emit_function(compiler *self, function_ast_node *fan);
-
-/**
- * Creates an instance of the Compiler
- * @return the compiler instance
- */
 compiler *create_compiler();
 
-/**
- * Starts the compiler
- * @param compiler the compiler instance
- * @param ast the AST to compile
- */
-void start_compiler(compiler *compiler, vector *ast);
+void append_to_file(compiler *self, char *str);
 
-/**
- * Destroys the given compiler
- * @param compiler the compiler instance to destroy
- */
-void destroy_compiler(compiler *compiler);
+void emit_expression(compiler *self, expression_ast_node *expr);
 
+void emit_variable_dec(compiler *self, variable_declare_ast_node *var);
+
+void emit_function_call(compiler *self, function_callee_ast_node *call);
+
+void emit_block(compiler *self, block_ast_node *block);
+
+void emit_arguments(compiler *self, vector *args);
+
+void emit_function(compiler *self, function_ast_node *func);
+
+void consume_ast_node(compiler *self);
+
+void consume_ast_nodes(compiler *self, int amount);
+
+void start_compiler(compiler *self, vector *ast);
+
+void destroy_compiler(compiler *self);
 #endif // compiler_H

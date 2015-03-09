@@ -33,7 +33,7 @@ void append_to_file(compiler *self, char *str) {
 }
 
 void emit_expression(compiler *self, expression_ast_node *expr) {
-
+	append_to_file(self, "0"); // THIS IS TEMPORARY TILL I REWORK THE EXPRESSIONS PARSING!!
 }
 
 void emit_variable_dec(compiler *self, variable_declare_ast_node *var) {
@@ -50,8 +50,17 @@ void emit_variable_dec(compiler *self, variable_declare_ast_node *var) {
 	append_to_file(self, var->vdn->name);
 	append_to_file(self, SPACE_CHAR);
 	append_to_file(self, EQUAL_SYM);
-
+	append_to_file(self, SPACE_CHAR);
 	emit_expression(self, var->expression);
+	append_to_file(self, SEMICOLON);
+}
+
+void emit_function_call(compiler *self, function_callee_ast_node *call) {
+	append_to_file(self, TAB);
+	append_to_file(self, call->callee);
+	append_to_file(self, OPEN_BRACKET);
+	emit_arguments(self, call->args);
+	append_to_file(self, CLOSE_BRACKET);
 }
 
 void emit_block(compiler *self, block_ast_node *block) {
@@ -62,9 +71,45 @@ void emit_block(compiler *self, block_ast_node *block) {
 			case VARIABLE_DEC_AST_NODE:
 				emit_variable_dec(self, current->data);
 				break;
+			case FUNCTION_CALLEE_AST_NODE:
+				emit_function_call(self, current->data);
+				break;
 			default:
 				printf("idk fuk off\n");
 				break;
+		}
+		append_to_file(self, NEWLINE);
+	}
+}
+
+void emit_arguments(compiler *self, vector *args) {
+	int i;
+	for (i = 0; i < args->size; i++) {
+		function_argument_ast_node *current = get_vector_item(args, i);
+
+		if (current->is_constant) {
+			append_to_file(self, CONST_KEYWORD);
+			append_to_file(self, SPACE_CHAR);
+		}
+
+		if (current->type) {
+			append_to_file(self, current->type->content);
+			append_to_file(self, SPACE_CHAR);
+		}
+
+		if (current->is_pointer) append_to_file(self, ASTERISKS);
+
+		// this could fail if we're doing a function call
+		if (current->name) {
+			append_to_file(self, current->name->content);
+		}
+		if (current->value) {
+			emit_expression(self, current->value);
+		}
+
+		if (args->size > 1 && i != args->size - 1) {
+			append_to_file(self, COMMA_SYM);
+			append_to_file(self, SPACE_CHAR);
 		}
 	}
 }
@@ -77,24 +122,7 @@ void emit_function(compiler *self, function_ast_node *func) {
 	append_to_file(self, func->fpn->name->content);
 	append_to_file(self, OPEN_BRACKET);
 
-	int i;
-	for (i = 0; i < func->fpn->args->size; i++) {
-		function_argument_ast_node *current = get_vector_item(func->fpn->args, i);
-		if (current->is_constant) {
-			append_to_file(self, CONST_KEYWORD);
-			append_to_file(self, SPACE_CHAR);
-		}
-
-		append_to_file(self, current->type->content);
-		append_to_file(self, SPACE_CHAR);
-		if (current->is_pointer) append_to_file(self, ASTERISKS);
-		append_to_file(self, current->name->content);
-
-		if (func->fpn->args->size > 1 && i != func->fpn->args->size - 1) {
-			append_to_file(self, COMMA_SYM);
-			append_to_file(self, SPACE_CHAR);
-		}
-	}
+	emit_arguments(self, func->fpn->args);	
 
 	append_to_file(self, CLOSE_BRACKET);
 	append_to_file(self, SPACE_CHAR);
