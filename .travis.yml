@@ -4,7 +4,7 @@ compiler:
 - gcc
 - clang
 
-script: make travis
+script: make
 
 notifications:
   email: false
