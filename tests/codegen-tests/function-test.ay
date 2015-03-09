@@ -1,3 +1,3 @@
 fn main(): void {
-    printf("yoloswag")
+    printf({"yoloswag\n"})
 }
