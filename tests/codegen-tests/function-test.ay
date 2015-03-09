@@ -1,3 +1,4 @@
 fn swag(int x, int y): void {
     const int ^x = 5
+    printf("this is a test")
 }
