@@ -223,6 +223,7 @@ void recognize_errorneous_token(lexer *lexer) {
 	push_token(lexer, ERRORNEOUS);
 }
 
+/** pushes a token with no content */
 void push_token(lexer *lexer, int type) {
 	token *tok = create_token(lexer);
 	tok->type = type;
@@ -230,6 +231,7 @@ void push_token(lexer *lexer, int type) {
 	push_back_item(lexer->token_stream, tok);
 }
 
+/** pushes a token with content */
 void push_token_c(lexer *lexer, int type, char *content) {
 	token *tok = create_token(lexer);
 	tok->type = type;
