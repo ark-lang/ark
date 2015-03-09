@@ -19,7 +19,8 @@
 #define NEWLINE "\n"
 #define TAB "\t"
 #define EQUAL_SYM "="
-#define SEMICOLON = ";"
+#define SEMICOLON ";"
+#define COMMA_SYM ","
 
 typedef struct {
 	vector *ast;
