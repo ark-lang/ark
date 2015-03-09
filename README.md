@@ -12,7 +12,7 @@ we highly suggest you join the IRC :)
 To build you will need:
 
  - Make 3(.81???)
- - A suitable GNU C compiler (any one of the below will do fine):
+ - A suitable GNU C compiler (any one of the below will do fine, we aren't sure about other C compilers quite yet):
    - [`clang >= 3.4.0`](http://llvm.org/releases/download.html)
    - [`gcc >= 4.8.1`](https://gcc.gnu.org/) (change `C` in the [makefile](/Makefile) to `gcc`)
 
