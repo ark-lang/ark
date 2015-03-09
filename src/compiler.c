@@ -32,23 +32,52 @@ void append_to_file(compiler *self, char *str) {
 	self->file_contents[self->file_cursor_pos] = '\0'; 
 }
 
-void emit_block(compiler *self, block_ast_node *ban) {
-	switch (ban->type) {
-		
+void emit_expression(compiler *self, expression_ast_node *expr) {
+	
+}
+
+void emit_variable_dec(compiler *self, variable_declare_ast_node *var) {
+	append_to_file(self, TAB);
+	if (var->vdn->is_constant) {
+		append_to_file(self, CONST_KEYWORD);
+		append_to_file(self, SPACE_CHAR);
+	}
+	append_to_file(self, var->vdn->type->content);
+	append_to_file(self, SPACE_CHAR);
+	if (var->vdn->is_pointer) {
+		append_to_file(self, ASTERISKS);
+	}
+	append_to_file(self, var->vdn->name);
+	append_to_file(self, SPACE_CHAR);
+	append_to_file(self, EQUAL_SYM);
+}
+
+void emit_block(compiler *self, block_ast_node *block) {
+	int i;
+	for (i = 0; i < block->statements->size; i++) {
+		statement_ast_node *current = get_vector_item(block->statements, i);
+		switch (current->type) {
+			case VARIABLE_DEC_AST_NODE:
+				emit_variable_dec(self, current->data);
+				break;
+			default:
+				printf("idk fuk off\n");
+				break;
+		}
 	}
 }
 
-void emit_function(compiler *self, function_ast_node *fan) {
-	char *return_type = fan->fpn->return_type->content;
+void emit_function(compiler *self, function_ast_node *func) {
+	char *return_type = func->fpn->return_type->content;
 
 	append_to_file(self, return_type);
 	append_to_file(self, SPACE_CHAR);
-	append_to_file(self, fan->fpn->name->content);
+	append_to_file(self, func->fpn->name->content);
 	append_to_file(self, OPEN_BRACKET);
 
 	int i;
-	for (i = 0; i < fan->fpn->args->size; i++) {
-		function_argument_ast_node *current = get_vector_item(fan->fpn->args, i);
+	for (i = 0; i < func->fpn->args->size; i++) {
+		function_argument_ast_node *current = get_vector_item(func->fpn->args, i);
 		if (current->is_constant) {
 			append_to_file(self, CONST_KEYWORD);
 			append_to_file(self, SPACE_CHAR);
@@ -64,7 +93,13 @@ void emit_function(compiler *self, function_ast_node *fan) {
 	append_to_file(self, SPACE_CHAR);
 	append_to_file(self, OPEN_BRACE);
 
-	printf("%s\n", self->file_contents);
+	append_to_file(self, NEWLINE);
+
+	emit_block(self, func->body);
+
+	append_to_file(self, NEWLINE);
+
+	append_to_file(self, CLOSE_BRACE);
 }
 
 void consume_ast_node(compiler *self) {
@@ -89,6 +124,8 @@ void start_compiler(compiler *self, vector *ast) {
 		}
 		consume_ast_node(self);
 	}
+
+	printf("%s\n", self->file_contents);
 }
 
 void destroy_compiler(compiler *self) {

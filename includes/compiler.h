@@ -16,6 +16,10 @@
 #define CLOSE_BRACE "}"
 #define CONST_KEYWORD "const"
 #define ASTERISKS "*"
+#define NEWLINE "\n"
+#define TAB "\t"
+#define EQUAL_SYM "="
+#define SEMICOLON = ";"
 
 typedef struct {
 	vector *ast;

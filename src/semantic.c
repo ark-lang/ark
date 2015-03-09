@@ -13,7 +13,6 @@ void eat_tasty_node(semantic *self) {
 
 void start_analysis(semantic *self) {
     while (self->current_node < self->tree->size) {
-        printf("yum\n");
         eat_tasty_node(self);
     }
 }
