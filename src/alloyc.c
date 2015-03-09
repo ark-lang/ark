@@ -116,6 +116,9 @@ void start_alloyc(alloyc *self) {
 
 	self->semantic = create_semantic_analyser(self->parser->parse_tree);
 	start_analysis(self->semantic);
+
+	self->compiler = create_compiler();
+	start_compiler(self->compiler, self->parser->parse_tree);
 }
 
 void destroy_alloyc(alloyc *self) {
@@ -123,5 +126,6 @@ void destroy_alloyc(alloyc *self) {
 	destroy_lexer(self->lexer);
 	destroy_parser(self->parser);
 	destroy_semantic_analyser(self->semantic);
+	destroy_compiler(self->compiler);
 	free(self);
 }

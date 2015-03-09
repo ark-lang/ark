@@ -9,19 +9,21 @@
 #include "vector.h"
 #include "hashmap.h"
 
-/**
- * For now we just assume that the code is semantically correct,
- * we should really semantically analyze everything though, but thats
- * not as fun as code generation :)
- *
- * inb4 vedant trys to remove this because hes a shithead
- */
+#define SPACE_CHAR " "
+#define OPEN_BRACKET "("
+#define CLOSE_BRACKET ")"
+#define OPEN_BRACE "{"
+#define CLOSE_BRACE "}"
+#define CONST_KEYWORD "const"
+#define ASTERISKS "*"
 
 typedef struct {
 	vector *ast;
 	vector *refs;
 	hashmap *table;
 
+    int file_size;
+    int file_cursor_pos;
 	char *file_name;
 	char *file_contents;
 
@@ -29,7 +31,9 @@ typedef struct {
 	int current_instruction;
 } compiler;
 
-void emit_function(char *function_name, block_ast_node *block);
+void append_to_file(compiler *self, char *str);
+
+void emit_function(compiler *self, function_ast_node *fan);
 
 /**
  * Creates an instance of the Compiler

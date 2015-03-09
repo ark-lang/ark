@@ -29,10 +29,6 @@
 *.hex
 bin/*
 
-# floobits stuff
-.floo
-.flooignore
-
 # Other
 builds/
 *~

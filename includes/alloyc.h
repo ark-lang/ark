@@ -31,7 +31,7 @@ typedef struct {
 	parser *parser;
 	compiler *compiler;
 	preprocessor *pproc;
-    	semantic *semantic;
+	semantic *semantic;
 	char *filename;
 } alloyc;
 
