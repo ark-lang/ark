@@ -151,15 +151,8 @@ typedef enum {
 /**
  * ast_node for an Expression
  */
-typedef struct s_Expression {
-	char type;
-	token *value;
-	function_callee_ast_node *function_call;
-	expression_pointer_option pointer_option;
-
-	struct s_Expression *lhand;
-	int operand;
-	struct s_Expression *rhand;
+typedef struct {
+	vector *expression_values;
 } expression_ast_node;
 
 /**
@@ -775,6 +768,8 @@ token *peek_at_token_stream(parser *parser, int ahead);
  * @return the token we matched
  */
 token *expect_token_type(parser *parser, token_type type);
+
+void eat_semi_colon(parser *parser);
 
 /**
  * Checks if the next tokens content is the same as the given

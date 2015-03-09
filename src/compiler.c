@@ -33,7 +33,15 @@ void append_to_file(compiler *self, char *str) {
 }
 
 void emit_expression(compiler *self, expression_ast_node *expr) {
-	append_to_file(self, "0"); // THIS IS TEMPORARY TILL I REWORK THE EXPRESSIONS PARSING!!
+	int i;
+	for (i = 0; i < expr->expression_values->size; i++) {
+		token *tok = get_vector_item(expr->expression_values, i);
+		append_to_file(self, tok->content);
+		
+		if (i != expr->expression_values->size - 1) {
+			append_to_file(self, SPACE_CHAR);
+		}
+	}
 }
 
 void emit_variable_dec(compiler *self, variable_declare_ast_node *var) {
@@ -60,12 +68,8 @@ void emit_function_call(compiler *self, function_callee_ast_node *call) {
 	append_to_file(self, call->callee);
 	append_to_file(self, OPEN_BRACKET);
 	
-	// the quote and the \n are temporary because I know that we're
-	// calling printf here
-	append_to_file(self, "\"");
+	// print args	
 	emit_arguments(self, call->args);
-	append_to_file(self, "\\n");
-	append_to_file(self, "\"");
 
 	append_to_file(self, CLOSE_BRACKET);
 	append_to_file(self, SEMICOLON);
@@ -113,6 +117,7 @@ void emit_arguments(compiler *self, vector *args) {
 		if (current->name) {
 			append_to_file(self, current->name->content);
 		}
+
 		if (current->value) {
 			emit_expression(self, current->value);
 		}
@@ -188,7 +193,7 @@ void start_compiler(compiler *self, vector *ast) {
 		}
 	}
 
-	// printf("%s\n", self->file_contents);
+	printf("%s\n", self->file_contents);
 	write_file(self);
 }
 
