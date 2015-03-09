@@ -3,8 +3,8 @@ C_FLAGS = -Wall -Iincludes/ -g
 SOURCES = src/*.c
 
 all: ${SOURCES}
-	${CC} ${C_FLAGS} ${SOURCES} -o bin/alloyc
 	mkdir -p bin
+	${CC} ${C_FLAGS} ${SOURCES} -o bin/alloyc
 
 
 # clean stuff up
