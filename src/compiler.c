@@ -59,8 +59,16 @@ void emit_function_call(compiler *self, function_callee_ast_node *call) {
 	append_to_file(self, TAB);
 	append_to_file(self, call->callee);
 	append_to_file(self, OPEN_BRACKET);
+	
+	// the quote and the \n are temporary because I know that we're
+	// calling printf here
+	append_to_file(self, "\"");
 	emit_arguments(self, call->args);
+	append_to_file(self, "\\n");
+	append_to_file(self, "\"");
+
 	append_to_file(self, CLOSE_BRACKET);
+	append_to_file(self, SEMICOLON);
 }
 
 void emit_block(compiler *self, block_ast_node *block) {
@@ -147,8 +155,25 @@ void consume_ast_nodes(compiler *self, int amount) {
 	self->current_ast_node += amount;
 }
 
+void write_file(compiler *self) {
+	FILE *file = fopen("temp.c", "w");
+	if (!file) {
+		perror("fopen: failed to open file");
+		return;
+	}
+
+	fprintf(file, "%s", self->file_contents);
+	fclose(file);
+
+	system("gcc temp.c");
+	remove("temp.c");
+}
+
 void start_compiler(compiler *self, vector *ast) {
 	self->ast = ast;
+
+	// stdio lib
+	append_to_file(self, "#include <stdio.h>" NEWLINE);
 
 	int i;
 	for (i = self->current_ast_node; i < self->ast->size; i++) {
@@ -163,7 +188,8 @@ void start_compiler(compiler *self, vector *ast) {
 		}
 	}
 
-	printf("nout: %s\n", self->file_contents);
+	// printf("%s\n", self->file_contents);
+	write_file(self);
 }
 
 void destroy_compiler(compiler *self) {
