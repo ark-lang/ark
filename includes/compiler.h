@@ -14,10 +14,9 @@ typedef struct {
 	vector *refs;
 	hashmap *table;
 
-	int *bytecode;
-	int global_count;
-	int initial_bytecode_size;
-	int max_bytecode_size;
+	char *file_name;
+	char *file_contents;
+
 	int current_ast_node;
 	int current_instruction;
 } compiler;

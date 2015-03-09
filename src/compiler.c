@@ -4,6 +4,7 @@ compiler *create_compiler() {
 	compiler *self = safe_malloc(sizeof(*self));
 	self->ast = NULL;
 	self->current_ast_node = 0;
+
 	self->table = create_hashmap(16);
 
 	return self;
