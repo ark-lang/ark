@@ -9,6 +9,14 @@
 #include "vector.h"
 #include "hashmap.h"
 
+/**
+ * For now we just assume that the code is semantically correct,
+ * we should really semantically analyze everything though, but thats
+ * not as fun as code generation :)
+ *
+ * inb4 vedant trys to remove this because hes a shithead
+ */
+
 typedef struct {
 	vector *ast;
 	vector *refs;
@@ -20,6 +28,8 @@ typedef struct {
 	int current_ast_node;
 	int current_instruction;
 } compiler;
+
+void emit_function(char *function_name, block_ast_node *block);
 
 /**
  * Creates an instance of the Compiler
