@@ -89,10 +89,7 @@ function_return_ast_node *create_function_return_ast_node() {
 
 expression_ast_node *create_expression_ast_node() {
 	expression_ast_node *expr = allocate_ast_node(sizeof(expression_ast_node), "expression");
-	expr->value = NULL;
-	expr->lhand = NULL;
-	expr->rhand = NULL;
-	expr->pointer_option = UNSPECIFIED;
+	expr->expression_values = create_vector();
 	return expr;
 }
 
@@ -273,15 +270,7 @@ void destroy_function_return_ast_node(function_return_ast_node *frn) {
 
 void destroy_expression_ast_node(expression_ast_node *expr) {
 	if (expr) {
-		if (expr->function_call && expr->type == EXPR_FUNCTION_CALL) {
-			destroy_function_callee_ast_node(expr->function_call);
-		}
-		if (expr->lhand) {
-			destroy_expression_ast_node(expr->lhand);
-		}
-		if (expr->rhand) {
-			destroy_expression_ast_node(expr->rhand);
-		}
+		destroy_vector(expr->expression_values);
 		free(expr);
 	}
 }
@@ -875,149 +864,20 @@ statement_ast_node *parse_for_loop_ast_node(parser *parser) {
 	return NULL;
 }
 
-expression_ast_node *parse_number_expression(parser *parser) {
-	expression_ast_node *expr = create_expression_ast_node(); // the final expression
-	expr->type = EXPR_NUMBER;
-	expr->value = consume_token(parser);
-	return expr;
-}
-
-expression_ast_node *parse_paren_expression(parser *parser) {
-	expression_ast_node *expr = create_expression_ast_node(); // the final expression
-	if (check_token_type_and_content(parser, SEPARATOR, "(", 0)) {
-		consume_token(parser);
-
-		expr->type = EXPR_PARENTHESIS;
-		expr->lhand = parse_expression_ast_node(parser);
-		expr->operand = parse_operand(parser);
-		expr->rhand = parse_expression_ast_node(parser);
-
-		if (check_token_type_and_content(parser, SEPARATOR, ")", 0)) {
-			consume_token(parser);
-			return expr;
-		}
-
-		parser_error(parser, "missing closing parenthesis for expression", consume_token(parser), false);
-	}
-
-	parser_error(parser, "could not parse parenthesis expressions", consume_token(parser), true);
-	return NULL;
-}
-
-expression_ast_node *parse_string_expression(parser *parser) {
-	expression_ast_node *expr = create_expression_ast_node(); // the final expression
-	expr->type = EXPR_STRING;
-	expr->value = consume_token(parser);
-	return expr;
-}
-
-expression_ast_node *parse_character_expression(parser *parser) {
-	expression_ast_node *expr = create_expression_ast_node(); // the final expression
-	expr->type = EXPR_CHARACTER;
-	expr->value = consume_token(parser);
-	return expr;
-}
-
-expression_ast_node *parse_identifier_expression(parser *parser) {
-	expression_ast_node *expr = create_expression_ast_node(); // the final expression
-
-	// function call
-	if (check_token_type_and_content(parser, SEPARATOR, "(", 1)) {
-		expr->type = EXPR_FUNCTION_CALL;
-		expr->function_call = parse_function_callee_ast_node(parser);
-		return expr;
-	}
-
-	// it's going to be a variable
-	expr->type = EXPR_VARIABLE;
-	// if(consume_token(parser) == "-") { TODO: negative number check }
-	expr->value = consume_token(parser);
-
-	return expr;
-}
-
 expression_ast_node *parse_expression_ast_node(parser *parser) {
-
-	// we can probably replace the above functions in the standard library with
-	// a macro which does the translation for us
-
-	// false
-	if (check_token_type_and_content(parser, IDENTIFIER, FALSE_KEYWORD, 0)) {
-		expression_ast_node *expr= create_expression_ast_node();
-		token *tok = consume_token(parser);
-		strcpy(tok->content, "0"); // change false to 0
-		expr->type = EXPR_NUMBER;
-		expr->value = tok;
-		return expr;
-	}
-
-	// true
-	if (check_token_type_and_content(parser, IDENTIFIER, TRUE_KEYWORD, 0)) {
-		expression_ast_node *expr = create_expression_ast_node();
-		token *tok = consume_token(parser);
-		strcpy(tok->content, "1"); // false to 1
-		expr->type = EXPR_NUMBER;
-		expr->value = tok;
-		return expr;
-	}
-
-	if (check_token_type_and_content(parser, OPERATOR, ADDRESS_OF_OPERATOR, 0)) {
-		if (check_token_type(parser, IDENTIFIER, 1)) {
-			// TODO: lookup if the value given
-			// a) exists
-			// b) is a variable (not pointer)
-			consume_token(parser);
-			expression_ast_node *expr = parse_identifier_expression(parser);
-			expr->pointer_option = ADDRESS_OF;
-			return expr;
-		}
-		else {
-			parser_error(parser, "cannot get address of constant value, or pointer", consume_token(parser), true);
+	expression_ast_node *expr = create_expression_ast_node();
+	if (check_token_type_and_content(parser, SEPARATOR, "{", 0)) {
+		consume_token(parser);
+		
+		for (;;) {
+			if (check_token_type_and_content(parser, SEPARATOR, "}", 0)) {
+				consume_token(parser);
+				return expr;	
+			}
+			push_back_item(expr->expression_values, consume_token(parser));
 		}
 	}
-
-	if (check_token_type_and_content(parser, OPERATOR, POINTER_OPERATOR, 0)) {
-		if (check_token_type(parser, IDENTIFIER, 1)) {
-			// TODO: lookup if the value given
-			// a) exists
-			// b) is a pointer
-			consume_token(parser);
-			expression_ast_node *expr = parse_identifier_expression(parser);
-			expr->pointer_option = DEREFERENCE;
-			return expr;
-		}
-		else {
-			parser_error(parser, "invalid type argument of unary `^`", consume_token(parser), true);
-		}
-	}
-
-	// number literal
-	if (check_token_type(parser, NUMBER, 0)) {
-		return parse_number_expression(parser);
-	}
-
-	// string literal
-	if (check_token_type(parser, STRING, 0)) {
-		return parse_string_expression(parser);
-	}
-
-	// character
-	if (check_token_type(parser, CHARACTER, 0)) {
-		return parse_character_expression(parser);
-	}
-
-	// identifier
-	if (check_token_type(parser, IDENTIFIER, 0)) {
-		return parse_identifier_expression(parser);
-	}
-
-	// expression with parenthesis
-	if (check_token_type_and_content(parser, SEPARATOR, "(", 0)) {
-		return parse_paren_expression(parser);
-	}
-
-	// error here
-	return NULL;
+	return expr;
 }
 
 void *parse_variable_ast_node(parser *parser, bool global) {
@@ -1427,6 +1287,8 @@ statement_ast_node *parse_statement_ast_node(parser *parser) {
 			return parse_variable_ast_node(parser, false);
 		}
 	}
+
+
 
 	parser_error(parser, "unrecognized token specified", consume_token(parser), true);
 	return NULL;
