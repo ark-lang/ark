@@ -33,7 +33,7 @@ void append_to_file(compiler *self, char *str) {
 }
 
 void emit_expression(compiler *self, expression_ast_node *expr) {
-	
+
 }
 
 void emit_variable_dec(compiler *self, variable_declare_ast_node *var) {
@@ -50,6 +50,8 @@ void emit_variable_dec(compiler *self, variable_declare_ast_node *var) {
 	append_to_file(self, var->vdn->name);
 	append_to_file(self, SPACE_CHAR);
 	append_to_file(self, EQUAL_SYM);
+
+	emit_expression(self, var->expression);
 }
 
 void emit_block(compiler *self, block_ast_node *block) {
@@ -87,6 +89,11 @@ void emit_function(compiler *self, function_ast_node *func) {
 		append_to_file(self, SPACE_CHAR);
 		if (current->is_pointer) append_to_file(self, ASTERISKS);
 		append_to_file(self, current->name->content);
+
+		if (func->fpn->args->size > 1 && i != func->fpn->args->size - 1) {
+			append_to_file(self, COMMA_SYM);
+			append_to_file(self, SPACE_CHAR);
+		}
 	}
 
 	append_to_file(self, CLOSE_BRACKET);
