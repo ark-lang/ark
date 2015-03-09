@@ -33,7 +33,9 @@ void append_to_file(compiler *self, char *str) {
 }
 
 void emit_block(compiler *self, block_ast_node *ban) {
-	
+	switch (ban->type) {
+		
+	}
 }
 
 void emit_function(compiler *self, function_ast_node *fan) {
