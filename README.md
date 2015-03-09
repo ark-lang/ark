@@ -1,5 +1,4 @@
 # [Alloy™](http://alloy-lang.github.io) [![BuildStatus](https://travis-ci.org/alloy-lang/alloy.svg?branch=master)](https://travis-ci.org/alloy-lang/alloy)
-========
 Alloy is a work in progress programming language.
 
 ## IRC
