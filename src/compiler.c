@@ -78,7 +78,9 @@ void emit_block(compiler *self, block_ast_node *block) {
 				printf("idk fuk off\n");
 				break;
 		}
-		append_to_file(self, NEWLINE);
+		if (i != block->statements->size - 1) {
+			append_to_file(self, NEWLINE);
+		}
 	}
 }
 
@@ -152,15 +154,16 @@ void start_compiler(compiler *self, vector *ast) {
 	for (i = self->current_ast_node; i < self->ast->size; i++) {
 		ast_node *current_ast_node = get_vector_item(self->ast, self->current_ast_node);
 		switch (current_ast_node->type) {
-			case FUNCTION_AST_NODE: emit_function(self, current_ast_node->data); break;
+			case FUNCTION_AST_NODE: 
+				emit_function(self, current_ast_node->data); 
+				break;
 			default:
-				printf("wat ast node bby?\n");
+				printf("wat ast node bby %d is %d?\n", current_ast_node->type, i);
 				break;
 		}
-		consume_ast_node(self);
 	}
 
-	printf("%s\n", self->file_contents);
+	printf("nout: %s\n", self->file_contents);
 }
 
 void destroy_compiler(compiler *self) {
