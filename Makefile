@@ -4,8 +4,8 @@ SOURCES = src/*.c
 
 
 all: ${SOURCES}
-	${CC} ${C_FLAGS} ${SOURCES} -o bin/alloyc
 	mkdir -p bin
+	${CC} ${C_FLAGS} ${SOURCES} -o bin/alloyc
 
 clean:
 	rm -f bin/alloyc
