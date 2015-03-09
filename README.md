@@ -11,11 +11,10 @@ we highly suggest you join the IRC :)
 ## Building
 To build you will need:
 
- - [`LLVM >= 3.4`](http://llvm.org/releases/download.html)
+ - Make 3(.81???)
  - A suitable GNU C compiler (any one of the below will do fine):
    - [`clang >= 3.4.0`](http://llvm.org/releases/download.html)
-   - [`gcc >= 4.8.1`](https://gcc.gnu.org/) (change `LCC` and 
-     `LCXX` in the [makefile](/Makefile) to `gcc` and `g++`, respectively)
+   - [`gcc >= 4.8.1`](https://gcc.gnu.org/) (change `C` in the [makefile](/Makefile) to `gcc`)
 
 ```bash
 # clone the repository
