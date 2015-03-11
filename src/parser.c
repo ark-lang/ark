@@ -866,16 +866,15 @@ statement_ast_node *parse_for_loop_ast_node(parser *parser) {
 
 expression_ast_node *parse_expression_ast_node(parser *parser) {
 	expression_ast_node *expr = create_expression_ast_node();
-	if (check_token_type_and_content(parser, SEPARATOR, "{", 0)) {
-		consume_token(parser);
-		
-		for (;;) {
-			if (check_token_type_and_content(parser, SEPARATOR, "}", 0)) {
-				consume_token(parser);
-				return expr;	
-			}
+	for (;;) {
+		token *current = peek_at_token_stream(parser, 0);
+		token *next = peek_at_token_stream(parser, 1);
+
+		if (next == NULL || (!is_expression_op(current->content[0]) && !is_expression_op(next->content[0]))) {
 			push_back_item(expr->expression_values, consume_token(parser));
+			return expr;	
 		}
+		push_back_item(expr->expression_values, consume_token(parser));
 	}
 	return expr;
 }

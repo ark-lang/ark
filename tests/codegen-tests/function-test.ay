@@ -1,7 +1,8 @@
 fn main(): void {
-	int x = {5}
-	if {x == 5} {
-		x = {21}
-	}
-    printf({"yoloswag %d\n", x})
+	int x = 5 + 5
+	int y = 10 + 20
+}
+
+fn add(int a, int b): int {
+
 }
