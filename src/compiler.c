@@ -21,7 +21,6 @@ void append_to_file(compiler *self, char *str) {
 }
 
 void emit_expression(compiler *self, expression_ast_node *expr) {
-	append_to_file(self, OPEN_BRACKET);
 	int i;
 	for (i = 0; i < expr->expression_values->size; i++) {
 		token *tok = get_vector_item(expr->expression_values, i);
@@ -31,7 +30,6 @@ void emit_expression(compiler *self, expression_ast_node *expr) {
 			append_to_file(self, SPACE_CHAR);
 		}
 	}
-	append_to_file(self, CLOSE_BRACKET);
 }
 
 void emit_variable_dec(compiler *self, variable_declare_ast_node *var) {
@@ -67,7 +65,10 @@ void emit_if_statement(compiler *self, if_statement_ast_node *stmt) {
 	append_to_file(self, "if");
 	append_to_file(self, SPACE_CHAR);
 
+	append_to_file(self, OPEN_BRACKET);
 	emit_expression(self, stmt->condition);
+	append_to_file(self, CLOSE_BRACKET);
+
 	emit_block(self, stmt->body);
 	if (stmt->else_statement) {
 		append_to_file(self, "else");
@@ -105,6 +106,7 @@ void emit_block(compiler *self, block_ast_node *block) {
 
 	append_to_file(self, NEWLINE);
 	append_to_file(self, CLOSE_BRACE);
+	append_to_file(self, NEWLINE);
 }
 
 void emit_arguments(compiler *self, vector *args) {
@@ -189,8 +191,8 @@ void start_compiler(compiler *self, vector *ast) {
 	append_to_file(self, "#include <stdio.h>" NEWLINE);
 
 	int i;
-	for (i = self->current_ast_node; i < self->ast->size; i++) {
-		ast_node *current_ast_node = get_vector_item(self->ast, self->current_ast_node);
+	for (i = 0; i < self->ast->size; i++) {
+		ast_node *current_ast_node = get_vector_item(self->ast, i);
 
 		switch (current_ast_node->type) {
 			case FUNCTION_AST_NODE: 
