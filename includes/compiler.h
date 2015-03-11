@@ -59,4 +59,5 @@ void consume_ast_nodes(compiler *self, int amount);
 void start_compiler(compiler *self, vector *ast);
 
 void destroy_compiler(compiler *self);
+
 #endif // compiler_H
