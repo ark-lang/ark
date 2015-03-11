@@ -10,22 +10,22 @@
  * typedef for void* so we can
  * change the type if need be
  */
-typedef void* StackItem;
+typedef void* stack_item;
 
 /**
  * Stack properties 
  */
 typedef struct {
-	StackItem *items;
+	stack_item *items;
 	int stack_pointer;
 	int default_stack_size;
-} Stack;
+} stack;
 
 /**
  * Create a new stack instance
  * @return the instance of the stack created
  */
-Stack *create_stack();
+stack *create_stack();
 
 /**
  * Push a value to the stack
@@ -33,7 +33,7 @@ Stack *create_stack();
  * @param stack stack to push to
  * @param item item to push to
  */
-void push_to_stack(Stack *stack, StackItem item);
+void push_to_stack(stack *stack, stack_item item);
 
 /**
  * Push a value to the stack at the given index
@@ -41,7 +41,7 @@ void push_to_stack(Stack *stack, StackItem item);
  * @param stack stack to push to
  * @param item item to push to
  */
-void push_to_stack_at_index(Stack *stack, StackItem item, int index);
+void push_to_stack_at_index(stack *stack, stack_item item, int index);
 
 /**
  * Retrieve the value at the given index
@@ -50,7 +50,7 @@ void push_to_stack_at_index(Stack *stack, StackItem item, int index);
  * @param index the index to check
  * @return the item at the given @{index}
  */
-StackItem get_value_from_stack(Stack *stack, int index);
+stack_item get_value_from_stack(stack *stack, int index);
 
 /**
  * Pops value from top of stack
@@ -58,13 +58,13 @@ StackItem get_value_from_stack(Stack *stack, int index);
  * @param stack the stack to pop
  * @return the item we popped
  */
-StackItem pop_stack(Stack *stack);
+stack_item pop_stack(stack *stack);
 
 /**
  * Destroys the given stack
  * 
  * @param stack stack to destroy
  */
-void destroy_stack(Stack *stack);
+void destroy_stack(stack *stack);
 
 #endif // STACK_H

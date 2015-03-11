@@ -1,4 +1,4 @@
-# [Alloy™](http://alloy-lang.github.io) [![BuildStatus](https://travis-ci.org/alloy-lang/alloy.svg?branch=master)](https://travis-ci.org/alloy-lang/alloy)
+# [Alloy™](http://alloy-lang.org) [![BuildStatus](https://travis-ci.org/felixangell/alloy.svg?branch=master)](https://travis-ci.org/felixangell/alloy)
 Alloy is a work in progress programming language.
 
 ## IRC
@@ -18,7 +18,7 @@ To build you will need:
 
 ```bash
 # clone the repository
-git clone -v https://github.com/alloy-lang/alloy.git
+git clone -v https://github.com/felixangell/alloy.git
     
 # cd into the repository
 cd alloy
