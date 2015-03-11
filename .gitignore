@@ -20,6 +20,10 @@
 *.so.*
 *.dylib
 
+# floo stuff
+.floo
+.flooignore
+
 # Binaries
 *.exe
 *.out
