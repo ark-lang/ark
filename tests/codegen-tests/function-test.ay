@@ -1,3 +1,7 @@
 fn main(): void {
-    printf({"yoloswag\n"})
+	int x = {5}
+	if {x == 5} {
+		x = {21}
+	}
+    printf({"yoloswag %d\n", x})
 }
