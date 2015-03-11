@@ -324,6 +324,10 @@ static inline bool is_operator(char ch) {
 	return (strchr("+-*/=><!~?:|&%^\"'", ch) != 0); 
 }
 
+static inline bool is_expression_op(char ch) { 
+	return (strchr("+-*/=><!~?:|&%^\"'()", ch) != 0); 
+}
+
 /**
  * @return if the character given is a separator
  * @param ch the character to check
