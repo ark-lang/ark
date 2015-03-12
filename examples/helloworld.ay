@@ -1,7 +1,3 @@
-// use stdio; -- doesn't work yet, no preprocessor
-
-// main entry point of the program
 fn main(): void {
-	// this function is inside the standard io library
-	println({"hello, world"})
+	println("hello, world")
 }

@@ -20,6 +20,8 @@
 	#define GET_ORANGE_TEXT(x) ("\x1B[33m" x "\x1B[00m")
 #endif
 
+/** what compiler to compile generated code in, default is GCC for now */
+#define COMPILER "gcc"
 
 /** if we are in debug mode -- will print debug warnings */
 extern bool DEBUG_MODE;
