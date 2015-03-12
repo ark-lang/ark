@@ -26,14 +26,6 @@ cd alloy
 
 # build
 make
-
-# run a program
-cd tests
-
-# run the test bash script
-# if some of these fail, it might be because
-# the developers have changed the document
-./alloyctest.sh
 ```
 
 ## License
