@@ -50,12 +50,16 @@ void emit_variable_dec(compiler *self, variable_declare_ast_node *var) {
 	append_to_file(self, SEMICOLON);
 }
 
-void emit_function_call(compiler *self, function_callee_ast_node *call) {
+void emit_function_call(compiler *self, function_callee_ast_node *call) {	
 	append_to_file(self, call->callee);
 	append_to_file(self, OPEN_BRACKET);
 	
 	// print args	
-	emit_arguments(self, call->args);
+	int i;
+	for (i = 0; i < call->args->size; i++) {
+		expression_ast_node *expr = get_vector_item(call->args, i);
+		emit_expression(self, expr);
+	}
 
 	append_to_file(self, CLOSE_BRACKET);
 	append_to_file(self, SEMICOLON);
@@ -209,6 +213,10 @@ void start_compiler(compiler *self, vector *ast) {
 		switch (current_ast_node->type) {
 			case FUNCTION_AST_NODE: 
 				emit_function(self, current_ast_node->data); 
+				break;
+			case VARIABLE_DEC_AST_NODE:
+				emit_variable_dec(self, current_ast_node->data);
+				append_to_file(self, NEWLINE);
 				break;
 			default:
 				printf("wat ast node bby %d is %d?\n", current_ast_node->type, i);
