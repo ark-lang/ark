@@ -8,6 +8,6 @@ all: ${SOURCES}
 	${CC} ${C_FLAGS} ${SOURCES} -o bin/alloyc
 
 clean:
-	rm -f bin/alloyc
+	rm -rf bin
 
 .PHONY: clean

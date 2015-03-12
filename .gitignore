@@ -39,5 +39,5 @@ builds/
 .DS_Store
 *.swp
 *.swo
-
+*.dSYM
 *sublime-*
