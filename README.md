@@ -9,12 +9,13 @@ we highly suggest you join the IRC :)
 * channel: #alloy-lang
 
 ## Building
+Disclaimer: This project is constantly in development and is still a work in progress, we are still a long way away from getting everything to work somewhat smoothly, so if it breaks or doesn't build, sorry!
 To build you will need:
 
  - Make 3(.81???)
  - A suitable GNU C compiler (any one of the below will do fine, we aren't sure about other C compilers quite yet):
    - [`clang >= 3.4.0`](http://llvm.org/releases/download.html)
-   - [`gcc >= 4.8.1`](https://gcc.gnu.org/) (change `C` in the [makefile](/Makefile) to `gcc`)
+   - [`gcc >= 4.8.1`](https://gcc.gnu.org/) (change `C` in the [makefile](/Makefile) to `gcc`
 
 ```bash
 # clone the repository
