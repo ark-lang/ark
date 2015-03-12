@@ -1,8 +1,9 @@
-fn main(): void {
-	int x = 5 + 5
-	int y = 10 + 20
+fn add(int a, int b): int {
+	return a + b
 }
 
-fn add(int a, int b): int {
-
+fn main(): int {
+	int x = 5 + 5
+	int y = 10 + 20
+	return 0
 }
