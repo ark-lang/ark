@@ -1,19 +1,13 @@
-Contributing
-============
-
+# Contributing
 We'd love your contributions, but we do have a few guidelines
 that we go by here.
 
-Community
----------
-
+## Community
 Having any problems? [Open an Issue](https://github.com/alloy-lang/alloy/issues). There is also an IRC room over on freenode: [#alloy-lang](http://webchat.freenode.net/?channels=%23alloy-lang).
 
 It's recommended that you open an issue than head over to the IRC since we rarely go there given our tight schedules. Issues will however be responded to ASAP. 
 
-Pull Requests
--------------
-
+## Pull Requests
 All pull requests are welcome. Please ensure that you rebase your commits
 against remote master prior to submitting a pull request, in order to
 prevent edit collisions. Pull Requests will be judged by the following 2 
@@ -24,9 +18,7 @@ developers:
 
 who will merge it if it's up to standard.
 
-Proposing a feature or change
------------------------------
-
+## Proposing a feature or change
 If you want to have a say in the language, feel free to
 [open an issue](https://github.com/alloy-lang/alloy/issues). We use proposals
 so that people can vote on the idea, since the smallest change can put Alloy
