@@ -44,6 +44,8 @@ void emit_expression(compiler *self, expression_ast_node *expr);
 
 void emit_variable_dec(compiler *self, variable_declare_ast_node *var);
 
+void emit_return(compiler *self, function_return_ast_node *ret);
+
 void emit_function_call(compiler *self, function_callee_ast_node *call);
 
 void emit_block(compiler *self, block_ast_node *block);

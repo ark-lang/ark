@@ -92,6 +92,9 @@ void emit_block(compiler *self, block_ast_node *block) {
 			case FUNCTION_CALLEE_AST_NODE:
 				emit_function_call(self, current->data);
 				break;
+			case FUNCTION_RET_AST_NODE:
+				emit_return(self, current->data);
+				break;
 			case IF_STATEMENT_AST_NODE:
 				emit_if_statement(self, current->data);
 				break;
@@ -140,6 +143,15 @@ void emit_arguments(compiler *self, vector *args) {
 			append_to_file(self, SPACE_CHAR);
 		}
 	}
+}
+
+void emit_return(compiler *self, function_return_ast_node *ret) {
+	append_to_file(self, "return");
+	if (ret->return_val) {
+		append_to_file(self, SPACE_CHAR);
+		emit_expression(self, ret->return_val);
+	}
+	append_to_file(self, SEMICOLON);
 }
 
 void emit_function(compiler *self, function_ast_node *func) {
