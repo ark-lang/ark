@@ -1,16 +1,14 @@
-// use stdio; -- doesnt work
-
 fn main(): void {
-	for i:({0}, {100}) {
+	for i:(0, 100) {
 		match i {
-			{i % 15 == 0} {
-				// println({ i + "fizzbuzz"});
+			i % 15 == 0 {
+				// println(i + "fizzbuzz");
 			}
-			{i % 3) == 0} {
-				// println({ i + "fizz"});
+			i % 3 == 0 {
+				// println(i + "fizz");
 			}
-			{i % 5) == 0} {
-				// println({i + "buzz"});
+			i % 5 == 0 {
+				// println(i + "buzz");
 			}
 		}
 	}

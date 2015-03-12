@@ -192,7 +192,7 @@ void write_file(compiler *self) {
 	fprintf(file, "%s", self->file_contents);
 	fclose(file);
 
-	system("gcc temp.c");
+	system(COMPILER " temp.c");
 
 	// remove the file since we don't need it
 	remove("temp.c");
