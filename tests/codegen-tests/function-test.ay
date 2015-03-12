@@ -1,9 +1,14 @@
+int x = -5 * 2
+
+fn sub(int a, int b): double {
+	int x = a + b
+	return x
+}
+
 fn add(int a, int b): int {
 	return a + b
 }
 
 fn main(): int {
-	int x = 5 + 5
-	int y = 10 + 20
-	return 0
+	add(5, 5)
 }
