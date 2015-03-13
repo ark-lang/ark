@@ -1,22 +1,22 @@
 #include "semantic.h"
 
-semantic *create_semantic_analyser(vector *tree) {
-    semantic *self = safe_malloc(sizeof(*self));
+SemanticAnalyser *createSemanticAnalyser(Vector *tree) {
+    SemanticAnalyser *self = safeMalloc(sizeof(*self));
     self->tree = tree;
     self->current_node = 0;
     return self;
 }
 
-void eat_tasty_node(semantic *self) {
+void eatAstNode(SemanticAnalyser *self) {
     self->current_node += 1;
 }
 
-void start_analysis(semantic *self) {
+void startSemanticAnalysis(SemanticAnalyser *self) {
     while (self->current_node < self->tree->size) {
-        eat_tasty_node(self);
+        eatAstNode(self);
     }
 }
 
-void destroy_semantic_analyser(semantic *self) {
+void destroySemanticAnalyser(SemanticAnalyser *self) {
     free(self);
 }

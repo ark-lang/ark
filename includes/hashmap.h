@@ -10,30 +10,30 @@ typedef struct {
 	char *key;
 	void *val;
 	size_t len;
-} hashmap_entry;
+} HashmapEntry;
 
 typedef struct {
 	int size;
-	hashmap_entry *entries;
-} hashmap_field;
+	HashmapEntry *entries;
+} HashmapField;
 
 typedef struct {
 	int size;
-	hashmap_field *fields;
-} hashmap;
+	HashmapField *fields;
+} Hashmap;
 
 /**
  * Creates a new Hashmap
  * @param int the size of the hashmap
  * @return the hashmap instance
  */
-hashmap *create_hashmap(int);
+Hashmap *createHashmap(int);
 
 /**
  * Destroys the given hashmap
  * @param map the hashmap to destroy
  */
-void destroy_hashmap(hashmap *map);
+void destroyHashmap(Hashmap *map);
 
 /**
  * Get the value at the key specified
@@ -41,7 +41,7 @@ void destroy_hashmap(hashmap *map);
  * @param str the key to search for
  * @return the value in the map at the key
  */
-void *get_value_at_key(hashmap *map, char* str);
+void *getValueAtKey(Hashmap *map, char* str);
 
 /**
  * Sets the value at the given key
@@ -49,6 +49,6 @@ void *get_value_at_key(hashmap *map, char* str);
  * @param str the key to place the value
  * @param data the data to store
  */
-void set_value_at_key(hashmap *map, char* str, void* data);
+void setValueAtKey(Hashmap *map, char* str, void* data);
 
 #endif // hashmap_H

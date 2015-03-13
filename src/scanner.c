@@ -1,12 +1,12 @@
 #include "scanner.h"
 
-scanner *create_scanner() {
-	scanner *self = safe_malloc(sizeof(*self));
+Scanner *createScanner() {
+	Scanner *self = safeMalloc(sizeof(*self));
 	self->contents = NULL;
 	return self;
 }
 
-void scan_file(scanner *self, const char* fileName) {
+void scanFile(Scanner *self, const char* fileName) {
 	FILE *file = fopen(fileName, "rb");
 
 	if (file) {
@@ -17,7 +17,7 @@ void scan_file(scanner *self, const char* fileName) {
 				return;
 			}
 
-			self->contents = safe_malloc(sizeof(*self->contents) * (fileSize + 1));
+			self->contents = safeMalloc(sizeof(*self->contents) * (fileSize + 1));
 
 			if (fseek(file, 0, SEEK_SET)) {
 				perror("could not reset file index");
@@ -26,7 +26,7 @@ void scan_file(scanner *self, const char* fileName) {
 
 			size_t fileLength = fread(self->contents, sizeof(char), fileSize, file);
 			if (!fileLength) {
-				debug_message("warning: \"%s\" is empty\n", fileName);
+				debugMessage("warning: \"%s\" is empty\n", fileName);
 			}
 
 			self->contents[fileSize] = '\0';
@@ -40,7 +40,7 @@ void scan_file(scanner *self, const char* fileName) {
 	}
 }
 
-void destroy_scanner(scanner *self) {
+void destroyScanner(Scanner *self) {
 	if (self) {
 		if (self->contents) {
 			free(self->contents);

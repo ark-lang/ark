@@ -3,7 +3,7 @@
 bool DEBUG_MODE = false;
 char *OUTPUT_EXECUTABLE_NAME = "a";
 
-static void parse_argument(argument *arg) {
+static void parse_argument(CommandLineArgument *arg) {
 	char argument = arg->argument[0];
 
 	switch (argument) {
@@ -21,30 +21,29 @@ static void parse_argument(argument *arg) {
 			printf("\n");
 			return;
 		case 'o':
-			if (!arg->next_argument) {
-				error_message("error: missing filename after '-o'");
+			if (!arg->nextArgument) {
+				errorMessage("error: missing filename after '-o'");
 			}
-			OUTPUT_EXECUTABLE_NAME = arg->next_argument;
+			OUTPUT_EXECUTABLE_NAME = arg->nextArgument;
 			break;
 		default:
-			error_message("error: unrecognized command line option '-%s'\n", arg->argument);
+			errorMessage("error: unrecognized command line option '-%s'\n", arg->argument);
 			break;
 	}
 }
 
-alloyc *create_alloyc(int argc, char** argv) {
-	alloyc *self = safe_malloc(sizeof(*self));
+AlloyCompiler *createAlloyCompiler(int argc, char** argv) {
+	AlloyCompiler *self = safeMalloc(sizeof(*self));
 	self->filename = NULL;
 	self->scanner = NULL;
 	self->lexer = NULL;
 	self->parser = NULL;
 	self->compiler = NULL;
-	self->pproc = NULL;
 	self->semantic = NULL;
 
 	// not enough args just throw an error
 	if (argc <= 1) {
-		error_message("no input files");
+		errorMessage("no input files");
 		return self;
 	}
 
@@ -52,7 +51,7 @@ alloyc *create_alloyc(int argc, char** argv) {
 	// i = 1 to ignore first arg
 	for (i = 1; i < argc; i++) {
 		if (argv[i][0] == '-') {
-			argument arg;
+			CommandLineArgument arg;
 
 			// remove the -
 			size_t len = strlen(argv[i]) - 1;
@@ -62,9 +61,9 @@ alloyc *create_alloyc(int argc, char** argv) {
 
 			// set argument stuff
 			arg.argument = temp;
-			arg.next_argument = NULL;
+			arg.nextArgument = NULL;
 			if (argv[i + 1] != NULL) {
-				arg.next_argument = argv[i + 1];
+				arg.nextArgument = argv[i + 1];
 			}
 
 			// multiple arguments needed for -o, consume twice
@@ -80,14 +79,14 @@ alloyc *create_alloyc(int argc, char** argv) {
 			self->filename = argv[i];
 		}
 		else {
-			error_message("argument not recognized: %s\n", argv[i]);
+			errorMessage("argument not recognized: %s\n", argv[i]);
 		}
 	}
 
 	return self;
 }
 
-void start_alloyc(alloyc *self) {
+void startAlloyCompiler(AlloyCompiler *self) {
 	// filename is null, so we should exit
 	// out of here
 	if (self->filename == NULL) {
@@ -95,37 +94,37 @@ void start_alloyc(alloyc *self) {
 	}
 
 	// start actual useful shit here
-	self->scanner = create_scanner();
-	scan_file(self->scanner, self->filename);
+	self->scanner = createScanner();
+	scanFile(self->scanner, self->filename);
 
 	// lex file
-	self->lexer = create_lexer(self->scanner->contents);
+	self->lexer = createLexer(self->scanner->contents);
 	while (self->lexer->running) {
-		get_next_token(self->lexer);
+		getNextToken(self->lexer);
 	}
 
 	// initialise parser after we tokenize
-	self->parser = create_parser(self->lexer->token_stream);
-	start_parsing_token_stream(self->parser);
+	self->parser = createParser(self->lexer->tokenStream);
+	parseTokenStream(self->parser);
 
 	// failed parsing stage
-	if (self->parser->exit_on_error) {
+	if (self->parser->exitOnError) {
 		// don't do stuff after this
 		return;
 	}
 
-	self->semantic = create_semantic_analyser(self->parser->parse_tree);
-	start_analysis(self->semantic);
+	self->semantic = createSemanticAnalyser(self->parser->parseTree);
+	startSemanticAnalysis(self->semantic);
 
-	self->compiler = create_compiler();
-	start_compiler(self->compiler, self->parser->parse_tree);
+	self->compiler = createCompiler();
+	startCompiler(self->compiler, self->parser->parseTree);
 }
 
-void destroy_alloyc(alloyc *self) {
-	destroy_scanner(self->scanner);
-	destroy_lexer(self->lexer);
-	destroy_parser(self->parser);
-	destroy_semantic_analyser(self->semantic);
-	destroy_compiler(self->compiler);
+void destroyAlloyCompiler(AlloyCompiler *self) {
+	destroyScanner(self->scanner);
+	destroyLexer(self->lexer);
+	destroyParser(self->parser);
+	destroySemanticAnalyser(self->semantic);
+	destroyCompiler(self->compiler);
 	free(self);
 }
