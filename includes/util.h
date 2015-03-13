@@ -12,6 +12,7 @@
 /** the current version of ink */
 #define ALLOYC_VERSION "0.0.1"
 
+/** windows doesn't like coloured text */
 #ifdef _WIN32
 	#define GET_RED_TEXT(x) (x)
 	#define GET_ORANGE_TEXT(x) (x)
@@ -34,34 +35,34 @@ extern char* OUTPUT_EXECUTABLE_NAME;
  * @param msg           the message to print
  * @param ...			extra arguments
  */
-void debug_message(const char *fmt, ...);
+void debugMessage(const char *fmt, ...);
 
 /**
  * Emitts an error message to the console, will also exit
  * @param msg           the message to print
  * @param ... 			extra arguments
  */
-void error_message(const char *fmt, ...);
+void errorMessage(const char *fmt, ...);
 
 /**
  * Emitts a primary message to the console
  * @param msg           the message to print
  * @param ... 			extra arguments
  */
-void primary_message(const char *fmt, ...);
+void primaryMessage(const char *fmt, ...);
 
 /**
  * Gets the extension of the given file
  * @param  filename the filename to get the extension
  * @return          the extension of the file given
  */
-const char *get_filename_ext(const char *filename);
+const char *getFilenameExtension(const char *filename);
 
 /**
  * Safe malloc, dies if allocation fails
  * @param  size size of space to allocate
  * @return pointer to allocated data
  */
-void *safe_malloc(size_t size);
+void *safeMalloc(size_t size);
 
 #endif // BOOL_H

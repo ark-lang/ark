@@ -20,6 +20,11 @@
 *.so.*
 *.dylib
 
+# eclipse shit
+.settings
+.cproject
+.project
+
 # floo stuff
 .floo
 .flooignore
