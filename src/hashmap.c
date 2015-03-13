@@ -18,27 +18,27 @@ static int hashString(char *str, int max_hash) {
 	return hash;
 }
  
-hashmap *create_hashmap(int size) {
-	hashmap *map = safe_malloc(sizeof(hashmap));
+Hashmap *createHashmap(int size) {
+	Hashmap *map = safeMalloc(sizeof(Hashmap));
 	map->size = size;
-	map->fields = safe_malloc(sizeof(hashmap_field) * size);
+	map->fields = safeMalloc(sizeof(HashmapField) * size);
 	int i;
 	for(i = 0; i < size; i++) {
-		hashmap_field *field = map->fields + i;
+		HashmapField *field = map->fields + i;
 		field->size = 0;
 		field->entries = NULL;
 	}
 	return map;
 }
  
-void destroy_hashmap(hashmap *map) {
+void destroyHashmap(Hashmap *map) {
 	int i;
 	for(i = 0; i < map->size; i++) {
-		hashmap_field *field = map->fields + i;
+		HashmapField *field = map->fields + i;
 		if(field->entries != 0) {
 			int j;
 			for(j = 0; j < field->size; j++) {
-				hashmap_entry *entry = field->entries + j;
+				HashmapEntry *entry = field->entries + j;
 				free(entry->key);
 				free(entry->val);
 			}
@@ -53,10 +53,10 @@ void destroy_hashmap(hashmap *map) {
 	}
 }
  
-void set_value_at_key(hashmap *map, char *key, void *value) {
+void setValueAtKey(Hashmap *map, char *key, void *value) {
 	int hash = hashString(key, map->size - 1);
-	hashmap_field *field = map->fields + hash;
-	hashmap_entry *entry;
+	HashmapField *field = map->fields + hash;
+	HashmapEntry *entry;
  	size_t length = sizeof(*value);
 
 	int i;
@@ -74,13 +74,13 @@ void set_value_at_key(hashmap *map, char *key, void *value) {
 	/* Create new entry */
 	if(value == NULL) return;
 	field->size++;
-	field->entries = realloc(field->entries, field->size * sizeof(hashmap_entry));
+	field->entries = realloc(field->entries, field->size * sizeof(HashmapEntry));
 	entry = field->entries + field->size - 1;
 	entry->key = strdup(key);
  
 	set_val:
 	if(value != NULL) {
-		entry->val = memcpy(safe_malloc(length), value, length);
+		entry->val = memcpy(safeMalloc(length), value, length);
 		entry->len = length;
 	} else {
 		/* val is already freed. Key is left */
@@ -88,23 +88,23 @@ void set_value_at_key(hashmap *map, char *key, void *value) {
 		field->size--;
 		/* Copy last entry to new position */
 		if(entry != (field->entries + field->size)) {
-			memcpy((void*) entry, (void*) (field->entries + field->size), sizeof(hashmap_entry));
+			memcpy((void*) entry, (void*) (field->entries + field->size), sizeof(HashmapEntry));
 		}
 		/* Shrink field */
-		field->entries = realloc((void*) field->entries, field->size * sizeof(hashmap_entry));
+		field->entries = realloc((void*) field->entries, field->size * sizeof(HashmapEntry));
 	}
 }
  
-void *get_value_at_key(hashmap *map, char *key) {
+void *getValueAtKey(Hashmap *map, char *key) {
 	int hash = hashString(key, map->size - 1);
-	hashmap_field *field = map->fields + hash;
-	hashmap_entry *entry;
+	HashmapField *field = map->fields + hash;
+	HashmapEntry *entry;
  
 	int i;
 	for(i = 0; i < field->size; i++) {
 		entry = field->entries + i;
 		if(strcmp(entry->key, key) == 0) {
-			void *dst = safe_malloc(entry->len);
+			void *dst = safeMalloc(entry->len);
 			return memcpy(dst, entry->val, entry->len);
 		}
 	}

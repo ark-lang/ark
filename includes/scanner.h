@@ -13,24 +13,24 @@
  */
 typedef struct {
 	char* contents;
-} scanner;
+} Scanner;
 
 /**
  * Creates an instance of a scanner
  * @return the scanner
  */
-scanner *create_scanner();
+Scanner *createScanner();
 
 /**
  * Reads the given file into
  * `char* contents;`
  */
-void scan_file(scanner *scanner, const char* fileName);
+void scanFile(Scanner *scanner, const char* fileName);
 
 /**
  * Destroys the given scanner
  * @param scanner scanner to destroy
  */
-void destroy_scanner(scanner *scanner);
+void destroyScanner(Scanner *scanner);
 
 #endif // SCANNER_H

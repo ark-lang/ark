@@ -16,16 +16,16 @@ static char* SUPPORTED_OPERANDS[] = {
 
 /** UTILITY FOR AST NODES */
 
-void exit_parser(parser *parser) {
+void exitParser(Parser *parser) {
 	parser->parsing = false;
-	parser->exit_on_error = true;
+	parser->exitOnError = true;
 }
 
-void parser_error(parser *parser, char *msg, token *tok, bool fatal_error) {
-	error_message("%d:%d %s", tok->line_number, tok->char_number, msg);
-	char *error = get_token_context(parser->token_stream, tok, true);
+void parserError(Parser *parser, char *msg, Token *tok, bool fatal_error) {
+	errorMessage("%d:%d %s", tok->lineNumber, tok->charNumber, msg);
+	char *error = getTokenContext(parser->tokenStream, tok, true);
 	printf("\t%s\n", error);
-	parser->exit_on_error = fatal_error;
+	parser->exitOnError = fatal_error;
 	free(error);
 	if (fatal_error) {
 		parser->parsing = false;
@@ -43,679 +43,674 @@ void *allocate_ast_node(size_t sz, const char* readable_type) {
 	return ret;
 }
 
-function_owner *create_function_owner_ast_node() {
-	function_owner *fo = allocate_ast_node(sizeof(function_owner), "function owner");
+FunctionOwnerAstNode *createFunctionOwnerAstNode() {
+	FunctionOwnerAstNode *fo = allocate_ast_node(sizeof(FunctionOwnerAstNode), "function owner");
 	fo->owner = NULL;
 	fo->alias = NULL;
-	fo->is_pointer = false;
+	fo->isPointer = false;
 	return fo;
 }
 
-infinite_loop_ast_node *create_infinite_loop_ast_node() {
-	infinite_loop_ast_node *iln = allocate_ast_node(sizeof(infinite_loop_ast_node), "infinite loop");
+InfiniteLoopAstNode *createInfiniteLoopAstNode() {
+	InfiniteLoopAstNode *iln = allocate_ast_node(sizeof(InfiniteLoopAstNode), "infinite loop");
 	iln->body = NULL;
 	return iln;
 }
 
-break_ast_node *create_break_ast_node() {
-	break_ast_node *bn = allocate_ast_node(sizeof(break_ast_node), "break");
+BreakStatementAstNode *createBreakStatementAstNode() {
+	BreakStatementAstNode *bn = allocate_ast_node(sizeof(BreakStatementAstNode), "break");
 	return bn;
 }
 
-continue_ast_node *create_continue_ast_node() {
-	continue_ast_node *cn = allocate_ast_node(sizeof(continue_ast_node), "continue");
+ContinueStatementAstNode *create_continue_ast_node() {
+	ContinueStatementAstNode *cn = allocate_ast_node(sizeof(ContinueStatementAstNode), "continue");
 	return cn;
 }
 
-variable_reassignment_ast_node *create_variable_reassign_ast_node() {
-	variable_reassignment_ast_node *vrn = allocate_ast_node(sizeof(variable_reassignment_ast_node), "variable reassignment");
+VariableReassignmentAstNode *createVariableReassignmentAstNode() {
+	VariableReassignmentAstNode *vrn = allocate_ast_node(sizeof(VariableReassignmentAstNode), "variable reassignment");
 	vrn->name = NULL;
-	vrn->expr = NULL;
+	vrn->expression = NULL;
 	return vrn;
 }
 
-statement_ast_node *create_statement_ast_node(void *data, ast_node_type type) {
-	statement_ast_node *sn = allocate_ast_node(sizeof(statement_ast_node), "statement");
+StatementAstNode *createStatementAstNode(void *data, AstNodeType type) {
+	StatementAstNode *sn = allocate_ast_node(sizeof(StatementAstNode), "statement");
 	sn->data = data;
 	sn->type = type;
 	return sn;
 }
 
-function_return_ast_node *create_function_return_ast_node() {
-	function_return_ast_node *frn = allocate_ast_node(sizeof(function_return_ast_node), "function return");
-	frn->return_val = NULL;
+FunctionReturnAstNode *createFunctionReturnAstNode() {
+	FunctionReturnAstNode *frn = allocate_ast_node(sizeof(FunctionReturnAstNode), "function return");
+	frn->returnValue = NULL;
 	return frn;
 }
 
-expression_ast_node *create_expression_ast_node() {
-	expression_ast_node *expr = allocate_ast_node(sizeof(expression_ast_node), "expression");
-	expr->expression_values = create_vector();
+ExpressionAstNode *createExpressionAstNode() {
+	ExpressionAstNode *expr = allocate_ast_node(sizeof(ExpressionAstNode), "expression");
+	expr->expressionValues = createVector();
 	return expr;
 }
 
-variable_define_ast_node *create_variable_define_ast_node() {
-	variable_define_ast_node *vdn = allocate_ast_node(sizeof(variable_define_ast_node), "variable definition");
+VariableDefinitionAstNode *createVariableDefinitionAstNode() {
+	VariableDefinitionAstNode *vdn = allocate_ast_node(sizeof(VariableDefinitionAstNode), "variable definition");
 	vdn->name = NULL;
-	vdn->is_constant = false;
-	vdn->is_global = false;
+	vdn->isConstant = false;
+	vdn->isGlobal = false;
 	return vdn;
 }
 
-variable_declare_ast_node *create_variable_declare_ast_node() {
-	variable_declare_ast_node *vdn = allocate_ast_node(sizeof(variable_declare_ast_node), "variable declaration");
-	vdn->vdn = NULL;
+VariableDeclarationAstNode *createVariableDeclarationAstNode() {
+	VariableDeclarationAstNode *vdn = allocate_ast_node(sizeof(VariableDeclarationAstNode), "variable declaration");
+	vdn->variableDefinitionAstNode = NULL;
 	vdn->expression = NULL;
 	return vdn;
 }
 
-function_argument_ast_node *create_function_argument_ast_node() {
-	function_argument_ast_node *fan = allocate_ast_node(sizeof(function_argument_ast_node), "function argument");
+FunctionArgumentAstNode *createFunctionArgumentAstNode() {
+	FunctionArgumentAstNode *fan = allocate_ast_node(sizeof(FunctionArgumentAstNode), "function argument");
 	fan->name = NULL;
 	fan->value = NULL;
 	return fan;
 }
 
-function_callee_ast_node *create_function_callee_ast_node() {
-	function_callee_ast_node *fcn = allocate_ast_node(sizeof(function_callee_ast_node), "function callee");
-	fcn->callee = NULL;
+FunctionCallAstNode *createFunctionCallAstNode() {
+	FunctionCallAstNode *fcn = allocate_ast_node(sizeof(FunctionCallAstNode), "function callee");
+	fcn->name = NULL;
 	fcn->args = NULL;
 	return fcn;
 }
 
-block_ast_node *create_block_ast_node() {
-	block_ast_node *bn = allocate_ast_node(sizeof(block_ast_node), "block");
+BlockAstNode *createBlockAstNode() {
+	BlockAstNode *bn = allocate_ast_node(sizeof(BlockAstNode), "block");
 	bn->statements = NULL;
 	return bn;
 }
 
-function_prototype_ast_node *create_function_prototype_ast_node() {
-	function_prototype_ast_node *fpn = allocate_ast_node(sizeof(function_prototype_ast_node), "function prototype");
+FunctionPrototypeAstNode *createFunctionPrototypeAstNode() {
+	FunctionPrototypeAstNode *fpn = allocate_ast_node(sizeof(FunctionPrototypeAstNode), "function prototype");
 	fpn->args = NULL;
 	fpn->name = NULL;
 	return fpn;
 }
 
-enumeration_ast_node *create_enumeration_ast_node() {
-	enumeration_ast_node *en = allocate_ast_node(sizeof(enumeration_ast_node), "enum");
+EnumAstNode *createEnumerationAstNode() {
+	EnumAstNode *en = allocate_ast_node(sizeof(EnumAstNode), "enum");
 	en->name = NULL;
-	en->enum_items = create_vector();
+	en->enumItems = createVector();
 	return en;
 }
 
-enumerated_structure_ast_node *create_enumerated_structure_ast_node() {
-	enumerated_structure_ast_node *es = allocate_ast_node(sizeof(enumeration_ast_node), "enum");
+EnumeratedStructureAstNode *createEnumeratedStructureAstNode() {
+	EnumeratedStructureAstNode *es = allocate_ast_node(sizeof(EnumAstNode), "enum");
 	es->name = NULL;
 	es->structs = NULL;
 	return es;
 }
 
-enum_item *create_enum_item(char *name, int value) {
-	enum_item *ei = allocate_ast_node(sizeof(enum_item), "enum item");
+EnumItem *createEnumItem(char *name, int value) {
+	EnumItem *ei = allocate_ast_node(sizeof(EnumItem), "enum item");
 	ei->name = name;
 	ei->value = value;
 	return ei;
 }
 
-function_ast_node *create_function_ast_node() {
-	function_ast_node *fn = allocate_ast_node(sizeof(function_ast_node), "function");
-	fn->fpn = NULL;
+FunctionAstNode *createFunctionAstNode() {
+	FunctionAstNode *fn = allocate_ast_node(sizeof(FunctionAstNode), "function");
+	fn->prototype = NULL;
 	fn->body = NULL;
 	return fn;
 }
 
-for_loop_ast_node *create_for_loop_ast_node() {
-	for_loop_ast_node *fln = allocate_ast_node(sizeof(for_loop_ast_node), "for loop");
+ForLoopAstNode *createForLoopAstNode() {
+	ForLoopAstNode *fln = allocate_ast_node(sizeof(ForLoopAstNode), "for loop");
 	return fln;
 }
 
-structure_ast_node *create_structure_ast_node() {
-	structure_ast_node *sn = allocate_ast_node(sizeof(structure_ast_node), "struct");
-	sn->statements = create_vector();
+StructureAstNode *createStructureAstNode() {
+	StructureAstNode *sn = allocate_ast_node(sizeof(StructureAstNode), "struct");
+	sn->statements = createVector();
 	return sn;
 }
 
-if_statement_ast_node *create_if_statement_ast_node() {
-	if_statement_ast_node *isn = allocate_ast_node(sizeof(if_statement_ast_node), "if statement");
+IfStatementAstNode *createIfStatementAstNode() {
+	IfStatementAstNode *isn = allocate_ast_node(sizeof(IfStatementAstNode), "if statement");
 	return isn;
 }
 
-while_ast_node *create_while_ast_node() {
-	while_ast_node *wn = allocate_ast_node(sizeof(while_ast_node), "while loop");
+WhileLoopAstNode *createWhileLoopAstNode() {
+	WhileLoopAstNode *wn = allocate_ast_node(sizeof(WhileLoopAstNode), "while loop");
 	return wn;
 }
 
-match_case_ast_node *create_match_case_ast_node() {
-	match_case_ast_node *mcn = allocate_ast_node(sizeof(match_case_ast_node), "match case");
+MatchCaseAstNode *createMatchCaseAstNode() {
+	MatchCaseAstNode *mcn = allocate_ast_node(sizeof(MatchCaseAstNode), "match case");
 	return mcn;
 }
 
-match_ast_node *create_match_ast_node() {
-	match_ast_node *mn = allocate_ast_node(sizeof(match_ast_node), "match");
-	mn->cases = create_vector();
+MatchAstNode *createMatchAstNode() {
+	MatchAstNode *mn = allocate_ast_node(sizeof(MatchAstNode), "match");
+	mn->cases = createVector();
 	return mn;
 }
 
-void destroy_variable_reassign_ast_node(variable_reassignment_ast_node *vrn) {
+void destroyVariableReassignmentAstNode(VariableReassignmentAstNode *vrn) {
 	if (vrn) {
-		if (vrn->expr) {
-			destroy_expression_ast_node(vrn->expr);
+		if (vrn->expression) {
+			destroyExpressionAstNode(vrn->expression);
 		}
 		free(vrn);
 	}
 }
 
-void destroy_for_loop_ast_node(for_loop_ast_node *fln) {
-	if (fln) {
-		destroy_vector(fln->params);
-		destroy_block_ast_node(fln->body);
-		free(fln);
+void destroyForLoopAstNode(ForLoopAstNode *loopNode) {
+	if (loopNode) {
+		destroyVector(loopNode->parameters);
+		destroyBlockAstNode(loopNode->body);
+		free(loopNode);
 	}
 }
 
-void destroy_function_owner_ast_node(function_owner *fo) {
-	if (fo) {
-		free(fo);
+void destroyFunctionOwnerAstNode(FunctionOwnerAstNode *functionOwner) {
+	if (functionOwner) {
+		free(functionOwner);
 	}
 }
 
-void destroy_break_ast_node(break_ast_node *bn) {
-	if (bn) {
-		free(bn);
+void destroyBreakStatementAstNode(BreakStatementAstNode *breakStatement) {
+	if (breakStatement) {
+		free(breakStatement);
 	}
 }
 
-void destroy_continue_ast_node(continue_ast_node *cn) {
-	if (cn) {
-		free(cn);
+void destroyContinueStatementAstNode(ContinueStatementAstNode *continueStatement) {
+	if (continueStatement) {
+		free(continueStatement);
 	}
 }
 
-void destroy_enumerated_structure_ast_node(enumerated_structure_ast_node *es) {
-	if (es) {
-		destroy_vector(es->structs);
-		free(es);
+void destroyEnumeratedStructureAstNode(EnumeratedStructureAstNode *enumeratedStructure) {
+	if (enumeratedStructure) {
+		destroyVector(enumeratedStructure->structs);
+		free(enumeratedStructure);
 	}
 }
 
-void destroy_statement_ast_node(statement_ast_node *sn) {
-	if (sn) {
-		if (sn->data) {
-			switch (sn->type) {
-				case VARIABLE_DEF_AST_NODE: destroy_variable_define_ast_node(sn->data); break;
-				case VARIABLE_DEC_AST_NODE: destroy_variable_declare_ast_node(sn->data); break;
-				case FUNCTION_CALLEE_AST_NODE: destroy_function_callee_ast_node(sn->data); break;
-				case FUNCTION_RET_AST_NODE: destroy_function_ast_node(sn->data); break;
-				case VARIABLE_REASSIGN_AST_NODE: destroy_variable_reassign_ast_node(sn->data); break;
-				case FOR_LOOP_AST_NODE: destroy_for_loop_ast_node(sn->data); break;
-				case INFINITE_LOOP_AST_NODE: destroy_infinite_loop_ast_node(sn->data); break;
-				case BREAK_AST_NODE: destroy_break_ast_node(sn->data); break;
-				case CONTINUE_AST_NODE: destroy_continue_ast_node(sn->data); break;
-				case ENUM_AST_NODE: destroy_enumeration_ast_node(sn->data); break;
-				case IF_STATEMENT_AST_NODE: destroy_if_statement_ast_node(sn->data); break;
-				case MATCH_STATEMENT_AST_NODE: destroy_match_ast_node(sn->data); break;
-				case WHILE_LOOP_AST_NODE: destroy_while_ast_node(sn->data); break;
-				default: printf("trying to destroy unrecognized statement node %d\n", sn->type); break;
+void destroyStatementAstNode(StatementAstNode *statement) {
+	if (statement) {
+		if (statement->data) {
+			switch (statement->type) {
+				case VARIABLE_DEF_AST_NODE: destroyVariableDefinitionAstNode(statement->data); break;
+				case VARIABLE_DEC_AST_NODE: destroyVariableDeclarationAstNode(statement->data); break;
+				case FUNCTION_CALLEE_AST_NODE: destroyFunctionCallAstNode(statement->data); break;
+				case FUNCTION_RET_AST_NODE: destroyFunctionAstNode(statement->data); break;
+				case VARIABLE_REASSIGN_AST_NODE: destroyVariableReassignmentAstNode(statement->data); break;
+				case FOR_LOOP_AST_NODE: destroyForLoopAstNode(statement->data); break;
+				case INFINITE_LOOP_AST_NODE: destroyInfiniteLoopAstNode(statement->data); break;
+				case BREAK_AST_NODE: destroyBreakStatementAstNode(statement->data); break;
+				case CONTINUE_AST_NODE: destroyContinueStatementAstNode(statement->data); break;
+				case ENUM_AST_NODE: destroyEnumAstNode(statement->data); break;
+				case IF_STATEMENT_AST_NODE: destroyIfStatementAstNode(statement->data); break;
+				case MATCH_STATEMENT_AST_NODE: destroyMatchAstNode(statement->data); break;
+				case WHILE_LOOP_AST_NODE: destroyWhileLoopAstNode(statement->data); break;
+				default: printf("trying to destroy unrecognized statement node %d\n", statement->type); break;
 			}
 		}
-		free(sn);
+		free(statement);
 	}
 }
 
-void destroy_function_return_ast_node(function_return_ast_node *frn) {
-	if (frn) {
-		destroy_expression_ast_node(frn->return_val);
-		free(frn);
+void destroyFunctionReturnAstNode(FunctionReturnAstNode *functionReturn) {
+	if (functionReturn) {
+		destroyExpressionAstNode(functionReturn->returnValue);
+		free(functionReturn);
 	}
 }
 
-void destroy_expression_ast_node(expression_ast_node *expr) {
-	if (expr) {
-		destroy_vector(expr->expression_values);
-		free(expr);
+void destroyExpressionAstNode(ExpressionAstNode *expression) {
+	if (expression) {
+		destroyVector(expression->expressionValues);
+		free(expression);
 	}
 }
 
-void destroy_variable_define_ast_node(variable_define_ast_node *vdn) {
-	if (vdn) {
-		free(vdn);
+void destroyVariableDefinitionAstNode(VariableDefinitionAstNode *variableDefinition) {
+	if (variableDefinition) {
+		free(variableDefinition);
 	}
 }
 
-void destroy_variable_declare_ast_node(variable_declare_ast_node *vdn) {
-	if (vdn) {
-		if (vdn->vdn) {
-			destroy_variable_define_ast_node(vdn->vdn);
+void destroyVariableDeclarationAstNode(VariableDeclarationAstNode *variableDeclaration) {
+	if (variableDeclaration) {
+		destroyVariableDefinitionAstNode(variableDeclaration->variableDefinitionAstNode);
+		destroyExpressionAstNode(variableDeclaration->expression);
+		free(variableDeclaration);
+	}
+}
+
+void destroyFunctionArgumentAstNode(FunctionArgumentAstNode *functionArgument) {
+	if (functionArgument) {
+		if (functionArgument->value) {
+			destroyExpressionAstNode(functionArgument->value);
 		}
-		if (vdn->expression) {
-			destroy_expression_ast_node(vdn->expression);
-		}
-		free(vdn);
+		free(functionArgument);
 	}
 }
 
-void destroy_function_argument_ast_node(function_argument_ast_node *fan) {
-	if (fan) {
-		if (fan->value) {
-			destroy_expression_ast_node(fan->value);
+void destroyBlockAstNode(BlockAstNode *blockNode) {
+	if (blockNode) {
+		if (blockNode->statements) {
+			destroyVector(blockNode->statements);
 		}
-		free(fan);
+		free(blockNode);
 	}
 }
 
-void destroy_block_ast_node(block_ast_node *bn) {
-	if (bn) {
-		if (bn->statements) {
-			destroy_vector(bn->statements);
+void destroyInfiniteLoopAstNode(InfiniteLoopAstNode *infiniteLoop) {
+	if (infiniteLoop) {
+		if (infiniteLoop->body) {
+			destroyBlockAstNode(infiniteLoop->body);
 		}
-		free(bn);
+		free(infiniteLoop);
 	}
 }
 
-void destroy_infinite_loop_ast_node(infinite_loop_ast_node *iln) {
-	if (iln) {
-		if (iln->body) {
-			destroy_block_ast_node(iln->body);
-		}
-		free(iln);
-	}
-}
-
-void destroy_function_prototype_ast_node(function_prototype_ast_node *fpn) {
-	if (fpn) {
-		if (fpn->args) {
+void destroyFunctionPrototypeAstNode(FunctionPrototypeAstNode *functionPrototype) {
+	if (functionPrototype) {
+		if (functionPrototype->args) {
 			int i;
-			for (i = 0; i < fpn->args->size; i++) {
-				statement_ast_node *sn = get_vector_item(fpn->args, i);
+			for (i = 0; i < functionPrototype->args->size; i++) {
+				StatementAstNode *sn = getVectorItem(functionPrototype->args, i);
 				if (sn) {
-					destroy_statement_ast_node(sn);
+					destroyStatementAstNode(sn);
 				}
 			}
-			destroy_vector(fpn->args);
+			destroyVector(functionPrototype->args);
 		}
-		free(fpn);
+		free(functionPrototype);
 	}
 }
 
-void destroy_function_ast_node(function_ast_node *fn) {
-	if (fn) {
-		if (fn->fpn) {
-			destroy_function_prototype_ast_node(fn->fpn);
+void destroyFunctionAstNode(FunctionAstNode *function) {
+	if (function) {
+		if (function->prototype) {
+			destroyFunctionPrototypeAstNode(function->prototype);
 		}
-		if (fn->body) {
-			destroy_block_ast_node(fn->body);
+		if (function->body) {
+			destroyBlockAstNode(function->body);
 		}
-		free(fn);
+		free(function);
 	}
 }
 
-void destroy_function_callee_ast_node(function_callee_ast_node *fcn) {
-	if (fcn) {
-		if (fcn->args) {
-			destroy_vector(fcn->args);
+void destroyFunctionCallAstNode(FunctionCallAstNode *functionCall) {
+	if (functionCall) {
+		if (functionCall->args) {
+			destroyVector(functionCall->args);
 		}
-		free(fcn);
+		free(functionCall);
 	}
 }
 
-void destroy_structure_ast_node(structure_ast_node *sn) {
-	if (sn) {
-		if (sn->statements) {
-			destroy_vector(sn->statements);
+void destroyStructureAstNode(StructureAstNode *structure) {
+	if (structure) {
+		if (structure->statements) {
+			destroyVector(structure->statements);
 		}
-		free(sn);
+		free(structure);
 	}
 }
 
-void destroy_enumeration_ast_node(enumeration_ast_node *en) {
-	if (en) {
-		if (en->enum_items) {
+void destroyEnumAstNode(EnumAstNode *enumeration) {
+	if (enumeration) {
+		if (enumeration->enumItems) {
 			int i;
-			for (i = 0; i < en->enum_items->size; i++) {
-				destroy_enum_item(get_vector_item(en->enum_items, i));
+			for (i = 0; i < enumeration->enumItems->size; i++) {
+				destroyEnumItem(getVectorItem(enumeration->enumItems, i));
 			}
-			destroy_vector(en->enum_items);
+			destroyVector(enumeration->enumItems);
 		}
-		free(en);
+		free(enumeration);
 	}
 }
 
-void destroy_if_statement_ast_node(if_statement_ast_node *isn) {
-	if (isn) {
-		if (isn->condition) {
-			destroy_expression_ast_node(isn->condition);
+void destroyIfStatementAstNode(IfStatementAstNode *ifStatement) {
+	if (ifStatement) {
+		if (ifStatement->condition) {
+			destroyExpressionAstNode(ifStatement->condition);
 		}
-		if (isn->body) {
-			destroy_block_ast_node(isn->body);
+		if (ifStatement->body) {
+			destroyBlockAstNode(ifStatement->body);
 		}
-		free(isn);
+		free(ifStatement);
 	}
 }
 
-void destroy_while_ast_node(while_ast_node *wn) {
-	if (wn) {
-		if (wn->condition) {
-			destroy_expression_ast_node(wn->condition);
+void destroyWhileLoopAstNode(WhileLoopAstNode *whileLoop) {
+	if (whileLoop) {
+		if (whileLoop->condition) {
+			destroyExpressionAstNode(whileLoop->condition);
 		}
-		if (wn->body) {
-			destroy_block_ast_node(wn->body);
+		if (whileLoop->body) {
+			destroyBlockAstNode(whileLoop->body);
 		}
-		free(wn);
+		free(whileLoop);
 	}
 }
 
-void destroy_match_case_ast_node(match_case_ast_node *mcn) {
-	if (mcn) {
-		if (mcn->condition) {
-			destroy_expression_ast_node(mcn->condition);
+void destroyMastCaseAstNode(MatchCaseAstNode *matchCase) {
+	if (matchCase) {
+		if (matchCase->condition) {
+			destroyExpressionAstNode(matchCase->condition);
 		}
-		if (mcn->body) {
-			destroy_block_ast_node(mcn->body);
+		if (matchCase->body) {
+			destroyBlockAstNode(matchCase->body);
 		}
-		free(mcn);
+		free(matchCase);
 	}
 }
 
-void destroy_match_ast_node(match_ast_node *mn) {
-	if (mn) {
-		if (mn->condition) {
-			destroy_expression_ast_node(mn->condition);
+void destroyMatchAstNode(MatchAstNode *match) {
+	if (match) {
+		if (match->condition) {
+			destroyExpressionAstNode(match->condition);
 		}
-		if (mn->cases) {
+		if (match->cases) {
 			int i;
-			for (i = 0; i < mn->cases->size; i++) {
-				destroy_match_case_ast_node(get_vector_item(mn->cases, i));
+			for (i = 0; i < match->cases->size; i++) {
+				destroyMastCaseAstNode(getVectorItem(match->cases, i));
 			}
-			destroy_vector(mn->cases);
+			destroyVector(match->cases);
 		}
-		free(mn);
+		free(match);
 	}
 }
 
-void destroy_enum_item(enum_item *ei) {
-	if (ei) {
-		free(ei);
+void destroyEnumItem(EnumItem *enumItem) {
+	if (enumItem) {
+		free(enumItem);
 	}
 }
 
 /** END AST_NODE FUNCTIONS */
 
-parser *create_parser(vector *token_stream) {
-	parser *parser = safe_malloc(sizeof(*parser));
-	parser->token_stream = token_stream;
-	parser->parse_tree = create_vector();
-	parser->token_index = 0;
+Parser *createParser(Vector *token_stream) {
+	Parser *parser = safeMalloc(sizeof(*parser));
+	parser->tokenStream = token_stream;
+	parser->parseTree = createVector();
+	parser->tokenIndex = 0;
 	parser->parsing = true;
-	parser->exit_on_error = false;
-	parser->sym_table = create_hashmap(16);
+	parser->exitOnError = false;
 	return parser;
 }
 
-token *consume_token(parser *parser) {
+Token *consumeToken(Parser *parser) {
 	// return the token we are consuming, then increment token index
-	return get_vector_item(parser->token_stream, parser->token_index++);
+	return getVectorItem(parser->tokenStream, parser->tokenIndex++);
 }
 
-token *peek_at_token_stream(parser *parser, int ahead) {
-	return get_vector_item(parser->token_stream, parser->token_index + ahead);
+Token *peekAtTokenStream(Parser *parser, int ahead) {
+	return getVectorItem(parser->tokenStream, parser->tokenIndex + ahead);
 }
 
-token *expect_token_type(parser *parser, token_type type) {
-	token *tok = peek_at_token_stream(parser, 1);
+Token *expectTokenType(Parser *parser, TokenType type) {
+	Token *tok = peekAtTokenStream(parser, 1);
 	if (tok->type == type) {
-		return consume_token(parser);
+		return consumeToken(parser);
 	}
 	else {
-		parser_error(parser, "unrecognized token found", tok, true);
+		parserError(parser, "unrecognized token found", tok, true);
 		return NULL;
 	}
 }
 
-token *expect_token_content(parser *parser, char *content) {
-	token *tok = peek_at_token_stream(parser, 1);
+Token *expectTokenContent(Parser *parser, char *content) {
+	Token *tok = peekAtTokenStream(parser, 1);
 	if (!strcmp(tok->content, content)) {
-		return consume_token(parser);
+		return consumeToken(parser);
 	}
 	else {
-		parser_error(parser, "unexpected token found", tok, true);
+		parserError(parser, "unexpected token found", tok, true);
 		return NULL;
 	}
 }
 
-token *expect_token_type_and_content(parser *parser, token_type type, char *content) {
-	token *tok = peek_at_token_stream(parser, 1);
+Token *expectTokenTypeAndContent(Parser *parser, TokenType type, char *content) {
+	Token *tok = peekAtTokenStream(parser, 1);
 	if (tok->type == type && !strcmp(tok->content, content)) {
-		return consume_token(parser);
+		return consumeToken(parser);
 	}
 	else {
-		parser_error(parser, "unexpected token found", tok, true);
+		parserError(parser, "unexpected token found", tok, true);
 		return NULL;
 	}
 }
 
-token *match_token_type(parser *parser, token_type type) {
-	token *tok = peek_at_token_stream(parser, 0);
+Token *matchTokenType(Parser *parser, TokenType type) {
+	Token *tok = peekAtTokenStream(parser, 0);
 	if (tok->type == type) {
-		return consume_token(parser);
+		return consumeToken(parser);
 	}
 	else {
-		parser_error(parser, "unexpected token found", tok, true);
+		parserError(parser, "unexpected token found", tok, true);
 		return NULL;
 	}
 }
 
-token *match_token_content(parser *parser, char *content) {
-	token *tok = peek_at_token_stream(parser, 0);
+Token *matchTokenContent(Parser *parser, char *content) {
+	Token *tok = peekAtTokenStream(parser, 0);
 	if (!strcmp(tok->content, content)) {
-		return consume_token(parser);
+		return consumeToken(parser);
 	}
 	else {
-		parser_error(parser, "unexpected token found", tok, true);
+		parserError(parser, "unexpected token found", tok, true);
 		return NULL;
 	}
 }
 
-token *match_token_type_and_content(parser *parser, token_type type, char *content) {
-	token *tok = peek_at_token_stream(parser, 0);
+Token *matchTokenTypeAndContent(Parser *parser, TokenType type, char *content) {
+	Token *tok = peekAtTokenStream(parser, 0);
 	if (tok->type == type && !strcmp(tok->content, content)) {
-		return consume_token(parser);
+		return consumeToken(parser);
 	}
 	else {
-		parser_error(parser, "unexpected token found", tok, true);
+		parserError(parser, "unexpected token found", tok, true);
 		return NULL;
 	}
 }
 
-bool check_token_type(parser *parser, token_type type, int ahead) {
-	token *tok = peek_at_token_stream(parser, ahead);
+bool checkTokenType(Parser *parser, TokenType type, int ahead) {
+	Token *tok = peekAtTokenStream(parser, ahead);
 	return tok->type == type;
 }
 
-bool check_token_content(parser *parser, char* content, int ahead) {
-	token *tok = peek_at_token_stream(parser, ahead);
+bool checkTokenContent(Parser *parser, char* content, int ahead) {
+	Token *tok = peekAtTokenStream(parser, ahead);
 	return !strcmp(tok->content, content);
 }
 
-bool check_token_type_and_content(parser *parser, token_type type, char* content, int ahead) {
-	return check_token_type(parser, type, ahead) && check_token_content(parser, content, ahead);
+bool checkTokenTypeAndContent(Parser *parser, TokenType type, char* content, int ahead) {
+	return checkTokenType(parser, type, ahead) && checkTokenContent(parser, content, ahead);
 }
 
-int parse_operand(parser *parser) {
-	token *tok = peek_at_token_stream(parser, 0);
+int parseOperand(Parser *parser) {
+	Token *token = peekAtTokenStream(parser, 0);
 
 	int i;
-	int operand_list_size = sizeof(SUPPORTED_OPERANDS) / sizeof(SUPPORTED_OPERANDS[0]);
-	for (i = 0; i < operand_list_size; i++) {
-		if (!strcmp(SUPPORTED_OPERANDS[i], tok->content)) {
-			consume_token(parser);
+	int operandListSize = sizeof(SUPPORTED_OPERANDS) / sizeof(SUPPORTED_OPERANDS[0]);
+	for (i = 0; i < operandListSize; i++) {
+		if (!strcmp(SUPPORTED_OPERANDS[i], token->content)) {
+			consumeToken(parser);
 			return i;
 		}
 	}
 
-	parser_error(parser, "unsupported operator specified", tok, true);
-	return OPER_ERRORNEOUS;
+	parserError(parser, "unsupported operator specified", token, true);
+	return -1;
 }
 
-while_ast_node *parse_while_loop(parser *parser) {
-	while_ast_node *while_loop = create_while_ast_node();
-	match_token_type_and_content(parser, IDENTIFIER, WHILE_LOOP_KEYWORD);
+WhileLoopAstNode *parseWhileLoop(Parser *parser) {
+	WhileLoopAstNode *whileLoop = createWhileLoopAstNode();
+	matchTokenTypeAndContent(parser, IDENTIFIER, WHILE_LOOP_KEYWORD);
 
-	while_loop->condition = parse_expression_ast_node(parser);
-	while_loop->body = parse_block_ast_node(parser);
+	whileLoop->condition = parseExpressionAstNode(parser);
+	whileLoop->body = parseBlockAstNode(parser);
 
-	return while_loop;
+	return whileLoop;
 }
 
-if_statement_ast_node *parse_if_statement_ast_node(parser *parser) {
-	if_statement_ast_node *en = create_if_statement_ast_node();
+IfStatementAstNode *parseIfStatementAstNode(Parser *parser) {
+	IfStatementAstNode *ifStatement = createIfStatementAstNode();
 
-	match_token_type_and_content(parser, IDENTIFIER, IF_KEYWORD);
+	matchTokenTypeAndContent(parser, IDENTIFIER, IF_KEYWORD);
 
-	en->condition = parse_expression_ast_node(parser);
-	en->body = parse_block_ast_node(parser);
-	en->statment_type = IF_STATEMENT;
+	ifStatement->condition = parseExpressionAstNode(parser);
+	ifStatement->body = parseBlockAstNode(parser);
+	ifStatement->statementType = IF_STATEMENT;
 
-	if (check_token_type_and_content(parser, IDENTIFIER, ELSE_KEYWORD, 0)) {
-		consume_token(parser);
-		en->statment_type = ELSE_STATEMENT;
-		en->else_statement = parse_block_ast_node(parser);
+	if (checkTokenTypeAndContent(parser, IDENTIFIER, ELSE_KEYWORD, 0)) {
+		consumeToken(parser);
+		ifStatement->statementType = ELSE_STATEMENT;
+		ifStatement->elseStatement = parseBlockAstNode(parser);
 	}
 
-	return en;
+	return ifStatement;
 }
 
-match_case_ast_node *parse_match_case_ast_node(parser *parser) {
-	match_case_ast_node *case_node = create_match_case_ast_node();
+MatchCaseAstNode *parseMatchCaseAstNode(Parser *parser) {
+	MatchCaseAstNode *matchCase = createMatchCaseAstNode();
 
-	case_node->condition = parse_expression_ast_node(parser);
-	case_node->body = parse_block_ast_node(parser);
+	matchCase->condition = parseExpressionAstNode(parser);
+	matchCase->body = parseBlockAstNode(parser);
 
-	return case_node;
+	return matchCase;
 }
 
-match_ast_node *parse_match_ast_node(parser *parser) {
-	match_ast_node *mn = create_match_ast_node();
+MatchAstNode *parseMatchAstNode(Parser *parser) {
+	MatchAstNode *match = createMatchAstNode();
 
-	match_token_type_and_content(parser, IDENTIFIER, MATCH_KEYWORD);
+	matchTokenTypeAndContent(parser, IDENTIFIER, MATCH_KEYWORD);
 
-	expression_ast_node *expr = parse_expression_ast_node(parser);
-	mn->condition = expr;
-	mn->cases = create_vector();
+	ExpressionAstNode *expr = parseExpressionAstNode(parser);
+	match->condition = expr;
+	match->cases = createVector();
 
-	if (check_token_type_and_content(parser, SEPARATOR, BLOCK_OPENER, 0)) {
-		consume_token(parser);
+	if (checkTokenTypeAndContent(parser, SEPARATOR, BLOCK_OPENER, 0)) {
+		consumeToken(parser);
 
 		do {
-			if (check_token_type_and_content(parser, SEPARATOR, BLOCK_CLOSER, 0)) {
-				consume_token(parser);
+			if (checkTokenTypeAndContent(parser, SEPARATOR, BLOCK_CLOSER, 0)) {
+				consumeToken(parser);
 				break;
 			}
 
-			push_back_item(mn->cases, parse_match_case_ast_node(parser));
+			pushBackItem(match->cases, parseMatchCaseAstNode(parser));
 		}
 		while (true);
 	}
 	else {
-		parser_error(parser, "match expected block denoted with `{}`", consume_token(parser), true);
+		parserError(parser, "match expected block denoted with `{}`", consumeToken(parser), true);
 	}
 
-	return mn;
+	return match;
 }
 
-enumeration_ast_node *parse_enumeration_ast_node(parser *parser) {
-	enumeration_ast_node *en = create_enumeration_ast_node();
+EnumAstNode *parseEnumerationAstNode(Parser *parser) {
+	EnumAstNode *enumeration = createEnumerationAstNode();
 
-	match_token_type_and_content(parser, IDENTIFIER, ENUM_KEYWORD); // ENUM
+	matchTokenTypeAndContent(parser, IDENTIFIER, ENUM_KEYWORD); // ENUM
 
 	// ENUMERATIONS NAME
-	if (check_token_type(parser, IDENTIFIER, 0)) {
-		token *enum_dec = consume_token(parser);
-		en->name = enum_dec;
+	if (checkTokenType(parser, IDENTIFIER, 0)) {
+		Token *enumName = consumeToken(parser);
+		enumeration->name = enumName;
 
 		// OPEN OF ENUM BLOCK
-		if (check_token_type_and_content(parser, SEPARATOR, BLOCK_OPENER, 0)) {
-			consume_token(parser);
+		if (checkTokenTypeAndContent(parser, SEPARATOR, BLOCK_OPENER, 0)) {
+			consumeToken(parser);
 
 			// LOOP
 			do {
 
 				// eat the last brace
-				if (check_token_type_and_content(parser, SEPARATOR, BLOCK_CLOSER, 0)) {
-					consume_token(parser);
+				if (checkTokenTypeAndContent(parser, SEPARATOR, BLOCK_CLOSER, 0)) {
+					consumeToken(parser);
 					break;
 				}
 
-				if (check_token_type(parser, IDENTIFIER, 0)) {
-					token *enum_item_name = consume_token(parser);
+				if (checkTokenType(parser, IDENTIFIER, 0)) {
+					Token *enumItemName = consumeToken(parser);
 
 					// setting the enum = to a value
-					if (check_token_type_and_content(parser, OPERATOR, ASSIGNMENT_OPERATOR, 0)) {
-						consume_token(parser);
+					if (checkTokenTypeAndContent(parser, OPERATOR, ASSIGNMENT_OPERATOR, 0)) {
+						consumeToken(parser);
 
 						// to a number
-						if (check_token_type(parser, NUMBER, 0)) {
-							token *enum_item_value = consume_token(parser);
+						if (checkTokenType(parser, NUMBER, 0)) {
+							Token *enumItemValue = consumeToken(parser);
 
 							// convert to int
-							int enum_item_value_as_int = atoi(enum_item_value->content);
+							int enumItemValueAsInt = atoi(enumItemValue->content);
 
 							// if we already have items in our enum
 							// make sure there are no duplicate values or names
-							if (en->enum_items->size >= 1) {
-								enum_item *prev_item = get_vector_item(en->enum_items, en->enum_items->size - 1);
-								int prev_item_value = prev_item->value;
-								char *prev_item_name = prev_item->name;
+							if (enumeration->enumItems->size >= 1) {
+								EnumItem *previousEnumItem = getVectorItem(enumeration->enumItems, enumeration->enumItems->size - 1);
+								int previousEnumItemValue = previousEnumItem->value;
+								char *previousEnumItemName = previousEnumItem->name;
 
 								// validate names are not duplicate
-								if (!strcmp(prev_item_name, enum_item_name->content)) {
-									parser_error(parser, "duplicate item in enumeration", enum_item_name, false);
+								if (!strcmp(previousEnumItemName, enumItemName->content)) {
+									parserError(parser, "duplicate item in enumeration", enumItemName, false);
 								}
 
 								// validate values are not duplicate
-								if (prev_item_value == enum_item_value_as_int) {
-									parser_error(parser, "duplicate item value in enumeration", enum_item_name, false);
+								if (previousEnumItemValue == enumItemValueAsInt) {
+									parserError(parser, "duplicate item value in enumeration", enumItemName, false);
 								}
 							}
 
 							// push it back
-							enum_item *item = create_enum_item(enum_item_name->content, enum_item_value_as_int);
-							push_back_item(en->enum_items, item);
+							EnumItem *enumItem = createEnumItem(enumItemName->content, enumItemValueAsInt);
+							pushBackItem(enumeration->enumItems, enumItem);
 						}
 						else {
-							parser_error(parser, "invalid integer literal assigned to enumeration item", consume_token(parser), false);
+							parserError(parser, "invalid integer literal assigned to enumeration item", consumeToken(parser), false);
 						}
 
 					}
 					// ENUM_ITEM with no assignment
 					else {
-						int enum_item_value_as_int = 0;
+						int enumItemValueAsInt = 0;
 
-						if (en->enum_items->size >= 1) {
-							enum_item *prev_item = get_vector_item(en->enum_items, en->enum_items->size - 1);
-							enum_item_value_as_int = prev_item->value + 1;
-							char *prev_item_name = prev_item->name;
+						if (enumeration->enumItems->size >= 1) {
+							EnumItem *previousEnumItem = getVectorItem(enumeration->enumItems, enumeration->enumItems->size - 1);
+							enumItemValueAsInt = previousEnumItem->value + 1;
+							char *previousEnumItemName = previousEnumItem->name;
 
 							// validate name
-							if (!strcmp(prev_item_name, enum_item_name->content)) {
-								parser_error(parser, "duplicate item in enumeration", enum_item_name, false);
+							if (!strcmp(previousEnumItemName, enumItemName->content)) {
+								parserError(parser, "duplicate item in enumeration", enumItemName, false);
 							}
 						}
 
-						enum_item *item = create_enum_item(enum_item_name->content, enum_item_value_as_int);
-						push_back_item(en->enum_items, item);
+						EnumItem *enumItem = createEnumItem(enumItemName->content, enumItemValueAsInt);
+						pushBackItem(enumeration->enumItems, enumItem);
 					}
 				}
 
-				if (check_token_type_and_content(parser, SEPARATOR, COMMA_SEPARATOR, 0)) {
-					consume_token(parser);
-					if (check_token_type_and_content(parser, SEPARATOR, BLOCK_CLOSER, 0)) {
-						parser_error(parser, "trailing comma in enumeration", consume_token(parser), false);
+				if (checkTokenTypeAndContent(parser, SEPARATOR, COMMA_SEPARATOR, 0)) {
+					consumeToken(parser);
+					if (checkTokenTypeAndContent(parser, SEPARATOR, BLOCK_CLOSER, 0)) {
+						parserError(parser, "trailing comma in enumeration", consumeToken(parser), false);
 						break;
 					}
 				}
 
 				// we've finished parsing jump out
-				if (check_token_type_and_content(parser, SEPARATOR, BLOCK_CLOSER, 0)) {
-					consume_token(parser);
+				if (checkTokenTypeAndContent(parser, SEPARATOR, BLOCK_CLOSER, 0)) {
+					consumeToken(parser);
 					break;
 				}
 
@@ -723,619 +718,614 @@ enumeration_ast_node *parse_enumeration_ast_node(parser *parser) {
 			while (true);
 
 			// empty enum, throw an error.
-			if (en->enum_items->size == 0) {
-				parser_error(parser, "empty enumeration", consume_token(parser), false);
+			if (enumeration->enumItems->size == 0) {
+				parserError(parser, "empty enumeration", consumeToken(parser), false);
 			}
 		}
 	}
 
-	return en;
+	return enumeration;
 }
 
-enumerated_structure_ast_node *parse_enumerated_structure_ast_node(parser *parser) {
-	enumerated_structure_ast_node *es = create_enumerated_structure_ast_node();
+EnumeratedStructureAstNode *parse_enumerated_structure_ast_node(Parser *parser) {
+	EnumeratedStructureAstNode *enumeratedStructure = createEnumeratedStructureAstNode();
 
-	match_token_type_and_content(parser, IDENTIFIER, ANON_STRUCT_KEYWORD);
-	token *estruct_name = match_token_type(parser, IDENTIFIER);
-	es->name = estruct_name;
-	es->structs = create_vector();
+	matchTokenTypeAndContent(parser, IDENTIFIER, ANON_STRUCT_KEYWORD);
+	Token *estruct_name = matchTokenType(parser, IDENTIFIER);
+	enumeratedStructure->name = estruct_name;
+	enumeratedStructure->structs = createVector();
 
-	if (check_token_type_and_content(parser, SEPARATOR, BLOCK_OPENER, 0)) {
-		consume_token(parser);
+	if (checkTokenTypeAndContent(parser, SEPARATOR, BLOCK_OPENER, 0)) {
+		consumeToken(parser);
 		do {
-			if (check_token_type_and_content(parser, SEPARATOR, BLOCK_CLOSER, 0)) {
-				consume_token(parser);
+			if (checkTokenTypeAndContent(parser, SEPARATOR, BLOCK_CLOSER, 0)) {
+				consumeToken(parser);
 				break;
 			}
-			push_back_item(es->structs, match_token_type(parser, IDENTIFIER));
+			pushBackItem(enumeratedStructure->structs, matchTokenType(parser, IDENTIFIER));
 		}
 		while (true);
 	}
 
-	return es;
+	return enumeratedStructure;
 }
 
-structure_ast_node *parse_structure_ast_node(parser *parser) {
-	match_token_type_and_content(parser, IDENTIFIER, STRUCT_KEYWORD);
-	token *struct_name = match_token_type(parser, IDENTIFIER);
+StructureAstNode *parseStructureAstNode(Parser *parser) {
+	matchTokenTypeAndContent(parser, IDENTIFIER, STRUCT_KEYWORD);
+	Token *structName = matchTokenType(parser, IDENTIFIER);
 
-	structure_ast_node *sn = create_structure_ast_node();
-	sn->struct_name = struct_name->content;
+	StructureAstNode *structure = createStructureAstNode();
+	structure->name = structName->content;
 
 	// parses a block of statements
-	if (check_token_type_and_content(parser, SEPARATOR, BLOCK_OPENER, 0)) {
-		consume_token(parser);
+	if (checkTokenTypeAndContent(parser, SEPARATOR, BLOCK_OPENER, 0)) {
+		consumeToken(parser);
 
 		do {
-			if (check_token_type_and_content(parser, SEPARATOR, BLOCK_CLOSER, 0)) {
-				consume_token(parser);
+			if (checkTokenTypeAndContent(parser, SEPARATOR, BLOCK_CLOSER, 0)) {
+				consumeToken(parser);
 				break;
 			}
 
-			push_back_item(sn->statements, parse_variable_ast_node(parser, false));
+			pushBackItem(structure->statements, parseVariableAstNode(parser, false));
 		}
 		while (true);
 	}
 
-	return sn;
+	return structure;
 }
 
-statement_ast_node *parse_for_loop_ast_node(parser *parser) {
+StatementAstNode *parseForLoopAstNode(Parser *parser) {
 	// for token
-	match_token_type_and_content(parser, IDENTIFIER, FOR_LOOP_KEYWORD);			// FOR KEYWORD
+	matchTokenTypeAndContent(parser, IDENTIFIER, FOR_LOOP_KEYWORD);			// FOR KEYWORD
 
-	// TODO: inferred data types
-	token *index_name = match_token_type(parser, IDENTIFIER);					// INDEX_NAME
+	Token *indexName = matchTokenType(parser, IDENTIFIER);					// INDEX_NAME
 
-	match_token_type_and_content(parser, OPERATOR, ":");						// PARAMS
+	matchTokenTypeAndContent(parser, OPERATOR, ":");						// PARAMS
 
 	// create node with the stuff we just got
-	for_loop_ast_node *fln = create_for_loop_ast_node();
-	fln->index_name = index_name;
-	fln->params = create_vector();
+	ForLoopAstNode *forLoop = createForLoopAstNode();
+	forLoop->indexName = indexName;
+	forLoop->parameters = createVector();
 
 	// consume the args
-	if (check_token_type_and_content(parser, SEPARATOR, "(", 0)) {
-		token *arg_opener = consume_token(parser);
+	if (checkTokenTypeAndContent(parser, SEPARATOR, "(", 0)) {
+		Token *argumentOpener = consumeToken(parser);
 
-		int param_count = 0;
+		int paramCount = 0;
 
 		do {
-			if (param_count > 3) {
-				parser_error(parser, "too many parameters passed to for loop", consume_token(parser), false);
+			if (paramCount > MAX_FOR_LOOP_PARAM_COUNT) {
+				parserError(parser, "too many parameters passed to for loop", consumeToken(parser), false);
 			}
-			if (check_token_type_and_content(parser, SEPARATOR, ")", 0)) {
-				if (param_count < 2) {
-					parser_error(parser, "too few parameters passed to for loop", arg_opener, false);
+			if (checkTokenTypeAndContent(parser, SEPARATOR, ")", 0)) {
+				if (paramCount < MIN_FOR_LOOP_PARAM_COUNT) {
+					parserError(parser, "too few parameters passed to for loop", argumentOpener, false);
 				}
-				consume_token(parser);
+				consumeToken(parser);
 				break;
 			}
 
-			if (check_token_type(parser, IDENTIFIER, 0)) {
-				token *tok = consume_token(parser);
-				fln->type = tok;
-				push_back_item(fln->params, tok);
-				if (check_token_type_and_content(parser, SEPARATOR, ",", 0)) {
-					if (check_token_type_and_content(parser, SEPARATOR, ")", 1)) {
-						parser_error(parser, "trailing comma in for loop declaration", consume_token(parser), false);
+			if (checkTokenType(parser, IDENTIFIER, 0)) {
+				Token *token = consumeToken(parser);
+				forLoop->type = token;
+				pushBackItem(forLoop->parameters, token);
+				if (checkTokenTypeAndContent(parser, SEPARATOR, ",", 0)) {
+					if (checkTokenTypeAndContent(parser, SEPARATOR, ")", 1)) {
+						parserError(parser, "trailing comma in for loop declaration", consumeToken(parser), false);
 					}
-					consume_token(parser);
+					consumeToken(parser);
 				}
 			}
-			else if (check_token_type(parser, NUMBER, 0)) {
-				token *tok = consume_token(parser);
-				fln->type = tok;
-				push_back_item(fln->params, tok);
-				if (check_token_type_and_content(parser, SEPARATOR, ",", 0)) {
-					if (check_token_type_and_content(parser, SEPARATOR, ")", 1)) {
-						parser_error(parser, "trailing comma in for loop declaration", consume_token(parser), false);
+			else if (checkTokenType(parser, NUMBER, 0)) {
+				Token *token = consumeToken(parser);
+				forLoop->type = token;
+				pushBackItem(forLoop->parameters, token);
+				if (checkTokenTypeAndContent(parser, SEPARATOR, ",", 0)) {
+					if (checkTokenTypeAndContent(parser, SEPARATOR, ")", 1)) {
+						parserError(parser, "trailing comma in for loop declaration", consumeToken(parser), false);
 					}
-					consume_token(parser);
+					consumeToken(parser);
 				}
 			}
 			// it's an expression probably
-			else if (check_token_type_and_content(parser, SEPARATOR, "(", 0)) {
-				expression_ast_node *expr = parse_expression_ast_node(parser);
-				push_back_item(fln->params, expr);
-				if (check_token_type_and_content(parser, SEPARATOR, ",", 0)) {
-					if (check_token_type_and_content(parser, SEPARATOR, ")", 1)) {
-						parser_error(parser, "trailing comma in for loop declaration", consume_token(parser), false);
+			else if (checkTokenTypeAndContent(parser, SEPARATOR, "(", 0)) {
+				ExpressionAstNode *expr = parseExpressionAstNode(parser);
+				pushBackItem(forLoop->parameters, expr);
+				if (checkTokenTypeAndContent(parser, SEPARATOR, ",", 0)) {
+					if (checkTokenTypeAndContent(parser, SEPARATOR, ")", 1)) {
+						parserError(parser, "trailing comma in for loop declaration", consumeToken(parser), false);
 					}
-					consume_token(parser);
+					consumeToken(parser);
 				}
 			}
 			else {
-				parser_error(parser, "expected a number literal or a variable in for loop parameters", consume_token(parser), false);
+				parserError(parser, "expected a number literal or a variable in for loop parameters", consumeToken(parser), false);
 				break;
 			}
 
-			param_count++;
+			paramCount++;
 		}
 		while (true);
 
-		fln->body = parse_block_ast_node(parser);
+		forLoop->body = parseBlockAstNode(parser);
 
-		return create_statement_ast_node(fln, FOR_LOOP_AST_NODE);
+		return createStatementAstNode(forLoop, FOR_LOOP_AST_NODE);
 	}
 
-	parser_error(parser, "failed to parse for loop", consume_token(parser), true);
+	parserError(parser, "failed to parse for loop", consumeToken(parser), true);
 	return NULL;
 }
 
-expression_ast_node *parse_expression_ast_node(parser *parser) {
-	expression_ast_node *expr = create_expression_ast_node();
+ExpressionAstNode *parseExpressionAstNode(Parser *parser) {
+	ExpressionAstNode *expr = createExpressionAstNode();
 	for (;;) {
-		token *current = peek_at_token_stream(parser, 0);
-		token *next = peek_at_token_stream(parser, 1);
+		Token *current = peekAtTokenStream(parser, 0);
+		Token *next = peekAtTokenStream(parser, 1);
 
-		if ((!is_expression_op(current->content[0]) && !is_expression_op(next->content[0]))) {
+		// TODO: fix this from consuming the closing parenthesis
+		if ((!isExpressionOperator(current->content[0]) && !isExpressionOperator(next->content[0]))) {
 			break;
 		}
-		push_back_item(expr->expression_values, consume_token(parser));
+		pushBackItem(expr->expressionValues, consumeToken(parser));
 	}
 	return expr;
 }
 
-void *parse_variable_ast_node(parser *parser, bool global) {
-	bool is_constant = false;
+void *parseVariableAstNode(Parser *parser, bool isGlobal) {
+	bool isConstant = false;
 
-	if (check_token_type_and_content(parser, IDENTIFIER, CONSTANT_KEYWORD, 0)) {
-		consume_token(parser);
-		is_constant = true;
+	if (checkTokenTypeAndContent(parser, IDENTIFIER, CONSTANT_KEYWORD, 0)) {
+		consumeToken(parser);
+		isConstant = true;
 	}
 
 	// consume the int data type
-	token *variable_data_type = match_token_type(parser, IDENTIFIER);
-	variable_define_ast_node *def = create_variable_define_ast_node();
+	Token *variableDataType = matchTokenType(parser, IDENTIFIER);
+	VariableDefinitionAstNode *def = createVariableDefinitionAstNode();
 
 	// is a pointer
-	bool is_pointer = false;
-	if (check_token_type_and_content(parser, OPERATOR, POINTER_OPERATOR, 0)) {
-		is_pointer = true;
-		consume_token(parser);
+	bool isPointer = false;
+	if (checkTokenTypeAndContent(parser, OPERATOR, POINTER_OPERATOR, 0)) {
+		isPointer = true;
+		consumeToken(parser);
 	}
 
 	// name of the variable
-	token *variable_name_token = match_token_type(parser, IDENTIFIER);
+	Token *variableNameToken = matchTokenType(parser, IDENTIFIER);
 
-	if (check_token_type_and_content(parser, OPERATOR, ASSIGNMENT_OPERATOR, 0)) {
+	if (checkTokenTypeAndContent(parser, OPERATOR, ASSIGNMENT_OPERATOR, 0)) {
 		// consume the equals sign
-		consume_token(parser);
+		consumeToken(parser);
 
 		// create variable define ast_node
-
-		/* TODO: consume token and check if it is "-" followed by the number
-		 * if it is "-" followed by the number, it is negative - ergo, do shit
-		 */
-
-		def->is_constant = is_constant;
-		def->type = variable_data_type;
-		def->name = variable_name_token->content;
-		def->is_global = global;
-		def->is_pointer = is_pointer;
+		def->isConstant = isConstant;
+		def->type = variableDataType;
+		def->name = variableNameToken->content;
+		def->isGlobal = isGlobal;
+		def->isPointer = isPointer;
 
 		// create the variable declare ast_node
-		variable_declare_ast_node *dec = create_variable_declare_ast_node();
-		dec->vdn = def;
-		dec->expression = parse_expression_ast_node(parser);
+		VariableDeclarationAstNode *dec = createVariableDeclarationAstNode();
+		dec->variableDefinitionAstNode = def;
+		dec->expression = parseExpressionAstNode(parser);
 
 		// this is weird, we can probably clean this up
-		if (global) {
-			prepare_ast_node(parser, dec, VARIABLE_DEC_AST_NODE);
+		if (isGlobal) {
+			pushAstNode(parser, dec, VARIABLE_DEC_AST_NODE);
 			return dec;
 		}
 
 		// not global, pop it as a statement node
-		return create_statement_ast_node(dec, VARIABLE_DEC_AST_NODE);
+		return createStatementAstNode(dec, VARIABLE_DEC_AST_NODE);
 	}
 	else {
 		// create variable define ast_node
-		def->is_constant = is_constant;
-		def->type = variable_data_type;
-		def->name = variable_name_token->content;
-		def->is_global = global;
-		def->is_pointer = is_pointer;
+		def->isConstant = isConstant;
+		def->type = variableDataType;
+		def->name = variableNameToken->content;
+		def->isGlobal = isGlobal;
+		def->isPointer = isPointer;
 
-		if (global) {
-			prepare_ast_node(parser, def, VARIABLE_DEF_AST_NODE);
+		if (isGlobal) {
+			pushAstNode(parser, def, VARIABLE_DEF_AST_NODE);
 			return def;
 		}
 
 		// not global, pop it as a statement node
-		return create_statement_ast_node(def, VARIABLE_DEF_AST_NODE);
+		return createStatementAstNode(def, VARIABLE_DEF_AST_NODE);
 	}
 }
 
-block_ast_node *parse_block_ast_node(parser *parser) {
-	block_ast_node *block = create_block_ast_node();
-	block->statements = create_vector();
-	block->single_statement = false;
+BlockAstNode *parseBlockAstNode(Parser *parser) {
+	BlockAstNode *block = createBlockAstNode();
+	block->statements = createVector();
+	block->isSingleStatement = false;
 
-	if (check_token_type_and_content(parser, OPERATOR, SINGLE_STATEMENT, 0)) {
-		consume_token(parser);
-		push_back_item(block->statements, parse_statement_ast_node(parser));
-		block->single_statement = true;
+	if (checkTokenTypeAndContent(parser, OPERATOR, SINGLE_STATEMENT, 0)) {
+		consumeToken(parser);
+		pushBackItem(block->statements, parseStatementAstNode(parser));
+		block->isSingleStatement = true;
 	}
-	else if (check_token_type_and_content(parser, SEPARATOR, BLOCK_OPENER, 0)) {
-		consume_token(parser);
+	else if (checkTokenTypeAndContent(parser, SEPARATOR, BLOCK_OPENER, 0)) {
+		consumeToken(parser);
 
 		do {
 			// check if block is empty before we try parse some statements
-			if (check_token_type_and_content(parser, SEPARATOR, BLOCK_CLOSER, 0)) {
-				consume_token(parser);
+			if (checkTokenTypeAndContent(parser, SEPARATOR, BLOCK_CLOSER, 0)) {
+				consumeToken(parser);
 				break;
 			}
 
-			push_back_item(block->statements, parse_statement_ast_node(parser));
+			pushBackItem(block->statements, parseStatementAstNode(parser));
 		}
 		while (true);
 	}
 	else {
-		parser_error(parser, "expected a multi-block or single-block statement", consume_token(parser), true);
+		parserError(parser, "expected a multi-block or single-block statement", consumeToken(parser), true);
 	}
 
 	return block;
 }
 
-statement_ast_node *parse_infinite_loop_ast_node(parser *parser) {
-	match_token_type(parser, IDENTIFIER);
+StatementAstNode *parseInfiniteLoopAstNode(Parser *parser) {
+	matchTokenType(parser, IDENTIFIER);
 
-	block_ast_node *body = parse_block_ast_node(parser);
+	BlockAstNode *body = parseBlockAstNode(parser);
 
-	infinite_loop_ast_node *iln = create_infinite_loop_ast_node();
-	iln->body = body;
+	InfiniteLoopAstNode *infiniteLoop = createInfiniteLoopAstNode();
+	infiniteLoop->body = body;
 
-	return create_statement_ast_node(iln, INFINITE_LOOP_AST_NODE);
+	return createStatementAstNode(infiniteLoop, INFINITE_LOOP_AST_NODE);
 }
 
-function_ast_node *parse_function_ast_node(parser *parser) {
-	match_token_type(parser, IDENTIFIER);	// consume the fn keyword
+FunctionAstNode *parseFunctionAstNode(Parser *parser) {
+	matchTokenType(parser, IDENTIFIER);	// consume the fn keyword
 
-	function_owner *fo = NULL;
+	FunctionOwnerAstNode *functionOwner = NULL;
 
 	// we're specifying an owner, so it's a method!
-	if (check_token_type_and_content(parser, SEPARATOR, "(", 0)) {
-		consume_token(parser);
+	if (checkTokenTypeAndContent(parser, SEPARATOR, "(", 0)) {
+		consumeToken(parser);
 
-		fo = create_function_owner_ast_node();
-		if (check_token_type(parser, IDENTIFIER, 0)) {
-			fo->owner = consume_token(parser);
+		functionOwner = createFunctionOwnerAstNode();
+		if (checkTokenType(parser, IDENTIFIER, 0)) {
+			functionOwner->owner = consumeToken(parser);
 
 			// check if the owner is a pointer or not
-			if (check_token_type_and_content(parser, OPERATOR, POINTER_OPERATOR, 0)) {
-				fo->is_pointer = true;
+			if (checkTokenTypeAndContent(parser, OPERATOR, POINTER_OPERATOR, 0)) {
+				functionOwner->isPointer = true;
 			}
 
 			// check if we give an owner
-			if (check_token_type(parser, IDENTIFIER, 0)) {
-				fo->alias = consume_token(parser);
+			if (checkTokenType(parser, IDENTIFIER, 0)) {
+				functionOwner->alias = consumeToken(parser);
 			}
 			else {
-				parser_error(parser, "method expected identifier to specify an alias for the method owner", consume_token(parser), false);
-				destroy_function_owner_ast_node(fo);
+				parserError(parser, "method expected identifier to specify an alias for the method owner", consumeToken(parser), false);
+				destroyFunctionOwnerAstNode(functionOwner);
 			}
 
-			if (check_token_type_and_content(parser, SEPARATOR, ")", 0)) {
-				consume_token(parser);
+			if (checkTokenTypeAndContent(parser, SEPARATOR, ")", 0)) {
+				consumeToken(parser);
 			}
 		}
 		else {
-			parser_error(parser, "method expected an identifier to specify ownership", consume_token(parser), false);
-			destroy_function_owner_ast_node(fo);
+			parserError(parser, "method expected an identifier to specify ownership", consumeToken(parser), false);
+			destroyFunctionOwnerAstNode(functionOwner);
 		}
 	}
 
-	token *functionName = match_token_type(parser, IDENTIFIER); // name of function
-	vector *args = create_vector();
+	Token *functionName = matchTokenType(parser, IDENTIFIER); // name of function
+	Vector *args = createVector();
 
 	// Create function signature
-	function_prototype_ast_node *fpn = create_function_prototype_ast_node();
-	fpn->args = args;
-	fpn->name = functionName;
-	fpn->fo = fo;
+	FunctionPrototypeAstNode *prototype = createFunctionPrototypeAstNode();
+	prototype->args = args;
+	prototype->name = functionName;
+	prototype->owner = functionOwner;
 
 	// parameter list
-	if (check_token_type_and_content(parser, SEPARATOR, "(", 0)) {
-		consume_token(parser);
+	if (checkTokenTypeAndContent(parser, SEPARATOR, "(", 0)) {
+		consumeToken(parser);
 
 		do {
 			// NO ARGUMENTS PROVIDED TO FUNCTION
-			if (check_token_type_and_content(parser, SEPARATOR, ")", 0)) {
-				consume_token(parser);
+			if (checkTokenTypeAndContent(parser, SEPARATOR, ")", 0)) {
+				consumeToken(parser);
 				break;
 			}
 
-			bool is_constant = false;
-			if (check_token_type_and_content(parser, IDENTIFIER, CONSTANT_KEYWORD, 0)) {
-				is_constant = true;
-				consume_token(parser);
+			bool isConstant = false;
+			if (checkTokenTypeAndContent(parser, IDENTIFIER, CONSTANT_KEYWORD, 0)) {
+				isConstant = true;
+				consumeToken(parser);
 			}
 
 			// data type
-			token *argdata_type = match_token_type(parser, IDENTIFIER);
+			Token *argumentType = matchTokenType(parser, IDENTIFIER);
 
 			// look for ^
-			bool is_pointer = false;
-			if (check_token_type_and_content(parser, OPERATOR, POINTER_OPERATOR, 0)) {
-				is_pointer = true;
-				consume_token(parser);
+			bool isPointer = false;
+			if (checkTokenTypeAndContent(parser, OPERATOR, POINTER_OPERATOR, 0)) {
+				isPointer = true;
+				consumeToken(parser);
 			}
 
 			// name of argument
-			token *arg_name = match_token_type(parser, IDENTIFIER);
+			Token *argumentName = matchTokenType(parser, IDENTIFIER);
 
-			function_argument_ast_node *arg = create_function_argument_ast_node();
-			arg->type = argdata_type;
-			arg->name = arg_name;
-			arg->is_pointer = is_pointer;
-			arg->is_constant = is_constant;
+			FunctionArgumentAstNode *arg = createFunctionArgumentAstNode();
+			arg->type = argumentType;
+			arg->name = argumentName;
+			arg->isPointer = isPointer;
+			arg->isConstant = isConstant;
 			arg->value = NULL;
 
-			if (check_token_type_and_content(parser, OPERATOR, ASSIGNMENT_OPERATOR, 0)) {
-				consume_token(parser);
+			if (checkTokenTypeAndContent(parser, OPERATOR, ASSIGNMENT_OPERATOR, 0)) {
+				consumeToken(parser);
 
 				// default expression
-				expression_ast_node *expr = parse_expression_ast_node(parser);
+				ExpressionAstNode *expr = parseExpressionAstNode(parser);
 				arg->value = expr;
-				push_back_item(args, arg);
+				pushBackItem(args, arg);
 
-				if (check_token_type_and_content(parser, SEPARATOR, COMMA_SEPARATOR, 0)) {
-					consume_token(parser);
+				if (checkTokenTypeAndContent(parser, SEPARATOR, COMMA_SEPARATOR, 0)) {
+					consumeToken(parser);
 				}
-				else if (check_token_type_and_content(parser, SEPARATOR, ")", 0)) {
-					consume_token(parser); // eat closing parenthesis
+				else if (checkTokenTypeAndContent(parser, SEPARATOR, ")", 0)) {
+					consumeToken(parser); // eat closing parenthesis
 					break;
 				}
 			}
-			else if (check_token_type_and_content(parser, SEPARATOR, COMMA_SEPARATOR, 0)) {
-				if (check_token_type_and_content(parser, SEPARATOR, ")", 1)) {
-					parser_error(parser, "trailing comma at the end of argument list", consume_token(parser), false);
+			else if (checkTokenTypeAndContent(parser, SEPARATOR, COMMA_SEPARATOR, 0)) {
+				if (checkTokenTypeAndContent(parser, SEPARATOR, ")", 1)) {
+					parserError(parser, "trailing comma at the end of argument list", consumeToken(parser), false);
 				}
-				consume_token(parser); // eat the comma
-				push_back_item(args, arg);
+				consumeToken(parser); // eat the comma
+				pushBackItem(args, arg);
 			}
-			else if (check_token_type_and_content(parser, SEPARATOR, ")", 0)) {
-				consume_token(parser); // eat closing parenthesis
-				push_back_item(args, arg);
+			else if (checkTokenTypeAndContent(parser, SEPARATOR, ")", 0)) {
+				consumeToken(parser); // eat closing parenthesis
+				pushBackItem(args, arg);
 				break;
 			}
 		}
 		while (true);
 
-		function_ast_node *fn = create_function_ast_node();
+		FunctionAstNode *function = createFunctionAstNode();
 
-		if (check_token_type_and_content(parser, OPERATOR, ":", 0)) {
-			consume_token(parser);
+		if (checkTokenTypeAndContent(parser, OPERATOR, ":", 0)) {
+			consumeToken(parser);
 
-			bool is_constant = false;
-			if (check_token_type_and_content(parser, IDENTIFIER, CONSTANT_KEYWORD, 0)) {
-				is_constant = true;
-				consume_token(parser);
+			bool isConstant = false;
+			if (checkTokenTypeAndContent(parser, IDENTIFIER, CONSTANT_KEYWORD, 0)) {
+				isConstant = true;
+				consumeToken(parser);
 			}
 
-			bool returns_pointer = false;
-			if (check_token_type_and_content(parser, OPERATOR, POINTER_OPERATOR, 0)) {
-				returns_pointer = true;
-				consume_token(parser);
+			bool returnPointer = false;
+			if (checkTokenTypeAndContent(parser, OPERATOR, POINTER_OPERATOR, 0)) {
+				returnPointer = true;
+				consumeToken(parser);
 			}
 
 			// returns data type
-			// TODO: let this return a struct... etc
-			if (check_token_type(parser, IDENTIFIER, 0)) {
-				token *return_type = consume_token(parser);
-				fpn->return_type = return_type;
-				fn->returns_pointer = returns_pointer;
-				fn->is_constant = is_constant;
+			if (checkTokenType(parser, IDENTIFIER, 0)) {
+				Token *returnType = consumeToken(parser);
+				prototype->returnType = returnType;
+				function->returnsPointer = returnPointer;
+				function->isConstant = isConstant;
 			}
 			else {
-				parser_error(parser, "function declaration return type expected", consume_token(parser), false);
+				parserError(parser, "function declaration return type expected", consumeToken(parser), false);
 			}
 		}
-		else if (check_token_type(parser, IDENTIFIER, 0)) {
+		else if (checkTokenType(parser, IDENTIFIER, 0)) {
 			// if they do for example
 			//              V forgot the :!!!!
 			// fn whatever() int {
 			// }
-			parser_error(parser, "found an identifier after function argument list, perhaps you missed a colon?", consume_token(parser), false);
+			parserError(parser, "found an identifier after function argument list, perhaps you missed a colon?", consumeToken(parser), false);
 		}
 		else {
-			// TODO: set to void, idk?
-			fpn->return_type = NULL;
+			prototype->returnType = NULL;
 		}
 
 		// set function prototype
-		fn->fpn = fpn;
-		fn->body = parse_block_ast_node(parser);
+		function->prototype = prototype;
+		function->body = parseBlockAstNode(parser);
 
-		prepare_ast_node(parser, fn, FUNCTION_AST_NODE);
+		pushAstNode(parser, function, FUNCTION_AST_NODE);
 
-		return fn;
+		return function;
 	}
 	else {
-		parser_error(parser, "expecting a parameter list", consume_token(parser), false);
+		parserError(parser, "expecting a parameter list", consumeToken(parser), false);
 	}
 
 	// just in case we fail to parse, free this shit
-	free(fpn);
-	fpn = NULL;
+	free(prototype);
+	prototype = NULL;
 
-	parser_error(parser, "failed to parse function", consume_token(parser), true);
+	parserError(parser, "failed to parse function", consumeToken(parser), true);
 	return NULL;
 }
 
-function_callee_ast_node *parse_function_callee_ast_node(parser *parser) {
+FunctionCallAstNode *parseFunctionCallAstNode(Parser *parser) {
 	// consume function name
-	token *callee = match_token_type(parser, IDENTIFIER);
+	Token *call = matchTokenType(parser, IDENTIFIER);
 
-	if (check_token_type_and_content(parser, SEPARATOR, "(", 0)) {
-		consume_token(parser);	// eat open bracket
+	if (checkTokenTypeAndContent(parser, SEPARATOR, "(", 0)) {
+		consumeToken(parser);	// eat open bracket
 
-		vector *args = create_vector();
+		Vector *args = createVector();
 
 		do {
 			// NO ARGUMENTS PROVIDED TO FUNCTION
-			if (check_token_type_and_content(parser, SEPARATOR, ")", 0)) {
-				consume_token(parser);
+			if (checkTokenTypeAndContent(parser, SEPARATOR, ")", 0)) {
+				consumeToken(parser);
 				break;
 			}
 
-			expression_ast_node *expr = parse_expression_ast_node(parser);
+			ExpressionAstNode *expression = parseExpressionAstNode(parser);
 
-			function_argument_ast_node *arg = create_function_argument_ast_node();
-			arg->value = expr;
+			FunctionArgumentAstNode *argument = createFunctionArgumentAstNode();
+			argument->value = expression;
 
-			if (check_token_type_and_content(parser, SEPARATOR, ",", 0)) {
-				if (check_token_type_and_content(parser, SEPARATOR, ")", 1)) {
-					parser_error(parser, "trailing comma at the end of argument list", consume_token(parser), false);
+			if (checkTokenTypeAndContent(parser, SEPARATOR, ",", 0)) {
+				if (checkTokenTypeAndContent(parser, SEPARATOR, ")", 1)) {
+					parserError(parser, "trailing comma at the end of argument list", consumeToken(parser), false);
 				}
-				consume_token(parser);
-				push_back_item(args, arg);
+				consumeToken(parser);
+				pushBackItem(args, argument);
 			}
-			else if (check_token_type_and_content(parser, SEPARATOR, ")", 0)) {
-				consume_token(parser); // eat closing parenthesis
-				push_back_item(args, arg);
+			else if (checkTokenTypeAndContent(parser, SEPARATOR, ")", 0)) {
+				consumeToken(parser); // eat closing parenthesis
+				pushBackItem(args, argument);
 				break;
 			}
 		}
 		while (true);
 
 		// woo we got the function
-		function_callee_ast_node *fcn = create_function_callee_ast_node();
-		fcn->callee = callee->content;
-		fcn->args = args;
+		FunctionCallAstNode *functionCall = createFunctionCallAstNode();
+		functionCall->name = call->content;
+		functionCall->args = args;
 
-		return fcn;
+		return functionCall;
 	}
 
-	parser_error(parser, "failed to parse function call", consume_token(parser), true);
+	parserError(parser, "failed to parse function call", consumeToken(parser), true);
 	return NULL;
 }
 
-function_return_ast_node *parse_return_statement_ast_node(parser *parser) {
+FunctionReturnAstNode *parseReturnStatementAstNode(Parser *parser) {
 	// consume the return keyword
-	match_token_type_and_content(parser, IDENTIFIER, RETURN_KEYWORD);
+	matchTokenTypeAndContent(parser, IDENTIFIER, RETURN_KEYWORD);
 
 	// return value
-	function_return_ast_node *frn = create_function_return_ast_node();
-	frn->return_val = parse_expression_ast_node(parser);
+	FunctionReturnAstNode *functionReturn = createFunctionReturnAstNode();
+	functionReturn->returnValue = parseExpressionAstNode(parser);
 
-	return frn;
+	return functionReturn;
 
-	parser_error(parser, "failed to parse return statement", consume_token(parser), true);
+	parserError(parser, "failed to parse return statement", consumeToken(parser), true);
 	return NULL;
 }
 
-statement_ast_node *parse_statement_ast_node(parser *parser) {
+StatementAstNode *parseStatementAstNode(Parser *parser) {
+	// ew clean this up pls
+
 	// RETURN STATEMENTS
-	if (check_token_type_and_content(parser, IDENTIFIER, RETURN_KEYWORD, 0)) {
-		return create_statement_ast_node(parse_return_statement_ast_node(parser), FUNCTION_RET_AST_NODE);
+	if (checkTokenTypeAndContent(parser, IDENTIFIER, RETURN_KEYWORD, 0)) {
+		return createStatementAstNode(parseReturnStatementAstNode(parser), FUNCTION_RET_AST_NODE);
 	}
 	// STRUCTURES
-	else if (check_token_type_and_content(parser, IDENTIFIER, STRUCT_KEYWORD, 0)) {
-		return create_statement_ast_node(parse_structure_ast_node(parser), STRUCT_AST_NODE);
+	else if (checkTokenTypeAndContent(parser, IDENTIFIER, STRUCT_KEYWORD, 0)) {
+		return createStatementAstNode(parseStructureAstNode(parser), STRUCT_AST_NODE);
 	}
 	// IF STATEMENTS
-	else if (check_token_type_and_content(parser, IDENTIFIER, IF_KEYWORD, 0)) {
-		return create_statement_ast_node(parse_if_statement_ast_node(parser), IF_STATEMENT_AST_NODE);
+	else if (checkTokenTypeAndContent(parser, IDENTIFIER, IF_KEYWORD, 0)) {
+		return createStatementAstNode(parseIfStatementAstNode(parser), IF_STATEMENT_AST_NODE);
 	}
 	// MATCH STATEMENTS
-	else if (check_token_type_and_content(parser, IDENTIFIER, MATCH_KEYWORD, 0)) {
-		return create_statement_ast_node(parse_match_ast_node(parser), MATCH_STATEMENT_AST_NODE);
+	else if (checkTokenTypeAndContent(parser, IDENTIFIER, MATCH_KEYWORD, 0)) {
+		return createStatementAstNode(parseMatchAstNode(parser), MATCH_STATEMENT_AST_NODE);
 	}
 	// WHILE LOOPS
-	else if (check_token_type_and_content(parser, IDENTIFIER, WHILE_LOOP_KEYWORD, 0)) {
-		return create_statement_ast_node(parse_while_loop(parser), WHILE_LOOP_AST_NODE);
+	else if (checkTokenTypeAndContent(parser, IDENTIFIER, WHILE_LOOP_KEYWORD, 0)) {
+		return createStatementAstNode(parseWhileLoop(parser), WHILE_LOOP_AST_NODE);
 	}
 	// FOR LOOPS
-	else if (check_token_type_and_content(parser, IDENTIFIER, FOR_LOOP_KEYWORD, 0)) {
-		return parse_for_loop_ast_node(parser);
+	else if (checkTokenTypeAndContent(parser, IDENTIFIER, FOR_LOOP_KEYWORD, 0)) {
+		return parseForLoopAstNode(parser);
 	}
 	// INFINITE LOOPS
-	else if (check_token_type_and_content(parser, IDENTIFIER, INFINITE_LOOP_KEYWORD, 0)) {
-		return parse_infinite_loop_ast_node(parser);
+	else if (checkTokenTypeAndContent(parser, IDENTIFIER, INFINITE_LOOP_KEYWORD, 0)) {
+		return parseInfiniteLoopAstNode(parser);
 	}
 	// ENUMERATION
-	else if (check_token_type_and_content(parser, IDENTIFIER, ENUM_KEYWORD, 0)) {
-		return create_statement_ast_node(parse_enumeration_ast_node(parser), ENUM_AST_NODE);
+	else if (checkTokenTypeAndContent(parser, IDENTIFIER, ENUM_KEYWORD, 0)) {
+		return createStatementAstNode(parseEnumerationAstNode(parser), ENUM_AST_NODE);
 	}
 	// BREAK STATEMENTS
-	else if (check_token_type_and_content(parser, IDENTIFIER, BREAK_KEYWORD, 0)) {
-		consume_token(parser);
-		return create_statement_ast_node(create_break_ast_node(), BREAK_AST_NODE);
+	else if (checkTokenTypeAndContent(parser, IDENTIFIER, BREAK_KEYWORD, 0)) {
+		consumeToken(parser);
+		return createStatementAstNode(createBreakStatementAstNode(), BREAK_AST_NODE);
 	}
 	// CONTINUE STATEMENTS
-	else if (check_token_type_and_content(parser, IDENTIFIER, CONTINUE_KEYWORD, 0)) {
-		consume_token(parser);
-		return create_statement_ast_node(create_continue_ast_node(), CONTINUE_AST_NODE);
+	else if (checkTokenTypeAndContent(parser, IDENTIFIER, CONTINUE_KEYWORD, 0)) {
+		consumeToken(parser);
+		return createStatementAstNode(create_continue_ast_node(), CONTINUE_AST_NODE);
 	}
 	// IDENTIFERS
-	else if (check_token_type(parser, IDENTIFIER, 0)) {
+	else if (checkTokenType(parser, IDENTIFIER, 0)) {
 		// VARIABLE REASSIGNMENT
-		if (check_token_type_and_content(parser, OPERATOR, ASSIGNMENT_OPERATOR, 1)) {
-			return create_statement_ast_node(parse_reassignment_statement_ast_node(parser), VARIABLE_REASSIGN_AST_NODE);
+		if (checkTokenTypeAndContent(parser, OPERATOR, ASSIGNMENT_OPERATOR, 1)) {
+			return createStatementAstNode(parseReassignmentAstNode(parser), VARIABLE_REASSIGN_AST_NODE);
 		}
 		// FUNCITON CALL
-		else if (check_token_type_and_content(parser, SEPARATOR, "(", 1)) {
-			return create_statement_ast_node(parse_function_callee_ast_node(parser), FUNCTION_CALLEE_AST_NODE);
+		else if (checkTokenTypeAndContent(parser, SEPARATOR, "(", 1)) {
+			return createStatementAstNode(parseFunctionCallAstNode(parser), FUNCTION_CALLEE_AST_NODE);
 		}
 		// no clue we should sort this out.
 		else {
-			return parse_variable_ast_node(parser, false);
+			return parseVariableAstNode(parser, false);
 		}
 	}
 
 
 
-	parser_error(parser, "unrecognized token specified", consume_token(parser), true);
+	parserError(parser, "unrecognized token specified", consumeToken(parser), true);
 	return NULL;
 }
 
-variable_reassignment_ast_node *parse_reassignment_statement_ast_node(parser *parser) {
-	if (check_token_type(parser, IDENTIFIER, 0)) {
-		token *variableName = consume_token(parser);
+VariableReassignmentAstNode *parseReassignmentAstNode(Parser *parser) {
+	if (checkTokenType(parser, IDENTIFIER, 0)) {
+		Token *variableName = consumeToken(parser);
 
-		if (check_token_type_and_content(parser, OPERATOR, "=", 0)) {
-			consume_token(parser);
+		if (checkTokenTypeAndContent(parser, OPERATOR, "=", 0)) {
+			consumeToken(parser);
 
-			expression_ast_node *expr = parse_expression_ast_node(parser);
+			ExpressionAstNode *expr = parseExpressionAstNode(parser);
 
-			variable_reassignment_ast_node *vrn = create_variable_reassign_ast_node();
-			vrn->name = variableName;
-			vrn->expr = expr;
-			return vrn;
+			VariableReassignmentAstNode *reassignment = createVariableReassignmentAstNode();
+			reassignment->name = variableName;
+			reassignment->expression = expr;
+			return reassignment;
 		}
 	}
 
-	parser_error(parser, "failed to parse variable reassignment", consume_token(parser), true);
+	parserError(parser, "failed to parse variable reassignment", consumeToken(parser), true);
 	return NULL;
 }
 
-void start_parsing_token_stream(parser *parser) {
+void parseTokenStream(Parser *parser) {
 	while (parser->parsing) {
 		// get current token
-		token *tok = get_vector_item(parser->token_stream, parser->token_index);
+		Token *tok = getVectorItem(parser->tokenStream, parser->tokenIndex);
 
-		// TODO: improve this
+		// clean this too
 		switch (tok->type) {
 			case IDENTIFIER:
 				if (!strcmp(tok->content, FUNCTION_KEYWORD)) {
-					parse_function_ast_node(parser);
+					parseFunctionAstNode(parser);
 				}
-				else if (check_token_type_and_content(parser, IDENTIFIER, STRUCT_KEYWORD, 0)) {
-					prepare_ast_node(parser, parse_structure_ast_node(parser), STRUCT_AST_NODE);
+				else if (checkTokenTypeAndContent(parser, IDENTIFIER, STRUCT_KEYWORD, 0)) {
+					pushAstNode(parser, parseStructureAstNode(parser), STRUCT_AST_NODE);
 				}
-				else if (check_token_type_and_content(parser, IDENTIFIER, ANON_STRUCT_KEYWORD, 0)) {
-					prepare_ast_node(parser, parse_enumerated_structure_ast_node(parser), ANON_AST_NODE);
+				else if (checkTokenTypeAndContent(parser, IDENTIFIER, ANON_STRUCT_KEYWORD, 0)) {
+					pushAstNode(parser, parse_enumerated_structure_ast_node(parser), ANON_AST_NODE);
 				}
-				else if (check_token_type_and_content(parser, IDENTIFIER, ENUM_KEYWORD, 0)) {
-					prepare_ast_node(parser, parse_enumeration_ast_node(parser), ENUM_AST_NODE);
+				else if (checkTokenTypeAndContent(parser, IDENTIFIER, ENUM_KEYWORD, 0)) {
+					pushAstNode(parser, parseEnumerationAstNode(parser), ENUM_AST_NODE);
 				}
-				else if (check_token_type_and_content(parser, OPERATOR, "=", 1)) {
-					parse_reassignment_statement_ast_node(parser);
+				else if (checkTokenTypeAndContent(parser, OPERATOR, "=", 1)) {
+					parseReassignmentAstNode(parser);
 				}
 				else {
-					parse_variable_ast_node(parser, true);
+					parseVariableAstNode(parser, true);
 				}
 				break;
 			case END_OF_FILE:
@@ -1345,7 +1335,7 @@ void start_parsing_token_stream(parser *parser) {
 	}
 }
 
-bool check_token_type_is_valid_data_type(parser *parser, token *tok) {
+bool validateTokenType(Parser *parser, Token *tok) {
 	int size = sizeof(DATA_TYPES) / sizeof(DATA_TYPES[0]);
 	int i;
 	for (i = 0; i < size; i++) {
@@ -1356,81 +1346,80 @@ bool check_token_type_is_valid_data_type(parser *parser, token *tok) {
 	return false;
 }
 
-void prepare_ast_node(parser *parser, void *data, ast_node_type type) {
-	ast_node *ast_node = safe_malloc(sizeof(*ast_node));
-	ast_node->data = data;
-	ast_node->type = type;
-	push_back_item(parser->parse_tree, ast_node);
+void pushAstNode(Parser *parser, void *data, AstNodeType type) {
+	AstNode *astNode = safeMalloc(sizeof(*astNode));
+	astNode->data = data;
+	astNode->type = type;
+	pushBackItem(parser->parseTree, astNode);
 }
 
-void remove_ast_node(ast_node *ast_node) {
+void removeAstNode(AstNode *astNode) {
 	/**
 	 * This could probably be a lot more cleaner
 	 */
-	if (!ast_node->data) {
-		switch (ast_node->type) {
+	if (!astNode->data) {
+		switch (astNode->type) {
 			case EXPRESSION_AST_NODE:
-				destroy_expression_ast_node(ast_node->data);
+				destroyExpressionAstNode(astNode->data);
 				break;
 			case VARIABLE_DEF_AST_NODE:
-				destroy_variable_define_ast_node(ast_node->data);
+				destroyVariableDefinitionAstNode(astNode->data);
 				break;
 			case VARIABLE_DEC_AST_NODE:
-				destroy_variable_declare_ast_node(ast_node->data);
+				destroyVariableDeclarationAstNode(astNode->data);
 				break;
 			case FUNCTION_ARG_AST_NODE:
-				destroy_function_argument_ast_node(ast_node->data);
+				destroyFunctionArgumentAstNode(astNode->data);
 				break;
 			case FUNCTION_AST_NODE:
-				destroy_function_ast_node(ast_node->data);
+				destroyFunctionAstNode(astNode->data);
 				break;
 			case FUNCTION_PROT_AST_NODE:
-				destroy_function_prototype_ast_node(ast_node->data);
+				destroyFunctionPrototypeAstNode(astNode->data);
 				break;
 			case BLOCK_AST_NODE:
-				destroy_block_ast_node(ast_node->data);
+				destroyBlockAstNode(astNode->data);
 				break;
 			case ANON_AST_NODE:
-				destroy_enumerated_structure_ast_node(ast_node->data);
+				destroyEnumeratedStructureAstNode(astNode->data);
 				break;
 			case FUNCTION_CALLEE_AST_NODE:
-				destroy_function_callee_ast_node(ast_node->data);
+				destroyFunctionCallAstNode(astNode->data);
 				break;
 			case FUNCTION_RET_AST_NODE:
-				destroy_function_return_ast_node(ast_node->data);
+				destroyFunctionReturnAstNode(astNode->data);
 				break;
 			case FOR_LOOP_AST_NODE:
-				destroy_for_loop_ast_node(ast_node->data);
+				destroyForLoopAstNode(astNode->data);
 				break;
 			case VARIABLE_REASSIGN_AST_NODE:
-				destroy_variable_reassign_ast_node(ast_node->data);
+				destroyVariableReassignmentAstNode(astNode->data);
 				break;
 			case INFINITE_LOOP_AST_NODE:
-				destroy_infinite_loop_ast_node(ast_node->data);
+				destroyInfiniteLoopAstNode(astNode->data);
 				break;
 			case BREAK_AST_NODE:
-				destroy_break_ast_node(ast_node->data);
+				destroyBreakStatementAstNode(astNode->data);
 				break;
 			case ENUM_AST_NODE:
-				destroy_enumeration_ast_node(ast_node->data);
+				destroyEnumAstNode(astNode->data);
 				break;
 			default:
-				error_message("attempting to remove unrecognized ast_node(%d)?\n", ast_node->type);
+				errorMessage("attempting to remove unrecognized ast_node(%d)?\n", astNode->type);
 				break;
 		}
 	}
-	free(ast_node);
+	free(astNode);
 }
 
-void destroy_parser(parser *parser) {
+void destroyParser(Parser *parser) {
 	if (parser) {
 		int i;
-		for (i = 0; i < parser->parse_tree->size; i++) {
-			ast_node *ast_node = get_vector_item(parser->parse_tree, i);
-			remove_ast_node(ast_node);
+		for (i = 0; i < parser->parseTree->size; i++) {
+			AstNode *ast_node = getVectorItem(parser->parseTree, i);
+			removeAstNode(ast_node);
 		}
-		destroy_vector(parser->parse_tree);
-		destroy_hashmap(parser->sym_table);
+		destroyVector(parser->parseTree);
 
 		free(parser);
 	}

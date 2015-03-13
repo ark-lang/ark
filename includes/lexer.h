@@ -19,7 +19,7 @@ typedef enum {
 	END_OF_FILE, IDENTIFIER, NUMBER,
 	OPERATOR, SEPARATOR, ERRORNEOUS,
 	STRING, CHARACTER, UNKNOWN, SPECIAL_CHAR
-} token_type;
+} TokenType;
 
 /**
  * Token properties:
@@ -31,29 +31,29 @@ typedef enum {
 typedef struct {
 	int type;
 	char* content;
-	int line_number;
-	int char_number;
-} token;
+	int lineNumber;
+	int charNumber;
+} Token;
 
 /** Lexer stuff */
 typedef struct {
 	char* input;			// input to lex
 	int pos;				// position in the input
-	int current_char;		// current character
-	int line_number;		// current line number
-	size_t input_size;		// sizeof lexer input
-	int char_number;		// current character at line
-	int start_pos;			// keeps track of positions without comments
+	int currentChar;		// current character
+	int lineNumber;		// current line number
+	size_t inputLength;		// sizeof lexer input
+	int charNumber;		// current character at line
+	int startPos;			// keeps track of positions without comments
 	bool running;			// if lexer is running 
-	vector *token_stream;	// where the tokens are stored
-} lexer;
+	Vector *tokenStream;	// where the tokens are stored
+} Lexer;
 
 /**
  * Create an empty token
  * 
  * @return allocate memory for token
  */
-token *create_token(lexer *lexer);
+Token *createToken(Lexer *lexer);
 
 /**
  * Get the name of the given token
@@ -62,14 +62,14 @@ token *create_token(lexer *lexer);
  * @param token token to find name of
  * @return the name of the given token
  */
-const char* get_token_name(token *token);
+const char* getTokenName(Token *token);
 
 /**
  * Deallocates memory for token
  * 
  * @param token token to free
  */
-void destroy_token(token *token);
+void destroyToken(Token *token);
 
 /**
  * Retrieves the line that a token is on
@@ -78,7 +78,7 @@ void destroy_token(token *token);
  * @param  colour_error_token whether or not to colour the errored token
  * @return                    the context as a string
  */
-char* get_token_context(vector *stream, token *tok, bool colour_error_token);
+char* getTokenContext(Vector *stream, Token *tok, bool colourErroredToken);
 
 /**
  * Retrieves the line that a token is on
@@ -86,7 +86,7 @@ char* get_token_context(vector *stream, token *tok, bool colour_error_token);
  * @param  line_num the number to get context of
  * @return       	the context as a string
  */
-char* get_line_number_context(vector *stream, int line_num);
+char* getLineNumberContext(Vector *stream, int lineNumber);
 
 /**
  * Create an instance of the Lexer
@@ -94,7 +94,7 @@ char* get_line_number_context(vector *stream, int line_num);
  * @param input the input to lex
  * @return instance of Lexer
  */
-lexer *create_lexer(char* input);
+Lexer *createLexer(char* input);
 
 /**
  * Simple substring, basically extracts the token from
@@ -105,7 +105,7 @@ lexer *create_lexer(char* input);
  * @param length of the input
  * @return string cut from buffer
  */
-char* extract_token(lexer *lexer, int start, int length);
+char* extractToken(Lexer *lexer, int start, int length);
 
 /**
  * Advance to the next character, consuming the
@@ -113,7 +113,7 @@ char* extract_token(lexer *lexer, int start, int length);
  * 
  * @param lexer instance of the lexer
  */
-void consume_character(lexer *lexer);
+void consumeCharacter(Lexer *lexer);
 
 /**
  * Skips layout characters, such as spaces,
@@ -122,7 +122,7 @@ void consume_character(lexer *lexer);
  * 
  * @param lexer the lexer instance
  */
-void skip_layout_and_comments(lexer *lexer);
+void skipLayoutAndComments(Lexer *lexer);
 
 /**
  * Checks if current character is the given character
@@ -130,61 +130,61 @@ void skip_layout_and_comments(lexer *lexer);
  * 
  * @param lexer the lexer instance
  */
-void expect_character(lexer *lexer, char c);
+void expectCharacter(Lexer *lexer, char c);
 
 /**
  * Recognize an identifier
  * 
  * @param lexer the lexer instance
  */
-void recognize_identifier_token(lexer *lexer);
+void recognizeIdentifierToken(Lexer *lexer);
 
 /**
  * Recognize an Integer
  * 
  * @param lexer the lexer instance
  */
-void recognize_number_token(lexer *lexer);
+void recognizeNumberToken(Lexer *lexer);
 
 /**
  * Recognize a String
  * 
  * @param lexer the lexer instance
  */
-void recognize_string_token(lexer *lexer);
+void recognizeStringToken(Lexer *lexer);
 
 /**
  * Recognize a Character
  * 
  * @param lexer the lexer instance
  */
-void recognize_character_token(lexer *lexer);
+void recognizeCharacterToken(Lexer *lexer);
 
 /**
  * Recognizes the given operator and pushes it
  * @param lexer the lexer for access to the token stream
  */
-void recognize_operator_token(lexer *lexer);
+void recognizeOperatorToken(Lexer *lexer);
 
 /**
  * Recognizes the end of line token
  * @param lexer the lexer for access to the token stream
  */
-void recognize_end_of_line_token(lexer *lexer);
+void recognizeEndOfLineToken(Lexer *lexer);
 
 /**
  * Recognizes a separator token and pushes it
  * to the tree
  * @param lexer the lexer for access to the token stream
  */
-void recognize_separator_token(lexer *lexer);
+void recognizeSeparatorToken(Lexer *lexer);
 
 /**
  * Recognizes an errored token and pushes it to the
  * tree
  * @param lexer the lexer for access to the token stream
  */
-void recognize_errorneous_token(lexer *lexer);
+void recognizeErroneousToken(Lexer *lexer);
 
 /**
  * Pushes a token to the token tree, also captures the 
@@ -193,7 +193,7 @@ void recognize_errorneous_token(lexer *lexer);
  * @param lexer the lexer for access to the token tree
  * @param type  the type of token
  */
-void push_token(lexer *lexer, int type);
+void pushToken(Lexer *lexer, int type);
 
 /**
  * Pushes a token with content to the token tree
@@ -201,7 +201,7 @@ void push_token(lexer *lexer, int type);
  * @param type    the type of token to push
  * @param content the content to push
  */
-void push_token_c(lexer *lexer, int type, char *content);
+void pushInitializedToken(Lexer *lexer, int type, char *content);
 
 /**
  * Peek ahead in the character stream by
@@ -211,14 +211,14 @@ void push_token_c(lexer *lexer, int type, char *content);
  * @ahead amount to peek by
  * @return the char we peeked at
  */
-char peek_ahead(lexer *lexer, int ahead);
+char peekAhead(Lexer *lexer, int ahead);
 
 /**
  * Process the next token in the token stream
  * 
  * @param lexer the lexer instance
  */
-void get_next_token(lexer *lexer);
+void getNextToken(Lexer *lexer);
 
 /**
  * Destroys the given lexer instance,
@@ -226,13 +226,13 @@ void get_next_token(lexer *lexer);
  * 
  * @param lexer the lexer instance to destroy
  */
-void destroy_lexer(lexer *lexer);
+void destroyLexer(Lexer *lexer);
 
 /**
  * @return if the character given is the end of input
  * @param ch the character to check
  */
-static inline bool is_end_of_input(char ch) { 
+static inline bool isEndOfInput(char ch) { 
 	return ch == '\0'; 
 }
 
@@ -240,15 +240,15 @@ static inline bool is_end_of_input(char ch) {
  * @return if the character given is a layout character
  * @param ch the character to check
  */
-static inline bool is_layout(char ch) { 
-	return !is_end_of_input(ch) && (ch) <= ' '; 
+static inline bool isLayout(char ch) { 
+	return !isEndOfInput(ch) && (ch) <= ' '; 
 }
 
 /**
  * @return if the character given is a comment closer 
  * @param ch the character to check
  */
-static inline bool is_comment_closer(char ch) { 
+static inline bool isCommentCloser(char ch) { 
 	return ch == '\n'; 
 }
 
@@ -256,7 +256,7 @@ static inline bool is_comment_closer(char ch) {
  * @return if the character given is an uppercase letter
  * @param ch the character to check
  */
-static inline bool is_upper_letter(char ch) { 
+static inline bool isUpperLetter(char ch) { 
 	return 'A' <= ch && ch <= 'Z'; 
 }
 
@@ -264,7 +264,7 @@ static inline bool is_upper_letter(char ch) {
  * @return if the character given is a lower case letter
  * @param ch the character to check
  */
-static inline bool is_lower_letter(char ch) { 
+static inline bool isLowerLetter(char ch) { 
 	return 'a' <= ch && ch <= 'z'; 
 }
 
@@ -272,15 +272,15 @@ static inline bool is_lower_letter(char ch) {
  * @return if the character given is a letter a-z, A-Z
  * @param ch the character to check
  */
-static inline bool is_letter(char ch) { 
-	return is_upper_letter(ch) || is_lower_letter(ch); 
+static inline bool isLetter(char ch) { 
+	return isUpperLetter(ch) || isLowerLetter(ch); 
 }
 
 /**
  * @return if the character given is a digit 0-9
  * @param ch the character to check
  */
-static inline bool is_digit(char ch) { 
+static inline bool isDigit(char ch) { 
 	return '0' <= ch && ch <= '9'; 
 }
 
@@ -288,15 +288,15 @@ static inline bool is_digit(char ch) {
  * @return if the character given is a letter or digit a-z, A-Z, 0-9
  * @param ch the character to check
  */
-static inline bool is_letter_or_digit(char ch) { 
-	return is_letter(ch) || is_digit(ch); 
+static inline bool isLetterOrDigit(char ch) { 
+	return isLetter(ch) || isDigit(ch); 
 }
 
 /**
  * @return if the character given is an underscore
  * @param ch the character to check
  */
-static inline bool is_underscore(char ch) { 
+static inline bool isUnderscore(char ch) { 
 	return ch == '_'; 
 }
 
@@ -304,7 +304,7 @@ static inline bool is_underscore(char ch) {
  * @return if the character given is a quote, denoting a string
  * @param ch the character to check
  */
-static inline bool is_string(char ch) { 
+static inline bool isString(char ch) { 
 	return ch == '"'; 
 }
 
@@ -312,7 +312,7 @@ static inline bool is_string(char ch) {
  * @return if the character given is a single quote, denoting a character
  * @param ch the character to check
  */
-static inline bool is_character(char ch) { 
+static inline bool isCharacter(char ch) { 
 	return ch == '\''; 
 }
 
@@ -320,11 +320,11 @@ static inline bool is_character(char ch) {
  * @return if the character given is an operator
  * @param ch the character to check
  */
-static inline bool is_operator(char ch) { 
+static inline bool isOperator(char ch) { 
 	return (strchr("+-*/=><!~?:|&%^\"'", ch) != 0); 
 }
 
-static inline bool is_expression_op(char ch) { 
+static inline bool isExpressionOperator(char ch) { 
 	return (strchr("+-*/=><!~?:|&%^\"'()", ch) != 0); 
 }
 
@@ -332,7 +332,7 @@ static inline bool is_expression_op(char ch) {
  * @return if the character given is a separator
  * @param ch the character to check
  */
-static inline bool is_separator(char ch) { 
+static inline bool isSeparator(char ch) { 
 	return (strchr(" ;,.`@(){}[] ", ch) != 0); 
 }
 
@@ -340,7 +340,7 @@ static inline bool is_separator(char ch) {
  * @return if the character is a special character like the British symbol or alike 
  * @param ch character to check
  */
-static inline bool is_special_char(char ch) { 
+static inline bool isSpecialChar(char ch) { 
 	return (int) ch >= ASCII_CHARACTER_THRESHOLD; 
 }
 
@@ -348,7 +348,7 @@ static inline bool is_special_char(char ch) {
  * @return if the character is end of line to track line number
  * @param ch character to check
  */
-static inline bool is_end_of_line(char ch) { 
+static inline bool isEndOfLine(char ch) { 
 	return ch == '\n'; 
 }
 
