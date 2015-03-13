@@ -23,43 +23,41 @@
 #define COMMA_SYM ","
 
 typedef struct {
-	vector *ast;
-	vector *refs;
-	hashmap *table;
+	Vector *abstractSyntaxTree;
+	Vector *references;
 
-    int file_size;
-    int file_cursor_pos;
-	char *file_name;
-	char *file_contents;
+    int sourceFileSize;
+    int sourcePosition;
+	char *sourceName;
+	char *sourceContents;
 
-	int current_ast_node;
-	int current_instruction;
-} compiler;
+	int currentNode;
+} Compiler;
 
-compiler *create_compiler();
+Compiler *createCompiler();
 
-void append_to_file(compiler *self, char *str);
+void appendToSource(Compiler *self, char *str);
 
-void emit_expression(compiler *self, expression_ast_node *expr);
+void emitExpression(Compiler *self, ExpressionAstNode *expr);
 
-void emit_variable_dec(compiler *self, variable_declare_ast_node *var);
+void emitVariableDeclaration(Compiler *self, VariableDeclarationAstNode *var);
 
-void emit_return(compiler *self, function_return_ast_node *ret);
+void emitReturnStatement(Compiler *self, FunctionReturnAstNode *ret);
 
-void emit_function_call(compiler *self, function_callee_ast_node *call);
+void emitFunctionCall(Compiler *self, FunctionCallAstNode *call);
 
-void emit_block(compiler *self, block_ast_node *block);
+void emitBlock(Compiler *self, BlockAstNode *block);
 
-void emit_arguments(compiler *self, vector *args);
+void emitArguments(Compiler *self, Vector *args);
 
-void emit_function(compiler *self, function_ast_node *func);
+void emitFunction(Compiler *self, FunctionAstNode *func);
 
-void consume_ast_node(compiler *self);
+void consumeAstNode(Compiler *self);
 
-void consume_ast_nodes(compiler *self, int amount);
+void consumeAstNodeBy(Compiler *self, int amount);
 
-void start_compiler(compiler *self, vector *ast);
+void startCompiler(Compiler *self, Vector *ast);
 
-void destroy_compiler(compiler *self);
+void destroyCompiler(Compiler *self);
 
 #endif // compiler_H

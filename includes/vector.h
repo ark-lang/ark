@@ -9,23 +9,23 @@
  * vector_item typedef so we can change
  * the data type if need be
  */
-typedef void* vector_item;
+typedef void* VectorItem;
 
 /**
  * Properties of a vector
  */
 typedef struct {
-	vector_item *items;
-	int max_size;
+	VectorItem *items;
+	int maxSize;
 	int size;
-} vector;
+} Vector;
 
 /**
  * Creates a new instance of vector
  * 
  * @return the vector instance
  */
-vector *create_vector();
+Vector *createVector();
 
 /**
  * Push a vector_item into the given vector
@@ -33,7 +33,7 @@ vector *create_vector();
  * @param vec the vector to push to
  * @param vector_item the item to push
  */
-void push_back_item(vector *vec, vector_item item);
+void pushBackItem(Vector *vec, VectorItem item);
 
 /**
  * Retrieves the vector_item at the given index in
@@ -43,13 +43,13 @@ void push_back_item(vector *vec, vector_item item);
  * @param index the place to check
  * @return the vector Item
  */
-vector_item get_vector_item(vector *vec, int index);
+VectorItem getVectorItem(Vector *vec, int index);
 
 /**
  * Destroys the given vector
  * 
  * @param vec the vector to destroy
  */
-void destroy_vector(vector *vec);
+void destroyVector(Vector *vec);
 
 #endif // vector_H

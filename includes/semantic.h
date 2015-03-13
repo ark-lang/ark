@@ -5,16 +5,16 @@
 #include "vector.h"
 
 typedef struct {
-    vector *tree;
+    Vector *tree;
     int current_node;
-} semantic;
+} SemanticAnalyser;
 
-semantic *create_semantic_analyser(vector *tree);
+SemanticAnalyser *createSemanticAnalyser(Vector *tree);
 
-void eat_tasty_node(semantic *self);
+void eatAstNode(SemanticAnalyser *self);
 
-void start_analysis(semantic *self);
+void startSemanticAnalysis(SemanticAnalyser *self);
 
-void destroy_semantic_analyser(semantic *self);
+void destroySemanticAnalyser(SemanticAnalyser *self);
 
 #endif // SEMANTIC_H

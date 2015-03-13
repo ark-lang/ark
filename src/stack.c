@@ -1,29 +1,29 @@
 #include "stack.h"
 
-stack *create_stack() {
-	stack *stack = safe_malloc(sizeof(*stack));
-	stack->default_stack_size = 32;
-	stack->stack_pointer = -1;
-	stack->items = safe_malloc(sizeof(*stack->items) * stack->default_stack_size);
+Stack *createStack() {
+	Stack *stack = safeMalloc(sizeof(*stack));
+	stack->defaultStackSize = 32;
+	stack->stackPointer = -1;
+	stack->items = safeMalloc(sizeof(*stack->items) * stack->defaultStackSize);
 	return stack;
 }
 
-stack_item get_value_from_stack(stack *stack, int index) {
-	if (index > stack->stack_pointer) {
-		error_message("error: could not retrieve value at index %d\n", index);
+StackItem getStackItem(Stack *stack, int index) {
+	if (index > stack->stackPointer) {
+		errorMessage("error: could not retrieve value at index %d\n", index);
 		return NULL;
 	} 
 	return stack->items[index];
 }
 
-void push_to_stack_at_index(stack *stack, stack_item item, int index) {
+void pushToStackAtIndex(Stack *stack, StackItem item, int index) {
 	// much more efficient to reallocate exponentially,
 	// instead of reallocating after adding an item
-	if (stack->stack_pointer >= stack->default_stack_size) {
-		stack->default_stack_size *= 2;
-		if (DEBUG_MODE) debug_message("stack size expanded to: %d\n", stack->default_stack_size);
+	if (stack->stackPointer >= stack->defaultStackSize) {
+		stack->defaultStackSize *= 2;
+		if (DEBUG_MODE) debugMessage("stack size expanded to: %d\n", stack->defaultStackSize);
 
-		stack_item *tmp = realloc(stack->items, sizeof(*stack->items) * stack->default_stack_size);
+		StackItem *tmp = realloc(stack->items, sizeof(*stack->items) * stack->defaultStackSize);
 		if (!tmp) {
 			perror("realloc: failed to allocate memory for stack items");
 			return;
@@ -35,19 +35,19 @@ void push_to_stack_at_index(stack *stack, stack_item item, int index) {
 	stack->items[index] = item;
 }
 
-void push_to_stack(stack *stack, stack_item item) {
-	push_to_stack_at_index(stack, item, ++stack->stack_pointer);
+void pushToStack(Stack *stack, StackItem item) {
+	pushToStackAtIndex(stack, item, ++stack->stackPointer);
 }
 
-stack_item pop_stack(stack *stack) {
-	if (stack->stack_pointer < 0) {
-		error_message("error: cannot pop value from empty stack\n");
+StackItem popStack(Stack *stack) {
+	if (stack->stackPointer < 0) {
+		errorMessage("error: cannot pop value from empty stack\n");
 		return NULL;
 	}
-	return stack->items[stack->stack_pointer--];
+	return stack->items[stack->stackPointer--];
 }
 
-void destroy_stack(stack *stack) {
+void destroyStack(Stack *stack) {
 	if (stack) {
 		free(stack);
 	}

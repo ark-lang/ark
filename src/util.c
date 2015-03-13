@@ -1,6 +1,6 @@
 #include "util.h"
 
-void debug_message(const char *fmt, ...) {
+void debugMessage(const char *fmt, ...) {
 	if (DEBUG_MODE) {
 		va_list arg;
 		va_start(arg, fmt);
@@ -12,7 +12,7 @@ void debug_message(const char *fmt, ...) {
 	}
 }
 
-void error_message(const char *fmt, ...) {
+void errorMessage(const char *fmt, ...) {
 	va_list arg;
 	va_start(arg, fmt);
 	char *temp = GET_RED_TEXT("error: ");
@@ -22,7 +22,7 @@ void error_message(const char *fmt, ...) {
 	va_end(arg);
 }
 
-void primary_message(const char *fmt, ...) {
+void primaryMessage(const char *fmt, ...) {
 	va_list arg;
 	va_start(arg, fmt);
 	vfprintf(stdout, fmt, arg);
@@ -30,13 +30,13 @@ void primary_message(const char *fmt, ...) {
 	va_end(arg);
 } 
 
-const char *get_filename_ext(const char *filename) {
+const char *getFilenameExtension(const char *filename) {
 	const char *dot = strrchr(filename, '.');
 	if (!dot || dot == filename) return "";
 	return dot + 1;
 }
 
-void *safe_malloc(size_t size) {
+void *safeMalloc(size_t size) {
 	void *mem_chunk = malloc(size);
 	assert(mem_chunk);
 	return mem_chunk;
