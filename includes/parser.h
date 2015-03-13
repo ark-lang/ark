@@ -856,11 +856,6 @@ ExpressionAstNode *parseExpressionAstNode(Parser *parser);
 StatementAstNode *parseForLoopAstNode(Parser *parser);
 
 /**
- * Prints the type and content of the current token
- */
-void printCurrentToken(Parser *parser);
-
-/**
  * Parses a variable
  *
  * @param param the parser instance
