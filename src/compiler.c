@@ -54,7 +54,6 @@ void emit_function_call(compiler *self, function_callee_ast_node *call) {
 	append_to_file(self, call->callee);
 	append_to_file(self, OPEN_BRACKET);
 	
-	// print args	
 	int i;
 	for (i = 0; i < call->args->size; i++) {
 		expression_ast_node *expr = get_vector_item(call->args, i);
