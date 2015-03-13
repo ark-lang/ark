@@ -1,4 +1,3 @@
 fn main(): int {
-	printf("Swag")
-	return 0
+	int a = 5
 }
