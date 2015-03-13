@@ -1,3 +1,0 @@
-fn main(): void {
-	println("hello, world")
-}

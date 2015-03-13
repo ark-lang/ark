@@ -1,6 +1,6 @@
 # Contributing
 We'd love your contributions, but we do have a few guidelines
-that we go by here.
+that we go by.
 
 ## Community
 Having any problems? [Open an Issue](https://github.com/alloy-lang/alloy/issues). There is also an IRC room over on freenode: [#alloy-lang](http://webchat.freenode.net/?channels=%23alloy-lang).
@@ -16,7 +16,7 @@ developers:
 * felixangell
 * vnev
 
-who will merge it if it's up to standard.
+who will merge it if it's up to standard, i.e follows these guidelines.
 
 ## Proposing a feature or change
 If you want to have a say in the language, feel free to
