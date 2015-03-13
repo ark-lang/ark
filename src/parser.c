@@ -865,6 +865,7 @@ ExpressionAstNode *parseExpressionAstNode(Parser *parser) {
 
 		// TODO: fix this from consuming the closing parenthesis
 		if ((!isExpressionOperator(current->content[0]) && !isExpressionOperator(next->content[0]))) {
+			pushBackItem(expr->expressionValues, consumeToken(parser));
 			break;
 		}
 		pushBackItem(expr->expressionValues, consumeToken(parser));
