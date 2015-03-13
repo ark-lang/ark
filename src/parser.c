@@ -557,7 +557,6 @@ int parse_operand(parser *parser) {
 
 while_ast_node *parse_while_loop(parser *parser) {
 	while_ast_node *while_loop = create_while_ast_node();
-
 	match_token_type_and_content(parser, IDENTIFIER, WHILE_LOOP_KEYWORD);
 
 	while_loop->condition = parse_expression_ast_node(parser);
@@ -870,9 +869,8 @@ expression_ast_node *parse_expression_ast_node(parser *parser) {
 		token *current = peek_at_token_stream(parser, 0);
 		token *next = peek_at_token_stream(parser, 1);
 
-		if (next == NULL || (!is_expression_op(current->content[0]) && !is_expression_op(next->content[0]))) {
-			push_back_item(expr->expression_values, consume_token(parser));
-			return expr;	
+		if ((!is_expression_op(current->content[0]) && !is_expression_op(next->content[0]))) {
+			break;
 		}
 		push_back_item(expr->expression_values, consume_token(parser));
 	}
