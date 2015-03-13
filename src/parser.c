@@ -727,7 +727,7 @@ EnumAstNode *parseEnumerationAstNode(Parser *parser) {
 	return enumeration;
 }
 
-EnumeratedStructureAstNode *parse_enumerated_structure_ast_node(Parser *parser) {
+EnumeratedStructureAstNode *parseEnumeratedStructureAstNode(Parser *parser) {
 	EnumeratedStructureAstNode *enumeratedStructure = createEnumeratedStructureAstNode();
 
 	matchTokenTypeAndContent(parser, IDENTIFIER, ANON_STRUCT_KEYWORD);
@@ -1275,8 +1275,6 @@ StatementAstNode *parseStatementAstNode(Parser *parser) {
 		}
 	}
 
-
-
 	parserError(parser, "unrecognized token specified", consumeToken(parser), true);
 	return NULL;
 }
@@ -1316,7 +1314,7 @@ void parseTokenStream(Parser *parser) {
 					pushAstNode(parser, parseStructureAstNode(parser), STRUCT_AST_NODE);
 				}
 				else if (checkTokenTypeAndContent(parser, IDENTIFIER, ANON_STRUCT_KEYWORD, 0)) {
-					pushAstNode(parser, parse_enumerated_structure_ast_node(parser), ANON_AST_NODE);
+					pushAstNode(parser, parseEnumeratedStructureAstNode(parser), ANON_AST_NODE);
 				}
 				else if (checkTokenTypeAndContent(parser, IDENTIFIER, ENUM_KEYWORD, 0)) {
 					pushAstNode(parser, parseEnumerationAstNode(parser), ENUM_AST_NODE);
