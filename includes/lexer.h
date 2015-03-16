@@ -9,12 +9,36 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "util/util.h"
-#include "util/vector.h"
+#include "util.h"
+#include "vector.h"
 
 #define ASCII_CHARACTER_THRESHOLD 128
 
-/** types of token */
+/** Lexer stuff */
+typedef struct {
+	char* input;			// input to lex
+	int pos;				// position in the input
+	int currentChar;		// current character
+	int lineNumber;		// current line number
+	size_t inputLength;		// sizeof lexer input
+	int charNumber;		// current character at line
+	int startPos;			// keeps track of positions without comments
+	bool running;			// if lexer is running 
+	Vector *tokenStream;	// where the tokens are stored
+
+	// timers for benchmarking
+	clock_t timer;
+	double secondsTaken;
+	double msTaken;
+} Lexer;
+
+// this is just for debugging
+static const char* TOKEN_NAMES[] = {
+	"END_OF_FILE", "IDENTIFIER", "NUMBER",
+	"OPERATOR", "SEPARATOR", "ERRORNEOUS",
+	"STRING", "CHARACTER", "UNKNOWN"
+};
+
 typedef enum {
 	END_OF_FILE, IDENTIFIER, NUMBER,
 	OPERATOR, SEPARATOR, ERRORNEOUS,
@@ -35,45 +59,10 @@ typedef struct {
 	int charNumber;
 } Token;
 
-/** Lexer stuff */
-typedef struct {
-	char* input;			// input to lex
-	int pos;				// position in the input
-	int currentChar;		// current character
-	int lineNumber;		// current line number
-	size_t inputLength;		// sizeof lexer input
-	int charNumber;		// current character at line
-	int startPos;			// keeps track of positions without comments
-	bool running;			// if lexer is running 
-	Vector *tokenStream;	// where the tokens are stored
+Token *createToken(int lineNumber, int charNumber);
 
-	// timers for benchmarking
-	clock_t timer;
-	double secondsTaken;
-	double msTaken;
-} Lexer;
+const char* getTokenName(Token *tok);
 
-/**
- * Create an empty token
- * 
- * @return allocate memory for token
- */
-Token *createToken(Lexer *lexer);
-
-/**
- * Get the name of the given token
- * as a string
- * 
- * @param token token to find name of
- * @return the name of the given token
- */
-const char* getTokenName(Token *token);
-
-/**
- * Deallocates memory for token
- * 
- * @param token token to free
- */
 void destroyToken(Token *token);
 
 /**

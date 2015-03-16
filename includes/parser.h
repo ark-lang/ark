@@ -7,10 +7,10 @@
 #include <ctype.h>
 #include <assert.h>
 
-#include "lexer/lexer.h"
-#include "util/util.h"
-#include "util/vector.h"
-#include "util/hashmap.h"
+#include "lexer.h"
+#include "util.h"
+#include "vector.h"
+#include "hashmap.h"
 
 #define MAX_FOR_LOOP_PARAM_COUNT 3
 #define MIN_FOR_LOOP_PARAM_COUNT 2

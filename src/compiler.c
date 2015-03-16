@@ -1,4 +1,4 @@
-#include "compiler/compiler.h"
+#include "compiler.h"
 
 Compiler *createCompiler() {
 	Compiler *self = safeMalloc(sizeof(*self));

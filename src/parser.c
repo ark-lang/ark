@@ -1,4 +1,4 @@
-#include "parser/parser.h"
+#include "parser.h"
 
 /** List of data types */
 static const char* DATA_TYPES[] = {
