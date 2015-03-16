@@ -13,4 +13,7 @@ has it's flaws:
 * 30 years old
 * inconsistencies, especially in error handling
 
-Our goal is to fix the aforementioned errors, and add a hint of modern.
+Our goal with Alloy is to fix these errors, yet maintaining a cleaner, simpler syntax.
+
+## Syntax
+A lot of the syntax for Alloy is inspired by existing languages, such as Rust, Go, and Java. 

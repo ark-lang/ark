@@ -1,4 +1,4 @@
-#include "util/util.h"
+#include "util.h"
 
 void debugMessage(const char *fmt, ...) {
 	if (DEBUG_MODE) {

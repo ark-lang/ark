@@ -1,4 +1,4 @@
-#include "semantic/semantic.h"
+#include "semantic.h"
 
 SemanticAnalyser *createSemanticAnalyser(Vector *tree) {
     SemanticAnalyser *self = safeMalloc(sizeof(*self));
