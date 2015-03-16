@@ -1,8 +1,8 @@
 #ifndef SEMANTIC_H
 #define SEMANTIC_H
 
-#include "util.h"
-#include "vector.h"
+#include "util/util.h"
+#include "util/vector.h"
 
 typedef struct {
     Vector *tree;

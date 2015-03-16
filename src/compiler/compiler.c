@@ -1,4 +1,4 @@
-#include "compiler.h"
+#include "compiler/compiler.h"
 
 Compiler *createCompiler() {
 	Compiler *self = safeMalloc(sizeof(*self));
@@ -10,6 +10,7 @@ Compiler *createCompiler() {
 	self->sourceName = "test.c";
 	self->sourceContents = malloc(sizeof(char) * (self->sourceFileSize + 1));
 	self->sourceContents[0] = '\0';
+	self->timer = clock();
 
 	return self;
 }
@@ -47,6 +48,15 @@ void emitVariableDeclaration(Compiler *self, VariableDeclarationAstNode *var) {
 	appendToSource(self, SPACE_CHAR);
 	emitExpression(self, var->expression);
 	appendToSource(self, SEMICOLON);
+}
+
+void emitStructure(Compiler *self, StructureAstNode *structure) {
+	appendToSource(self, "struct");
+	appendToSource(self, SPACE_CHAR);
+	appendToSource(self, structure->name);
+	appendToSource(self, SPACE_CHAR);
+	appendToSource(self, OPEN_BRACE);
+	appendToSource(self, NEWLINE);
 }
 
 void emitFunctionCall(Compiler *self, FunctionCallAstNode *call) {	
@@ -206,18 +216,21 @@ void startCompiler(Compiler *self, Vector *ast) {
 
 	int i;
 	for (i = 0; i < self->abstractSyntaxTree->size; i++) {
-		AstNode *current_ast_node = getVectorItem(self->abstractSyntaxTree, i);
+		AstNode *currentAstNode = getVectorItem(self->abstractSyntaxTree, i);
 
-		switch (current_ast_node->type) {
+		switch (currentAstNode->type) {
 			case FUNCTION_AST_NODE: 
-				emitFunction(self, current_ast_node->data); 
+				emitFunction(self, currentAstNode->data); 
 				break;
 			case VARIABLE_DEC_AST_NODE:
-				emitVariableDeclaration(self, current_ast_node->data);
+				emitVariableDeclaration(self, currentAstNode->data);
 				appendToSource(self, NEWLINE);
 				break;
+			case STRUCT_AST_NODE:
+				emitStructure(self, currentAstNode->data);
+				break;
 			default:
-				printf("wat ast node bby %d is %d?\n", current_ast_node->type, i);
+				printf("wat ast node bby %d is %d?\n", currentAstNode->type, i);
 				break;
 		}
 	}
@@ -227,6 +240,5 @@ void startCompiler(Compiler *self, Vector *ast) {
 }
 
 void destroyCompiler(Compiler *self) {
-	// destroy table
 	free(self);
 }
