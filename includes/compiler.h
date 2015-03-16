@@ -5,9 +5,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "parser/parser.h"
-#include "util/vector.h"
-#include "util/hashmap.h"
+#include "parser.h"
+#include "vector.h"
+#include "hashmap.h"
 
 #define SPACE_CHAR " "
 #define OPEN_BRACKET "("
