@@ -22,12 +22,12 @@ static void parse_argument(CommandLineArgument *arg) {
 			return;
 		case 'o':
 			if (!arg->nextArgument) {
-				errorMessage("error: missing filename after '-o'");
+				errorMessage("missing filename after '-o'");
 			}
 			OUTPUT_EXECUTABLE_NAME = arg->nextArgument;
 			break;
 		default:
-			errorMessage("error: unrecognized command line option '-%s'\n", arg->argument);
+			errorMessage("unrecognized command line option '-%s'\n", arg->argument);
 			break;
 	}
 }
