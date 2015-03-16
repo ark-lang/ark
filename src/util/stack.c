@@ -1,4 +1,4 @@
-#include "stack.h"
+#include "util/stack.h"
 
 Stack *createStack() {
 	Stack *stack = safeMalloc(sizeof(*stack));

@@ -5,12 +5,12 @@
  * This is C code Linguist, come on...
  */
 
-#include "util.h"
-#include "vector.h"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include "util/util.h"
+#include "util/vector.h"
 
 #define ASCII_CHARACTER_THRESHOLD 128
 
@@ -46,6 +46,11 @@ typedef struct {
 	int startPos;			// keeps track of positions without comments
 	bool running;			// if lexer is running 
 	Vector *tokenStream;	// where the tokens are stored
+
+	// timers for benchmarking
+	clock_t timer;
+	double secondsTaken;
+	double msTaken;
 } Lexer;
 
 /**

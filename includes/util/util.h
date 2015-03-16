@@ -8,6 +8,7 @@
 #include <stdbool.h>
 #include <errno.h>
 #include <assert.h>
+#include <time.h>
 
 /** the current version of ink */
 #define ALLOYC_VERSION "0.0.1"

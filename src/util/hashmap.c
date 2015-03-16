@@ -1,4 +1,4 @@
-#include "hashmap.h"
+#include "util/hashmap.h"
  
 static unsigned long int fnv1a(void *data, unsigned long int len) {
 	unsigned char *p = (unsigned char *) data;
