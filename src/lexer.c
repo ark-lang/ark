@@ -1,30 +1,4 @@
-#include "lexer/lexer.h"
-
-// this is just for debugging
-static const char* TOKEN_NAMES[] = {
-	"END_OF_FILE", "IDENTIFIER", "NUMBER",
-	"OPERATOR", "SEPARATOR", "ERRORNEOUS",
-	"STRING", "CHARACTER", "UNKNOWN"
-};
-
-Token *createToken(Lexer *lexer) {
-	Token *tok = safeMalloc(sizeof(*tok));
-	tok->type = UNKNOWN;
-	tok->content = NULL;
-	tok->lineNumber = lexer->lineNumber;
-	tok->charNumber = lexer->charNumber;
-	return tok;
-}
-
-const char* getTokenName(Token *tok) {
-	return TOKEN_NAMES[tok->type];
-}
-
-void destroyToken(Token *token) {
-	if (token) {
-		free(token);
-	}
-}
+#include "lexer.h"
 
 Lexer *createLexer(char* input) {
 	Lexer *lexer = safeMalloc(sizeof(*lexer));
@@ -38,6 +12,25 @@ Lexer *createLexer(char* input) {
 	lexer->charNumber = 1;
 	lexer->timer = clock();
 	return lexer;
+}
+
+Token *createToken(int lineNumber, int charNumber) {
+	Token *tok = safeMalloc(sizeof(*tok));
+	tok->type = UNKNOWN;
+	tok->content = NULL;
+	tok->lineNumber = lineNumber;
+	tok->charNumber = charNumber;
+	return tok;
+}
+
+const char* getTokenName(Token *tok) {
+	return TOKEN_NAMES[tok->type];
+}
+
+void destroyToken(Token *token) {
+	if (token) {
+		free(token);
+	}
 }
 
 void consumeCharacter(Lexer *lexer) {
@@ -226,7 +219,7 @@ void recognizeErroneousToken(Lexer *lexer) {
 
 /** pushes a token with no content */
 void pushToken(Lexer *lexer, int type) {
-	Token *tok = createToken(lexer);
+	Token *tok = createToken(lexer->lineNumber, lexer->charNumber);
 	tok->type = type;
 	tok->content = extractToken(lexer, lexer->startPos, lexer->pos - lexer->startPos);
 	pushBackItem(lexer->tokenStream, tok);
@@ -234,7 +227,7 @@ void pushToken(Lexer *lexer, int type) {
 
 /** pushes a token with content */
 void pushInitializedToken(Lexer *lexer, int type, char *content) {
-	Token *tok = createToken(lexer);
+	Token *tok = createToken(lexer->lineNumber, lexer->charNumber);
 	tok->type = type;
 	tok->content = content;
 	pushBackItem(lexer->tokenStream, tok);

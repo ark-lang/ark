@@ -1,4 +1,4 @@
-#include "util/vector.h"
+#include "vector.h"
 
 Vector *createVector() {
 	Vector *vec = safeMalloc(sizeof(*vec));
