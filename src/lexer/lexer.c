@@ -1,4 +1,4 @@
-#include "lexer.h"
+#include "lexer/lexer.h"
 
 // this is just for debugging
 static const char* TOKEN_NAMES[] = {
@@ -36,6 +36,7 @@ Lexer *createLexer(char* input) {
 	lexer->running = true;
 	lexer->lineNumber = 1;
 	lexer->charNumber = 1;
+	lexer->timer = clock();
 	return lexer;
 }
 
@@ -297,6 +298,7 @@ void destroyLexer(Lexer *lexer) {
 			}
 			destroyToken(tok);
 		}
+
 		free(lexer);
 	}
 }

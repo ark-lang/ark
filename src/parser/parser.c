@@ -1,4 +1,4 @@
-#include "parser.h"
+#include "parser/parser.h"
 
 /** List of data types */
 static const char* DATA_TYPES[] = {
@@ -442,6 +442,7 @@ Parser *createParser(Vector *token_stream) {
 	parser->tokenIndex = 0;
 	parser->parsing = true;
 	parser->exitOnError = false;
+	parser->timer = clock();
 	return parser;
 }
 
