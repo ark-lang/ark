@@ -5,12 +5,12 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include "semantic.h"
-#include "util.h"
-#include "lexer.h"
-#include "parser.h"
-#include "scanner.h"
-#include "compiler.h"
+#include "semantic/semantic.h"
+#include "util/util.h"
+#include "lexer/lexer.h"
+#include "parser/parser.h"
+#include "util/scanner.h"
+#include "compiler/compiler.h"
 
 /**
  * For handling command line

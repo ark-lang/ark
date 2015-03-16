@@ -5,9 +5,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "parser.h"
-#include "vector.h"
-#include "hashmap.h"
+#include "parser/parser.h"
+#include "util/vector.h"
+#include "util/hashmap.h"
 
 #define SPACE_CHAR " "
 #define OPEN_BRACKET "("
@@ -32,6 +32,11 @@ typedef struct {
 	char *sourceContents;
 
 	int currentNode;
+
+	// timers for benchmarking
+	clock_t timer;
+	double secondsTaken;
+	double msTaken;
 } Compiler;
 
 Compiler *createCompiler();

@@ -1,4 +1,4 @@
-#include "scanner.h"
+#include "util/scanner.h"
 
 Scanner *createScanner() {
 	Scanner *self = safeMalloc(sizeof(*self));
