@@ -104,8 +104,7 @@ void startAlloyCompiler(AlloyCompiler *self) {
 
 	// compilation stage
 	self->compiler = createCompiler(self->sourceFiles);
-//	startCompiler(self->compiler, self->parser->parseTree);
-	// TODO: compiler
+	startCompiler(self->compiler);
 }
 
 void destroyAlloyCompiler(AlloyCompiler *self) {
