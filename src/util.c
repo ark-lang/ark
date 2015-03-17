@@ -1,5 +1,10 @@
 #include "util.h"
 
+void str_append(char *original_str, char *str) {
+	original_str = realloc(original_str, strlen(original_str) + strlen(str) + 1);
+	strcat(original_str, str);
+}
+
 void debugMessage(const char *fmt, ...) {
 	if (DEBUG_MODE) {
 		va_list arg;

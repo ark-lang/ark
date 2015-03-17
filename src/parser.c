@@ -89,7 +89,7 @@ FunctionReturnAstNode *createFunctionReturnAstNode() {
 
 ExpressionAstNode *createExpressionAstNode() {
 	ExpressionAstNode *expr = allocate_ast_node(sizeof(ExpressionAstNode), "expression");
-	expr->expressionValues = createVector();
+	// todo
 	return expr;
 }
 
@@ -270,7 +270,7 @@ void destroyFunctionReturnAstNode(FunctionReturnAstNode *functionReturn) {
 
 void destroyExpressionAstNode(ExpressionAstNode *expression) {
 	if (expression) {
-		destroyVector(expression->expressionValues);
+		// TODO:
 		free(expression);
 	}
 }
@@ -860,17 +860,7 @@ StatementAstNode *parseForLoopAstNode(Parser *parser) {
 
 ExpressionAstNode *parseExpressionAstNode(Parser *parser) {
 	ExpressionAstNode *expr = createExpressionAstNode();
-	for (;;) {
-		Token *current = peekAtTokenStream(parser, 0);
-		Token *next = peekAtTokenStream(parser, 1);
 
-		// TODO: fix this from consuming the closing parenthesis
-		if ((!isExpressionOperator(current->content[0]) && !isExpressionOperator(next->content[0]))) {
-			pushBackItem(expr->expressionValues, consumeToken(parser));
-			break;
-		}
-		pushBackItem(expr->expressionValues, consumeToken(parser));
-	}
 	return expr;
 }
 
