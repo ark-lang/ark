@@ -32,10 +32,10 @@ void parserError(Parser *parser, char *msg, Token *tok, bool fatal_error) {
 	}
 }
 
-void *allocate_ast_node(size_t sz, const char* readable_type) {
+void *allocateASTNode(size_t size, const char* readable_type) {
 	// dont use safe malloc here because we can provide additional
 	// error info
-	void *ret = malloc(sz);
+	void *ret = malloc(size);
 	if (!ret) {
 		fprintf(stderr, "malloc: failed to allocate memory for %s", readable_type);
 		return NULL;
@@ -44,7 +44,7 @@ void *allocate_ast_node(size_t sz, const char* readable_type) {
 }
 
 FunctionOwnerAstNode *createFunctionOwnerAstNode() {
-	FunctionOwnerAstNode *fo = allocate_ast_node(sizeof(FunctionOwnerAstNode), "function owner");
+	FunctionOwnerAstNode *fo = allocateASTNode(sizeof(FunctionOwnerAstNode), "function owner");
 	fo->owner = NULL;
 	fo->alias = NULL;
 	fo->isPointer = false;
@@ -52,49 +52,49 @@ FunctionOwnerAstNode *createFunctionOwnerAstNode() {
 }
 
 InfiniteLoopAstNode *createInfiniteLoopAstNode() {
-	InfiniteLoopAstNode *iln = allocate_ast_node(sizeof(InfiniteLoopAstNode), "infinite loop");
+	InfiniteLoopAstNode *iln = allocateASTNode(sizeof(InfiniteLoopAstNode), "infinite loop");
 	iln->body = NULL;
 	return iln;
 }
 
 BreakStatementAstNode *createBreakStatementAstNode() {
-	BreakStatementAstNode *bn = allocate_ast_node(sizeof(BreakStatementAstNode), "break");
+	BreakStatementAstNode *bn = allocateASTNode(sizeof(BreakStatementAstNode), "break");
 	return bn;
 }
 
 ContinueStatementAstNode *create_continue_ast_node() {
-	ContinueStatementAstNode *cn = allocate_ast_node(sizeof(ContinueStatementAstNode), "continue");
+	ContinueStatementAstNode *cn = allocateASTNode(sizeof(ContinueStatementAstNode), "continue");
 	return cn;
 }
 
 VariableReassignmentAstNode *createVariableReassignmentAstNode() {
-	VariableReassignmentAstNode *vrn = allocate_ast_node(sizeof(VariableReassignmentAstNode), "variable reassignment");
+	VariableReassignmentAstNode *vrn = allocateASTNode(sizeof(VariableReassignmentAstNode), "variable reassignment");
 	vrn->name = NULL;
 	vrn->expression = NULL;
 	return vrn;
 }
 
 StatementAstNode *createStatementAstNode(void *data, AstNodeType type) {
-	StatementAstNode *sn = allocate_ast_node(sizeof(StatementAstNode), "statement");
+	StatementAstNode *sn = allocateASTNode(sizeof(StatementAstNode), "statement");
 	sn->data = data;
 	sn->type = type;
 	return sn;
 }
 
 FunctionReturnAstNode *createFunctionReturnAstNode() {
-	FunctionReturnAstNode *frn = allocate_ast_node(sizeof(FunctionReturnAstNode), "function return");
+	FunctionReturnAstNode *frn = allocateASTNode(sizeof(FunctionReturnAstNode), "function return");
 	frn->returnValue = NULL;
 	return frn;
 }
 
 ExpressionAstNode *createExpressionAstNode() {
-	ExpressionAstNode *expr = allocate_ast_node(sizeof(ExpressionAstNode), "expression");
+	ExpressionAstNode *expr = allocateASTNode(sizeof(ExpressionAstNode), "expression");
 	// todo
 	return expr;
 }
 
 VariableDefinitionAstNode *createVariableDefinitionAstNode() {
-	VariableDefinitionAstNode *vdn = allocate_ast_node(sizeof(VariableDefinitionAstNode), "variable definition");
+	VariableDefinitionAstNode *vdn = allocateASTNode(sizeof(VariableDefinitionAstNode), "variable definition");
 	vdn->name = NULL;
 	vdn->isConstant = false;
 	vdn->isGlobal = false;
@@ -102,101 +102,101 @@ VariableDefinitionAstNode *createVariableDefinitionAstNode() {
 }
 
 VariableDeclarationAstNode *createVariableDeclarationAstNode() {
-	VariableDeclarationAstNode *vdn = allocate_ast_node(sizeof(VariableDeclarationAstNode), "variable declaration");
+	VariableDeclarationAstNode *vdn = allocateASTNode(sizeof(VariableDeclarationAstNode), "variable declaration");
 	vdn->variableDefinitionAstNode = NULL;
 	vdn->expression = NULL;
 	return vdn;
 }
 
 FunctionArgumentAstNode *createFunctionArgumentAstNode() {
-	FunctionArgumentAstNode *fan = allocate_ast_node(sizeof(FunctionArgumentAstNode), "function argument");
+	FunctionArgumentAstNode *fan = allocateASTNode(sizeof(FunctionArgumentAstNode), "function argument");
 	fan->name = NULL;
 	fan->value = NULL;
 	return fan;
 }
 
 FunctionCallAstNode *createFunctionCallAstNode() {
-	FunctionCallAstNode *fcn = allocate_ast_node(sizeof(FunctionCallAstNode), "function callee");
+	FunctionCallAstNode *fcn = allocateASTNode(sizeof(FunctionCallAstNode), "function callee");
 	fcn->name = NULL;
 	fcn->args = NULL;
 	return fcn;
 }
 
 BlockAstNode *createBlockAstNode() {
-	BlockAstNode *bn = allocate_ast_node(sizeof(BlockAstNode), "block");
+	BlockAstNode *bn = allocateASTNode(sizeof(BlockAstNode), "block");
 	bn->statements = NULL;
 	return bn;
 }
 
 FunctionPrototypeAstNode *createFunctionPrototypeAstNode() {
-	FunctionPrototypeAstNode *fpn = allocate_ast_node(sizeof(FunctionPrototypeAstNode), "function prototype");
+	FunctionPrototypeAstNode *fpn = allocateASTNode(sizeof(FunctionPrototypeAstNode), "function prototype");
 	fpn->args = NULL;
 	fpn->name = NULL;
 	return fpn;
 }
 
 EnumAstNode *createEnumerationAstNode() {
-	EnumAstNode *en = allocate_ast_node(sizeof(EnumAstNode), "enum");
+	EnumAstNode *en = allocateASTNode(sizeof(EnumAstNode), "enum");
 	en->name = NULL;
 	en->enumItems = createVector();
 	return en;
 }
 
 EnumeratedStructureAstNode *createEnumeratedStructureAstNode() {
-	EnumeratedStructureAstNode *es = allocate_ast_node(sizeof(EnumAstNode), "enum");
+	EnumeratedStructureAstNode *es = allocateASTNode(sizeof(EnumAstNode), "enum");
 	es->name = NULL;
 	es->structs = NULL;
 	return es;
 }
 
 EnumItem *createEnumItem(char *name, int value) {
-	EnumItem *ei = allocate_ast_node(sizeof(EnumItem), "enum item");
+	EnumItem *ei = allocateASTNode(sizeof(EnumItem), "enum item");
 	ei->name = name;
 	ei->value = value;
 	return ei;
 }
 
 FunctionAstNode *createFunctionAstNode() {
-	FunctionAstNode *fn = allocate_ast_node(sizeof(FunctionAstNode), "function");
+	FunctionAstNode *fn = allocateASTNode(sizeof(FunctionAstNode), "function");
 	fn->prototype = NULL;
 	fn->body = NULL;
 	return fn;
 }
 
 ForLoopAstNode *createForLoopAstNode() {
-	ForLoopAstNode *fln = allocate_ast_node(sizeof(ForLoopAstNode), "for loop");
+	ForLoopAstNode *fln = allocateASTNode(sizeof(ForLoopAstNode), "for loop");
 	return fln;
 }
 
 StructureAstNode *createStructureAstNode() {
-	StructureAstNode *sn = allocate_ast_node(sizeof(StructureAstNode), "struct");
+	StructureAstNode *sn = allocateASTNode(sizeof(StructureAstNode), "struct");
 	sn->statements = createVector();
 	return sn;
 }
 
 UseStatementAstNode *createUseStatementAstNode() {
-	UseStatementAstNode *useStatement = allocate_ast_node(sizeof(UseStatementAstNode), "use");
+	UseStatementAstNode *useStatement = allocateASTNode(sizeof(UseStatementAstNode), "use");
 	useStatement->file = NULL;
 	return useStatement;
 }
 
 IfStatementAstNode *createIfStatementAstNode() {
-	IfStatementAstNode *isn = allocate_ast_node(sizeof(IfStatementAstNode), "if statement");
+	IfStatementAstNode *isn = allocateASTNode(sizeof(IfStatementAstNode), "if statement");
 	return isn;
 }
 
 WhileLoopAstNode *createWhileLoopAstNode() {
-	WhileLoopAstNode *wn = allocate_ast_node(sizeof(WhileLoopAstNode), "while loop");
+	WhileLoopAstNode *wn = allocateASTNode(sizeof(WhileLoopAstNode), "while loop");
 	return wn;
 }
 
 MatchCaseAstNode *createMatchCaseAstNode() {
-	MatchCaseAstNode *mcn = allocate_ast_node(sizeof(MatchCaseAstNode), "match case");
+	MatchCaseAstNode *mcn = allocateASTNode(sizeof(MatchCaseAstNode), "match case");
 	return mcn;
 }
 
 MatchAstNode *createMatchAstNode() {
-	MatchAstNode *mn = allocate_ast_node(sizeof(MatchAstNode), "match");
+	MatchAstNode *mn = allocateASTNode(sizeof(MatchAstNode), "match");
 	mn->cases = createVector();
 	return mn;
 }
@@ -1321,13 +1321,13 @@ void startParsingSourceFiles(Parser *parser, Vector *sourceFiles) {
 		SourceFile *file = getVectorItem(sourceFiles, i);
 		parser->tokenStream = file->tokens;
 		parser->parseTree = createVector();
+		parser->tokenIndex = 0;
+		parser->parsing = true;
 
 		parseTokenStream(parser);
 
 		file->ast = parser->parseTree;
 	}
-
-	printf("finished parsing files\n");
 }
 
 void parseTokenStream(Parser *parser) {
