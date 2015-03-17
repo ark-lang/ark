@@ -736,7 +736,7 @@ void removeAstNode(AstNode *astNode);
  * @param token_stream the token stream to parse
  * @return instance of parser
  */
-Parser *createParser(Vector *tokenStream);
+Parser *createParser();
 
 /**
  * Advances to the next token
@@ -930,6 +930,8 @@ StructureAstNode *parseStructureAstNode(Parser *parser);
  * @parser the parser instance
  */
 VariableReassignmentAstNode *parseReassignmentAstNode(Parser *parser);
+
+void startParsingSourceFiles(Parser *parser, Vector *sourceFiles);
 
 /**
  * Start parsing
