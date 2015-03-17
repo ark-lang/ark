@@ -10,13 +10,16 @@
 typedef struct {
 	char *fileName;
 	char *fileContents;
-	char *outputFileName;
-	Vector *nodes;
+
+	char *outputFileContents;
+
+	Vector *tokens;
+	Vector *ast;
 
 	HeaderFile *headerFile;
 } SourceFile;
 
-SourceFile *createSourceFile(char *fileName, Vector *nodes);
+SourceFile *createSourceFile(char *fileName);
 
 void writeFiles(SourceFile *sourceFile);
 

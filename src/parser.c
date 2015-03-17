@@ -435,10 +435,9 @@ void destroyEnumItem(EnumItem *enumItem) {
 
 /** END AST_NODE FUNCTIONS */
 
-Parser *createParser(Vector *token_stream) {
+Parser *createParser() {
 	Parser *parser = safeMalloc(sizeof(*parser));
-	parser->tokenStream = token_stream;
-	parser->parseTree = createVector();
+	parser->tokenStream = NULL;
 	parser->tokenIndex = 0;
 	parser->parsing = true;
 	parser->exitOnError = false;
@@ -446,7 +445,6 @@ Parser *createParser(Vector *token_stream) {
 }
 
 Token *consumeToken(Parser *parser) {
-	// return the token we are consuming, then increment token index
 	return getVectorItem(parser->tokenStream, parser->tokenIndex++);
 }
 
@@ -1288,6 +1286,21 @@ VariableReassignmentAstNode *parseReassignmentAstNode(Parser *parser) {
 
 	parserError(parser, "failed to parse variable reassignment", consumeToken(parser), true);
 	return NULL;
+}
+
+void startParsingSourceFiles(Parser *parser, Vector *sourceFiles) {
+	int i;
+	for (i = 0; i < sourceFiles->size; i++) {
+		SourceFile *file = getVectorItem(sourceFiles, i);
+		parser->tokenStream = file->tokens;
+		parser->parseTree = createVector();
+
+		parseTokenStream(parser);
+
+		file->ast = parser->parseTree;
+	}
+
+	printf("finished parsing files\n");
 }
 
 void parseTokenStream(Parser *parser) {

@@ -25,16 +25,12 @@
 typedef struct {
 	Vector *abstractSyntaxTree;
 	Vector *references;
-
-    int sourceFileSize;
-    int sourcePosition;
-	char *sourceName;
-	char *sourceContents;
+	Vector *sourceFiles;
 
 	int currentNode;
 } Compiler;
 
-Compiler *createCompiler();
+Compiler *createCompiler(Vector *sourceFiles);
 
 void appendToSource(Compiler *self, char *str);
 

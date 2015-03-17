@@ -1,18 +1,10 @@
 #include "sourcefile.h"
 
-SourceFile *createSourceFile(char *fileName, Vector *nodes) {
+SourceFile *createSourceFile(char *fileName) {
 	SourceFile *sourceFile = malloc(sizeof(*sourceFile));
 	sourceFile->fileName = fileName;
-	sourceFile->fileContents = malloc(sizeof(char));
-	sourceFile->fileContents[0] = '\0';
-	sourceFile->nodes = nodes;
-
-	strcpy(sourceFile->outputFileName, fileName);
-	str_append(sourceFile->outputFileName, ".c");
-	printf("%s\n", sourceFile->outputFileName);
-
+	sourceFile->fileContents = readFile(fileName);
 	sourceFile->headerFile = createHeaderFile(fileName);
-
 	return sourceFile;
 }
 
@@ -22,7 +14,7 @@ void writeFiles(SourceFile *sourceFile) {
 }
 
 void writeSourceFile(SourceFile *sourceFile) {
-	FILE *file = fopen(sourceFile->outputFileName, "w");
+	FILE *file = fopen(JOIN_STR(sourceFile->fileName, ".c"), "w");
 	if (!file) {
 		perror("fopen: failed to open file");
 		return;
@@ -36,7 +28,7 @@ void writeSourceFile(SourceFile *sourceFile) {
 
 void destroySourceFile(SourceFile *sourceFile) {
 	if (sourceFile) {
-		remove(sourceFile->outputFileName);
+		remove(JOIN_STR(sourceFile->fileName, ".c"));
 		destroyHeaderFile(sourceFile->headerFile);
 		free(sourceFile->fileContents);
 		free(sourceFile);
