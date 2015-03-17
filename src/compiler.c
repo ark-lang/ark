@@ -36,7 +36,7 @@ void emitFunctionCall(Compiler *self, FunctionCallAstNode *call) {
 
 }
 
-void emit_if_statement(Compiler *self, IfStatementAstNode *stmt) {
+void emitIfStatement(Compiler *self, IfStatementAstNode *stmt) {
 	
 }
 
@@ -68,6 +68,7 @@ void startCompiler(Compiler *self) {
 	int i;
 	for (i = 0; i < self->sourceFiles->size; i++) {
 		SourceFile *sourceFile = getVectorItem(self->sourceFiles, i);
+		self->currentNode = 0;
 		self->currentSourceFile = sourceFile;
 		self->abstractSyntaxTree = self->currentSourceFile->ast;
 		compileAST(self);
@@ -88,6 +89,9 @@ void compileAST(Compiler *self) {
 				break;
 			case STRUCT_AST_NODE:
 				emitStructure(self, currentAstNode->data);
+				break;
+			case USE_STATEMENT_AST_NODE:
+//				emitStructure(self, currentAstNode->data);
 				break;
 			default:
 				printf("node not yet supported: %s :(\n", NODE_TYPE[currentAstNode->type]);
