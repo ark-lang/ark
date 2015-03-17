@@ -442,7 +442,6 @@ Parser *createParser(Vector *token_stream) {
 	parser->tokenIndex = 0;
 	parser->parsing = true;
 	parser->exitOnError = false;
-	parser->timer = clock();
 	return parser;
 }
 
