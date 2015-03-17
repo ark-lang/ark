@@ -14,6 +14,7 @@ has it's flaws:
 * inconsistencies, especially in error handling
 
 Our goal with Alloy is to fix these errors, yet maintaining a cleaner, simpler syntax.
+A lot of the syntax for Alloy is inspired by existing languages, such as Rust, Go, and Java. The language itself is
+also heavily inspired by the simplicity of C. We don't want to add too much that it constrains the developer to a single paradigm.
 
-## Syntax
-A lot of the syntax for Alloy is inspired by existing languages, such as Rust, Go, and Java. 
+## Memory Model
