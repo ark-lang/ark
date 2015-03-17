@@ -34,17 +34,15 @@ static void parse_argument(CommandLineArgument *arg) {
 
 AlloyCompiler *createAlloyCompiler(int argc, char** argv) {
 	AlloyCompiler *self = safeMalloc(sizeof(*self));
-	self->filename = NULL;
-	self->scanner = NULL;
 	self->lexer = NULL;
 	self->parser = NULL;
 	self->compiler = NULL;
-	self->semantic = NULL;
+	self->sourceFiles = createVector();
 
 	// not enough args just throw an error
 	if (argc <= 1) {
 		errorMessage("no input files");
-		return self;
+		return NULL;
 	}
 
 	int i;
@@ -76,7 +74,7 @@ AlloyCompiler *createAlloyCompiler(int argc, char** argv) {
 			parse_argument(&arg);
 		}
 		else if (strstr(argv[i], ".ay")) {
-			self->filename = argv[i];
+			pushBackItem(self->sourceFiles, createSourceFile(argv[i]));
 		}
 		else {
 			errorMessage("argument not recognized: %s\n", argv[i]);
@@ -87,45 +85,34 @@ AlloyCompiler *createAlloyCompiler(int argc, char** argv) {
 }
 
 void startAlloyCompiler(AlloyCompiler *self) {
-	// filename is null, so we should exit
-	// out of here
-	if (self->filename == NULL) {
+	if (!self->sourceFiles || self->sourceFiles->size == 0) {
 		return;
 	}
 
-	// start actual useful shit here
-	self->scanner = createScanner();
-	scanFile(self->scanner, self->filename);
-
 	// lex file
-	self->lexer = createLexer(self->scanner->contents);
-	while (self->lexer->running) {
-		getNextToken(self->lexer);
-	}
+	self->lexer = createLexer(self->sourceFiles);
+	startLexingFiles(self->lexer, self->sourceFiles);
 
 	// initialise parser after we tokenize
-	self->parser = createParser(self->lexer->tokenStream);
-	parseTokenStream(self->parser);
+	self->parser = createParser();
+	startParsingSourceFiles(self->parser, self->sourceFiles);
 	
 	// failed parsing stage
 	if (self->parser->exitOnError) {
 		return; // don't do stuff after this
 	}
 
-	// semantic analysis, not started yet
-	self->semantic = createSemanticAnalyser(self->parser->parseTree);
-	startSemanticAnalysis(self->semantic);
-
 	// compilation stage
-	self->compiler = createCompiler();
-	startCompiler(self->compiler, self->parser->parseTree);
+	self->compiler = createCompiler(self->sourceFiles);
+//	startCompiler(self->compiler, self->parser->parseTree);
+	// TODO: compiler
 }
 
 void destroyAlloyCompiler(AlloyCompiler *self) {
-	destroyScanner(self->scanner);
-	destroyLexer(self->lexer);
-	destroyParser(self->parser);
-	destroySemanticAnalyser(self->semantic);
-	destroyCompiler(self->compiler);
-	free(self);
+	if (self) {
+		destroyLexer(self->lexer);
+		destroyParser(self->parser);
+		destroyCompiler(self->compiler);
+		free(self);
+	}
 }

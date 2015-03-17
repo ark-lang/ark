@@ -1,16 +1,10 @@
 #include "compiler.h"
 
-Compiler *createCompiler() {
+Compiler *createCompiler(Vector *sourceFiles) {
 	Compiler *self = safeMalloc(sizeof(*self));
 	self->abstractSyntaxTree = NULL;
 	self->currentNode = 0;
-
-	self->sourceFileSize = 128;
-	self->sourcePosition = 0;
-	self->sourceName = "test.c";
-	self->sourceContents = malloc(sizeof(char) * (self->sourceFileSize + 1));
-	self->sourceContents[0] = '\0';
-
+	self->sourceFiles = sourceFiles;
 	return self;
 }
 
@@ -58,10 +52,6 @@ void consumeAstNodeBy(Compiler *self, int amount) {
 	self->currentNode += amount;
 }
 
-void write_file(Compiler *self) {
-	
-}
-
 void startCompiler(Compiler *self, Vector *ast) {
 	self->abstractSyntaxTree = ast;
 
@@ -83,9 +73,6 @@ void startCompiler(Compiler *self, Vector *ast) {
 				break;
 		}
 	}
-
-	printf("%s\n", self->sourceContents);
-	write_file(self);
 }
 
 void destroyCompiler(Compiler *self) {

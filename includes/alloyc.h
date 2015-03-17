@@ -5,11 +5,9 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include "semantic.h"
 #include "util.h"
 #include "lexer.h"
 #include "parser.h"
-#include "scanner.h"
 #include "compiler.h"
 
 /**
@@ -25,12 +23,10 @@ typedef struct {
  * The core of alloyc
  */
 typedef struct {
-	Scanner *scanner;
 	Lexer *lexer;
 	Parser *parser;
 	Compiler *compiler;
-	SemanticAnalyser *semantic;
-	char *filename; // no
+	Vector *sourceFiles;
 } AlloyCompiler;
 
 /**

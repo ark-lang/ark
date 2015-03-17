@@ -1,16 +1,34 @@
 #include "lexer.h"
 
-Lexer *createLexer(char* input) {
+Lexer *createLexer() {
 	Lexer *lexer = safeMalloc(sizeof(*lexer));
-	lexer->input = input;
-	lexer->inputLength = strlen(lexer->input);
+	lexer->inputLength = 0;
 	lexer->pos = 0;
-	lexer->currentChar = input[lexer->pos];
-	lexer->tokenStream = createVector();
+	lexer->currentChar = '\0';
+	lexer->tokenStream = NULL;
 	lexer->running = true;
 	lexer->lineNumber = 1;
 	lexer->charNumber = 1;
 	return lexer;
+}
+
+void startLexingFiles(Lexer *lexer, Vector *sourceFiles) {
+	int i;
+	for (i = 0; i < sourceFiles->size; i++) {
+		SourceFile *sourceFile = getVectorItem(sourceFiles, i);
+		printf("lexing %s\n", sourceFile->fileName);
+
+		lexer->inputLength = strlen(sourceFile->fileContents);
+		lexer->input = sourceFile->fileContents;
+		lexer->currentChar = lexer->input[lexer->pos];
+		lexer->tokenStream = createVector();
+
+		while (lexer->running) {
+			getNextToken(lexer);
+		}
+
+		sourceFile->tokens = lexer->tokenStream;
+	}
 }
 
 Token *createToken(int lineNumber, int charNumber) {

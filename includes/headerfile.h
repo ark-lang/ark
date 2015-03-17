@@ -8,7 +8,8 @@
 typedef struct {
 	char *fileName;
 	char *fileContents;
-	char *outputFileName;
+
+	char *outputFileContents;
 } HeaderFile;
 
 HeaderFile *createHeaderFile(char *fileName);

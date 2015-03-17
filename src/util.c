@@ -17,6 +17,43 @@ void debugMessage(const char *fmt, ...) {
 	}
 }
 
+char *readFile(const char *fileName) {
+	FILE *file = fopen(fileName, "r");
+	char *contents = NULL;
+
+	if (file) {
+		if (!fseek(file, 0, SEEK_END)) {
+			long fileSize = ftell(file);
+			if (fileSize == -1) {
+				perror("ftell: could not read filesize");
+				return NULL;
+			}
+
+			contents = safeMalloc(sizeof(*contents) * (fileSize + 1));
+
+			if (fseek(file, 0, SEEK_SET)) {
+				perror("could not reset file index");
+				return NULL;
+			}
+
+			size_t fileLength = fread(contents, sizeof(char), fileSize, file);
+			if (!fileLength) {
+				debugMessage("warning: \"%s\" is empty\n", fileName);
+			}
+
+			contents[fileLength] = '\0';
+		}
+		fclose(file);
+		return contents;
+	}
+	else {
+		perror("fopen: could not read file");
+		return NULL;
+	}
+
+	return NULL;
+}
+
 void errorMessage(const char *fmt, ...) {
 	va_list arg;
 	va_start(arg, fmt);
