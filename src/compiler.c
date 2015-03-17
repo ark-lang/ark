@@ -10,13 +10,12 @@ Compiler *createCompiler() {
 	self->sourceName = "test.c";
 	self->sourceContents = malloc(sizeof(char) * (self->sourceFileSize + 1));
 	self->sourceContents[0] = '\0';
-	self->timer = clock();
 
 	return self;
 }
 
 void emitExpression(Compiler *self, ExpressionAstNode *expr) {
-	// TODO: emit expressions
+
 }
 
 void emitVariableDeclaration(Compiler *self, VariableDeclarationAstNode *var) {
