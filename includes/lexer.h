@@ -11,6 +11,7 @@
 
 #include "util.h"
 #include "vector.h"
+#include "sourcefile.h"
 
 #define ASCII_CHARACTER_THRESHOLD 128
 
@@ -83,7 +84,9 @@ char* getLineNumberContext(Vector *stream, int lineNumber);
  * @param input the input to lex
  * @return instance of Lexer
  */
-Lexer *createLexer(char* input);
+Lexer *createLexer();
+
+void startLexingFiles(Lexer *lexer, Vector *sourceFiles);
 
 /**
  * Simple substring, basically extracts the token from

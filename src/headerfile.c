@@ -5,16 +5,11 @@ HeaderFile *createHeaderFile(char *fileName) {
 	headerFile->fileName = fileName;
 	headerFile->fileContents = malloc(sizeof(char));
 	headerFile->fileContents[0] = '\0';
-
-	strcpy(headerFile->outputFileName, fileName);
-	str_append(headerFile->outputFileName, ".h");
-	printf("%s\n", headerFile->outputFileName);
-
 	return headerFile;
 }
 
 void writeHeaderFile(HeaderFile *headerFile) {
-	FILE *file = fopen(headerFile->outputFileName, "w");
+	FILE *file = fopen(JOIN_STR(headerFile->fileName, ".h"), "w");
 	if (!file) {
 		perror("fopen: failed to open file");
 		return;
@@ -28,7 +23,7 @@ void writeHeaderFile(HeaderFile *headerFile) {
 
 void destroyHeaderFile(HeaderFile *headerFile) {
 	if (headerFile) {
-		remove(headerFile->outputFileName);
+		remove(JOIN_STR(headerFile->fileName, ".h"));
 		free(headerFile->fileContents);
 		free(headerFile);
 	}

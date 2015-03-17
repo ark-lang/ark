@@ -9,17 +9,23 @@ Vector *createVector() {
 }
 
 void pushBackItem(Vector *vec, VectorItem item) {
-	// much more efficient to reallocate exponentially,
-	// instead of reallocating after adding an item
-	if (vec->size >= vec->maxSize) {
-		vec->maxSize *= 2;
-		vec->items = realloc(vec->items, sizeof(*vec->items) * vec->maxSize);
-		if (!vec->items) {
-			perror("realloc: failed to allocate memory for vector contents");
-			return;
+	if (vec) {
+		// much more efficient to reallocate exponentially,
+		// instead of reallocating after adding an item
+		if (vec->size >= vec->maxSize) {
+			vec->maxSize *= 2;
+			vec->items = realloc(vec->items, sizeof(*vec->items) * vec->maxSize);
+			if (!vec->items) {
+				perror("realloc: failed to allocate memory for vector contents");
+				return;
+			}
 		}
+		vec->items[vec->size++] = item;
 	}
-	vec->items[vec->size++] = item;
+	else {
+		errorMessage("Cannot push item to a null vector");
+		return;
+	}
 }
 
 VectorItem getVectorItem(Vector *vec, int index) {

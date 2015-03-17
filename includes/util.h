@@ -56,6 +56,8 @@ void errorMessage(const char *fmt, ...);
  */
 void primaryMessage(const char *fmt, ...);
 
+char *readFile(const char *fileName);
+
 /**
  * Gets the extension of the given file
  * @param  filename the filename to get the extension
