@@ -10,7 +10,6 @@ Lexer *createLexer(char* input) {
 	lexer->running = true;
 	lexer->lineNumber = 1;
 	lexer->charNumber = 1;
-	lexer->timer = clock();
 	return lexer;
 }
 
