@@ -103,20 +103,10 @@ void startAlloyCompiler(AlloyCompiler *self) {
 		getNextToken(self->lexer);
 	}
 
-	// calculate time for lexing
-	self->lexer->timer = clock() - self->lexer->timer;
-	self->lexer->secondsTaken = ((double) self->lexer->timer) / CLOCKS_PER_SEC;
-	self->lexer->msTaken = self->lexer->secondsTaken * 1000;
-
 	// initialise parser after we tokenize
 	self->parser = createParser(self->lexer->tokenStream);
 	parseTokenStream(self->parser);
 	
-	// calculate time for parsing
-	self->parser->timer = clock() - self->parser->timer;
-	self->parser->secondsTaken = ((double) self->parser->timer) / CLOCKS_PER_SEC;
-	self->parser->msTaken = self->parser->secondsTaken * 1000;
-
 	// failed parsing stage
 	if (self->parser->exitOnError) {
 		return; // don't do stuff after this
@@ -129,14 +119,6 @@ void startAlloyCompiler(AlloyCompiler *self) {
 	// compilation stage
 	self->compiler = createCompiler();
 	startCompiler(self->compiler, self->parser->parseTree);
-
-	// calculate time of compiler
-	self->compiler->timer = clock() - self->compiler->timer;
-	self->compiler->secondsTaken = ((double) self->compiler->timer) / CLOCKS_PER_SEC;
-	self->compiler->msTaken = self->compiler->secondsTaken * 1000;
-
-	primaryMessage("Lexing: %.6f, Parsing: %.6f, Compilation: %.6f", self->lexer->secondsTaken, self->parser->secondsTaken, self->compiler->secondsTaken);
-
 }
 
 void destroyAlloyCompiler(AlloyCompiler *self) {
