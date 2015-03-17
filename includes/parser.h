@@ -148,8 +148,10 @@ typedef enum {
 /**
  * ast_node for an Expression
  */
-typedef struct {
-	Vector *expressionValues;
+typedef struct s_ExpressionAstNode {
+	struct s_ExpressionAstNode *lhand;
+	char operand;
+	struct s_ExpressionAstNode *rhand;
 } ExpressionAstNode;
 
 /**
