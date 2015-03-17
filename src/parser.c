@@ -174,6 +174,12 @@ StructureAstNode *createStructureAstNode() {
 	return sn;
 }
 
+UseStatementAstNode *createUseStatementAstNode() {
+	UseStatementAstNode *useStatement = allocate_ast_node(sizeof(UseStatementAstNode), "use");
+	useStatement->file = NULL;
+	return useStatement;
+}
+
 IfStatementAstNode *createIfStatementAstNode() {
 	IfStatementAstNode *isn = allocate_ast_node(sizeof(IfStatementAstNode), "if statement");
 	return isn;
@@ -350,6 +356,12 @@ void destroyFunctionCallAstNode(FunctionCallAstNode *functionCall) {
 			destroyVector(functionCall->args);
 		}
 		free(functionCall);
+	}
+}
+
+void destroyUseStatementAstNode(UseStatementAstNode *useStatement) {
+	if (useStatement) {
+		free(useStatement);
 	}
 }
 
@@ -968,6 +980,20 @@ StatementAstNode *parseInfiniteLoopAstNode(Parser *parser) {
 	return createStatementAstNode(infiniteLoop, INFINITE_LOOP_AST_NODE);
 }
 
+UseStatementAstNode *parseUseStatementAstNode(Parser *parser) {
+	UseStatementAstNode *use = createUseStatementAstNode();
+	matchTokenTypeAndContent(parser, IDENTIFIER, USE_KEYWORD);
+
+	if (checkTokenType(parser, STRING, 0)) {
+		use->file = consumeToken(parser);
+	}
+	else {
+		parserError(parser, "Expected a file to use", consumeToken(parser), true);
+	}
+
+	return use;
+}
+
 FunctionAstNode *parseFunctionAstNode(Parser *parser) {
 	matchTokenType(parser, IDENTIFIER);	// consume the fn keyword
 
@@ -1311,7 +1337,10 @@ void parseTokenStream(Parser *parser) {
 		// clean this too
 		switch (tok->type) {
 			case IDENTIFIER:
-				if (!strcmp(tok->content, FUNCTION_KEYWORD)) {
+				if (!strcmp(tok->content, USE_KEYWORD)) {
+					parseUseStatementAstNode(parser);
+				}
+				else if (!strcmp(tok->content, FUNCTION_KEYWORD)) {
 					parseFunctionAstNode(parser);
 				}
 				else if (checkTokenTypeAndContent(parser, IDENTIFIER, STRUCT_KEYWORD, 0)) {
@@ -1366,6 +1395,9 @@ void removeAstNode(AstNode *astNode) {
 				break;
 			case VARIABLE_DEF_AST_NODE:
 				destroyVariableDefinitionAstNode(astNode->data);
+				break;
+			case USE_STATEMENT_AST_NODE:
+				destroyUseStatementAstNode(astNode->data);
 				break;
 			case VARIABLE_DEC_AST_NODE:
 				destroyVariableDeclarationAstNode(astNode->data);
