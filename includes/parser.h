@@ -78,11 +78,6 @@ typedef struct {
 	// whether to exit on error
 	// after parsing
 	bool exitOnError;
-
-	// timers for benchmarking
-	clock_t timer;
-	double secondsTaken;
-	double msTaken;
 } Parser;
 
 /**
