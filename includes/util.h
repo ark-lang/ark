@@ -10,8 +10,8 @@
 #include <assert.h>
 #include <time.h>
 
-/** the current version of ink */
-#define ALLOYC_VERSION "0.0.1"
+/** the current version of alloy */
+#define ALLOYC_VERSION "0.0.2"
 
 #define JOIN_STR(x, y) #x " " #y
 
