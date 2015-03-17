@@ -34,6 +34,7 @@
 #define POINTER_OPERATOR		"^"
 #define ADDRESS_OF_OPERATOR		"&"
 #define FUNCTION_KEYWORD 	   	"fn"
+#define USE_KEYWORD				"use"
 #define VOID_KEYWORD	 	   	"void"
 #define BREAK_KEYWORD	 	   	"break"
 #define TRUE_KEYWORD			"true"
@@ -101,7 +102,7 @@ typedef enum {
 	VARIABLE_REASSIGN_AST_NODE, INFINITE_LOOP_AST_NODE,
 	BREAK_AST_NODE, CONTINUE_AST_NODE, ENUM_AST_NODE, STRUCT_AST_NODE,
 	IF_STATEMENT_AST_NODE, MATCH_STATEMENT_AST_NODE, WHILE_LOOP_AST_NODE,
-	ANON_AST_NODE
+	ANON_AST_NODE, USE_STATEMENT_AST_NODE
 } AstNodeType;
 
 /**
@@ -128,6 +129,10 @@ typedef struct {
 	char *name;
 	Vector *args;
 } FunctionCallAstNode;
+
+typedef struct {
+	Token *file;
+} UseStatementAstNode;
 
 /**
  * pointer types, e.g are we
@@ -434,6 +439,8 @@ EnumeratedStructureAstNode *createEnumeratedStructureAstNode();
  */
 StructureAstNode *createStructureAstNode();
 
+UseStatementAstNode *createUseStatementAstNode();
+
 /**
  * Creates an enumeration node
  * @return the enum node we created
@@ -574,6 +581,8 @@ FunctionPrototypeAstNode *createFunctionPrototypeAstNode();
  * @param es es the node to destroy
  */
 void destroyEnumeratedStructureAstNode(EnumeratedStructureAstNode *es);
+
+void destroyUseStatementAstNode(UseStatementAstNode *useStatement);
 
 /**
  * Destroys the given structure
@@ -878,6 +887,8 @@ BlockAstNode *parseBlockAstNode(Parser *parser);
  * @return        the loop node as a statement node
  */
 StatementAstNode *parseInfiniteLoopAstNode(Parser *parser);
+
+UseStatementAstNode *parseUseStatementAstNode(Parser *parser);
 
 /**
  * Parses a function
