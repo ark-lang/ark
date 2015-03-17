@@ -30,7 +30,7 @@ typedef struct {
 	Parser *parser;
 	Compiler *compiler;
 	SemanticAnalyser *semantic;
-	char *filename;
+	char *filename; // no
 } AlloyCompiler;
 
 /**

@@ -32,11 +32,6 @@ typedef struct {
 	char *sourceContents;
 
 	int currentNode;
-
-	// timers for benchmarking
-	clock_t timer;
-	double secondsTaken;
-	double msTaken;
 } Compiler;
 
 Compiler *createCompiler();
