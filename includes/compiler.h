@@ -26,6 +26,7 @@ typedef struct {
 	Vector *abstractSyntaxTree;
 	Vector *references;
 	Vector *sourceFiles;
+	SourceFile *currentSourceFile;
 
 	int currentNode;
 } Compiler;
@@ -52,7 +53,9 @@ void consumeAstNode(Compiler *self);
 
 void consumeAstNodeBy(Compiler *self, int amount);
 
-void startCompiler(Compiler *self, Vector *ast);
+void startCompiler(Compiler *self);
+
+void compileAST(Compiler *self);
 
 void destroyCompiler(Compiler *self);
 
