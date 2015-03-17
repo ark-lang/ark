@@ -22,11 +22,16 @@
 #define SEMICOLON ";"
 #define COMMA_SYM ","
 
+typedef enum {
+	WRITE_HEADER_STATE,
+	WRITE_SOURCE_STATE
+} WriteState;
+
 typedef struct {
 	Vector *abstractSyntaxTree;
-	Vector *references;
 	Vector *sourceFiles;
 	SourceFile *currentSourceFile;
+	WriteState writeState;
 
 	int currentNode;
 } Compiler;

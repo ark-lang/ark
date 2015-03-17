@@ -16,12 +16,16 @@ void startLexingFiles(Lexer *lexer, Vector *sourceFiles) {
 	int i;
 	for (i = 0; i < sourceFiles->size; i++) {
 		SourceFile *sourceFile = getVectorItem(sourceFiles, i);
-		printf("lexing %s\n", sourceFile->fileName);
 
+		// reset everything
 		lexer->inputLength = strlen(sourceFile->fileContents);
 		lexer->input = sourceFile->fileContents;
+		lexer->pos = 0;
+		lexer->lineNumber = 1;
+		lexer->charNumber = 1;
 		lexer->currentChar = lexer->input[lexer->pos];
 		lexer->tokenStream = createVector();
+		lexer->running = true;
 
 		while (lexer->running) {
 			getNextToken(lexer);
