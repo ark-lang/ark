@@ -991,6 +991,7 @@ UseStatementAstNode *parseUseStatementAstNode(Parser *parser) {
 		parserError(parser, "Expected a file to use", consumeToken(parser), true);
 	}
 
+	pushAstNode(parser, use, USE_STATEMENT_AST_NODE);
 	return use;
 }
 
