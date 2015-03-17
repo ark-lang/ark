@@ -1,3 +1,5 @@
+use "another.ay"
+
 struct Test {
 	int x
 	int y

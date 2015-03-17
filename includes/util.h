@@ -13,6 +13,8 @@
 /** the current version of ink */
 #define ALLOYC_VERSION "0.0.1"
 
+#define JOIN_STR(x, y) #x " " #y
+
 /** windows doesn't like coloured text */
 #ifdef _WIN32
 	#define GET_RED_TEXT(x) (x)
@@ -30,6 +32,8 @@ extern bool DEBUG_MODE;
 
 /** the name of the executable file */
 extern char* OUTPUT_EXECUTABLE_NAME;
+
+void str_append(char *original_str, char *str);
 
 /**
  * Emitts a debug message to the console if we are in DEBUG MODE
