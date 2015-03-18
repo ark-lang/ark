@@ -1,5 +1,15 @@
 use "stdio.h"
 
-fn main(): void {
+fn add(int a, int b): int {
+	if x == 5 {
+	
+	}
+	else {
+		printf("fuck the police");
+	}
+	return a + b;
+}
 
+fn main(): void {
+	add(5, 5);
 }

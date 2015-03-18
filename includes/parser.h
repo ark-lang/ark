@@ -17,13 +17,10 @@
 
 // for defining expression types
 // values are somewhat arbitrary
-#define EXPR_LOGICAL_OPERATOR 	'L'
-#define EXPR_NUMBER				'N'
-#define EXPR_STRING 			'S'
-#define EXPR_CHARACTER 			'C'
-#define EXPR_VARIABLE 			'V'
-#define EXPR_PARENTHESIS 		'P'
-#define EXPR_FUNCTION_CALL		'F'
+#define EXPR_EXPRESSION 'e'
+#define EXPR_PRIMARY 	'p'
+#define EXPR_BINARY		'b'
+#define EXPR_UNARY		'u'
 
 // keywords
 #define CONSTANT_KEYWORD 	   	"const"
@@ -149,9 +146,7 @@ typedef enum {
  * ast_node for an Expression
  */
 typedef struct s_ExpressionAstNode {
-	struct s_ExpressionAstNode *lhand;
-	char operand;
-	struct s_ExpressionAstNode *rhand;
+	Vector *tokens;
 } ExpressionAstNode;
 
 /**
