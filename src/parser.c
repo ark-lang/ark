@@ -89,7 +89,7 @@ FunctionReturnAstNode *createFunctionReturnAstNode() {
 
 ExpressionAstNode *createExpressionAstNode() {
 	ExpressionAstNode *expr = allocateASTNode(sizeof(ExpressionAstNode), "expression");
-	// todo
+	expr->tokens = createVector();
 	return expr;
 }
 
@@ -276,7 +276,7 @@ void destroyFunctionReturnAstNode(FunctionReturnAstNode *functionReturn) {
 
 void destroyExpressionAstNode(ExpressionAstNode *expression) {
 	if (expression) {
-		// TODO:
+		destroyVector(expression->tokens);
 		free(expression);
 	}
 }
@@ -870,6 +870,18 @@ StatementAstNode *parseForLoopAstNode(Parser *parser) {
 ExpressionAstNode *parseExpressionAstNode(Parser *parser) {
 	ExpressionAstNode *expr = createExpressionAstNode();
 
+	while (true) {
+		// token is separator, semi colon, etc
+		if (checkTokenTypeAndContent(parser, SEPARATOR, "{", 0)
+			|| checkTokenTypeAndContent(parser, SEPARATOR, ",", 0)
+			|| checkTokenTypeAndContent(parser, SEPARATOR, ";", 0)
+			|| (checkTokenTypeAndContent(parser, OPERATOR, "-", 0) && checkTokenTypeAndContent(parser, OPERATOR, ">", 1))
+			|| (checkTokenTypeAndContent(parser, SEPARATOR, ")", 0) && checkTokenTypeAndContent(parser, SEPARATOR, ";", 1))) {
+			return expr;
+		}
+		pushBackItem(expr->tokens, consumeToken(parser));
+	}
+
 	return expr;
 }
 
@@ -1198,6 +1210,12 @@ FunctionCallAstNode *parseFunctionCallAstNode(Parser *parser) {
 			}
 			else if (checkTokenTypeAndContent(parser, SEPARATOR, ")", 0)) {
 				consumeToken(parser); // eat closing parenthesis
+				if (checkTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
+					consumeToken(parser);
+				}
+				else {
+					parserError(parser, "Expected a semi-colon at the end of function call", consumeToken(parser), true);
+				}
 				pushBackItem(args, argument);
 				break;
 			}
@@ -1223,6 +1241,13 @@ FunctionReturnAstNode *parseReturnStatementAstNode(Parser *parser) {
 	// return value
 	FunctionReturnAstNode *functionReturn = createFunctionReturnAstNode();
 	functionReturn->returnValue = parseExpressionAstNode(parser);
+
+	if (checkTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
+		consumeToken(parser);
+	}
+	else {
+		parserError(parser, "Expected a semi-colon at the end of return statement", consumeToken(parser), true);
+	}
 
 	return functionReturn;
 
@@ -1303,6 +1328,14 @@ VariableReassignmentAstNode *parseReassignmentAstNode(Parser *parser) {
 			consumeToken(parser);
 
 			ExpressionAstNode *expr = parseExpressionAstNode(parser);
+
+			if (checkTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
+				consumeToken(parser);
+			}
+			else {
+				parserError(parser, "Expected a semi-colon at the end of return statement", consumeToken(parser), true);
+			}
+
 
 			VariableReassignmentAstNode *reassignment = createVariableReassignmentAstNode();
 			reassignment->name = variableName;
