@@ -46,6 +46,8 @@ void emitReturnStatement(Compiler *self, FunctionReturnAstNode *ret);
 
 void emitFunctionCall(Compiler *self, FunctionCallAstNode *call);
 
+void emitIfStatement(Compiler *self, IfStatementAstNode *stmt);
+
 void emitBlock(Compiler *self, BlockAstNode *block);
 
 void emitArguments(Compiler *self, Vector *args);

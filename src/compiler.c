@@ -36,24 +36,94 @@ void emitCode(Compiler *self, char *fmt, ...) {
 	}
 }
 
-void emitVariableDeclaration(Compiler *self, VariableDeclarationAstNode *var) {
+void emitBlock(Compiler *self, BlockAstNode *block) {
+	int i;
+	for (i = 0; i < block->statements->size; i++) {
+		StatementAstNode *currentAstNode = getVectorItem(block->statements, i);
+		switch (currentAstNode->type) {
+		case VARIABLE_DEC_AST_NODE:
+			emitVariableDeclaration(self, currentAstNode->data);
+			break;
+		case FUNCTION_CALLEE_AST_NODE:
+			emitFunctionCall(self, currentAstNode->data);
+			break;
+		case IF_STATEMENT_AST_NODE:
+			emitIfStatement(self, currentAstNode->data);
+			break;
+		case FUNCTION_RET_AST_NODE:
+			emitReturnStatement(self, currentAstNode->data);
+			break;
+		default:
+			printf("wat node is that bby?\n");
+			break;
+		}
+	}
+}
 
+void emitVariableDeclaration(Compiler *self, VariableDeclarationAstNode *var) {
+	if (var->variableDefinitionAstNode->isConstant) {
+		emitCode(self, "const ");
+	}
+	if (var->variableDefinitionAstNode->isPointer) {
+		emitCode(self, "*");
+	}
+	emitCode(self, "%s %s = ", var->variableDefinitionAstNode->type->content, var->variableDefinitionAstNode->name);
+	self->writeState = WRITE_SOURCE_STATE;
+	emitExpression(self, var->expression);
+	emitCode(self, ";\n");
 }
 
 void emitStructure(Compiler *self, StructureAstNode *structure) {
 
 }
 
-void emitFunctionCall(Compiler *self, FunctionCallAstNode *call) {	
+void emitExpression(Compiler *self, ExpressionAstNode *expr) {
+	int i;
+	for (i = 0; i < expr->tokens->size; i++) {
+		Token *token = getVectorItem(expr->tokens, i);
+		emitCode(self, "%s", token->content);
+	}
+}
 
+void emitFunctionCall(Compiler *self, FunctionCallAstNode *call) {	
+	self->writeState = WRITE_SOURCE_STATE;
+	emitCode(self, "%s(", call->name);
+	int i;
+	for (i = 0; i < call->args->size; i++) {
+		FunctionArgumentAstNode *arg = getVectorItem(call->args, i);
+
+		self->writeState = WRITE_SOURCE_STATE;
+		emitExpression(self, arg->value);
+		if (call->args->size > 1 && i != call->args->size - 1) {
+			emitCode(self, ", ");
+		}
+	}
+	emitCode(self, ");\n");
 }
 
 void emitIfStatement(Compiler *self, IfStatementAstNode *stmt) {
-	
+	self->writeState = WRITE_SOURCE_STATE;
+	emitCode(self, "if (");
+	emitExpression(self, stmt->condition);
+	emitCode(self, ") {\n");
+	emitBlock(self, stmt->body);
+	emitCode(self, "}\n");
+	if (stmt->elseStatement) {
+		emitCode(self, "else {\n");
+		emitBlock(self, stmt->elseStatement);
+		emitCode(self, "}\n");
+	}
 }
 
 void emitReturnStatement(Compiler *self, FunctionReturnAstNode *ret) {
-
+	self->writeState = WRITE_SOURCE_STATE;
+	emitCode(self, "return");
+	if (ret->returnValue) {
+		emitCode(self, " ");
+		self->writeState = WRITE_SOURCE_STATE;
+		emitExpression(self, ret->returnValue);
+	}
+	emitCode(self, ";\n");
 }
 
 void emitUseStatement(Compiler *self, UseStatementAstNode *use) {
@@ -112,7 +182,7 @@ void emitFunction(Compiler *self, FunctionAstNode *func) {
 	}
 
 	emitCode(self, ") {\n");
-
+	emitBlock(self, func->body);
 	emitCode(self, "}\n");
 }
 
