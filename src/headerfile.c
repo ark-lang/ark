@@ -8,7 +8,16 @@ HeaderFile *createHeaderFile(char *fileName) {
 }
 
 void writeHeaderFile(HeaderFile *headerFile) {
-	headerFile->outputFile = fopen(headerFile->name ".h", "w");
+	// ugly
+	size_t len = strlen(headerFile->name) + 2;
+	char filename[len + 2];
+	strncpy(filename, headerFile->name, sizeof(char) * (len - 2));
+	filename[len - 2] = '.';
+	filename[len - 1] = 'h';
+	filename[len] = '\0';
+	printf("%s\n", filename);
+
+	headerFile->outputFile = fopen(filename, "w");
 	if (!headerFile->outputFile) {
 		perror("fopen: failed to open file");
 		return;
