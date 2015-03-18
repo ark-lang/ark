@@ -17,6 +17,28 @@ void debugMessage(const char *fmt, ...) {
 	}
 }
 
+char *removeExtension(char *file) {
+    char *retstr;
+    char *lastdot;
+    if (file == NULL)
+         return NULL;
+    if ((retstr = malloc (strlen (file) + 1)) == NULL)
+        return NULL;
+    strcpy (retstr, file);
+    lastdot = strrchr (retstr, '.');
+    if (lastdot != NULL)
+        *lastdot = '\0';
+    return retstr;
+}
+
+char *getFileName(char *path) {
+	char *s = strrchr(path, '/');
+	if (!s) return removeExtension(strdup(path));
+	char *result = strdup(s + 1);
+	char *resultWithoutExt = removeExtension(result);
+	return resultWithoutExt;
+}
+
 char *readFile(const char *fileName) {
 	FILE *file = fopen(fileName, "r");
 	char *contents = NULL;

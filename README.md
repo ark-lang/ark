@@ -4,6 +4,10 @@ Alloy is a work in progress programming language.
 ## Contributing
 If you want to help us make this language, check out the [CONTRIBUTING](/CONTRIBUTING.md) file! :)
 
+## Goals
+* Cross platform
+* 
+
 ## General Notes
 The language is a work in progress, the developers are mostly students who have jobs, lives, schoolwork and other things to maintain, therefore
 development could be slow, and has been! Alloy is written in C, we're trying to get the basics down before we begin optimizing, the code is kind of
@@ -34,14 +38,9 @@ To build you will need:
    - [`gcc >= 4.8.1`](https://gcc.gnu.org/) (change `C` in the [makefile](/Makefile) to `gcc`
 
 ```bash
-# clone the repository
-git clone -v https://github.com/felixangell/alloy.git
-    
-# cd into the repository
-cd alloy
-
-# build
-make
+$ git clone -v https://github.com/felixangell/alloy.git
+$ cd alloy
+$ make
 ```
 
 ## License
