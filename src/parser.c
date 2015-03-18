@@ -872,11 +872,12 @@ ExpressionAstNode *parseExpressionAstNode(Parser *parser) {
 
 	while (true) {
 		// token is separator, semi colon, etc
-		if (checkTokenTypeAndContent(parser, SEPARATOR, "{", 0)
-			|| checkTokenTypeAndContent(parser, SEPARATOR, ",", 0)
-			|| checkTokenTypeAndContent(parser, SEPARATOR, ";", 0)
-			|| (checkTokenTypeAndContent(parser, OPERATOR, "-", 0) && checkTokenTypeAndContent(parser, OPERATOR, ">", 1))
-			|| (checkTokenTypeAndContent(parser, SEPARATOR, ")", 0) && checkTokenTypeAndContent(parser, SEPARATOR, ";", 1))) {
+		if (checkTokenContent(parser, "{", 0)
+			|| checkTokenContent(parser, ",", 0)
+			|| checkTokenContent(parser, ";", 0)
+			|| (checkTokenContent(parser, "->", 0))
+			|| (checkTokenContent(parser, ")", 0) && checkTokenContent(parser, ";", 1))
+			|| (checkTokenContent(parser, ")", 0) && checkTokenContent(parser, "->", 1))) {
 			return expr;
 		}
 		pushBackItem(expr->tokens, consumeToken(parser));
@@ -933,8 +934,6 @@ void *parseVariableAstNode(Parser *parser, bool isGlobal) {
 			consumeToken(parser);
 		}
 		else {
-			printf("%s\n", consumeToken(parser)->content);
-			exit(1);
 			parserError(parser, "Expected a semi-colon at the end of variable declaration", consumeToken(parser), false);
 		}
 
@@ -1199,6 +1198,7 @@ FunctionAstNode *parseFunctionAstNode(Parser *parser) {
 FunctionCallAstNode *parseFunctionCallAstNode(Parser *parser) {
 	// consume function name
 	Token *call = matchTokenType(parser, IDENTIFIER);
+	FunctionCallAstNode *functionCall = createFunctionCallAstNode();
 
 	if (checkTokenTypeAndContent(parser, SEPARATOR, "(", 0)) {
 		consumeToken(parser);	// eat open bracket
@@ -1226,26 +1226,49 @@ FunctionCallAstNode *parseFunctionCallAstNode(Parser *parser) {
 			}
 			else if (checkTokenTypeAndContent(parser, SEPARATOR, ")", 0)) {
 				consumeToken(parser); // eat closing parenthesis
-				if (checkTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
-					consumeToken(parser);
-				}
-				else {
-					parserError(parser, "Expected a semi-colon at the end of function call", consumeToken(parser), true);
-				}
 				pushBackItem(args, argument);
 				break;
 			}
 		}
 		while (true);
 
-		// woo we got the function
-		FunctionCallAstNode *functionCall = createFunctionCallAstNode();
+		if (checkTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
+			consumeToken(parser);
+		}
+		else if (checkTokenContent(parser, "->", 0)) {
+			consumeToken(parser);
+			Vector *identifiers = createVector();
+
+			while (true) {
+				pushBackItem(identifiers, consumeToken(parser));
+
+				if (checkTokenContent(parser, ",", 0)) {
+					if (checkTokenContent(parser, ";", 1)) {
+						parserError(parser, "Error, trailing comma in function redirect!", consumeToken(parser), false);
+					}
+					consumeToken(parser);
+				}
+				else {
+					if (checkTokenContent(parser, ";", 0)) {
+						consumeToken(parser);
+						break;
+					}
+				}
+			}
+
+			functionCall->vars = identifiers;
+		}
+		else {
+			parserError(parser, "Expected a semi-colon at the end of function call", consumeToken(parser), true);
+		}
+
 		functionCall->name = call->content;
 		functionCall->args = args;
 
 		return functionCall;
 	}
 
+	destroyFunctionCallAstNode(functionCall);
 	parserError(parser, "failed to parse function call", consumeToken(parser), true);
 	return NULL;
 }

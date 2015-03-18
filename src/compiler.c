@@ -17,6 +17,7 @@ Compiler *createCompiler(Vector *sourceFiles) {
 	self->abstractSyntaxTree = NULL;
 	self->currentNode = 0;
 	self->sourceFiles = sourceFiles;
+	self->functions = hashmap_new();
 	return self;
 }
 
@@ -100,6 +101,15 @@ void emitExpression(Compiler *self, ExpressionAstNode *expr) {
 
 void emitFunctionCall(Compiler *self, FunctionCallAstNode *call) {	
 	self->writeState = WRITE_SOURCE_STATE;
+	// this is for the redirection
+	char *randName = randString(12);
+
+	if (call->vars) {
+		char *s = NULL;
+		hashmap_get(self->functions, call->name, (void**) &s);
+		emitCode(self, "%s %s = ", s, randName);
+	}
+
 	emitCode(self, "%s(", call->name);
 	int i;
 	for (i = 0; i < call->args->size; i++) {
@@ -112,6 +122,16 @@ void emitFunctionCall(Compiler *self, FunctionCallAstNode *call) {
 		}
 	}
 	emitCode(self, ");\n");
+
+	if (call->vars) {
+		int i;
+		for (i = 0; i < call->vars->size; i++) {
+			Token *tok = getVectorItem(call->vars, i);
+			emitCode(self, "%s = %s;\n", tok->content, randName);
+		}
+	}
+
+	free(randName);
 }
 
 void emitIfStatement(Compiler *self, IfStatementAstNode *stmt) {
@@ -150,6 +170,8 @@ void emitFunction(Compiler *self, FunctionAstNode *func) {
 	self->writeState = WRITE_HEADER_STATE;
 	emitCode(self, "%s ", func->prototype->returnType->content);
 	emitCode(self, "%s(", func->prototype->name->content);
+
+	hashmap_put(self->functions, func->prototype->name->content, func->prototype->returnType->content);
 
 	int i;
 	for (i = 0; i < func->prototype->args->size; i++) {
@@ -294,5 +316,6 @@ void compileAST(Compiler *self) {
 }
 
 void destroyCompiler(Compiler *self) {
+	hashmap_free(self->functions);
 	free(self);
 }

@@ -1,22 +1,12 @@
 use "stdio.h"
 
 fn add(int a, int b): int {
-	int x = 5;
-	if x == 5 {
-		printf("x is fiveee!\n");
-	}
-	else {
-		printf("whatever\n");
-	}
 	return a + b;
 }
 
 fn main(): int {
-	int z;
-	int x = 5;
+	int x;
 	add(5, 5) -> x;
-	
 	printf("%d\n", x);
-	
 	return 0;
 }
