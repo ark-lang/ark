@@ -1,12 +1,5 @@
 # [Alloy™](http://alloy-lang.org) [![BuildStatus](https://travis-ci.org/felixangell/alloy.svg?branch=master)](https://travis-ci.org/felixangell/alloy)
-Alloy is a work in progress programming language.
-
-## Contributing
-If you want to help us make this language, check out the [CONTRIBUTING](/CONTRIBUTING.md) file! :)
-
-## Goals
-* Cross platform
-* 
+Alloy is a work in progress programming language, read the [reference](docs/REFERENCE.md) to find out more about the plans, syntax, etc.
 
 ## General Notes
 The language is a work in progress, the developers are mostly students who have jobs, lives, schoolwork and other things to maintain, therefore
