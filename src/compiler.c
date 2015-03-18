@@ -195,9 +195,12 @@ void consumeAstNodeBy(Compiler *self, int amount) {
 }
 
 void startCompiler(Compiler *self) {
+	size_t files_len = 0;
+
 	int i;
 	for (i = 0; i < self->sourceFiles->size; i++) {
 		SourceFile *sourceFile = getVectorItem(self->sourceFiles, i);
+		files_len += strlen(sourceFile->name) + 1;
 		self->currentNode = 0;
 		self->currentSourceFile = sourceFile;
 		self->abstractSyntaxTree = self->currentSourceFile->ast;
@@ -209,8 +212,10 @@ void startCompiler(Compiler *self) {
 
 		// write to header
 		self->writeState = WRITE_HEADER_STATE;
-		emitCode(self, "#ifndef __%s_H\n", toUppercase(self->currentSourceFile->name));
-		emitCode(self, "#define __%s_H\n\n", toUppercase(self->currentSourceFile->name));
+		char *upper_name = toUppercase(self->currentSourceFile->name);
+
+		emitCode(self, "#ifndef __%s_H\n", upper_name);
+		emitCode(self, "#define __%s_H\n\n", upper_name);
 
 		// compile code
 		compileAST(self);
@@ -218,10 +223,32 @@ void startCompiler(Compiler *self) {
 		// write to header
 		self->writeState = WRITE_HEADER_STATE;
 		emitCode(self, "\n");
-		emitCode(self, "#endif // __%s_H\n", toUppercase(self->currentSourceFile->name));
+		emitCode(self, "#endif // __%s_H\n", upper_name);
 
 		// close files
 		closeFiles(self->currentSourceFile);
+	}
+
+	// 1 for the null terminator
+	files_len += 1;
+	files_len += 4; // 4 for gcc and a space, bit hacky
+
+	char *files = malloc(sizeof(char) * files_len);
+	files[0] = '\0';
+	strcat(files, "gcc ");
+	for (i = 0; i < self->sourceFiles->size; i++) {
+		SourceFile *sourceFile = getVectorItem(self->sourceFiles, i);
+		strcat(files, sourceFile->name);
+		strcat(files, ".c");
+		strcat(files, " ");
+	}
+	files[files_len] = '\0';
+	system(files);
+
+	for (i = 0; i < self->sourceFiles->size; i++) {
+		SourceFile *sourceFile = getVectorItem(self->sourceFiles, i);
+		destroySourceFile(sourceFile);
+		destroyHeaderFile(sourceFile->headerFile);
 	}
 }
 
