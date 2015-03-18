@@ -47,7 +47,7 @@ void destroySourceFile(SourceFile *sourceFile) {
 		char filename[len + 2];
 		strncpy(filename, sourceFile->name, sizeof(char) * (len - 2));
 		filename[len - 2] = '.';
-		filename[len - 1] = 'h';
+		filename[len - 1] = 'c';
 		filename[len] = '\0';
 		remove(filename);
 
