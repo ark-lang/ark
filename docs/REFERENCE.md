@@ -18,3 +18,91 @@ A lot of the syntax for Alloy is inspired by existing languages, such as Rust, G
 also heavily inspired by the simplicity of C. We don't want to add too much that it constrains the developer to a single paradigm.
 
 ## Memory Model
+The memory model is still undecided, we are either going for a no garbage collection, C style memory model. Or we adopt the ARC
+model, where the compiler detects where the allocated memory goes out of scope and deallocates it. We also wanted to simplify memory allocations
+with the `new` and `delete` keywords, similar to C++.
+
+## Syntax
+
+### Semi-colons
+Semi-colons are enforced in the Alloy programming language.
+
+### Variables
+#### Variable Definitions
+Variable definitions are as follows:
+
+	[type] [name];
+	
+For example:
+
+	int i;
+	double d;
+	float f;
+	bool b;
+	structure_name s;
+
+#### Variable Declarations
+Variable declarations are as follows:
+
+	[type] [name] = [expression];
+	
+For example:
+
+	int x = 5;
+	double d = 10.0;
+	float f = 3.21;
+	bool b = false;
+
+### Functions
+Function are defined as follows:
+
+	// multiple statements
+	fn [function_name]([type] [name], ...):[return_type] {
+		[statements];
+	}
+	
+	// or
+	
+	// single statement afterwards
+	fn [function_name]([type] [name], ...):[return_type] -> [statement];
+
+For example:
+
+	fn do_stuff(int a): void {
+		a = 5;
+		global_variable = a + 2;
+	}
+	
+	fn add(int a, int b): int -> return a + b;
+	
+#### Function Redirect
+A function redirect is where you direct the return value from the function into a variable, for example:
+
+	fn add(int a, int b): int -> return a + b;
+	
+	fn main(): void {
+		int x;
+		add(5, 5) -> x;
+	}
+
+The syntax is as follows:
+
+	[function_call] -> [variable];
+	
+The variable must be defined.
+
+### Structures
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -32,6 +32,8 @@ extern bool DEBUG_MODE;
 /** the name of the executable file */
 extern char* OUTPUT_EXECUTABLE_NAME;
 
+char *randString(size_t length);
+
 char *toUppercase(char *str);
 
 char *joinString(const char* s1, const char* s2);
