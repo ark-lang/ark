@@ -929,6 +929,13 @@ void *parseVariableAstNode(Parser *parser, bool isGlobal) {
 			return dec;
 		}
 
+		if (checkTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
+			consumeToken(parser);
+		}
+		else {
+			parserError(parser, "Expected a semi-colon at the end of variable declaration", consumeToken(parser), false);
+		}
+
 		// not global, pop it as a statement node
 		return createStatementAstNode(dec, VARIABLE_DEC_AST_NODE);
 	}
@@ -943,6 +950,13 @@ void *parseVariableAstNode(Parser *parser, bool isGlobal) {
 		if (isGlobal) {
 			pushAstNode(parser, def, VARIABLE_DEF_AST_NODE);
 			return def;
+		}
+
+		if (checkTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
+			consumeToken(parser);
+		}
+		else {
+			parserError(parser, "Expected a semi-colon at the end of variable definition", consumeToken(parser), false);
 		}
 
 		// not global, pop it as a statement node
