@@ -7,6 +7,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include <errno.h>
+#include <ctype.h>
 #include <assert.h>
 #include <time.h>
 
@@ -30,6 +31,8 @@ extern bool DEBUG_MODE;
 
 /** the name of the executable file */
 extern char* OUTPUT_EXECUTABLE_NAME;
+
+char *toUppercase(char *str);
 
 char *joinString(const char* s1, const char* s2);
 

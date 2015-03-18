@@ -16,7 +16,16 @@ void writeFiles(SourceFile *sourceFile) {
 }
 
 void writeSourceFile(SourceFile *sourceFile) {
-	sourceFile->outputFile = fopen(sourceFile->name ".c", "w");
+	// ugly
+	size_t len = strlen(sourceFile->name) + 2;
+	char filename[len + 2];
+	strncpy(filename, sourceFile->name, sizeof(char) * (len - 2));
+	filename[len - 2] = '.';
+	filename[len - 1] = 'c';
+	filename[len] = '\0';
+	printf("%s\n", filename);
+
+	sourceFile->outputFile = fopen(filename, "w");
 	if (!sourceFile->outputFile) {
 		perror("fopen: failed to open file");
 		return;
