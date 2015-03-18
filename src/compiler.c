@@ -44,6 +44,9 @@ void emitBlock(Compiler *self, BlockAstNode *block) {
 		case VARIABLE_DEC_AST_NODE:
 			emitVariableDeclaration(self, currentAstNode->data);
 			break;
+		case VARIABLE_DEF_AST_NODE:
+			emitVariableDefine(self, currentAstNode->data);
+			break;
 		case FUNCTION_CALLEE_AST_NODE:
 			emitFunctionCall(self, currentAstNode->data);
 			break;
@@ -58,6 +61,16 @@ void emitBlock(Compiler *self, BlockAstNode *block) {
 			break;
 		}
 	}
+}
+
+void emitVariableDefine(Compiler *self, VariableDefinitionAstNode *def) {
+	if (def->isConstant) {
+		emitCode(self, "const ");
+	}
+	if (def->isPointer) {
+		emitCode(self, "*");
+	}
+	emitCode(self, "%s %s;", def->type->content, def->name);
 }
 
 void emitVariableDeclaration(Compiler *self, VariableDeclarationAstNode *var) {
@@ -260,6 +273,9 @@ void compileAST(Compiler *self) {
 		switch (currentAstNode->type) {
 			case FUNCTION_AST_NODE:
 				emitFunction(self, currentAstNode->data);
+				break;
+			case VARIABLE_DEF_AST_NODE:
+				emitVariableDefine(self, currentAstNode->data);
 				break;
 			case VARIABLE_DEC_AST_NODE:
 				emitVariableDeclaration(self, currentAstNode->data);

@@ -40,6 +40,8 @@ Compiler *createCompiler(Vector *sourceFiles);
 
 void emitExpression(Compiler *self, ExpressionAstNode *expr);
 
+void emitVariableDefine(Compiler *self, VariableDefinitionAstNode *def);
+
 void emitVariableDeclaration(Compiler *self, VariableDeclarationAstNode *var);
 
 void emitReturnStatement(Compiler *self, FunctionReturnAstNode *ret);

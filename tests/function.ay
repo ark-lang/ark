@@ -3,7 +3,7 @@ use "stdio.h"
 fn add(int a, int b): int {
 	int x = 5;
 	if x == 5 {
-		printf("x is five!\n");
+		printf("x is fiveee!\n");
 	}
 	else {
 		printf("whatever\n");
@@ -12,8 +12,11 @@ fn add(int a, int b): int {
 }
 
 fn main(): int {
-	add(5, 5);
+	int z;
 	int x = 5;
+	add(5, 5) -> x;
+	
 	printf("%d\n", x);
+	
 	return 0;
 }
