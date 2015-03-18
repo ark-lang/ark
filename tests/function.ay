@@ -3,14 +3,17 @@ use "stdio.h"
 fn add(int a, int b): int {
 	int x = 5;
 	if x == 5 {
-	
+		printf("x is five!\n");
 	}
 	else {
-		printf("fuck the police");
+		printf("whatever\n");
 	}
 	return a + b;
 }
 
-fn main(): void {
+fn main(): int {
 	add(5, 5);
+	int x = 5;
+	printf("%d\n", x);
+	return 0;
 }
