@@ -56,6 +56,11 @@ void emitReturnStatement(Compiler *self, FunctionReturnAstNode *ret) {
 
 }
 
+void emitUseStatement(Compiler *self, UseStatementAstNode *use) {
+	self->writeState = WRITE_SOURCE_STATE;
+	emitCode(self, "#include %s\n", use->file->content);
+}
+
 void emitFunction(Compiler *self, FunctionAstNode *func) {
 
 	// prototype
@@ -82,6 +87,33 @@ void emitFunction(Compiler *self, FunctionAstNode *func) {
 	}
 
 	emitCode(self, ");\n");
+
+	// WRITE TO THE SOURCE FILE
+
+	self->writeState = WRITE_SOURCE_STATE;
+	emitCode(self, "%s ", func->prototype->returnType->content);
+	emitCode(self, "%s(", func->prototype->name->content);
+
+	for (i = 0; i < func->prototype->args->size; i++) {
+		FunctionArgumentAstNode *arg = getVectorItem(func->prototype->args, i);
+
+		if (arg->isConstant) {
+			emitCode(self, "const ");
+		}
+		if (arg->isPointer) {
+			emitCode(self, "*");
+		}
+
+		emitCode(self, "%s %s", arg->type->content, arg->name->content);
+
+		if (func->prototype->args->size > 1 && i != func->prototype->args->size - 1) {
+			emitCode(self, ", ");
+		}
+	}
+
+	emitCode(self, ") {\n");
+
+	emitCode(self, "}\n");
 }
 
 void consumeAstNode(Compiler *self) {
@@ -139,7 +171,7 @@ void compileAST(Compiler *self) {
 				emitStructure(self, currentAstNode->data);
 				break;
 			case USE_STATEMENT_AST_NODE:
-//				emitStructure(self, currentAstNode->data);
+				emitUseStatement(self, currentAstNode->data);
 				break;
 			default:
 				printf("node not yet supported: %s :(\n", NODE_TYPE[currentAstNode->type]);
