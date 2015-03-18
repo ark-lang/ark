@@ -6,7 +6,11 @@ fn add(int a, int b): int {
 
 fn main(): int {
 	int x;
-	add(5, 5) -> x;
-	printf("%d\n", x);
+	int y;
+	int z;
+	add(5, 5) -> x, y, z;
+	
+	printf("%d and %d and %d\n", x, y, z);
+	
 	return 0;
 }

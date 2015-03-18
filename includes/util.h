@@ -12,7 +12,7 @@
 #include <time.h>
 
 /** the current version of alloy */
-#define ALLOYC_VERSION "0.0.2"
+#define ALLOYC_VERSION "0.0.3"
 
 /** windows doesn't like coloured text */
 #ifdef _WIN32
