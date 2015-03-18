@@ -7,14 +7,15 @@
 
 typedef struct {
 	char *fileName;
-	char *fileContents;
-
-	char *outputFileContents;
+	char *name;
+	FILE *outputFile;
 } HeaderFile;
 
 HeaderFile *createHeaderFile(char *fileName);
 
 void writeHeaderFile(HeaderFile *headerFile);
+
+void closeHeaderFile(HeaderFile *headerFile);
 
 void destroyHeaderFile(HeaderFile *headerFile);
 
