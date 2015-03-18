@@ -5,6 +5,19 @@ void str_append(char *original_str, char *str) {
 	strcat(original_str, str);
 }
 
+char *toUppercase(char *str) {
+	size_t len = strlen(str);
+	char *result = malloc(sizeof(char) * (len + 1));
+	
+	int i;
+	for (i = 0; i < len; i++) {
+		result[i] = toupper(str[i]);
+	}
+
+	result[len] = '\0';
+	return result;
+}
+
 void debugMessage(const char *fmt, ...) {
 	if (DEBUG_MODE) {
 		va_list arg;

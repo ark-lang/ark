@@ -28,19 +28,12 @@ void emitCode(Compiler *self, char *fmt, ...) {
 		case WRITE_SOURCE_STATE:
 			vfprintf(self->currentSourceFile->outputFile, fmt, args);
 			va_end(args);
-			fprintf(self->currentSourceFile->outputFile, "\n");
 			break;
 		case WRITE_HEADER_STATE:
 			vfprintf(self->currentSourceFile->headerFile->outputFile, fmt, args);
 			va_end(args);
-			fprintf(self->currentSourceFile->headerFile->outputFile, "\n");
 			break;
 	}
-
-}
-
-void emitExpression(Compiler *self, ExpressionAstNode *expr) {
-
 }
 
 void emitVariableDeclaration(Compiler *self, VariableDeclarationAstNode *var) {
@@ -59,21 +52,36 @@ void emitIfStatement(Compiler *self, IfStatementAstNode *stmt) {
 	
 }
 
-void emitBlock(Compiler *self, BlockAstNode *block) {
-
-}
-
-void emitArguments(Compiler *self, Vector *args) {
-
-}
-
 void emitReturnStatement(Compiler *self, FunctionReturnAstNode *ret) {
 
 }
 
 void emitFunction(Compiler *self, FunctionAstNode *func) {
+
+	// prototype
 	self->writeState = WRITE_HEADER_STATE;
-	emitCode(self, "test");
+	emitCode(self, "%s ", func->prototype->returnType->content);
+	emitCode(self, "%s(", func->prototype->name->content);
+
+	int i;
+	for (i = 0; i < func->prototype->args->size; i++) {
+		FunctionArgumentAstNode *arg = getVectorItem(func->prototype->args, i);
+
+		if (arg->isConstant) {
+			emitCode(self, "const ");
+		}
+		if (arg->isPointer) {
+			emitCode(self, "*");
+		}
+
+		emitCode(self, "%s %s", arg->type->content, arg->name->content);
+
+		if (func->prototype->args->size > 1 && i != func->prototype->args->size - 1) {
+			emitCode(self, ", ");
+		}
+	}
+
+	emitCode(self, ");\n");
 }
 
 void consumeAstNode(Compiler *self) {
@@ -94,17 +102,21 @@ void startCompiler(Compiler *self) {
 
 		writeFiles(self->currentSourceFile);
 
+		self->writeState = WRITE_SOURCE_STATE;
+		emitCode(self, "#include \"%s.h\"\n", self->currentSourceFile->name);
+
 		// write to header
 		self->writeState = WRITE_HEADER_STATE;
-		emitCode(self, "#ifndef __%s_H", self->currentSourceFile->name);
-		emitCode(self, "#define __%s_H", self->currentSourceFile->name);
+		emitCode(self, "#ifndef __%s_H\n", toUppercase(self->currentSourceFile->name));
+		emitCode(self, "#define __%s_H\n\n", toUppercase(self->currentSourceFile->name));
 
 		// compile code
 		compileAST(self);
 
 		// write to header
 		self->writeState = WRITE_HEADER_STATE;
-		emitCode(self, "#endif // __%s_H", self->currentSourceFile->name);
+		emitCode(self, "\n");
+		emitCode(self, "#endif // __%s_H\n", toUppercase(self->currentSourceFile->name));
 
 		// close files
 		closeFiles(self->currentSourceFile);
