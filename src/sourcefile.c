@@ -23,7 +23,6 @@ void writeSourceFile(SourceFile *sourceFile) {
 	filename[len - 2] = '.';
 	filename[len - 1] = 'c';
 	filename[len] = '\0';
-	printf("%s\n", filename);
 
 	sourceFile->outputFile = fopen(filename, "w");
 	if (!sourceFile->outputFile) {
@@ -39,12 +38,21 @@ void closeFiles(SourceFile *sourceFile) {
 
 void closeSourceFile(SourceFile *sourceFile) {
 	fclose(sourceFile->outputFile);
-	free(sourceFile->name);
 }
 
 void destroySourceFile(SourceFile *sourceFile) {
 	if (sourceFile) {
+		// more ugly pls fix k ty
+		size_t len = strlen(sourceFile->name) + 2;
+		char filename[len + 2];
+		strncpy(filename, sourceFile->name, sizeof(char) * (len - 2));
+		filename[len - 2] = '.';
+		filename[len - 1] = 'h';
+		filename[len] = '\0';
+		remove(filename);
+
 		destroyHeaderFile(sourceFile->headerFile);
+		free(sourceFile->name);
 		free(sourceFile->alloyFileContents);
 		free(sourceFile);
 	}

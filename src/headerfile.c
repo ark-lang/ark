@@ -15,7 +15,6 @@ void writeHeaderFile(HeaderFile *headerFile) {
 	filename[len - 2] = '.';
 	filename[len - 1] = 'h';
 	filename[len] = '\0';
-	printf("%s\n", filename);
 
 	headerFile->outputFile = fopen(filename, "w");
 	if (!headerFile->outputFile) {
@@ -26,11 +25,19 @@ void writeHeaderFile(HeaderFile *headerFile) {
 
 void closeHeaderFile(HeaderFile *headerFile) {
 	fclose(headerFile->outputFile);
-	free(headerFile->name);
 }
 
 void destroyHeaderFile(HeaderFile *headerFile) {
 	if (headerFile) {
+		// more ugly pls fix k ty
+		size_t len = strlen(headerFile->name) + 2;
+		char filename[len + 2];
+		strncpy(filename, headerFile->name, sizeof(char) * (len - 2));
+		filename[len - 2] = '.';
+		filename[len - 1] = 'h';
+		filename[len] = '\0';
+		remove(filename);
+		free(headerFile->name);
 		free(headerFile);
 	}
 }
