@@ -20,6 +20,25 @@ Compiler *createCompiler(Vector *sourceFiles) {
 	return self;
 }
 
+void emitCode(Compiler *self, char *fmt, ...) {
+	va_list args;
+	va_start(args, fmt);
+
+	switch (self->writeState) {
+		case WRITE_SOURCE_STATE:
+			vfprintf(self->currentSourceFile->outputFile, fmt, args);
+			va_end(args);
+			fprintf(self->currentSourceFile->outputFile, "\n");
+			break;
+		case WRITE_HEADER_STATE:
+			vfprintf(self->currentSourceFile->headerFile->outputFile, fmt, args);
+			va_end(args);
+			fprintf(self->currentSourceFile->headerFile->outputFile, "\n");
+			break;
+	}
+
+}
+
 void emitExpression(Compiler *self, ExpressionAstNode *expr) {
 
 }
@@ -53,7 +72,8 @@ void emitReturnStatement(Compiler *self, FunctionReturnAstNode *ret) {
 }
 
 void emitFunction(Compiler *self, FunctionAstNode *func) {
-
+	self->writeState = WRITE_HEADER_STATE;
+	emitCode(self, "test");
 }
 
 void consumeAstNode(Compiler *self) {
@@ -71,7 +91,23 @@ void startCompiler(Compiler *self) {
 		self->currentNode = 0;
 		self->currentSourceFile = sourceFile;
 		self->abstractSyntaxTree = self->currentSourceFile->ast;
+
+		writeFiles(self->currentSourceFile);
+
+		// write to header
+		self->writeState = WRITE_HEADER_STATE;
+		emitCode(self, "#ifndef __%s_H", self->currentSourceFile->name);
+		emitCode(self, "#define __%s_H", self->currentSourceFile->name);
+
+		// compile code
 		compileAST(self);
+
+		// write to header
+		self->writeState = WRITE_HEADER_STATE;
+		emitCode(self, "#endif // __%s_H", self->currentSourceFile->name);
+
+		// close files
+		closeFiles(self->currentSourceFile);
 	}
 }
 

@@ -3,28 +3,25 @@
 HeaderFile *createHeaderFile(char *fileName) {
 	HeaderFile *headerFile = malloc(sizeof(*headerFile));
 	headerFile->fileName = fileName;
-	headerFile->fileContents = malloc(sizeof(char));
-	headerFile->fileContents[0] = '\0';
+	headerFile->name = getFileName(headerFile->fileName);
 	return headerFile;
 }
 
 void writeHeaderFile(HeaderFile *headerFile) {
-	FILE *file = fopen(JOIN_STR(headerFile->fileName, ".h"), "w");
-	if (!file) {
+	headerFile->outputFile = fopen(headerFile->name ".h", "w");
+	if (!headerFile->outputFile) {
 		perror("fopen: failed to open file");
 		return;
 	}
+}
 
-	fprintf(file, "%s", headerFile->fileContents);
-	fclose(file);
-
-	system(JOIN_STR(COMPILER, headerFile->outputFileName));
+void closeHeaderFile(HeaderFile *headerFile) {
+	fclose(headerFile->outputFile);
+	free(headerFile->name);
 }
 
 void destroyHeaderFile(HeaderFile *headerFile) {
 	if (headerFile) {
-		remove(JOIN_STR(headerFile->fileName, ".h"));
-		free(headerFile->fileContents);
 		free(headerFile);
 	}
 }

@@ -38,8 +38,6 @@ typedef struct {
 
 Compiler *createCompiler(Vector *sourceFiles);
 
-void appendToSource(Compiler *self, char *str);
-
 void emitExpression(Compiler *self, ExpressionAstNode *expr);
 
 void emitVariableDeclaration(Compiler *self, VariableDeclarationAstNode *var);
