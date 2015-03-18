@@ -2,6 +2,6 @@
 #define __FUNCTION_H
 
 int add(int a, int b);
-void main();
+int main();
 
 #endif // __FUNCTION_H

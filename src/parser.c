@@ -933,6 +933,8 @@ void *parseVariableAstNode(Parser *parser, bool isGlobal) {
 			consumeToken(parser);
 		}
 		else {
+			printf("%s\n", consumeToken(parser)->content);
+			exit(1);
 			parserError(parser, "Expected a semi-colon at the end of variable declaration", consumeToken(parser), false);
 		}
 
