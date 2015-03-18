@@ -5,6 +5,27 @@ void str_append(char *original_str, char *str) {
 	strcat(original_str, str);
 }
 
+char *randString(size_t length) {
+
+    static char charset[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_";
+    char *randomString = NULL;
+
+    if (length) {
+        randomString = malloc(sizeof(char) * (length +1));
+
+        if (randomString) {
+            for (int n = 0;n < length;n++) {
+                int key = rand() % (int)(sizeof(charset) -1);
+                randomString[n] = charset[key];
+            }
+
+            randomString[length] = '\0';
+        }
+    }
+
+    return randomString;
+}
+
 char *toUppercase(char *str) {
 	size_t len = strlen(str);
 	char *result = malloc(sizeof(char) * (len + 1));

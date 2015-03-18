@@ -22,7 +22,9 @@ we highly suggest you join the IRC :)
 * channel: #alloy-lang
 
 ## Building
-Disclaimer: This project is constantly in development and is still a work in progress, we are still a long way away from getting everything to work somewhat smoothly, so if it breaks or doesn't build, sorry!
+Disclaimer: This project is constantly in development and is still a work in progress, we are still a long way away from getting everything to work somewhat smoothly, so if it breaks or doesn't build, sorry! **Disclaimer: as of writing this, the compiler does not do semantic analysis, therefore
+it assumes that what you are feeding the compiler is valid code!**.
+
 To build you will need:
 
  - Make 3(.81???)

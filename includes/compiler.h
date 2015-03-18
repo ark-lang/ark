@@ -31,6 +31,7 @@ typedef struct {
 	Vector *abstractSyntaxTree;
 	Vector *sourceFiles;
 	SourceFile *currentSourceFile;
+	map_t functions;
 	WriteState writeState;
 
 	int currentNode;

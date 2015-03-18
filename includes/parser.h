@@ -124,7 +124,9 @@ typedef struct  {
  */
 typedef struct {
 	char *name;
+	char *type;
 	Vector *args;
+	Vector *vars;
 } FunctionCallAstNode;
 
 typedef struct {
