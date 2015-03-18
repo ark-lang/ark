@@ -1,6 +1,7 @@
 use "stdio.h"
 
 fn add(int a, int b): int {
+	int x = 5;
 	if x == 5 {
 	
 	}
