@@ -1,3 +1,5 @@
-fn main(int a, int b): int {
+use "stdio.h"
+
+fn main(): void {
 
 }
