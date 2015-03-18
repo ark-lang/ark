@@ -9,9 +9,9 @@
 
 typedef struct {
 	char *fileName;
-	char *fileContents;
-
-	char *outputFileContents;
+	char *name;
+	char *alloyFileContents;
+	FILE *outputFile;
 
 	Vector *tokens;
 	Vector *ast;
@@ -24,6 +24,10 @@ SourceFile *createSourceFile(char *fileName);
 void writeFiles(SourceFile *sourceFile);
 
 void writeSourceFile(SourceFile *sourceFile);
+
+void closeSourceFile(SourceFile *sourceFile);
+
+void closeFiles(SourceFile *sourceFile);
 
 void destroySourceFile(SourceFile *sourceFile);
 

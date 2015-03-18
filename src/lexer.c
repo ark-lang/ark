@@ -18,8 +18,8 @@ void startLexingFiles(Lexer *lexer, Vector *sourceFiles) {
 		SourceFile *sourceFile = getVectorItem(sourceFiles, i);
 
 		// reset everything
-		lexer->inputLength = strlen(sourceFile->fileContents);
-		lexer->input = sourceFile->fileContents;
+		lexer->inputLength = strlen(sourceFile->alloyFileContents);
+		lexer->input = sourceFile->alloyFileContents;
 		lexer->pos = 0;
 		lexer->lineNumber = 1;
 		lexer->charNumber = 1;

@@ -3,8 +3,10 @@
 SourceFile *createSourceFile(char *fileName) {
 	SourceFile *sourceFile = malloc(sizeof(*sourceFile));
 	sourceFile->fileName = fileName;
-	sourceFile->fileContents = readFile(fileName);
 	sourceFile->headerFile = createHeaderFile(fileName);
+	sourceFile->name = getFileName(sourceFile->fileName);
+	sourceFile->alloyFileContents = readFile(fileName);
+
 	return sourceFile;
 }
 
@@ -14,23 +16,27 @@ void writeFiles(SourceFile *sourceFile) {
 }
 
 void writeSourceFile(SourceFile *sourceFile) {
-	FILE *file = fopen(JOIN_STR(sourceFile->fileName, ".c"), "w");
-	if (!file) {
+	sourceFile->outputFile = fopen(sourceFile->name ".c", "w");
+	if (!sourceFile->outputFile) {
 		perror("fopen: failed to open file");
 		return;
 	}
+}
 
-	fprintf(file, "%s", sourceFile->fileContents);
-	fclose(file);
+void closeFiles(SourceFile *sourceFile) {
+	closeSourceFile(sourceFile);
+	closeHeaderFile(sourceFile->headerFile);
+}
 
-	system(JOIN_STR(COMPILER, sourceFile->outputFileName));
+void closeSourceFile(SourceFile *sourceFile) {
+	fclose(sourceFile->outputFile);
+	free(sourceFile->name);
 }
 
 void destroySourceFile(SourceFile *sourceFile) {
 	if (sourceFile) {
-		remove(JOIN_STR(sourceFile->fileName, ".c"));
 		destroyHeaderFile(sourceFile->headerFile);
-		free(sourceFile->fileContents);
+		free(sourceFile->alloyFileContents);
 		free(sourceFile);
 	}
 }

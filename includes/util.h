@@ -13,8 +13,6 @@
 /** the current version of alloy */
 #define ALLOYC_VERSION "0.0.2"
 
-#define JOIN_STR(x, y) #x " " #y
-
 /** windows doesn't like coloured text */
 #ifdef _WIN32
 	#define GET_RED_TEXT(x) (x)
@@ -32,6 +30,12 @@ extern bool DEBUG_MODE;
 
 /** the name of the executable file */
 extern char* OUTPUT_EXECUTABLE_NAME;
+
+char *joinString(const char* s1, const char* s2);
+
+char *removeExtension(char *file);
+
+char *getFileName(char *path);
 
 void str_append(char *original_str, char *str);
 
