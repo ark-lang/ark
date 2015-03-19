@@ -37,10 +37,10 @@
 *.x86_64
 *.hex
 
-
 # Other
 builds/
 *~
+
 .DS_Store
 *.swp
 *.swo
