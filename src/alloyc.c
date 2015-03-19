@@ -2,6 +2,7 @@
 
 bool DEBUG_MODE = false;
 char *OUTPUT_EXECUTABLE_NAME = "a";
+bool OUTPUT_C = false;
 
 static void parse_argument(CommandLineArgument *arg) {
 	char argument = arg->argument[0];
@@ -12,6 +13,9 @@ static void parse_argument(CommandLineArgument *arg) {
 			return;
 		case 'd':
 			DEBUG_MODE = true;
+			break;
+		case 'c':
+			OUTPUT_C = true;
 			break;
 		case 'h':
 			printf("Alloy-Lang Argument List\n");
@@ -109,9 +113,9 @@ void startAlloyCompiler(AlloyCompiler *self) {
 
 void destroyAlloyCompiler(AlloyCompiler *self) {
 	if (self) {
-		destroyLexer(self->lexer);
-		destroyParser(self->parser);
-		destroyCompiler(self->compiler);
+		if (self->lexer) destroyLexer(self->lexer);
+		if (self->parser) destroyParser(self->parser);
+		if (self->compiler) destroyCompiler(self->compiler);
 		free(self);
 	}
 }

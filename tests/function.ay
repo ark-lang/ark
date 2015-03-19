@@ -1,8 +1,24 @@
 use "stdio.h"
 use "stdlib.h"
 
+struct Cat {
+	int x;
+	int y = 10;
+}
+
 fn whatever(int x): int {
 	return x + 1;
+}
+
+fn factorial(float a): int {
+	if a == 0 {
+		return 1;
+	}
+	else {
+		int x;
+		factorial(a - 1) -> x;
+		return x * a;
+	}
 }
 
 fn test(int ^d): ^int {
@@ -11,14 +27,20 @@ fn test(int ^d): ^int {
 }
 
 fn main(): int {
+
 	int ^swag = 23;
 	printf("%d\n", ^swag);
 	test(swag);
 	printf("%d\n", ^swag);
 	free(swag);
+
 	int z;
 	whatever(5) -> z;
 	printf("%d\n", z);
+	
+	int fac;
+	factorial(6) -> fac;
+	printf("%d\n", fac);
 	
 	return 0;
 }
