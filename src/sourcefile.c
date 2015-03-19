@@ -49,7 +49,7 @@ void destroySourceFile(SourceFile *sourceFile) {
 		filename[len - 2] = '.';
 		filename[len - 1] = 'c';
 		filename[len] = '\0';
-		remove(filename);
+		if (!OUTPUT_C) remove(filename);
 
 		destroyHeaderFile(sourceFile->headerFile);
 		free(sourceFile->name);
