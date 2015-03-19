@@ -40,7 +40,6 @@
 # Other
 builds/
 *~
-
 .DS_Store
 *.swp
 *.swo
