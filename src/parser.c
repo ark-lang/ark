@@ -96,7 +96,6 @@ ExpressionAstNode *createExpressionAstNode() {
 VariableDefinitionAstNode *createVariableDefinitionAstNode() {
 	VariableDefinitionAstNode *vdn = allocateASTNode(sizeof(VariableDefinitionAstNode), "variable definition");
 	vdn->name = NULL;
-	vdn->isConstant = false;
 	vdn->isGlobal = false;
 	return vdn;
 }
@@ -872,6 +871,14 @@ ExpressionAstNode *parseExpressionAstNode(Parser *parser) {
 
 	while (true) {
 		// token is separator, semi colon, etc
+		if (checkTokenContent(parser, "^", 0)) {
+			Token *tok = consumeToken(parser);
+			tok->content[0] = '*';
+			pushBackItem(expr->tokens, tok);
+		}
+		else {
+			pushBackItem(expr->tokens, consumeToken(parser));
+		}
 		if (checkTokenContent(parser, "{", 0)
 			|| checkTokenContent(parser, ",", 0)
 			|| checkTokenContent(parser, ";", 0)
@@ -880,7 +887,6 @@ ExpressionAstNode *parseExpressionAstNode(Parser *parser) {
 			|| (checkTokenContent(parser, ")", 0) && checkTokenContent(parser, "->", 1))) {
 			return expr;
 		}
-		pushBackItem(expr->tokens, consumeToken(parser));
 	}
 
 	return expr;
@@ -913,7 +919,6 @@ void *parseVariableAstNode(Parser *parser, bool isGlobal) {
 		consumeToken(parser);
 
 		// create variable define ast_node
-		def->isConstant = isConstant;
 		def->type = variableDataType;
 		def->name = variableNameToken->content;
 		def->isGlobal = isGlobal;
@@ -921,6 +926,7 @@ void *parseVariableAstNode(Parser *parser, bool isGlobal) {
 
 		// create the variable declare ast_node
 		VariableDeclarationAstNode *dec = createVariableDeclarationAstNode();
+		dec->isConstant = isConstant;
 		dec->variableDefinitionAstNode = def;
 		dec->expression = parseExpressionAstNode(parser);
 
@@ -942,7 +948,6 @@ void *parseVariableAstNode(Parser *parser, bool isGlobal) {
 	}
 	else {
 		// create variable define ast_node
-		def->isConstant = isConstant;
 		def->type = variableDataType;
 		def->name = variableNameToken->content;
 		def->isGlobal = isGlobal;
@@ -1354,12 +1359,23 @@ StatementAstNode *parseStatementAstNode(Parser *parser) {
 			return parseVariableAstNode(parser, false);
 		}
 	}
+	else if (checkTokenTypeAndContent(parser, OPERATOR, "^", 0)) {
+		if (checkTokenTypeAndContent(parser, OPERATOR, ASSIGNMENT_OPERATOR, 2)) {
+			return createStatementAstNode(parseReassignmentAstNode(parser), VARIABLE_REASSIGN_AST_NODE);
+		}
+	}
 
 	parserError(parser, "unrecognized token specified", consumeToken(parser), true);
 	return NULL;
 }
 
 VariableReassignmentAstNode *parseReassignmentAstNode(Parser *parser) {
+	bool isPointer = false;
+	if (checkTokenTypeAndContent(parser, OPERATOR, "^", 0)) {
+		consumeToken(parser);
+		isPointer = true;
+	}
+
 	if (checkTokenType(parser, IDENTIFIER, 0)) {
 		Token *variableName = consumeToken(parser);
 
@@ -1375,10 +1391,10 @@ VariableReassignmentAstNode *parseReassignmentAstNode(Parser *parser) {
 				parserError(parser, "Expected a semi-colon at the end of return statement", consumeToken(parser), true);
 			}
 
-
 			VariableReassignmentAstNode *reassignment = createVariableReassignmentAstNode();
 			reassignment->name = variableName;
 			reassignment->expression = expr;
+			reassignment->isPointer = isPointer;
 			return reassignment;
 		}
 	}

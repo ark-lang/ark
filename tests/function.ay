@@ -1,16 +1,16 @@
 use "stdio.h"
+use "stdlib.h"
 
-fn add(int a, int b): int {
-	return a + b;
+fn test(int ^d): void {
+	^d = 10;
 }
 
 fn main(): int {
-	int x;
-	int y;
-	int z;
-	add(5, 5) -> x, y, z;
-	
-	printf("%d and %d and %d\n", x, y, z);
+	int ^swag = 23;
+	printf("%d\n", ^swag);
+	test(swag);
+	printf("%d\n", ^swag);
+	free(swag);
 	
 	return 0;
 }
