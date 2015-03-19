@@ -36,7 +36,8 @@ void destroyHeaderFile(HeaderFile *headerFile) {
 		filename[len - 2] = '.';
 		filename[len - 1] = 'h';
 		filename[len] = '\0';
-		remove(filename);
+		if (!OUTPUT_C) remove(filename);
+
 		free(headerFile->name);
 		free(headerFile);
 	}

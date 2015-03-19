@@ -104,8 +104,37 @@ void emitVariableDeclaration(Compiler *self, VariableDeclarationAstNode *var) {
 	emitCode(self, ";\n");
 }
 
-void emitStructure(Compiler *self, StructureAstNode *structure) {
+void emitStructureTypeDefine(Compiler *self, VariableDefinitionAstNode *def) {
+	emitCode(self, "%s ", def->type->content);
+	if (def->isPointer) {
+		emitCode(self, "*");
+	}
+	emitCode(self, "%s;\n", def->name);
+}
 
+void emitStructureTypeDeclare(Compiler *self, VariableDeclarationAstNode *def) {
+
+}
+
+void emitStructure(Compiler *self, StructureAstNode *structure) {
+	self->writeState = WRITE_HEADER_STATE;
+	emitCode(self, "typedef struct {\n");
+	int i;
+	for (i = 0; i < structure->statements->size; i++) {
+		StatementAstNode *stmt = getVectorItem(structure->statements, i);
+		switch (stmt->type) {
+		case VARIABLE_DEF_AST_NODE:
+			emitStructureTypeDefine(self, stmt->data);
+			break;
+		case VARIABLE_DEC_AST_NODE:
+			emitStructureTypeDeclare(self, stmt->data);
+			break;
+		default:
+			printf("type: %s\n", NODE_TYPE[stmt->type]);
+			break;
+		}
+	}
+	emitCode(self, "} %s;\n", structure->name);
 }
 
 void emitExpression(Compiler *self, ExpressionAstNode *expr) {
@@ -121,7 +150,7 @@ void emitFunctionCall(Compiler *self, FunctionCallAstNode *call) {
 	// this is for the redirection
 	char *randName = randString(12);
 
-	if (call->vars) {
+	if (call->vars != NULL) {
 		char *s = NULL;
 		hashmap_get(self->functions, call->name, (void**) &s);
 		emitCode(self, "%s %s = ", s, randName);
@@ -140,7 +169,7 @@ void emitFunctionCall(Compiler *self, FunctionCallAstNode *call) {
 	}
 	emitCode(self, ");\n");
 
-	if (call->vars) {
+	if (call->vars != NULL) {
 		int i;
 		for (i = 0; i < call->vars->size; i++) {
 			Token *tok = getVectorItem(call->vars, i);
