@@ -37,6 +37,15 @@ void emitCode(Compiler *self, char *fmt, ...) {
 	}
 }
 
+void emitReassignment(Compiler *self, VariableReassignmentAstNode *reassign) {
+	if (reassign->isPointer) {
+		emitCode(self, "*");
+	}
+	emitCode(self, "%s =", reassign->name->content);
+	emitExpression(self, reassign->expression);
+	emitCode(self, ";\n");
+}
+
 void emitBlock(Compiler *self, BlockAstNode *block) {
 	int i;
 	for (i = 0; i < block->statements->size; i++) {
@@ -54,6 +63,9 @@ void emitBlock(Compiler *self, BlockAstNode *block) {
 		case IF_STATEMENT_AST_NODE:
 			emitIfStatement(self, currentAstNode->data);
 			break;
+		case VARIABLE_REASSIGN_AST_NODE:
+			emitReassignment(self, currentAstNode->data);
+			break;
 		case FUNCTION_RET_AST_NODE:
 			emitReturnStatement(self, currentAstNode->data);
 			break;
@@ -65,25 +77,30 @@ void emitBlock(Compiler *self, BlockAstNode *block) {
 }
 
 void emitVariableDefine(Compiler *self, VariableDefinitionAstNode *def) {
-	if (def->isConstant) {
-		emitCode(self, "const ");
-	}
+	emitCode(self, "%s ", def->type->content);
 	if (def->isPointer) {
 		emitCode(self, "*");
 	}
-	emitCode(self, "%s %s;", def->type->content, def->name);
+	emitCode(self, "%s = 0;\n", def->name);
 }
 
 void emitVariableDeclaration(Compiler *self, VariableDeclarationAstNode *var) {
-	if (var->variableDefinitionAstNode->isConstant) {
+	if (var->isConstant) {
 		emitCode(self, "const ");
 	}
+	emitCode(self, "%s ", var->variableDefinitionAstNode->type->content);
 	if (var->variableDefinitionAstNode->isPointer) {
 		emitCode(self, "*");
 	}
-	emitCode(self, "%s %s = ", var->variableDefinitionAstNode->type->content, var->variableDefinitionAstNode->name);
-	self->writeState = WRITE_SOURCE_STATE;
-	emitExpression(self, var->expression);
+	emitCode(self, "%s = ", var->variableDefinitionAstNode->name);
+	if (var->variableDefinitionAstNode->isPointer) {
+		emitCode(self, "malloc(sizeof(*%s));\n", var->variableDefinitionAstNode->name);
+		emitCode(self, "*%s = ", var->variableDefinitionAstNode->name);
+		emitExpression(self, var->expression);
+	}
+	else {
+		emitExpression(self, var->expression);
+	}
 	emitCode(self, ";\n");
 }
 
@@ -180,11 +197,12 @@ void emitFunction(Compiler *self, FunctionAstNode *func) {
 		if (arg->isConstant) {
 			emitCode(self, "const ");
 		}
+
+		emitCode(self, "%s ", arg->type->content);
 		if (arg->isPointer) {
 			emitCode(self, "*");
 		}
-
-		emitCode(self, "%s %s", arg->type->content, arg->name->content);
+		emitCode(self, "%s", arg->name->content);
 
 		if (func->prototype->args->size > 1 && i != func->prototype->args->size - 1) {
 			emitCode(self, ", ");
@@ -205,11 +223,12 @@ void emitFunction(Compiler *self, FunctionAstNode *func) {
 		if (arg->isConstant) {
 			emitCode(self, "const ");
 		}
+
+		emitCode(self, "%s ", arg->type->content);
 		if (arg->isPointer) {
 			emitCode(self, "*");
 		}
-
-		emitCode(self, "%s %s", arg->type->content, arg->name->content);
+		emitCode(self, "%s", arg->name->content);
 
 		if (func->prototype->args->size > 1 && i != func->prototype->args->size - 1) {
 			emitCode(self, ", ");

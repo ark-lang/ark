@@ -161,7 +161,6 @@ typedef struct {
 	StructureAstNode *owner; // the owner of the variable?
 
 	bool isGlobal;			// is it in a global scope?
-	bool isConstant;		// is it a constant variable?
 	bool isPointer;		// is it a pointer?
 } VariableDefinitionAstNode;
 
@@ -171,6 +170,7 @@ typedef struct {
 typedef struct {
 	VariableDefinitionAstNode *variableDefinitionAstNode;
 	ExpressionAstNode *expression;
+	bool isConstant;
 } VariableDeclarationAstNode;
 
 /**
@@ -329,6 +329,8 @@ typedef struct {
 typedef struct {
 	/** the variable being re-assigned, or it's identifier */
 	Token *name;
+
+	bool isPointer;
 
 	/** the expression to re-assign it to */
 	ExpressionAstNode *expression;
