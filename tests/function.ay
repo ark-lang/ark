@@ -1,8 +1,13 @@
 use "stdio.h"
 use "stdlib.h"
 
-fn test(int ^d): void {
+fn whatever(int x): int {
+	return x + 1;
+}
+
+fn test(int ^d): ^int {
 	^d = 10;
+	return ^d;
 }
 
 fn main(): int {
@@ -11,6 +16,9 @@ fn main(): int {
 	test(swag);
 	printf("%d\n", ^swag);
 	free(swag);
+	int z;
+	whatever(5) -> z;
+	printf("%d\n", z);
 	
 	return 0;
 }
