@@ -18,6 +18,7 @@ Compiler *createCompiler(Vector *sourceFiles) {
 	self->currentNode = 0;
 	self->sourceFiles = sourceFiles;
 	self->functions = hashmap_new();
+	self->structures = hashmap_new();
 	return self;
 }
 
@@ -118,6 +119,8 @@ void emitStructureTypeDeclare(Compiler *self, VariableDeclarationAstNode *def) {
 
 void emitStructure(Compiler *self, StructureAstNode *structure) {
 	self->writeState = WRITE_HEADER_STATE;
+	hashmap_put(self->structures, )
+
 	emitCode(self, "typedef struct {\n");
 	int i;
 	for (i = 0; i < structure->statements->size; i++) {
@@ -367,5 +370,6 @@ void compileAST(Compiler *self) {
 
 void destroyCompiler(Compiler *self) {
 	hashmap_free(self->functions);
+	hashmap_free(self->structures);
 	free(self);
 }
