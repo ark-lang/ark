@@ -308,6 +308,8 @@ void startCompiler(Compiler *self) {
 		emitCode(self, "\n");
 		emitCode(self, "#endif // __%s_H\n", upper_name);
 
+		free(upper_name);
+
 		// close files
 		closeFiles(self->currentSourceFile);
 	}

@@ -49,6 +49,7 @@ StackItem popStack(Stack *stack) {
 
 void destroyStack(Stack *stack) {
 	if (stack) {
+		free(stack->items);
 		free(stack);
 	}
 }
