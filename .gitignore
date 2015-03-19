@@ -37,7 +37,6 @@
 *.x86_64
 *.hex
 
-
 # Other
 builds/
 *~
