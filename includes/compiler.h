@@ -32,10 +32,16 @@ typedef struct {
 	Vector *sourceFiles;
 	SourceFile *currentSourceFile;
 	map_t functions;
+	map_t structures;
 	WriteState writeState;
 
 	int currentNode;
 } Compiler;
+
+typedef struct {
+	// a list of the initial values IN ORDER!!
+	Vector *initialValues;
+} StructInitializer;
 
 Compiler *createCompiler(Vector *sourceFiles);
 
