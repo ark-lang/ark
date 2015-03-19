@@ -119,7 +119,7 @@ void emitStructureTypeDeclare(Compiler *self, VariableDeclarationAstNode *def) {
 
 void emitStructure(Compiler *self, StructureAstNode *structure) {
 	self->writeState = WRITE_HEADER_STATE;
-	hashmap_put(self->structures, )
+	// hashmap_put(self->structures, )
 
 	emitCode(self, "typedef struct {\n");
 	int i;
