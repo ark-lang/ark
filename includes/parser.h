@@ -127,6 +127,7 @@ typedef struct {
 	char *type;
 	Vector *args;
 	Vector *vars;
+	bool isFunctionRedirect;
 } FunctionCallAstNode;
 
 typedef struct {
