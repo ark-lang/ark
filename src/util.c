@@ -16,10 +16,12 @@ char *randString(size_t length) {
 
     if (length) {
         randomString = malloc(sizeof(char) * (length +1));
+        randomString[0] = '_';
+        randomString[1] = '_';
 
         if (randomString) {
             int n;
-            for (n = 0;n < length;n++) {
+            for (n = 2; n < length;n++) {
                 int key = rand() % (int)(sizeof(charset) -1);
                 randomString[n] = charset[key];
             }

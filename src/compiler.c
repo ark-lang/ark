@@ -113,13 +113,18 @@ void emitStructureTypeDefine(Compiler *self, VariableDefinitionAstNode *def) {
 	emitCode(self, "%s;\n", def->name);
 }
 
-void emitStructureTypeDeclare(Compiler *self, VariableDeclarationAstNode *def) {
-
+void emitStructureTypeDeclare(Compiler *self, VariableDeclarationAstNode *dec) {
+	emitCode(self, "%s ", dec->variableDefinitionAstNode->type->content);
+	if (dec->variableDefinitionAstNode->isPointer) {
+		emitCode(self, "*");
+	}
+	emitCode(self, "%s;\n", dec->variableDefinitionAstNode->name);
 }
 
 void emitStructure(Compiler *self, StructureAstNode *structure) {
+	hashmap_put(self->structures, structure->name, structure->name);
+
 	self->writeState = WRITE_HEADER_STATE;
-	// hashmap_put(self->structures, )
 
 	emitCode(self, "typedef struct {\n");
 	int i;
@@ -153,7 +158,7 @@ void emitFunctionCall(Compiler *self, FunctionCallAstNode *call) {
 	// this is for the redirection
 	char *randName = randString(12);
 
-	if (call->vars != NULL) {
+	if (call->isFunctionRedirect) {
 		char *s = NULL;
 		hashmap_get(self->functions, call->name, (void**) &s);
 		emitCode(self, "%s %s = ", s, randName);
@@ -172,7 +177,7 @@ void emitFunctionCall(Compiler *self, FunctionCallAstNode *call) {
 	}
 	emitCode(self, ");\n");
 
-	if (call->vars != NULL) {
+	if (call->isFunctionRedirect) {
 		int i;
 		for (i = 0; i < call->vars->size; i++) {
 			Token *tok = getVectorItem(call->vars, i);
@@ -319,9 +324,7 @@ void startCompiler(Compiler *self) {
 
 	// append the compiler to use etc
 	appendString(buildCommand, COMPILER);
-	appendString(buildCommand, " ");
-	appendString(buildCommand, "-o");
-	appendString(buildCommand, " ");
+	appendString(buildCommand, " -Wall -o ");
 	appendString(buildCommand, OUTPUT_EXECUTABLE_NAME);
 	appendString(buildCommand, " ");
 

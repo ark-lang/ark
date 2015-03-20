@@ -33,6 +33,7 @@ typedef struct {
 	SourceFile *currentSourceFile;
 	map_t functions;
 	map_t structures;
+	map_t variables;
 	WriteState writeState;
 
 	int currentNode;

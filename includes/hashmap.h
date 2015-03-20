@@ -10,6 +10,8 @@
 #define MAP_OMEM -1 	/* Out of Memory */
 #define MAP_OK 0 	/* OK */
 
+#include "util.h"
+
 /*
  * any_t is a pointer.  This allows you to put arbitrary structures in
  * the hashmap.

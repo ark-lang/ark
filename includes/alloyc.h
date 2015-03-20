@@ -17,7 +17,6 @@
 #define HELP_ARG			"-help"
 #define OUTPUT_ARG			"-o"
 
-
 /**
  * For handling command line
  * arguments

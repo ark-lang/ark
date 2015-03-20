@@ -118,6 +118,7 @@ FunctionCallAstNode *createFunctionCallAstNode() {
 	FunctionCallAstNode *fcn = allocateASTNode(sizeof(FunctionCallAstNode), "function callee");
 	fcn->name = NULL;
 	fcn->args = NULL;
+	fcn->isFunctionRedirect = false;
 	return fcn;
 }
 
@@ -1262,6 +1263,7 @@ FunctionCallAstNode *parseFunctionCallAstNode(Parser *parser) {
 			}
 
 			functionCall->vars = identifiers;
+			functionCall->isFunctionRedirect = true;
 		}
 		else {
 			parserError(parser, "Expected a semi-colon at the end of function call", consumeToken(parser), true);
