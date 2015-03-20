@@ -28,6 +28,8 @@ fn test(int ^d): ^int {
 
 fn main(): int {
 
+	Cat ^cat;
+
 	int ^swag = 23;
 	printf("%d\n", ^swag);
 	test(swag);
