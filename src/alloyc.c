@@ -7,9 +7,12 @@ bool OUTPUT_C = false;	// default is no c output
 
 void help() {
 	printf("Alloy-Lang Argument List\n");
-	printf("\t-help,\t shows this help menu\n");
-	printf("\t-v,\t shows current version\n");
-	printf("\t-d,\t logs extra debug information\n");
+	printf("  -help\t\t\tShows this help menu\n");
+	printf("  -v\t\t\tShows current version\n");
+	printf("  -d\t\t\tLogs extra debug information\n");
+	printf("  -c\t\t\tKeep the generated C code\n");
+	printf("  -compiler <cc>\tCompiles generated code with <cc>\n");
+	printf("  -o <file>\t\tPlace the output into <file>\n");
 	printf("\n");
 }
 
