@@ -83,7 +83,12 @@ AlloyCompiler *createAlloyCompiler(int argc, char** argv) {
 			parse_argument(&arg);
 		}
 		else if (strstr(argv[i], ".ay")) {
-			pushBackItem(self->sourceFiles, createSourceFile(argv[i]));
+			SourceFile *file = createSourceFile(argv[i]);
+			if (!file) {
+				debugMessage("Error when attempting to create a source file");
+				return NULL;
+			}
+			pushBackItem(self->sourceFiles, file);
 		}
 		else {
 			errorMessage("argument not recognized: %s\n", argv[i]);

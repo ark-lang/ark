@@ -6,6 +6,11 @@ SourceFile *createSourceFile(char *fileName) {
 	sourceFile->headerFile = createHeaderFile(fileName);
 	sourceFile->name = getFileName(sourceFile->fileName);
 	sourceFile->alloyFileContents = readFile(fileName);
+	if (!sourceFile->alloyFileContents) {
+		errorMessage("Failed to read file %s", sourceFile->fileName);
+		destroySourceFile(sourceFile);
+		return NULL;
+	}
 
 	return sourceFile;
 }
