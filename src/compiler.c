@@ -319,11 +319,14 @@ void startCompiler(Compiler *self) {
 
 	// 1 for the null terminator
 	files_len += 1;
-	files_len += 4; // 4 for gcc and a space, bit hacky
+	files_len += 8; // 4 for gcc and a space, bit hacky
+	files_len += strlen(OUTPUT_EXECUTABLE_NAME);
 
 	char *files = malloc(sizeof(char) * files_len);
 	files[0] = '\0';
-	strcat(files, "gcc ");
+	strcat(files, "gcc -o ");
+	strcat(files, OUTPUT_EXECUTABLE_NAME);
+	strcat(files, " "); // inb4 it breaks
 	for (i = 0; i < self->sourceFiles->size; i++) {
 		SourceFile *sourceFile = getVectorItem(self->sourceFiles, i);
 		strcat(files, sourceFile->name);
@@ -331,6 +334,7 @@ void startCompiler(Compiler *self) {
 		strcat(files, " ");
 	}
 	files[files_len] = '\0';
+	printf("running %s\n", files);
 	system(files);
 
 	for (i = 0; i < self->sourceFiles->size; i++) {
