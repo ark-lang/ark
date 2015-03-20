@@ -29,6 +29,7 @@ fn test(int ^d): ^int {
 fn main(): int {
 
 	Cat ^cat;
+	cat.x = 5;
 
 	int ^swag = 23;
 	printf("%d\n", ^swag);
@@ -43,6 +44,8 @@ fn main(): int {
 	int fac;
 	factorial(6) -> fac;
 	printf("%d\n", fac);
+	
+	free(cat);
 	
 	return 0;
 }
