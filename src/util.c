@@ -1,8 +1,12 @@
 #include "util.h"
 
-void str_append(char *original_str, char *str) {
-	original_str = realloc(original_str, strlen(original_str) + strlen(str) + 1);
+void appendString(char *original_str, char *str) {
+	size_t original_str_size = strlen(original_str);
+	size_t str_size = strlen(str);
+
+	original_str = realloc(original_str, original_str_size + str_size + 1);
 	strcat(original_str, str);
+	original_str[original_str_size + str_size + 1] = '\0';
 }
 
 char *randString(size_t length) {

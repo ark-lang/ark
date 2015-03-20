@@ -1,38 +1,45 @@
 #include "alloyc.h"
 
-bool DEBUG_MODE = false;
-char *OUTPUT_EXECUTABLE_NAME = "main";
-bool OUTPUT_C = false;
+bool DEBUG_MODE = false;	// default is no debug
+char *OUTPUT_EXECUTABLE_NAME = "main"; // default is main
+char *COMPILER = "gcc"; // default is GCC
+bool OUTPUT_C = false;	// default is no c output
+
+void help() {
+	printf("Alloy-Lang Argument List\n");
+	printf("\t-help,\t shows this help menu\n");
+	printf("\t-v,\t shows current version\n");
+	printf("\t-d,\t logs extra debug information\n");
+	printf("\n");
+}
 
 static void parse_argument(CommandLineArgument *arg) {
-	char argument = arg->argument[0];
+	char *argument = arg->argument;
 
-	switch (argument) {
-		case 'v':
-			printf("alloyc version: %s\n", ALLOYC_VERSION);
-			return;
-		case 'd':
-			DEBUG_MODE = true;
-			break;
-		case 'c':
-			OUTPUT_C = true;
-			break;
-		case 'h':
-			printf("Alloy-Lang Argument List\n");
-			printf("\t-h,\t shows a help menu\n");
-			printf("\t-v,\t shows current version\n");
-			printf("\t-d,\t logs extra debug information\n");
-			printf("\n");
-			return;
-		case 'o':
-			if (!arg->nextArgument) {
-				errorMessage("missing filename after '-o'");
-			}
-			OUTPUT_EXECUTABLE_NAME = arg->nextArgument;
-			break;
-		default:
-			errorMessage("unrecognized command line option '-%s'\n", arg->argument);
-			break;
+	if (!strcmp(argument, VERSION_ARG)) {
+		printf("Alloy Compiler Version: %s\n", ALLOYC_VERSION);
+	}
+	else if (!strcmp(argument, DEBUG_MODE_ARG)) {
+		DEBUG_MODE = true;
+	}
+	else if (!strcmp(argument, OUTPUT_C_ARG)) {
+		OUTPUT_C = true;
+	}
+	else if (!strcmp(argument, HELP_ARG)) {
+		help();
+		return;
+	}
+	else if (!strcmp(argument, COMPILER_ARG)) {
+		COMPILER = arg->nextArgument;
+	}
+	else if (!strcmp(argument, OUTPUT_ARG)) {
+		if (!arg->nextArgument) {
+			errorMessage("missing filename after '-o'");
+		}
+		OUTPUT_EXECUTABLE_NAME = arg->nextArgument;
+	}
+	else {
+		errorMessage("unrecognized command line option '%s'\n", arg->argument);
 	}
 }
 
@@ -43,7 +50,7 @@ AlloyCompiler *createAlloyCompiler(int argc, char** argv) {
 	self->compiler = NULL;
 	self->sourceFiles = createVector();
 
-	// not enough args just throw an error
+	// not enough arguments just throw an error
 	if (argc <= 1) {
 		errorMessage("no input files");
 		return NULL;
@@ -55,22 +62,17 @@ AlloyCompiler *createAlloyCompiler(int argc, char** argv) {
 		if (argv[i][0] == '-') {
 			CommandLineArgument arg;
 
-			// remove the -
-			size_t len = strlen(argv[i]) - 1;
-			char temp[len];
-			memcpy(temp, &argv[i][len], 1);
-			temp[len] = '\0';
-
 			// set argument stuff
-			arg.argument = temp;
+			arg.argument = argv[i];
 			arg.nextArgument = NULL;
 			if (argv[i + 1] != NULL) {
 				arg.nextArgument = argv[i + 1];
 			}
 
-			// multiple arguments needed for -o, consume twice
-			// todo make this cleaner for when we expand
-			if (!strcmp(arg.argument, "o") || !strcmp(arg.argument, "e")) {
+			// make this cleaner, I see a shit ton of if statements
+			// in our future.
+			if (!strcmp(arg.argument, OUTPUT_ARG) ||
+				!strcmp(arg.argument, COMPILER_ARG)) {
 				i += 2;
 			}
 
