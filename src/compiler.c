@@ -281,12 +281,9 @@ void consumeAstNodeBy(Compiler *self, int amount) {
 }
 
 void startCompiler(Compiler *self) {
-	size_t files_len = 0;
-
 	int i;
 	for (i = 0; i < self->sourceFiles->size; i++) {
 		SourceFile *sourceFile = getVectorItem(self->sourceFiles, i);
-		files_len += strlen(sourceFile->name) + 1;
 		self->currentNode = 0;
 		self->currentSourceFile = sourceFile;
 		self->abstractSyntaxTree = self->currentSourceFile->ast;
@@ -317,26 +314,33 @@ void startCompiler(Compiler *self) {
 		closeFiles(self->currentSourceFile);
 	}
 
-	// 1 for the null terminator
-	files_len += 1;
-	files_len += 8; // 4 for gcc and a space, bit hacky
-	files_len += strlen(OUTPUT_EXECUTABLE_NAME);
+	char *buildCommand = malloc(sizeof(char));
+	buildCommand[0] = '\0'; // whatever
 
-	char *files = malloc(sizeof(char) * files_len);
-	files[0] = '\0';
-	strcat(files, "gcc -o ");
-	strcat(files, OUTPUT_EXECUTABLE_NAME);
-	strcat(files, " "); // inb4 it breaks
+	// append the compiler to use etc
+	appendString(buildCommand, COMPILER);
+	appendString(buildCommand, " ");
+	appendString(buildCommand, "-o");
+	appendString(buildCommand, " ");
+	appendString(buildCommand, OUTPUT_EXECUTABLE_NAME);
+	appendString(buildCommand, " ");
+
+	// append the filename to the build string
 	for (i = 0; i < self->sourceFiles->size; i++) {
 		SourceFile *sourceFile = getVectorItem(self->sourceFiles, i);
-		strcat(files, sourceFile->name);
-		strcat(files, ".c");
-		strcat(files, " ");
-	}
-	files[files_len] = '\0';
-	printf("running %s\n", files);
-	system(files);
+		appendString(buildCommand, sourceFile->name);
+		appendString(buildCommand, ".c");
 
+		if (i != self->sourceFiles->size - 1) // stop whitespace at the end!
+			appendString(buildCommand, " ");
+	}
+
+	// just for debug purposes
+	debugMessage("running cl args: `%s`\n", buildCommand);
+	system(buildCommand);
+	free(buildCommand); // deallocate dat shit baby
+
+	// now we can destroy stuff
 	for (i = 0; i < self->sourceFiles->size; i++) {
 		SourceFile *sourceFile = getVectorItem(self->sourceFiles, i);
 		destroySourceFile(sourceFile);
