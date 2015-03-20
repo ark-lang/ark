@@ -23,15 +23,9 @@
 	#define GET_ORANGE_TEXT(x) ("\x1B[33m" x "\x1B[00m")
 #endif
 
-/** what compiler to compile generated code in, default is GCC for now */
-#define COMPILER "gcc"
-
-/** if we are in debug mode -- will print debug warnings */
 extern bool DEBUG_MODE;
-
+extern char* COMPILER;
 extern bool OUTPUT_C;
-
-/** the name of the executable file */
 extern char* OUTPUT_EXECUTABLE_NAME;
 
 char *randString(size_t length);
@@ -44,7 +38,7 @@ char *removeExtension(char *file);
 
 char *getFileName(char *path);
 
-void str_append(char *original_str, char *str);
+void appendString(char *original_str, char *str);
 
 /**
  * Emitts a debug message to the console if we are in DEBUG MODE
