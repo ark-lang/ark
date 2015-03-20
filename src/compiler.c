@@ -78,11 +78,21 @@ void emitBlock(Compiler *self, BlockAstNode *block) {
 }
 
 void emitVariableDefine(Compiler *self, VariableDefinitionAstNode *def) {
+	char *exists = NULL;
+	bool structDef = !hashmap_get(self->structures, def->type->content, (void**) &exists);
+
 	emitCode(self, "%s ", def->type->content);
 	if (def->isPointer) {
 		emitCode(self, "*");
 	}
-	emitCode(self, "%s = 0;\n", def->name);
+
+	// it's not a structure definition, set it to 0
+	if (!structDef || (structDef && !def->isPointer)) {
+		emitCode(self, "%s = 0;\n", def->name);
+	}
+	else {
+		emitCode(self, "%s = malloc(sizeof(*%s));\n", def->name, def->name);
+	}
 }
 
 void emitVariableDeclaration(Compiler *self, VariableDeclarationAstNode *var) {
