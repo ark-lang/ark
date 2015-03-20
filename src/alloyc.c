@@ -1,7 +1,7 @@
 #include "alloyc.h"
 
 bool DEBUG_MODE = false;
-char *OUTPUT_EXECUTABLE_NAME = "a";
+char *OUTPUT_EXECUTABLE_NAME = "main";
 bool OUTPUT_C = false;
 
 static void parse_argument(CommandLineArgument *arg) {
@@ -116,6 +116,7 @@ void destroyAlloyCompiler(AlloyCompiler *self) {
 		if (self->lexer) destroyLexer(self->lexer);
 		if (self->parser) destroyParser(self->parser);
 		if (self->compiler) destroyCompiler(self->compiler);
+		destroyVector(self->sourceFiles);
 		free(self);
 	}
 }
