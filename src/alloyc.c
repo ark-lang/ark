@@ -73,7 +73,7 @@ AlloyCompiler *createAlloyCompiler(int argc, char** argv) {
 			// in our future.
 			if (!strcmp(arg.argument, OUTPUT_ARG) ||
 				!strcmp(arg.argument, COMPILER_ARG)) {
-				i += 2;
+				i++;
 			}
 
 			// parse the argument
