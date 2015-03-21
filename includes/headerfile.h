@@ -6,8 +6,8 @@
 #include "util.h"
 
 typedef struct {
-	char *fileName;
-	char *name;
+	sds fileName;
+	sds name;
 	FILE *outputFile;
 } HeaderFile;
 

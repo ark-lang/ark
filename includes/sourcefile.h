@@ -8,9 +8,9 @@
 #include "util.h"
 
 typedef struct {
-	char *fileName;
-	char *name;
-	char *alloyFileContents;
+	sds fileName;
+	sds name;
+	sds alloyFileContents;
 	FILE *outputFile;
 
 	Vector *tokens;
@@ -19,7 +19,7 @@ typedef struct {
 	HeaderFile *headerFile;
 } SourceFile;
 
-SourceFile *createSourceFile(char *fileName);
+SourceFile *createSourceFile(sds fileName);
 
 void writeFiles(SourceFile *sourceFile);
 
