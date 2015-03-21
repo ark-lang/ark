@@ -50,7 +50,7 @@ typedef enum {
  */
 typedef struct {
 	int type;
-	char* content;
+	sds content;
 	int lineNumber;
 	int charNumber;
 } Token;
