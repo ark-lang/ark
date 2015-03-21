@@ -8,17 +8,12 @@ HeaderFile *createHeaderFile(sds fileName) {
 }
 
 void writeHeaderFile(HeaderFile *headerFile) {
-	// ugly
-//	size_t len = strlen(headerFile->name) + 2;
-//	char filename[len + 2];
-//	strncpy(filename, headerFile->name, sizeof(char) * (len - 2));
-//	filename[len - 2] = '.';
-//	filename[len - 1] = 'h';
-//	filename[len] = '\0';
-	sds filename = sdsnew(headerFile->name);
-	filename = sdscat(filename, ".h");
+	headerFile->generatedHeaderName = sdsempty();
+	sdscat(headerFile->generatedHeaderName, "__gen_");
+	sdscat(headerFile->generatedHeaderName, headerFile->name);
+	sdscat(headerFile->generatedHeaderName, ".h");
 
-	headerFile->outputFile = fopen(filename, "w");
+	headerFile->outputFile = fopen(headerFile->generatedHeaderName, "w");
 	if (!headerFile->outputFile) {
 		perror("fopen: failed to open file");
 		return;
@@ -31,20 +26,10 @@ void closeHeaderFile(HeaderFile *headerFile) {
 
 void destroyHeaderFile(HeaderFile *headerFile) {
 	if (headerFile) {
-		// more ugly pls fix k ty
-//		size_t len = strlen(headerFile->name) + 2;
-//		char filename[len + 2];
-//		strncpy(filename, headerFile->name, sizeof(char) * (len - 2));
-//		filename[len - 2] = '.';
-//		filename[len - 1] = 'h';
-//		filename[len] = '\0';
-		sds filename = sdsnew(headerFile->name);
-		filename = sdscat(filename, ".h");
+		if (!OUTPUT_C) remove(headerFile->generatedHeaderName);
 
-		if (!OUTPUT_C) remove(filename);
-
-		sdsfree(filename);
 		debugMessage("Destroyed Header File `%s`", headerFile->name);
+		sdsfree(headerFile->generatedHeaderName);
 		sdsfree(headerFile->name);
 		free(headerFile);
 	}
