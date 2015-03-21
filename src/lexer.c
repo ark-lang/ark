@@ -319,20 +319,11 @@ void destroyLexer(Lexer *lexer) {
 	}
 }
 
-// the ugly functions can go down here
-
-// this is the holy grail of messy, and needs a lot of work
-// i'm really considering writing some kind of string library
-// for the compiler...
 char* getTokenContext(Vector *stream, Token *tok, bool colour_error_token) {
 	int line_num = tok->lineNumber;
 	int result_size = 128;
 	int result_index = 0;
-	char *result = malloc(sizeof(char) * (result_size + 1));
-	if (!result) {
-		perror("malloc: failed to malloc memory for token context");
-		return NULL;
-	}
+	char *result = safeMalloc(sizeof(char) * (result_size + 1));
 
 	int i;
 	for (i = 0; i < stream->size; i++) {
@@ -366,11 +357,7 @@ char* getTokenContext(Vector *stream, Token *tok, bool colour_error_token) {
 char* get_line_number_context(Vector *stream, int line_num) {
 	int result_size = 128;
 	int result_index = 0;
-	char *result = malloc(sizeof(char) * (result_size + 1));
-	if (!result) {
-		perror("malloc: failed to malloc memory for line number context");
-		return NULL;
-	}
+	char *result = safeMalloc(sizeof(char) * (result_size + 1));
 
 	int i;
 	for (i = 0; i < stream->size; i++) {
