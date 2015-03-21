@@ -6,7 +6,7 @@ fn factorial(int a): int {
 	}
 	else {
 		int x;
-		factorial(a - 1) ->x ;
+		factorial(a - 1) -> x ;
 		return x * a;
 	}
 }
