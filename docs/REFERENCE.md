@@ -117,7 +117,8 @@ function redirects, they won't with C function calls, for example:
 		printf("swag is %d\n", ^swag);
 	}
 
-It looks like it should work, however function redirects do not work yet with C bindings.
+It looks like it should work, however function redirects do not work yet with C bindings. We're still working on the inclusion
+of alloy files.
 
 ### Structures
 
