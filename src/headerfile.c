@@ -43,9 +43,9 @@ void destroyHeaderFile(HeaderFile *headerFile) {
 
 		if (!OUTPUT_C) remove(filename);
 
+		sdsfree(filename);
 		debugMessage("Destroyed Header File `%s`", headerFile->name);
 		sdsfree(headerFile->name);
-		sdsfree(filename);
 		free(headerFile);
 	}
 }
