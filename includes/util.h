@@ -11,6 +11,8 @@
 #include <assert.h>
 #include <time.h>
 
+#include "sds.h"
+
 /** the current version of alloy */
 #define ALLOYC_VERSION "0.0.3"
 

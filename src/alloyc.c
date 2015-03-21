@@ -17,7 +17,7 @@ void help() {
 }
 
 static void parse_argument(CommandLineArgument *arg) {
-	char *argument = arg->argument;
+	sds argument = sdsnew(arg->argument);
 
 	if (!strcmp(argument, VERSION_ARG)) {
 		printf("Alloy Compiler Version: %s\n", ALLOYC_VERSION);
@@ -44,6 +44,8 @@ static void parse_argument(CommandLineArgument *arg) {
 	else {
 		errorMessage("unrecognized command line option '%s'\n", arg->argument);
 	}
+
+	sdsfree(argument);
 }
 
 AlloyCompiler *createAlloyCompiler(int argc, char** argv) {

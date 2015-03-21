@@ -1,6 +1,6 @@
 #include "headerfile.h"
 
-HeaderFile *createHeaderFile(char *fileName) {
+HeaderFile *createHeaderFile(sds fileName) {
 	HeaderFile *headerFile = safeMalloc(sizeof(*headerFile));
 	headerFile->fileName = fileName;
 	headerFile->name = getFileName(headerFile->fileName);
@@ -9,12 +9,14 @@ HeaderFile *createHeaderFile(char *fileName) {
 
 void writeHeaderFile(HeaderFile *headerFile) {
 	// ugly
-	size_t len = strlen(headerFile->name) + 2;
-	char filename[len + 2];
-	strncpy(filename, headerFile->name, sizeof(char) * (len - 2));
-	filename[len - 2] = '.';
-	filename[len - 1] = 'h';
-	filename[len] = '\0';
+//	size_t len = strlen(headerFile->name) + 2;
+//	char filename[len + 2];
+//	strncpy(filename, headerFile->name, sizeof(char) * (len - 2));
+//	filename[len - 2] = '.';
+//	filename[len - 1] = 'h';
+//	filename[len] = '\0';
+	sds filename = sdsnew(headerFile->name);
+	filename = sdscat(filename, ".h");
 
 	headerFile->outputFile = fopen(filename, "w");
 	if (!headerFile->outputFile) {
@@ -30,16 +32,20 @@ void closeHeaderFile(HeaderFile *headerFile) {
 void destroyHeaderFile(HeaderFile *headerFile) {
 	if (headerFile) {
 		// more ugly pls fix k ty
-		size_t len = strlen(headerFile->name) + 2;
-		char filename[len + 2];
-		strncpy(filename, headerFile->name, sizeof(char) * (len - 2));
-		filename[len - 2] = '.';
-		filename[len - 1] = 'h';
-		filename[len] = '\0';
+//		size_t len = strlen(headerFile->name) + 2;
+//		char filename[len + 2];
+//		strncpy(filename, headerFile->name, sizeof(char) * (len - 2));
+//		filename[len - 2] = '.';
+//		filename[len - 1] = 'h';
+//		filename[len] = '\0';
+		sds filename = sdsnew(headerFile->name);
+		filename = sdscat(filename, ".h");
+
 		if (!OUTPUT_C) remove(filename);
 
 		debugMessage("Destroyed Header File `%s`", headerFile->name);
-		free(headerFile->name);
+		sdsfree(headerFile->name);
+		sdsfree(filename);
 		free(headerFile);
 	}
 }
