@@ -73,6 +73,13 @@ void emitBlock(Compiler *self, BlockAstNode *block) {
 		case FOR_LOOP_AST_NODE:
 			emitForLoop(self, currentAstNode->data);
 			break;
+		case INFINITE_LOOP_AST_NODE:
+			emitInfiniteLoop(self, currentAstNode->data);
+			break;
+		case BREAK_AST_NODE:
+			// why even have it's own function?
+			emitCode(self, "break;");
+			break;
 		default:
 			printf("wat node is that bby?\n");
 			break;
@@ -254,6 +261,12 @@ void emitForLoop(Compiler *self, ForLoopAstNode *forLoop) {
 			indexRandName,
 			stepValue);
 	emitBlock(self, forLoop->body);
+	emitCode(self, "}\n");
+}
+
+void emitInfiniteLoop(Compiler *self, InfiniteLoopAstNode *infinite) {
+	emitCode(self, "for(;;) {\n");
+	emitBlock(self, infinite->body);
 	emitCode(self, "}\n");
 }
 
