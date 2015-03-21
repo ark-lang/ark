@@ -14,6 +14,10 @@
 *.la
 *.lo
 
+# generated code stuff
+__gen_*.c
+__gen_*.h
+
 # Shared Objects
 *.dll
 *.so

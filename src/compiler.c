@@ -306,14 +306,15 @@ void startCompiler(Compiler *self) {
 		writeFiles(self->currentSourceFile);
 
 		self->writeState = WRITE_SOURCE_STATE;
-		emitCode(self, "#include \"%s.h\"\n", self->currentSourceFile->name);
+		// __gen_name.h is the typical name for the headers and c files that are generated
+		emitCode(self, "#include \"__gen_%s.h\"\n", self->currentSourceFile->name);
 
 		// write to header
 		self->writeState = WRITE_HEADER_STATE;
-		sds upper_name = toUppercase(self->currentSourceFile->name);
+		sds nameInUpperCase = toUppercase(self->currentSourceFile->name);
 
-		emitCode(self, "#ifndef __%s_H\n", upper_name);
-		emitCode(self, "#define __%s_H\n\n", upper_name);
+		emitCode(self, "#ifndef __%s_H\n", nameInUpperCase);
+		emitCode(self, "#define __%s_H\n\n", nameInUpperCase);
 
 		// compile code
 		compileAST(self);
@@ -321,26 +322,26 @@ void startCompiler(Compiler *self) {
 		// write to header
 		self->writeState = WRITE_HEADER_STATE;
 		emitCode(self, "\n");
-		emitCode(self, "#endif // __%s_H\n", upper_name);
+		emitCode(self, "#endif // __%s_H\n", nameInUpperCase);
 
-		sdsfree(upper_name);
+		sdsfree(nameInUpperCase);
 
 		// close files
 		closeFiles(self->currentSourceFile);
 	}
 
 	sds buildCommand = sdsempty();
-//	buildCommand[0] = '\0'; // whatever
 
 	// append the compiler to use etc
 	sdscat(buildCommand, COMPILER);
-	sdscat(buildCommand, " -Wall -o ");
+	sdscat(buildCommand, " -std=c99 -Wall -o ");
 	sdscat(buildCommand, OUTPUT_EXECUTABLE_NAME);
 	sdscat(buildCommand, " ");
 
 	// append the filename to the build string
 	for (i = 0; i < self->sourceFiles->size; i++) {
 		SourceFile *sourceFile = getVectorItem(self->sourceFiles, i);
+		sdscat(buildCommand, "__gen_");
 		sdscat(buildCommand, sourceFile->name);
 		sdscat(buildCommand, ".c");
 
