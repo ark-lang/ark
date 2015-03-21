@@ -17,7 +17,7 @@
 
 /** Lexer stuff */
 typedef struct {
-	char* input;			// input to lex
+	sds input;			// input to lex
 	int pos;				// position in the input
 	int currentChar;		// current character
 	int lineNumber;		// current line number
@@ -65,10 +65,9 @@ void destroyToken(Token *token);
  * Retrieves the line that a token is on
  * @param  lexer              the lexer instance
  * @param  tok                the token to get the context of
- * @param  colour_error_token whether or not to colour the errored token
  * @return                    the context as a string
  */
-char* getTokenContext(Vector *stream, Token *tok, bool colourErroredToken);
+char* getTokenContext(Vector *stream, Token *tok);
 
 /**
  * Retrieves the line that a token is on
