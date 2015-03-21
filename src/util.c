@@ -11,8 +11,8 @@ sds randString(size_t length) {
         if (randomString) {
             int n;
             for (n = 2; n < length;n++) {
-                int key = rand() % (int)(sizeof(charset) -1);
-                randomString = sdscat(randomString, charset[key]);
+                int key = rand() % (int)(sizeof(charset)-1);
+                randomString = sdscat(randomString, &charset[key]);
             }
         }
     }
@@ -21,12 +21,12 @@ sds randString(size_t length) {
 }
 
 sds toUppercase(sds str) {
-	//char *result = safeMalloc(sizeof(char) * (len + 1));
-	sds result = sdsnewlen("", sdslen(str));
+	size_t len = sdslen(str);
+	sds result = sdsnewlen("", len);
 	
 	int i;
 	for (i = 0; i < len; i++) {
-		result = sdscat(result, toupper(str[i]));
+		result[i] = toupper(str[i]);
 	}
 
 	return result;
@@ -128,9 +128,7 @@ const char *getFilenameExtension(const char *filename) {
 }
 
 void *safeMalloc(size_t size) {
-	void *mem = malloc(size);
-	if (!mem) {
-		errorMessage("Failed to allocate %d bytes of memory", size);
-	}
-	return mem;
+	void *memoryChunk = malloc(size);
+	assert(memoryChunk);
+	return memoryChunk;
 }

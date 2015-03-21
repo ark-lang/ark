@@ -73,10 +73,9 @@ void consumeCharacter(Lexer *lexer) {
 	lexer->charNumber++;
 }
 
-char* extractToken(Lexer *lexer, int start, int length) {
-	char* result = safeMalloc(sizeof(char) * (length + 1));
-	strncpy(result, &lexer->input[start], length);
-	result[length] = '\0';
+sds extractToken(Lexer *lexer, int start, int length) {
+	sds result = sdsnewlen("", length);
+	sdscpy(result, &lexer->input[start]);
 	return result;
 }
 
@@ -309,7 +308,7 @@ void destroyLexer(Lexer *lexer) {
 			// eof's content isnt malloc'd so free would give us some errors
 			if (tok->type != END_OF_FILE) {
 				debugMessage("Freed `%s` token.\n", tok->content);
-				free(tok->content);
+				sdsfree(tok->content);
 			}
 			destroyToken(tok);
 		}
