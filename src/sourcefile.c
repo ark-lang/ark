@@ -1,6 +1,6 @@
 #include "sourcefile.h"
 
-SourceFile *createSourceFile(char *fileName) {
+SourceFile *createSourceFile(sds fileName) {
 	SourceFile *sourceFile = malloc(sizeof(*sourceFile));
 	sourceFile->fileName = fileName;
 	sourceFile->headerFile = createHeaderFile(fileName);
@@ -22,12 +22,12 @@ void writeFiles(SourceFile *sourceFile) {
 
 void writeSourceFile(SourceFile *sourceFile) {
 	// ugly
-	size_t len = strlen(sourceFile->name) + 2;
-	char filename[len + 2];
-	strncpy(filename, sourceFile->name, sizeof(char) * (len - 2));
-	filename[len - 2] = '.';
-	filename[len - 1] = 'c';
-	filename[len] = '\0';
+	sds filename = sdsnew(sourceFile->name);
+	filename = sdscat(filename, ".c");
+	//strncpy(filename, sourceFile->name, sizeof(char) * (len - 2));
+	//filename[len - 2] = '.';
+	//filename[len - 1] = 'c';
+	//filename[len] = '\0';
 
 	sourceFile->outputFile = fopen(filename, "w");
 	if (!sourceFile->outputFile) {
@@ -48,18 +48,21 @@ void closeSourceFile(SourceFile *sourceFile) {
 void destroySourceFile(SourceFile *sourceFile) {
 	if (sourceFile) {
 		// more ugly pls fix k ty
-		size_t len = strlen(sourceFile->name) + 2;
-		char filename[len + 2];
-		strncpy(filename, sourceFile->name, sizeof(char) * (len - 2));
-		filename[len - 2] = '.';
-		filename[len - 1] = 'c';
-		filename[len] = '\0';
+//		size_t len = strlen(sourceFile->name) + 2;
+//		char filename[len + 2];
+//		strncpy(filename, sourceFile->name, sizeof(char) * (len - 2));
+//		filename[len - 2] = '.';
+//		filename[len - 1] = 'c';
+//		filename[len] = '\0';
+		sds filename = sdsnew(sourceFile->name);
+		filename = sdscat(filename, ".c");
+
 		if (!OUTPUT_C) remove(filename);
 
 		destroyHeaderFile(sourceFile->headerFile);
 		debugMessage("Destroyed Source File `%s`", sourceFile->name);
-		free(sourceFile->name);
-		free(sourceFile->alloyFileContents);
+		sdsfree(sourceFile->name);
+		sdsfree(sourceFile->alloyFileContents);
 		free(sourceFile);
 	}
 }
