@@ -7,7 +7,6 @@ SourceFile *createSourceFile(sds fileName) {
 	sourceFile->name = getFileName(sourceFile->fileName);
 	sourceFile->alloyFileContents = readFile(fileName);
 
-
 	if (!sourceFile->alloyFileContents) {
 		errorMessage("Failed to read file %s", sourceFile->fileName);
 		destroySourceFile(sourceFile);
@@ -51,9 +50,10 @@ void destroySourceFile(SourceFile *sourceFile) {
 		destroyHeaderFile(sourceFile->headerFile);
 
 		debugMessage("Destroyed Source File `%s`", sourceFile->name);
-		sdsfree(sourceFile->name);
+		sdsfree(sourceFile->fileName);
+		free(sourceFile->name); // this isn't using sds!
 		sdsfree(sourceFile->generatedSourceName);
-		sdsfree(sourceFile->alloyFileContents);
+		free(sourceFile->alloyFileContents);
 
 		free(sourceFile);
 	}
