@@ -70,6 +70,9 @@ void emitBlock(Compiler *self, BlockAstNode *block) {
 		case FUNCTION_RET_AST_NODE:
 			emitReturnStatement(self, currentAstNode->data);
 			break;
+		case FOR_LOOP_AST_NODE:
+			emitForLoop(self, currentAstNode->data);
+			break;
 		default:
 			printf("wat node is that bby?\n");
 			break;
@@ -221,6 +224,37 @@ void emitReturnStatement(Compiler *self, FunctionReturnAstNode *ret) {
 		emitExpression(self, ret->returnValue);
 	}
 	emitCode(self, ";\n");
+}
+
+void emitForLoop(Compiler *self, ForLoopAstNode *forLoop) {
+	self->writeState = WRITE_SOURCE_STATE;
+
+	sds indexRandName = NULL;
+	if (!strcmp(forLoop->indexName->content, "_")) {
+		indexRandName = randString(12);
+	}
+	else {
+		indexRandName = sdsnew(forLoop->indexName->content);
+	}
+
+	sds stepValue = NULL;
+	if (getVectorItem(forLoop->parameters, FOR_STEP) != NULL) {
+		stepValue = sdsnew(((Token *) getVectorItem(forLoop->parameters, FOR_STEP))->content);
+	}
+	else {
+		stepValue = sdsnew("1"); // default step of 1.
+	}
+
+	emitCode(self, "for (%s %s = %s; %s < %s; %s += %s) {\n",
+			forLoop->type->content,
+			indexRandName,
+			((Token*) getVectorItem(forLoop->parameters, FOR_START))->content,
+			indexRandName,
+			((Token*) getVectorItem(forLoop->parameters, FOR_END))->content,
+			indexRandName,
+			stepValue);
+	emitBlock(self, forLoop->body);
+	emitCode(self, "}\n");
 }
 
 void emitUseStatement(Compiler *self, UseStatementAstNode *use) {
