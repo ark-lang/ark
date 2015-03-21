@@ -798,17 +798,24 @@ StructureAstNode *parseStructureAstNode(Parser *parser) {
 }
 
 StatementAstNode *parseForLoopAstNode(Parser *parser) {
+	// create node with the stuff we just got
+	ForLoopAstNode *forLoop = createForLoopAstNode();
+	forLoop->parameters = createVector();
+
 	// for token
 	matchTokenTypeAndContent(parser, IDENTIFIER, FOR_LOOP_KEYWORD);			// FOR KEYWORD
 
+	if (checkTokenType(parser, IDENTIFIER, 0)) {
+		forLoop->type = consumeToken(parser);
+	}
+	else {
+		parserError(parser, "Expected a type in For Loop", consumeToken(parser), false);
+	}
+
 	Token *indexName = matchTokenType(parser, IDENTIFIER);					// INDEX_NAME
+	forLoop->indexName = indexName;
 
 	matchTokenTypeAndContent(parser, OPERATOR, ":");						// PARAMS
-
-	// create node with the stuff we just got
-	ForLoopAstNode *forLoop = createForLoopAstNode();
-	forLoop->indexName = indexName;
-	forLoop->parameters = createVector();
 
 	// consume the args
 	if (checkTokenTypeAndContent(parser, SEPARATOR, "(", 0)) {
@@ -830,7 +837,6 @@ StatementAstNode *parseForLoopAstNode(Parser *parser) {
 
 			if (checkTokenType(parser, IDENTIFIER, 0)) {
 				Token *token = consumeToken(parser);
-				forLoop->type = token;
 				pushBackItem(forLoop->parameters, token);
 				if (checkTokenTypeAndContent(parser, SEPARATOR, ",", 0)) {
 					if (checkTokenTypeAndContent(parser, SEPARATOR, ")", 1)) {
@@ -841,7 +847,6 @@ StatementAstNode *parseForLoopAstNode(Parser *parser) {
 			}
 			else if (checkTokenType(parser, NUMBER, 0)) {
 				Token *token = consumeToken(parser);
-				forLoop->type = token;
 				pushBackItem(forLoop->parameters, token);
 				if (checkTokenTypeAndContent(parser, SEPARATOR, ",", 0)) {
 					if (checkTokenTypeAndContent(parser, SEPARATOR, ")", 1)) {
