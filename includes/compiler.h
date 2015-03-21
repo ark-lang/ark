@@ -64,6 +64,10 @@ void emitBlock(Compiler *self, BlockAstNode *block);
 
 void emitArguments(Compiler *self, Vector *args);
 
+void emitInfiniteLoop(Compiler *self, InfiniteLoopAstNode *infinite);
+
+void emitUseStatement(Compiler *self, UseStatementAstNode *use);
+
 void emitFunction(Compiler *self, FunctionAstNode *func);
 
 void consumeAstNode(Compiler *self);
