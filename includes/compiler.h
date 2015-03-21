@@ -54,6 +54,8 @@ void emitVariableDeclaration(Compiler *self, VariableDeclarationAstNode *var);
 
 void emitReturnStatement(Compiler *self, FunctionReturnAstNode *ret);
 
+void emitForLoop(Compiler *self, ForLoopAstNode *forLoop);
+
 void emitFunctionCall(Compiler *self, FunctionCallAstNode *call);
 
 void emitIfStatement(Compiler *self, IfStatementAstNode *stmt);
