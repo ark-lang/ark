@@ -1,48 +1,34 @@
 #include "util.h"
 
-void appendString(char *original_str, char *str) {
-	size_t original_str_size = strlen(original_str);
-	size_t str_size = strlen(str);
-
-	original_str = realloc(original_str, original_str_size + str_size + 1);
-	strcat(original_str, str);
-	original_str[original_str_size + str_size + 1] = '\0';
-}
-
-char *randString(size_t length) {
+sds randString(size_t length) {
 
     static char charset[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_";
-    char *randomString = NULL;
+    sds randomString = sdsnewlen("", length+1);
 
     if (length) {
-        randomString = safeMalloc(sizeof(char) * (length +1));
-        randomString[0] = '_';
-        randomString[1] = '_';
+    	randomString = sdscat(randomString, "--");
 
         if (randomString) {
             int n;
             for (n = 2; n < length;n++) {
                 int key = rand() % (int)(sizeof(charset) -1);
-                randomString[n] = charset[key];
+                randomString = sdscat(randomString, charset[key]);
             }
-
-            randomString[length] = '\0';
         }
     }
 
     return randomString;
 }
 
-char *toUppercase(char *str) {
-	size_t len = strlen(str);
-	char *result = safeMalloc(sizeof(char) * (len + 1));
+sds toUppercase(sds str) {
+	//char *result = safeMalloc(sizeof(char) * (len + 1));
+	sds result = sdsnewlen("", sdslen(str));
 	
 	int i;
 	for (i = 0; i < len; i++) {
-		result[i] = toupper(str[i]);
+		result = sdscat(result, toupper(str[i]));
 	}
 
-	result[len] = '\0';
 	return result;
 }
 

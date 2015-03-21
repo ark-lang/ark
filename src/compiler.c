@@ -166,7 +166,7 @@ void emitExpression(Compiler *self, ExpressionAstNode *expr) {
 void emitFunctionCall(Compiler *self, FunctionCallAstNode *call) {	
 	self->writeState = WRITE_SOURCE_STATE;
 	// this is for the redirection
-	char *randName = randString(12);
+	sds randName = randString(12);
 
 	if (call->isFunctionRedirect) {
 		char *s = NULL;
@@ -195,7 +195,7 @@ void emitFunctionCall(Compiler *self, FunctionCallAstNode *call) {
 		}
 	}
 
-	free(randName);
+	sdsfree(randName);
 }
 
 void emitIfStatement(Compiler *self, IfStatementAstNode *stmt) {
@@ -310,7 +310,7 @@ void startCompiler(Compiler *self) {
 
 		// write to header
 		self->writeState = WRITE_HEADER_STATE;
-		char *upper_name = toUppercase(self->currentSourceFile->name);
+		sds upper_name = toUppercase(self->currentSourceFile->name);
 
 		emitCode(self, "#ifndef __%s_H\n", upper_name);
 		emitCode(self, "#define __%s_H\n\n", upper_name);
@@ -323,35 +323,35 @@ void startCompiler(Compiler *self) {
 		emitCode(self, "\n");
 		emitCode(self, "#endif // __%s_H\n", upper_name);
 
-		free(upper_name);
+		sdsfree(upper_name);
 
 		// close files
 		closeFiles(self->currentSourceFile);
 	}
 
-	char *buildCommand = safeMalloc(sizeof(char) * 2);
-	buildCommand[0] = '\0'; // whatever
+	sds buildCommand = sdsempty();
+//	buildCommand[0] = '\0'; // whatever
 
 	// append the compiler to use etc
-	appendString(buildCommand, COMPILER);
-	appendString(buildCommand, " -Wall -o ");
-	appendString(buildCommand, OUTPUT_EXECUTABLE_NAME);
-	appendString(buildCommand, " ");
+	sdscat(buildCommand, COMPILER);
+	sdscat(buildCommand, " -Wall -o ");
+	sdscat(buildCommand, OUTPUT_EXECUTABLE_NAME);
+	sdscat(buildCommand, " ");
 
 	// append the filename to the build string
 	for (i = 0; i < self->sourceFiles->size; i++) {
 		SourceFile *sourceFile = getVectorItem(self->sourceFiles, i);
-		appendString(buildCommand, sourceFile->name);
-		appendString(buildCommand, ".c");
+		sdscat(buildCommand, sourceFile->name);
+		sdscat(buildCommand, ".c");
 
 		if (i != self->sourceFiles->size - 1) // stop whitespace at the end!
-			appendString(buildCommand, " ");
+			sdscat(buildCommand, " ");
 	}
 
 	// just for debug purposes
 	debugMessage("running cl args: `%s`\n", buildCommand);
 	system(buildCommand);
-	free(buildCommand); // deallocate dat shit baby
+	sdsfree(buildCommand); // deallocate dat shit baby
 
 	// now we can destroy stuff
 	for (i = 0; i < self->sourceFiles->size; i++) {
