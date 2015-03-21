@@ -29,7 +29,7 @@ typedef struct _hashmap_map {
  * Return an empty hashmap, or NULL on failure.
  */
 map_t hashmap_new() {
-	hashmap_map* m = (hashmap_map*) malloc(sizeof(hashmap_map));
+	hashmap_map* m = (hashmap_map*) safeMalloc(sizeof(hashmap_map));
 	if (!m)
 		goto err;
 
@@ -384,6 +384,7 @@ void hashmap_free(map_t in) {
 	hashmap_map* m = (hashmap_map*) in;
 	free(m->data);
 	free(m);
+	debugMessage("Destroyed Hashmap");
 }
 
 /* Return the length of the hashmap */

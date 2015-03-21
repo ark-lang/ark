@@ -18,9 +18,7 @@ A lot of the syntax for Alloy is inspired by existing languages, such as Rust, G
 also heavily inspired by the simplicity of C. We don't want to add too much that it constrains the developer to a single paradigm.
 
 ## Memory Model
-The memory model is still undecided, we are either going for a no garbage collection, C style memory model. Or we adopt the ARC
-model, where the compiler detects where the allocated memory goes out of scope and deallocates it. We also wanted to simplify memory allocations
-with the `new` and `delete` keywords, similar to C++.
+
 
 ## Syntax
 
