@@ -128,5 +128,6 @@ void destroyAlloyCompiler(AlloyCompiler *self) {
 		if (self->compiler) destroyCompiler(self->compiler);
 		destroyVector(self->sourceFiles);
 		free(self);
+		debugMessage("Destroyed Alloy Compiler");
 	}
 }

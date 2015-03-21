@@ -51,5 +51,6 @@ void destroyStack(Stack *stack) {
 	if (stack) {
 		free(stack->items);
 		free(stack);
+		debugMessage("Destroyed stack");
 	}
 }

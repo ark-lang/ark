@@ -96,7 +96,7 @@ void emitVariableDefine(Compiler *self, VariableDefinitionAstNode *def) {
 }
 
 void emitVariableDeclaration(Compiler *self, VariableDeclarationAstNode *var) {
-	if (var->isConstant) {
+	if (!var->isMutable) {
 		emitCode(self, "const ");
 	}
 	emitCode(self, "%s ", var->variableDefinitionAstNode->type->content);
@@ -241,7 +241,7 @@ void emitFunction(Compiler *self, FunctionAstNode *func) {
 	for (i = 0; i < func->prototype->args->size; i++) {
 		FunctionArgumentAstNode *arg = getVectorItem(func->prototype->args, i);
 
-		if (arg->isConstant) {
+		if (!arg->isMutable) {
 			emitCode(self, "const ");
 		}
 
@@ -267,7 +267,7 @@ void emitFunction(Compiler *self, FunctionAstNode *func) {
 	for (i = 0; i < func->prototype->args->size; i++) {
 		FunctionArgumentAstNode *arg = getVectorItem(func->prototype->args, i);
 
-		if (arg->isConstant) {
+		if (!arg->isMutable) {
 			emitCode(self, "const ");
 		}
 
@@ -329,7 +329,7 @@ void startCompiler(Compiler *self) {
 		closeFiles(self->currentSourceFile);
 	}
 
-	char *buildCommand = malloc(sizeof(char));
+	char *buildCommand = safeMalloc(sizeof(char));
 	buildCommand[0] = '\0'; // whatever
 
 	// append the compiler to use etc
@@ -393,4 +393,5 @@ void destroyCompiler(Compiler *self) {
 	hashmap_free(self->functions);
 	hashmap_free(self->structures);
 	free(self);
+	debugMessage("Destroyed compiler");
 }

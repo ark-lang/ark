@@ -23,7 +23,7 @@
 #define EXPR_UNARY		'u'
 
 // keywords
-#define CONSTANT_KEYWORD 	   	"const"
+#define MUT_KEYWORD 	   		"mut"
 #define ANON_STRUCT_KEYWORD		"anon"
 #define BLOCK_OPENER			"{"
 #define BLOCK_CLOSER			"}"
@@ -171,7 +171,7 @@ typedef struct {
 typedef struct {
 	VariableDefinitionAstNode *variableDefinitionAstNode;
 	ExpressionAstNode *expression;
-	bool isConstant;
+	bool isMutable;
 } VariableDeclarationAstNode;
 
 /**
@@ -194,7 +194,7 @@ typedef struct {
 	ExpressionAstNode *value;
 
 	bool isPointer;
-	bool isConstant;
+	bool isMutable;
 } FunctionArgumentAstNode;
 
 /**
@@ -293,7 +293,7 @@ typedef struct {
 	bool returnsPointer;
 
 	/** does the function return a constant value */
-	bool isConstant;
+	bool isMutable;
 } FunctionAstNode;
 
 /**

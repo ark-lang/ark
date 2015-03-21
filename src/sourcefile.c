@@ -57,6 +57,7 @@ void destroySourceFile(SourceFile *sourceFile) {
 		if (!OUTPUT_C) remove(filename);
 
 		destroyHeaderFile(sourceFile->headerFile);
+		debugMessage("Destroyed Source File `%s`", sourceFile->name);
 		free(sourceFile->name);
 		free(sourceFile->alloyFileContents);
 		free(sourceFile);
