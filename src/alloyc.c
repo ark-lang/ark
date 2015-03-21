@@ -17,35 +17,31 @@ void help() {
 }
 
 static void parse_argument(CommandLineArgument *arg) {
-	sds argument = sdsnew(arg->argument);
-
-	if (!strcmp(argument, VERSION_ARG)) {
+	if (!strcmp(arg->argument, VERSION_ARG)) {
 		printf("Alloy Compiler Version: %s\n", ALLOYC_VERSION);
 	}
-	else if (!strcmp(argument, DEBUG_MODE_ARG)) {
+	else if (!strcmp(arg->argument, DEBUG_MODE_ARG)) {
 		DEBUG_MODE = true;
 	}
-	else if (!strcmp(argument, OUTPUT_C_ARG)) {
+	else if (!strcmp(arg->argument, OUTPUT_C_ARG)) {
 		OUTPUT_C = true;
 	}
-	else if (!strcmp(argument, HELP_ARG)) {
+	else if (!strcmp(arg->argument, HELP_ARG)) {
 		help();
 		return;
 	}
-	else if (!strcmp(argument, COMPILER_ARG)) {
+	else if (!strcmp(arg->argument, COMPILER_ARG)) {
 		COMPILER = arg->nextArgument;
 	}
-	else if (!strcmp(argument, OUTPUT_ARG)) {
+	else if (!strcmp(arg->argument, OUTPUT_ARG)) {
 		if (!arg->nextArgument) {
-			errorMessage("missing filename after '-o'");
+			errorMessage("missing filename after '" OUTPUT_ARG "'");
 		}
 		OUTPUT_EXECUTABLE_NAME = arg->nextArgument;
 	}
 	else {
 		errorMessage("unrecognized command line option '%s'\n", arg->argument);
 	}
-
-	sdsfree(argument);
 }
 
 AlloyCompiler *createAlloyCompiler(int argc, char** argv) {
@@ -78,14 +74,14 @@ AlloyCompiler *createAlloyCompiler(int argc, char** argv) {
 			// in our future.
 			if (!strcmp(arg.argument, OUTPUT_ARG) ||
 				!strcmp(arg.argument, COMPILER_ARG)) {
-				i++;
+				i++; // skips the argument
 			}
 
 			// parse the argument
 			parse_argument(&arg);
 		}
 		else if (strstr(argv[i], ".ay")) {
-			SourceFile *file = createSourceFile(argv[i]);
+			SourceFile *file = createSourceFile(sdsnew(argv[i]));
 			if (!file) {
 				debugMessage("Error when attempting to create a source file");
 				return NULL;
