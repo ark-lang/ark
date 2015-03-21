@@ -56,7 +56,7 @@ void destroyToken(Token *token) {
 
 void consumeCharacter(Lexer *lexer) {
 	if (lexer->pos > lexer->inputLength) {
-		errorMessage("reached end of input");
+		errorMessage("reached end of input, pos(%d) ... len(%d)", lexer->pos, lexer->inputLength);
 		return;
 	}
 	// stop consuming if we hit the end of the file

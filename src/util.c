@@ -3,16 +3,16 @@
 sds randString(size_t length) {
 
     static char charset[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_";
-    sds randomString = sdsnewlen("", length+1);
+    sds randomString = sdsempty();
 
     if (length) {
-    	randomString = sdscat(randomString, "--");
+    	randomString = sdscat(randomString, "__");
 
         if (randomString) {
             int n;
             for (n = 2; n < length;n++) {
                 int key = rand() % (int)(sizeof(charset)-1);
-                randomString = sdscat(randomString, &charset[key]);
+                randomString = sdscatlen(randomString, &charset[key], 1);
             }
         }
     }
@@ -23,7 +23,7 @@ sds randString(size_t length) {
 sds toUppercase(sds str) {
 	size_t len = sdslen(str);
 	sds result = sdsnewlen("", len);
-	
+
 	int i;
 	for (i = 0; i < len; i++) {
 		result[i] = toupper(str[i]);
