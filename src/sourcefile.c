@@ -6,6 +6,8 @@ SourceFile *createSourceFile(sds fileName) {
 	sourceFile->headerFile = createHeaderFile(fileName);
 	sourceFile->name = getFileName(sourceFile->fileName);
 	sourceFile->alloyFileContents = readFile(fileName);
+
+
 	if (!sourceFile->alloyFileContents) {
 		errorMessage("Failed to read file %s", sourceFile->fileName);
 		destroySourceFile(sourceFile);
@@ -21,15 +23,12 @@ void writeFiles(SourceFile *sourceFile) {
 }
 
 void writeSourceFile(SourceFile *sourceFile) {
-	// ugly
-	sds filename = sdsnew(sourceFile->name);
-	filename = sdscat(filename, ".c");
-	//strncpy(filename, sourceFile->name, sizeof(char) * (len - 2));
-	//filename[len - 2] = '.';
-	//filename[len - 1] = 'c';
-	//filename[len] = '\0';
+	sourceFile->generatedSourceName = sdsempty();
+	sdscat(sourceFile->generatedSourceName, "__gen_");
+	sdscat(sourceFile->generatedSourceName, sourceFile->name);
+	sdscat(sourceFile->generatedSourceName, ".c");
 
-	sourceFile->outputFile = fopen(filename, "w");
+	sourceFile->outputFile = fopen(sourceFile->generatedSourceName, "w");
 	if (!sourceFile->outputFile) {
 		perror("fopen: failed to open file");
 		return;
@@ -47,22 +46,15 @@ void closeSourceFile(SourceFile *sourceFile) {
 
 void destroySourceFile(SourceFile *sourceFile) {
 	if (sourceFile) {
-		// more ugly pls fix k ty
-//		size_t len = strlen(sourceFile->name) + 2;
-//		char filename[len + 2];
-//		strncpy(filename, sourceFile->name, sizeof(char) * (len - 2));
-//		filename[len - 2] = '.';
-//		filename[len - 1] = 'c';
-//		filename[len] = '\0';
-		sds filename = sdsnew(sourceFile->name);
-		filename = sdscat(filename, ".c");
-
-		if (!OUTPUT_C) remove(filename);
+		if (!OUTPUT_C) remove(sourceFile->generatedSourceName);
 
 		destroyHeaderFile(sourceFile->headerFile);
+
 		debugMessage("Destroyed Source File `%s`", sourceFile->name);
 		sdsfree(sourceFile->name);
+		sdsfree(sourceFile->generatedSourceName);
 		sdsfree(sourceFile->alloyFileContents);
+
 		free(sourceFile);
 	}
 }

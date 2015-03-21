@@ -11,6 +11,7 @@ typedef struct {
 	sds fileName;
 	sds name;
 	sds alloyFileContents;
+	sds generatedSourceName;
 	FILE *outputFile;
 
 	Vector *tokens;

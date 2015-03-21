@@ -8,6 +8,8 @@
 typedef struct {
 	sds fileName;
 	sds name;
+	sds generatedHeaderName;
+
 	FILE *outputFile;
 } HeaderFile;
 
