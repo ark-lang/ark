@@ -1318,12 +1318,23 @@ FunctionReturnAstNode *parseReturnStatementAstNode(Parser *parser) {
 	return NULL;
 }
 
-StatementAstNode *parseStatementAstNode(Parser *parser) {
-	// ew clean this up pls
+BreakStatementAstNode *parseBreakStatementAstNode(Parser *parser) {
+	BreakStatementAstNode *breakStmt = createBreakStatementAstNode();
+	matchTokenTypeAndContent(parser, IDENTIFIER, BREAK_KEYWORD);
+	// eat dat semi colon bby gurl
+	if (checkTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
+		consumeToken(parser);
+	}
+	return breakStmt;
+}
 
+StatementAstNode *parseStatementAstNode(Parser *parser) {
 	// RETURN STATEMENTS
 	if (checkTokenTypeAndContent(parser, IDENTIFIER, RETURN_KEYWORD, 0)) {
 		return createStatementAstNode(parseReturnStatementAstNode(parser), FUNCTION_RET_AST_NODE);
+	}
+	else if (checkTokenTypeAndContent(parser, IDENTIFIER, BREAK_KEYWORD, 0)) {
+		return createStatementAstNode(parseBreakStatementAstNode(parser), BREAK_AST_NODE);
 	}
 	// STRUCTURES
 	else if (checkTokenTypeAndContent(parser, IDENTIFIER, STRUCT_KEYWORD, 0)) {
