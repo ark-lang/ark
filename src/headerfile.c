@@ -30,7 +30,7 @@ void destroyHeaderFile(HeaderFile *headerFile) {
 
 		debugMessage("Destroyed Header File `%s`", headerFile->name);
 		sdsfree(headerFile->generatedHeaderName);
-		sdsfree(headerFile->name);
+		free(headerFile->name);
 		free(headerFile);
 	}
 }
