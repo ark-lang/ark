@@ -329,7 +329,7 @@ void startCompiler(Compiler *self) {
 		closeFiles(self->currentSourceFile);
 	}
 
-	char *buildCommand = safeMalloc(sizeof(char));
+	char *buildCommand = safeMalloc(sizeof(char) * 2);
 	buildCommand[0] = '\0'; // whatever
 
 	// append the compiler to use etc
@@ -390,8 +390,10 @@ void compileAST(Compiler *self) {
 }
 
 void destroyCompiler(Compiler *self) {
-	hashmap_free(self->functions);
-	hashmap_free(self->structures);
-	free(self);
-	debugMessage("Destroyed compiler");
+	if (self) {
+		hashmap_free(self->functions);
+		hashmap_free(self->structures);
+		free(self);
+		debugMessage("Destroyed compiler");
+	}
 }
