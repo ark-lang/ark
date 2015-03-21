@@ -142,7 +142,9 @@ const char *getFilenameExtension(const char *filename) {
 }
 
 void *safeMalloc(size_t size) {
-	void *memoryChunk = malloc(size);
-	assert(memoryChunk);
-	return memoryChunk;
+	void *mem = malloc(size);
+	if (!mem) {
+		errorMessage("Failed to allocate %d bytes of memory", size);
+	}
+	return mem;
 }
