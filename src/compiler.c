@@ -80,6 +80,9 @@ void emitBlock(Compiler *self, BlockAstNode *block) {
 			// why even have it's own function?
 			emitCode(self, "break;");
 			break;
+		case WHILE_LOOP_AST_NODE:
+			emitWhileLoop(self, currentAstNode->data);
+			break;
 		default:
 			printf("wat node is that bby?\n");
 			break;
@@ -252,6 +255,7 @@ void emitForLoop(Compiler *self, ForLoopAstNode *forLoop) {
 		stepValue = sdsnew("1"); // default step of 1.
 	}
 
+	// TODO: check if inclusive/exclusive, and handle cases where the operator is <=, >=, >, ==, != etc
 	emitCode(self, "for (%s %s = %s; %s < %s; %s += %s) {\n",
 			forLoop->type->content,
 			indexRandName,
@@ -260,13 +264,24 @@ void emitForLoop(Compiler *self, ForLoopAstNode *forLoop) {
 			((Token*) getVectorItem(forLoop->parameters, FOR_END))->content,
 			indexRandName,
 			stepValue);
+
 	emitBlock(self, forLoop->body);
 	emitCode(self, "}\n");
 }
 
 void emitInfiniteLoop(Compiler *self, InfiniteLoopAstNode *infinite) {
+	self->writeState = WRITE_SOURCE_STATE;
 	emitCode(self, "for(;;) {\n");
 	emitBlock(self, infinite->body);
+	emitCode(self, "}\n");
+}
+
+void emitWhileLoop(Compiler *self, WhileLoopAstNode *whileLoop) {
+	self->writeState = WRITE_SOURCE_STATE;
+	emitCode(self, "while (");
+	emitExpression(self, whileLoop->condition);
+	emitCode(self, ") {\n");
+	emitBlock(self, whileLoop->body);
 	emitCode(self, "}\n");
 }
 
