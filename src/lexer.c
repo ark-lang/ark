@@ -18,7 +18,7 @@ void startLexingFiles(Lexer *lexer, Vector *sourceFiles) {
 		SourceFile *sourceFile = getVectorItem(sourceFiles, i);
 
 		// reset everything
-		lexer->inputLength = strlen(sourceFile->alloyFileContents);
+		lexer->inputLength = sdslen(sourceFile->alloyFileContents);
 		lexer->input = sourceFile->alloyFileContents;
 		lexer->pos = 0;
 		lexer->lineNumber = 1;
@@ -57,14 +57,13 @@ void destroyToken(Token *token) {
 void consumeCharacter(Lexer *lexer) {
 	if (lexer->pos > lexer->inputLength) {
 		errorMessage("reached end of input");
-		destroyLexer(lexer);
 		return;
 	}
 	// stop consuming if we hit the end of the file
 	if(isEndOfInput(lexer->currentChar)) {
         return;
-    	}
-    	else if(lexer->currentChar == '\n') {
+	}
+	else if(lexer->currentChar == '\n') {
 		lexer->charNumber = 0;	// reset the char number back to zero
 		lexer->lineNumber++;
 	}
@@ -74,9 +73,7 @@ void consumeCharacter(Lexer *lexer) {
 }
 
 sds extractToken(Lexer *lexer, int start, int length) {
-	sds result = sdsnewlen("", length);
-	sdscpy(result, &lexer->input[start]);
-	return result;
+	return sdsnewlen(&lexer->input[start], length);
 }
 
 void skipLayoutAndComments(Lexer *lexer) {
@@ -95,7 +92,6 @@ void skipLayoutAndComments(Lexer *lexer) {
 
 			if (isEndOfInput(lexer->currentChar)) {
 				errorMessage("unterminated block comment");
-				destroyLexer(lexer);
 				return;
 			}
 
@@ -139,7 +135,7 @@ void expectCharacter(Lexer *lexer, char c) {
 	}
 }
 
-void recognize_end_of_input_token(Lexer *lexer) {
+void recognizeEndOfInputToken(Lexer *lexer) {
 	consumeCharacter(lexer);
 	pushInitializedToken(lexer, END_OF_FILE, "<END_OF_FILE>");
 }
@@ -263,7 +259,7 @@ void getNextToken(Lexer *lexer) {
 	lexer->startPos = lexer->pos;
 
 	if (isEndOfInput(lexer->currentChar)) {
-		recognize_end_of_input_token(lexer);
+		recognizeEndOfInputToken(lexer);
 		lexer->running = false;	// stop lexing
 		return;
 	}
@@ -318,72 +314,14 @@ void destroyLexer(Lexer *lexer) {
 	}
 }
 
-char* getTokenContext(Vector *stream, Token *tok, bool colour_error_token) {
-	int line_num = tok->lineNumber;
-	int result_size = 128;
-	int result_index = 0;
-	char *result = safeMalloc(sizeof(char) * (result_size + 1));
-
+char* getTokenContext(Vector *stream, Token *tok) {
+	sds result = sdsempty();
 	int i;
 	for (i = 0; i < stream->size; i++) {
-		Token *temp_tok = getVectorItem(stream, i);
-		if (temp_tok->lineNumber == line_num) {
-			size_t len = strlen(temp_tok->content);
-
-			int j;
-			for (j = 0; j < len; j++) {
-				// just in case we need to realloc
-				if (result_index >= result_size) {
-					result_size *= 2;
-					result = realloc(result, sizeof(char) * (result_size + 1));
-					if (!result) {
-						perror("failed to reallocate memory for token context");
-						return NULL;
-					}
-				}
-				result[result_index++] = temp_tok->content[j];
-			}
-
-			// add a space so everything is cleaner
-			result[result_index++] = ' ';
+		Token *tempTok = getVectorItem(stream, i);
+		if (tempTok->lineNumber == tok->lineNumber) {
+			sdscat(result, tempTok->content);
 		}
 	}
-
-	result[result_index++] = '\0';
-	return result;
-}
-
-char* get_line_number_context(Vector *stream, int line_num) {
-	int result_size = 128;
-	int result_index = 0;
-	char *result = safeMalloc(sizeof(char) * (result_size + 1));
-
-	int i;
-	for (i = 0; i < stream->size; i++) {
-		Token *tok = getVectorItem(stream, i);
-		if (tok->lineNumber == line_num) {
-			size_t len = strlen(tok->content);
-			int j;
-			for (j = 0; j < len; j++) {
-				// just in case we need to realloc
-				if (result_index >= result_size) {
-					result_size *= 2;
-					result = realloc(result, sizeof(char) * (result_size + 1));
-					if (!result) {
-						perror("failed to reallocate memory for line number context");
-						return NULL;
-					}
-				}
-
-				// add the char to the result
-				result[result_index++] = tok->content[j];
-			}
-
-			// add a space so everything is cleaner
-			result[result_index++] = ' ';
-		}
-	}
-
-	result[result_index++] = '\0';
 	return result;
 }
