@@ -66,6 +66,8 @@ void emitArguments(Compiler *self, Vector *args);
 
 void emitInfiniteLoop(Compiler *self, InfiniteLoopAstNode *infinite);
 
+void emitWhileLoop(Compiler *self, WhileLoopAstNode *whileLoop);
+
 void emitUseStatement(Compiler *self, UseStatementAstNode *use);
 
 void emitFunction(Compiler *self, FunctionAstNode *func);
