@@ -56,7 +56,11 @@ Function are defined as follows:
 
 	// multiple statements
 	fn [function_name]([type] [name], ...):[return_type] {
-		[statements];
+		[statement];
+		[statement];
+		[statement];
+		[statement];
+		[statement];
 	}
 	
 	// or
@@ -88,6 +92,32 @@ The syntax is as follows:
 	[function_call] -> [variable];
 	
 The variable must be defined.
+
+### Using Files
+Currently, we're still figuring things out with c bindings and file inclusion, however you can call C functions like so:
+
+	use "stdio.h";
+
+	fn main(): int {
+		int swag = 10;
+		printf("this is my function to print out this variables value, which is: %d\n", swag);
+		return 0;
+	}
+
+Note the first line `use "stdio.h"`. This will include the standard input/output library from C. However, if you plan to use
+function redirects, they won't with C function calls, for example:
+
+	use "stdio.h"
+	use "stdlib.h"
+	
+	fn main(): int {
+		int ^swag;
+		malloc(sizeof(5)) -> swag;
+		^swag = 10;
+		printf("swag is %d\n", ^swag);
+	}
+
+It looks like it should work, however function redirects do not work yet with C bindings.
 
 ### Structures
 
