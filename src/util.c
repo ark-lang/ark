@@ -15,7 +15,7 @@ char *randString(size_t length) {
     char *randomString = NULL;
 
     if (length) {
-        randomString = malloc(sizeof(char) * (length +1));
+        randomString = safeMalloc(sizeof(char) * (length +1));
         randomString[0] = '_';
         randomString[1] = '_';
 
@@ -35,7 +35,7 @@ char *randString(size_t length) {
 
 char *toUppercase(char *str) {
 	size_t len = strlen(str);
-	char *result = malloc(sizeof(char) * (len + 1));
+	char *result = safeMalloc(sizeof(char) * (len + 1));
 	
 	int i;
 	for (i = 0; i < len; i++) {
@@ -63,7 +63,7 @@ char *removeExtension(char *file) {
     char *lastdot;
     if (file == NULL)
          return NULL;
-    if ((retstr = malloc (strlen (file) + 1)) == NULL)
+    if ((retstr = safeMalloc (strlen (file) + 1)) == NULL)
         return NULL;
     strcpy (retstr, file);
     lastdot = strrchr (retstr, '.');
@@ -142,7 +142,7 @@ const char *getFilenameExtension(const char *filename) {
 }
 
 void *safeMalloc(size_t size) {
-	void *mem_chunk = malloc(size);
-	assert(mem_chunk);
-	return mem_chunk;
+	void *memoryChunk = malloc(size);
+	assert(memoryChunk);
+	return memoryChunk;
 }

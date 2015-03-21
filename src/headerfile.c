@@ -1,7 +1,7 @@
 #include "headerfile.h"
 
 HeaderFile *createHeaderFile(char *fileName) {
-	HeaderFile *headerFile = malloc(sizeof(*headerFile));
+	HeaderFile *headerFile = safeMalloc(sizeof(*headerFile));
 	headerFile->fileName = fileName;
 	headerFile->name = getFileName(headerFile->fileName);
 	return headerFile;
@@ -38,6 +38,7 @@ void destroyHeaderFile(HeaderFile *headerFile) {
 		filename[len] = '\0';
 		if (!OUTPUT_C) remove(filename);
 
+		debugMessage("Destroyed Header File `%s`", headerFile->name);
 		free(headerFile->name);
 		free(headerFile);
 	}

@@ -6,6 +6,18 @@ static const char* DATA_TYPES[] = {
 	"void", "char"
 };
 
+static const char* NODE_TYPE[] = {
+	"EXPRESSION_AST_NODE", "VARIABLE_DEF_AST_NODE",
+	"VARIABLE_DEC_AST_NODE", "FUNCTION_ARG_AST_NODE",
+	"FUNCTION_AST_NODE", "FUNCTION_PROT_AST_NODE",
+	"BLOCK_AST_NODE", "FUNCTION_CALLEE_AST_NODE",
+	"FUNCTION_RET_AST_NODE", "FOR_LOOP_AST_NODE",
+	"VARIABLE_REASSIGN_AST_NODE", "INFINITE_LOOP_AST_NODE",
+	"BREAK_AST_NODE", "CONTINUE_AST_NODE", "ENUM_AST_NODE", "STRUCT_AST_NODE",
+	"IF_STATEMENT_AST_NODE", "MATCH_STATEMENT_AST_NODE", "WHILE_LOOP_AST_NODE",
+	"ANON_AST_NODE", "USE_STATEMENT_AST_NODE"
+};
+
 /** Supported Operators */
 static char* SUPPORTED_OPERANDS[] = {
 	"++", "--",
@@ -894,11 +906,11 @@ ExpressionAstNode *parseExpressionAstNode(Parser *parser) {
 }
 
 void *parseVariableAstNode(Parser *parser, bool isGlobal) {
-	bool isConstant = false;
+	bool isMutable = false;
 
-	if (checkTokenTypeAndContent(parser, IDENTIFIER, CONSTANT_KEYWORD, 0)) {
+	if (checkTokenTypeAndContent(parser, IDENTIFIER, MUT_KEYWORD, 0)) {
 		consumeToken(parser);
-		isConstant = true;
+		isMutable = true;
 	}
 
 	// consume the int data type
@@ -927,7 +939,7 @@ void *parseVariableAstNode(Parser *parser, bool isGlobal) {
 
 		// create the variable declare ast_node
 		VariableDeclarationAstNode *dec = createVariableDeclarationAstNode();
-		dec->isConstant = isConstant;
+		dec->isMutable = isMutable;
 		dec->variableDefinitionAstNode = def;
 		dec->expression = parseExpressionAstNode(parser);
 
@@ -1085,9 +1097,9 @@ FunctionAstNode *parseFunctionAstNode(Parser *parser) {
 				break;
 			}
 
-			bool isConstant = false;
-			if (checkTokenTypeAndContent(parser, IDENTIFIER, CONSTANT_KEYWORD, 0)) {
-				isConstant = true;
+			bool isMutable = false;
+			if (checkTokenTypeAndContent(parser, IDENTIFIER, MUT_KEYWORD, 0)) {
+				isMutable = true;
 				consumeToken(parser);
 			}
 
@@ -1108,7 +1120,7 @@ FunctionAstNode *parseFunctionAstNode(Parser *parser) {
 			arg->type = argumentType;
 			arg->name = argumentName;
 			arg->isPointer = isPointer;
-			arg->isConstant = isConstant;
+			arg->isMutable = isMutable;
 			arg->value = NULL;
 
 			if (checkTokenTypeAndContent(parser, OPERATOR, ASSIGNMENT_OPERATOR, 0)) {
@@ -1147,9 +1159,9 @@ FunctionAstNode *parseFunctionAstNode(Parser *parser) {
 		if (checkTokenTypeAndContent(parser, OPERATOR, ":", 0)) {
 			consumeToken(parser);
 
-			bool isConstant = false;
-			if (checkTokenTypeAndContent(parser, IDENTIFIER, CONSTANT_KEYWORD, 0)) {
-				isConstant = true;
+			bool isMutable = false;
+			if (checkTokenTypeAndContent(parser, IDENTIFIER, MUT_KEYWORD, 0)) {
+				isMutable = true;
 				consumeToken(parser);
 			}
 
@@ -1164,7 +1176,7 @@ FunctionAstNode *parseFunctionAstNode(Parser *parser) {
 				Token *returnType = consumeToken(parser);
 				prototype->returnType = returnType;
 				function->returnsPointer = returnPointer;
-				function->isConstant = isConstant;
+				function->isMutable = isMutable;
 			}
 			else {
 				parserError(parser, "function declaration return type expected", consumeToken(parser), false);
@@ -1541,11 +1553,13 @@ void destroyParser(Parser *parser) {
 	if (parser) {
 		int i;
 		for (i = 0; i < parser->parseTree->size; i++) {
-			AstNode *ast_node = getVectorItem(parser->parseTree, i);
-			removeAstNode(ast_node);
+			AstNode *astNode = getVectorItem(parser->parseTree, i);
+			debugMessage("Removed node %s", NODE_TYPE[astNode->type]);
+			removeAstNode(astNode);
 		}
 		destroyVector(parser->parseTree);
 
 		free(parser);
+		debugMessage("Destroyed parser");
 	}
 }
