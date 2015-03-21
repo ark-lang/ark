@@ -35,7 +35,7 @@ void exitParser(Parser *parser) {
 
 void parserError(Parser *parser, char *msg, Token *tok, bool fatal_error) {
 	errorMessage("%d:%d %s", tok->lineNumber, tok->charNumber, msg);
-	char *error = getTokenContext(parser->tokenStream, tok, true);
+	char *error = getTokenContext(parser->tokenStream, tok);
 	printf("\t%s\n", error);
 	parser->exitOnError = fatal_error;
 	free(error);
