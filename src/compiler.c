@@ -194,9 +194,6 @@ void emitStructure(Compiler *self, StructureAstNode *structure) {
 
 void emitExpression(Compiler *self, ExpressionAstNode *expr) {
 	switch (expr->expressionType) {
-	case VARIABLE_EXPR:
-		// TODO:
-		break;
 	case PAREN_EXPR:
 		emitCode(self, "(");
 		emitExpression(self, expr->lhand);
@@ -207,10 +204,19 @@ void emitExpression(Compiler *self, ExpressionAstNode *expr) {
 	case NUMBER_EXPR:
 		emitCode(self, "%s", expr->numberExpr->content);
 		break;
+	case VARIABLE_EXPR:
+		emitCode(self, "%s", expr->identifier->content);
+		break;
+	case STRING_EXPR:
+		emitCode(self, "%s", expr->string->content);
+		break;
 	case BINARY_EXPR:
 		emitExpression(self, expr->lhand);
 		emitCode(self, " %c ", expr->binaryOp);
 		emitExpression(self, expr->rhand);
+		break;
+	case FUNCTION_CALL_EXPR:
+		emitFunctionCall(self, expr->functionCall);
 		break;
 	default:
 		printf("not sure what type %d is?\n", expr->expressionType);
