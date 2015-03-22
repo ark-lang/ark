@@ -1,0 +1,16 @@
+use "stdio.h"
+use "stdlib.h"
+use "stdbool.h"
+
+struct Lexer {
+
+}
+
+fn (Lexer ^lex) createLexer(): ^Lexer {
+
+}
+
+fn main(): int {
+	
+	return 0;
+}
