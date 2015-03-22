@@ -25,12 +25,10 @@ void closeHeaderFile(HeaderFile *headerFile) {
 }
 
 void destroyHeaderFile(HeaderFile *headerFile) {
-	if (headerFile) {
-		if (!OUTPUT_C) remove(headerFile->generatedHeaderName);
+	if (!OUTPUT_C) remove(headerFile->generatedHeaderName);
 
-		debugMessage("Destroyed Header File `%s`", headerFile->name);
-		sdsfree(headerFile->generatedHeaderName);
-		free(headerFile->name);
-		free(headerFile);
-	}
+	debugMessage("Destroyed Header File `%s`", headerFile->name);
+	sdsfree(headerFile->generatedHeaderName);
+	free(headerFile->name);
+	free(headerFile);
 }

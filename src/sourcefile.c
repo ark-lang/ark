@@ -44,16 +44,14 @@ void closeSourceFile(SourceFile *sourceFile) {
 }
 
 void destroySourceFile(SourceFile *sourceFile) {
-	if (sourceFile) {
-		if (!OUTPUT_C) remove(sourceFile->generatedSourceName);
+	if (!OUTPUT_C) remove(sourceFile->generatedSourceName);
 
-		destroyHeaderFile(sourceFile->headerFile);
+	destroyHeaderFile(sourceFile->headerFile);
 
-		debugMessage("Destroyed Source File `%s`", sourceFile->name);
-		sdsfree(sourceFile->fileName);
-		free(sourceFile->name); // this isn't using sds!
-		sdsfree(sourceFile->generatedSourceName);
-		free(sourceFile->alloyFileContents); // and this isn't either! vedant u fkn noob
-		free(sourceFile);
-	}
+	debugMessage("Destroyed Source File `%s`", sourceFile->name);
+	sdsfree(sourceFile->fileName);
+	free(sourceFile->name); // this isn't using sds!
+	sdsfree(sourceFile->generatedSourceName);
+	free(sourceFile->alloyFileContents); // and this isn't either! vedant u fkn noob
+	free(sourceFile);
 }
