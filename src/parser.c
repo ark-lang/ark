@@ -220,45 +220,33 @@ MatchAstNode *createMatchAstNode() {
 }
 
 void destroyVariableReassignmentAstNode(VariableReassignmentAstNode *vrn) {
-	if (vrn) {
-		if (vrn->expression) {
-			destroyExpressionAstNode(vrn->expression);
-		}
-		free(vrn);
+	if (vrn->expression) {
+		destroyExpressionAstNode(vrn->expression);
 	}
+	free(vrn);
 }
 
 void destroyForLoopAstNode(ForLoopAstNode *loopNode) {
-	if (loopNode) {
-		destroyVector(loopNode->parameters);
-		destroyBlockAstNode(loopNode->body);
-		free(loopNode);
-	}
+	destroyVector(loopNode->parameters);
+	destroyBlockAstNode(loopNode->body);
+	free(loopNode);
 }
 
 void destroyFunctionOwnerAstNode(FunctionOwnerAstNode *functionOwner) {
-	if (functionOwner) {
-		free(functionOwner);
-	}
+	free(functionOwner);
 }
 
 void destroyBreakStatementAstNode(BreakStatementAstNode *breakStatement) {
-	if (breakStatement) {
-		free(breakStatement);
-	}
+	free(breakStatement);
 }
 
 void destroyContinueStatementAstNode(ContinueStatementAstNode *continueStatement) {
-	if (continueStatement) {
-		free(continueStatement);
-	}
+	free(continueStatement);
 }
 
 void destroyEnumeratedStructureAstNode(EnumeratedStructureAstNode *enumeratedStructure) {
-	if (enumeratedStructure) {
-		destroyVector(enumeratedStructure->structs);
-		free(enumeratedStructure);
-	}
+	destroyVector(enumeratedStructure->structs);
+	free(enumeratedStructure);
 }
 
 void destroyStatementAstNode(StatementAstNode *statement) {
@@ -287,194 +275,156 @@ void destroyStatementAstNode(StatementAstNode *statement) {
 }
 
 void destroyFunctionReturnAstNode(FunctionReturnAstNode *functionReturn) {
-	if (functionReturn) {
-		destroyExpressionAstNode(functionReturn->returnValue);
-		free(functionReturn);
-	}
+	destroyExpressionAstNode(functionReturn->returnValue);
+	free(functionReturn);
 }
 
 void destroyExpressionAstNode(ExpressionAstNode *expression) {
-	if (expression) {
-		destroyVector(expression->tokens);
-		free(expression);
-	}
+	destroyVector(expression->tokens);
+	free(expression);
 }
 
 void destroyVariableDefinitionAstNode(VariableDefinitionAstNode *variableDefinition) {
-	if (variableDefinition) {
-		free(variableDefinition);
-	}
+	free(variableDefinition);
 }
 
 void destroyVariableDeclarationAstNode(VariableDeclarationAstNode *variableDeclaration) {
-	if (variableDeclaration) {
-		destroyVariableDefinitionAstNode(variableDeclaration->variableDefinitionAstNode);
-		destroyExpressionAstNode(variableDeclaration->expression);
-		free(variableDeclaration);
-	}
+	destroyVariableDefinitionAstNode(variableDeclaration->variableDefinitionAstNode);
+	destroyExpressionAstNode(variableDeclaration->expression);
+	free(variableDeclaration);
 }
 
 void destroyFunctionArgumentAstNode(FunctionArgumentAstNode *functionArgument) {
-	if (functionArgument) {
-		if (functionArgument->value) {
-			destroyExpressionAstNode(functionArgument->value);
-		}
-		free(functionArgument);
+	if (functionArgument->value) {
+		destroyExpressionAstNode(functionArgument->value);
 	}
+	free(functionArgument);
 }
 
 void destroyBlockAstNode(BlockAstNode *blockNode) {
-	if (blockNode) {
-		if (blockNode->statements) {
-			destroyVector(blockNode->statements);
-		}
-		free(blockNode);
+	if (blockNode->statements) {
+		destroyVector(blockNode->statements);
 	}
+	free(blockNode);
 }
 
 void destroyInfiniteLoopAstNode(InfiniteLoopAstNode *infiniteLoop) {
-	if (infiniteLoop) {
-		if (infiniteLoop->body) {
-			destroyBlockAstNode(infiniteLoop->body);
-		}
-		free(infiniteLoop);
+	if (infiniteLoop->body) {
+		destroyBlockAstNode(infiniteLoop->body);
 	}
+	free(infiniteLoop);
 }
 
 void destroyFunctionPrototypeAstNode(FunctionPrototypeAstNode *functionPrototype) {
-	if (functionPrototype) {
-		if (functionPrototype->args) {
-			int i;
-			for (i = 0; i < functionPrototype->args->size; i++) {
-				StatementAstNode *sn = getVectorItem(functionPrototype->args, i);
-				if (sn) {
-					destroyStatementAstNode(sn);
-				}
+	if (functionPrototype->args) {
+		int i;
+		for (i = 0; i < functionPrototype->args->size; i++) {
+			StatementAstNode *sn = getVectorItem(functionPrototype->args, i);
+			if (sn) {
+				destroyStatementAstNode(sn);
 			}
-			destroyVector(functionPrototype->args);
 		}
-		free(functionPrototype);
+		destroyVector(functionPrototype->args);
 	}
+	free(functionPrototype);
 }
 
 void destroyFunctionAstNode(FunctionAstNode *function) {
-	if (function) {
-		if (function->prototype) {
-			destroyFunctionPrototypeAstNode(function->prototype);
-		}
-		if (function->body) {
-			destroyBlockAstNode(function->body);
-		}
-		free(function);
+	if (function->prototype) {
+		destroyFunctionPrototypeAstNode(function->prototype);
 	}
+	if (function->body) {
+		destroyBlockAstNode(function->body);
+	}
+	free(function);
 }
 
 void destroyFunctionCallAstNode(FunctionCallAstNode *functionCall) {
-	if (functionCall) {
-		if (functionCall->args) {
-			destroyVector(functionCall->args);
-		}
-		free(functionCall);
+	if (functionCall->args) {
+		destroyVector(functionCall->args);
 	}
+	free(functionCall);
 }
 
 void destroyUseStatementAstNode(UseStatementAstNode *useStatement) {
-	if (useStatement) {
-		free(useStatement);
-	}
+	free(useStatement);
 }
 
 void destroyStructureAstNode(StructureAstNode *structure) {
-	if (structure) {
-		if (structure->statements) {
-			destroyVector(structure->statements);
-		}
-		free(structure);
+	if (structure->statements) {
+		destroyVector(structure->statements);
 	}
+	free(structure);
 }
 
 void destroyEnumAstNode(EnumAstNode *enumeration) {
-	if (enumeration) {
-		if (enumeration->enumItems) {
-			int i;
-			for (i = 0; i < enumeration->enumItems->size; i++) {
-				destroyEnumItem(getVectorItem(enumeration->enumItems, i));
-			}
-			destroyVector(enumeration->enumItems);
+	if (enumeration->enumItems) {
+		int i;
+		for (i = 0; i < enumeration->enumItems->size; i++) {
+			destroyEnumItem(getVectorItem(enumeration->enumItems, i));
 		}
-		free(enumeration);
+		destroyVector(enumeration->enumItems);
 	}
+	free(enumeration);
 }
 
 void destroyIfStatementAstNode(IfStatementAstNode *ifStatement) {
-	if (ifStatement) {
-		if (ifStatement->condition) {
-			destroyExpressionAstNode(ifStatement->condition);
-		}
-		if (ifStatement->body) {
-			destroyBlockAstNode(ifStatement->body);
-		}
-		free(ifStatement);
+	if (ifStatement->condition) {
+		destroyExpressionAstNode(ifStatement->condition);
 	}
+	if (ifStatement->body) {
+		destroyBlockAstNode(ifStatement->body);
+	}
+	free(ifStatement);
 }
 
 void destroyWhileLoopAstNode(WhileLoopAstNode *whileLoop) {
-	if (whileLoop) {
-		if (whileLoop->condition) {
-			destroyExpressionAstNode(whileLoop->condition);
-		}
-		if (whileLoop->body) {
-			destroyBlockAstNode(whileLoop->body);
-		}
-		free(whileLoop);
+	if (whileLoop->condition) {
+		destroyExpressionAstNode(whileLoop->condition);
 	}
+	if (whileLoop->body) {
+		destroyBlockAstNode(whileLoop->body);
+	}
+	free(whileLoop);
 }
 
 void destroyDoWhileAstNode(DoWhileAstNode *doWhile) {
-	if (doWhile) {
-		if (doWhile->condition) {
-			destroyExpressionAstNode(doWhile->condition);
-		}
-		if (doWhile->body) {
-			destroyBlockAstNode(doWhile->body);
-		}
-		free(doWhile);
+	if (doWhile->condition) {
+		destroyExpressionAstNode(doWhile->condition);
 	}
+	if (doWhile->body) {
+		destroyBlockAstNode(doWhile->body);
+	}
+	free(doWhile);
 }
 
 
 void destroyMastCaseAstNode(MatchCaseAstNode *matchCase) {
-	if (matchCase) {
-		if (matchCase->condition) {
-			destroyExpressionAstNode(matchCase->condition);
-		}
-		if (matchCase->body) {
-			destroyBlockAstNode(matchCase->body);
-		}
-		free(matchCase);
+	if (matchCase->condition) {
+		destroyExpressionAstNode(matchCase->condition);
 	}
+	if (matchCase->body) {
+		destroyBlockAstNode(matchCase->body);
+	}
+	free(matchCase);
 }
 
 void destroyMatchAstNode(MatchAstNode *match) {
-	if (match) {
-		if (match->condition) {
-			destroyExpressionAstNode(match->condition);
-		}
-		if (match->cases) {
-			int i;
-			for (i = 0; i < match->cases->size; i++) {
-				destroyMastCaseAstNode(getVectorItem(match->cases, i));
-			}
-			destroyVector(match->cases);
-		}
-		free(match);
+	if (match->condition) {
+		destroyExpressionAstNode(match->condition);
 	}
+	if (match->cases) {
+		int i;
+		for (i = 0; i < match->cases->size; i++) {
+			destroyMastCaseAstNode(getVectorItem(match->cases, i));
+		}
+		destroyVector(match->cases);
+	}
+	free(match);
 }
 
 void destroyEnumItem(EnumItem *enumItem) {
-	if (enumItem) {
-		free(enumItem);
-	}
+	free(enumItem);
 }
 
 /** END AST_NODE FUNCTIONS */
@@ -1592,16 +1542,14 @@ void removeAstNode(AstNode *astNode) {
 }
 
 void destroyParser(Parser *parser) {
-	if (parser) {
-		int i;
-		for (i = 0; i < parser->parseTree->size; i++) {
-			AstNode *astNode = getVectorItem(parser->parseTree, i);
-			debugMessage("Removed node %s", NODE_TYPE[astNode->type]);
-			removeAstNode(astNode);
-		}
-		destroyVector(parser->parseTree);
-
-		free(parser);
-		debugMessage("Destroyed parser");
+	int i;
+	for (i = 0; i < parser->parseTree->size; i++) {
+		AstNode *astNode = getVectorItem(parser->parseTree, i);
+		debugMessage("Removed node %s", NODE_TYPE[astNode->type]);
+		removeAstNode(astNode);
 	}
+	destroyVector(parser->parseTree);
+
+	free(parser);
+	debugMessage("Destroyed parser");
 }
