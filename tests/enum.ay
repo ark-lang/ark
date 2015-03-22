@@ -1,0 +1,17 @@
+use "stdio.h"
+
+enum Test {
+	SWAG
+	POLO = 92
+}
+
+fn localEnum(): void {
+	enum Another {
+		YAY
+		WOW = 2
+	}	
+}
+
+fn main(): int {
+	int x = 5;
+}
