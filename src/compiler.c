@@ -25,8 +25,8 @@ char *BOILERPLATE =
 "typedef int s32;\n"
 "typedef short s16;\n"
 "typedef char s8;\n"
-"typedef float float32;\n"
-"typedef double float64;\n"
+"typedef float f32;\n"
+"typedef double f64;\n"
 ;
 
 Compiler *createCompiler(Vector *sourceFiles) {
@@ -250,7 +250,7 @@ void emitFunctionCall(Compiler *self, FunctionCallAstNode *call) {
 			emitCode(self, ", ");
 		}
 	}
-	emitCode(self, ")\n");
+	emitCode(self, ")");
 
 	if (call->isFunctionRedirect) {
 		int i;
@@ -267,13 +267,13 @@ void emitIfStatement(Compiler *self, IfStatementAstNode *stmt) {
 	self->writeState = WRITE_SOURCE_STATE;
 	emitCode(self, "if (");
 	emitExpression(self, stmt->condition);
-	emitCode(self, ") {\n");
+	emitCode(self, ") {");
 	emitBlock(self, stmt->body);
-	emitCode(self, "}\n");
+	emitCode(self, "}");
 	if (stmt->elseStatement) {
-		emitCode(self, "else {\n");
+		emitCode(self, "else {");
 		emitBlock(self, stmt->elseStatement);
-		emitCode(self, "}\n");
+		emitCode(self, "}");
 	}
 }
 
@@ -285,7 +285,7 @@ void emitReturnStatement(Compiler *self, FunctionReturnAstNode *ret) {
 		self->writeState = WRITE_SOURCE_STATE;
 		emitExpression(self, ret->returnValue);
 	}
-	emitCode(self, ";\n");
+	emitCode(self, ";");
 }
 
 void emitForLoop(Compiler *self, ForLoopAstNode *forLoop) {
@@ -308,7 +308,7 @@ void emitForLoop(Compiler *self, ForLoopAstNode *forLoop) {
 	}
 
 	// TODO: check if inclusive/exclusive, and handle cases where the operator is <=, >=, >, ==, != etc
-	emitCode(self, "for (%s %s = %s; %s < %s; %s += %s) {\n",
+	emitCode(self, "for (%s %s = %s; %s < %s; %s += %s) {",
 			forLoop->type->content,
 			indexRandName,
 			((Token*) getVectorItem(forLoop->parameters, FOR_START))->content,
@@ -318,36 +318,36 @@ void emitForLoop(Compiler *self, ForLoopAstNode *forLoop) {
 			stepValue);
 
 	emitBlock(self, forLoop->body);
-	emitCode(self, "}\n");
+	emitCode(self, "}");
 }
 
 void emitInfiniteLoop(Compiler *self, InfiniteLoopAstNode *infinite) {
 	self->writeState = WRITE_SOURCE_STATE;
-	emitCode(self, "for(;;) {\n");
+	emitCode(self, "for(;;) {");
 	emitBlock(self, infinite->body);
-	emitCode(self, "}\n");
+	emitCode(self, "}");
 }
 
 void emitWhileLoop(Compiler *self, WhileLoopAstNode *whileLoop) {
 	self->writeState = WRITE_SOURCE_STATE;
 	emitCode(self, "while (");
 	emitExpression(self, whileLoop->condition);
-	emitCode(self, ") {\n");
+	emitCode(self, ") {");
 	emitBlock(self, whileLoop->body);
-	emitCode(self, "}\n");
+	emitCode(self, "}");
 }
 
 void emitDoWhileLoop(Compiler *self, DoWhileAstNode *doWhile) {
 	self->writeState = WRITE_SOURCE_STATE;
-	emitCode(self, "do {\n");
+	emitCode(self, "do {");
 	emitBlock(self, doWhile->body);
 	emitCode(self, "} while (");
 	emitExpression(self, doWhile->condition);
-	emitCode(self, ");\n");
+	emitCode(self, ");");
 }
 
 void emitEnumeration(Compiler *self, EnumAstNode *enumeration) {
-	emitCode(self, "typedef enum {\n");
+	emitCode(self, "typedef enum {");
 	int i;
 	for (i = 0; i < enumeration->enumItems->size; i++) {
 		EnumItem *enumItem = getVectorItem(enumeration->enumItems, i);
@@ -355,9 +355,9 @@ void emitEnumeration(Compiler *self, EnumAstNode *enumeration) {
 		if (enumItem->hasValue) {
 			emitCode(self, " = %d", enumItem->value);
 		}
-		emitCode(self, ",\n");
+		emitCode(self, ",");
 	}
-	emitCode(self, "} %s;\n", enumeration->name->content);
+	emitCode(self, "} %s;", enumeration->name->content);
 }
 
 void emitUseStatement(Compiler *self, UseStatementAstNode *use) {
@@ -396,7 +396,7 @@ void emitFunction(Compiler *self, FunctionAstNode *func) {
 		}
 	}
 
-	emitCode(self, ");\n");
+	emitCode(self, ");");
 
 	// WRITE TO THE SOURCE FILE
 
@@ -425,9 +425,9 @@ void emitFunction(Compiler *self, FunctionAstNode *func) {
 		}
 	}
 
-	emitCode(self, ") {\n");
+	emitCode(self, ") {");
 	emitBlock(self, func->body);
-	emitCode(self, "}\n");
+	emitCode(self, "}");
 }
 
 void consumeAstNode(Compiler *self) {
@@ -493,7 +493,7 @@ void startCompiler(Compiler *self) {
 	}
 
 	// just for debug purposes
-	debugMessage("running cl args: `%s`\n", buildCommand);
+	debugMessage("running cl args: `%s`", buildCommand);
 	system(buildCommand);
 	sdsfree(buildCommand); // deallocate dat shit baby
 }
