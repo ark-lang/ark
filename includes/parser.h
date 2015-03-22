@@ -55,20 +55,12 @@
  * parser contents
  */
 typedef struct {
-	// the token stream to parse
 	Vector *tokenStream;
-
-	// the parse tree being built
 	Vector *parseTree;
+	map_t binopPrecedence;
 
-	// the current token index in the stream
 	int tokenIndex;
-
-	// if we're currently parsing
 	bool parsing;
-
-	// whether to exit on error
-	// after parsing
 	bool exitOnError;
 } Parser;
 
@@ -79,11 +71,6 @@ typedef enum {
 	TYPE_INTEGER = 0, TYPE_STR, TYPE_DOUBLE, TYPE_FLOAT, TYPE_BOOL, TYPE_VOID,
 	TYPE_CHAR, TYPE_STRUCT, TYPE_NULL
 } DataType;
-
-typedef enum {
-	BINARY_EXPR, FUNCTION_CALL_EXPR, VARIABLE_DEF_EXPR, VARIABLE_DEC_EXPR,
-	NUMBER_EXPR, STRING_EXPR,
-} ExpressionTypes;
 
 /**
  * Different types of data
@@ -100,6 +87,14 @@ typedef enum {
 	IF_STATEMENT_AST_NODE, MATCH_STATEMENT_AST_NODE, WHILE_LOOP_AST_NODE,
 	ANON_AST_NODE, USE_STATEMENT_AST_NODE
 } AstNodeType;
+
+typedef enum {
+	PAREN_EXPR, NUMBER_EXPR, FUNCTION_CALL_EXPR, VARIABLE_EXPR, BINARY_EXPR
+} ExpressionType;
+
+typedef struct {
+	int prec;
+} Precedence;
 
 /**
  * A wrapper for easier memory
@@ -773,6 +768,10 @@ void removeAstNode(AstNode *astNode);
  */
 Parser *createParser();
 
+Precedence *createPrecedence(int prec);
+
+void destroyPrecedence(Precedence *prec);
+
 /**
  * Advances to the next token
  *
@@ -879,13 +878,19 @@ bool checkTokenContent(Parser *parser, char* content, int ahead);
  */
 bool checkTokenTypeAndContent(Parser *parser, TokenType type, char* content, int ahead);
 
-/**
- * Parses an expression: currently only parses a number!
- *
- * @param parser the parser instance
- * @return the expression parsed
- */
-ExpressionAstNode *parseExpressionAstNode(Parser *parser);
+int getTokenPrecedence(Parser *parser);
+
+ExpressionAstNode *parseNumberExpression(Parser *parser);
+
+ExpressionAstNode *parseIdentifierExpression(Parser *parser);
+
+ExpressionAstNode *parseBinaryOperator(Parser *parser, int precedence, ExpressionAstNode *lhs);
+
+ExpressionAstNode *parseExpression(Parser *parser);
+
+ExpressionAstNode *parseBracketExpression(Parser *parser);
+
+ExpressionAstNode *parsePrimaryExpression(Parser *parser);
 
 /**
  * Parses a For Loop statement
