@@ -80,6 +80,10 @@ void emitBlock(Compiler *self, BlockAstNode *block) {
 			// why even have it's own function?
 			emitCode(self, "break;");
 			break;
+		case ENUM_AST_NODE:
+			self->writeState = WRITE_SOURCE_STATE;
+			emitEnumeration(self, currentAstNode->data);
+			break;
 		case WHILE_LOOP_AST_NODE:
 			emitWhileLoop(self, currentAstNode->data);
 			break;
@@ -285,6 +289,20 @@ void emitWhileLoop(Compiler *self, WhileLoopAstNode *whileLoop) {
 	emitCode(self, "}\n");
 }
 
+void emitEnumeration(Compiler *self, EnumAstNode *enumeration) {
+	emitCode(self, "typedef enum {\n");
+	int i;
+	for (i = 0; i < enumeration->enumItems->size; i++) {
+		EnumItem *enumItem = getVectorItem(enumeration->enumItems, i);
+		emitCode(self, "%s", enumItem->name);
+		if (enumItem->hasValue) {
+			emitCode(self, " = %d", enumItem->value);
+		}
+		emitCode(self, ",\n");
+	}
+	emitCode(self, "} %s;\n", enumeration->name->content);
+}
+
 void emitUseStatement(Compiler *self, UseStatementAstNode *use) {
 	self->writeState = WRITE_SOURCE_STATE;
 	emitCode(self, "#include %s\n", use->file->content);
@@ -444,6 +462,10 @@ void compileAST(Compiler *self) {
 				break;
 			case USE_STATEMENT_AST_NODE:
 				emitUseStatement(self, currentAstNode->data);
+				break;
+			case ENUM_AST_NODE:
+				self->writeState = WRITE_HEADER_STATE;
+				emitEnumeration(self, currentAstNode->data);
 				break;
 			default:
 				printf("node not yet supported: %s :(\n", NODE_TYPE[currentAstNode->type]);

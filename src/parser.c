@@ -165,6 +165,7 @@ EnumItem *createEnumItem(char *name, int value) {
 	EnumItem *ei = allocateASTNode(sizeof(EnumItem), "enum item");
 	ei->name = name;
 	ei->value = value;
+	ei->hasValue = false;
 	return ei;
 }
 
@@ -695,6 +696,7 @@ EnumAstNode *parseEnumerationAstNode(Parser *parser) {
 
 							// push it back
 							EnumItem *enumItem = createEnumItem(enumItemName->content, enumItemValueAsInt);
+							enumItem->hasValue = true;
 							pushBackItem(enumeration->enumItems, enumItem);
 						}
 						else {
