@@ -1,3 +1,5 @@
+// lol im not serious btw
+
 use "stdio.h"
 use "stdlib.h"
 use "stdbool.h"
@@ -7,7 +9,9 @@ struct Lexer {
 }
 
 fn (Lexer ^lex) createLexer(): ^Lexer {
-
+	Lexer ^lex;
+	
+	return lex;
 }
 
 fn main(): int {
