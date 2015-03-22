@@ -279,9 +279,6 @@ void destroyFunctionReturnAstNode(FunctionReturnAstNode *functionReturn) {
 }
 
 void destroyExpressionAstNode(ExpressionAstNode *expression) {
-	if (expression->expressionStatement) {
-		destroyStatementAstNode(expression->expressionStatement);
-	}
 	if (expression->functionCall) {
 		destroyFunctionCallAstNode(expression->functionCall);
 	}
@@ -582,7 +579,7 @@ WhileLoopAstNode *parseWhileAstNode(Parser *parser) {
 	WhileLoopAstNode *whileLoop = createWhileLoopAstNode();
 	matchTokenTypeAndContent(parser, IDENTIFIER, WHILE_LOOP_KEYWORD);
 
-	whileLoop->condition = parseExpression(parser);
+	whileLoop->condition = parseExpression(parser, false);
 	whileLoop->body = parseBlockAstNode(parser);
 
 	return whileLoop;
@@ -593,7 +590,7 @@ IfStatementAstNode *parseIfStatementAstNode(Parser *parser) {
 
 	matchTokenTypeAndContent(parser, IDENTIFIER, IF_KEYWORD);
 
-	ifStatement->condition = parseExpression(parser);
+	ifStatement->condition = parseExpression(parser, false);
 	ifStatement->body = parseBlockAstNode(parser);
 	ifStatement->statementType = IF_STATEMENT;
 
@@ -609,7 +606,7 @@ IfStatementAstNode *parseIfStatementAstNode(Parser *parser) {
 MatchCaseAstNode *parseMatchCaseAstNode(Parser *parser) {
 	MatchCaseAstNode *matchCase = createMatchCaseAstNode();
 
-	matchCase->condition = parseExpression(parser);
+	matchCase->condition = parseExpression(parser, false);
 	matchCase->body = parseBlockAstNode(parser);
 
 	return matchCase;
@@ -620,7 +617,7 @@ MatchAstNode *parseMatchAstNode(Parser *parser) {
 
 	matchTokenTypeAndContent(parser, IDENTIFIER, MATCH_KEYWORD);
 
-	ExpressionAstNode *expr = parseExpression(parser);
+	ExpressionAstNode *expr = parseExpression(parser, false);
 	match->condition = expr;
 	match->cases = createVector();
 
@@ -864,7 +861,7 @@ StatementAstNode *parseForLoopAstNode(Parser *parser) {
 			}
 			// it's an expression probably
 			else if (checkTokenTypeAndContent(parser, SEPARATOR, "(", 0)) {
-				ExpressionAstNode *expr = parseExpression(parser);
+				ExpressionAstNode *expr = parseExpression(parser, false);
 				pushBackItem(forLoop->parameters, expr);
 				if (checkTokenTypeAndContent(parser, SEPARATOR, ",", 0)) {
 					if (checkTokenTypeAndContent(parser, SEPARATOR, ")", 1)) {
@@ -909,28 +906,34 @@ int getTokenPrecedence(Parser *parser) {
 	return tokenPrecedence;
 }
 
-ExpressionAstNode *parseNumberExpression(Parser *parser) {
+ExpressionAstNode *parseNumberExpression(Parser *parser, bool isGlobal) {
 	ExpressionAstNode *expr = createExpressionAstNode();
 	expr->numberExpr = consumeToken(parser);
 	expr->expressionType = NUMBER_EXPR;
 	return expr;
 }
 
-ExpressionAstNode *parseIdentifierExpression(Parser *parser) {
+ExpressionAstNode *parseStringExpression(Parser *parser, bool isGlobal) {
+	ExpressionAstNode *expr = createExpressionAstNode();
+	expr->string = consumeToken(parser);
+	expr->expressionType = STRING_EXPR;
+	return expr;
+}
+
+ExpressionAstNode *parseIdentifierExpression(Parser *parser, bool isGlobal) {
 	ExpressionAstNode *expr = createExpressionAstNode();
 	if (!checkTokenTypeAndContent(parser, SEPARATOR, "(", 1)) {
-		expr->expressionStatement = parseVariableAstNode(parser, false); // TODO: global handles
+		expr->identifier = consumeToken(parser);
 		expr->expressionType = VARIABLE_EXPR;
 		return expr;
 	}
 
-	// it's a call
-	expr->expressionStatement = createStatementAstNode(parseFunctionCallAstNode(parser), FUNCTION_CALLEE_AST_NODE);
+	expr->functionCall = parseFunctionCallAstNode(parser);
 	expr->expressionType = FUNCTION_CALL_EXPR;
 	return expr;
 }
 
-ExpressionAstNode *parseBinaryOperator(Parser *parser, int precedence, ExpressionAstNode *lhs) {
+ExpressionAstNode *parseBinaryOperator(Parser *parser, int precedence, ExpressionAstNode *lhs, bool isGlobal) {
 	ExpressionAstNode *temp = lhs;
 	while (true) {
 		int tokenPrecedence = getTokenPrecedence(parser);
@@ -938,12 +941,12 @@ ExpressionAstNode *parseBinaryOperator(Parser *parser, int precedence, Expressio
 
 		int binaryOperator = consumeToken(parser)->content[0];
 
-		ExpressionAstNode *rhs = parsePrimaryExpression(parser);
+		ExpressionAstNode *rhs = parsePrimaryExpression(parser, isGlobal);
 		if (!rhs) return NULL;
 
 		int nextPrecedence = getTokenPrecedence(parser);
 		if (tokenPrecedence < nextPrecedence) {
-			rhs = parseBinaryOperator(parser, tokenPrecedence + 1, rhs);
+			rhs = parseBinaryOperator(parser, tokenPrecedence + 1, rhs, isGlobal);
 			if (!rhs) return NULL;
 		}
 
@@ -955,16 +958,16 @@ ExpressionAstNode *parseBinaryOperator(Parser *parser, int precedence, Expressio
 	}
 }
 
-ExpressionAstNode *parseExpression(Parser *parser) {
-	ExpressionAstNode *lhs = parsePrimaryExpression(parser);
+ExpressionAstNode *parseExpression(Parser *parser, bool isGlobal) {
+	ExpressionAstNode *lhs = parsePrimaryExpression(parser, isGlobal);
 	if (!lhs) return NULL;
 
-	return parseBinaryOperator(parser, 0, lhs);
+	return parseBinaryOperator(parser, 0, lhs, isGlobal);
 }
 
-ExpressionAstNode *parseBracketExpression(Parser *parser) {
+ExpressionAstNode *parseBracketExpression(Parser *parser, bool isGlobal) {
 	consumeToken(parser); // (
-	ExpressionAstNode *expr = parseExpression(parser);
+	ExpressionAstNode *expr = parseExpression(parser, isGlobal);
 	if (!expr) return NULL;
 
 	if (checkTokenTypeAndContent(parser, SEPARATOR, ")", 0)) {
@@ -981,14 +984,15 @@ ExpressionAstNode *parseBracketExpression(Parser *parser) {
 	return NULL;
 }
 
-ExpressionAstNode *parsePrimaryExpression(Parser *parser) {
+ExpressionAstNode *parsePrimaryExpression(Parser *parser, bool isGlobal) {
 	Token *tok = peekAtTokenStream(parser, 0);
 	switch (tok->type) {
-		case IDENTIFIER: return parseIdentifierExpression(parser);
-		case NUMBER: return parseNumberExpression(parser);
+		case IDENTIFIER: return parseIdentifierExpression(parser, isGlobal);
+		case NUMBER: return parseNumberExpression(parser, isGlobal);
+		case STRING: return parseStringExpression(parser, isGlobal);
 		case SEPARATOR:
 			if (tok->content[0] == '(')
-				return parseBracketExpression(parser);
+				return parseBracketExpression(parser, isGlobal);
 			break;
 	}
 	return NULL;
@@ -1030,7 +1034,7 @@ void *parseVariableAstNode(Parser *parser, bool isGlobal) {
 		VariableDeclarationAstNode *dec = createVariableDeclarationAstNode();
 		dec->isMutable = isMutable;
 		dec->variableDefinitionAstNode = def;
-		dec->expression = parseExpression(parser);
+		dec->expression = parseExpression(parser, isGlobal);
 
 		// this is weird, we can probably clean this up
 		if (isGlobal) {
@@ -1217,7 +1221,7 @@ FunctionAstNode *parseFunctionAstNode(Parser *parser) {
 				consumeToken(parser);
 
 				// default expression
-				ExpressionAstNode *expr = parseExpression(parser);
+				ExpressionAstNode *expr = parseExpression(parser, false);
 				arg->value = expr;
 				pushBackItem(args, arg);
 
@@ -1319,7 +1323,7 @@ FunctionCallAstNode *parseFunctionCallAstNode(Parser *parser) {
 				break;
 			}
 
-			ExpressionAstNode *expression = parseExpression(parser);
+			ExpressionAstNode *expression = parseExpression(parser, false);
 
 			FunctionArgumentAstNode *argument = createFunctionArgumentAstNode();
 			argument->value = expression;
@@ -1339,37 +1343,6 @@ FunctionCallAstNode *parseFunctionCallAstNode(Parser *parser) {
 		}
 		while (true);
 
-		if (checkTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
-			consumeToken(parser);
-		}
-		else if (checkTokenContent(parser, "->", 0)) {
-			consumeToken(parser);
-			Vector *identifiers = createVector();
-
-			while (true) {
-				pushBackItem(identifiers, consumeToken(parser));
-
-				if (checkTokenContent(parser, ",", 0)) {
-					if (checkTokenContent(parser, ";", 1)) {
-						parserError(parser, "Error, trailing comma in function redirect!", consumeToken(parser), false);
-					}
-					consumeToken(parser);
-				}
-				else {
-					if (checkTokenContent(parser, ";", 0)) {
-						consumeToken(parser);
-						break;
-					}
-				}
-			}
-
-			functionCall->vars = identifiers;
-			functionCall->isFunctionRedirect = true;
-		}
-		else {
-			parserError(parser, "Expected a semi-colon at the end of function call", consumeToken(parser), true);
-		}
-
 		functionCall->name = call->content;
 		functionCall->args = args;
 
@@ -1387,7 +1360,7 @@ FunctionReturnAstNode *parseReturnStatementAstNode(Parser *parser) {
 
 	// return value
 	FunctionReturnAstNode *functionReturn = createFunctionReturnAstNode();
-	functionReturn->returnValue = parseExpression(parser);
+	functionReturn->returnValue = parseExpression(parser, false);
 
 	if (checkTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
 		consumeToken(parser);
@@ -1416,7 +1389,7 @@ DoWhileAstNode *parseDoWhileAstNode(Parser *parser) {
 	DoWhileAstNode *doWhile = createDoWhileAstNode();
 	matchTokenTypeAndContent(parser, IDENTIFIER, DO_KEYWORD);
 
-	doWhile->condition = parseExpression(parser);
+	doWhile->condition = parseExpression(parser, false);
 	doWhile->body = parseBlockAstNode(parser);
 
 	return doWhile;
@@ -1471,7 +1444,11 @@ StatementAstNode *parseStatementAstNode(Parser *parser) {
 		}
 		// FUNCITON CALL
 		else if (checkTokenTypeAndContent(parser, SEPARATOR, "(", 1)) {
-			return createStatementAstNode(parseFunctionCallAstNode(parser), FUNCTION_CALLEE_AST_NODE);
+			FunctionCallAstNode *fun = parseFunctionCallAstNode(parser);
+			if (checkTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
+				consumeToken(parser);
+			}
+			return createStatementAstNode(fun, FUNCTION_CALLEE_AST_NODE);
 		}
 		// no clue we should sort this out.
 		else {
@@ -1501,7 +1478,7 @@ VariableReassignmentAstNode *parseReassignmentAstNode(Parser *parser) {
 		if (checkTokenTypeAndContent(parser, OPERATOR, "=", 0)) {
 			consumeToken(parser);
 
-			ExpressionAstNode *expr = parseExpression(parser);
+			ExpressionAstNode *expr = parseExpression(parser, false);
 
 			if (checkTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
 				consumeToken(parser);
