@@ -89,7 +89,7 @@ typedef enum {
 } AstNodeType;
 
 typedef enum {
-	PAREN_EXPR, NUMBER_EXPR, FUNCTION_CALL_EXPR, VARIABLE_EXPR, BINARY_EXPR
+	PAREN_EXPR, NUMBER_EXPR, FUNCTION_CALL_EXPR, VARIABLE_EXPR, BINARY_EXPR, STRING_EXPR
 } ExpressionType;
 
 typedef struct {
@@ -188,9 +188,10 @@ typedef struct {
  * ast_node for an Expression, warning it's really shit
  */
 typedef struct s_ExpressionAstNode {
-	StatementAstNode *expressionStatement;
 	FunctionCallAstNode *functionCall;
+	Token *identifier;
 	Token *numberExpr;
+	Token *string;
 
 	char binaryOp;
 	struct s_ExpressionAstNode *lhand, *rhand;
@@ -880,17 +881,17 @@ bool checkTokenTypeAndContent(Parser *parser, TokenType type, char* content, int
 
 int getTokenPrecedence(Parser *parser);
 
-ExpressionAstNode *parseNumberExpression(Parser *parser);
+ExpressionAstNode *parseNumberExpression(Parser *parser, bool isGlobal);
 
-ExpressionAstNode *parseIdentifierExpression(Parser *parser);
+ExpressionAstNode *parseIdentifierExpression(Parser *parser, bool isGlobal);
 
-ExpressionAstNode *parseBinaryOperator(Parser *parser, int precedence, ExpressionAstNode *lhs);
+ExpressionAstNode *parseBinaryOperator(Parser *parser, int precedence, ExpressionAstNode *lhs, bool isGlobal);
 
-ExpressionAstNode *parseExpression(Parser *parser);
+ExpressionAstNode *parseExpression(Parser *parser, bool isGlobal);
 
-ExpressionAstNode *parseBracketExpression(Parser *parser);
+ExpressionAstNode *parseBracketExpression(Parser *parser, bool isGlobal);
 
-ExpressionAstNode *parsePrimaryExpression(Parser *parser);
+ExpressionAstNode *parsePrimaryExpression(Parser *parser, bool isGlobal);
 
 /**
  * Parses a For Loop statement

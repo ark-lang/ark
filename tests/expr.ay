@@ -1,7 +1,12 @@
 use "stdio.h"
 
+fn add(int a, int b): int {
+	return a + b;
+}
+
 fn main(): int {
 	int x = 5;
-	int z = 2 + 2 * 3 + 3;
+	int z = 2 + add(5, 5);
+	printf("%d\n", z);
 	return 1;
 }
