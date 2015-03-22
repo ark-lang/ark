@@ -18,7 +18,7 @@ void startLexingFiles(Lexer *lexer, Vector *sourceFiles) {
 		SourceFile *sourceFile = getVectorItem(sourceFiles, i);
 
 		// reset everything
-		lexer->inputLength = sdslen(sourceFile->alloyFileContents);
+		lexer->inputLength = strlen(sourceFile->alloyFileContents);
 		lexer->input = sourceFile->alloyFileContents;
 		lexer->pos = 0;
 		lexer->lineNumber = 1;
@@ -49,9 +49,7 @@ const char* getTokenName(Token *tok) {
 }
 
 void destroyToken(Token *token) {
-	if (token) {
-		free(token);
-	}
+	free(token);
 }
 
 void consumeCharacter(Lexer *lexer) {
