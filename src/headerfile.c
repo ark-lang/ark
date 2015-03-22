@@ -14,6 +14,7 @@ void writeHeaderFile(HeaderFile *headerFile) {
 	sdscat(headerFile->generatedHeaderName, ".h");
 
 	headerFile->outputFile = fopen(headerFile->generatedHeaderName, "w");
+	debugMessage("Generated header file %s\n", headerFile->generatedHeaderName);
 	if (!headerFile->outputFile) {
 		perror("fopen: failed to open file");
 		return;
