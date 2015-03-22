@@ -487,10 +487,8 @@ void compileAST(Compiler *self) {
 }
 
 void destroyCompiler(Compiler *self) {
-	if (self) {
-		hashmap_free(self->functions);
-		hashmap_free(self->structures);
-		free(self);
-		debugMessage("Destroyed compiler");
-	}
+	hashmap_free(self->functions);
+	hashmap_free(self->structures);
+	free(self);
+	debugMessage("Destroyed compiler");
 }
