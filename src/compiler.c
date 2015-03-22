@@ -206,6 +206,9 @@ void emitExpression(Compiler *self, ExpressionAstNode *expr) {
 		emitCode(self, "%s", expr->numberExpr->content);
 		break;
 	case VARIABLE_EXPR:
+		if (expr->isDeref) {
+			emitCode(self, "%s", "*");
+		}
 		emitCode(self, "%s", expr->identifier->content);
 		break;
 	case STRING_EXPR:
