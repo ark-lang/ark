@@ -54,6 +54,7 @@ AlloyCompiler *createAlloyCompiler(int argc, char** argv) {
 	// not enough arguments just throw an error
 	if (argc <= 1) {
 		errorMessage("no input files");
+		destroyAlloyCompiler(self);
 		return NULL;
 	}
 
