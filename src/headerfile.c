@@ -9,12 +9,12 @@ HeaderFile *createHeaderFile(sds fileName) {
 
 void writeHeaderFile(HeaderFile *headerFile) {
 	headerFile->generatedHeaderName = sdsempty();
-	sdscat(headerFile->generatedHeaderName, "__gen_");
+	sdscat(headerFile->generatedHeaderName, "_gen_");
 	sdscat(headerFile->generatedHeaderName, headerFile->name);
 	sdscat(headerFile->generatedHeaderName, ".h");
 
+	debugMessage("Generated header file `%s` as `%s`", headerFile->name, headerFile->generatedHeaderName);
 	headerFile->outputFile = fopen(headerFile->generatedHeaderName, "w");
-	debugMessage("Generated header file %s\n", headerFile->generatedHeaderName);
 	if (!headerFile->outputFile) {
 		perror("fopen: failed to open file");
 		return;

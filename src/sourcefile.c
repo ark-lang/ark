@@ -23,14 +23,12 @@ void writeFiles(SourceFile *sourceFile) {
 
 void writeSourceFile(SourceFile *sourceFile) {
 	sourceFile->generatedSourceName = sdsempty();
-	sdscat(sourceFile->generatedSourceName, "__gen_");
+	sdscat(sourceFile->generatedSourceName, "_gen_");
 	sdscat(sourceFile->generatedSourceName, sourceFile->name);
 	sdscat(sourceFile->generatedSourceName, ".c");
 
-	debugMessage("Wrote sourcefile for %s", sourceFile->name);
-
+	debugMessage("Generated source file `%s` as `%s`", sourceFile->name, sourceFile->generatedSourceName);
 	sourceFile->outputFile = fopen(sourceFile->generatedSourceName, "w");
-	debugMessage("Generated source file %s\n", sourceFile->generatedSourceName);
 	if (!sourceFile->outputFile) {
 		perror("fopen: failed to open file");
 		return;
