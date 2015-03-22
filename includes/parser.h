@@ -15,13 +15,6 @@
 #define MAX_FOR_LOOP_PARAM_COUNT 3
 #define MIN_FOR_LOOP_PARAM_COUNT 2
 
-// for defining expression types
-// values are somewhat arbitrary
-#define EXPR_EXPRESSION 'e'
-#define EXPR_PRIMARY 	'p'
-#define EXPR_BINARY		'b'
-#define EXPR_UNARY		'u'
-
 // keywords
 #define MUT_KEYWORD 	   		"mut"
 #define ANON_STRUCT_KEYWORD		"anon"
@@ -87,6 +80,11 @@ typedef enum {
 	TYPE_CHAR, TYPE_STRUCT, TYPE_NULL
 } DataType;
 
+typedef enum {
+	BINARY_EXPR, FUNCTION_CALL_EXPR, VARIABLE_DEF_EXPR, VARIABLE_DEC_EXPR,
+	NUMBER_EXPR, STRING_EXPR,
+} ExpressionTypes;
+
 /**
  * Different types of data
  * to be stored on ast_node vector
@@ -146,12 +144,8 @@ typedef enum {
 	UNSPECIFIED
 } ExpressionPointerOperation;
 
-/**
- * ast_node for an Expression
- */
-typedef struct s_ExpressionAstNode {
-	Vector *tokens;
-} ExpressionAstNode;
+typedef struct VariableDeclarationAstNode s_VariableDeclarationAstNode;
+typedef struct VariableDefinitionAstNode s_VariableDefinitionAstNode;
 
 /**
  * ast_node for an uninitialized
@@ -171,7 +165,7 @@ typedef struct {
  */
 typedef struct {
 	VariableDefinitionAstNode *variableDefinitionAstNode;
-	ExpressionAstNode *expression;
+	struct s_ExpressionAstNode *expression;
 	bool isMutable;
 } VariableDeclarationAstNode;
 
@@ -185,6 +179,29 @@ typedef struct {
 
 	bool isPointer;
 } FunctionOwnerAstNode;
+
+/**
+ * A ast_node for containing and identifying
+ * statements
+ */
+typedef struct {
+	void *data;
+	AstNodeType type;
+} StatementAstNode;
+
+/**
+ * ast_node for an Expression, warning it's really shit
+ */
+typedef struct s_ExpressionAstNode {
+	StatementAstNode *expressionStatement;
+	FunctionCallAstNode *functionCall;
+	Token *numberExpr;
+
+	char binaryOp;
+	struct s_ExpressionAstNode *lhand, *rhand;
+
+	int expressionType;
+} ExpressionAstNode;
 
 /**
  * An argument for a function
@@ -204,15 +221,6 @@ typedef struct {
 typedef struct {
 	ExpressionAstNode *returnValue;
 } FunctionReturnAstNode;
-
-/**
- * A ast_node for containing and identifying
- * statements
- */
-typedef struct {
-	void *data;
-	AstNodeType type;
-} StatementAstNode;
 
 /**
  * An enumeration item

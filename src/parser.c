@@ -101,7 +101,7 @@ FunctionReturnAstNode *createFunctionReturnAstNode() {
 
 ExpressionAstNode *createExpressionAstNode() {
 	ExpressionAstNode *expr = allocateASTNode(sizeof(ExpressionAstNode), "expression");
-	expr->tokens = createVector();
+	// TODO: CREATE EXPRR!!!
 	return expr;
 }
 
@@ -280,7 +280,7 @@ void destroyFunctionReturnAstNode(FunctionReturnAstNode *functionReturn) {
 }
 
 void destroyExpressionAstNode(ExpressionAstNode *expression) {
-	destroyVector(expression->tokens);
+	// TODO :EXPR DESTROYY!!
 	free(expression);
 }
 
@@ -855,30 +855,54 @@ StatementAstNode *parseForLoopAstNode(Parser *parser) {
 	return NULL;
 }
 
-ExpressionAstNode *parseExpressionAstNode(Parser *parser) {
+ExpressionAstNode *parseNumberExpression(Parser *parser) {
 	ExpressionAstNode *expr = createExpressionAstNode();
+	expr->numberExpr = consumeToken(parser);
+	expr->expressionType = NUMBER_EXPR;
+	return expr;
+}
 
-	while (true) {
-		// token is separator, semi colon, etc
-		if (checkTokenContent(parser, "^", 0)) {
-			Token *tok = consumeToken(parser);
-			tok->content[0] = '*';
-			pushBackItem(expr->tokens, tok);
-		}
-		else {
-			pushBackItem(expr->tokens, consumeToken(parser));
-		}
-		if (checkTokenContent(parser, "{", 0)
-			|| checkTokenContent(parser, ",", 0)
-			|| checkTokenContent(parser, ";", 0)
-			|| (checkTokenContent(parser, "->", 0))
-			|| (checkTokenContent(parser, ")", 0) && checkTokenContent(parser, ";", 1))
-			|| (checkTokenContent(parser, ")", 0) && checkTokenContent(parser, "->", 1))) {
-			return expr;
-		}
+ExpressionAstNode *parseIdentifierExpression(Parser *parser) {
+	ExpressionAstNode *expr = createExpressionAstNode();
+	if (!checkTokenTypeAndContent(parser, SEPARATOR, "(", 1)) {
+		expr->expressionStatement = parseVariableAstNode(parser, false); // TODO: global handles
 	}
 
+	// it's a call
+	expr->expressionStatement = createStatementAstNode(parseFunctionCallAstNode(parser), FUNCTION_CALLEE_AST_NODE);
 	return expr;
+}
+
+ExpressionAstNode *parseBracketExpression(Parser *parser) {
+	consumeToken(parser); // (
+	ExpressionAstNode *expr = parseExpressionAstNode(parser);
+	if (!expr) return NULL;
+
+	if (checkTokenTypeAndContent(parser, SEPARATOR, ")", 0)) {
+		consumeToken(parser); // )
+		return expr;
+	}
+	else {
+		parserError(parser, "Expected closing parenthesis when parsing expression", consumeToken(parser), true);
+	}
+
+	parserError(parser, "Failed to parse expression", consumeToken(parser), true);
+	destroyExpressionAstNode(expr);
+	return NULL;
+}
+
+ExpressionAstNode *parseExpressionAstNode(Parser *parser) {
+	Token *tok = peekAtTokenStream(parser, 0);
+	switch (tok->type) {
+		case IDENTIFIER: return parseIdentifierExpression(parser);
+		case NUMBER: return parseNumberExpression(parser);
+		default:
+			if (tok->content[0] == '(') return parseBracketExpression(parser);
+			break;
+	}
+
+	parserError(parser, "no idea?", consumeToken(parser), true);
+	return NULL;
 }
 
 void *parseVariableAstNode(Parser *parser, bool isGlobal) {
@@ -1191,7 +1215,6 @@ FunctionAstNode *parseFunctionAstNode(Parser *parser) {
 }
 
 FunctionCallAstNode *parseFunctionCallAstNode(Parser *parser) {
-	// consume function name
 	Token *call = matchTokenType(parser, IDENTIFIER);
 	FunctionCallAstNode *functionCall = createFunctionCallAstNode();
 
