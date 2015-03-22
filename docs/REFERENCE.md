@@ -15,10 +15,35 @@ has it's flaws:
 
 Our goal with Alloy is to fix these errors, yet maintaining a cleaner, simpler syntax.
 A lot of the syntax for Alloy is inspired by existing languages, such as Rust, Go, and Java. The language itself is
-also heavily inspired by the simplicity of C. We don't want to add too much that it constrains the developer to a single paradigm.
+also heavily inspired by the simplicity of C.
+
+Things you wont see in Alloy:
+
+* Garbage Collection
+* Preprocessor
+* Null Pointers
 
 ## Memory Model
+todo
 
+## Data Types
+Alloy has no type inference, data types must be explicitlly defined. Here's a list of data types availible:
+
+	type		equivalent
+	string		char*
+	
+	u64			unsigned long long
+	u32			unsigned int
+	u16 		unsigned short
+	u8			unsigned char
+	
+	s64			long long
+	s32			int
+	s16			short
+	s8			char
+	
+	f64			float
+	f32			double
 
 ## Syntax
 
@@ -121,6 +146,7 @@ It looks like it should work, however function redirects do not work yet with C 
 of alloy files.
 
 ### Structures
+todo...
 
 
 

@@ -15,8 +15,8 @@
 *.lo
 
 # generated code stuff
-__gen_*.c
-__gen_*.h
+_gen_*.c
+_gen_*.h
 
 # Shared Objects
 *.dll

@@ -16,6 +16,8 @@
 /** the current version of alloy */
 #define ALLOYC_VERSION "0.0.3"
 
+#define newType(type, value) (&(*((type *)malloc(sizeof(type)))=(value)))
+
 /** windows doesn't like coloured text */
 #ifdef _WIN32
 	#define GET_RED_TEXT(x) (x)
