@@ -7,7 +7,7 @@ static const char* NODE_TYPE[] = {
 	"BLOCK_AST_NODE", "FUNCTION_CALLEE_AST_NODE",
 	"FUNCTION_RET_AST_NODE", "FOR_LOOP_AST_NODE",
 	"VARIABLE_REASSIGN_AST_NODE", "INFINITE_LOOP_AST_NODE",
-	"BREAK_AST_NODE", "CONTINUE_AST_NODE", "ENUM_AST_NODE", "STRUCT_AST_NODE",
+	"BREAK_AST_NODE", "DO_WHILE_AST_NODE", "CONTINUE_AST_NODE", "ENUM_AST_NODE", "STRUCT_AST_NODE",
 	"IF_STATEMENT_AST_NODE", "MATCH_STATEMENT_AST_NODE", "WHILE_LOOP_AST_NODE",
 	"ANON_AST_NODE", "USE_STATEMENT_AST_NODE"
 };
@@ -86,6 +86,9 @@ void emitBlock(Compiler *self, BlockAstNode *block) {
 			break;
 		case WHILE_LOOP_AST_NODE:
 			emitWhileLoop(self, currentAstNode->data);
+			break;
+		case DO_WHILE_AST_NODE:
+			emitDoWhileLoop(self, currentAstNode->data);
 			break;
 		default:
 			printf("wat node is that bby?\n");
@@ -287,6 +290,15 @@ void emitWhileLoop(Compiler *self, WhileLoopAstNode *whileLoop) {
 	emitCode(self, ") {\n");
 	emitBlock(self, whileLoop->body);
 	emitCode(self, "}\n");
+}
+
+void emitDoWhileLoop(Compiler *self, DoWhileAstNode *doWhile) {
+	self->writeState = WRITE_SOURCE_STATE;
+	emitCode(self, "do {\n");
+	emitBlock(self, doWhile->body);
+	emitCode(self, "} while (");
+	emitExpression(self, doWhile->condition);
+	emitCode(self, ");\n");
 }
 
 void emitEnumeration(Compiler *self, EnumAstNode *enumeration) {

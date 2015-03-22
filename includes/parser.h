@@ -41,6 +41,7 @@
 #define STRUCT_KEYWORD	 	   	"struct"
 #define COMMA_SEPARATOR			","
 #define SEMI_COLON				";"
+#define DO_KEYWORD				"do"
 #define SINGLE_STATEMENT		"->"		// cant think of a name for this operator
 #define IF_KEYWORD				"if"
 #define ELSE_KEYWORD			"else"
@@ -97,7 +98,7 @@ typedef enum {
 	BLOCK_AST_NODE, FUNCTION_CALLEE_AST_NODE,
 	FUNCTION_RET_AST_NODE, FOR_LOOP_AST_NODE,
 	VARIABLE_REASSIGN_AST_NODE, INFINITE_LOOP_AST_NODE,
-	BREAK_AST_NODE, CONTINUE_AST_NODE, ENUM_AST_NODE, STRUCT_AST_NODE,
+	BREAK_AST_NODE, DO_WHILE_AST_NODE, CONTINUE_AST_NODE, ENUM_AST_NODE, STRUCT_AST_NODE,
 	IF_STATEMENT_AST_NODE, MATCH_STATEMENT_AST_NODE, WHILE_LOOP_AST_NODE,
 	ANON_AST_NODE, USE_STATEMENT_AST_NODE
 } AstNodeType;
@@ -395,6 +396,11 @@ typedef struct {
 	BlockAstNode *body;
 } WhileLoopAstNode;
 
+typedef struct {
+	ExpressionAstNode *condition;
+	BlockAstNode *body;
+} DoWhileAstNode;
+
 /**
  * ast_node to represent a case for a match
  */
@@ -519,6 +525,11 @@ IfStatementAstNode *createIfStatementAstNode();
 WhileLoopAstNode *createWhileLoopAstNode();
 
 /**
+ * Creates a new do while loop ast_node
+ */
+DoWhileAstNode *createDoWhileAstNode();
+
+/**
  * Creates a new match case ast_node
  */
 MatchCaseAstNode *createMatchCaseAstNode();
@@ -638,6 +649,12 @@ void destroyIfStatementAstNode(IfStatementAstNode *isn);
  * @param wan the node to destroy
  */
 void destroyWhileLoopAstNode(WhileLoopAstNode *wan);
+
+/**
+ * Destroys a while loop node
+ * @param wan the node to destroy
+ */
+void destroyDoWhileAstNode(DoWhileAstNode *doWhile);
 
 /**
  * Destroys a match case node
