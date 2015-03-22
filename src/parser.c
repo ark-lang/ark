@@ -1031,6 +1031,7 @@ FunctionAstNode *parseFunctionAstNode(Parser *parser) {
 
 			// check if the owner is a pointer or not
 			if (checkTokenTypeAndContent(parser, OPERATOR, POINTER_OPERATOR, 0)) {
+				consumeToken(parser);
 				functionOwner->isPointer = true;
 			}
 
