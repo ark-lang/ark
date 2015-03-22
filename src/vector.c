@@ -37,9 +37,7 @@ VectorItem getVectorItem(Vector *vec, int index) {
 }
 
 void destroyVector(Vector *vec) {
-	if (vec) {
-		free(vec->items);
-		free(vec);
-	}
+	free(vec->items);
+	free(vec);
 	debugMessage("Destroyed Vector");
 }
