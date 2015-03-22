@@ -102,22 +102,6 @@ For example:
 	
 	fn add(int a, int b): int -> return a + b;
 	
-#### Function Redirect
-A function redirect is where you direct the return value from the function into a variable, for example:
-
-	fn add(int a, int b): int -> return a + b;
-	
-	fn main(): void {
-		int x;
-		add(5, 5) -> x;
-	}
-
-The syntax is as follows:
-
-	[function_call] -> [variable];
-	
-The variable must be defined.
-
 ### Using Files
 Currently, we're still figuring things out with c bindings and file inclusion, however you can call C functions like so:
 
@@ -129,21 +113,56 @@ Currently, we're still figuring things out with c bindings and file inclusion, h
 		return 0;
 	}
 
-Note the first line `use "stdio.h"`. This will include the standard input/output library from C. However, if you plan to use
-function redirects, they won't with C function calls, for example:
+### Arrays [UNIMPLEMENTED]
+Arrays are very similar to languages such as C, however we have opted for a cleaner approach for dynamic arrays.
 
-	use "stdio.h"
-	use "stdlib.h"
+#### Static Arrays
+A static array is defined as follows:
+
+	[data_type] [name] [[size as number]];
 	
-	fn main(): int {
-		int ^swag;
-		malloc(sizeof(5)) -> swag;
-		^swag = 10;
-		printf("swag is %d\n", ^swag);
-	}
+For example:
 
-It looks like it should work, however function redirects do not work yet with C bindings. We're still working on the inclusion
-of alloy files.
+	int cats[256];
+	my_struct structs[5];
+
+Values can be defined to an index, for example:
+
+	cats[12] = 21;
+
+Values can also be declared in the arrays definition:
+
+	int cats[4] = [0, 1, 2, 3];
+	
+#### Dynamic Arrays
+Dynamic arrays are similar to a static array, however they are allocated on the heap, and are resized automatically. The dynamic
+arrays are similar to static ararys, the difference is that when you exceed the initial size of the array, it will reallocate
+enough memory to store more elements. Another neat feature with dynamic arrays in Alloy is that you can also define a step. This is
+really useful, since you can define linear or exponential arrays, or your own pattern. 
+
+For example, it is a good practice to exponentially increase the size of the array, let's say the arrays initial size is 16, and you
+need some more space, instead of adding 1 to the size then having to reallocate after adding another item, you allocate enough space
+for 16 more items, so the size is now 32. Once you reach that limit, you allocate 64 items, then 128, 256, and so on. This is good if
+you know you are going to be adding a lot of items to an array, otherwise if you resized just enough space for one item and you are
+adding loads of items to the array, it can be expensive since there are a lot of `realloc` calls!
+
+Anyways, a dynamic array is defined as follows:
+
+	[type] [name] <step>[initial_size];
+	
+An example would be:
+
+	Token ^tokens <8>[8];
+	
+This would allocate enough memory for 8 tokens, and when you re-allocate it will allocate 8 more elements worth of memory. You can
+also apply an expression, for example:
+
+	Token ^tokens <tokens.size * 2>[8];
+	
+Which would allocate `size * 2` everytime you exceed the limit.
+
+### Option Types [UNIMPLEMENTED]
+todo ...
 
 ### Structures
 todo...
