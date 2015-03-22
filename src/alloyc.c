@@ -45,18 +45,17 @@ static void parse_argument(CommandLineArgument *arg) {
 }
 
 AlloyCompiler *createAlloyCompiler(int argc, char** argv) {
-	AlloyCompiler *self = safeMalloc(sizeof(*self));
-	self->lexer = NULL;
-	self->parser = NULL;
-	self->compiler = NULL;
-	self->sourceFiles = createVector();
-
 	// not enough arguments just throw an error
 	if (argc <= 1) {
 		errorMessage("no input files");
-		destroyAlloyCompiler(self);
 		return NULL;
 	}
+
+	AlloyCompiler *self = safeMalloc(sizeof(*self));
+		self->lexer = NULL;
+		self->parser = NULL;
+		self->compiler = NULL;
+		self->sourceFiles = createVector();
 
 	int i;
 	// i = 1 to ignore first arg
