@@ -1,0 +1,6 @@
+use "stdio.h"
+
+fn main(): int {
+	int x = 5;
+	return 1;
+}

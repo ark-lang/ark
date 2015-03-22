@@ -176,11 +176,7 @@ void emitStructure(Compiler *self, StructureAstNode *structure) {
 }
 
 void emitExpression(Compiler *self, ExpressionAstNode *expr) {
-	int i;
-	for (i = 0; i < expr->tokens->size; i++) {
-		Token *token = getVectorItem(expr->tokens, i);
-		emitCode(self, "%s", token->content);
-	}
+	// TODO :emit ze expression!
 }
 
 void emitFunctionCall(Compiler *self, FunctionCallAstNode *call) {	
@@ -451,13 +447,6 @@ void startCompiler(Compiler *self) {
 	debugMessage("running cl args: `%s`\n", buildCommand);
 	system(buildCommand);
 	sdsfree(buildCommand); // deallocate dat shit baby
-
-	// now we can destroy stuff
-	for (i = 0; i < self->sourceFiles->size; i++) {
-		SourceFile *sourceFile = getVectorItem(self->sourceFiles, i);
-		destroySourceFile(sourceFile);
-		destroyHeaderFile(sourceFile->headerFile);
-	}
 }
 
 void compileAST(Compiler *self) {
@@ -493,6 +482,15 @@ void compileAST(Compiler *self) {
 }
 
 void destroyCompiler(Compiler *self) {
+	// now we can destroy stuff
+	int i;
+	for (i = 0; i < self->sourceFiles->size; i++) {
+		SourceFile *sourceFile = getVectorItem(self->sourceFiles, i);
+		// don't call destroyHeaderFile since it's called in this function!!!!
+		destroySourceFile(sourceFile);
+		debugMessage("Destroyed source files on %d iteration.\n", i);
+	}
+
 	hashmap_free(self->functions);
 	hashmap_free(self->structures);
 	free(self);
