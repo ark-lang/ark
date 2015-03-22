@@ -10,7 +10,7 @@
 typedef struct {
 	sds fileName;
 	sds name;
-	sds alloyFileContents;
+	char* alloyFileContents;
 	sds generatedSourceName;
 	FILE *outputFile;
 
