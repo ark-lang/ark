@@ -68,6 +68,8 @@ void emitInfiniteLoop(Compiler *self, InfiniteLoopAstNode *infinite);
 
 void emitWhileLoop(Compiler *self, WhileLoopAstNode *whileLoop);
 
+void emitEnumeration(Compiler *self, EnumAstNode *enumeration);
+
 void emitUseStatement(Compiler *self, UseStatementAstNode *use);
 
 void emitFunction(Compiler *self, FunctionAstNode *func);
