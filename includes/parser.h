@@ -189,8 +189,12 @@ typedef struct {
  */
 typedef struct s_ExpressionAstNode {
 	FunctionCallAstNode *functionCall;
+
 	Token *identifier;
+	bool isDeref;
+
 	Token *numberExpr;
+
 	Token *string;
 
 	char binaryOp;
