@@ -34,9 +34,8 @@ void exitParser(Parser *parser) {
 }
 
 void parserError(Parser *parser, char *msg, Token *tok, bool fatal_error) {
-	errorMessage("%d:%d %s", tok->lineNumber, tok->charNumber, msg);
 	char *error = getTokenContext(parser->tokenStream, tok);
-	printf("\t%s\n", error);
+	errorMessage("%d:%d %s\n\t%s\n", tok->lineNumber, tok->charNumber, msg, error);
 	parser->exitOnError = fatal_error;
 	free(error);
 	if (fatal_error) {
@@ -280,7 +279,18 @@ void destroyFunctionReturnAstNode(FunctionReturnAstNode *functionReturn) {
 }
 
 void destroyExpressionAstNode(ExpressionAstNode *expression) {
-	// TODO :EXPR DESTROYY!!
+	if (expression->expressionStatement) {
+		destroyStatementAstNode(expression->expressionStatement);
+	}
+	if (expression->functionCall) {
+		destroyFunctionCallAstNode(expression->functionCall);
+	}
+	if (expression->lhand) {
+		destroyExpressionAstNode(expression->lhand);
+	}
+	if (expression->rhand) {
+		destroyExpressionAstNode(expression->rhand);
+	}
 	free(expression);
 }
 
@@ -434,8 +444,34 @@ Parser *createParser() {
 	parser->tokenStream = NULL;
 	parser->tokenIndex = 0;
 	parser->parsing = true;
+	parser->binopPrecedence = hashmap_new();
+	hashmap_put(parser->binopPrecedence, "+", createPrecedence(6));
+	hashmap_put(parser->binopPrecedence, "-", createPrecedence(6));
+
+	hashmap_put(parser->binopPrecedence, "*", createPrecedence(5));
+	hashmap_put(parser->binopPrecedence, "/", createPrecedence(5));
+	hashmap_put(parser->binopPrecedence, "%", createPrecedence(5));
+
+	hashmap_put(parser->binopPrecedence, ">", createPrecedence(8));
+	hashmap_put(parser->binopPrecedence, "<", createPrecedence(8));
+	hashmap_put(parser->binopPrecedence, ">=", createPrecedence(8));
+	hashmap_put(parser->binopPrecedence, "<=", createPrecedence(8));
+
+	hashmap_put(parser->binopPrecedence, "&", createPrecedence(10));
+	hashmap_put(parser->binopPrecedence, "|", createPrecedence(11));
+
 	parser->exitOnError = false;
 	return parser;
+}
+
+Precedence *createPrecedence(int prec) {
+	Precedence *result = safeMalloc(sizeof(*result));
+	result->prec = prec;
+	return result;
+}
+
+void destroyPrecedence(Precedence *prec) {
+	free(prec);
 }
 
 Token *consumeToken(Parser *parser) {
@@ -546,7 +582,7 @@ WhileLoopAstNode *parseWhileAstNode(Parser *parser) {
 	WhileLoopAstNode *whileLoop = createWhileLoopAstNode();
 	matchTokenTypeAndContent(parser, IDENTIFIER, WHILE_LOOP_KEYWORD);
 
-	whileLoop->condition = parseExpressionAstNode(parser);
+	whileLoop->condition = parseExpression(parser);
 	whileLoop->body = parseBlockAstNode(parser);
 
 	return whileLoop;
@@ -557,7 +593,7 @@ IfStatementAstNode *parseIfStatementAstNode(Parser *parser) {
 
 	matchTokenTypeAndContent(parser, IDENTIFIER, IF_KEYWORD);
 
-	ifStatement->condition = parseExpressionAstNode(parser);
+	ifStatement->condition = parseExpression(parser);
 	ifStatement->body = parseBlockAstNode(parser);
 	ifStatement->statementType = IF_STATEMENT;
 
@@ -573,7 +609,7 @@ IfStatementAstNode *parseIfStatementAstNode(Parser *parser) {
 MatchCaseAstNode *parseMatchCaseAstNode(Parser *parser) {
 	MatchCaseAstNode *matchCase = createMatchCaseAstNode();
 
-	matchCase->condition = parseExpressionAstNode(parser);
+	matchCase->condition = parseExpression(parser);
 	matchCase->body = parseBlockAstNode(parser);
 
 	return matchCase;
@@ -584,7 +620,7 @@ MatchAstNode *parseMatchAstNode(Parser *parser) {
 
 	matchTokenTypeAndContent(parser, IDENTIFIER, MATCH_KEYWORD);
 
-	ExpressionAstNode *expr = parseExpressionAstNode(parser);
+	ExpressionAstNode *expr = parseExpression(parser);
 	match->condition = expr;
 	match->cases = createVector();
 
@@ -828,7 +864,7 @@ StatementAstNode *parseForLoopAstNode(Parser *parser) {
 			}
 			// it's an expression probably
 			else if (checkTokenTypeAndContent(parser, SEPARATOR, "(", 0)) {
-				ExpressionAstNode *expr = parseExpressionAstNode(parser);
+				ExpressionAstNode *expr = parseExpression(parser);
 				pushBackItem(forLoop->parameters, expr);
 				if (checkTokenTypeAndContent(parser, SEPARATOR, ",", 0)) {
 					if (checkTokenTypeAndContent(parser, SEPARATOR, ")", 1)) {
@@ -855,6 +891,24 @@ StatementAstNode *parseForLoopAstNode(Parser *parser) {
 	return NULL;
 }
 
+int getTokenPrecedence(Parser *parser) {
+	Token *tok = peekAtTokenStream(parser, 0);
+
+	if (!isascii(tok->content[0])) return -1;
+
+	Precedence *prec = NULL;
+	if (hashmap_get(parser->binopPrecedence, tok->content, (void**) &prec) == MAP_MISSING) {
+		debugMessage("Precedence doesn't exist for %s", tok->content);
+		return -1;
+	}
+
+	int tokenPrecedence = prec->prec;
+	if (tokenPrecedence <= 0) {
+		return -1;
+	}
+	return tokenPrecedence;
+}
+
 ExpressionAstNode *parseNumberExpression(Parser *parser) {
 	ExpressionAstNode *expr = createExpressionAstNode();
 	expr->numberExpr = consumeToken(parser);
@@ -866,20 +920,56 @@ ExpressionAstNode *parseIdentifierExpression(Parser *parser) {
 	ExpressionAstNode *expr = createExpressionAstNode();
 	if (!checkTokenTypeAndContent(parser, SEPARATOR, "(", 1)) {
 		expr->expressionStatement = parseVariableAstNode(parser, false); // TODO: global handles
+		expr->expressionType = VARIABLE_EXPR;
+		return expr;
 	}
 
 	// it's a call
 	expr->expressionStatement = createStatementAstNode(parseFunctionCallAstNode(parser), FUNCTION_CALLEE_AST_NODE);
+	expr->expressionType = FUNCTION_CALL_EXPR;
 	return expr;
+}
+
+ExpressionAstNode *parseBinaryOperator(Parser *parser, int precedence, ExpressionAstNode *lhs) {
+	ExpressionAstNode *temp = lhs;
+	while (true) {
+		int tokenPrecedence = getTokenPrecedence(parser);
+		if (tokenPrecedence < precedence) return temp;
+
+		int binaryOperator = consumeToken(parser)->content[0];
+
+		ExpressionAstNode *rhs = parsePrimaryExpression(parser);
+		if (!rhs) return NULL;
+
+		int nextPrecedence = getTokenPrecedence(parser);
+		if (tokenPrecedence < nextPrecedence) {
+			rhs = parseBinaryOperator(parser, tokenPrecedence + 1, rhs);
+			if (!rhs) return NULL;
+		}
+
+		temp = createExpressionAstNode();
+		temp->expressionType = BINARY_EXPR;
+		temp->lhand = lhs;
+		temp->binaryOp = binaryOperator;
+		temp->rhand = rhs;
+	}
+}
+
+ExpressionAstNode *parseExpression(Parser *parser) {
+	ExpressionAstNode *lhs = parsePrimaryExpression(parser);
+	if (!lhs) return NULL;
+
+	return parseBinaryOperator(parser, 0, lhs);
 }
 
 ExpressionAstNode *parseBracketExpression(Parser *parser) {
 	consumeToken(parser); // (
-	ExpressionAstNode *expr = parseExpressionAstNode(parser);
+	ExpressionAstNode *expr = parseExpression(parser);
 	if (!expr) return NULL;
 
 	if (checkTokenTypeAndContent(parser, SEPARATOR, ")", 0)) {
 		consumeToken(parser); // )
+		expr->expressionType = PAREN_EXPR;
 		return expr;
 	}
 	else {
@@ -891,17 +981,16 @@ ExpressionAstNode *parseBracketExpression(Parser *parser) {
 	return NULL;
 }
 
-ExpressionAstNode *parseExpressionAstNode(Parser *parser) {
+ExpressionAstNode *parsePrimaryExpression(Parser *parser) {
 	Token *tok = peekAtTokenStream(parser, 0);
 	switch (tok->type) {
 		case IDENTIFIER: return parseIdentifierExpression(parser);
 		case NUMBER: return parseNumberExpression(parser);
-		default:
-			if (tok->content[0] == '(') return parseBracketExpression(parser);
+		case SEPARATOR:
+			if (tok->content[0] == '(')
+				return parseBracketExpression(parser);
 			break;
 	}
-
-	parserError(parser, "no idea?", consumeToken(parser), true);
 	return NULL;
 }
 
@@ -941,7 +1030,7 @@ void *parseVariableAstNode(Parser *parser, bool isGlobal) {
 		VariableDeclarationAstNode *dec = createVariableDeclarationAstNode();
 		dec->isMutable = isMutable;
 		dec->variableDefinitionAstNode = def;
-		dec->expression = parseExpressionAstNode(parser);
+		dec->expression = parseExpression(parser);
 
 		// this is weird, we can probably clean this up
 		if (isGlobal) {
@@ -1128,7 +1217,7 @@ FunctionAstNode *parseFunctionAstNode(Parser *parser) {
 				consumeToken(parser);
 
 				// default expression
-				ExpressionAstNode *expr = parseExpressionAstNode(parser);
+				ExpressionAstNode *expr = parseExpression(parser);
 				arg->value = expr;
 				pushBackItem(args, arg);
 
@@ -1230,7 +1319,7 @@ FunctionCallAstNode *parseFunctionCallAstNode(Parser *parser) {
 				break;
 			}
 
-			ExpressionAstNode *expression = parseExpressionAstNode(parser);
+			ExpressionAstNode *expression = parseExpression(parser);
 
 			FunctionArgumentAstNode *argument = createFunctionArgumentAstNode();
 			argument->value = expression;
@@ -1298,7 +1387,7 @@ FunctionReturnAstNode *parseReturnStatementAstNode(Parser *parser) {
 
 	// return value
 	FunctionReturnAstNode *functionReturn = createFunctionReturnAstNode();
-	functionReturn->returnValue = parseExpressionAstNode(parser);
+	functionReturn->returnValue = parseExpression(parser);
 
 	if (checkTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
 		consumeToken(parser);
@@ -1327,7 +1416,7 @@ DoWhileAstNode *parseDoWhileAstNode(Parser *parser) {
 	DoWhileAstNode *doWhile = createDoWhileAstNode();
 	matchTokenTypeAndContent(parser, IDENTIFIER, DO_KEYWORD);
 
-	doWhile->condition = parseExpressionAstNode(parser);
+	doWhile->condition = parseExpression(parser);
 	doWhile->body = parseBlockAstNode(parser);
 
 	return doWhile;
@@ -1412,7 +1501,7 @@ VariableReassignmentAstNode *parseReassignmentAstNode(Parser *parser) {
 		if (checkTokenTypeAndContent(parser, OPERATOR, "=", 0)) {
 			consumeToken(parser);
 
-			ExpressionAstNode *expr = parseExpressionAstNode(parser);
+			ExpressionAstNode *expr = parseExpression(parser);
 
 			if (checkTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
 				consumeToken(parser);

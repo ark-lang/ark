@@ -12,6 +12,23 @@ static const char* NODE_TYPE[] = {
 	"ANON_AST_NODE", "USE_STATEMENT_AST_NODE"
 };
 
+char *BOILERPLATE =
+"#include <stdlib.h>\n"
+"#include <stdbool.h>\n"
+"\n"
+"typedef char *string;\n"
+"typedef unsigned long long u64;\n"
+"typedef unsigned int u32;\n"
+"typedef unsigned short u16;\n"
+"typedef unsigned char u8;\n"
+"typedef long long s64;\n"
+"typedef int s32;\n"
+"typedef short s16;\n"
+"typedef char s8;\n"
+"typedef float float32;\n"
+"typedef double float64;\n"
+;
+
 Compiler *createCompiler(Vector *sourceFiles) {
 	Compiler *self = safeMalloc(sizeof(*self));
 	self->abstractSyntaxTree = NULL;
@@ -176,7 +193,29 @@ void emitStructure(Compiler *self, StructureAstNode *structure) {
 }
 
 void emitExpression(Compiler *self, ExpressionAstNode *expr) {
-	// TODO :emit ze expression!
+	switch (expr->expressionType) {
+	case VARIABLE_EXPR:
+		// TODO:
+		break;
+	case PAREN_EXPR:
+		emitCode(self, "(");
+		emitExpression(self, expr->lhand);
+		emitCode(self, " %c ", expr->binaryOp);
+		emitExpression(self, expr->rhand);
+		emitCode(self, ")");
+		break;
+	case NUMBER_EXPR:
+		emitCode(self, "%s", expr->numberExpr->content);
+		break;
+	case BINARY_EXPR:
+		emitExpression(self, expr->lhand);
+		emitCode(self, " %c ", expr->binaryOp);
+		emitExpression(self, expr->rhand);
+		break;
+	default:
+		printf("not sure what type %d is?\n", expr->expressionType);
+		break;
+	}
 }
 
 void emitFunctionCall(Compiler *self, FunctionCallAstNode *call) {	
@@ -400,8 +439,8 @@ void startCompiler(Compiler *self) {
 		writeFiles(self->currentSourceFile);
 
 		self->writeState = WRITE_SOURCE_STATE;
-		// __gen_name.h is the typical name for the headers and c files that are generated
-		emitCode(self, "#include \"__gen_%s.h\"\n", self->currentSourceFile->name);
+		// _gen_name.h is the typical name for the headers and c files that are generated
+		emitCode(self, "#include \"_gen_%s.h\"\n", self->currentSourceFile->name);
 
 		// write to header
 		self->writeState = WRITE_HEADER_STATE;
@@ -409,6 +448,8 @@ void startCompiler(Compiler *self) {
 
 		emitCode(self, "#ifndef __%s_H\n", nameInUpperCase);
 		emitCode(self, "#define __%s_H\n\n", nameInUpperCase);
+
+		emitCode(self, BOILERPLATE);
 
 		// compile code
 		compileAST(self);
@@ -435,9 +476,7 @@ void startCompiler(Compiler *self) {
 	// append the filename to the build string
 	for (i = 0; i < self->sourceFiles->size; i++) {
 		SourceFile *sourceFile = getVectorItem(self->sourceFiles, i);
-		sdscat(buildCommand, "__gen_");
-		sdscat(buildCommand, sourceFile->name);
-		sdscat(buildCommand, ".c");
+		sdscat(buildCommand, sourceFile->generatedSourceName);
 
 		if (i != self->sourceFiles->size - 1) // stop whitespace at the end!
 			sdscat(buildCommand, " ");
@@ -488,7 +527,7 @@ void destroyCompiler(Compiler *self) {
 		SourceFile *sourceFile = getVectorItem(self->sourceFiles, i);
 		// don't call destroyHeaderFile since it's called in this function!!!!
 		destroySourceFile(sourceFile);
-		debugMessage("Destroyed source files on %d iteration.\n", i);
+		debugMessage("Destroyed source files on %d iteration.", i);
 	}
 
 	hashmap_free(self->functions);
