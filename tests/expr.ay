@@ -4,7 +4,9 @@ fn add(int a, int b): int -> return a + b;
 
 fn main(): int {
 	int x = 5;
-	int z = 2 + add(5, 5) + 2;
+	mut int ^a = 5;
+	int z = 5 + ^a;
 	printf("%d\n", z);
+	free(a);
 	return 1;
 }
