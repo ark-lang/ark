@@ -934,12 +934,11 @@ ExpressionAstNode *parseIdentifierExpression(Parser *parser, bool isGlobal) {
 }
 
 ExpressionAstNode *parseBinaryOperator(Parser *parser, int precedence, ExpressionAstNode *lhs, bool isGlobal) {
-	ExpressionAstNode *temp = lhs;
 	while (true) {
 		int tokenPrecedence = getTokenPrecedence(parser);
-		if (tokenPrecedence < precedence) return temp;
+		if (tokenPrecedence < precedence) return lhs;
 
-		int binaryOperator = consumeToken(parser)->content[0];
+		char binaryOperator = consumeToken(parser)->content[0];
 
 		ExpressionAstNode *rhs = parsePrimaryExpression(parser, isGlobal);
 		if (!rhs) return NULL;
@@ -950,11 +949,12 @@ ExpressionAstNode *parseBinaryOperator(Parser *parser, int precedence, Expressio
 			if (!rhs) return NULL;
 		}
 
-		temp = createExpressionAstNode();
-		temp->expressionType = BINARY_EXPR;
+		ExpressionAstNode *temp = createExpressionAstNode();
 		temp->lhand = lhs;
+		temp->expressionType = BINARY_EXPR;
 		temp->binaryOp = binaryOperator;
 		temp->rhand = rhs;
+		lhs = temp;
 	}
 }
 

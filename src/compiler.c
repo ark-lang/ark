@@ -77,6 +77,7 @@ void emitBlock(Compiler *self, BlockAstNode *block) {
 			break;
 		case FUNCTION_CALLEE_AST_NODE:
 			emitFunctionCall(self, currentAstNode->data);
+			emitCode(self, ";");
 			break;
 		case IF_STATEMENT_AST_NODE:
 			emitIfStatement(self, currentAstNode->data);
@@ -246,7 +247,7 @@ void emitFunctionCall(Compiler *self, FunctionCallAstNode *call) {
 			emitCode(self, ", ");
 		}
 	}
-	emitCode(self, ");\n");
+	emitCode(self, ")\n");
 
 	if (call->isFunctionRedirect) {
 		int i;
