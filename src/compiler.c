@@ -325,6 +325,9 @@ void emitFunction(Compiler *self, FunctionAstNode *func) {
 	// prototype
 	self->writeState = WRITE_HEADER_STATE;
 	emitCode(self, "%s ", func->prototype->returnType->content);
+	if (func->returnsPointer) {
+		emitCode(self, "*");
+	}
 	emitCode(self, "%s(", func->prototype->name->content);
 
 	hashmap_put(self->functions, func->prototype->name->content, func->prototype->returnType->content);
@@ -354,6 +357,9 @@ void emitFunction(Compiler *self, FunctionAstNode *func) {
 
 	self->writeState = WRITE_SOURCE_STATE;
 	emitCode(self, "%s ", func->prototype->returnType->content);
+	if (func->returnsPointer) {
+		emitCode(self, "*");
+	}
 	emitCode(self, "%s(", func->prototype->name->content);
 
 	for (i = 0; i < func->prototype->args->size; i++) {
