@@ -13,7 +13,7 @@ static const char* NODE_TYPE[] = {
 	"BLOCK_AST_NODE", "FUNCTION_CALLEE_AST_NODE",
 	"FUNCTION_RET_AST_NODE", "FOR_LOOP_AST_NODE",
 	"VARIABLE_REASSIGN_AST_NODE", "INFINITE_LOOP_AST_NODE",
-	"BREAK_AST_NODE", "CONTINUE_AST_NODE", "ENUM_AST_NODE", "STRUCT_AST_NODE",
+	"BREAK_AST_NODE", "DO_WHILE_AST_NODE", "CONTINUE_AST_NODE", "ENUM_AST_NODE", "STRUCT_AST_NODE",
 	"IF_STATEMENT_AST_NODE", "MATCH_STATEMENT_AST_NODE", "WHILE_LOOP_AST_NODE",
 	"ANON_AST_NODE", "USE_STATEMENT_AST_NODE"
 };
@@ -203,6 +203,11 @@ WhileLoopAstNode *createWhileLoopAstNode() {
 	return wn;
 }
 
+DoWhileAstNode *createDoWhileAstNode() {
+	DoWhileAstNode *wn = allocateASTNode(sizeof(DoWhileAstNode), "do while loop");
+	return wn;
+}
+
 MatchCaseAstNode *createMatchCaseAstNode() {
 	MatchCaseAstNode *mcn = allocateASTNode(sizeof(MatchCaseAstNode), "match case");
 	return mcn;
@@ -273,6 +278,7 @@ void destroyStatementAstNode(StatementAstNode *statement) {
 				case IF_STATEMENT_AST_NODE: destroyIfStatementAstNode(statement->data); break;
 				case MATCH_STATEMENT_AST_NODE: destroyMatchAstNode(statement->data); break;
 				case WHILE_LOOP_AST_NODE: destroyWhileLoopAstNode(statement->data); break;
+				case DO_WHILE_AST_NODE: destroyDoWhileAstNode(statement->data); break;
 				default: printf("trying to destroy unrecognized statement node %d\n", statement->type); break;
 			}
 		}
@@ -424,6 +430,19 @@ void destroyWhileLoopAstNode(WhileLoopAstNode *whileLoop) {
 	}
 }
 
+void destroyDoWhileAstNode(DoWhileAstNode *doWhile) {
+	if (doWhile) {
+		if (doWhile->condition) {
+			destroyExpressionAstNode(doWhile->condition);
+		}
+		if (doWhile->body) {
+			destroyBlockAstNode(doWhile->body);
+		}
+		free(doWhile);
+	}
+}
+
+
 void destroyMastCaseAstNode(MatchCaseAstNode *matchCase) {
 	if (matchCase) {
 		if (matchCase->condition) {
@@ -573,7 +592,7 @@ int parseOperand(Parser *parser) {
 	return -1;
 }
 
-WhileLoopAstNode *parseWhileLoop(Parser *parser) {
+WhileLoopAstNode *parseWhileAstNode(Parser *parser) {
 	WhileLoopAstNode *whileLoop = createWhileLoopAstNode();
 	matchTokenTypeAndContent(parser, IDENTIFIER, WHILE_LOOP_KEYWORD);
 
@@ -1330,13 +1349,28 @@ BreakStatementAstNode *parseBreakStatementAstNode(Parser *parser) {
 	return breakStmt;
 }
 
+DoWhileAstNode *parseDoWhileAstNode(Parser *parser) {
+	DoWhileAstNode *doWhile = createDoWhileAstNode();
+	matchTokenTypeAndContent(parser, IDENTIFIER, DO_KEYWORD);
+
+	doWhile->condition = parseExpressionAstNode(parser);
+	doWhile->body = parseBlockAstNode(parser);
+
+	return doWhile;
+}
+
 StatementAstNode *parseStatementAstNode(Parser *parser) {
 	// RETURN STATEMENTS
 	if (checkTokenTypeAndContent(parser, IDENTIFIER, RETURN_KEYWORD, 0)) {
 		return createStatementAstNode(parseReturnStatementAstNode(parser), FUNCTION_RET_AST_NODE);
 	}
+	// BREAK STATEMENT
 	else if (checkTokenTypeAndContent(parser, IDENTIFIER, BREAK_KEYWORD, 0)) {
 		return createStatementAstNode(parseBreakStatementAstNode(parser), BREAK_AST_NODE);
+	}
+	// DO WHILE LOOP
+	else if (checkTokenTypeAndContent(parser, IDENTIFIER, DO_KEYWORD, 0)) {
+		return createStatementAstNode(parseDoWhileAstNode(parser), DO_WHILE_AST_NODE);
 	}
 	// STRUCTURES
 	else if (checkTokenTypeAndContent(parser, IDENTIFIER, STRUCT_KEYWORD, 0)) {
@@ -1352,7 +1386,7 @@ StatementAstNode *parseStatementAstNode(Parser *parser) {
 	}
 	// WHILE LOOPS
 	else if (checkTokenTypeAndContent(parser, IDENTIFIER, WHILE_LOOP_KEYWORD, 0)) {
-		return createStatementAstNode(parseWhileLoop(parser), WHILE_LOOP_AST_NODE);
+		return createStatementAstNode(parseWhileAstNode(parser), WHILE_LOOP_AST_NODE);
 	}
 	// FOR LOOPS
 	else if (checkTokenTypeAndContent(parser, IDENTIFIER, FOR_LOOP_KEYWORD, 0)) {
@@ -1365,16 +1399,6 @@ StatementAstNode *parseStatementAstNode(Parser *parser) {
 	// ENUMERATION
 	else if (checkTokenTypeAndContent(parser, IDENTIFIER, ENUM_KEYWORD, 0)) {
 		return createStatementAstNode(parseEnumerationAstNode(parser), ENUM_AST_NODE);
-	}
-	// BREAK STATEMENTS
-	else if (checkTokenTypeAndContent(parser, IDENTIFIER, BREAK_KEYWORD, 0)) {
-		consumeToken(parser);
-		return createStatementAstNode(createBreakStatementAstNode(), BREAK_AST_NODE);
-	}
-	// CONTINUE STATEMENTS
-	else if (checkTokenTypeAndContent(parser, IDENTIFIER, CONTINUE_KEYWORD, 0)) {
-		consumeToken(parser);
-		return createStatementAstNode(create_continue_ast_node(), CONTINUE_AST_NODE);
 	}
 	// IDENTIFERS
 	else if (checkTokenType(parser, IDENTIFIER, 0)) {
