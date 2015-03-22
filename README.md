@@ -2,9 +2,9 @@
 Alloy is a work in progress programming language, read the [reference](docs/REFERENCE.md) to find out more about the plans, syntax, etc.
 
 ## General Notes
-The language is a work in progress, the developers are mostly students who have jobs, lives, schoolwork and other things to maintain, therefore
-development could be slow, and has been! Alloy is written in C, we're trying to get the basics down before we begin optimizing, the code is kind of
-messy and needs refactoring. We prefer using clang to compile the code, and GCC to compile the generated code. 
+The language is a work in progress, and the developers are mostly students who have jobs, lives, schoolwork and other things to maintain, therefore
+development could be slow, and has been! Alloy is written in C and so  we're trying to get the basics down before we begin optimizing, the code is kind of
+messy and needs refactoring. We prefer using `clang` to compile the code, and `GCC` to compile the generated code. 
 
 ### Status
 
@@ -15,8 +15,8 @@ messy and needs refactoring. We prefer using clang to compile the code, and GCC 
 * Bootstrapped - TODO
 
 ## IRC
-We have an IRC where we discuss Alloy, and other stuff too, come join! If you want to help contribute,
-we highly suggest you join the IRC :)
+We have an IRC where we discuss Alloy, and other stuff too. Come join! If you want to help contribute,
+we highly suggest you join the IRC (although we might not always be available due to time zone differences) :)
 
 * server: irc.freenode.net
 * channel: #alloy-lang
