@@ -100,7 +100,7 @@ FunctionReturnAstNode *createFunctionReturnAstNode() {
 
 ExpressionAstNode *createExpressionAstNode() {
 	ExpressionAstNode *expr = allocateASTNode(sizeof(ExpressionAstNode), "expression");
-	// TODO: CREATE EXPRR!!!
+	expr->isDeref = false;
 	return expr;
 }
 
@@ -920,12 +920,21 @@ ExpressionAstNode *parseStringExpression(Parser *parser, bool isGlobal) {
 	return expr;
 }
 
+ExpressionAstNode *parseVariableExpression(Parser *parser, bool isGlobal) {
+	ExpressionAstNode *expr = createExpressionAstNode();
+	if (checkTokenTypeAndContent(parser, OPERATOR, "^", 0)) {
+		consumeToken(parser);
+		expr->isDeref = true;
+	}
+	expr->identifier = consumeToken(parser);
+	expr->expressionType = VARIABLE_EXPR;
+	return expr;
+}
+
 ExpressionAstNode *parseIdentifierExpression(Parser *parser, bool isGlobal) {
 	ExpressionAstNode *expr = createExpressionAstNode();
 	if (!checkTokenTypeAndContent(parser, SEPARATOR, "(", 1)) {
-		expr->identifier = consumeToken(parser);
-		expr->expressionType = VARIABLE_EXPR;
-		return expr;
+		return parseVariableExpression(parser, isGlobal);
 	}
 
 	expr->functionCall = parseFunctionCallAstNode(parser);
@@ -987,6 +996,7 @@ ExpressionAstNode *parseBracketExpression(Parser *parser, bool isGlobal) {
 ExpressionAstNode *parsePrimaryExpression(Parser *parser, bool isGlobal) {
 	Token *tok = peekAtTokenStream(parser, 0);
 	switch (tok->type) {
+		case OPERATOR: if (tok->content[0] == '^') return parseVariableExpression(parser, false); break;
 		case IDENTIFIER: return parseIdentifierExpression(parser, isGlobal);
 		case NUMBER: return parseNumberExpression(parser, isGlobal);
 		case STRING: return parseStringExpression(parser, isGlobal);
