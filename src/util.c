@@ -22,9 +22,7 @@ sds randString(size_t length) {
 
 sds toUppercase(sds str) {
 	size_t len = sdslen(str);
-	if (len <= 0) {
-		return NULL;
-	}
+	if (len <= 0) return NULL;
 
 	sds result = sdsnewlen("", len);
 
