@@ -601,15 +601,10 @@ IfStatementAstNode *parseIfStatementAstNode(Parser *parser) {
 	ifStatement->body = parseBlockAstNode(parser);
 	ifStatement->statementType = IF_STATEMENT;
 
-	if (checkTokenTypeAndContent(parser, IDENTIFIER, ELSE_KEYWORD, 0)) {
-		consumeToken(parser);
-		ifStatement->statementType = ELSE_STATEMENT;
-		ifStatement->elseStatement = parseBlockAstNode(parser);
-	}
-	
 	while (checkTokenTypeAndContent(parser, IDENTIFIER, ELSE_KEYWORD, 0) && checkTokenTypeAndContent(parser, IDENTIFIER, IF_KEYWORD, 1)) {
 		consumeToken(parser); // consumes the else
 		consumeToken(parser); // consumes the if
+
 		BlockAstNode *block = parseBlockAstNode(parser);
 		if(!block) {
 			parserError(parser, "Couldn't obtain a valid else-if block to parse!", consumeToken(parser), true);
@@ -617,6 +612,12 @@ IfStatementAstNode *parseIfStatementAstNode(Parser *parser) {
 		pushBackItem(ifStatement->elseIfVector, parseBlockAstNode(parser));
 	}
 
+	if (checkTokenTypeAndContent(parser, IDENTIFIER, ELSE_KEYWORD, 0)) {
+		consumeToken(parser);
+		ifStatement->statementType = ELSE_STATEMENT;
+		ifStatement->elseStatement = parseBlockAstNode(parser);
+	}
+	
 	return ifStatement;
 }
 
