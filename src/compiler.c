@@ -455,7 +455,7 @@ void startCompiler(Compiler *self) {
 		// write to header
 		self->writeState = WRITE_HEADER_STATE;
 		sds nameInUpperCase = toUppercase(self->currentSourceFile->name);
-		if (nameInUpperCase) {
+		if (!nameInUpperCase) {
 			errorMessage("Failed to convert case to upper");
 			return;
 		}
