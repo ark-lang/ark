@@ -198,7 +198,7 @@ void emitExpression(Compiler *self, ExpressionAstNode *expr) {
 	case PAREN_EXPR:
 		emitCode(self, "(");
 		emitExpression(self, expr->lhand);
-		emitCode(self, " %c ", expr->binaryOp);
+		emitCode(self, " %s ", expr->binaryOp);
 		emitExpression(self, expr->rhand);
 		emitCode(self, ")");
 		break;
@@ -216,7 +216,7 @@ void emitExpression(Compiler *self, ExpressionAstNode *expr) {
 		break;
 	case BINARY_EXPR:
 		emitExpression(self, expr->lhand);
-		emitCode(self, " %c ", expr->binaryOp);
+		emitCode(self, " %s ", expr->binaryOp);
 		emitExpression(self, expr->rhand);
 		break;
 	case FUNCTION_CALL_EXPR:
@@ -455,6 +455,10 @@ void startCompiler(Compiler *self) {
 		// write to header
 		self->writeState = WRITE_HEADER_STATE;
 		sds nameInUpperCase = toUppercase(self->currentSourceFile->name);
+		if (nameInUpperCase) {
+			errorMessage("Failed to convert case to upper");
+			return;
+		}
 
 		emitCode(self, "#ifndef __%s_H\n", nameInUpperCase);
 		emitCode(self, "#define __%s_H\n\n", nameInUpperCase);
