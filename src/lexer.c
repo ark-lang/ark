@@ -20,7 +20,7 @@ void startLexingFiles(Lexer *lexer, Vector *sourceFiles) {
 
 		// reset everything
 		lexer->inputLength = strlen(sourceFile->alloyFileContents);
-		if (lexer->inputLength) {
+		if (lexer->inputLength <= 0) {
 			errorMessage("File `%s` is empty.", sourceFile->name);
 			lexer->failed = true;
 			return;
