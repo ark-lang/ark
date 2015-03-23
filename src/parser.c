@@ -453,7 +453,8 @@ Parser *createParser() {
 	hashmap_put(parser->binopPrecedence, "<", createPrecedence(8));
 	hashmap_put(parser->binopPrecedence, ">=", createPrecedence(8));
 	hashmap_put(parser->binopPrecedence, "<=", createPrecedence(8));
-
+	hashmap_put(parser->binopPrecedence, "==", createPrecedence(9));
+	hashmap_put(parser->binopPrecedence, "!=", createPrecedence(9));
 	hashmap_put(parser->binopPrecedence, "&", createPrecedence(10));
 	hashmap_put(parser->binopPrecedence, "|", createPrecedence(11));
 
@@ -961,7 +962,7 @@ ExpressionAstNode *parseBinaryOperator(Parser *parser, int precedence, Expressio
 		ExpressionAstNode *temp = createExpressionAstNode();
 		temp->lhand = lhs;
 		temp->expressionType = BINARY_EXPR;
-		temp->binaryOp = binaryOperator;
+		temp->binaryOp = &binaryOperator;
 		temp->rhand = rhs;
 		lhs = temp;
 	}

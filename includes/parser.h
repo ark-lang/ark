@@ -197,7 +197,7 @@ typedef struct s_ExpressionAstNode {
 
 	Token *string;
 
-	char binaryOp;
+	char* binaryOp;
 	struct s_ExpressionAstNode *lhand, *rhand;
 
 	int expressionType;

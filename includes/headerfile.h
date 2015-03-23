@@ -7,7 +7,7 @@
 
 typedef struct {
 	sds fileName;
-	sds name;
+	char* name;
 	sds generatedHeaderName;
 
 	FILE *outputFile;
