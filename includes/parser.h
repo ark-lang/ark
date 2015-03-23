@@ -402,6 +402,14 @@ typedef struct {
 } IfStatementAstNode;
 
 /**
+ * ast_node to represent else-if statement
+ */
+typedef struct {
+	ExpressionAstNode *condition;
+	BlockAstNode *block;
+} ElseIfStatementAstNode;
+
+/**
  * ast_node to represent a while loop
  */
 typedef struct {
@@ -536,6 +544,11 @@ ExpressionAstNode *createExpressionAstNode();
 IfStatementAstNode *createIfStatementAstNode();
 
 /**
+ * Creates a new else-if statement ast_node
+ */
+ElseIfStatementAstNode *createElseIfStatementAstNode();
+
+/**
  * Creates a new while loop ast_node
  */
 WhileLoopAstNode *createWhileLoopAstNode();
@@ -659,6 +672,12 @@ void destroyVariableReassignmentAstNode(VariableReassignmentAstNode *vrn);
  * @param isn the node to destroy
  */
 void destroyIfStatementAstNode(IfStatementAstNode *isn);
+
+/**
+ * Destroys an else-if statement node
+ * @param eisn the node to destroy
+ */
+void destroyElseIfStatementAstNode(ElseIfStatementAstNode *eisn);
 
 /**
  * Destroys a while loop node
