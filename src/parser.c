@@ -194,6 +194,7 @@ UseStatementAstNode *createUseStatementAstNode() {
 
 IfStatementAstNode *createIfStatementAstNode() {
 	IfStatementAstNode *isn = allocateASTNode(sizeof(IfStatementAstNode), "if statement");
+	isn->elseIfVector = createVector();
 	return isn;
 }
 
@@ -382,6 +383,7 @@ void destroyIfStatementAstNode(IfStatementAstNode *ifStatement) {
 	if (ifStatement->body) {
 		destroyBlockAstNode(ifStatement->body);
 	}
+	destroyVector(ifStatement->elseIfVector);
 	free(ifStatement);
 }
 
@@ -603,6 +605,16 @@ IfStatementAstNode *parseIfStatementAstNode(Parser *parser) {
 		consumeToken(parser);
 		ifStatement->statementType = ELSE_STATEMENT;
 		ifStatement->elseStatement = parseBlockAstNode(parser);
+	}
+	
+	while (checkTokenTypeAndContent(parser, IDENTIFIER, ELSE_KEYWORD, 0) && checkTokenTypeAndContent(parser, IDENTIFIER, IF_KEYWORD, 1)) {
+		consumeToken(parser); // consumes the else
+		consumeToken(parser); // consumes the if
+		BlockAstNode *block = parseBlockAstNode(parser);
+		if(!block) {
+			parserError(parser, "Couldn't obtain a valid else-if block to parse!", consumeToken(parser), true);
+		}
+		pushBackItem(ifStatement->elseIfVector, parseBlockAstNode(parser));
 	}
 
 	return ifStatement;
