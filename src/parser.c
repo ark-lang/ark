@@ -654,104 +654,107 @@ EnumAstNode *parseEnumerationAstNode(Parser *parser) {
 	// ENUMERATIONS NAME
 	if (checkTokenType(parser, IDENTIFIER, 0)) {
 		Token *enumName = consumeToken(parser);
+		if (!strcmp(enumName->content, UNDERSCORE_KEYWORD)) {
+			enumName->content = randString(12);
+		}
 		enumeration->name = enumName;
+	}
 
-		// OPEN OF ENUM BLOCK
-		if (checkTokenTypeAndContent(parser, SEPARATOR, BLOCK_OPENER, 0)) {
-			consumeToken(parser);
+	// OPEN OF ENUM BLOCK
+	if (checkTokenTypeAndContent(parser, SEPARATOR, BLOCK_OPENER, 0)) {
+		consumeToken(parser);
 
-			// LOOP
-			do {
+		// LOOP
+		do {
 
-				// eat the last brace
-				if (checkTokenTypeAndContent(parser, SEPARATOR, BLOCK_CLOSER, 0)) {
+			// eat the last brace
+			if (checkTokenTypeAndContent(parser, SEPARATOR, BLOCK_CLOSER, 0)) {
+				consumeToken(parser);
+				break;
+			}
+
+			if (checkTokenType(parser, IDENTIFIER, 0)) {
+				Token *enumItemName = consumeToken(parser);
+
+				// setting the enum = to a value
+				if (checkTokenTypeAndContent(parser, OPERATOR, ASSIGNMENT_OPERATOR, 0)) {
 					consumeToken(parser);
-					break;
-				}
 
-				if (checkTokenType(parser, IDENTIFIER, 0)) {
-					Token *enumItemName = consumeToken(parser);
+					// to a number
+					if (checkTokenType(parser, NUMBER, 0)) {
+						Token *enumItemValue = consumeToken(parser);
 
-					// setting the enum = to a value
-					if (checkTokenTypeAndContent(parser, OPERATOR, ASSIGNMENT_OPERATOR, 0)) {
-						consumeToken(parser);
+						// convert to int
+						int enumItemValueAsInt = atoi(enumItemValue->content);
 
-						// to a number
-						if (checkTokenType(parser, NUMBER, 0)) {
-							Token *enumItemValue = consumeToken(parser);
-
-							// convert to int
-							int enumItemValueAsInt = atoi(enumItemValue->content);
-
-							// if we already have items in our enum
-							// make sure there are no duplicate values or names
-							if (enumeration->enumItems->size >= 1) {
-								EnumItem *previousEnumItem = getVectorItem(enumeration->enumItems, enumeration->enumItems->size - 1);
-								int previousEnumItemValue = previousEnumItem->value;
-								char *previousEnumItemName = previousEnumItem->name;
-
-								// validate names are not duplicate
-								if (!strcmp(previousEnumItemName, enumItemName->content)) {
-									parserError(parser, "duplicate item in enumeration", enumItemName, false);
-								}
-
-								// validate values are not duplicate
-								if (previousEnumItemValue == enumItemValueAsInt) {
-									parserError(parser, "duplicate item value in enumeration", enumItemName, false);
-								}
-							}
-
-							// push it back
-							EnumItem *enumItem = createEnumItem(enumItemName->content, enumItemValueAsInt);
-							enumItem->hasValue = true;
-							pushBackItem(enumeration->enumItems, enumItem);
-						}
-						else {
-							parserError(parser, "invalid integer literal assigned to enumeration item", consumeToken(parser), false);
-						}
-
-					}
-					// ENUM_ITEM with no assignment
-					else {
-						int enumItemValueAsInt = 0;
-
+						// if we already have items in our enum
+						// make sure there are no duplicate values or names
 						if (enumeration->enumItems->size >= 1) {
 							EnumItem *previousEnumItem = getVectorItem(enumeration->enumItems, enumeration->enumItems->size - 1);
-							enumItemValueAsInt = previousEnumItem->value + 1;
+							int previousEnumItemValue = previousEnumItem->value;
 							char *previousEnumItemName = previousEnumItem->name;
 
-							// validate name
+							// validate names are not duplicate
 							if (!strcmp(previousEnumItemName, enumItemName->content)) {
 								parserError(parser, "duplicate item in enumeration", enumItemName, false);
 							}
+
+							// validate values are not duplicate
+							if (previousEnumItemValue == enumItemValueAsInt) {
+								parserError(parser, "duplicate item value in enumeration", enumItemName, false);
+							}
 						}
 
+						// push it back
 						EnumItem *enumItem = createEnumItem(enumItemName->content, enumItemValueAsInt);
+						enumItem->hasValue = true;
 						pushBackItem(enumeration->enumItems, enumItem);
 					}
-				}
-
-				if (checkTokenTypeAndContent(parser, SEPARATOR, COMMA_SEPARATOR, 0)) {
-					consumeToken(parser);
-					if (checkTokenTypeAndContent(parser, SEPARATOR, BLOCK_CLOSER, 0)) {
-						parserError(parser, "trailing comma in enumeration", consumeToken(parser), false);
-						break;
+					else {
+						parserError(parser, "invalid integer literal assigned to enumeration item", consumeToken(parser), false);
 					}
-				}
 
-				// we've finished parsing jump out
+				}
+				// ENUM_ITEM with no assignment
+				else {
+					int enumItemValueAsInt = 0;
+
+					if (enumeration->enumItems->size >= 1) {
+						EnumItem *previousEnumItem = getVectorItem(enumeration->enumItems, enumeration->enumItems->size - 1);
+						enumItemValueAsInt = previousEnumItem->value + 1;
+						char *previousEnumItemName = previousEnumItem->name;
+
+						// validate name
+						if (!strcmp(previousEnumItemName, enumItemName->content)) {
+							parserError(parser, "duplicate item in enumeration", enumItemName, false);
+						}
+					}
+
+					EnumItem *enumItem = createEnumItem(enumItemName->content, enumItemValueAsInt);
+					pushBackItem(enumeration->enumItems, enumItem);
+				}
+			}
+
+			if (checkTokenTypeAndContent(parser, SEPARATOR, COMMA_SEPARATOR, 0)) {
+				consumeToken(parser);
 				if (checkTokenTypeAndContent(parser, SEPARATOR, BLOCK_CLOSER, 0)) {
-					consumeToken(parser);
+					parserError(parser, "trailing comma in enumeration", consumeToken(parser), false);
 					break;
 				}
-
 			}
-			while (true);
 
-			// empty enum, throw an error.
-			if (enumeration->enumItems->size == 0) {
-				parserError(parser, "empty enumeration", consumeToken(parser), false);
+			// we've finished parsing jump out
+			if (checkTokenTypeAndContent(parser, SEPARATOR, BLOCK_CLOSER, 0)) {
+				consumeToken(parser);
+				break;
 			}
+
+		}
+		while (true);
+
+		// empty enum, throw an error.
+		if (enumeration->enumItems->size == 0) {
+			parserError(parser, "empty enumeration", consumeToken(parser), false);
 		}
 	}
 

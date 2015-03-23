@@ -1,0 +1,16 @@
+// testing anonymous enumeration
+
+enum _ {
+	SWAG
+	ANOTHER_SWAG
+}
+
+enum _ {
+	YOLO
+	YOLO_SWAG
+}
+
+fn main(): int {
+
+	return 0;
+}
