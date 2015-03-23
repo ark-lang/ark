@@ -50,6 +50,7 @@
 #define FOR_LOOP_KEYWORD		"for"
 #define TRUE_KEYWORD			"true"
 #define FALSE_KEYWORD			"false"
+#define ELSE_IF_KEYWORD 		""
 
 /**
  * parser contents
@@ -391,6 +392,13 @@ typedef struct {
 
 	/** things to do if the condition is false */
 	BlockAstNode *elseStatement;
+
+	/** In case we have multiple else-if's */
+	Vector *elseIfVector;
+
+	/** things to do if the another condition is to be eval'd if first is false */
+	BlockAstNode *elseIfStatement;
+
 } IfStatementAstNode;
 
 /**
