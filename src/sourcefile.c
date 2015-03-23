@@ -23,9 +23,9 @@ void writeFiles(SourceFile *sourceFile) {
 
 void writeSourceFile(SourceFile *sourceFile) {
 	sourceFile->generatedSourceName = sdsempty();
-	sdscat(sourceFile->generatedSourceName, "_gen_");
-	sdscat(sourceFile->generatedSourceName, sourceFile->name);
-	sdscat(sourceFile->generatedSourceName, ".c");
+	sourceFile->generatedSourceName = sdscat(sourceFile->generatedSourceName, "_gen_");
+	sourceFile->generatedSourceName = sdscat(sourceFile->generatedSourceName, sourceFile->name);
+	sourceFile->generatedSourceName = sdscat(sourceFile->generatedSourceName, ".c");
 
 	debugMessage("Generated source file `%s` as `%s`", sourceFile->name, sourceFile->generatedSourceName);
 	sourceFile->outputFile = fopen(sourceFile->generatedSourceName, "w");
