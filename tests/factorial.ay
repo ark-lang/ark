@@ -5,15 +5,13 @@ fn factorial(int a): int {
 		return 1;
 	}
 	else {
-		int x;
-		factorial(a - 1) -> x ;
+		int x = factorial(a - 1);
 		return x * a;
 	}
 }
 
 fn main(): int {
-	int fac;
-	factorial(6) -> fac;
+	int fac = factorial(6);
 	printf("factorial of 6 is %d\n", fac);
 	return 0;
 }

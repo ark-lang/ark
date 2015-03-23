@@ -25,6 +25,7 @@ typedef struct {
 	int charNumber;		// current character at line
 	int startPos;			// keeps track of positions without comments
 	bool running;			// if lexer is running 
+	bool failed;
 	Vector *tokenStream;	// where the tokens are stored
 } Lexer;
 

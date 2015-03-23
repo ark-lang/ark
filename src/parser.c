@@ -442,6 +442,7 @@ Parser *createParser() {
 	parser->tokenIndex = 0;
 	parser->parsing = true;
 	parser->binopPrecedence = hashmap_new();
+	
 	hashmap_put(parser->binopPrecedence, "+", createPrecedence(6));
 	hashmap_put(parser->binopPrecedence, "-", createPrecedence(6));
 
@@ -453,9 +454,12 @@ Parser *createParser() {
 	hashmap_put(parser->binopPrecedence, "<", createPrecedence(8));
 	hashmap_put(parser->binopPrecedence, ">=", createPrecedence(8));
 	hashmap_put(parser->binopPrecedence, "<=", createPrecedence(8));
+	
 	hashmap_put(parser->binopPrecedence, "==", createPrecedence(9));
 	hashmap_put(parser->binopPrecedence, "!=", createPrecedence(9));
+
 	hashmap_put(parser->binopPrecedence, "&", createPrecedence(10));
+
 	hashmap_put(parser->binopPrecedence, "|", createPrecedence(11));
 
 	parser->exitOnError = false;
@@ -948,7 +952,7 @@ ExpressionAstNode *parseBinaryOperator(Parser *parser, int precedence, Expressio
 		int tokenPrecedence = getTokenPrecedence(parser);
 		if (tokenPrecedence < precedence) return lhs;
 
-		char binaryOperator = consumeToken(parser)->content[0];
+		char* binaryOperator = consumeToken(parser)->content;
 
 		ExpressionAstNode *rhs = parsePrimaryExpression(parser, isGlobal);
 		if (!rhs) return NULL;
@@ -962,7 +966,7 @@ ExpressionAstNode *parseBinaryOperator(Parser *parser, int precedence, Expressio
 		ExpressionAstNode *temp = createExpressionAstNode();
 		temp->lhand = lhs;
 		temp->expressionType = BINARY_EXPR;
-		temp->binaryOp = &binaryOperator;
+		temp->binaryOp = binaryOperator;
 		temp->rhand = rhs;
 		lhs = temp;
 	}

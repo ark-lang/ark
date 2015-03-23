@@ -104,6 +104,9 @@ void startAlloyCompiler(AlloyCompiler *self) {
 	// lex file
 	self->lexer = createLexer(self->sourceFiles);
 	startLexingFiles(self->lexer, self->sourceFiles);
+	if (self->lexer->failed) {
+		return;
+	}
 	debugMessage("Finished Lexing");
 
 	// initialise parser after we tokenize

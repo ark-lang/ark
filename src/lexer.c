@@ -9,6 +9,7 @@ Lexer *createLexer() {
 	lexer->running = true;
 	lexer->lineNumber = 1;
 	lexer->charNumber = 1;
+	lexer->failed = false;
 	return lexer;
 }
 
@@ -19,6 +20,11 @@ void startLexingFiles(Lexer *lexer, Vector *sourceFiles) {
 
 		// reset everything
 		lexer->inputLength = strlen(sourceFile->alloyFileContents);
+		if (lexer->inputLength) {
+			errorMessage("File `%s` is empty.", sourceFile->name);
+			lexer->failed = true;
+			return;
+		}
 		lexer->input = sourceFile->alloyFileContents;
 		lexer->pos = 0;
 		lexer->lineNumber = 1;
@@ -295,15 +301,17 @@ void getNextToken(Lexer *lexer) {
 }
 
 void destroyLexer(Lexer *lexer) {
-	int i;
-	for (i = 0; i < lexer->tokenStream->size; i++) {
-		Token *tok = getVectorItem(lexer->tokenStream, i);
-		// eof's content isnt malloc'd so free would give us some errors
-		if (tok->type != END_OF_FILE) {
-			debugMessage("Freed `%s` token", tok->content);
-			sdsfree(tok->content);
+	if (lexer->tokenStream != NULL) {
+		int i;
+		for (i = 0; i < lexer->tokenStream->size; i++) {
+			Token *tok = getVectorItem(lexer->tokenStream, i);
+			// eof's content isnt malloc'd so free would give us some errors
+			if (tok->type != END_OF_FILE) {
+				debugMessage("Freed `%s` token", tok->content);
+				sdsfree(tok->content);
+			}
+			destroyToken(tok);
 		}
-		destroyToken(tok);
 	}
 
 	debugMessage("Destroyed Lexer.");
@@ -312,6 +320,7 @@ void destroyLexer(Lexer *lexer) {
 
 char* getTokenContext(Vector *stream, Token *tok) {
 	sds result = sdsempty();
+	
 	int i;
 	for (i = 0; i < stream->size; i++) {
 		Token *tempTok = getVectorItem(stream, i);
