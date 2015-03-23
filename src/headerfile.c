@@ -9,9 +9,9 @@ HeaderFile *createHeaderFile(sds fileName) {
 
 void writeHeaderFile(HeaderFile *headerFile) {
 	headerFile->generatedHeaderName = sdsempty();
-	sdscat(headerFile->generatedHeaderName, "_gen_");
-	sdscat(headerFile->generatedHeaderName, headerFile->name);
-	sdscat(headerFile->generatedHeaderName, ".h");
+	headerFile->generatedHeaderName = sdscat(headerFile->generatedHeaderName, "_gen_");
+	headerFile->generatedHeaderName = sdscat(headerFile->generatedHeaderName, headerFile->name);
+	headerFile->generatedHeaderName = sdscat(headerFile->generatedHeaderName, ".h");
 
 	debugMessage("Generated header file `%s` as `%s`", headerFile->name, headerFile->generatedHeaderName);
 	headerFile->outputFile = fopen(headerFile->generatedHeaderName, "w");
