@@ -478,18 +478,18 @@ void startCompiler(Compiler *self) {
 	sds buildCommand = sdsempty();
 
 	// append the compiler to use etc
-	sdscat(buildCommand, COMPILER);
-	sdscat(buildCommand, " -std=c99 -Wall -o ");
-	sdscat(buildCommand, OUTPUT_EXECUTABLE_NAME);
-	sdscat(buildCommand, " ");
+	buildCommand = sdscat(buildCommand, COMPILER);
+	buildCommand = sdscat(buildCommand, " -std=c99 -Wall -o ");
+	buildCommand = sdscat(buildCommand, OUTPUT_EXECUTABLE_NAME);
+	buildCommand = sdscat(buildCommand, " ");
 
 	// append the filename to the build string
 	for (i = 0; i < self->sourceFiles->size; i++) {
 		SourceFile *sourceFile = getVectorItem(self->sourceFiles, i);
-		sdscat(buildCommand, sourceFile->generatedSourceName);
+		buildCommand = sdscat(buildCommand, sourceFile->generatedSourceName);
 
 		if (i != self->sourceFiles->size - 1) // stop whitespace at the end!
-			sdscat(buildCommand, " ");
+			buildCommand = sdscat(buildCommand, " ");
 	}
 
 	// just for debug purposes
