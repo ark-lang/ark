@@ -198,6 +198,11 @@ IfStatementAstNode *createIfStatementAstNode() {
 	return isn;
 }
 
+ElseIfStatementAstNode *createElseIfStatementAstNode() {
+	ElseIfStatementAstNode *eisn = allocateASTNode(sizeof(ElseIfStatementAstNode), "else-if statement");
+	return eisn;
+}
+
 WhileLoopAstNode *createWhileLoopAstNode() {
 	WhileLoopAstNode *wn = allocateASTNode(sizeof(WhileLoopAstNode), "while loop");
 	return wn;
@@ -385,6 +390,16 @@ void destroyIfStatementAstNode(IfStatementAstNode *ifStatement) {
 	}
 	destroyVector(ifStatement->elseIfVector);
 	free(ifStatement);
+}
+
+void destroyElseIfStatementAstNode(ElseIfStatementAstNode *elseIfStatement) {
+	if (elseIfStatement->condition) {
+		destroyExpressionAstNode(elseIfStatement->condition);
+	}
+	if (elseIfStatement->block) {
+		destroyBlockAstNode(elseIfStatement->block);
+	}
+	free(elseIfStatement);
 }
 
 void destroyWhileLoopAstNode(WhileLoopAstNode *whileLoop) {
@@ -605,11 +620,20 @@ IfStatementAstNode *parseIfStatementAstNode(Parser *parser) {
 		consumeToken(parser); // consumes the else
 		consumeToken(parser); // consumes the if
 
+		/** Parse the condition for the else-if */
+		ElseIfStatementAstNode *elseIfStatement = createElseIfStatementAstNode();
+		ExpressionAstNode *exp = parseExpression(parser, false);
+		if(!exp) {
+			parserError(parser, "Couldn't obtain valid condition for else-if block to parse!", consumeToken(parser), true);
+		}
+		elseIfStatement->condition = exp;
+
 		BlockAstNode *block = parseBlockAstNode(parser);
 		if(!block) {
 			parserError(parser, "Couldn't obtain a valid else-if block to parse!", consumeToken(parser), true);
 		}
-		pushBackItem(ifStatement->elseIfVector, parseBlockAstNode(parser));
+		elseIfStatement->block = block;
+		pushBackItem(ifStatement->elseIfVector, elseIfStatement);
 	}
 
 	if (checkTokenTypeAndContent(parser, IDENTIFIER, ELSE_KEYWORD, 0)) {

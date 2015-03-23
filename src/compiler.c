@@ -274,11 +274,11 @@ void emitIfStatement(Compiler *self, IfStatementAstNode *stmt) {
 	if (stmt->elseIfVector->size > 0) {
 		int i;
 		for(i = 0; i < stmt->elseIfVector->size; i++) {
-			BlockAstNode *node = getVectorItem(stmt->elseIfVector, i);
+			ElseIfStatementAstNode *node = getVectorItem(stmt->elseIfVector, i);
 			emitCode(self, "else if (");
-			emitExpression(self, stmt->condition);
+			emitExpression(self, node->condition);
 			emitCode(self, ") {");
-			emitBlock(self, node);
+			emitBlock(self, node->block);
 			emitCode(self, "}");
 		}
 	}
