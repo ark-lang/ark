@@ -1,4 +1,4 @@
-CC = gcc
+CC = clang
 C_FLAGS = -Wall -Iincludes/ -g
 SOURCES = src/*.c
 
