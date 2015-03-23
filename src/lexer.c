@@ -316,8 +316,8 @@ char* getTokenContext(Vector *stream, Token *tok) {
 	for (i = 0; i < stream->size; i++) {
 		Token *tempTok = getVectorItem(stream, i);
 		if (tempTok->lineNumber == tok->lineNumber) {
-			sdscat(result, tempTok->content);
-			sdscat(result, " ");
+			result = sdscat(result, tempTok->content);
+			result = sdscat(result, " ");
 		}
 	}
 	return result;
