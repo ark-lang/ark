@@ -53,6 +53,6 @@ void destroySourceFile(SourceFile *sourceFile) {
 	sdsfree(sourceFile->fileName);
 	free(sourceFile->name); // this isn't using sds!
 	sdsfree(sourceFile->generatedSourceName);
-	free(sourceFile->alloyFileContents); // and this isn't either! vedant u fkn noob
+	free(sourceFile->alloyFileContents); 
 	free(sourceFile);
 }
