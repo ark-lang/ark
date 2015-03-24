@@ -61,7 +61,7 @@ void emitReassignment(Compiler *self, VariableReassignmentAstNode *reassign) {
 	}
 	emitCode(self, "%s =", reassign->name->content);
 	emitExpression(self, reassign->expression);
-	emitCode(self, ";\n");
+	emitCode(self, ";");
 }
 
 void emitBlock(Compiler *self, BlockAstNode *block) {
@@ -125,11 +125,14 @@ void emitVariableDefine(Compiler *self, VariableDefinitionAstNode *def) {
 	}
 
 	// it's not a structure definition, set it to 0
-	if (!structDef || (structDef && !def->isPointer)) {
-		emitCode(self, "%s = 0;\n", def->name);
+	if (!structDef || (!structDef && !def->isPointer)) {
+		emitCode(self, "%s = 0;", def->name);
+	}
+	else if (structDef) {
+		emitCode(self, "%s;", def->name);
 	}
 	else {
-		emitCode(self, "%s = malloc(sizeof(*%s));\n", def->name, def->name);
+		emitCode(self, "%s = malloc(sizeof(*%s));", def->name, def->name);
 	}
 }
 
@@ -143,14 +146,14 @@ void emitVariableDeclaration(Compiler *self, VariableDeclarationAstNode *var) {
 	}
 	emitCode(self, "%s = ", var->variableDefinitionAstNode->name);
 	if (var->variableDefinitionAstNode->isPointer) {
-		emitCode(self, "malloc(sizeof(*%s));\n", var->variableDefinitionAstNode->name);
+		emitCode(self, "malloc(sizeof(*%s));", var->variableDefinitionAstNode->name);
 		emitCode(self, "*%s = ", var->variableDefinitionAstNode->name);
 		emitExpression(self, var->expression);
 	}
 	else {
 		emitExpression(self, var->expression);
 	}
-	emitCode(self, ";\n");
+	emitCode(self, ";");
 }
 
 void emitStructureTypeDefine(Compiler *self, VariableDefinitionAstNode *def) {
@@ -158,7 +161,7 @@ void emitStructureTypeDefine(Compiler *self, VariableDefinitionAstNode *def) {
 	if (def->isPointer) {
 		emitCode(self, "*");
 	}
-	emitCode(self, "%s;\n", def->name);
+	emitCode(self, "%s;", def->name);
 }
 
 void emitStructureTypeDeclare(Compiler *self, VariableDeclarationAstNode *dec) {
@@ -166,7 +169,7 @@ void emitStructureTypeDeclare(Compiler *self, VariableDeclarationAstNode *dec) {
 	if (dec->variableDefinitionAstNode->isPointer) {
 		emitCode(self, "*");
 	}
-	emitCode(self, "%s;\n", dec->variableDefinitionAstNode->name);
+	emitCode(self, "%s;", dec->variableDefinitionAstNode->name);
 }
 
 void emitStructure(Compiler *self, StructureAstNode *structure) {
@@ -174,7 +177,7 @@ void emitStructure(Compiler *self, StructureAstNode *structure) {
 
 	self->writeState = WRITE_HEADER_STATE;
 
-	emitCode(self, "typedef struct {\n");
+	emitCode(self, "typedef struct {");
 	int i;
 	for (i = 0; i < structure->statements->size; i++) {
 		StatementAstNode *stmt = getVectorItem(structure->statements, i);
@@ -190,7 +193,7 @@ void emitStructure(Compiler *self, StructureAstNode *structure) {
 			break;
 		}
 	}
-	emitCode(self, "} %s;\n", structure->name);
+	emitCode(self, "} %s;", structure->name);
 }
 
 void emitExpression(Compiler *self, ExpressionAstNode *expr) {
@@ -213,6 +216,12 @@ void emitExpression(Compiler *self, ExpressionAstNode *expr) {
 		break;
 	case STRING_EXPR:
 		emitCode(self, "%s", expr->string->content);
+		break;
+	case MEMBER_EXPR:
+		emitExpression(self, expr->lhand);
+		// todo: inferr whether to use -> or .
+		emitCode(self, "%s", expr->binaryOp);
+		emitExpression(self, expr->rhand);
 		break;
 	case BINARY_EXPR:
 		emitExpression(self, expr->lhand);
@@ -256,7 +265,7 @@ void emitFunctionCall(Compiler *self, FunctionCallAstNode *call) {
 		int i;
 		for (i = 0; i < call->vars->size; i++) {
 			Token *tok = getVectorItem(call->vars, i);
-			emitCode(self, "%s = %s;\n", tok->content, randName);
+			emitCode(self, "%s = %s;", tok->content, randName);
 		}
 	}
 

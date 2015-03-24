@@ -1,0 +1,18 @@
+// this is just me testing out emacs.
+/**
+
+swag
+
+/* swag*/
+
+nested comments anyone?
+
+*/
+
+fn add(int a, int b): int -> return a + b;
+
+fn main(): int {
+   int x = add(5 + 5, 5 * 3);
+   printf("%d\n", x);
+   return 0;
+}
