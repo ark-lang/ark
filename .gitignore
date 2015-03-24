@@ -8,6 +8,9 @@
 *.gch
 *.pch
 
+# emacs
+\#*\#
+
 # Libraries
 *.lib
 *.a
