@@ -62,6 +62,12 @@ FunctionOwnerAstNode *createFunctionOwnerAstNode() {
 	return fo;
 }
 
+TupleAstNode *createTupleAstNode() {
+	TupleAstNode *tuple = allocateASTNode(sizeof(TupleAstNode), "tuple");
+	tuple->values = createVector();
+	return tuple;
+}
+
 InfiniteLoopAstNode *createInfiniteLoopAstNode() {
 	InfiniteLoopAstNode *iln = allocateASTNode(sizeof(InfiniteLoopAstNode), "infinite loop");
 	iln->body = NULL;
@@ -129,7 +135,6 @@ FunctionCallAstNode *createFunctionCallAstNode() {
 	FunctionCallAstNode *fcn = allocateASTNode(sizeof(FunctionCallAstNode), "function callee");
 	fcn->name = NULL;
 	fcn->args = NULL;
-	fcn->isFunctionRedirect = false;
 	return fcn;
 }
 
@@ -222,6 +227,11 @@ MatchAstNode *createMatchAstNode() {
 	MatchAstNode *mn = allocateASTNode(sizeof(MatchAstNode), "match");
 	mn->cases = createVector();
 	return mn;
+}
+
+void destroyTupleAstNode(TupleAstNode *tuple) {
+	destroyVector(tuple->values);
+	free(tuple);
 }
 
 void destroyVariableReassignmentAstNode(VariableReassignmentAstNode *vrn) {
@@ -1195,6 +1205,27 @@ UseStatementAstNode *parseUseStatementAstNode(Parser *parser) {
 	return use;
 }
 
+TupleAstNode *parseTuple(Parser *parser) {
+	TupleAstNode *tuple = createTupleAstNode();
+	matchTokenTypeAndContent(parser, SEPARATOR, "(");
+
+	while (true) {
+		if (checkTokenType(parser, IDENTIFIER, 0)) {
+			Token *tok = consumeToken(parser);
+			pushBackItem(tuple->values, tok->content);
+		}
+		if (checkTokenTypeAndContent(parser, SEPARATOR, ",", 0)) {
+			consumeToken(parser);
+		}
+		if (checkTokenTypeAndContent(parser, SEPARATOR, ")", 0)) {
+			consumeToken(parser);
+			break;
+		}
+	}
+
+	return tuple;
+}
+
 FunctionAstNode *parseFunctionAstNode(Parser *parser) {
 	matchTokenType(parser, IDENTIFIER);	// consume the fn keyword
 
@@ -1315,27 +1346,33 @@ FunctionAstNode *parseFunctionAstNode(Parser *parser) {
 		if (checkTokenTypeAndContent(parser, OPERATOR, ":", 0)) {
 			consumeToken(parser);
 
-			bool isMutable = false;
-			if (checkTokenTypeAndContent(parser, IDENTIFIER, MUT_KEYWORD, 0)) {
-				isMutable = true;
-				consumeToken(parser);
-			}
-
-			bool returnPointer = false;
-			if (checkTokenTypeAndContent(parser, OPERATOR, POINTER_OPERATOR, 0)) {
-				returnPointer = true;
-				consumeToken(parser);
-			}
-
-			// returns data type
-			if (checkTokenType(parser, IDENTIFIER, 0)) {
-				Token *returnType = consumeToken(parser);
-				prototype->returnType = returnType;
-				function->returnsPointer = returnPointer;
-				function->isMutable = isMutable;
+			if (checkTokenTypeAndContent(parser, SEPARATOR, "(", 0)) {
+				function->returnsTuple = true;
+				function->tuple = parseTuple(parser);
 			}
 			else {
-				parserError(parser, "function declaration return type expected", consumeToken(parser), false);
+				bool isMutable = false;
+				if (checkTokenTypeAndContent(parser, IDENTIFIER, MUT_KEYWORD, 0)) {
+					isMutable = true;
+					consumeToken(parser);
+				}
+
+				bool returnPointer = false;
+				if (checkTokenTypeAndContent(parser, OPERATOR, POINTER_OPERATOR, 0)) {
+					returnPointer = true;
+					consumeToken(parser);
+				}
+
+				// returns data type
+				if (checkTokenType(parser, IDENTIFIER, 0)) {
+					Token *returnType = consumeToken(parser);
+					prototype->returnType = returnType;
+					function->returnsPointer = returnPointer;
+					function->isMutable = isMutable;
+				}
+				else {
+					parserError(parser, "function declaration return type expected", consumeToken(parser), false);
+				}
 			}
 		}
 		else if (checkTokenType(parser, IDENTIFIER, 0)) {
