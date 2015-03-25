@@ -10,6 +10,7 @@
 #include "lexer.h"
 #include "util.h"
 #include "vector.h"
+#include "ast.h"
 
 /**
  * parser contents
@@ -25,14 +26,26 @@ typedef struct {
 
 Parser *createParser();
 
+void destroyParser(Parser *parser);
+
+/** AST */
+
+IdentifierList *parseIdentifierList(Parser *parser);
+
+/** UTILITIES */
+
 Token *consumeToken(Parser *parser);
 
+bool checkTokenType(Parser *parser, int type, int ahead);
+
+bool checkTokenTypeAndContent(Parser *parser, int type, char *content, int ahead);
+
 Token *peekAtTokenStream(Parser *parser, int ahead);
+
+/** DRIVERS */
 
 void startParsingSourceFiles(Parser *parser, Vector *sourceFiles);
 
 void parseTokenStream(Parser *parser);
-
-void destroyParser(Parser *parser);
 
 #endif // parser_H

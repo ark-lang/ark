@@ -8,7 +8,7 @@
 #include "util.h"
 #include "lexer.h"
 #include "parser.h"
-#include "compiler.h"
+//#include "compiler.h"
 
 #define VERSION_ARG 		"-ver"
 #define DEBUG_MODE_ARG 		"-d"
@@ -32,7 +32,7 @@ typedef struct {
 typedef struct {
 	Lexer *lexer;
 	Parser *parser;
-	Compiler *compiler;
+//	Compiler *compiler;
 	Vector *sourceFiles;
 } AlloyCompiler;
 
