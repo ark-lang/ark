@@ -16,17 +16,17 @@ char *BOILERPLATE =
 "#include <stdlib.h>\n"
 "#include <stdbool.h>\n"
 "\n"
-"typedef char *string;\n"
-"typedef unsigned long long u64;\n"
-"typedef unsigned int u32;\n"
-"typedef unsigned short u16;\n"
-"typedef unsigned char u8;\n"
-"typedef long long s64;\n"
-"typedef int s32;\n"
-"typedef short s16;\n"
-"typedef char s8;\n"
-"typedef float f32;\n"
-"typedef double f64;\n"
+"typedef char *string;" CC_NEWLINE
+"typedef unsigned long long u64;" CC_NEWLINE
+"typedef unsigned int u32;" CC_NEWLINE
+"typedef unsigned short u16;" CC_NEWLINE
+"typedef unsigned char u8;" CC_NEWLINE
+"typedef long long s64;" CC_NEWLINE
+"typedef int s32;" CC_NEWLINE
+"typedef short s16;" CC_NEWLINE
+"typedef char s8;" CC_NEWLINE
+"typedef float f32;" CC_NEWLINE
+"typedef double f64;" CC_NEWLINE
 ;
 
 Compiler *createCompiler(Vector *sourceFiles) {
@@ -61,7 +61,7 @@ void emitReassignment(Compiler *self, VariableReassignmentAstNode *reassign) {
 	}
 	emitCode(self, "%s =", reassign->name->content);
 	emitExpression(self, reassign->expression);
-	emitCode(self, ";");
+	emitCode(self, ";" CC_NEWLINE);
 }
 
 void emitBlock(Compiler *self, BlockAstNode *block) {
@@ -126,13 +126,13 @@ void emitVariableDefine(Compiler *self, VariableDefinitionAstNode *def) {
 
 	// it's not a structure definition, set it to 0
 	if (!structDef || (!structDef && !def->isPointer)) {
-		emitCode(self, "%s = 0;", def->name);
+		emitCode(self, "%s = 0;" CC_NEWLINE, def->name);
 	}
 	else if (structDef) {
-		emitCode(self, "%s;", def->name);
+		emitCode(self, "%s;" CC_NEWLINE, def->name);
 	}
 	else {
-		emitCode(self, "%s = malloc(sizeof(*%s));", def->name, def->name);
+		emitCode(self, "%s = malloc(sizeof(*%s));" CC_NEWLINE, def->name, def->name);
 	}
 }
 
@@ -153,7 +153,7 @@ void emitVariableDeclaration(Compiler *self, VariableDeclarationAstNode *var) {
 	else {
 		emitExpression(self, var->expression);
 	}
-	emitCode(self, ";");
+	emitCode(self, ";" CC_NEWLINE);
 }
 
 void emitStructureTypeDefine(Compiler *self, VariableDefinitionAstNode *def) {
@@ -161,7 +161,7 @@ void emitStructureTypeDefine(Compiler *self, VariableDefinitionAstNode *def) {
 	if (def->isPointer) {
 		emitCode(self, "*");
 	}
-	emitCode(self, "%s;", def->name);
+	emitCode(self, "%s;" CC_NEWLINE, def->name);
 }
 
 void emitStructureTypeDeclare(Compiler *self, VariableDeclarationAstNode *dec) {
@@ -169,7 +169,7 @@ void emitStructureTypeDeclare(Compiler *self, VariableDeclarationAstNode *dec) {
 	if (dec->variableDefinitionAstNode->isPointer) {
 		emitCode(self, "*");
 	}
-	emitCode(self, "%s;", dec->variableDefinitionAstNode->name);
+	emitCode(self, "%s;" CC_NEWLINE, dec->variableDefinitionAstNode->name);
 }
 
 void emitStructure(Compiler *self, StructureAstNode *structure) {
@@ -177,7 +177,7 @@ void emitStructure(Compiler *self, StructureAstNode *structure) {
 
 	self->writeState = WRITE_HEADER_STATE;
 
-	emitCode(self, "typedef struct {");
+	emitCode(self, "typedef struct {" CC_NEWLINE);
 	int i;
 	for (i = 0; i < structure->statements->size; i++) {
 		StatementAstNode *stmt = getVectorItem(structure->statements, i);
@@ -193,7 +193,7 @@ void emitStructure(Compiler *self, StructureAstNode *structure) {
 			break;
 		}
 	}
-	emitCode(self, "} %s;", structure->name);
+	emitCode(self, "} %s;" CC_NEWLINE, structure->name);
 }
 
 void emitExpression(Compiler *self, ExpressionAstNode *expr) {
@@ -239,14 +239,6 @@ void emitExpression(Compiler *self, ExpressionAstNode *expr) {
 
 void emitFunctionCall(Compiler *self, FunctionCallAstNode *call) {	
 	self->writeState = WRITE_SOURCE_STATE;
-	// this is for the redirection
-	sds randName = randString(12);
-
-	if (call->isFunctionRedirect) {
-		char *s = NULL;
-		hashmap_get(self->functions, call->name, (void**) &s);
-		emitCode(self, "%s %s = ", s, randName);
-	}
 
 	emitCode(self, "%s(", call->name);
 	int i;
@@ -260,25 +252,15 @@ void emitFunctionCall(Compiler *self, FunctionCallAstNode *call) {
 		}
 	}
 	emitCode(self, ")");
-
-	if (call->isFunctionRedirect) {
-		int i;
-		for (i = 0; i < call->vars->size; i++) {
-			Token *tok = getVectorItem(call->vars, i);
-			emitCode(self, "%s = %s;", tok->content, randName);
-		}
-	}
-
-	sdsfree(randName);
 }
 
 void emitIfStatement(Compiler *self, IfStatementAstNode *stmt) {
 	self->writeState = WRITE_SOURCE_STATE;
 	emitCode(self, "if (");
 	emitExpression(self, stmt->condition);
-	emitCode(self, ") {");
+	emitCode(self, ") {" CC_NEWLINE);
 	emitBlock(self, stmt->body);
-	emitCode(self, "}");
+	emitCode(self, "}" CC_NEWLINE);
 
 	if (stmt->elseIfVector->size > 0) {
 		int i;
@@ -286,16 +268,16 @@ void emitIfStatement(Compiler *self, IfStatementAstNode *stmt) {
 			ElseIfStatementAstNode *node = getVectorItem(stmt->elseIfVector, i);
 			emitCode(self, "else if (");
 			emitExpression(self, node->condition);
-			emitCode(self, ") {");
+			emitCode(self, ") {" CC_NEWLINE);
 			emitBlock(self, node->block);
-			emitCode(self, "}");
+			emitCode(self, "}" CC_NEWLINE);
 		}
 	}
 
 	if (stmt->elseStatement) {
-		emitCode(self, "else {");
+		emitCode(self, "else {" CC_NEWLINE);
 		emitBlock(self, stmt->elseStatement);
-		emitCode(self, "}");
+		emitCode(self, "}" CC_NEWLINE);
 	}
 }
 
@@ -307,7 +289,7 @@ void emitReturnStatement(Compiler *self, FunctionReturnAstNode *ret) {
 		self->writeState = WRITE_SOURCE_STATE;
 		emitExpression(self, ret->returnValue);
 	}
-	emitCode(self, ";");
+	emitCode(self, ";" CC_NEWLINE);
 }
 
 void emitForLoop(Compiler *self, ForLoopAstNode *forLoop) {
@@ -330,7 +312,7 @@ void emitForLoop(Compiler *self, ForLoopAstNode *forLoop) {
 	}
 
 	// TODO: check if inclusive/exclusive, and handle cases where the operator is <=, >=, >, ==, != etc
-	emitCode(self, "for (%s %s = %s; %s < %s; %s += %s) {",
+	emitCode(self, "for (%s %s = %s; %s < %s; %s += %s) {" CC_NEWLINE,
 			forLoop->type->content,
 			indexRandName,
 			((Token*) getVectorItem(forLoop->parameters, FOR_START))->content,
@@ -340,7 +322,7 @@ void emitForLoop(Compiler *self, ForLoopAstNode *forLoop) {
 			stepValue);
 
 	emitBlock(self, forLoop->body);
-	emitCode(self, "}");
+	emitCode(self, "}" CC_NEWLINE);
 }
 
 void emitInfiniteLoop(Compiler *self, InfiniteLoopAstNode *infinite) {
@@ -354,22 +336,22 @@ void emitWhileLoop(Compiler *self, WhileLoopAstNode *whileLoop) {
 	self->writeState = WRITE_SOURCE_STATE;
 	emitCode(self, "while (");
 	emitExpression(self, whileLoop->condition);
-	emitCode(self, ") {");
+	emitCode(self, ") {" CC_NEWLINE);
 	emitBlock(self, whileLoop->body);
-	emitCode(self, "}");
+	emitCode(self, "}" CC_NEWLINE);
 }
 
 void emitDoWhileLoop(Compiler *self, DoWhileAstNode *doWhile) {
 	self->writeState = WRITE_SOURCE_STATE;
-	emitCode(self, "do {");
+	emitCode(self, "do {" CC_NEWLINE);
 	emitBlock(self, doWhile->body);
-	emitCode(self, "} while (");
+	emitCode(self, "}" CC_NEWLINE "while (");
 	emitExpression(self, doWhile->condition);
-	emitCode(self, ");");
+	emitCode(self, ");" CC_NEWLINE);
 }
 
 void emitEnumeration(Compiler *self, EnumAstNode *enumeration) {
-	emitCode(self, "typedef enum {");
+	emitCode(self, "typedef enum {" CC_NEWLINE);
 	int i;
 	for (i = 0; i < enumeration->enumItems->size; i++) {
 		EnumItem *enumItem = getVectorItem(enumeration->enumItems, i);
@@ -379,7 +361,7 @@ void emitEnumeration(Compiler *self, EnumAstNode *enumeration) {
 		}
 		emitCode(self, ",");
 	}
-	emitCode(self, "} %s;", enumeration->name->content);
+	emitCode(self, "} %s;" CC_NEWLINE, enumeration->name->content);
 }
 
 void emitUseStatement(Compiler *self, UseStatementAstNode *use) {
@@ -418,7 +400,7 @@ void emitFunction(Compiler *self, FunctionAstNode *func) {
 		}
 	}
 
-	emitCode(self, ");");
+	emitCode(self, ");" CC_NEWLINE);
 
 	// WRITE TO THE SOURCE FILE
 
@@ -447,9 +429,9 @@ void emitFunction(Compiler *self, FunctionAstNode *func) {
 		}
 	}
 
-	emitCode(self, ") {");
+	emitCode(self, ") {" CC_NEWLINE);
 	emitBlock(self, func->body);
-	emitCode(self, "}");
+	emitCode(self, "}" CC_NEWLINE);
 }
 
 void consumeAstNode(Compiler *self) {
