@@ -1,5 +1,4 @@
 use "stdio.h"
-use "stdbool.h"
 
 fn main(): int {
 	mut bool swag = true;
