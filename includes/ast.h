@@ -5,12 +5,60 @@
 #include "vector.h"
 
 typedef struct Type s_Type;
+typedef struct Expression s_Expression;
 
 typedef struct {
 	Vector *values;
 } IdentifierList;
 
+typedef enum {
+	LITERAL_NUMBER,
+	LITERAL_STRING,
+	LITERAL_CHARACTER
+} LiteralType;
+
 typedef struct {
+	char *value;
+	LiteralType type;
+} Literal;
+
+typedef enum {
+	BINARY_EXPR,
+	UNARY_EXPR,
+	PRIMARY_EXPR,
+} ExpressionType;
+
+typedef struct {
+	s_Expression *lhand;
+	char operand;
+	s_Expression *rhand;
+} BinaryExpression;
+
+typedef struct {
+	char operand;
+	s_Expression *rhand;
+} UnaryExpression;
+
+typedef struct {
+	s_Expression *lhand;
+
+	// optional
+	s_Expression *start;
+	s_Expression *end;
+} ArraySliceExpression;
+
+typedef struct {
+
+} MemberAccessExpression;
+
+typedef struct {
+	Literal *literal;
+	s_Expression *parenExpr;
+	ArraySliceExpression *arraySlice;
+	MemberAccessExpression *memberAccess;
+} PrimaryExpr;
+
+typedef struct s_Expression {
 
 } Expression;
 
