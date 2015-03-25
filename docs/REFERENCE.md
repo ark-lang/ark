@@ -27,12 +27,44 @@ it would make a copy of this array. If you want to pass a reference, one must ex
 ## Notation
 The syntax is specified using Extended Backus-Naur Form (EBNF).
 
+### Common Productions
+
+    IdentifierList = identifier { "," identifier }
+    ExpressionList = Expression { "," Expression }
+
+### Characters and Letters
+
+    digit = { "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" }
+    letter = "A" | "a" | ... "Z" | "z" | "_" 
+
+Letters and digits are ASCII for now, however we may allow for unicode later on.
+
+### Identifiers
+An identifier is a name for an entity in the source code, for example a variable, a type, a function, etc. An identifier must **not** be
+a reserved word.
+
+  identifier = letter { letter | digit }
+
+  some_thing
+  a
+  _example
+  Amazing_NumberTwo2
+
 ### Source Code Representation
 The source code is in unicode text, encoded in utf-8. Source text is case-sensitive. Whitespace is blanks,
 newlines, carriage returns, or tabs. Comments are denoted with `//` for single line, or `/* */` without nesting.
 For simplicity, identifiers are treated as ASCII, however unicode may be supported in the future, but aren't a priority.
 
-## Types
+### Reserved Words
+These words are reserved, i.e they cannot be used in identifiers.
+     
+     u64 u32 u16 u8 i64 i32 i16 i8 f64 f32 bool char int float struct
+     enum fn void for loop while if else mut return continue break
+     use do 
+
+### Types
+
+    Type = TypeName | ArrayType | StructType | PointerType
 
 ### Basic Types
 Alloy defines a number of basic types. 
@@ -49,11 +81,23 @@ Alloy defines a number of basic types.
 	
 	f64         IEEE-754 valid 64-bit floating point number
 	f32         IEEE-754 valid 32-bit floating point number
+
+Additionally, there are several platform-specific type aliases that are declared by Alloy: int, float, and double. The bit width of each of these types is natural for their respective types of the given
+platform. For example, an integer `int` is typically an i32 or a 32-bit architecture, and an i64 on a 64-bit architecture.
+
+Other basic types include:
 	
-Additionally, there are several platform-specific type aliases that are declared by Alloy: int, float, and double. The bit width of each of these types is natural for their respective types of the given platform. For example, an integer `int` is typically a i32 or a 32-bit architecture, and an i64 on a 64-bit architecture.
+        bool        alias of u8
+        char        alias of i8
+
+`true` and `false` are reserved words, which represent the corresponding boolean constant values.
 
 ### Struct Types
 Struct types are similar to C structs. Each member in a struct represents a variable within the data structure.
+
+       StructType = "struct" "{" [ FieldList ] "}"
+       FieldList = FieldDecl { ";" FieldDecl }
+       FieldDecl = IdentifierList Type       
 
 	struct Cat {
 		string name;
@@ -72,7 +116,7 @@ Is perfectly valid.
 ### Pointer Types
 Pointers are similar to C, however pointer arithmetic is not permitted. They are also denoted with the caret symbol '^', instead of an asterisks '*'.
 
-	int ^x;
+         int ^x;
 	
 ### Blocks
 There are two types of blocks, a multi-block, denoted with two curly braces `{}`. And a single-block, denoted with an arrow `->`. A multi-block contains multiple statements, and a single-block can only contain a single statement.
