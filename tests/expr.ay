@@ -12,9 +12,6 @@ fn main(): int {
 	printf("%d\n", z);
 	free(a);
 	
-	Swag swag;
-	swag.x = 10;
-	int y = swag.x;
 	printf("%d\n", y);
 	
 	return 1;
