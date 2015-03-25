@@ -1,0 +1,9 @@
+use "stdio.h"
+
+enum swag {
+	SOME_VALUE = 0
+}
+
+fn main(): int {
+	return 0;
+}

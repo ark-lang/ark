@@ -1,0 +1,12 @@
+fn divide(i32 a, i32 b): <i32> {
+	if b == 0 {
+		return None;
+	}
+	else {
+		return Some(a / b);
+	}
+}
+
+fn main(): int {
+
+}

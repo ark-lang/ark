@@ -122,8 +122,6 @@ typedef struct {
 	char *name;
 	char *type;
 	Vector *args;
-	Vector *vars;
-	bool isFunctionRedirect;
 } FunctionCallAstNode;
 
 typedef struct {
@@ -241,6 +239,14 @@ typedef struct {
 	Vector *enumItems;
 } EnumAstNode;
 
+/*
+ * A node representing a Tuple.
+ */
+typedef struct {
+	Vector *values;
+	int numOfValues;
+} TupleAstNode;
+
 /**
  * A node representing a break
  * from an inner loop
@@ -301,8 +307,12 @@ typedef struct {
 	/** if the function is a single statement, i.e -> */
 	StatementAstNode *isSingleStatement;
 
+	TupleAstNode *tuple;
+
 	/** does the function return a pointer */
 	bool returnsPointer;
+
+	bool returnsTuple;
 
 	/** does the function return a constant value */
 	bool isMutable;
@@ -465,6 +475,8 @@ int parseOperand(Parser *parser);
  */
 EnumeratedStructureAstNode *createEnumeratedStructureAstNode();
 
+TupleAstNode *createTupleAstNode();
+
 /**
  * Create a new structure node
  * @return the structure node
@@ -617,6 +629,8 @@ FunctionAstNode *createFunctionAstNode();
  * fn whatever(int x, int y): int
  */
 FunctionPrototypeAstNode *createFunctionPrototypeAstNode();
+
+void destroyTupleAstNode(TupleAstNode *tuple);
 
 /**
  * Destroys the given enumerated structure ast node
