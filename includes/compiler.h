@@ -22,6 +22,14 @@
 #define SEMICOLON ";"
 #define COMMA_SYM ","
 
+#define COMPACT_CODE_GEN 0
+
+#if COMPACT_CODE_GEN == 0
+	#define CC_NEWLINE "\n"
+#else
+	#define CC_NEWLINE " "
+#endif
+
 typedef enum {
 	WRITE_HEADER_STATE,
 	WRITE_SOURCE_STATE
