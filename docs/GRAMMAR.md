@@ -1,4 +1,5 @@
-This document specifies the grammar for the Alloy programming language. It's still a work in progress.
+This document specifies the grammar for the Alloy programming language. It's still a work in progress,
+some of the language may be missing, or some of the following may be incorrect/invalid or outdated.
 
 	digit = { "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" } .
 	letter = "A" | "a" | ... "Z" | "z" | "_" .
@@ -6,19 +7,25 @@ This document specifies the grammar for the Alloy programming language. It's sti
 	sign = "+" | "-" .
 	raw_value = letter .
 	escaped_char = "\" ( "a" | "b" | "f" | "n" | "r" | "t" | "v" | "\" | "'" | """ ) .
+	binaryOp = logOp | relOp | addOp | mulOp .
+	logOp = "||" | "&&"
+	relOp = "==" | "!=" | "<" | "<=" | ">" | ">=" .
+	addOp = "+" | "-" | "|" | "^" .
+	mulOp = "*" | "/" | "%" | "<<" | ">>" | "&" .
+	unaryOp = "+" | "-" | "!" | "^" | "<" | ">" | "*" | "&" .
 
 	NumberLiteral = [sign] digit [ "." { digit } ]	
 	StringLiteral = """ { letter } """ . 
 	CharacterLiteral = "'"  ( raw_value | escaped_char ) "'" .
 	Literal = NumberLiteral | StringLiteral | CharacterLiteral .
 	
-	Type = TypeName | ArrayType | StructType | FunctionType | PointerType .
+	Type = TypeName | ArrayType | PointerType .
 	
 	TypeName = identifier .
 	
 	ArrayType = "[" [ Expression ] "]" Type .
 	
-	StructType = "struct" "{" [ FieldList ] "}" .
+	StructDecl = "struct" "{" [ FieldList ] "}" .
 	FieldList = FieldDecl { ";" FieldDecl } .
 	FieldDecl = IdentifierList Type .
 
@@ -35,14 +42,12 @@ This document specifies the grammar for the Alloy programming language. It's sti
 	IfStat = if Expression Block [ "else" Statement ] .
 	StatementList = { Statement ";" } .
 
-	// todo	
-	MatchStat = "match" Expression "{" { MatchClause } "}" . 
-	MatchClause = 
+	MatchStat = "match" Expression "{" { MatchClause "," } "}" . 
+	MatchClause = Expression Block [ LeaveStat ] . 
 	
-	// hmm
 	ForStat = "for" Type identifier ":" "(" IdentList ")" Block .
 	
-	Declaration = VarDecl | FunctionDecl .
+	Declaration = VarDecl | FunctionDecl | StructDecl.
 	VarDecl = [ "mut" ] Type identifier [ "=" Expression ] ";" .
 	
 	Expression = BinaryExpr | UnaryExpr | PrimaryExpr .
@@ -59,16 +64,10 @@ This document specifies the grammar for the Alloy programming language. It's sti
 		
 	Call = Expression "(" [ ExpressionList ] ")" .
 	
-	binaryOp = logOp | relOp | addOp | mulOp .
-	logOp = "||" | "&&"
-	relOp = "==" | "!=" | "<" | "<=" | ">" | ">=" .
-	addOp = "+" | "-" | "|" | "^" .
-	mulOp = "*" | "/" | "%" | "<<" | ">>" | "&" .
-	unaryOp = "+" | "-" | "!" | "^" | "<" | ">" | "*" | "&" .
-	
 	Statement = ( StructuredStat | UnstructuredStat ) .
 	StructuredStat = Block | IfStat | MatchStat | ForStat .
-	UnstructuredStat = Declaration | ReturnStat | BreakStat | ContinueStat | IncDecStat | Assignment.
+	UnstructuredStat = Declaration | LeaveStat | IncDecStat | Assignment.
+	LeaveStat = ReturnStat | BreakStat | ContinueStat .
 	Assignment = PrimaryExpr "=" Expression .
 	ReturnStat = "return" [ Expression ] ";" .
 	BreakStat = "break" ";"
