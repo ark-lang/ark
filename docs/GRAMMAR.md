@@ -60,7 +60,7 @@ some of the language may be missing, or some of the following may be incorrect/i
 		| "(" Expression ")" 
 		| Call 
 		| Expression "[" Expression [ ":" Expression ] "]" 
-		| Expression "." identifier | Expression "." "(" Type ")" .
+		| Expression "." identifier.
 		
 	Call = Expression "(" [ ExpressionList ] ")" .
 	
