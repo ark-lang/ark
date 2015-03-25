@@ -20,16 +20,16 @@ typedef struct {
 
 typedef struct {
 	Expression *length;
-	s_Type *type;
+	struct s_Type *type;
 } ArrayType;
 
 typedef struct {
-	s_Type *type;
+	struct s_Type *type;
 } PointerType;
 
 typedef struct {
 	IdentifierList *idenList;
-	s_Type *type;
+	struct s_Type *type;
 } FieldDecl;
 
 typedef struct {
@@ -44,7 +44,7 @@ typedef struct {
 
 } FunctionType;
 
-typedef struct {
+typedef struct s_Type {
 	TypeName *typeName;
 	ArrayType *arrayType;
 	PointerType *pointerType;
