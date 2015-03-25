@@ -31,8 +31,9 @@ This document specifies the grammar for the Alloy programming language. It's sti
 
 	PointerType = "^" Type .
 	
-	Block = "{" [ StatementList ";" ] "}"
+	Block = ( "{" [ StatementList ";" ] "}" | "->" Statement ) .
 	IfStat = if Expression Block [ "else" Statement ] .
+	StatementList = { Statement ";" } .
 
 	// todo	
 	MatchStat = "match" Expression "{" { MatchClause } "}" . 
