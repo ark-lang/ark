@@ -58,13 +58,13 @@ For simplicity, identifiers are treated as ASCII, however unicode may be support
 ### Reserved Words
 These words are reserved, i.e they cannot be used in identifiers.
      
-     u64 u32 u16 u8 i64 i32 i16 i8 f64 f32 bool char int float struct
-     enum fn void for loop while if else mut return continue break
-     use do 
+	u64 u32 u16 u8 i64 i32 i16 i8 f64 f32 bool char int float struct
+	enum fn void for loop while if else mut return continue break
+	use do 
 
 ### Types
 
-    Type = TypeName | ArrayType | StructType | PointerType
+    Type = TypeName | ArrayType | StructType | PointerType | FunctionType
 
 ### Basic Types
 Alloy defines a number of basic types. 
@@ -95,9 +95,9 @@ Other basic types include:
 ### Struct Types
 Struct types are similar to C structs. Each member in a struct represents a variable within the data structure.
 
-       StructType = "struct" "{" [ FieldList ] "}"
-       FieldList = FieldDecl { ";" FieldDecl }
-       FieldDecl = IdentifierList Type       
+	StructType = "struct" "{" [ FieldList ] "}"
+	FieldList = FieldDecl { ";" FieldDecl }
+	FieldDecl = IdentifierList Type       
 
 	struct Cat {
 		string name;

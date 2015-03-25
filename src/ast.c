@@ -28,6 +28,7 @@ TypeName *createTypeName() {
 }
 
 void destroyTypeName(TypeName *typeName) {
+	if (!typeName) return;
 	free(typeName);
 }
 
@@ -38,7 +39,9 @@ ArrayType *createArrayType() {
 }
 
 void destroyArrayType(ArrayType *arrayType) {
+	if (!arrayType) return;
 	destroyExpression(arrayType->length);
+	destroyType(arrayType->type);
 	free(arrayType);
 }
 
@@ -49,6 +52,8 @@ PointerType *createPointerType() {
 }
 
 void destroyPointerType(PointerType *pointerType) {
+	if (!pointerType) return;
+	destroyType(pointerType->type);
 	free(pointerType);
 }
 
@@ -59,6 +64,8 @@ FieldDecl *createFieldDecl() {
 }
 
 void destroyFieldDecl(FieldDecl *fieldDecl) {
+	destroyIdentifierList(fieldDecl->idenList);
+	destroyType(fieldDecl->type);
 	free(fieldDecl);
 }
 
@@ -79,6 +86,8 @@ StructType *createStructType() {
 }
 
 void destroyStructType(StructType *structType) {
+	if (!structType) return;
+	destroyFieldDeclList(structType->fields);
 	free(structType);
 }
 
