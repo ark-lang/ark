@@ -43,12 +43,12 @@ Letters and digits are ASCII for now, however we may allow for unicode later on.
 An identifier is a name for an entity in the source code, for example a variable, a type, a function, etc. An identifier must **not** be
 a reserved word.
 
-  identifier = letter { letter | digit }
+	identifier = letter { letter | digit }
 
-  some_thing
-  a
-  _example
-  Amazing_NumberTwo2
+	some_thing
+	a
+	_example
+	Amazing_NumberTwo2
 
 ### Source Code Representation
 The source code is in unicode text, encoded in utf-8. Source text is case-sensitive. Whitespace is blanks,
