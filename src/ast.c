@@ -213,6 +213,55 @@ Type *createType() {
 	return safeMalloc(sizeof(Type));
 }
 
+void cleanupAST(Vector *nodes) {
+	int i;
+	for (i = 0; i < nodes->size; i++) {
+		Node *node = getVectorItem(nodes, i);
+
+		switch (node->type) {
+		case IDENTIFIER_LIST_NODE: destroyIdentifierList(node->data); break;
+		case LITERAL_NODE: destroyLiteral(node->data); break;
+		case BINARY_EXPR_NODE: destroyBinaryExpr(node->data); break;
+		case UNARY_EXPR_NODE: destroyUnaryExpr(node->data); break;
+		case ARRAY_SUB_EXPR_NODE: destroyArraySubExpr(node->data); break;
+		case MEMBER_ACCESS_NODE: destroyMemberAccessExpr(node->data); break;
+		case PRIMARY_EXPR_NODE: destroyPrimaryExpr(node->data); break;
+		case EXPR_NODE: destroyExpression(node->data); break;
+		case TYPE_NAME_NODE: destroyTypeName(node->data); break;
+		case ARRAY_TYPE_NODE: destroyArrayType(node->data); break;
+		case POINTER_TYPE_NODE: destroyPointerType(node->data); break;
+		case FIELD_DECL_NODE: destroyFieldDecl(node->data); break;
+		case FIELD_DECL_LIST_NODE: destroyFieldDeclList(node->data); break;
+		case STRUCT_DECL_NODE: destroyStructDecl(node->data); break;
+		case STATEMENT_LIST_NODE: destroyStatementList(node->data); break;
+		case BLOCK_NODE: destroyBlock(node->data); break;
+		case PARAMETER_SECTION_NODE: destroyParameterSection(node->data); break;
+		case PARAMETERS_NODE: destroyParameters(node->data); break;
+		case RECEIVER_NODE: destroyReceiver(node->data); break;
+		case FUNCTION_SIGNATURE_NODE: destroyFunctionSignature(node->data); break;
+		case FUNCTION_DECL_NODE: destroyFunctionDecl(node->data); break;
+		case VARIABLE_DECL_NODE: destroyVariableDecl(node->data); break;
+		case DECLARATION_NODE: destroyDeclaration(node->data); break;
+		case INC_DEC_STAT_NODE: destroyIncDecStat(node->data); break;
+		case RETURN_STAT_NODE: destroyReturnStat(node->data); break;
+		case BREAK_STAT_NODE: destroyBreakStat(node->data); break;
+		case CONTINUE_STAT_NODE: destroyContinueStat(node->data); break;
+		case LEAVE_STAT_NODE: destroyLeaveStat(node->data); break;
+		case ASSIGNMENT_NODE: destroyAssignment(node->data); break;
+		case UNSTRUCTURED_STATEMENT_NODE: destroyUnstructuredStatement(node->data); break;
+		case ELSE_STAT_NODE: destroyElseStat(node->data); break;
+		case IF_STAT_NODE: destroyIfStat(node->data); break;
+		case MATCH_CLAUSE_STAT: destroyMatchClause(node->data); break;
+		case MATCH_STAT_NODE: destroyMatchStat(node->data); break;
+		case FOR_STAT_NODE: destroyForStat(node->data); break;
+		case STRUCTURED_STATEMENT_NODE: destroyStructuredStatement(node->data); break;
+		case STATEMENT_NODE: destroyStatement(node->data); break;
+		case TYPE_NODE: destroyType(node->data); break;
+		default: printf("unrecognized node %d\n", node->type); break;
+		}
+	}
+}
+
 void destroyIdentifierList(IdentifierList *list) {
 	destroyVector(list->values);
 	free(list);
