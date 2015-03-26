@@ -602,7 +602,7 @@ VariableDecl *parseVariableDecl(Parser *parser) {
 	}
 
 	Expression *expr = NULL; // TODO :PARSE EXPR KK
-	if (checkTokenType(parser, OPERATOR, "=", 0)) {
+	if (checkTokenTypeAndContent(parser, OPERATOR, "=", 0)) {
 		consumeToken(parser);
 
 		if (!expr) {
@@ -622,7 +622,51 @@ VariableDecl *parseVariableDecl(Parser *parser) {
 		return NULL;
 	}
 
-	return createVariableDecl(type, iden, mutable, expr);
+	return createVariableDecl(type, iden->content, mutable, expr);
+}
+
+Declaration *parseDeclaration(Parser *parser) {
+	Declaration *decl = createDeclaration();
+	if (checkTokenTypeAndContent(parser, IDENTIFIER, FUNCTION_KEYWORD, 0)) {
+		decl->funcDecl = parseFunctionDecl(parser);
+		decl->declType = FUNC_DECL;
+		if (!decl->funcDecl) {
+			errorMessage("Failed to parse function");
+			destroyDeclaration(decl);
+			return NULL;
+		}
+		return decl;
+	}
+	else if (checkTokenTypeAndContent(parser, IDENTIFIER, STRUCT_KEYWORD, 0)) {
+		decl->structDecl = parseStructDecl(parser);
+		decl->declType = STRUCT_DECL;
+		if (!decl->structDecl) {
+			errorMessage("Failed to parse struct declaration");
+			destroyDeclaration(decl);
+			return NULL;
+		}
+		return decl;
+	}
+	else {
+		// loads of checks just in case...
+		if (checkTokenTypeAndContent(parser, IDENTIFIER, MUT_KEYWORD, 0)
+				|| checkTokenType(parser, IDENTIFIER, 0)
+				|| checkTokenTypeAndContent(parser, SEPARATOR, "[", 1)
+				|| checkTokenTypeAndContent(parser, OPERATOR, "^", 1)) {
+			decl->varDecl = parseVariableDecl(parser);
+			decl->declType = VAR_DECL;
+			if (!decl->varDecl) {
+				errorMessage("Failed to parse variable declaration");
+				destroyDeclaration(decl);
+				return NULL;
+			}
+			return decl;
+		}
+
+		errorMessage("Unknown declaration");
+		destroyDeclaration(decl);
+		return NULL;
+	}
 }
 
 /** UTILITIY */
