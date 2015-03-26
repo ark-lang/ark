@@ -32,7 +32,7 @@ some of the language may be missing, or some of the following may be incorrect/i
 	FunctionDecl = "fn" FunctionSignature ( ";" | Block ) .
 	FunctionSignature = [ Receiver ] identifier Parameters ":" Type .
 	Receiver = "(" Type identifier ")"
-	Parameter = "(" [ parameterList ] ")" .
+	Parameters = "(" [ parameterList ] ")" .
 	ParameterList = ParameterSection { "," ParameterSection } .
 	ParameterSection = Type IdentifierList .
 

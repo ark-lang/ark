@@ -79,26 +79,26 @@ void destroyFieldDeclList(FieldDeclList *fieldDeclList) {
 	free(fieldDeclList);
 }
 
-StructType *createStructType() {
-	StructType *structType = malloc(sizeof(*structType));
+StructDecl *createStructDecl() {
+	StructDecl *structDecl = malloc(sizeof(*structDecl));
 
-	return structType;
+	return structDecl;
 }
 
-void destroyStructType(StructType *structType) {
-	if (!structType) return;
-	destroyFieldDeclList(structType->fields);
-	free(structType);
+void destroyStructDecl(StructDecl *structDecl) {
+	if (!structDecl) return;
+	destroyFieldDeclList(structDecl->fields);
+	free(structDecl);
 }
 
-FunctionType *createFunctionType() {
-	FunctionType *funcType = malloc(sizeof(*funcType));
+FunctionSignature *createFunctionSignature() {
+	FunctionSignature *funcSignature = malloc(sizeof(*funcSignature));
 
-	return funcType;
+	return funcSignature;
 }
 
-void destroyFunctionType(FunctionType *funcType) {
-	free(funcType);
+void destroyFunctionSignature(FunctionSignature *funcSignature) {
+	free(funcSignature);
 }
 
 Type *createType() {
@@ -109,6 +109,6 @@ Type *createType() {
 void destroyType(Type *type) {
 	destroyArrayType(type->arrayType);
 	destroyPointerType(type->pointerType);
-	destroyStructType(type->structType);
+	destroyStructDecl(type->structType);
 	destroyTypeName(type->typeName);
 }
