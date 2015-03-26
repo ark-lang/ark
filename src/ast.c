@@ -270,26 +270,31 @@ void cleanupAST(Vector *nodes) {
 }
 
 void destroyIdentifierList(IdentifierList *list) {
+	if (!list) return;
 	destroyVector(list->values);
 	free(list);
 }
 
 void destroyLiteral(Literal *lit) {
+	if (!lit) return;
 	free(lit);
 }
 
 void destroyBinaryExpr(BinaryExpr *expr) {
+	if (!expr) return;
 	destroyExpression(expr->lhand);
 	destroyExpression(expr->rhand);
 	free(expr);
 }
 
 void destroyUnaryExpr(UnaryExpr *expr) {
+	if (!expr) return;
 	destroyExpression(expr->rhand);
 	free(expr);
 }
 
 void destroyArraySubExpr(ArraySubExpr *expr) {
+	if (!expr) return;
 	destroyExpression(expr->lhand);
 	destroyExpression(expr->start);
 	destroyExpression(expr->end);
@@ -297,11 +302,13 @@ void destroyArraySubExpr(ArraySubExpr *expr) {
 }
 
 void destroyMemberAccessExpr(MemberAccessExpr *expr) {
+	if (!expr) return;
 	destroyExpression(expr->expr);
 	free(expr);
 }
 
 void destroyPrimaryExpr(PrimaryExpr *expr) {
+	if (!expr) return;
 	destroyArraySubExpr(expr->arraySlice);
 	destroyLiteral(expr->literal);
 	destroyMemberAccessExpr(expr->memberAccess);
@@ -310,6 +317,7 @@ void destroyPrimaryExpr(PrimaryExpr *expr) {
 }
 
 void destroyExpression(Expression *expr) {
+	if (!expr) return;
 	destroyPrimaryExpr(expr->primary);
 	destroyBinaryExpr(expr->binary);
 	destroyUnaryExpr(expr->unary);
@@ -319,80 +327,101 @@ void destroyExpression(Expression *expr) {
 }
 
 void destroyTypeName(TypeName *typeName) {
+	if (!typeName) return;
 	free(typeName);
 }
 
 void destroyArrayType(ArrayType *arrayType) {
+	if (!arrayType) return;
 	destroyExpression(arrayType->length);
 	destroyType(arrayType->type);
 	free(arrayType);
 }
 
 void destroyPointerType(PointerType *pointerType) {
+	if (!pointerType) return;
 	destroyType(pointerType->type);
 	free(pointerType);
 }
 
 void destroyFieldDecl(FieldDecl *decl) {
+	if (!decl) return;
 	destroyIdentifierList(decl->idenList);
 	destroyType(decl->type);
 	free(decl);
 }
 
 void destroyFieldDeclList(FieldDeclList *list) {
+	if (!list) return;
 	destroyVector(list->members);
 	free(list);
 }
 
 void destroyStructDecl(StructDecl *decl) {
+	if (!decl) return;
 	destroyFieldDeclList(decl->fields);
 	free(decl);
 }
 
 void destroyStatementList(StatementList *list) {
+	if (!list) return;
+	for (int i = 0; i < list->stmts->size; i++) {
+		destroyStatement(getVectorItem(list->stmts, i));
+	}
 	destroyVector(list->stmts);
 	free(list);
 }
 
 void destroyBlock(Block *block) {
+	if (!block) return;
 	destroyStatementList(block->stmtList);
 	free(block);
 }
 
 void destroyParameterSection(ParameterSection *param) {
+	if (!param) return;
 	destroyType(param->type);
 	free(param);
 }
 
 void destroyParameters(Parameters *params) {
+	if (!params) return;
+	for (int i = 0; i < params->paramList->size; i++) {
+		destroyParameterSection(getVectorItem(params->paramList, i));
+	}
 	destroyVector(params->paramList);
 	free(params);
 }
 
 void destroyReceiver(Receiver *receiver) {
+	if (!receiver) return;
 	destroyType(receiver->type);
 	free(receiver);
 }
 
 void destroyFunctionSignature(FunctionSignature *func) {
+	if (!func) return;
 	destroyReceiver(func->receiver);
 	destroyParameters(func->parameters);
 	free(func);
 }
 
 void destroyFunctionDecl(FunctionDecl *decl) {
+	if (!decl) return;
 	destroyBlock(decl->body);
 	destroyFunctionSignature(decl->signature);
 	free(decl);
 }
 
 void destroyVariableDecl(VariableDecl *decl) {
+	if (!decl) return;
 	destroyExpression(decl->expr);
 	destroyType(decl->type);
 	free(decl);
 }
 
 void destroyDeclaration(Declaration *decl) {
+	if (!decl) return;
 	destroyFunctionDecl(decl->funcDecl);
 	destroyStructDecl(decl->structDecl);
 	destroyVariableDecl(decl->varDecl);
@@ -400,24 +429,29 @@ void destroyDeclaration(Declaration *decl) {
 }
 
 void destroyIncDecStat(IncDecStat *stmt) {
+	if (!stmt) return;
 	destroyExpression(stmt->expr);
 	free(stmt);
 }
 
 void destroyReturnStat(ReturnStat *stmt) {
+	if (!stmt) return;
 	destroyExpression(stmt->expr);
 	free(stmt);
 }
 
 void destroyBreakStat(BreakStat *stmt) {
+	if (!stmt) return;
 	free(stmt);
 }
 
 void destroyContinueStat(ContinueStat *stmt) {
+	if (!stmt) return;
 	free(stmt);
 }
 
 void destroyLeaveStat(LeaveStat *stmt) {
+	if (!stmt) return;
 	destroyBreakStat(stmt->breakStmt);
 	destroyReturnStat(stmt->retStmt);
 	destroyContinueStat(stmt->conStmt);
@@ -425,12 +459,14 @@ void destroyLeaveStat(LeaveStat *stmt) {
 }
 
 void destroyAssignment(Assignment *assign) {
+	if (!assign) return;
 	destroyExpression(assign->expr);
 	destroyPrimaryExpr(assign->primary);
 	free(assign);
 }
 
 void destroyUnstructuredStatement(UnstructuredStatement *stmt) {
+	if (!stmt) return;
 	destroyAssignment(stmt->assignment);
 	destroyDeclaration(stmt->decl);
 	destroyIncDecStat(stmt->incDec);
@@ -439,11 +475,13 @@ void destroyUnstructuredStatement(UnstructuredStatement *stmt) {
 }
 
 void destroyElseStat(ElseStat *stmt) {
+	if (!stmt) return;
 	destroyBlock(stmt->body);
 	free(stmt);
 }
 
 void destroyIfStat(IfStat *stmt) {
+	if (!stmt) return;
 	destroyBlock(stmt->body);
 	destroyElseStat(stmt->elseStmt);
 	destroyExpression(stmt->expr);
@@ -451,21 +489,26 @@ void destroyIfStat(IfStat *stmt) {
 }
 
 void destroyMatchClause(MatchClause *mclause) {
+	if (!mclause) return;
 	destroyBlock(mclause->body);
 	destroyExpression(mclause->expr);
 	free(mclause);
 }
 
 void destroyMatchStat(MatchStat *match) {
+	if (!match) return;
+	for (int i = 0; i < match->clauses->size; i++) {
+		destroyMatchClause(getVectorItem(match->clauses, i));
+	}
 	destroyVector(match->clauses);
 	destroyExpression(match->expr);
 	free(match);
 }
 
 void destroyForStat(ForStat *stmt) {
+	if (!stmt) return;
 	destroyBlock(stmt->body);
-	int i;
-	for (i = 0 ; i < stmt->expr->size; i++) {
+	for (int i = 0 ; i < stmt->expr->size; i++) {
 		destroyExpression(getVectorItem(stmt->expr, i));
 	}
 	destroyVector(stmt->expr);
@@ -474,6 +517,7 @@ void destroyForStat(ForStat *stmt) {
 }
 
 void destroyStructuredStatement(StructuredStatement *stmt) {
+	if (!stmt) return;
 	destroyBlock(stmt->block);
 	destroyForStat(stmt->forStmt);
 	destroyIfStat(stmt->ifStmt);
@@ -482,11 +526,13 @@ void destroyStructuredStatement(StructuredStatement *stmt) {
 }
 
 void destroyStatement(Statement *stmt) {
+	if (!stmt) return;
 	destroyStructuredStatement(stmt->structured);
 	destroyUnstructuredStatement(stmt->unstructured);
 }
 
 void destroyType(Type *type) {
+	if (!type) return;
 	destroyArrayType(type->arrayType);
 	destroyPointerType(type->pointerType);
 	destroyTypeName(type->typeName);
