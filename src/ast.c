@@ -11,7 +11,7 @@ Literal *createLiteral(char *value, LiteralType type) {
 	return lit;
 }
 
-BinaryExpr *createBinaryExpr(s_Expression *lhand, char op, s_Expression *rhand) {
+BinaryExpr *createBinaryExpr(Expression *lhand, char op, Expression *rhand) {
 	BinaryExpr *expr = safeMalloc(sizeof(*expr));
 	expr->lhand = lhand;
 	expr->operand = op;
@@ -19,20 +19,20 @@ BinaryExpr *createBinaryExpr(s_Expression *lhand, char op, s_Expression *rhand) 
 	return expr;
 }
 
-UnaryExpr *createUnaryExpr(char operand, s_Expression *rhand) {
+UnaryExpr *createUnaryExpr(char operand, Expression *rhand) {
 	UnaryExpr *unary = safeMalloc(sizeof(*unary));
 	unary->operand = operand;
 	unary->rhand = rhand;
 	return unary;
 }
 
-ArraySubExpr *createArraySubExpr(s_Expression *lhand) {
+ArraySubExpr *createArraySubExpr(Expression *lhand) {
 	ArraySubExpr *expr = safeMalloc(sizeof(*expr));
 	expr->lhand = lhand;
 	return expr;
 }
 
-MemberAccessExpr *createMemberAccessExpr(s_Expression *expr, char *value) {
+MemberAccessExpr *createMemberAccessExpr(Expression *expr, char *value) {
 	MemberAccessExpr *mem = safeMalloc(sizeof(*mem));
 	mem->expr = expr;
 	mem->value = value;
@@ -53,20 +53,20 @@ TypeName *createTypeName(char *name) {
 	return type;
 }
 
-ArrayType *createArrayType(Expression *length, struct s_Type *type) {
+ArrayType *createArrayType(Expression *length, Type *type) {
 	ArrayType *arr = safeMalloc(sizeof(*arr));
 	arr->length = length;
 	arr->type = type;
 	return arr;
 }
 
-PointerType *createPointerType(struct s_Type *type) {
+PointerType *createPointerType(Type *type) {
 	PointerType *pointer = safeMalloc(sizeof(*pointer));
 	pointer->type = type;
 	return pointer;
 }
 
-FieldDecl *createFieldDecl(struct s_Type *type, bool mutable) {
+FieldDecl *createFieldDecl(Type *type, bool mutable) {
 	FieldDecl *field = safeMalloc(sizeof(*field));
 	field->type = type;
 	field->mutable = mutable;
@@ -91,7 +91,7 @@ Block *createBlock() {
 	return safeMalloc(sizeof(Block));
 }
 
-ParameterSection *createParameterSection(s_Type *type, bool mutable) {
+ParameterSection *createParameterSection(Type *type, bool mutable) {
 	ParameterSection *param = safeMalloc(sizeof(*param));
 	param->type = type;
 	param->mutable = mutable;
@@ -102,7 +102,7 @@ Parameters *createParameters() {
 	return safeMalloc(sizeof(Parameters));
 }
 
-Receiver *createReceiver(s_Type *type, char *name, bool mutable) {
+Receiver *createReceiver(Type *type, char *name, bool mutable) {
 	Receiver *receiver = safeMalloc(sizeof(*receiver));
 	receiver->type = type;
 	receiver->name = name;
@@ -110,7 +110,8 @@ Receiver *createReceiver(s_Type *type, char *name, bool mutable) {
 	return receiver;
 }
 
-FunctionSignature *createFunctionSignature(char *name, Parameters *params, bool mutable) {
+FunctionSignature *createFunctionSignature(char *name, Parameters *params,
+		bool mutable) {
 	FunctionSignature *func = safeMalloc(sizeof(*func));
 	func->name = name;
 	func->parameters = params;
@@ -122,7 +123,8 @@ FunctionDecl *createFunctionDecl() {
 	return safeMalloc(sizeof(FunctionDecl));
 }
 
-VariableDecl *createVariableDecl(s_Type *type, char *name, bool mutable, s_Expression *expr) {
+VariableDecl *createVariableDecl(Type *type, char *name, bool mutable,
+		Expression *expr) {
 	VariableDecl *var = safeMalloc(sizeof(*var));
 	var->type = type;
 	var->name = name;
@@ -135,14 +137,14 @@ Declaration *createDeclaration() {
 	return safeMalloc(sizeof(Declaration));
 }
 
-IncDecStat *createIncDecStat(s_Expression *expr, IncOrDec type) {
+IncDecStat *createIncDecStat(Expression *expr, IncOrDec type) {
 	IncDecStat *inc = safeMalloc(sizeof(*inc));
 	inc->expr = expr;
 	inc->type = type;
 	return inc;
 }
 
-ReturnStat *createReturnStat(s_Expression *expr) {
+ReturnStat *createReturnStat(Expression *expr) {
 	ReturnStat *ret = safeMalloc(sizeof(*ret));
 	ret->expr = expr;
 	return ret;
@@ -160,7 +162,7 @@ LeaveStat *createLeaveStat() {
 	return safeMalloc(sizeof(LeaveStat));
 }
 
-Assignment *createAssignment(PrimaryExpr *primaryExpr, s_Expression *expr) {
+Assignment *createAssignment(PrimaryExpr *primaryExpr, Expression *expr) {
 	Assignment *assign = safeMalloc(sizeof(*assign));
 	assign->primary = primaryExpr;
 	assign->expr = expr;
@@ -183,13 +185,14 @@ MatchClause *createMatchClause() {
 	return safeMalloc(sizeof(MatchClause));
 }
 
-MatchStat *createMatchStat(s_Expression *expr) {
+MatchStat *createMatchStat(Expression *expr) {
 	MatchStat *match = safeMalloc(sizeof(*match));
 	match->expr = expr;
 	return match;
 }
 
-ForStat *createForStat(s_Type *type, char *index, PrimaryExpr *start, PrimaryExpr *end) {
+ForStat *createForStat(Type *type, char *index, PrimaryExpr *start,
+		PrimaryExpr *end) {
 	ForStat *forStat = safeMalloc(sizeof(*forStat));
 	forStat->type = type;
 	forStat->index = index;
@@ -210,3 +213,146 @@ Type *createType() {
 	return safeMalloc(sizeof(Type));
 }
 
+void destroyIdentifierList(IdentifierList *list) {
+	destroyVector(list->values);
+	free(list);
+}
+
+void destroyLiteral(Literal *lit) {
+	free(lit);
+}
+
+void destroyBinaryExpr(BinaryExpr *expr) {
+	destroyExpression(expr->lhand);
+	destroyExpression(expr->rhand);
+	free(expr);
+}
+
+void destroyUnaryExpr(UnaryExpr *expr) {
+	destroyExpression(expr->rhand);
+	free(expr);
+}
+
+void destroyArraySubExpr(ArraySubExpr *expr) {
+	destroyExpression(expr->lhand);
+	destroyExpression(expr->start);
+	destroyExpression(expr->end);
+	free(expr);
+}
+
+void destroyMemberAccessExpr(MemberAccessExpr *expr) {
+	destroyExpression(expr->expr);
+	free(expr);
+}
+
+void destroyPrimaryExpr(PrimaryExpr *expr) {
+	destroyArraySubExpr(expr->arraySlice);
+	destroyLiteral(expr->literal);
+	destroyMemberAccessExpr(expr->memberAccess);
+	destroyExpression(expr->parenExpr);
+	free(expr);
+}
+
+void destroyExpression(Expression *expr) {
+	destroyPrimaryExpr(expr->primary);
+	destroyBinaryExpr(expr->binary);
+	destroyUnaryExpr(expr->unary);
+	destroyMemberAccessExpr(expr->memberAccess);
+	destroyArraySubExpr(expr->arraySlice);
+	free(expr);
+}
+
+void destroyTypeName(TypeName *typeName) {
+	free(typeName);
+}
+
+void destroyArrayType(ArrayType *arrayType) {
+	destroyExpression(arrayType->length);
+	destroyType(arrayType->type);
+	free(arrayType);
+}
+
+void destroyPointerType(PointerType *pointerType) {
+
+}
+
+void destroyFieldDecl(FieldDecl *decl) {
+}
+
+void destroyFieldDeclList(FieldDeclList *list) {
+}
+
+void destroyStructDecl(StructDecl *decl) {
+}
+
+void destroyStatementList(StatementList *list) {
+}
+
+void destroyBlock(Block *block) {
+}
+
+void destroyParameterSection(ParameterSection *param) {
+}
+
+void destroyParameters(Parameters *params) {
+}
+
+void destroyReceiver(Receiver *receiver) {
+}
+
+void destroyFunctionSignature(FunctionSignature *func) {
+}
+
+void destroyFunctionDecl(FunctionDecl *decl) {
+}
+
+void destroyVariableDecl(VariableDecl *decl) {
+}
+
+void destroyDeclaration(Declaration *decl) {
+}
+
+void destroyIncDecStat(IncDecStat *stmt) {
+}
+
+void destroyReturnStat(ReturnStat *stmt) {
+}
+
+void destroyBreakStat(BreakStat *stmt) {
+}
+
+void destroyContinueStat(ContinueStat *stmt) {
+}
+
+void destroyLeaveStat(LeaveStat *stmt) {
+}
+
+void destroyAssignment(Assignment *assign) {
+}
+
+void destroyUnstructuredStatement(UnstructuredStatement *stmt) {
+}
+
+void destroyElseStat(ElseStat *stmt) {
+}
+
+void destroyIfStat(IfStat *stmt) {
+}
+
+void destroyMatchClause(MatchClause *mclause) {
+}
+
+void destroyMatchStat(MatchStat *match) {
+}
+
+void destroyForStat(ForStat *stmt) {
+}
+
+void destroyStructuredStatement(StructuredStatement *stmt) {
+}
+
+void destroyStatement(Statement *stmt) {
+}
+
+void destroyType(Type *type) {
+}
