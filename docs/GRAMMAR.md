@@ -45,7 +45,7 @@ some of the language may be missing, or some of the following may be incorrect/i
 	MatchStat = "match" Expression "{" { MatchClause "," } "}" . 
 	MatchClause = Expression Block [ LeaveStat ] . 
 	
-	ForStat = "for" Type identifier ":" "(" IdentList ")" Block .
+	ForStat = "for" Type identifier ":" "(" PrimaryExpr "," PrimaryExpr [ "," PrimaryExpr ] ")" Block .
 	
 	Declaration = VarDecl | FunctionDecl | StructDecl.
 	VarDecl = [ "mut" ] Type identifier [ "=" Expression ] ";" .
