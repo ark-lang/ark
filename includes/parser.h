@@ -16,6 +16,9 @@
 #define MUT_KEYWORD 				"mut"
 #define FUNCTION_KEYWORD 			"fn"
 #define SINGLE_STATEMENT_OPERATOR 	"->"
+#define IF_KEYWORD					"if"
+#define ELSE_KEYWORD				"else"
+#define FOR_KEYWORD					"for"
 
 /**
  * parser contents
