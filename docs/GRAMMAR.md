@@ -3,9 +3,10 @@ some of the language may be missing, or some of the following may be incorrect/i
 
 	digit = { "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" } .
 	letter = "A" | "a" | ... "Z" | "z" | "_" .
+	
 	identifier = letter { letter | digit } .
+	
 	sign = "+" | "-" .
-	raw_value = letter .
 	escaped_char = "\" ( "a" | "b" | "f" | "n" | "r" | "t" | "v" | "\" | "'" | """ ) .
 	binaryOp = logOp | relOp | addOp | mulOp .
 	logOp = "||" | "&&"
@@ -16,8 +17,11 @@ some of the language may be missing, or some of the following may be incorrect/i
 
 	NumberLiteral = [sign] digit [ "." { digit } ]	
 	StringLiteral = """ { letter } """ . 
-	CharacterLiteral = "'"  ( raw_value | escaped_char ) "'" .
+	CharacterLiteral = "'"  ( letter | escaped_char ) "'" .
 	Literal = NumberLiteral | StringLiteral | CharacterLiteral .
+	
+	IdentifierList = identifier { "," identifier }
+	ExpressionList = Expression { "," Expression }
 	
 	Type = TypeName | ArrayType | PointerType .
 	
