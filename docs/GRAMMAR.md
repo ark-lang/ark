@@ -42,7 +42,7 @@ some of the language may be missing, or some of the following may be incorrect/i
 
 	PointerType = Type "^" .
 	
-	Block = ( "{" [ StatementList ";" ] "}" | "->" Statement ) .
+	Block = ( "{" [ StatementList ] "}" | "->" Statement ) .
 	IfStat = if Expression Block [ "else" Statement ] .
 	StatementList = { Statement ";" } .
 
