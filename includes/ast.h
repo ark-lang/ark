@@ -334,6 +334,12 @@ typedef struct {
 	Expression *expr;
 } Assignment;
 
+typedef enum {
+	RETURN_STMT,
+	BREAK_STMT,
+	CONTINUE_STMT
+} LeaveType;
+
 /**
  * Node for all the "leave" statements,
  * e.g continue, return, break
@@ -342,6 +348,7 @@ typedef struct {
 	ReturnStat *retStmt;
 	BreakStat *breakStmt;
 	ContinueStat *conStmt;
+	LeaveType type;
 } LeaveStat;
 
 /**
