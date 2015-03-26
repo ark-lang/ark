@@ -257,7 +257,7 @@ void cleanupAST(Vector *nodes) {
 		case STRUCTURED_STATEMENT_NODE: destroyStructuredStatement(node->data); break;
 		case STATEMENT_NODE: destroyStatement(node->data); break;
 		case TYPE_NODE: destroyType(node->data); break;
-		default: printf("unrecognized node %d\n", node->type); break;
+		default: printf("un-recognized node %d\n", node->type); break;
 		}
 	}
 }
@@ -353,7 +353,6 @@ void destroyBlock(Block *block) {
 }
 
 void destroyParameterSection(ParameterSection *param) {
-	destroyIdentifierList(param->identList);
 	destroyType(param->type);
 	free(param);
 }

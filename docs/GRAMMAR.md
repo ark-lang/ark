@@ -29,8 +29,8 @@ some of the language may be missing, or some of the following may be incorrect/i
 	
 	ArrayType = Type "[" [ Expression ] "]" .
 	
-	StructDecl = "struct" "{" [ FieldList ] "}" .
-	FieldList = FieldDecl { ";" FieldDecl } .
+	StructDecl = "struct" identifier "{" [ FieldDeclList ] "}" .
+	FieldDeclList = FieldDecl { FieldDecl ";" } .
 	FieldDecl = [ "mut" ] Type IdentifierList .
 
 	FunctionDecl = "fn" FunctionSignature ( ";" | Block ) .
@@ -38,7 +38,7 @@ some of the language may be missing, or some of the following may be incorrect/i
 	Receiver = "(" [ "mut" ] Type identifier ")"
 	Parameters = "(" [ parameterList ] ")" .
 	ParameterList = ParameterSection { "," ParameterSection } .
-	ParameterSection = [ "mut" ] Type IdentifierList .
+	ParameterSection = [ "mut" ] Type identifier .
 
 	PointerType = Type "^" .
 	

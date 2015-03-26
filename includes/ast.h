@@ -48,7 +48,8 @@ typedef struct {
 typedef enum {
 	LITERAL_NUMBER,
 	LITERAL_STRING,
-	LITERAL_CHARACTER
+	LITERAL_CHARACTER,
+	LITERAL_ERRORED
 } LiteralType;
 
 /**
@@ -217,7 +218,7 @@ typedef struct {
  */
 typedef struct {
 	Type *type;
-	IdentifierList *identList;
+	char *name;
 	bool mutable;
 } ParameterSection;
 
