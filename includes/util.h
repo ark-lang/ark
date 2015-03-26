@@ -55,21 +55,28 @@ char *removeExtension(char *file);
 char *getFileName(char *path);
 
 /**
- * Emitts a debug message to the console if we are in DEBUG MODE
+ * Emits a debug message to the console if we are in DEBUG MODE
  * @param msg           the message to print
  * @param ...			extra arguments
  */
 void debugMessage(const char *fmt, ...);
 
 /**
- * Emitts an error message to the console, will also exit
+ * Emits a warning message to the console
+ * @param msg           the message to print
+ * @param ...			extra arguments
+ */
+void warningMessage(const char *fmt, ...);
+
+/**
+ * Emits an error message to the console, will also exit
  * @param msg           the message to print
  * @param ... 			extra arguments
  */
 void errorMessage(const char *fmt, ...);
 
 /**
- * Emitts a primary message to the console
+ * Emits a primary message to the console
  * @param msg           the message to print
  * @param ... 			extra arguments
  */
