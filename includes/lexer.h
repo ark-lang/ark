@@ -1,10 +1,6 @@
 #ifndef LEXER_H
 #define LEXER_H
 
-/**
- * This is C code Linguist, come on...
- */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -17,15 +13,15 @@
 
 /** Lexer stuff */
 typedef struct {
-	sds input;			// input to lex
+	sds input;				// input to lex
 	int pos;				// position in the input
 	int currentChar;		// current character
-	int lineNumber;		// current line number
+	int lineNumber;			// current line number
 	size_t inputLength;		// sizeof lexer input
-	int charNumber;		// current character at line
+	int charNumber;			// current character at line
 	int startPos;			// keeps track of positions without comments
 	bool running;			// if lexer is running 
-	bool failed;
+	bool failed;			// if lexing failed
 	Vector *tokenStream;	// where the tokens are stored
 } Lexer;
 
@@ -36,6 +32,9 @@ static const char* TOKEN_NAMES[] = {
 	"STRING", "CHARACTER", "UNKNOWN"
 };
 
+/**
+ * Different types of token
+ */
 typedef enum {
 	END_OF_FILE, IDENTIFIER, NUMBER,
 	OPERATOR, SEPARATOR, ERRORNEOUS,
@@ -56,10 +55,22 @@ typedef struct {
 	int charNumber;
 } Token;
 
+/**
+ * Create a token
+ *
+ * @param lineNumber the line number of the token
+ * @param charNumber the character number
+ */
 Token *createToken(int lineNumber, int charNumber);
 
+/**
+ * Retrieve the token name of the given token
+ */
 const char* getTokenName(Token *tok);
 
+/**
+ * Destroy the token and its resources
+ */
 void destroyToken(Token *token);
 
 /**
@@ -86,6 +97,12 @@ char* getLineNumberContext(Vector *stream, int lineNumber);
  */
 Lexer *createLexer();
 
+/**
+ * Start lexing the files we feed to the alloy compiler
+ *
+ * @param lexer the lexer instance
+ * @param sourceFiles the files to lex
+ */
 void startLexingFiles(Lexer *lexer, Vector *sourceFiles);
 
 /**
