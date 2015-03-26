@@ -12,8 +12,10 @@
 #include "vector.h"
 #include "ast.h"
 
-#define STRUCT_KEYWORD 		"struct"
-#define MUT_KEYWORD 		"mut"
+#define STRUCT_KEYWORD 				"struct"
+#define MUT_KEYWORD 				"mut"
+#define FUNCTION_KEYWORD 			"fn"
+#define SINGLE_STATEMENT_OPERATOR 	"->"
 
 /**
  * parser contents

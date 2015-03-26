@@ -247,7 +247,146 @@ Receiver *parseReceiver(Parser *parser) {
 }
 
 FunctionSignature *parseFunctionSignature(Parser *parser) {
+	Receiver *receiver = NULL;
+	if (checkTokenTypeAndContent(parser, SEPARATOR, "(", 0)) {
+		 receiver = parseReceiver(parser);
+	}
 
+	if (checkTokenType(parser, IDENTIFIER, 0)) {
+		Token *functionName = consumeToken(parser);
+
+		Parameters *params = parseParameters(parser);
+		if (!params) {
+			errorMessage("Expected a parameter list for function signature, but found `%s`", consumeToken(parser)->content);
+			destroyReceiver(receiver);
+			return NULL;
+		}
+
+		if (checkTokenTypeAndContent(parser, OPERATOR, ":", 0)) {
+			consumeToken(parser);
+		}
+		else {
+			errorMessage("Function signature expected a colon (`:`), but found `%s`", consumeToken(parser)->content);
+			destroyReceiver(receiver);
+			return NULL;
+		}
+
+		bool mutable = false;
+		if (checkTokenTypeAndContent(parser, IDENTIFIER, MUT_KEYWORD, 0)) {
+			consumeToken(parser);
+			mutable = true;
+		}
+
+		Type *type = parseType(parser);
+		if (!type) {
+			errorMessage("Function signature expected a return type, but found `%s`", consumeToken(parser)->content);
+			destroyReceiver(receiver);
+			return NULL;
+		}
+
+		return createFunctionSignature(functionName->content, params, mutable);
+	}
+
+	errorMessage("Failed to parse function signature");
+	destroyReceiver(receiver);
+	return NULL;
+}
+
+Statement *parseStatement(Parser *parser) {
+	// TODO:
+	return NULL;
+}
+
+Block *parseBlock(Parser *parser) {
+	StatementList *stmtList = createStatementList();
+
+	if (checkTokenTypeAndContent(parser, SEPARATOR, "{", 0)) {
+		consumeToken(parser);
+
+		while (true) {
+			if (checkTokenTypeAndContent(parser, SEPARATOR, "}", 0)) {
+				consumeToken(parser);
+				break;
+			}
+
+			Statement *stmt = parseStatement(parser);
+			if (!stmt) {
+				errorMessage("Failed to parse statement");
+				destroyStatementList(stmtList);
+				return NULL;
+			}
+			pushBackItem(stmtList->stmts, stmt);
+
+			if (checkTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
+				consumeToken(parser);
+			}
+			else {
+				errorMessage("Expected a semi-colon at the end of statement, but found `%s`", consumeToken(parser)->content);
+				destroyStatementList(stmtList);
+				return NULL;
+			}
+		}
+
+		Block *block = createBlock();
+		block->stmtList = stmtList;
+		block->type = MULTI_STATEMENT_BLOCK;
+		return block;
+	}
+	else if (checkTokenTypeAndContent(parser, OPERATOR, SINGLE_STATEMENT_OPERATOR, 0)) {
+		Statement *stmt = parseStatement(parser);
+		if (!stmt) {
+			errorMessage("Failed to parse statement in a single-line block");
+			destroyStatementList(stmtList);
+			return NULL;
+		}
+		if (checkTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
+			consumeToken(parser);
+			pushBackItem(stmtList->stmts, stmt);
+			Block *block = createBlock();
+			block->stmtList = stmtList;
+			block->type = MULTI_STATEMENT_BLOCK;
+			return block;
+		}
+		else {
+			errorMessage("Expected a semi-colon at the end of statement, but found `%s`", consumeToken(parser)->content);
+			destroyStatementList(stmtList);
+			return NULL;
+		}
+	}
+
+	errorMessage("Failed to parse block");
+	return NULL;
+}
+
+FunctionDecl *parseFunctionDecl(Parser *parser) {
+	if (checkTokenTypeAndContent(parser, IDENTIFIER, FUNCTION_KEYWORD, 0)) {
+		consumeToken(parser);
+
+		FunctionSignature *funcSignature = parseFunctionSignature(parser);
+		if (!funcSignature) {
+			errorMessage("Expected function signature when parsing function declaration");
+			return NULL;
+		}
+
+		FunctionDecl *funcDecl = createFunctionDecl();
+		funcDecl->signature = funcSignature;
+		if (checkTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
+			consumeToken(parser);
+			return funcDecl;
+		}
+
+		Block *block = parseBlock(parser); // TODO:
+		if (!block) {
+			errorMessage("Function expected block after function signature but found `%s`", consumeToken(parser)->content);
+			destroyFunctionDecl(funcDecl);
+			return NULL;
+		}
+
+		funcDecl->body = block;
+		return funcDecl;
+	}
+
+	errorMessage("Failed to parse function declaration");
 	return NULL;
 }
 
