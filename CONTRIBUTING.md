@@ -2,6 +2,13 @@
 We'd love your contributions, but we do have a few guidelines
 that we go by.
 
+## Code Style
+
+* CamelCase, not snake_things_like_this
+* Indent with **four** spaces
+* Provide spaces around operators for readability, i.e (1 + 1), over (1+1)
+* Use a space after a colon, not before
+
 ## Community
 Having any problems? [Open an Issue](https://github.com/alloy-lang/alloy/issues). There is also an IRC room over on freenode: [#alloy-lang](http://webchat.freenode.net/?channels=%23alloy-lang).
 

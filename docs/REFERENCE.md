@@ -16,57 +16,74 @@ The design is motivated by the following:
 
 The language should be strong enough that it can be self-hosted.
 
-## Program Structure
-A program consists of multiple functions, one function by default called "main", is the entry point of execution. This is
-the first function invoked at run time.
+## Language Definition
+This is the definition for the Alloy programming language. This section is an attempt to accurately describe the language
+in as much detail as possible, including grammars, syntax, etc.
 
-## Values and References
+### Program Structure
+A program consists of multiple functions, one function by convention called "main", is the entry point of execution. This is
+the first function invoked at run time, and the core of the program.
+
+### Values and References
 Alloy is pass by value, if you called a function that takes an array, if you were to simply pass the array,
 it would make a copy of this array. If you want to pass a reference, one must explicitly pass a pointer to the array.
 
 ## Notation
-The syntax is specified using Extended Backus-Naur Form (EBNF).
+Before reading the notation, it is recommended you have an understanding of Extended Backus-Naur Form, the code snippet that introduce certain
+syntax will typically show the grammar for the syntax, and an example of the syntax in use.
 
-### Common Productions
+## Characters and Letters
 
-    IdentifierList = identifier { "," identifier }
-    ExpressionList = Expression { "," Expression }
-
-### Characters and Letters
-
-    digit = { "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" }
-    letter = "A" | "a" | ... "Z" | "z" | "_" 
+    digit = { "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" } .
+    letter = "A" | "a" | ... "Z" | "z" | "_" .
 
 Letters and digits are ASCII for now, however we may allow for unicode later on.
 
-### Identifiers
+## Operators
+Below are the many operators availible. The sign operators are unary operators, which can prefix numeric literals. The `escaped_char` are
+character escapes. The third section of characters are various logical, relational and arithmetic operations. The fourth set of characters
+group specific operations into either the unary or binary categories.
+
+	sign = "+" | "-" .
+	
+	escaped_char = "\" ( "a" | "b" | "f" | "n" | "r" | "t" | "v" | "\" | "'" | """ ) .
+	
+	logOp = "||" | "&&" .
+	relOp = "==" | "!=" | "<" | "<=" | ">" | ">=" .
+	addOp = "+" | "-" | "|" | "^" .
+	mulOp = "*" | "/" | "%" | "<<" | ">>" | "&" .
+
+	binaryOp = logOp | relOp | addOp | mulOp .
+	unaryOp = "+" | "-" | "!" | "^" | "<" | ">" | "*" | "&" .
+
+## Identifiers
 An identifier is a name for an entity in the source code, for example a variable, a type, a function, etc. An identifier must **not** be
 a reserved word.
 
-	identifier = letter { letter | digit }
+	identifier = letter { letter | digit } .
 
 	some_thing
 	a
 	_example
 	Amazing_NumberTwo2
 
-### Source Code Representation
+## Source Code Representation
 The source code is in unicode text, encoded in utf-8. Source text is case-sensitive. Whitespace is blanks,
-newlines, carriage returns, or tabs. Comments are denoted with `//` for single line, or `/* */` without nesting.
+newlines, carriage returns, or tabs. Comments are denoted with `//` for single line, or `/* */` **without nesting**.
 For simplicity, identifiers are treated as ASCII, however unicode may be supported in the future, but aren't a priority.
 
-### Reserved Words
+## Reserved Words
 These words are reserved, i.e they cannot be used in identifiers.
      
 	u64 u32 u16 u8 i64 i32 i16 i8 f64 f32 bool char int float struct
 	enum fn void for loop while if else mut return continue break
 	use do 
 
-### Types
+## Types
 
-    Type = TypeName | ArrayType | StructType | PointerType | FunctionType
+    Type = TypeName | ArrayType | PointerType .
 
-### Basic Types
+## Basic Types
 Alloy defines a number of basic types. 
 
 	u64         unsigned 64-bit integer
@@ -87,39 +104,35 @@ platform. For example, an integer `int` is typically an i32 or a 32-bit architec
 
 Other basic types include:
 	
-        bool        alias of u8
-        char        alias of i8
+	bool        alias of u8
+	char        alias of i8
 
 `true` and `false` are reserved words, which represent the corresponding boolean constant values.
 
-### Struct Types
+## Struct Types
 Struct types are similar to C structs. Each member in a struct represents a variable within the data structure.
 
-	StructType = "struct" "{" [ FieldList ] "}"
-	FieldList = FieldDecl { ";" FieldDecl }
-	FieldDecl = IdentifierList Type       
-
+	StructDecl = "struct" "{" [ FieldList ] "}" .
+	FieldList = FieldDecl { ";" FieldDecl } .
+	FieldDecl = [ "mut" ] Type IdentifierList .
+	
 	struct Cat {
 		string name;
 		int age;
 	}
-	
-Structure members can also be initialized on declaration, for instance:
 
-	struct Cat {
-		string name = "Jim";
-		int age = 21;
-	}
+Structure members cannot be initialized, this is for semantics.
 	
-Is perfectly valid.
-	
-### Pointer Types
+## Pointer Types
 Pointers are similar to C, however pointer arithmetic is not permitted. They are also denoted with the caret symbol '^', instead of an asterisks '*'.
 
-         int ^x;
+	int ^x;
 	
-### Blocks
+## Blocks
 There are two types of blocks, a multi-block, denoted with two curly braces `{}`. And a single-block, denoted with an arrow `->`. A multi-block contains multiple statements, and a single-block can only contain a single statement.
+
+	Block = ( "{" [ StatementList ";" ] "}" | "->" Statement ) .
+	
 
 	{
 		statement;
@@ -127,8 +140,15 @@ There are two types of blocks, a multi-block, denoted with two curly braces `{}`
 	
 	-> statement;
 	
-### Functions
+## Functions
 Functions contain declarations and statements. They can be recursive. Functions can either return a value, or void. A function consists of a function prototype, which is then followed by a Block, which can either be a single-block or a multi-block.
+
+	FunctionDecl = "fn" FunctionSignature ( ";" | Block ) .
+	FunctionSignature = [ Receiver ] identifier Parameters ":" [ "mut" ] Type .
+	Receiver = "(" [ "mut" ] Type identifier ")"
+	Parameters = "(" [ parameterList ] ")" .
+	ParameterList = ParameterSection { "," ParameterSection } .
+	ParameterSection = [ "mut" ] Type IdentifierList .
 
 	fn add(int a, int b): int {
 		return a + b;
@@ -137,7 +157,7 @@ Functions contain declarations and statements. They can be recursive. Functions 
 	// simplified to
 	fn add(int a, int b): int -> return a + b;
 	
-### Methods
+## Methods
 A method is a function bound to a specific structure.
 
 	struct Point {
@@ -155,33 +175,6 @@ Creates a method for the structure Point. It is worth noting that methods are no
 	
 For instance, given a Point, namely `p`, one may do the following:
 
-	p.distance();
+	Point ^p = { 0.0, 0.0 };
+	float dist = p.distance();
 
-### Mutability
-Alloy defines any variable or type instance as constant, unless otherwise specified with the `mut` keyword. This means that whenever you define/declare a variable or structure, it will be immutable. This means the following is **invalid**:
-
-	int x = 5;
-	x = 10; 			// error! 
-	
-This is because `x` by default is immutable, i.e it cannot be changed as it is constant. You can apply the `mut` keyword, to make the variable mutable.
-
-	mut int x = 5;
-	x = 10; 			// yay!
-	
-This applys to structures, structure members, parameters, variables, and function returns. For instance,
-
-	struct Cat {
-		int age = 10;
-	}
-	
-	Cat cat;
-	cat.age = 21;		// error!
-	
-However, the following is legal:
-
-	struct Cat {
-		mut int age = 10;
-	}
-	
-	Cat cat;
-	cat.age = 21;
