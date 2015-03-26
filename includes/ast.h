@@ -24,22 +24,16 @@ typedef struct {
 	LiteralType type;
 } Literal;
 
-typedef enum {
-	BINARY_EXPR,
-	UNARY_EXPR,
-	PRIMARY_EXPR,
-} ExpressionType;
-
 typedef struct {
 	s_Expression *lhand;
 	char operand;
 	s_Expression *rhand;
-} BinaryExpression;
+} BinaryExpr;
 
 typedef struct {
 	char operand;
 	s_Expression *rhand;
-} UnaryExpression;
+} UnaryExpr;
 
 typedef struct {
 	s_Expression *lhand;
@@ -47,22 +41,34 @@ typedef struct {
 	// optional
 	s_Expression *start;
 	s_Expression *end;
-} ArraySliceExpression;
+} ArraySubExpr;
 
 typedef struct {
 	s_Expression *expr;
 	char *value;
-} MemberAccessExpression;
+} MemberAccessExpr;
 
 typedef struct {
 	Literal *literal;
 	s_Expression *parenExpr;
-	ArraySliceExpression *arraySlice;
-	MemberAccessExpression *memberAccess;
+	ArraySubExpr *arraySlice;
+	MemberAccessExpr *memberAccess;
 } PrimaryExpr;
 
-typedef struct s_Expression {
+typedef enum {
+	PRIMARY_EXPR,
+	BINARY_EXPR,
+	UNARY_EXPR,
+	MEMBER_ACCESS_EXPR,
+	ARRAY_SLICE_EXPR,
+} ExpressionType;
 
+typedef struct s_Expression {
+	PrimaryExpr *primary;
+	BinaryExpr *binary;
+	UnaryExpr *unary;
+	MemberAccessExpr *memberAccess;
+	ArraySubExpr *arraySlice;
 } Expression;
 
 typedef struct {
@@ -81,6 +87,7 @@ typedef struct {
 typedef struct {
 	IdentifierList *idenList;
 	struct s_Type *type;
+	bool mutable;
 } FieldDecl;
 
 typedef struct {
@@ -90,6 +97,10 @@ typedef struct {
 typedef struct {
 	FieldDeclList *fields;
 } StructDecl;
+
+typedef struct {
+	Vector *stmts;
+} StatementList;
 
 typedef enum {
 	MULTI_STATEMENT_BLOCK,
@@ -104,6 +115,7 @@ typedef struct {
 typedef struct {
 	s_Type *type;
 	IdentifierList *identList;
+	bool mutable;
 } ParameterSection;
 
 typedef struct {
@@ -117,6 +129,7 @@ typedef struct {
 typedef struct {
 	s_Type *type;
 	char *name;
+	bool mutable;
 } Receiver;
 
 typedef struct {
@@ -216,55 +229,11 @@ typedef struct {
 	UnstructuredStatement *unstructured;
 } Statement;
 
-typedef struct {
-	Vector *stmts;
-} StatementList;
-
 typedef struct s_Type {
 	TypeName *typeName;
 	ArrayType *arrayType;
 	PointerType *pointerType;
 	StructDecl *structType;
 } Type;
-
-IdentifierList *createIdentifierList();
-
-void destroyIdentifierList(IdentifierList *list);
-
-Expression *createExpression();
-
-void destroyExpression(Expression *expr);
-
-TypeName *createTypeName();
-
-void destroyTypeName(TypeName *typeName);
-
-ArrayType *createArrayType();
-
-void destroyArrayType(ArrayType *arrayType);
-
-PointerType *createPointerType();
-
-void destroyPointerType(PointerType *pointerType);
-
-FieldDecl *createFieldDecl();
-
-void destroyFieldDecl(FieldDecl *fieldDecl);
-
-FieldDeclList *createFieldDeclList();
-
-void destroyFieldDeclList(FieldDeclList *fieldDeclList);
-
-StructDecl *createStructDecl();
-
-void destroyStructDecl(StructDecl *structType);
-
-FunctionDecl *createFunctionSignature();
-
-void destroyFunctionSignature(FunctionDecl *funcType);
-
-Type *createType();
-
-void destroyType(Type *type);
 
 #endif // AST_H
