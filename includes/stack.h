@@ -16,9 +16,9 @@ typedef void* StackItem;
  * Stack properties 
  */
 typedef struct {
-	StackItem *items;
-	int stackPointer;
-	int defaultStackSize;
+	StackItem *items;		// the items for the stack
+	int stackPointer;		// points to the top of the stack
+	int defaultStackSize;	// the initial size of the stack
 } Stack;
 
 /**

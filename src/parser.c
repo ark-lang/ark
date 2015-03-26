@@ -5,7 +5,7 @@ Parser *createParser() {
 	parser->tokenStream = NULL;
 	parser->tokenIndex = 0;
 	parser->parsing = true;
-	parser->exitOnError = false;
+	parser->failed = false;
 	return parser;
 }
 

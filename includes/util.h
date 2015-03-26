@@ -16,8 +16,6 @@
 /** the current version of alloy */
 #define ALLOYC_VERSION "0.0.3"
 
-#define newType(type, value) (&(*((type *)malloc(sizeof(type)))=(value)))
-
 /** windows doesn't like coloured text */
 #ifdef _WIN32
 	#define GET_RED_TEXT(x) (x)
@@ -32,17 +30,29 @@ extern char* COMPILER;
 extern bool OUTPUT_C;
 extern char* OUTPUT_EXECUTABLE_NAME;
 
+/**
+ * Generates a random string of the given length
+ *
+ * @param length the length of the string
+ */
 char *randString(size_t length);
 
+/**
+ * Converts a string to uppercase
+ *
+ * @param str the string to convert to uppercase
+ */
 char *toUppercase(char *str);
 
-char *joinString(const char* s1, const char* s2);
-
+/**
+ * Removes the extension from the given file
+ */
 char *removeExtension(char *file);
 
+/**
+ * Cut the directories from a path
+ */
 char *getFileName(char *path);
-
-void appendString(char *original_str, char *str);
 
 /**
  * Emitts a debug message to the console if we are in DEBUG MODE
