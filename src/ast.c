@@ -1,7 +1,9 @@
 #include "ast.h"
 
 IdentifierList *createIdentifierList() {
-	return safeMalloc(sizeof(IdentifierList));
+	IdentifierList *iden = safeMalloc(sizeof(*iden));
+	iden->values = createVector();
+	return iden;
 }
 
 Literal *createLiteral(char *value, LiteralType type) {
@@ -74,7 +76,9 @@ FieldDecl *createFieldDecl(Type *type, bool mutable) {
 }
 
 FieldDeclList *createFieldDeclList() {
-	return safeMalloc(sizeof(FieldDeclList));
+	FieldDeclList *fieldDeclList = safeMalloc(sizeof(*fieldDeclList));
+	fieldDeclList->members = createVector();
+	return fieldDeclList;
 }
 
 StructDecl *createStructDecl(char *name) {
@@ -84,7 +88,9 @@ StructDecl *createStructDecl(char *name) {
 }
 
 StatementList *createStatementList() {
-	return safeMalloc(sizeof(StatementList));
+	StatementList *stmtList = safeMalloc(sizeof(*stmtList));
+	stmtList->stmts = createVector();
+	return stmtList;
 }
 
 Block *createBlock() {
@@ -99,7 +105,9 @@ ParameterSection *createParameterSection(Type *type, bool mutable) {
 }
 
 Parameters *createParameters() {
-	return safeMalloc(sizeof(Parameters));
+	Parameters *params = safeMalloc(sizeof(*params));
+	params->paramList = createVector();
+	return params;
 }
 
 Receiver *createReceiver(Type *type, char *name, bool mutable) {
@@ -188,6 +196,7 @@ MatchClause *createMatchClause() {
 MatchStat *createMatchStat(Expression *expr) {
 	MatchStat *match = safeMalloc(sizeof(*match));
 	match->expr = expr;
+	match->clauses = createVector();
 	return match;
 }
 
@@ -446,7 +455,6 @@ void destroyIfStat(IfStat *stmt) {
 void destroyMatchClause(MatchClause *mclause) {
 	destroyBlock(mclause->body);
 	destroyExpression(mclause->expr);
-	destroyLeaveStat(mclause->leave);
 	free(mclause);
 }
 
