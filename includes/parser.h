@@ -19,6 +19,7 @@
 #define IF_KEYWORD					"if"
 #define ELSE_KEYWORD				"else"
 #define FOR_KEYWORD					"for"
+#define MATCH_KEYWORD				"match"
 
 /**
  * parser contents
@@ -46,7 +47,41 @@ void destroyParser(Parser *parser);
 
 /** AST */
 
+Literal *parseLiteral(Parser *parser);
+
 IdentifierList *parseIdentifierList(Parser *parser);
+
+Type *parseType(Parser *parser);
+
+FieldDecl *parseFieldDecl(Parser *parser);
+
+FieldDeclList *parseFieldDeclList(Parser *parser);
+
+StructDecl *parseStructDecl(Parser *parser);
+
+ParameterSection *parseParameterSection(Parser *parser);
+
+Parameters *parseParameters(Parser *parser);
+
+Receiver *parseReceiver(Parser *parser);
+
+FunctionSignature *parseFunctionSignature(Parser *parser);
+
+ElseStat *parseElseStat(Parser *parser);
+
+IfStat *parseIfStat(Parser *parser);
+
+ForStat *parseForStat(Parser *parser);
+
+MatchClause *parseMatchClause(Parser *parser);
+
+MatchStat *parseMatchStat(Parser *parser);
+
+Statement *parseStatement(Parser *parser);
+
+Block *parseBlock(Parser *parser);
+
+FunctionDecl *parseFunctionDecl(Parser *parser);
 
 /** UTILITIES */
 

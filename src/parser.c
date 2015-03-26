@@ -196,7 +196,6 @@ Parameters *parseParameters(Parser *parser) {
 			if (checkTokenTypeAndContent(parser, SEPARATOR, ",", 0)) {
 				if (checkTokenTypeAndContent(parser, SEPARATOR, ")", 1)) {
 					warningMessage("Trailing comma in parameter list, skipping for now");
-					consumeToken(parser);
 				}
 				consumeToken(parser);
 				break;
@@ -321,7 +320,7 @@ IfStat *parseIfStat(Parser *parser) {
 		}
 
 		ElseStat *elseStmt = NULL;
-		if (checkTokenType(parser, IDENTIFIER, ELSE_KEYWORD, 0)) {
+		if (checkTokenTypeAndContent(parser, IDENTIFIER, ELSE_KEYWORD, 0)) {
 			elseStmt = parseElseStat(parser);
 			if (!elseStmt) {
 				errorMessage("Failed to parse else statement");
@@ -342,6 +341,81 @@ IfStat *parseIfStat(Parser *parser) {
 
 ForStat *parseForStat(Parser *parser) {
 	// TODO
+	return NULL;
+}
+
+MatchClause *parseMatchClause(Parser *parser) {
+	Expression *expr = NULL; // TODO EXPRESSION!
+	if (!expr) {
+		errorMessage("Expected an expression in match clause, found `%s`", consumeToken(parser)->content);
+		return NULL;
+	}
+
+	if (checkTokenTypeAndContent(parser, SEPARATOR, "}", 0)) {
+		consumeToken(parser);
+
+		Block *block = parseBlock(parser);
+		if (!block) {
+			errorMessage("Failed to parse block for match clause, errored at `%s`", consumeToken(parser)->content);
+			return NULL;
+		}
+
+		MatchClause *clause = createMatchClause();
+		clause->expr = expr;
+		clause->body = block;
+		return clause;
+	}
+
+	errorMessage("Failed to parse match clause");
+	return NULL;
+}
+
+MatchStat *parseMatchStat(Parser *parser) {
+	if (checkTokenTypeAndContent(parser, IDENTIFIER, MATCH_KEYWORD, 0)) {
+		consumeToken(parser);
+
+		Expression *expr = NULL; // TODO EXPRESSIONS!
+		if (!expr) {
+			errorMessage("Failed to parse expression in match statement, errored at `%s`", consumeToken(parser)->content);
+			return NULL;
+		}
+
+		if (checkTokenTypeAndContent(parser, SEPARATOR, "{", 0)) {
+			consumeToken(parser);
+
+			MatchStat *stmt = createMatchStat(expr);
+
+			int iterations = 0;
+			while (true) {
+				if (checkTokenTypeAndContent(parser, SEPARATOR, "}", 0)) {
+					if (iterations) {
+						errorMessage("Match must have at least one match clause, found zero!");
+						return NULL;
+					}
+					consumeToken(parser);
+					break;
+				}
+				iterations++;
+
+				MatchClause *clause = parseMatchClause(parser);
+				if (!clause) {
+					errorMessage("Failed to parse match clause");
+					return NULL;
+				}
+				pushBackItem(stmt->clauses, clause);
+
+				if (checkTokenTypeAndContent(parser, SEPARATOR, ",", 0)) {
+					if (checkTokenTypeAndContent(parser, SEPARATOR, "}", 1)) {
+						warningMessage("Trailing comma in match statement, skipping for now...");
+					}
+					consumeToken(parser);
+				}
+			}
+
+			return stmt;
+		}
+	}
+
 	return NULL;
 }
 
