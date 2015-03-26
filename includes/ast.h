@@ -268,6 +268,12 @@ typedef struct {
 	Expression *expr;
 } VariableDecl;
 
+typedef enum {
+	FUNC_DECL,
+	STRUCT_DECL,
+	VAR_DECL
+} DECLARATION_TYPE;
+
 /**
  * A node representing all declarations,
  * function/struct/variable...
@@ -276,6 +282,7 @@ typedef struct {
 	FunctionDecl *funcDecl;
 	StructDecl *structDecl;
 	VariableDecl *varDecl;
+	DECLARATION_TYPE declType;
 } Declaration;
 
 /**
