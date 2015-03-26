@@ -12,6 +12,9 @@
 #include "vector.h"
 #include "ast.h"
 
+#define STRUCT_KEYWORD 		"struct"
+#define MUT_KEYWORD 		"mut"
+
 /**
  * parser contents
  */
@@ -41,6 +44,14 @@ void destroyParser(Parser *parser);
 IdentifierList *parseIdentifierList(Parser *parser);
 
 /** UTILITIES */
+
+/**
+ * Returns the literal type based on the token
+ * passed
+ *
+ * @param tok the token to check
+ */
+LiteralType getLiteralType(Token *tok);
 
 /**
  * Consumes the current token

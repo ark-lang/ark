@@ -105,6 +105,16 @@ char *readFile(const char *fileName) {
 	return NULL;
 }
 
+void warningMessage(const char *fmt, ...) {
+	va_list arg;
+	va_start(arg, fmt);
+	char *temp = GET_ORANGE_TEXT("warning: ");
+	fprintf(stdout, "%s", temp);
+	vfprintf(stdout, fmt, arg);
+	fprintf(stdout, "\n");
+	va_end(arg);
+}
+
 void errorMessage(const char *fmt, ...) {
 	va_list arg;
 	va_start(arg, fmt);
