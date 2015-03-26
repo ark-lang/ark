@@ -115,7 +115,7 @@ void startAlloyCompiler(AlloyCompiler *self) {
 	debugMessage("Finished parsing");
 	
 	// failed parsing stage
-	if (self->parser->exitOnError) {
+	if (self->parser->failed) {
 		return; // don't do stuff after this
 	}
 
