@@ -5,8 +5,8 @@
 #include "vector.h"
 
 /** forward declarations */
-typedef struct Type s_Type;
-typedef struct Expression s_Expression;
+typedef struct s_Type Type;
+typedef struct s_Expression Expression;
 typedef struct {} ContinueStat;
 typedef struct {} BreakStat;
 
@@ -41,9 +41,9 @@ typedef struct {
  * for example a + b is a binary expression.
  */
 typedef struct {
-	s_Expression *lhand;
+	Expression *lhand;
 	char operand;
-	s_Expression *rhand;
+	Expression *rhand;
 } BinaryExpr;
 
 /**
@@ -52,7 +52,7 @@ typedef struct {
  */
 typedef struct {
 	char operand;
-	s_Expression *rhand;
+	Expression *rhand;
 } UnaryExpr;
 
 /**
@@ -60,11 +60,11 @@ typedef struct {
  * for example a[5], or optional array slices, e.g a[5: 5].
  */
 typedef struct {
-	s_Expression *lhand;
+	Expression *lhand;
 
 	// optional
-	s_Expression *start;
-	s_Expression *end;
+	Expression *start;
+	Expression *end;
 } ArraySubExpr;
 
 /**
@@ -72,7 +72,7 @@ typedef struct {
  * i.e someStruct.x
  */
 typedef struct {
-	s_Expression *expr;
+	Expression *expr;
 	char *value;
 } MemberAccessExpr;
 
@@ -83,7 +83,7 @@ typedef struct {
  */
 typedef struct {
 	Literal *literal;
-	s_Expression *parenExpr;
+	Expression *parenExpr;
 	ArraySubExpr *arraySlice;
 	MemberAccessExpr *memberAccess;
 } PrimaryExpr;
@@ -104,13 +104,13 @@ typedef enum {
  * Inheritance "emulation", an Expression Node is the parent
  * of all expressions.
  */
-typedef struct s_Expression {
+struct s_Expression {
 	PrimaryExpr *primary;
 	BinaryExpr *binary;
 	UnaryExpr *unary;
 	MemberAccessExpr *memberAccess;
 	ArraySubExpr *arraySlice;
-} Expression;
+};
 
 /**
  * A name of a type.
@@ -126,14 +126,14 @@ typedef struct {
  */
 typedef struct {
 	Expression *length;
-	struct s_Type *type;
+	Type *type;
 } ArrayType;
 
 /**
  * A pointer type, i.e `int ^`
  */
 typedef struct {
-	struct s_Type *type;
+	Type *type;
 } PointerType;
 
 /**
@@ -141,7 +141,7 @@ typedef struct {
  */
 typedef struct {
 	IdentifierList *idenList;
-	struct s_Type *type;
+	Type *type;
 	bool mutable;
 } FieldDecl;
 
@@ -193,7 +193,7 @@ typedef struct {
  * a function signature
  */
 typedef struct {
-	s_Type *type;
+	Type *type;
 	IdentifierList *identList;
 	bool mutable;
 } ParameterSection;
@@ -210,7 +210,7 @@ typedef struct {
  * A node representing a receiver.
  */
 typedef struct {
-	s_Type *type;
+	Type *type;
 	char *name;
 	bool mutable;
 } Receiver;
@@ -239,9 +239,9 @@ typedef struct {
  */
 typedef struct {
 	bool mutable;
-	s_Type *type;
+	Type *type;
 	char *name;
-	s_Expression *expr;
+	Expression *expr;
 } VariableDecl;
 
 /**
@@ -269,7 +269,7 @@ typedef enum {
  * or decrement.
  */
 typedef struct {
-	s_Expression *expr;
+	Expression *expr;
 	IncOrDec type;
 } IncDecStat;
 
@@ -277,7 +277,7 @@ typedef struct {
  * A return statement
  */
 typedef struct {
-	s_Expression *expr;
+	Expression *expr;
 } ReturnStat;
 
 /**
@@ -285,7 +285,7 @@ typedef struct {
  */
 typedef struct {
 	PrimaryExpr *primary;
-	s_Expression *expr;
+	Expression *expr;
 } Assignment;
 
 /**
@@ -321,7 +321,7 @@ typedef struct {
  * for a condition
  */
 typedef struct {
-	s_Expression *expr;
+	Expression *expr;
 	Block *body;
 	ElseStat *elseStmt;
 } IfStat;
@@ -330,7 +330,7 @@ typedef struct {
  * A match clause for a match statement
  */
 typedef struct {
-	s_Expression *expr;
+	Expression *expr;
 	Block *body;
 	LeaveStat *leave;
 } MatchClause;
@@ -339,7 +339,7 @@ typedef struct {
  * match statement
  */
 typedef struct {
-	s_Expression *expr;
+	Expression *expr;
 	Vector *clauses;
 } MatchStat;
 
@@ -347,7 +347,7 @@ typedef struct {
  * node representing a for loop
  */
 typedef struct {
-	s_Type *type;
+	Type *type;
 	char *index;
 	PrimaryExpr *start, *end, *step;
 	Block *body;
@@ -377,25 +377,23 @@ typedef struct {
  * array type, pointer type, or a structure
  * declaration.
  */
-typedef struct s_Type {
+struct s_Type {
 	TypeName *typeName;
 	ArrayType *arrayType;
 	PointerType *pointerType;
-} Type;
-
-#include "ast.h"
+};
 
 IdentifierList *createIdentifierList();
 
 Literal *createLiteral(char *value, LiteralType type);
 
-BinaryExpr *createBinaryExpr(s_Expression *lhand, char op, s_Expression *rhand);
+BinaryExpr *createBinaryExpr(Expression *lhand, char op, Expression *rhand);
 
-UnaryExpr *createUnaryExpr(char operand, s_Expression *rhand);
+UnaryExpr *createUnaryExpr(char operand, Expression *rhand);
 
-ArraySubExpr *createArraySubExpr(s_Expression *lhand);
+ArraySubExpr *createArraySubExpr(Expression *lhand);
 
-MemberAccessExpr *createMemberAccessExpr(s_Expression *expr, char *value);
+MemberAccessExpr *createMemberAccessExpr(Expression *expr, char *value);
 
 PrimaryExpr *createPrimaryExpr();
 
@@ -403,11 +401,11 @@ Expression *createExpression();
 
 TypeName *createTypeName(char *name);
 
-ArrayType *createArrayType(Expression *length, struct s_Type *type);
+ArrayType *createArrayType(Expression *length, Type *type);
 
-PointerType *createPointerType(struct s_Type *type);
+PointerType *createPointerType(Type *type);
 
-FieldDecl *createFieldDecl(struct s_Type *type, bool mutable);
+FieldDecl *createFieldDecl(Type *type, bool mutable);
 
 FieldDeclList *createFieldDeclList();
 
@@ -417,23 +415,23 @@ StatementList *createStatementList();
 
 Block *createBlock();
 
-ParameterSection *createParameterSection(s_Type *type, bool mutable);
+ParameterSection *createParameterSection(Type *type, bool mutable);
 
 Parameters *createParameters();
 
-Receiver *createReceiver(s_Type *type, char *name, bool mutable);
+Receiver *createReceiver(Type *type, char *name, bool mutable);
 
 FunctionSignature *createFunctionSignature(char *name, Parameters *params, bool mutable);
 
 FunctionDecl *createFunctionDecl();
 
-VariableDecl *createVariableDecl(s_Type *type, char *name, bool mutable, s_Expression *expr);
+VariableDecl *createVariableDecl(Type *type, char *name, bool mutable, Expression *expr);
 
 Declaration *createDeclaration();
 
-IncDecStat *createIncDecStat(s_Expression *expr, IncOrDec type);
+IncDecStat *createIncDecStat(Expression *expr, IncOrDec type);
 
-ReturnStat *createReturnStat(s_Expression *expr);
+ReturnStat *createReturnStat(Expression *expr);
 
 BreakStat *createBreakStat();
 
@@ -441,7 +439,7 @@ ContinueStat *createContinueStat();
 
 LeaveStat *createLeaveStat();
 
-Assignment *createAssignment(PrimaryExpr *primaryExpr, s_Expression *expr);
+Assignment *createAssignment(PrimaryExpr *primaryExpr, Expression *expr);
 
 UnstructuredStatement *createUnstructuredStatement();
 
@@ -451,14 +449,90 @@ IfStat *createIfStat();
 
 MatchClause *createMatchClause();
 
-MatchStat *createMatchStat(s_Expression *expr);
+MatchStat *createMatchStat(Expression *expr);
 
-ForStat *createForStat(s_Type *type, char *index, PrimaryExpr *start, PrimaryExpr *end);
+ForStat *createForStat(Type *type, char *index, PrimaryExpr *start, PrimaryExpr *end);
 
 StructuredStatement *createStructuredStatement();
 
 Statement *createStatement();
 
 Type *createType();
+
+void destroyIdentifierList(IdentifierList *list);
+
+void destroyLiteral(Literal *lit);
+
+void destroyBinaryExpr(BinaryExpr *expr);
+
+void destroyUnaryExpr(UnaryExpr *expr);
+
+void destroyArraySubExpr(ArraySubExpr *expr);
+
+void destroyMemberAccessExpr(MemberAccessExpr *expr);
+
+void destroyPrimaryExpr(PrimaryExpr *expr);
+
+void destroyExpression(Expression *expr);
+
+void destroyTypeName(TypeName *typeName);
+
+void destroyArrayType(ArrayType *arrayType);
+
+void destroyPointerType(PointerType *pointerType);
+
+void destroyFieldDecl(FieldDecl *decl);
+
+void destroyFieldDeclList(FieldDeclList *list);
+
+void destroyStructDecl(StructDecl *decl);
+
+void destroyStatementList(StatementList *list);
+
+void destroyBlock(Block *block);
+
+void destroyParameterSection(ParameterSection *param);
+
+void destroyParameters(Parameters *params);
+
+void destroyReceiver(Receiver *receiver);
+
+void destroyFunctionSignature(FunctionSignature *func);
+
+void destroyFunctionDecl(FunctionDecl *decl);
+
+void destroyVariableDecl(VariableDecl *decl);
+
+void destroyDeclaration(Declaration *decl);
+
+void destroyIncDecStat(IncDecStat *stmt);
+
+void destroyReturnStat(ReturnStat *stmt);
+
+void destroyBreakStat(BreakStat *stmt);
+
+void destroyContinueStat(ContinueStat *stmt);
+
+void destroyLeaveStat(LeaveStat *stmt);
+
+void destroyAssignment(Assignment *assign);
+
+void destroyUnstructuredStatement(UnstructuredStatement *stmt);
+
+void destroyElseStat(ElseStat *stmt);
+
+void destroyIfStat(IfStat *stmt);
+
+void destroyMatchClause(MatchClause *mclause);
+
+void destroyMatchStat(MatchStat *match);
+
+void destroyForStat(ForStat *stmt);
+
+void destroyStructuredStatement(StructuredStatement *stmt);
+
+void destroyStatement(Statement *stmt);
+
+void destroyType(Type *type);
 
 #endif // AST_H
