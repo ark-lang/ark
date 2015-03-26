@@ -20,6 +20,9 @@
 #define ELSE_KEYWORD				"else"
 #define FOR_KEYWORD					"for"
 #define MATCH_KEYWORD				"match"
+#define CONTINUE_KEYWORD			"continue"
+#define RETURN_KEYWORD				"return"
+#define BREAK_KEYWORD				"break"
 
 /**
  * parser contents
