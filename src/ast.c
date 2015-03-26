@@ -131,13 +131,11 @@ FunctionDecl *createFunctionDecl() {
 	return safeMalloc(sizeof(FunctionDecl));
 }
 
-VariableDecl *createVariableDecl(Type *type, char *name, bool mutable,
-		Expression *expr) {
+VariableDecl *createVariableDecl(Type *type, char *name, bool mutable) {
 	VariableDecl *var = safeMalloc(sizeof(*var));
 	var->type = type;
 	var->name = name;
 	var->mutable = mutable;
-	var->expr = expr;
 	return var;
 }
 
