@@ -356,7 +356,6 @@ typedef struct {
 typedef struct {
 	Expression *expr;
 	Block *body;
-	LeaveStat *leave;
 } MatchClause;
 
 /**
