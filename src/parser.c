@@ -541,7 +541,27 @@ LeaveStat *parseLeaveStat(Parser *parser) {
 }
 
 IncDecStat *parseIncDecStat(Parser *parser) {
+	Expression *expr = parseExpression(parser);
 
+	IncOrDec type = IOD_ERRORED;
+
+	if (checkTokenTypeAndContent(parser, OPERATOR, "+", 0) && checkTokenTypeAndContent(parser, OPERATOR, "+", 1)) {
+		consumeToken(parser);
+		consumeToken(parser);
+		type = IOD_INCREMENT;
+	}
+	else if (checkTokenTypeAndContent(parser, OPERATOR, "-", 0) && checkTokenTypeAndContent(parser, OPERATOR, "-", 1)) {
+		consumeToken(parser);
+		consumeToken(parser);
+		type = IOD_DECREMENT;
+	}
+	else {
+		errorMessage("Unknown postfix operator `%s%s`", consumeToken(parser)->content, consumeToken(parser)->content);
+		destroyExpression(expr);
+		return NULL;
+	}
+
+	return createIncDecStat(expr, type);
 }
 
 Assignment *parseAssignment(Parser *parser) {
