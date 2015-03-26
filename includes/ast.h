@@ -259,9 +259,9 @@ StructDecl *createStructDecl();
 
 void destroyStructDecl(StructDecl *structType);
 
-FunctionType *createFunctionSignature();
+FunctionDecl *createFunctionSignature();
 
-void destroyFunctionSignature(FunctionType *funcType);
+void destroyFunctionSignature(FunctionDecl *funcType);
 
 Type *createType();
 
