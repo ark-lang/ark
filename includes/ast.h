@@ -85,9 +85,9 @@ typedef struct {
  */
 typedef struct {
 	Expression *lhand;
+	Expression *start;
 
 	// optional
-	Expression *start;
 	Expression *end;
 } ArraySubExpr;
 
@@ -101,18 +101,6 @@ typedef struct {
 } MemberAccessExpr;
 
 /**
- * A node representing a Primary Expression, which can be either a literal,
- * a primary expression, array sub expression, member access, binary expression,
- * unary expression, etc.
- */
-typedef struct {
-	Literal *literal;
-	Expression *parenExpr;
-	ArraySubExpr *arraySlice;
-	MemberAccessExpr *memberAccess;
-} PrimaryExpr;
-
-/**
  * An enumeration for different types of expressions,
  * this is to make it cleaner than null checking everything.
  */
@@ -122,7 +110,34 @@ typedef enum {
 	UNARY_EXPR,
 	MEMBER_ACCESS_EXPR,
 	ARRAY_SLICE_EXPR,
+	PAREN_EXPR,
+	IDENTIFIER_EXPR,
+	LITERAL_EXPR,
+	FUNC_CALL_EXPR,
 } ExpressionType;
+
+/**
+ * A node representing a function call
+ */
+typedef struct {
+	Expression *callee;
+	Vector *arguments;
+} Call;
+
+/**
+ * A node representing a Primary Expression, which can be either a literal,
+ * a primary expression, array sub expression, member access, binary expression,
+ * unary expression, etc.
+ */
+typedef struct {
+	Literal *literal;
+	Expression *parenExpr;
+	ArraySubExpr *arraySlice;
+	MemberAccessExpr *memberAccess;
+	char *identifier;
+	ExpressionType type;
+	Call *funcCall;
+} PrimaryExpr;
 
 /**
  * Inheritance "emulation", an Expression Node is the parent
@@ -425,6 +440,8 @@ ArraySubExpr *createArraySubExpr(Expression *lhand);
 
 MemberAccessExpr *createMemberAccessExpr(Expression *expr, char *value);
 
+Call *createCall(Expression *expr);
+
 PrimaryExpr *createPrimaryExpr();
 
 Expression *createExpression();
@@ -502,6 +519,8 @@ void destroyUnaryExpr(UnaryExpr *expr);
 void destroyArraySubExpr(ArraySubExpr *expr);
 
 void destroyMemberAccessExpr(MemberAccessExpr *expr);
+
+void destroyCall(Call *call);
 
 void destroyPrimaryExpr(PrimaryExpr *expr);
 

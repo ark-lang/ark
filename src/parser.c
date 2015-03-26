@@ -671,6 +671,229 @@ Declaration *parseDeclaration(Parser *parser) {
 	}
 }
 
+Call *parseCall(Parser *parser) {
+	Expression *callee = parseExpression(parser);
+	if (!callee) {
+		errorMessage("Expected an expression in function callee");
+		destroyExpression(callee);
+		return NULL;
+	}
+
+	if (checkTokenTypeAndContent(parser, SEPARATOR, "(", 0)) {
+		consumeToken(parser);
+
+		Call *call = createCall(callee);
+
+		while (true) {
+			if (checkTokenTypeAndContent(parser, SEPARATOR, ")", 0)) {
+				consumeToken(parser);
+				break;
+			}
+
+			Expression *expr = parseExpression(parser);
+			if (!expr) {
+				errorMessage("Expected expression in function call");
+				destroyExpression(expr);
+				destroyExpression(callee);
+				destroyCall(call);
+				return NULL;
+			}
+			pushBackItem(call->arguments, expr);
+
+			if (checkTokenTypeAndContent(parser, SEPARATOR, ",", 0)) {
+				if (checkTokenTypeAndContent(parser, SEPARATOR, ")", 1)) {
+					warningMessage("Trailing comma in function call, skipping for now...");
+				}
+				consumeToken(parser);
+			}
+			else {
+				errorMessage("Expected a comma after expression in function call argument list");
+				destroyCall(call);
+				return NULL;
+			}
+		}
+
+		return call;
+	}
+	else {
+		errorMessage("Expected an opening parenthesis in function call");
+		destroyExpression(callee);
+		return NULL;
+	}
+
+	errorMessage("Failed to parse function call");
+	destroyExpression(callee);
+	return NULL;
+}
+
+PrimaryExpr *parsePrimaryExpr(Parser *parser) {
+	PrimaryExpr *primaryExpr = createPrimaryExpr();
+
+	// identifier
+	if (checkTokenType(parser, IDENTIFIER, 0)) {
+		if (!primaryExpr) {
+			errorMessage("Faield to parse identifier in primary expression");
+			destroyPrimaryExpr(primaryExpr);
+			return NULL;
+		}
+		primaryExpr->identifier = consumeToken(parser)->content;
+		primaryExpr->type = IDENTIFIER_EXPR;
+		return primaryExpr;
+	}
+	// literal, i.e string, number, character
+	else if (isLiteral(parser, 0)) {
+		Literal *lit = parseLiteral(parser);
+		if (!lit) {
+			errorMessage("Failed to parse literal in primary expression");
+			destroyPrimaryExpr(primaryExpr);
+			return NULL;
+		}
+		primaryExpr->literal = lit;
+		primaryExpr->type = LITERAL_EXPR;
+		return primaryExpr;
+	}
+	// paren expr
+	else if (checkTokenTypeAndContent(parser, SEPARATOR, "(", 0)) {
+		consumeToken(parser);
+		Expression *expr = parseExpression(parser);
+		if (!expr) {
+			errorMessage("Failed to parse expression in parenthesis");
+			destroyExpression(expr);
+			destroyPrimaryExpr(primaryExpr);
+			return NULL;
+		}
+		if (checkTokenTypeAndContent(parser, SEPARATOR, ")", 0)) {
+			consumeToken(parser);
+			primaryExpr->parenExpr = expr;
+			primaryExpr->type = PAREN_EXPR;
+			return primaryExpr;
+		}
+		else {
+			errorMessage("Expected a closing parenthesis in expression");
+			destroyExpression(expr);
+			destroyPrimaryExpr(primaryExpr);
+			return NULL;
+		}
+	}
+	// function call
+	else if (checkTokenTypeAndContent(parser, OPERATOR, "(", 1)) {
+		Call *call = parseCall(parser);
+		if (!call) {
+			errorMessage("Failed to parse function call");
+			return NULL;
+		}
+		primaryExpr->funcCall = call;
+		primaryExpr->type = FUNC_CALL_EXPR;
+		return primaryExpr;
+	}
+	// array
+	else if (checkTokenTypeAndContent(parser, OPERATOR, "[", 1)) {
+		Expression *arrName = parseExpression(parser);
+		if (!arrName) {
+			errorMessage("Expected an expression before array sub-access");
+			destroyExpression(arrName);
+			destroyPrimaryExpr(primaryExpr);
+			return NULL;
+		}
+
+		if (!matchTokenTypeAndContent(parser, OPERATOR, "[", 0)) {
+			errorMessage("Expected an opening square bracket");
+			destroyExpression(arrName);
+			destroyPrimaryExpr(primaryExpr);
+			return NULL;
+		}
+
+		Expression *length = parseExpression(parser);
+		if (!length) {
+			errorMessage("Expected a length expression in array sub-access");
+			destroyExpression(arrName);
+			destroyExpression(length);
+			destroyPrimaryExpr(primaryExpr);
+			return NULL;
+		}
+
+		primaryExpr->arraySlice->lhand = arrName;
+		primaryExpr->arraySlice->start = length;
+
+		Expression *end = NULL;
+		if (checkTokenTypeAndContent(parser, OPERATOR, ":", 0)) {
+			consumeToken(parser);
+
+			end = parseExpression(parser);
+			if (!end) {
+				errorMessage("Expected a cut off point after colon operator in array sub-access");
+				destroyExpression(arrName);
+				destroyExpression(length);
+				destroyExpression(end);
+				destroyPrimaryExpr(primaryExpr);
+				return NULL;
+			}
+		}
+
+		primaryExpr->arraySlice->end = end;
+		primaryExpr->type = ARRAY_SLICE_EXPR;
+
+		if (!matchTokenTypeAndContent(parser, OPERATOR, "]", 0)) {
+			errorMessage("Expected a clsoing square bracket after array sub-access");
+			destroyExpression(arrName);
+			destroyExpression(length);
+			destroyExpression(end);
+			destroyPrimaryExpr(primaryExpr);
+			return NULL;
+		}
+
+		return primaryExpr;
+	}
+	// member access
+	else if (checkTokenTypeAndContent(parser, OPERATOR, ".", 1)) { // TODO: this wont work probably
+		Expression *lhand = parseExpression(parser);
+		if (!lhand) {
+			errorMessage("Expected an expression before array sub-access");
+			destroyExpression(lhand);
+			destroyPrimaryExpr(primaryExpr);
+			return NULL;
+		}
+
+		if (!matchTokenTypeAndContent(parser, OPERATOR, ".", 0)) {
+			errorMessage("Expected a period after expression");
+			destroyExpression(lhand);
+			destroyPrimaryExpr(primaryExpr);
+			return NULL;
+		}
+
+		if (checkTokenTypeAndContent(parser, OPERATOR, ".", 0)) {
+			primaryExpr->memberAccess->value = consumeToken(parser)->content;
+		}
+		else {
+			errorMessage("Expected a period after expression");
+			destroyExpression(lhand);
+			destroyPrimaryExpr(primaryExpr);
+			return NULL;
+		}
+
+		primaryExpr->memberAccess->expr = lhand;
+		primaryExpr->type = ARRAY_SLICE_EXPR;
+		return primaryExpr;
+	}
+
+	errorMessage("Failed to parse primary expression");
+	destroyPrimaryExpr(primaryExpr);
+	return NULL;
+}
+
+UnaryExpr *parseUnaryExpr(Parser *parser) {
+	return NULL;
+}
+
+BinaryExpr *parseBinaryExpr(Parser *parser) {
+	return NULL;
+}
+
+Expression *parseExpression(Parser *parser) {
+
+	return NULL;
+}
+
 /** UTILITIY */
 
 LiteralType getLiteralType(Token *tok) {
@@ -696,8 +919,29 @@ bool checkTokenTypeAndContent(Parser *parser, int type, char *content, int ahead
 	return peekAtTokenStream(parser, 0)->type == type && !strcmp(peekAtTokenStream(parser, 0)->content, content);
 }
 
+bool matchTokenType(Parser *parser, int type, int ahead) {
+	if (checkTokenType(parser, type, ahead)) {
+		consumeToken(parser);
+		return true;
+	}
+	return false;
+}
+
+bool matchTokenTypeAndContent(Parser *parser, int type, char *content, int ahead) {
+	if (checkTokenTypeAndContent(parser, type, content, ahead)) {
+		consumeToken(parser);
+		return true;
+	}
+	return false;
+}
+
 Token *peekAtTokenStream(Parser *parser, int ahead) {
 	return getVectorItem(parser->tokenStream, parser->tokenIndex + ahead);
+}
+
+bool isLiteral(Parser *parser, int ahead) {
+	Token *tok = peekAtTokenStream(parser, ahead);
+	return tok->type == STRING || tok->type == NUMBER || tok->type == CHARACTER;
 }
 
 /** DRIVER */
