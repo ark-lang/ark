@@ -65,7 +65,11 @@ Type *parseType(Parser *parser) {
 	}
 	else if (checkTokenTypeAndContent(parser, SEPARATOR, "[", 1)) {
 		Type *type = parseType(parser);
-		Expression *expr = NULL; // TODO: EXPRESSION!
+		Expression *expr = parseExpression(parser);
+		if (!expr) {
+			errorMessage("Expected expression after array type");
+			return NULL;
+		}
 		type->arrayType = createArrayType(expr, type);
 		return type;
 	}
@@ -310,7 +314,7 @@ IfStat *parseIfStat(Parser *parser) {
 	if (checkTokenTypeAndContent(parser, IDENTIFIER, IF_KEYWORD, 0)) {
 		consumeToken(parser);
 
-		Expression *expr = NULL; // TODO expression parsing
+		Expression *expr = parseExpression(parser);
 		if (!expr) {
 			errorMessage("Expected condition in if statement, found `%s`", consumeToken(parser)->content);
 			return NULL;
@@ -378,7 +382,13 @@ ForStat *parseForStat(Parser *parser) {
 			int iterations = 0;
 
 			while (true) {
-				pushBackItem(forStmt->expr, NULL); // TODO: PUSH BACK PRIMARY EXPR
+				PrimaryExpr *prim = parsePrimaryExpr(parser);
+				if (!prim) {
+					errorMessage("Expected primary expression after for loop");
+					destroyForStat(forStmt);
+					return NULL;
+				}
+				pushBackItem(forStmt->expr, prim);
 
 				if (checkTokenTypeAndContent(parser, SEPARATOR, ")", 0)) {
 					if (iterations < 2 || iterations > 3) {
@@ -409,7 +419,7 @@ ForStat *parseForStat(Parser *parser) {
 }
 
 MatchClause *parseMatchClause(Parser *parser) {
-	Expression *expr = NULL; // TODO EXPRESSION!
+	Expression *expr = parseExpression(parser);
 	if (!expr) {
 		errorMessage("Expected an expression in match clause, found `%s`", consumeToken(parser)->content);
 		return NULL;
@@ -438,7 +448,7 @@ MatchStat *parseMatchStat(Parser *parser) {
 	if (checkTokenTypeAndContent(parser, IDENTIFIER, MATCH_KEYWORD, 0)) {
 		consumeToken(parser);
 
-		Expression *expr = NULL; // TODO EXPRESSIONS!
+		Expression *expr = parseExpression(parser);
 		if (!expr) {
 			errorMessage("Failed to parse expression in match statement, errored at `%s`", consumeToken(parser)->content);
 			return NULL;
@@ -483,6 +493,59 @@ MatchStat *parseMatchStat(Parser *parser) {
 	}
 
 	return NULL;
+}
+
+ContinueStat *parseContinueStat(Parser *parser) {
+	if (!matchTokenTypeAndContent(parser, IDENTIFIER, CONTINUE_KEYWORD, 0)) {
+		errorMessage("Expected continue statement");
+		return NULL;
+	}
+	return createContinueStat();
+}
+
+BreakStat *parseBreakStat(Parser *parser) {
+	if (!matchTokenTypeAndContent(parser, IDENTIFIER, BREAK_KEYWORD, 0)) {
+		errorMessage("Expected break statement");
+		return NULL;
+	}
+	return createBreakStat();
+}
+
+ReturnStat *parseReturnStat(Parser *parser) {
+	if (!matchTokenTypeAndContent(parser, IDENTIFIER, RETURN_KEYWORD, 0)) {
+		errorMessage("Expected return statement");
+		return NULL;
+	}
+	Expression *expr = parseExpression(parser);
+	// doesnt matter if there is no expression
+	return createReturnStat(expr);
+}
+
+LeaveStat *parseLeaveStat(Parser *parser) {
+	LeaveStat *leaveStat = createLeaveStat();
+
+	if (checkTokenTypeAndContent(parser, IDENTIFIER, CONTINUE_KEYWORD, 0)) {
+		leaveStat->conStmt = parseContinueStat(parser);
+		leaveStat->type = CONTINUE_STMT;
+	}
+	else if (checkTokenTypeAndContent(parser, IDENTIFIER, RETURN_KEYWORD, 0)) {
+		leaveStat->retStmt = parseReturnStat(parser);
+		leaveStat->type = RETURN_STMT;
+	}
+	else if (checkTokenTypeAndContent(parser, IDENTIFIER, BREAK_KEYWORD, 0)) {
+		leaveStat->breakStmt = parseBreakStat(parser);
+		leaveStat->type = BREAK_STMT;
+	}
+
+	return leaveStat;
+}
+
+IncDecStat *parseIncDecStat(Parser *parser) {
+
+}
+
+Assignment *parseAssignment(Parser *parser) {
+
 }
 
 Statement *parseStatement(Parser *parser) {
@@ -568,7 +631,7 @@ FunctionDecl *parseFunctionDecl(Parser *parser) {
 			return funcDecl;
 		}
 
-		Block *block = parseBlock(parser); // TODO:
+		Block *block = parseBlock(parser);
 		if (!block) {
 			errorMessage("Function expected block after function signature but found `%s`", consumeToken(parser)->content);
 			destroyFunctionDecl(funcDecl);
@@ -603,7 +666,7 @@ VariableDecl *parseVariableDecl(Parser *parser) {
 		return NULL;
 	}
 
-	Expression *expr = NULL; // TODO :PARSE EXPR KK
+	Expression *expr = parseExpression(parser);
 	if (checkTokenTypeAndContent(parser, OPERATOR, "=", 0)) {
 		consumeToken(parser);
 
@@ -845,7 +908,7 @@ PrimaryExpr *parsePrimaryExpr(Parser *parser) {
 		return primaryExpr;
 	}
 	// member access
-	else if (checkTokenTypeAndContent(parser, OPERATOR, ".", 1)) { // TODO: this wont work probably
+	else if (checkTokenTypeAndContent(parser, OPERATOR, ".", 1)) {
 		Expression *lhand = parseExpression(parser);
 		if (!lhand) {
 			errorMessage("Expected an expression before array sub-access");
