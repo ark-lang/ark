@@ -27,14 +27,14 @@ some of the language may be missing, or some of the following may be incorrect/i
 	
 	StructDecl = "struct" "{" [ FieldList ] "}" .
 	FieldList = FieldDecl { ";" FieldDecl } .
-	FieldDecl = Type IdentifierList .
+	FieldDecl = [ "mut" ] Type IdentifierList .
 
 	FunctionDecl = "fn" FunctionSignature ( ";" | Block ) .
-	FunctionSignature = [ Receiver ] identifier Parameters ":" Type .
-	Receiver = "(" Type identifier ")"
+	FunctionSignature = [ Receiver ] identifier Parameters ":" [ "mut" ] Type .
+	Receiver = "(" [ "mut" ] Type identifier ")"
 	Parameters = "(" [ parameterList ] ")" .
 	ParameterList = ParameterSection { "," ParameterSection } .
-	ParameterSection = Type IdentifierList .
+	ParameterSection = [ "mut" ] Type IdentifierList .
 
 	PointerType = Type "^" .
 	
