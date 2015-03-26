@@ -200,13 +200,11 @@ MatchStat *createMatchStat(Expression *expr) {
 	return match;
 }
 
-ForStat *createForStat(Type *type, char *index, PrimaryExpr *start,
-		PrimaryExpr *end) {
+ForStat *createForStat(Type *type, char *index) {
 	ForStat *forStat = safeMalloc(sizeof(*forStat));
 	forStat->type = type;
 	forStat->index = index;
-	forStat->start = start;
-	forStat->end = end;
+	forStat->expr = createVector();
 	return forStat;
 }
 
@@ -466,9 +464,11 @@ void destroyMatchStat(MatchStat *match) {
 
 void destroyForStat(ForStat *stmt) {
 	destroyBlock(stmt->body);
-	destroyPrimaryExpr(stmt->end);
-	destroyPrimaryExpr(stmt->start);
-	destroyPrimaryExpr(stmt->step);
+	int i;
+	for (i = 0 ; i < stmt->expr->size; i++) {
+		destroyExpression(getVectorItem(stmt->expr, i));
+	}
+	destroyVector(stmt->expr);
 	destroyType(stmt->type);
 	free(stmt);
 }
