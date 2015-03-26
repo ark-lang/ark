@@ -581,6 +581,50 @@ FunctionDecl *parseFunctionDecl(Parser *parser) {
 	return NULL;
 }
 
+VariableDecl *parseVariableDecl(Parser *parser) {
+	bool mutable = false;
+	if (checkTokenTypeAndContent(parser, IDENTIFIER, MUT_KEYWORD, 0)) {
+		consumeToken(parser);
+		mutable = true;
+	}
+
+	Type *type = parseType(parser);
+	if (!type) {
+		errorMessage("Variable Declaration expected a type, but found `%s`", consumeToken(parser)->content);
+		return NULL;
+	}
+
+	Token *iden = consumeToken(parser);
+	if (iden->type != IDENTIFIER) {
+		errorMessage("Expected identifier after type in variable declaration but found `%s`", iden->content);
+		destroyType(type);
+		return NULL;
+	}
+
+	Expression *expr = NULL; // TODO :PARSE EXPR KK
+	if (checkTokenType(parser, OPERATOR, "=", 0)) {
+		consumeToken(parser);
+
+		if (!expr) {
+			errorMessage("Expected expression after assignment operator");
+			destroyType(type);
+			return NULL;
+		}
+	}
+
+	if (checkTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
+		consumeToken(parser);
+	}
+	else {
+		errorMessage("Expected semi-colon at the end of variable declaration");
+		destroyType(type);
+		destroyExpression(expr);
+		return NULL;
+	}
+
+	return createVariableDecl(type, iden, mutable, expr);
+}
+
 /** UTILITIY */
 
 LiteralType getLiteralType(Token *tok) {
