@@ -10,6 +10,29 @@ typedef struct s_Expression Expression;
 typedef struct {} ContinueStat;
 typedef struct {} BreakStat;
 
+/** different types of node for a cleanup */
+typedef enum {
+	IDENTIFIER_LIST_NODE, LITERAL_NODE, BINARY_EXPR_NODE,
+	UNARY_EXPR_NODE, ARRAY_SUB_EXPR_NODE, MEMBER_ACCESS_NODE,
+	PRIMARY_EXPR_NODE, EXPR_NODE, TYPE_NAME_NODE,
+	ARRAY_TYPE_NODE, POINTER_TYPE_NODE, FIELD_DECL_NODE,
+	FIELD_DECL_LIST_NODE, STRUCT_DECL_NODE, STATEMENT_LIST_NODE,
+	BLOCK_NODE, PARAMETER_SECTION_NODE, PARAMETERS_NODE, RECEIVER_NODE,
+	FUNCTION_SIGNATURE_NODE, FUNCTION_DECL_NODE, VARIABLE_DECL_NODE,
+	DECLARATION_NODE, INC_DEC_STAT_NODE, RETURN_STAT_NODE, BREAK_STAT_NODE,
+	CONTINUE_STAT_NODE, LEAVE_STAT_NODE, ASSIGNMENT_NODE, UNSTRUCTURED_STATEMENT_NODE,
+	ELSE_STAT_NODE, IF_STAT_NODE, MATCH_CLAUSE_STAT, MATCH_STAT_NODE, FOR_STAT_NODE,
+	STRUCTURED_STATEMENT_NODE, STATEMENT_NODE, TYPE_NODE
+} NodeType;
+
+/**
+ * Wrapper for a node
+ */
+typedef struct {
+	void *data;
+	NodeType type;
+} Node;
+
 /**
  * A list of identifiers, a common
  * production.
@@ -458,6 +481,8 @@ StructuredStatement *createStructuredStatement();
 Statement *createStatement();
 
 Type *createType();
+
+void cleanupAST(Vector *nodes);
 
 void destroyIdentifierList(IdentifierList *list);
 
