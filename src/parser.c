@@ -464,6 +464,8 @@ MatchStat *parseMatchStat(Parser *parser) {
 				MatchClause *clause = parseMatchClause(parser);
 				if (!clause) {
 					errorMessage("Failed to parse match clause");
+					destroyMatchStat(stmt);
+					destroyMatchClause(clause);
 					return NULL;
 				}
 				pushBackItem(stmt->clauses, clause);
