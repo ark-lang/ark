@@ -308,6 +308,7 @@ typedef enum {
 	// IOD = Increment or Decrement
 	IOD_INCREMENT,
 	IOD_DECREMENT,
+	IOD_ERRORED,
 } IncOrDec;
 
 /**
