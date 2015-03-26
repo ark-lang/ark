@@ -41,6 +41,13 @@ MemberAccessExpr *createMemberAccessExpr(Expression *expr, char *value) {
 	return mem;
 }
 
+Call *createCall(Expression *expr) {
+	Call *call = safeMalloc(sizeof(*call));
+	call->arguments = createVector();
+	call->callee = expr;
+	return call;
+}
+
 PrimaryExpr *createPrimaryExpr() {
 	return safeMalloc(sizeof(PrimaryExpr));
 }
@@ -305,6 +312,16 @@ void destroyMemberAccessExpr(MemberAccessExpr *expr) {
 	if (!expr) return;
 	destroyExpression(expr->expr);
 	free(expr);
+}
+
+void destroyCall(Call *call) {
+	if (!call) return;
+	for (int i = 0; i < call->arguments->size; i++) {
+		destroyExpression(getVectorItem(call->arguments, i));
+	}
+	destroyVector(call->arguments);
+	destroyExpression(call->callee);
+	free(call);
 }
 
 void destroyPrimaryExpr(PrimaryExpr *expr) {
