@@ -178,7 +178,7 @@ Parameters *parseParameters(Parser *parser) {
 	if (checkTokenTypeAndContent(parser, SEPARATOR, "(", 0)) {
 		consumeToken(parser);
 
-		Parameters  *params = createParameters();
+		Parameters *params = createParameters();
 
 		while (true) {
 			if (checkTokenTypeAndContent(parser, SEPARATOR, ")", 0)) {
@@ -267,6 +267,7 @@ FunctionSignature *parseFunctionSignature(Parser *parser) {
 		else {
 			errorMessage("Function signature expected a colon (`:`), but found `%s`", consumeToken(parser)->content);
 			destroyReceiver(receiver);
+			destroyParameters(params);
 			return NULL;
 		}
 
@@ -280,6 +281,8 @@ FunctionSignature *parseFunctionSignature(Parser *parser) {
 		if (!type) {
 			errorMessage("Function signature expected a return type, but found `%s`", consumeToken(parser)->content);
 			destroyReceiver(receiver);
+			destroyType(type);
+			destroyParameters(params);
 			return NULL;
 		}
 
@@ -316,6 +319,7 @@ IfStat *parseIfStat(Parser *parser) {
 		Block *block = parseBlock(parser);
 		if (!block) {
 			errorMessage("Expected block after condition in if statement, found `%s`", consumeToken(parser)->content);
+			destroyExpression(expr);
 			return NULL;
 		}
 
@@ -324,6 +328,8 @@ IfStat *parseIfStat(Parser *parser) {
 			elseStmt = parseElseStat(parser);
 			if (!elseStmt) {
 				errorMessage("Failed to parse else statement");
+				destroyExpression(expr);
+				destroyBlock(block);
 				return NULL;
 			}
 		}
@@ -340,7 +346,65 @@ IfStat *parseIfStat(Parser *parser) {
 }
 
 ForStat *parseForStat(Parser *parser) {
-	// TODO
+	if (checkTokenTypeAndContent(parser, IDENTIFIER, FOR_KEYWORD, 0)) {
+		consumeToken(parser);
+
+		Type *type = parseType(parser);
+		if (!type) {
+			errorMessage("Expected type in for loop signature, found `%s`", consumeToken(parser)->content);
+			return NULL;
+		}
+
+		Token *index = consumeToken(parser);
+		if (index->type != IDENTIFIER) {
+			errorMessage("Expected index in for loop signature, found `%s`", index->content);
+			destroyType(type);
+			return NULL;
+		}
+
+		if (checkTokenTypeAndContent(parser, IDENTIFIER, ":", 0)) {
+			consumeToken(parser);
+		}
+		else {
+			errorMessage("Expected colon in for loop signature, found `%`", consumeToken(parser)->content);
+			destroyType(type);
+			return NULL;
+		}
+
+		if (checkTokenTypeAndContent(parser, SEPARATOR, "(", 0)) {
+			consumeToken(parser);
+
+			ForStat *forStmt = createForStat(type, index->content);
+			int iterations = 0;
+
+			while (true) {
+				pushBackItem(forStmt->expr, NULL); // TODO: PUSH BACK PRIMARY EXPR
+
+				if (checkTokenTypeAndContent(parser, SEPARATOR, ")", 0)) {
+					if (iterations < 2 || iterations > 3) {
+						errorMessage("Too many/few parameters in for loop signature, was given %d arguments, expected 2 or 3", iterations);
+						destroyForStat(forStmt);
+						return NULL;
+					}
+					consumeToken(parser);
+					break;
+				}
+				iterations++;
+			}
+
+			Block *body = parseBlock(parser);
+			if (!body) {
+				errorMessage("Expected block after for-loop signature");
+				destroyForStat(forStmt);
+				return NULL;
+			}
+
+			forStmt->body = body;
+			return forStmt;
+		}
+	}
+
+	errorMessage("Failed to parse for loop");
 	return NULL;
 }
 

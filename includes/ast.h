@@ -372,7 +372,7 @@ typedef struct {
 typedef struct {
 	Type *type;
 	char *index;
-	PrimaryExpr *start, *end, *step;
+	Vector *expr;
 	Block *body;
 } ForStat;
 
@@ -474,7 +474,7 @@ MatchClause *createMatchClause();
 
 MatchStat *createMatchStat(Expression *expr);
 
-ForStat *createForStat(Type *type, char *index, PrimaryExpr *start, PrimaryExpr *end);
+ForStat *createForStat(Type *type, char *index);
 
 StructuredStatement *createStructuredStatement();
 
