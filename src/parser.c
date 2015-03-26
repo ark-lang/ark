@@ -292,6 +292,59 @@ FunctionSignature *parseFunctionSignature(Parser *parser) {
 	return NULL;
 }
 
+ElseStat *parseElseStat(Parser *parser) {
+	ElseStat *stat = createElseStat();
+	Block *body = parseBlock(parser);
+	if (!body) {
+		errorMessage("Expected a block in else statement, but found `%s`", consumeToken(parser)->content);
+		destroyElseStat(stat);
+		return NULL;
+	}
+	stat->body = body;
+	return stat;
+}
+
+IfStat *parseIfStat(Parser *parser) {
+	if (checkTokenTypeAndContent(parser, IDENTIFIER, IF_KEYWORD, 0)) {
+		consumeToken(parser);
+
+		Expression *expr = NULL; // TODO expression parsing
+		if (!expr) {
+			errorMessage("Expected condition in if statement, found `%s`", consumeToken(parser)->content);
+			return NULL;
+		}
+
+		Block *block = parseBlock(parser);
+		if (!block) {
+			errorMessage("Expected block after condition in if statement, found `%s`", consumeToken(parser)->content);
+			return NULL;
+		}
+
+		ElseStat *elseStmt = NULL;
+		if (checkTokenType(parser, IDENTIFIER, ELSE_KEYWORD, 0)) {
+			elseStmt = parseElseStat(parser);
+			if (!elseStmt) {
+				errorMessage("Failed to parse else statement");
+				return NULL;
+			}
+		}
+
+		IfStat *ifStmt = createIfStat();
+		ifStmt->body = block;
+		ifStmt->elseStmt = elseStmt;
+		ifStmt->expr = expr;
+		return ifStmt;
+	}
+
+	errorMessage("Failed to parse if statement");
+	return NULL;
+}
+
+ForStat *parseForStat(Parser *parser) {
+	// TODO
+	return NULL;
+}
+
 Statement *parseStatement(Parser *parser) {
 	// TODO:
 	return NULL;
