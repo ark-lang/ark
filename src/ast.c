@@ -273,86 +273,165 @@ void destroyArrayType(ArrayType *arrayType) {
 }
 
 void destroyPointerType(PointerType *pointerType) {
-
+	destroyType(pointerType->type);
+	free(pointerType);
 }
 
 void destroyFieldDecl(FieldDecl *decl) {
+	destroyIdentifierList(decl->idenList);
+	destroyType(decl->type);
+	free(decl);
 }
 
 void destroyFieldDeclList(FieldDeclList *list) {
+	destroyVector(list->members);
+	free(list);
 }
 
 void destroyStructDecl(StructDecl *decl) {
+	destroyFieldDeclList(decl->fields);
+	free(decl);
 }
 
 void destroyStatementList(StatementList *list) {
+	destroyVector(list->stmts);
+	free(list);
 }
 
 void destroyBlock(Block *block) {
+	destroyStatementList(block->stmtList);
+	free(block);
 }
 
 void destroyParameterSection(ParameterSection *param) {
+	destroyIdentifierList(param->identList);
+	destroyType(param->type);
+	free(param);
 }
 
 void destroyParameters(Parameters *params) {
+	destroyVector(params->paramList);
+	free(params);
 }
 
 void destroyReceiver(Receiver *receiver) {
+	destroyType(receiver->type);
+	free(receiver);
 }
 
 void destroyFunctionSignature(FunctionSignature *func) {
+	destroyReceiver(func->receiver);
+	destroyParameters(func->parameters);
+	free(func);
 }
 
 void destroyFunctionDecl(FunctionDecl *decl) {
+	destroyBlock(decl->body);
+	destroyFunctionSignature(decl->signature);
+	free(decl);
 }
 
 void destroyVariableDecl(VariableDecl *decl) {
+	destroyExpression(decl->expr);
+	destroyType(decl->type);
+	free(decl);
 }
 
 void destroyDeclaration(Declaration *decl) {
+	destroyFunctionDecl(decl->funcDecl);
+	destroyStructDecl(decl->structDecl);
+	destroyVariableDecl(decl->varDecl);
+	free(decl);
 }
 
 void destroyIncDecStat(IncDecStat *stmt) {
+	destroyExpression(stmt->expr);
+	free(stmt);
 }
 
 void destroyReturnStat(ReturnStat *stmt) {
+	destroyExpression(stmt->expr);
+	free(stmt);
 }
 
 void destroyBreakStat(BreakStat *stmt) {
+	free(stmt);
 }
 
 void destroyContinueStat(ContinueStat *stmt) {
+	free(stmt);
 }
 
 void destroyLeaveStat(LeaveStat *stmt) {
+	destroyBreakStat(stmt->breakStmt);
+	destroyReturnStat(stmt->retStmt);
+	destroyContinueStat(stmt->conStmt);
+	free(stmt);
 }
 
 void destroyAssignment(Assignment *assign) {
+	destroyExpression(assign->expr);
+	destroyPrimaryExpr(assign->primary);
+	free(assign);
 }
 
 void destroyUnstructuredStatement(UnstructuredStatement *stmt) {
+	destroyAssignment(stmt->assignment);
+	destroyDeclaration(stmt->decl);
+	destroyIncDecStat(stmt->incDec);
+	destroyLeaveStat(stmt->leave);
+	free(stmt);
 }
 
 void destroyElseStat(ElseStat *stmt) {
+	destroyBlock(stmt->body);
+	free(stmt);
 }
 
 void destroyIfStat(IfStat *stmt) {
+	destroyBlock(stmt->body);
+	destroyElseStat(stmt->elseStmt);
+	destroyExpression(stmt->expr);
+	free(stmt);
 }
 
 void destroyMatchClause(MatchClause *mclause) {
+	destroyBlock(mclause->body);
+	destroyExpression(mclause->expr);
+	destroyLeaveStat(mclause->leave);
+	free(mclause);
 }
 
 void destroyMatchStat(MatchStat *match) {
+	destroyVector(match->clauses);
+	destroyExpression(match->expr);
+	free(match);
 }
 
 void destroyForStat(ForStat *stmt) {
+	destroyBlock(stmt->body);
+	destroyPrimaryExpr(stmt->end);
+	destroyPrimaryExpr(stmt->start);
+	destroyPrimaryExpr(stmt->step);
+	destroyType(stmt->type);
+	free(stmt);
 }
 
 void destroyStructuredStatement(StructuredStatement *stmt) {
+	destroyBlock(stmt->block);
+	destroyForStat(stmt->forStmt);
+	destroyIfStat(stmt->ifStmt);
+	destroyMatchStat(stmt->matchStmt);
+	free(stmt);
 }
 
 void destroyStatement(Statement *stmt) {
+	destroyStructuredStatement(stmt->structured);
+	destroyUnstructuredStatement(stmt->unstructured);
 }
 
 void destroyType(Type *type) {
+	destroyArrayType(type->arrayType);
+	destroyPointerType(type->pointerType);
+	destroyTypeName(type->typeName);
 }
