@@ -48,7 +48,8 @@ typedef struct {
 } ArraySliceExpression;
 
 typedef struct {
-
+	s_Expression *expr;
+	char *value;
 } MemberAccessExpression;
 
 typedef struct {

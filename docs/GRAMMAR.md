@@ -23,11 +23,11 @@ some of the language may be missing, or some of the following may be incorrect/i
 	
 	TypeName = identifier .
 	
-	ArrayType = "[" [ Expression ] "]" Type .
+	ArrayType = Type "[" [ Expression ] "]" .
 	
 	StructDecl = "struct" "{" [ FieldList ] "}" .
 	FieldList = FieldDecl { ";" FieldDecl } .
-	FieldDecl = IdentifierList Type .
+	FieldDecl = Type IdentifierList .
 
 	FunctionDecl = "fn" FunctionSignature ( ";" | Block ) .
 	FunctionSignature = [ Receiver ] identifier Parameters ":" Type .
@@ -36,7 +36,7 @@ some of the language may be missing, or some of the following may be incorrect/i
 	ParameterList = ParameterSection { "," ParameterSection } .
 	ParameterSection = Type IdentifierList .
 
-	PointerType = "^" Type .
+	PointerType = Type "^" .
 	
 	Block = ( "{" [ StatementList ";" ] "}" | "->" Statement ) .
 	IfStat = if Expression Block [ "else" Statement ] .
