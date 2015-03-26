@@ -269,7 +269,7 @@ typedef enum {
  * or decrement.
  */
 typedef struct {
-	Expression *expr;
+	s_Expression *expr;
 	IncOrDec type;
 } IncDecStat;
 
@@ -382,5 +382,83 @@ typedef struct s_Type {
 	ArrayType *arrayType;
 	PointerType *pointerType;
 } Type;
+
+#include "ast.h"
+
+IdentifierList *createIdentifierList();
+
+Literal *createLiteral(char *value, LiteralType type);
+
+BinaryExpr *createBinaryExpr(s_Expression *lhand, char op, s_Expression *rhand);
+
+UnaryExpr *createUnaryExpr(char operand, s_Expression *rhand);
+
+ArraySubExpr *createArraySubExpr(s_Expression *lhand);
+
+MemberAccessExpr *createMemberAccessExpr(s_Expression *expr, char *value);
+
+PrimaryExpr *createPrimaryExpr();
+
+Expression *createExpression();
+
+TypeName *createTypeName(char *name);
+
+ArrayType *createArrayType(Expression *length, struct s_Type *type);
+
+PointerType *createPointerType(struct s_Type *type);
+
+FieldDecl *createFieldDecl(struct s_Type *type, bool mutable);
+
+FieldDeclList *createFieldDeclList();
+
+StructDecl *createStructDecl(char *name);
+
+StatementList *createStatementList();
+
+Block *createBlock();
+
+ParameterSection *createParameterSection(s_Type *type, bool mutable);
+
+Parameters *createParameters();
+
+Receiver *createReceiver(s_Type *type, char *name, bool mutable);
+
+FunctionSignature *createFunctionSignature(char *name, Parameters *params, bool mutable);
+
+FunctionDecl *createFunctionDecl();
+
+VariableDecl *createVariableDecl(s_Type *type, char *name, bool mutable, s_Expression *expr);
+
+Declaration *createDeclaration();
+
+IncDecStat *createIncDecStat(s_Expression *expr, IncOrDec type);
+
+ReturnStat *createReturnStat(s_Expression *expr);
+
+BreakStat *createBreakStat();
+
+ContinueStat *createContinueStat();
+
+LeaveStat *createLeaveStat();
+
+Assignment *createAssignment(PrimaryExpr *primaryExpr, s_Expression *expr);
+
+UnstructuredStatement *createUnstructuredStatement();
+
+ElseStat *createElseStat();
+
+IfStat *createIfStat();
+
+MatchClause *createMatchClause();
+
+MatchStat *createMatchStat(s_Expression *expr);
+
+ForStat *createForStat(s_Type *type, char *index, PrimaryExpr *start, PrimaryExpr *end);
+
+StructuredStatement *createStructuredStatement();
+
+Statement *createStatement();
+
+Type *createType();
 
 #endif // AST_H
