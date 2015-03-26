@@ -83,6 +83,18 @@ Block *parseBlock(Parser *parser);
 
 FunctionDecl *parseFunctionDecl(Parser *parser);
 
+VariableDecl *parseVariableDecl(Parser *parser);
+
+Declaration *parseDeclaration(Parser *parser);
+
+PrimaryExpr *parsePrimaryExpr(Parser *parser);
+
+UnaryExpr *parseUnaryExpr(Parser *parser);
+
+BinaryExpr *parseBinaryExpr(Parser *parser);
+
+Expression *parseExpression(Parser *parser);
+
 /** UTILITIES */
 
 /**
@@ -119,6 +131,10 @@ bool checkTokenType(Parser *parser, int type, int ahead);
  */
 bool checkTokenTypeAndContent(Parser *parser, int type, char *content, int ahead);
 
+bool matchTokenType(Parser *parser, int type, int ahead);
+
+bool matchTokenTypeAndContent(Parser *parser, int type, char *content, int ahead);
+
 /**
  * Peek at the token stream by @ahead amount
  *
@@ -126,6 +142,8 @@ bool checkTokenTypeAndContent(Parser *parser, int type, char *content, int ahead
  * @param ahead how many tokens to peek ahead
  */
 Token *peekAtTokenStream(Parser *parser, int ahead);
+
+bool isLiteral(Parser *parser, int ahead);
 
 /** DRIVERS */
 
