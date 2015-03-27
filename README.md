@@ -62,5 +62,7 @@ Here are the people who are working, or have worked on Alloy.
 * andars
 * theunamedguy
 
+Also, big thanks to @antirez for the SDS string library! It really helped us simplify the hacky string manipulation we were doing in certain areas.
+
 ## License
 Alloy is licensed under the [MIT License](/LICENSE.md).
