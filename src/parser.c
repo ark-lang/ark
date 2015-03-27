@@ -1132,7 +1132,9 @@ LiteralType getLiteralType(Token *tok) {
 }
 
 Token *consumeToken(Parser *parser) {
-	return getVectorItem(parser->tokenStream, parser->tokenIndex++);
+	Token *tok = getVectorItem(parser->tokenStream, parser->tokenIndex++);
+	if (tok->type == END_OF_FILE) parser->parsing = false;
+	return tok;
 }
 
 bool checkTokenType(Parser *parser, int type, int ahead) {
@@ -1186,7 +1188,7 @@ void startParsingSourceFiles(Parser *parser, Vector *sourceFiles) {
 }
 
 void parseTokenStream(Parser *parser) {
-	while (parser->parsing) {
+	while (!checkTokenType(parser, END_OF_FILE, parser->tokenIndex)) {
 		Statement *stmt = parseStatement(parser);
 		if (stmt) {
 			pushBackItem(parser->parseTree, stmt);
