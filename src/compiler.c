@@ -43,10 +43,22 @@ void emitCode(Compiler *self, char *fmt, ...) {
 	}
 }
 
+void emitExpression(Compiler *self, Expression *expr) {
+	emitCode(self, "5"); // lol it'll do for now
+}
+
 void emitType(Compiler *self, Type *type) {
 	switch (type->type) {
-	case POINTER_TYPE_NODE: break;
-	case ARRAY_TYPE_NODE: break;
+	case POINTER_TYPE_NODE:
+		emitCode(self, "*");
+		emitType(self, type->pointerType->type);
+		break;
+	case ARRAY_TYPE_NODE:
+		emitType(self, type->arrayType->type);
+		emitCode(self, "[");
+		emitExpression(self, type->arrayType->length);
+		emitCode(self, "]");
+		break;
 	case TYPE_NAME_NODE:
 		emitCode(self, "%s", type->typeName->name);
 		break;
@@ -56,11 +68,14 @@ void emitType(Compiler *self, Type *type) {
 void emitFunctionDecl(Compiler *self, FunctionDecl *decl) {
 	self->writeState = WRITE_HEADER_STATE;
 	emitType(self, decl->signature->type);
+	emitCode(self, " %s", decl->signature->name);
 }
 
 void emitDeclaration(Compiler *self, Declaration *decl) {
 	switch (decl->declType) {
 	case FUNC_DECL: emitFunctionDecl(self, decl->funcDecl); break;
+	case STRUCT_DECL: break;
+	case VAR_DECL: break;
 	}
 }
 
