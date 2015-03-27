@@ -1,5 +1,3 @@
-use "stdio.h"
-
 fn main(): int {
 	int x = 1;
 
