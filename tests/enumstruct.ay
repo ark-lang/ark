@@ -1,4 +1,4 @@
-use "stdio.h"
+// not supported yet since parser v2
 
 enum swag {
 	SOME_VALUE = 0
