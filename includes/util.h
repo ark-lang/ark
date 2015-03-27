@@ -25,6 +25,8 @@
 	#define GET_ORANGE_TEXT(x) ("\x1B[33m" x "\x1B[00m")
 #endif
 
+#define ARR_LEN(x)  (sizeof(x) / sizeof(x[0]))
+
 extern bool DEBUG_MODE;
 extern char* COMPILER;
 extern bool OUTPUT_C;
