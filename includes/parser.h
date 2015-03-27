@@ -24,6 +24,12 @@
 #define RETURN_KEYWORD				"return"
 #define BREAK_KEYWORD				"break"
 
+static const char *logOp[] = { "||", "&&" };
+static const char *relOp[] = { "==", "!=", "<", "<=", ">", ">=" };
+static const char *addOp[] = { "+", "-", "|", "^" };
+static const char *mulOp[] = { "+", "/", "%", "<<", ">>", "&" };
+static const char *unaryOp[] = { "+", "-", "!", "^", "<", ">", "*", "&" };
+
 /**
  * parser contents
  */
@@ -146,7 +152,69 @@ bool matchTokenTypeAndContent(Parser *parser, int type, char *content, int ahead
  */
 Token *peekAtTokenStream(Parser *parser, int ahead);
 
+/**
+ * Checks if the token ahed is a literal
+ */
 bool isLiteral(Parser *parser, int ahead);
+
+// whatever
+
+/**
+ * @return if the given string is a logical operator
+ */
+static inline bool isLogOp(char *val) {
+	for (int i = 0; i < ARR_LEN(logOp); i++) {
+		if (!strcmp(val, logOp[i])) return true;
+	}
+	return false;
+}
+
+/**
+ * @return if the given string is a relational operator
+ */
+static inline bool isRelOp(char *val) {
+	for (int i = 0; i < ARR_LEN(logOp); i++) {
+		if (!strcmp(val, relOp[i])) return true;
+	}
+	return false;
+}
+
+/**
+ * @return if the given string is a arithmetic operator
+ */
+static inline bool isAddOp(char *val) {
+	for (int i = 0; i < ARR_LEN(logOp); i++) {
+		if (!strcmp(val, addOp[i])) return true;
+	}
+	return false;
+}
+
+/**
+ * @return if the given string is a arithmetic operator
+ */
+static inline bool isMulOp(char *val) {
+	for (int i = 0; i < ARR_LEN(logOp); i++) {
+		if (!strcmp(val, mulOp[i])) return true;
+	}
+	return false;
+}
+
+/**
+ * @return if the given string is a unary operator
+ */
+static inline bool isUnaryOp(char *val) {
+	for (int i = 0; i < ARR_LEN(logOp); i++) {
+		if (!strcmp(val, unaryOp[i])) return true;
+	}
+	return false;
+}
+
+/**
+ * @return if the given string is a binary operator
+ */
+static inline bool isBinaryOp(char *val) {
+	return isLogOp(val) || isRelOp(val) || isAddOp(val) || isMulOp(val);
+}
 
 /** DRIVERS */
 

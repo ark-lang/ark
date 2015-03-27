@@ -6,7 +6,7 @@ Parser *createParser() {
 	parser->tokenIndex = 0;
 	parser->parsing = true;
 	parser->failed = false;
-	return parser;
+        return parser;
 }
 
 void destroyParser(Parser *parser) {
@@ -565,11 +565,111 @@ IncDecStat *parseIncDecStat(Parser *parser) {
 }
 
 Assignment *parseAssignment(Parser *parser) {
+	PrimaryExpr *primaryExpr = parsePrimaryExpr(parser);
+	if (!primaryExpr) {
+		errorMessage("Expected primary expression");
+		return NULL;
+	}
 
+	if (!matchTokenTypeAndContent(parser, OPERATOR, "=", 0)) {
+		consumeToken(parser);
+	}
+	else {
+		errorMessage("Expected assignment operator");
+		destroyPrimaryExpr(primaryExpr);
+		return NULL;
+	}
+
+	Expression *expr = parseExpression(parser);
+	if (!expr) {
+		errorMessage("Expected an expression to assign to");
+		destroyPrimaryExpr(primaryExpr);
+		return NULL;
+	}
+
+	return createAssignment(primaryExpr, expr);
+}
+
+StructuredStatement *parseStructuredStatement(Parser *parser) {
+	StructuredStatement *stmt = createStructuredStatement();
+
+	if (checkTokenTypeAndContent(parser, SEPARATOR, "{", 0)
+			|| checkTokenTypeAndContent(parser, OPERATOR, SINGLE_STATEMENT_OPERATOR, 0)) {
+		stmt->block = parseBlock(parser);
+		stmt->type = BLOCK_NODE;
+		return stmt;
+	}
+	else if (checkTokenTypeAndContent(parser, IDENTIFIER, IF_KEYWORD, 0)) {
+		stmt->ifStmt = parseIfStat(parser);
+		stmt->type = IF_STAT_NODE;
+		return stmt;
+	}
+	else if (checkTokenTypeAndContent(parser, IDENTIFIER, MATCH_KEYWORD, 0)) {
+		stmt->matchStmt = parseMatchStat(parser);
+		stmt->type = MATCH_STAT_NODE;
+		return stmt;
+	}
+	else if (checkTokenTypeAndContent(parser, IDENTIFIER, FOR_KEYWORD, 0)) {
+		stmt->forStmt = parseForStat(parser);
+		stmt->type = FOR_STAT_NODE;
+		return stmt;
+	}
+
+	destroyStructuredStatement(stmt);
+	return NULL;
+}
+
+UnstructuredStatement *parseUnstructuredStatement(Parser *parser) {
+	UnstructuredStatement *stmt = createUnstructuredStatement();
+
+	if (checkTokenTypeAndContent(parser, IDENTIFIER, FUNCTION_KEYWORD, 0)
+			|| checkTokenTypeAndContent(parser, IDENTIFIER, STRUCT_KEYWORD, 0)
+			|| (checkTokenTypeAndContent(parser, IDENTIFIER, MUT_KEYWORD, 0)
+			|| checkTokenType(parser, IDENTIFIER, 0)
+			|| checkTokenTypeAndContent(parser, SEPARATOR, "[", 1)
+			|| checkTokenTypeAndContent(parser, OPERATOR, "^", 1))) {
+		stmt->decl = parseDeclaration(parser);
+		stmt->type = DECLARATION_NODE;
+		return stmt;
+	}
+	else if (checkTokenTypeAndContent(parser, IDENTIFIER, CONTINUE_KEYWORD, 0)
+			|| checkTokenTypeAndContent(parser, IDENTIFIER, RETURN_KEYWORD, 0)
+			||checkTokenTypeAndContent(parser, IDENTIFIER, BREAK_KEYWORD, 0)) {
+		stmt->leave = parseLeaveStat(parser);
+		stmt->type = LEAVE_STAT_NODE;
+		return stmt;
+	}
+	else if ((checkTokenTypeAndContent(parser, OPERATOR, "+", 0) && checkTokenTypeAndContent(parser, OPERATOR, "+", 1))
+			|| (checkTokenTypeAndContent(parser, OPERATOR, "-", 0) && checkTokenTypeAndContent(parser, OPERATOR, "-", 1))) {
+		stmt->incDec = parseIncDecStat(parser);
+		stmt->type = INC_DEC_STAT_NODE;
+		return stmt;
+	}
+	else if (checkTokenTypeAndContent(parser, OPERATOR, "=", 1)) {
+		stmt->assignment = parseAssignment(parser);
+		stmt->type = ASSIGNMENT_NODE;
+		return stmt;
+	}
+
+	destroyUnstructuredStatement(stmt);
+	return NULL;
 }
 
 Statement *parseStatement(Parser *parser) {
-	// TODO:
+	Statement *stmt = createStatement();
+
+	stmt->unstructured = parseUnstructuredStatement(parser);
+	if (stmt->unstructured) {
+		return stmt;
+	}
+
+	stmt->structured = parseStructuredStatement(parser);
+	if (stmt->structured) {
+		return stmt;
+	}
+
+	errorMessage("O shit stmt failed!\n");
+	destroyStatement(stmt);
 	return NULL;
 }
 
@@ -965,15 +1065,56 @@ PrimaryExpr *parsePrimaryExpr(Parser *parser) {
 }
 
 UnaryExpr *parseUnaryExpr(Parser *parser) {
+	Token *tok = consumeToken(parser);
+	if (isUnaryOp(tok->content)) {
+		Expression *expr = parseExpression(parser);
+		if (!expr) {
+			errorMessage("failed to parse expr");
+			destroyExpression(expr);
+			return NULL;
+		}
+		return createUnaryExpr(tok->content[0], expr);
+	}
 	return NULL;
 }
 
 BinaryExpr *parseBinaryExpr(Parser *parser) {
+	Expression *lhand = parseExpression(parser);
+	if (!lhand) {
+		errorMessage("lhand fuck");
+		destroyExpression(lhand);
+		return NULL;
+	}
+
+	Token *tok = consumeToken(parser);
+	if (isBinaryOp(tok->content)) {
+		Expression *rhand = parseExpression(parser);
+		if (!rhand) {
+			errorMessage("failed prim expr!! :o");
+			destroyExpression(lhand);
+			destroyExpression(rhand);
+			return NULL;
+		}
+		return createBinaryExpr(lhand, tok->content, rhand);
+	}
+
 	return NULL;
 }
 
 Expression *parseExpression(Parser *parser) {
-
+	Expression *expr = createExpression();
+	expr->binary = parseBinaryExpr(parser);
+	if (expr->binary) {
+		return expr;
+	}
+	expr->unary = parseUnaryExpr(parser);
+	if (expr->unary) {
+		return expr;
+	}
+	expr->primary = parsePrimaryExpr(parser);
+	if (expr->primary) {
+		return expr;
+	}
 	return NULL;
 }
 
@@ -1046,11 +1187,9 @@ void startParsingSourceFiles(Parser *parser, Vector *sourceFiles) {
 
 void parseTokenStream(Parser *parser) {
 	while (parser->parsing) {
-		Token *tok = getVectorItem(parser->tokenStream, parser->tokenIndex);
-
-		switch (tok->type) {
-			case IDENTIFIER: break;
-			case END_OF_FILE: parser->parsing = false; break;
+		Statement *stmt = parseStatement(parser);
+		if (stmt) {
+			pushBackItem(parser->parseTree, stmt);
 		}
 	}
 }
