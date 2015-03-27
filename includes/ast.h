@@ -66,7 +66,7 @@ typedef struct {
  */
 typedef struct {
 	Expression *lhand;
-	char operand;
+	char *operand;
 	Expression *rhand;
 } BinaryExpr;
 
@@ -361,6 +361,7 @@ typedef struct {
 	LeaveStat *leave;
 	IncDecStat *incDec;
 	Assignment *assignment;
+	int type;
 } UnstructuredStatement;
 
 /**
@@ -415,6 +416,7 @@ typedef struct {
 	IfStat *ifStmt;
 	MatchStat *matchStmt;
 	ForStat *forStmt;
+	int type;
 } StructuredStatement;
 
 /**
@@ -436,11 +438,13 @@ struct s_Type {
 	PointerType *pointerType;
 };
 
+Node *createNode(void *data, NodeType type);
+
 IdentifierList *createIdentifierList();
 
 Literal *createLiteral(char *value, LiteralType type);
 
-BinaryExpr *createBinaryExpr(Expression *lhand, char op, Expression *rhand);
+BinaryExpr *createBinaryExpr(Expression *lhand, char *op, Expression *rhand);
 
 UnaryExpr *createUnaryExpr(char operand, Expression *rhand);
 
@@ -515,6 +519,8 @@ Statement *createStatement();
 Type *createType();
 
 void cleanupAST(Vector *nodes);
+
+void destroyNode(Node *node);
 
 void destroyIdentifierList(IdentifierList *list);
 
