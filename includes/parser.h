@@ -11,6 +11,7 @@
 #include "util.h"
 #include "vector.h"
 #include "ast.h"
+#include "hashmap.h"
 
 #define STRUCT_KEYWORD 				"struct"
 #define MUT_KEYWORD 				"mut"
@@ -41,6 +42,10 @@ typedef struct {
 	bool parsing;			// if we're parsing
 	bool failed;			// if parsing failed
 } Parser;
+
+typedef struct {
+	int prec;
+} Precedence;
 
 /**
  * Create the parser
@@ -105,6 +110,18 @@ BinaryExpr *parseBinaryExpr(Parser *parser);
 Expression *parseExpression(Parser *parser);
 
 /** UTILITIES */
+
+static inline Precedence *createPrecedence(int prec) {
+	Precedence *result = safeMalloc(sizeof(*result));
+	result->prec = prec;
+	return result;
+}
+
+static inline void destroyPrecedence(Precedence *prec) {
+	free(prec);
+}
+
+int getTokenPrecedence(Parser *parser);
 
 /**
  * Returns the literal type based on the token
