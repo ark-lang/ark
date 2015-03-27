@@ -1,4 +1,4 @@
-use "stdio.h"
+// enums not supported anymore yet!
 
 enum Test {
 	SWAG
