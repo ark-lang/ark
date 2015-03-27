@@ -65,10 +65,75 @@ void emitType(Compiler *self, Type *type) {
 	}
 }
 
+void emitParameters(Compiler *self, Parameters *params) {
+	for (int i = 0; i < params->paramList->size; i++) {
+		ParameterSection *param = getVectorItem(params->paramList, i);
+		if (!param->mutable) {
+			emitCode(self, "const ");
+		}
+		emitCode(self, "%s", param->name);
+		emitType(self, param->type);
+	}
+}
+
+void emitFunctionSignature(Compiler *self, FunctionSignature *func) {
+	emitType(self, func->type);
+	emitCode(self, " %s(", func->name);
+	emitParameters(self, func->parameters);
+	emitCode(self, ")");
+}
+
+void emitStructuredStatement(Compiler *self, StructuredStatement *stmt) {
+	switch (stmt->type) {
+	case BLOCK_NODE: emitBlock(self, stmt->block); break;
+	case FOR_STAT_NODE: emitForStat(self, stmt->forStmt); break;
+	case IF_STAT_NODE: emitIfStat(self, stmt->ifStmt); break;
+	case MATCH_STAT_NODE: emitMatchStat(self, stmt->matchStmt); break;
+	}
+}
+
+void emitUnstructuredStatement(Compiler *self, UnstructuredStatement *stmt) {
+	switch (stmt->type) {
+	case DECLARATION_NODE: emitDeclaration(self, stmt->decl); break;
+	}
+}
+
+void emitBlock(Compiler *self, Block *block) {
+	emitCode(self, " {" CC_NEWLINE);
+	emitStatementList(self, block->stmtList);
+	emitCode(self, "}" CC_NEWLINE);
+}
+
+void emitForStat(Compiler *self, ForStat *stmt) {
+
+}
+
+void emitIfStat(Compiler *self, IfStat *stmt) {
+
+}
+
+void emitMatchStat(Compiler *self, MatchStat *stmt) {
+
+}
+
+void emitStatementList(Compiler *self, StatementList *stmtList) {
+	for (int i = 0; i < stmtList->stmts->size; i++) {
+		Statement *stmt = getVectorItem(stmtList->stmts, i);
+		switch (stmt->type) {
+		case STRUCTURED_STMT: emitStructuredStatement(self, stmt->structured); break;
+		case UNSTRUCTURED_STMT: emitUnstructuredStatement(self, stmt->unstructured); break;
+		}
+	}
+}
+
 void emitFunctionDecl(Compiler *self, FunctionDecl *decl) {
 	self->writeState = WRITE_HEADER_STATE;
-	emitType(self, decl->signature->type);
-	emitCode(self, " %s", decl->signature->name);
+	emitFunctionSignature(self, decl->signature);
+	emitCode(self, ";"); // semi colon at end of prototype
+
+	self->writeState = WRITE_SOURCE_STATE;
+	emitFunctionSignature(self, decl->signature);
+	emitBlock(self, decl->body);
 }
 
 void emitDeclaration(Compiler *self, Declaration *decl) {
@@ -77,20 +142,6 @@ void emitDeclaration(Compiler *self, Declaration *decl) {
 	case STRUCT_DECL: break;
 	case VAR_DECL: break;
 	}
-}
-
-void emitUnstructuredStat(Compiler *self, UnstructuredStatement *stmt) {
-	switch (stmt->type) {
-	case DECLARATION_NODE: emitDeclaration(self, stmt->decl); break;
-	}
-}
-
-void emitStructuredStat(Compiler *self, StructuredStatement *stmt) {
-
-}
-
-void emitStatement(Compiler *self, Statement *stmt) {
-
 }
 
 void consumeAstNode(Compiler *self) {
@@ -171,8 +222,8 @@ void compileAST(Compiler *self) {
 		Statement *currentStmt = getVectorItem(self->abstractSyntaxTree, i);
 
 		switch (currentStmt->type) {
-		case UNSTRUCTURED_STMT: emitUnstructuredStat(self, currentStmt->unstructured); break;
-		case STRUCTURED_STMT: emitStructuredStat(self, currentStmt->structured); break;
+		case UNSTRUCTURED_STMT: emitUnstructuredStatement(self, currentStmt->unstructured); break;
+		case STRUCTURED_STMT: emitStructuredStatement(self, currentStmt->structured); break;
 		default:
 			printf("idk?\n");
 			break;
