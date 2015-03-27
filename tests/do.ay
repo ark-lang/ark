@@ -1,6 +1,3 @@
-use "stdio.h"
-use "stdbool.h"
-
 fn main(): int {
 	bool swag = false;
 	do swag {

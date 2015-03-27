@@ -1,4 +1,4 @@
-use "stdio.h"
+// expressions not working jsut yet either
 
 fn add(int a, int b): int -> return a + b;
 
