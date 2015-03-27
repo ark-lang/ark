@@ -6,7 +6,7 @@ Parser *createParser() {
 	parser->tokenIndex = 0;
 	parser->parsing = true;
 	parser->failed = false;
-        return parser;
+	return parser;
 }
 
 void destroyParser(Parser *parser) {
@@ -58,37 +58,37 @@ IdentifierList *parseIdentifierList(Parser *parser) {
 
 Type *parseType(Parser *parser) {
 	Type *type = createType();
+
 	if (checkTokenType(parser, IDENTIFIER, 0)) {
 		Token *token = consumeToken(parser);
 		type->typeName = createTypeName(token->content);
 		type->type = TYPE_NAME_NODE;
-		return type;
 	}
 	else if (checkTokenTypeAndContent(parser, SEPARATOR, "[", 1)) {
 		Type *type = parseType(parser);
 		Expression *expr = parseExpression(parser);
-		if (!expr) {
-			errorMessage("Expected expression after array type");
-			return NULL;
+		if (expr) {
+			type->arrayType = createArrayType(expr, type);
+			type->type = ARRAY_TYPE_NODE;
 		}
-		type->arrayType = createArrayType(expr, type);
-		type->type = ARRAY_TYPE_NODE;
-		return type;
+		else {
+			destroyExpression(expr);
+			destroyType(type);
+		}
 	}
 	else if (checkTokenTypeAndContent(parser, OPERATOR, "^", 1)) {
 		Type *type = parseType(parser);
 		consumeToken(parser); // eat the caret
 		type->pointerType = createPointerType(type);
 		type->type = POINTER_TYPE_NODE;
-		return type;
 	}
 
-	errorMessage("Failed to parse invalid type `%s`", consumeToken(parser)->content);
-	destroyType(type);
-	return NULL;
+	return type;
 }
 
 FieldDecl *parseFieldDecl(Parser *parser) {
+	FieldDecl *decl = NULL;
+
 	bool mutable = false;
 	if (checkTokenTypeAndContent(parser, IDENTIFIER, MUT_KEYWORD, 0)) {
 		consumeToken(parser);
@@ -96,19 +96,22 @@ FieldDecl *parseFieldDecl(Parser *parser) {
 	}
 
 	Type *type = parseType(parser);
-	if (!type) {
+	if (type) {
+		IdentifierList *idenList = parseIdentifierList(parser);
+		if (idenList) {
+			FieldDecl *decl = createFieldDecl(type, mutable);
+			decl->idenList = idenList;
+		}
+		else {
+			errorMessage("Failed to parse field items, errored at: `%s`", consumeToken(parser)->content);
+			destroyIdentifierList(idenList);
+		}
+	}
+	else {
 		errorMessage("Failed to parse type `%s` in Field Declaration", consumeToken(parser)->content);
-		return NULL;
+		destroyType(type);
 	}
 
-	IdentifierList *idenList = parseIdentifierList(parser);
-	if (!idenList) {
-		errorMessage("Failed to parse field items, errored at: `%s`", consumeToken(parser)->content);
-		return NULL;
-	}
-
-	FieldDecl *decl = createFieldDecl(type, mutable);
-	decl->idenList = idenList;
 	return decl;
 }
 
@@ -117,20 +120,23 @@ FieldDeclList *parseFieldDeclList(Parser *parser) {
 
 	do {
 		FieldDecl *fieldDecl = parseFieldDecl(parser);
-		if (!fieldDecl) {
-			errorMessage("Expected a field declaration, but found `%s`", consumeToken(parser)->content);
-			return NULL;
-		}
-		pushBackItem(fieldDeclList->members, fieldDecl);
-		if (checkTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
-			consumeToken(parser);
-			if (checkTokenTypeAndContent(parser, SEPARATOR, "}", 0)) {
+		if (fieldDecl) {
+			pushBackItem(fieldDeclList->members, fieldDecl);
+			if (checkTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
 				consumeToken(parser);
-				break;
+				if (checkTokenTypeAndContent(parser, SEPARATOR, "}", 0)) {
+					consumeToken(parser);
+					break;
+				}
+			}
+			else {
+				errorMessage("Expected a semi-colon in field list, but found `%s`", consumeToken(parser)->content);
 			}
 		}
 		else {
-			errorMessage("Expected a semi-colon in field list, but found `%s`", consumeToken(parser)->content);
+			errorMessage("Expected a field declaration, but found `%s`", consumeToken(parser)->content);
+			destroyFieldDecl(fieldDecl);
+			return NULL;
 		}
 	}
 	while (true);
@@ -139,25 +145,29 @@ FieldDeclList *parseFieldDeclList(Parser *parser) {
 }
 
 StructDecl *parseStructDecl(Parser *parser) {
+	StructDecl *structDecl = NULL;
+
 	if (checkTokenTypeAndContent(parser, IDENTIFIER, STRUCT_KEYWORD, 0)) {
 		consumeToken(parser);
 
 		if (checkTokenType(parser, IDENTIFIER, 0)) {
-			StructDecl *structDecl = createStructDecl(consumeToken(parser)->content);
+			structDecl = createStructDecl(consumeToken(parser)->content);
 			structDecl->fields = parseFieldDeclList(parser);
-			return structDecl;
 		}
 		else {
 			errorMessage("Structure expecting a name but found `%s`", consumeToken(parser)->content);
-			return NULL;
 		}
 	}
+	else {
+		errorMessage("Failed to parse structure errored at: `%s`", consumeToken(parser)->content);
+	}
 
-	errorMessage("Failed to parse structure errored at: `%s`", consumeToken(parser)->content);
-	return NULL;
+	return structDecl;
 }
 
 ParameterSection *parseParameterSection(Parser *parser) {
+	ParameterSection *param = NULL;
+
 	bool mutable = false;
 	if (checkTokenTypeAndContent(parser, IDENTIFIER, MUT_KEYWORD, 0)) {
 		consumeToken(parser);
@@ -165,58 +175,62 @@ ParameterSection *parseParameterSection(Parser *parser) {
 	}
 
 	Type *type = parseType(parser);
-	if (!type) {
+	if (type) {
+		if (checkTokenType(parser, IDENTIFIER, 0)) {
+			param->name = consumeToken(parser)->content;
+			param = createParameterSection(type, mutable);
+		}
+		else {
+			errorMessage("Expected an identifier, but found `%s`", consumeToken(parser)->content);
+		}
+	}
+	else {
 		errorMessage("Expecting a type, but found `%s`", consumeToken(parser)->content);
-		return NULL;
+		destroyType(type);
 	}
 
-	ParameterSection *param = createParameterSection(type, mutable);
-	if (checkTokenType(parser, IDENTIFIER, 0)) {
-		param->name = consumeToken(parser)->content;
-		return param;
-	}
-
-	errorMessage("Expected an identifier, but found `%s`", consumeToken(parser)->content);
-	destroyParameterSection(param);
-	return NULL;
+	return param;
 }
 
 Parameters *parseParameters(Parser *parser) {
+	Parameters *params = NULL;
+
 	if (checkTokenTypeAndContent(parser, SEPARATOR, "(", 0)) {
 		consumeToken(parser);
 
-		Parameters *params = createParameters();
-
+		params = createParameters();
 		while (true) {
 			if (checkTokenTypeAndContent(parser, SEPARATOR, ")", 0)) {
 				consumeToken(parser);
-				return params;
+				break;
 			}
 			ParameterSection *param = parseParameterSection(parser);
-			if (!param) {
-				errorMessage("Expected a parameter but found `%s`", consumeToken(parser)->content);
-				destroyParameterSection(param);
-				destroyParameters(params);
-				return NULL;
-			}
-			pushBackItem(params->paramList, param);
-			if (checkTokenTypeAndContent(parser, SEPARATOR, ",", 0)) {
-				if (checkTokenTypeAndContent(parser, SEPARATOR, ")", 1)) {
-					warningMessage("Trailing comma in parameter list, skipping for now");
+			if (param) {
+				pushBackItem(params->paramList, param);
+				if (checkTokenTypeAndContent(parser, SEPARATOR, ",", 0)) {
+					if (checkTokenTypeAndContent(parser, SEPARATOR, ")", 1)) {
+						warningMessage("Trailing comma in parameter list, skipping for now");
+					}
+					consumeToken(parser);
 				}
-				consumeToken(parser);
+			}
+			else {
+				errorMessage("Expected a parameter but found `%s`", consumeToken(parser)->content);
+				destroyParameters(params);
 				break;
 			}
 		}
-
-		return params;
+	}
+	else {
+		errorMessage("Failed to parse parameter list, errored at `%s`", consumeToken(parser)->content);
 	}
 
-	errorMessage("Failed to parse parameter list, errored at `%s`", consumeToken(parser)->content);
-	return NULL;
+	return params;
 }
 
 Receiver *parseReceiver(Parser *parser) {
+	Receiver *receiver = NULL;
+
 	if (checkTokenTypeAndContent(parser, SEPARATOR, "(", 0)) {
 		consumeToken(parser);
 
@@ -227,78 +241,60 @@ Receiver *parseReceiver(Parser *parser) {
 		}
 
 		Type *type = parseType(parser);
-		if (!type) {
-			errorMessage("Failed to parse type in Function Receiver, errored at `%s`", consumeToken(parser)->content);
-			return NULL;
-		}
+		if (type) {
+			if (checkTokenType(parser, IDENTIFIER, 0)) {
+				Token *iden = consumeToken(parser);
 
-		if (checkTokenType(parser, IDENTIFIER, 0)) {
-			Token *iden = consumeToken(parser);
-
-			if (checkTokenTypeAndContent(parser, SEPARATOR, ")", 0)) {
-				consumeToken(parser);
-				return createReceiver(type, iden->content, mutable);
+				if (checkTokenTypeAndContent(parser, SEPARATOR, ")", 0)) {
+					consumeToken(parser);
+					receiver = createReceiver(type, iden->content, mutable);
+				}
+				else {
+					errorMessage("Expected closing parenthesis");
+				}
+			}
+			else {
+				errorMessage("Expected an identifier in Function Receiver, errored at `%s`", consumeToken(parser)->content);
 			}
 		}
 		else {
-			errorMessage("Expected an identifier in Function Receiver, errored at `%s`", consumeToken(parser)->content);
+			errorMessage("Failed to parse type in Function Receiver, errored at `%s`", consumeToken(parser)->content);
+			destroyType(type);
 		}
-
-		destroyType(type);
-		return NULL;
 	}
 
-	errorMessage("Failed to parse Function Receiver");
-	return NULL;
+	return receiver;
 }
 
 FunctionSignature *parseFunctionSignature(Parser *parser) {
 	Receiver *receiver = NULL;
+	FunctionSignature *signature = NULL;
+
 	if (checkTokenTypeAndContent(parser, SEPARATOR, "(", 0)) {
-		 receiver = parseReceiver(parser);
+		receiver = parseReceiver(parser);
 	}
 
 	if (checkTokenType(parser, IDENTIFIER, 0)) {
 		Token *functionName = consumeToken(parser);
-
 		Parameters *params = parseParameters(parser);
-		if (!params) {
-			errorMessage("Expected a parameter list for function signature, but found `%s`", consumeToken(parser)->content);
-			destroyReceiver(receiver);
-			return NULL;
-		}
 
-		if (checkTokenTypeAndContent(parser, OPERATOR, ":", 0)) {
+		if (params && checkTokenTypeAndContent(parser, OPERATOR, ":", 0)) {
 			consumeToken(parser);
-		}
-		else {
-			errorMessage("Function signature expected a colon (`:`), but found `%s`", consumeToken(parser)->content);
-			destroyReceiver(receiver);
-			destroyParameters(params);
-			return NULL;
-		}
 
-		bool mutable = false;
-		if (checkTokenTypeAndContent(parser, IDENTIFIER, MUT_KEYWORD, 0)) {
-			consumeToken(parser);
-			mutable = true;
-		}
+			bool mutable = false;
+			if (checkTokenTypeAndContent(parser, IDENTIFIER, MUT_KEYWORD, 0)) {
+				consumeToken(parser);
+				mutable = true;
+			}
 
-		Type *type = parseType(parser);
-		if (!type) {
-			errorMessage("Function signature expected a return type, but found `%s`", consumeToken(parser)->content);
-			destroyReceiver(receiver);
-			destroyType(type);
-			destroyParameters(params);
-			return NULL;
+			Type *type = parseType(parser);
+			if (type) {
+				signature = createFunctionSignature(functionName->content, params, mutable, type);
+			}
 		}
-
-		return createFunctionSignature(functionName->content, params, mutable, type);
 	}
 
-	errorMessage("Failed to parse function signature");
-	destroyReceiver(receiver);
-	return NULL;
+	return signature;
 }
 
 ElseStat *parseElseStat(Parser *parser) {
@@ -944,24 +940,18 @@ PrimaryExpr *parsePrimaryExpr(Parser *parser) {
 	else if (checkTokenTypeAndContent(parser, SEPARATOR, "(", 0)) {
 		consumeToken(parser);
 		Expression *expr = parseExpression(parser);
-		if (!expr) {
-			errorMessage("Failed to parse expression in parenthesis");
-			destroyExpression(expr);
-			destroyPrimaryExpr(primaryExpr);
-			return NULL;
+		if (expr) {
+			if (checkTokenTypeAndContent(parser, SEPARATOR, ")", 0)) {
+				consumeToken(parser);
+				primaryExpr->parenExpr = expr;
+				primaryExpr->type = PAREN_EXPR;
+				return primaryExpr;
+			}
+			else {
+				errorMessage("Expected a closing parenthesis in expression");
+			}
 		}
-		if (checkTokenTypeAndContent(parser, SEPARATOR, ")", 0)) {
-			consumeToken(parser);
-			primaryExpr->parenExpr = expr;
-			primaryExpr->type = PAREN_EXPR;
-			return primaryExpr;
-		}
-		else {
-			errorMessage("Expected a closing parenthesis in expression");
-			destroyExpression(expr);
-			destroyPrimaryExpr(primaryExpr);
-			return NULL;
-		}
+		errorMessage("Failed to parse expression");
 	}
 	// function call
 	else if (checkTokenTypeAndContent(parser, OPERATOR, "(", 1)) {
@@ -1073,36 +1063,28 @@ UnaryExpr *parseUnaryExpr(Parser *parser) {
 	Token *tok = consumeToken(parser);
 	if (isUnaryOp(tok->content)) {
 		Expression *expr = parseExpression(parser);
-		if (!expr) {
-			errorMessage("failed to parse expr");
-			destroyExpression(expr);
-			return NULL;
+		if (expr) {
+			return createUnaryExpr(tok->content[0], expr);
 		}
-		return createUnaryExpr(tok->content[0], expr);
+		destroyExpression(expr);
 	}
 	return NULL;
 }
 
 BinaryExpr *parseBinaryExpr(Parser *parser) {
 	Expression *lhand = parseExpression(parser);
-	if (!lhand) {
-		errorMessage("lhand fuck");
-		destroyExpression(lhand);
-		return NULL;
-	}
-
-	Token *tok = consumeToken(parser);
-	if (isBinaryOp(tok->content)) {
-		Expression *rhand = parseExpression(parser);
-		if (!rhand) {
-			errorMessage("failed prim expr!! :o");
-			destroyExpression(lhand);
+	if (lhand) {
+		Token *tok = consumeToken(parser);
+		if (isBinaryOp(tok->content)) {
+			Expression *rhand = parseExpression(parser);
+			if (rhand) {
+				return createBinaryExpr(lhand, tok->content, rhand);
+			}
 			destroyExpression(rhand);
-			return NULL;
 		}
-		return createBinaryExpr(lhand, tok->content, rhand);
 	}
-
+	errorMessage("lhand in binary expr failed");
+	destroyExpression(lhand);
 	return NULL;
 }
 

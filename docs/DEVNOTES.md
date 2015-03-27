@@ -2,6 +2,12 @@ Going to keep a little log for developer notes, what I'm working etc. Kind of li
 and a way for me to keep track of the shit I do. 
 
 ## Friday, 27 March 2015
+### 10:18pm
+Haven't done much, ended up spending the rest of the day on Reddit, lol. I moved the old alloy server onto my 
+own digital ocean for now since I forgot the details to Elliotts' server. I also moved the repo onto it's own organization,
+since I decided to put the web site back up on GitHub, then I'll setup dploy.io to deploy it to mine/elliotts' server.
+Currently re-considering the expression parsing at the moment.
+
 ### 5:48pm
 Going to start working on the new parser, I decided to merge it before it fully worked, but it's now kind of working.
 I might need to adjust the grammar, as it expects a semi-colon after everything, even nested functions, i.e:
