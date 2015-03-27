@@ -1,17 +1,5 @@
 #include "compiler.h"
 
-static const char* NODE_TYPE[] = {
-	"EXPRESSION_AST_NODE", "VARIABLE_DEF_AST_NODE",
-	"VARIABLE_DEC_AST_NODE", "FUNCTION_ARG_AST_NODE",
-	"FUNCTION_AST_NODE", "FUNCTION_PROT_AST_NODE",
-	"BLOCK_AST_NODE", "FUNCTION_CALLEE_AST_NODE",
-	"FUNCTION_RET_AST_NODE", "FOR_LOOP_AST_NODE",
-	"VARIABLE_REASSIGN_AST_NODE", "INFINITE_LOOP_AST_NODE",
-	"BREAK_AST_NODE", "DO_WHILE_AST_NODE", "CONTINUE_AST_NODE", "ENUM_AST_NODE", "STRUCT_AST_NODE",
-	"IF_STATEMENT_AST_NODE", "MATCH_STATEMENT_AST_NODE", "WHILE_LOOP_AST_NODE",
-	"ANON_AST_NODE", "USE_STATEMENT_AST_NODE"
-};
-
 char *BOILERPLATE =
 "#include <stdlib.h>\n"
 "#include <stdbool.h>\n"
@@ -55,7 +43,41 @@ void emitCode(Compiler *self, char *fmt, ...) {
 	}
 }
 
+void emitType(Compiler *self, Type *type) {
+	switch (type->type) {
+	case POINTER_TYPE_NODE: break;
+	case ARRAY_TYPE_NODE: break;
+	case TYPE_NAME_NODE:
+		emitCode(self, "%s", type->typeName->name);
+		break;
+	}
+}
 
+void emitFunctionDecl(Compiler *self, FunctionDecl *decl) {
+	self->writeState = WRITE_HEADER_STATE;
+	emitType(self, decl->signature->type);
+	printf("emit a function decl, idk?");
+}
+
+void emitDeclaration(Compiler *self, Declaration *decl) {
+	switch (decl->declType) {
+	case FUNC_DECL: emitFunctionDecl(self, decl->funcDecl); break;
+	}
+}
+
+void emitUnstructuredStat(Compiler *self, UnstructuredStatement *stmt) {
+	switch (stmt->type) {
+	case DECLARATION_NODE: emitDeclaration(self, stmt->decl); break;
+	}
+}
+
+void emitStructuredStat(Compiler *self, StructuredStatement *stmt) {
+
+}
+
+void emitStatement(Compiler *self, Statement *stmt) {
+
+}
 
 void consumeAstNode(Compiler *self) {
 	self->currentNode += 1;
@@ -132,31 +154,14 @@ void startCompiler(Compiler *self) {
 void compileAST(Compiler *self) {
 	int i;
 	for (i = 0; i < self->abstractSyntaxTree->size; i++) {
-		AstNode *currentAstNode = getVectorItem(self->abstractSyntaxTree, i);
+		Statement *currentStmt = getVectorItem(self->abstractSyntaxTree, i);
 
-		switch (currentAstNode->type) {
-			case FUNCTION_AST_NODE:
-				emitFunction(self, currentAstNode->data);
-				break;
-			case VARIABLE_DEF_AST_NODE:
-				emitVariableDefine(self, currentAstNode->data);
-				break;
-			case VARIABLE_DEC_AST_NODE:
-				emitVariableDeclaration(self, currentAstNode->data);
-				break;
-			case STRUCT_AST_NODE:
-				emitStructure(self, currentAstNode->data);
-				break;
-			case USE_STATEMENT_AST_NODE:
-				emitUseStatement(self, currentAstNode->data);
-				break;
-			case ENUM_AST_NODE:
-				self->writeState = WRITE_HEADER_STATE;
-				emitEnumeration(self, currentAstNode->data);
-				break;
-			default:
-				printf("node not yet supported: %s :(\n", NODE_TYPE[currentAstNode->type]);
-				break;
+		switch (currentStmt->type) {
+		case UNSTRUCTURED_STMT: emitUnstructuredStat(self, currentStmt->unstructured); break;
+		case STRUCTURED_STMT: emitStructuredStat(self, currentStmt->structured); break;
+		default:
+			printf("idk?\n");
+			break;
 		}
 	}
 }
