@@ -1,5 +1,6 @@
 # Alloy Reference
 This document is an informal specification for Alloy, a systems programming language.
+**IMPORTANT NOTICE: I've just re-written the compiler, so a lot of these are parsed, but the parser is still incomplete so I can't guarantee they work still!**
 
 ## Guiding Principles
 Alloy is a systems programming language, intended as an alternative to C. It's main purpose is to modernize C, without
@@ -177,4 +178,169 @@ For instance, given a Point, namely `p`, one may do the following:
 
 	Point ^p = { 0.0, 0.0 };
 	float dist = p.distance();
+
+# TODO!
+**We still have to write up the rest for the following!! However, I've given some basic guidelines for the syntax**
+
+## Variables
+
+	int x = 5;
+	x = 10; // fails not mutable!
+	
+	mut int x = 5;
+	x = 20; // yay!
+
+## If Statements
+
+	if x == 5 {
+	
+	}
+	
+## Else If
+
+	if x == 5 {
+	
+	}
+	else if x == 12 {
+	
+	}
+	
+## Else
+
+	if x == 12 {
+	
+	}
+	else {
+	
+	}
+	
+## For Loops
+
+	for type index: (0, 10) {
+	
+	}
+	
+	int step = 2;
+	for type _: (0, 100, step) {
+	
+	}
+	
+## While Loops
+
+	while true {
+		// do stuff
+	}
+	
+	while x == 5 {
+		// do stuff
+	}
+	
+	do x == 5 {
+		// do stuff at least once
+	}
+	
+	loop {
+		// infinite till break!
+	}
+	
+## Match
+
+	int y = 10;
+	int some_value = 5;
+	int x = some_value;
+	match x {
+		5 {
+		
+		},
+		some_value -> y = 21,
+		_ {
+			// dont care
+		}
+	}
+	
+## Pointers!
+
+	// short hand for malloc, and setting value
+	int ^x = 10;
+	
+	// alloc it yourself	
+	int ^y = alloc;
+	
+	// set the value
+	^y = 10;
+	
+	// set x to the value of y
+	int x = ^y;
+	
+## Memory Model!
+
+	Just about how frees are inserted automatically 
+	by the compiler!
+
+## Enumeration
+
+	// anonymous enumeration!
+	enum _ {
+		SWAG,
+		ASDAS,
+		SAINSBURYS
+	}
+	
+	enum NotAnonymous {
+		CAR,
+		DOG,
+		LION
+	}
+	
+	int x = NotAnonymous::CAR;
+	
+	match x {
+		NotAnonymous::CAR {
+		
+		},
+		SWAG {
+		
+		}
+	}
+
+## Option Types
+
+	fn divide(int a, int b): Option<int> {
+		if b == 0 {
+			return None;
+		}
+		else {
+			return Some(a / b);
+		}
+	}
+
+## Enumerated Structs
+This is a work in progress feature, if you don't like it or have a better idea, go post an Issue!
+
+	struct Cat {
+		int x;
+	}
+	
+	struct Dog {
+		int x;
+	}
+	
+	variant Something {
+		Cat,
+		Dog
+	}	
+
+	fn doStuff(Something s): void {
+		s::Cat.x = 10;		// only do this if s is of type Cat
+		s::Dog.x = 20;		// only do this if s is of type Dog
+	}		
+	
+
+
+
+
+
+
+
+
 
