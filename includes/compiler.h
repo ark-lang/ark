@@ -56,6 +56,8 @@ Compiler *createCompiler(Vector *sourceFiles);
 
 void emitCode(Compiler *self, char *fmt, ...);
 
+void emitExpression(Compiler *self, Expression *expr);
+
 void emitType(Compiler *self, Type *type);
 
 void emitFunctionDecl(Compiler *self, FunctionDecl *decl);
