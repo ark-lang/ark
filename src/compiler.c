@@ -56,7 +56,6 @@ void emitType(Compiler *self, Type *type) {
 void emitFunctionDecl(Compiler *self, FunctionDecl *decl) {
 	self->writeState = WRITE_HEADER_STATE;
 	emitType(self, decl->signature->type);
-	printf("emit a function decl, idk?");
 }
 
 void emitDeclaration(Compiler *self, Declaration *decl) {
