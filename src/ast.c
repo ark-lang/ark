@@ -13,7 +13,7 @@ Literal *createLiteral(char *value, LiteralType type) {
 	return lit;
 }
 
-BinaryExpr *createBinaryExpr(Expression *lhand, char op, Expression *rhand) {
+BinaryExpr *createBinaryExpr(Expression *lhand, char *op, Expression *rhand) {
 	BinaryExpr *expr = safeMalloc(sizeof(*expr));
 	expr->lhand = lhand;
 	expr->operand = op;
@@ -101,7 +101,9 @@ StatementList *createStatementList() {
 }
 
 Block *createBlock() {
-	return safeMalloc(sizeof(Block));
+	Block *block = safeMalloc(sizeof(*block));
+	block->stmtList = createStatementList();
+	return block;
 }
 
 ParameterSection *createParameterSection(Type *type, bool mutable) {
