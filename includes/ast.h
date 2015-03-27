@@ -149,6 +149,7 @@ struct s_Expression {
 	UnaryExpr *unary;
 	MemberAccessExpr *memberAccess;
 	ArraySubExpr *arraySlice;
+	int expressionType;
 };
 
 /**

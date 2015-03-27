@@ -3,10 +3,6 @@
 fn add(int a, int b): int -> return a + b;
 
 fn main(): int {
-	mut int ^a = 5;
-	int z = 5 + ^a;
-	printf("%d\n", z);
-	free(a);
 	
 	return 1;
 }
