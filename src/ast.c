@@ -128,11 +128,12 @@ Receiver *createReceiver(Type *type, char *name, bool mutable) {
 }
 
 FunctionSignature *createFunctionSignature(char *name, Parameters *params,
-		bool mutable) {
+		bool mutable, Type *type) {
 	FunctionSignature *func = safeMalloc(sizeof(*func));
 	func->name = name;
 	func->parameters = params;
 	func->mutable = mutable;
+	func->type = type;
 	return func;
 }
 

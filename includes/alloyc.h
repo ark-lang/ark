@@ -8,7 +8,7 @@
 #include "util.h"
 #include "lexer.h"
 #include "parser.h"
-//#include "compiler.h"
+#include "compiler.h"
 
 // flag for version of the alloy compiler
 #define VERSION_ARG 		"-ver"
@@ -45,7 +45,7 @@ typedef struct {
 typedef struct {
 	Lexer *lexer;
 	Parser *parser;
-//	Compiler *compiler;
+	Compiler *compiler;
 	Vector *sourceFiles;
 } AlloyCompiler;
 

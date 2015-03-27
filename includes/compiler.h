@@ -56,6 +56,14 @@ Compiler *createCompiler(Vector *sourceFiles);
 
 void emitCode(Compiler *self, char *fmt, ...);
 
+void emitType(Compiler *self, Type *type);
+
+void emitFunctionDecl(Compiler *self, FunctionDecl *decl);
+
+void emitUnstructuredStat(Compiler *self, UnstructuredStatement *stmt);
+
+void emitStructuredStat(Compiler *self, StructuredStatement *stmt);
+
 void emitStatement(Compiler *self, Statement *stmt);
 
 void consumeAstNode(Compiler *self);
