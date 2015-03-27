@@ -61,6 +61,7 @@ Type *parseType(Parser *parser) {
 	if (checkTokenType(parser, IDENTIFIER, 0)) {
 		Token *token = consumeToken(parser);
 		type->typeName = createTypeName(token->content);
+		type->type = TYPE_NAME_NODE;
 		return type;
 	}
 	else if (checkTokenTypeAndContent(parser, SEPARATOR, "[", 1)) {
@@ -71,12 +72,14 @@ Type *parseType(Parser *parser) {
 			return NULL;
 		}
 		type->arrayType = createArrayType(expr, type);
+		type->type = ARRAY_TYPE_NODE;
 		return type;
 	}
 	else if (checkTokenTypeAndContent(parser, OPERATOR, "^", 1)) {
 		Type *type = parseType(parser);
 		consumeToken(parser); // eat the caret
 		type->pointerType = createPointerType(type);
+		type->type = POINTER_TYPE_NODE;
 		return type;
 	}
 
@@ -290,7 +293,7 @@ FunctionSignature *parseFunctionSignature(Parser *parser) {
 			return NULL;
 		}
 
-		return createFunctionSignature(functionName->content, params, mutable);
+		return createFunctionSignature(functionName->content, params, mutable, type);
 	}
 
 	errorMessage("Failed to parse function signature");
@@ -660,11 +663,13 @@ Statement *parseStatement(Parser *parser) {
 
 	stmt->unstructured = parseUnstructuredStatement(parser);
 	if (stmt->unstructured) {
+		stmt->type = UNSTRUCTURED_STMT;
 		return stmt;
 	}
 
 	stmt->structured = parseStructuredStatement(parser);
 	if (stmt->structured) {
+		stmt->type = STRUCTURED_STMT;
 		return stmt;
 	}
 

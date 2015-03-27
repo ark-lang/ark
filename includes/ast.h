@@ -262,6 +262,7 @@ typedef struct {
 	char *name;
 	Parameters *parameters;
 	bool mutable;
+	Type *type;
 } FunctionSignature;
 
 /**
@@ -419,12 +420,18 @@ typedef struct {
 	int type;
 } StructuredStatement;
 
+typedef enum {
+	UNSTRUCTURED_STMT,
+	STRUCTURED_STMT
+} StatementType;
+
 /**
  * Statements, structured and unstructured
  */
 typedef struct {
 	StructuredStatement *structured;
 	UnstructuredStatement *unstructured;
+	StatementType type;
 } Statement;
 
 /**
@@ -436,6 +443,7 @@ struct s_Type {
 	TypeName *typeName;
 	ArrayType *arrayType;
 	PointerType *pointerType;
+	int type;
 };
 
 Node *createNode(void *data, NodeType type);
@@ -480,7 +488,7 @@ Parameters *createParameters();
 
 Receiver *createReceiver(Type *type, char *name, bool mutable);
 
-FunctionSignature *createFunctionSignature(char *name, Parameters *params, bool mutable);
+FunctionSignature *createFunctionSignature(char *name, Parameters *params, bool mutable, Type *type);
 
 FunctionDecl *createFunctionDecl();
 
