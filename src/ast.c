@@ -487,10 +487,12 @@ void destroyAssignment(Assignment *assign) {
 
 void destroyUnstructuredStatement(UnstructuredStatement *stmt) {
 	if (!stmt) return;
-	destroyAssignment(stmt->assignment);
-	destroyDeclaration(stmt->decl);
-	destroyIncDecStat(stmt->incDec);
-	destroyLeaveStat(stmt->leave);
+	switch (stmt->type) {
+		case ASSIGNMENT_NODE: destroyAssignment(stmt->assignment); break;
+		case DECLARATION_NODE: destroyDeclaration(stmt->decl); break;
+		case INC_DEC_STAT_NODE: destroyIncDecStat(stmt->incDec); break;
+		case LEAVE_STAT_NODE: destroyLeaveStat(stmt->leave); break;
+	}
 	free(stmt);
 }
 

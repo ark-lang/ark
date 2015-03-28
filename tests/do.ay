@@ -1,8 +1,0 @@
-fn main(): int {
-	bool swag = false;
-	do swag {
-		printf("atleast once!\n");	
-	}
-		
-	return 0;
-}
