@@ -50,8 +50,8 @@ void emitExpression(Compiler *self, Expression *expr) {
 void emitType(Compiler *self, Type *type) {
 	switch (type->type) {
 	case POINTER_TYPE_NODE:
-		emitCode(self, "*");
 		emitType(self, type->pointerType->type);
+		emitCode(self, "*");
 		break;
 	case ARRAY_TYPE_NODE:
 		emitType(self, type->arrayType->type);
