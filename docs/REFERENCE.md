@@ -337,9 +337,6 @@ This is a work in progress feature, if you don't like it or have a better idea, 
 		s::Cat.x = 10;		// only do this if s is of type Cat
 		s::Dog.x = 20;		// only do this if s is of type Dog
 	}		
-	
-
-
 
 
 

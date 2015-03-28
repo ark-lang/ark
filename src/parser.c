@@ -33,30 +33,27 @@ IdentifierList *parseIdentifierList(Parser *parser) {
 		pushBackItem(idenList->values, consumeToken(parser)->content);
 
 		while (true) {
-			if (checkTokenTypeAndContent(parser, SEPARATOR, ",", 0)) {
-				consumeToken(parser);
+			if (checkTokenType(parser, IDENTIFIER, 0)) {
+				pushBackItem(idenList->values, consumeToken(parser)->content);
+				if (checkTokenTypeAndContent(parser, SEPARATOR, ",", 0)) {
+					consumeToken(parser);
+				}
+				else {
+					break;
+				}
 			}
 			else {
-				errorMessage("Expected a comma, but found `%s`", consumeToken(parser)->content);
-				break; // should go down to the error below
-			}
-
-			if (checkTokenType(parser, IDENTIFIER, 0)) {
-				// no more commas, exit out of list!
-				if (!checkTokenTypeAndContent(parser, SEPARATOR, ",", 1)) {
-					pushBackItem(idenList->values, consumeToken(parser)->content);
-					return idenList;
-				}
-				pushBackItem(idenList->values, consumeToken(parser)->content);
+				errorMessage("Expected an identifier, but found: `%s`", consumeToken(parser)->content);
+				destroyIdentifierList(idenList);
 			}
 		}
 	}
 	else {
 		errorMessage("Expected an identifier, but found `%s`", consumeToken(parser)->content);
+		destroyIdentifierList(idenList);
 	}
 
-	destroyIdentifierList(idenList);
-	return NULL;
+	return idenList;
 }
 
 Type *parseType(Parser *parser) {
@@ -106,6 +103,14 @@ FieldDecl *parseFieldDecl(Parser *parser) {
 		if (idenList) {
 			FieldDecl *decl = createFieldDecl(type, mutable);
 			decl->idenList = idenList;
+			if (checkTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
+				consumeToken(parser);
+			}
+			else {
+				errorMessage("Expected a semi-colon at the end of field declaration");
+				destroyIdentifierList(idenList);
+				destroyFieldDecl(decl);
+			}
 		}
 		else {
 			errorMessage("Failed to parse field items, errored at: `%s`", consumeToken(parser)->content);
@@ -123,28 +128,26 @@ FieldDecl *parseFieldDecl(Parser *parser) {
 FieldDeclList *parseFieldDeclList(Parser *parser) {
 	FieldDeclList *fieldDeclList = createFieldDeclList();
 
-	do {
-		FieldDecl *fieldDecl = parseFieldDecl(parser);
-		if (fieldDecl) {
-			pushBackItem(fieldDeclList->members, fieldDecl);
-			if (checkTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
-				consumeToken(parser);
+	if (checkTokenTypeAndContent(parser, SEPARATOR, "{", 0)) {
+		consumeToken(parser);
+
+		do {
+			FieldDecl *fieldDecl = parseFieldDecl(parser);
+			if (fieldDecl) {
+				pushBackItem(fieldDeclList->members, fieldDecl);
 				if (checkTokenTypeAndContent(parser, SEPARATOR, "}", 0)) {
 					consumeToken(parser);
 					break;
 				}
 			}
 			else {
-				errorMessage("Expected a semi-colon in field list, but found `%s`", consumeToken(parser)->content);
+				errorMessage("Expected a field declaration, but found `%s`", consumeToken(parser)->content);
+				destroyFieldDecl(fieldDecl);
+				return NULL;
 			}
 		}
-		else {
-			errorMessage("Expected a field declaration, but found `%s`", consumeToken(parser)->content);
-			destroyFieldDecl(fieldDecl);
-			return NULL;
-		}
+		while (true);
 	}
-	while (true);
 
 	return fieldDeclList;
 }
@@ -187,7 +190,7 @@ ParameterSection *parseParameterSection(Parser *parser) {
 			param->name = tok->content;
 		}
 		else {
-			errorMessage("Expected an identifier, but found `%s`", consumeToken(parser)->content);
+			errorMessage("Expected an identifier, but found: `%s`", consumeToken(parser)->content);
 		}
 	}
 	else {
