@@ -175,14 +175,8 @@ void startCompiler(Compiler *self) {
 
 		// write to header
 		self->writeState = WRITE_HEADER_STATE;
-		sds nameInUpperCase = toUppercase(self->currentSourceFile->name);
-		if (!nameInUpperCase) {
-			errorMessage("Failed to convert case to upper");
-			return;
-		}
-
-		emitCode(self, "#ifndef __%s_H\n", nameInUpperCase);
-		emitCode(self, "#define __%s_H\n\n", nameInUpperCase);
+		emitCode(self, "#ifndef __%s_H\n", self->currentSourceFile->name);
+		emitCode(self, "#define __%s_H\n\n", self->currentSourceFile->name);
 
 		emitCode(self, BOILERPLATE);
 
@@ -192,14 +186,11 @@ void startCompiler(Compiler *self) {
 		// write to header
 		self->writeState = WRITE_HEADER_STATE;
 		emitCode(self, "\n");
-		emitCode(self, "#endif // __%s_H\n", nameInUpperCase);
-
-		sdsfree(nameInUpperCase);
+		emitCode(self, "#endif // __%s_H\n", self->currentSourceFile->name);
 
 		// close files
 		closeFiles(self->currentSourceFile);
 	}
-
 	sds buildCommand = sdsempty();
 
 	// append the compiler to use etc
