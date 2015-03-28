@@ -71,8 +71,12 @@ void emitParameters(Compiler *self, Parameters *params) {
 		if (!param->mutable) {
 			emitCode(self, "const ");
 		}
-		emitCode(self, "%s", param->name);
 		emitType(self, param->type);
+		emitCode(self, " %s", param->name);
+
+		if (i != params->paramList->size - 1) {
+			emitCode(self, ", ");
+		}
 	}
 }
 
