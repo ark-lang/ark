@@ -19,7 +19,10 @@ void destroyParser(Parser *parser) {
 Literal *parseLiteral(Parser *parser) {
 	Token *tok = consumeToken(parser);
 	LiteralType type = getLiteralType(tok);
-	if (type == LITERAL_ERRORED) return NULL;
+	if (type == LITERAL_ERRORED) {
+		errorMessage("Errored at literal");
+		return NULL;
+	}
 	return createLiteral(tok->content, type);
 }
 
@@ -65,7 +68,6 @@ Type *parseType(Parser *parser) {
 		type->type = TYPE_NAME_NODE;
 	}
 	else if (checkTokenTypeAndContent(parser, SEPARATOR, "[", 1)) {
-		Type *type = parseType(parser);
 		Expression *expr = parseExpression(parser);
 		if (expr) {
 			type->arrayType = createArrayType(expr, type);
@@ -77,10 +79,13 @@ Type *parseType(Parser *parser) {
 		}
 	}
 	else if (checkTokenTypeAndContent(parser, OPERATOR, "^", 1)) {
-		Type *type = parseType(parser);
 		consumeToken(parser); // eat the caret
 		type->pointerType = createPointerType(type);
 		type->type = POINTER_TYPE_NODE;
+		type->pointerType->type = parseType(parser);
+	}
+	else {
+		destroyType(type);
 	}
 
 	return type;
@@ -202,7 +207,6 @@ Parameters *parseParameters(Parser *parser) {
 		params = createParameters();
 		while (true) {
 			if (checkTokenTypeAndContent(parser, SEPARATOR, ")", 0)) {
-				printf("LEFT PARAMS\n");
 				consumeToken(parser);
 				break;
 			}
@@ -1136,6 +1140,7 @@ LiteralType getLiteralType(Token *tok) {
 
 Token *consumeToken(Parser *parser) {
 	Token *tok = getVectorItem(parser->tokenStream, parser->tokenIndex++);
+	printf("consumed token: %s, current token is %s\n", tok->content, peekAtTokenStream(parser, 0)->content);
 	if (tok->type == END_OF_FILE) parser->parsing = false;
 	return tok;
 }
