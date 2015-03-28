@@ -1,7 +1,0 @@
-fn test(): void {
-	
-}
-
-fn main(): int {
-
-}
