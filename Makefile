@@ -1,5 +1,5 @@
 CC = clang
-C_FLAGS = -Wall -Iincludes/ -g
+C_FLAGS = -Wall -Iincludes/ -g -std=c11
 SOURCES = src/*.c
 
 all: ${SOURCES}

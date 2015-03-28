@@ -33,6 +33,11 @@ extern bool OUTPUT_C;
 extern char* OUTPUT_EXECUTABLE_NAME;
 
 /**
+ * Strdup so we can keep everything C11 compliant
+ */
+char* alloyStrdup(const char* s);
+
+/**
  * Generates a random string of the given length
  *
  * @param length the length of the string
