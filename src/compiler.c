@@ -81,6 +81,9 @@ void emitParameters(Compiler *self, Parameters *params) {
 }
 
 void emitFunctionSignature(Compiler *self, FunctionSignature *func) {
+	if (!func->mutable) {
+		emitCode(self, "const ");
+	}
 	emitType(self, func->type);
 	emitCode(self, " %s(", func->name);
 	emitParameters(self, func->parameters);
