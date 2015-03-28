@@ -1,13 +1,3 @@
-fn add(int a, int b): int -> return a + b;
-
-fn do_stuff(): ^int {
-	int ^x = malloc(sizeof(^x));
-	^x = 10;
-	return x;
-}
-
-fn main(): int {
-	int ^x = do_stuff();
-	printf("%s\n", ^x);
-	return 0;
+fn main(): ^int {
+	
 }
