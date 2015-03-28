@@ -3,5 +3,4 @@ fn add(int a, int b): int {
 }
 
 fn main(): int {
-	return 5;
 }
