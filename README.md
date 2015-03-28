@@ -18,9 +18,15 @@ After you make the project, the alloyc executable will be located in `bin/alloyc
 run the `-h` flag. There are test files under the `tests/` directory, however the one in the example may not exist
 if you are reading this in the future! We also can't guarantee that it will still work either!
 
+**The compilers generated code will be compiled with GCC by default, you can use a flag to change this however, see the code snippet!**
 ```bash
 bin/alloyc tests/factorial.ay
+
+// IF YOU DO NOT HAVE GCC OR WANT TO USE CLANG FOR EXAMPLE, DO THIS!
+bin/alloyc somefile.ay -compiler clang
+
 // an executable will be created in your current directory called `main`
+// run it like so...
 ./main
 ```
 
