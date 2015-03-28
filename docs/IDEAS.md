@@ -26,6 +26,11 @@ Which is the same as
     a[2] = 12
     a[3] = 13
 
+I may scratch the tilde, however you should be able to explicitly malloc something. The grammar would probably be something like:
+
+	(literal | ["~" literal])
+
 ------
 
 ## Memory Model
+The memory model is pretty simple, the compiler just inserts free's.

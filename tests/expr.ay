@@ -1,8 +1,0 @@
-// expressions not working jsut yet either
-
-fn add(int a, int b): int -> return a + b;
-
-fn main(): int {
-	
-	return 1;
-}

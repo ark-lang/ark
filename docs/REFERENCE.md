@@ -35,13 +35,13 @@ syntax will typically show the grammar for the syntax, and an example of the syn
 
 ## Characters and Letters
 
-    digit = { "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" } .
+    digit = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" .
     letter = "A" | "a" | ... "Z" | "z" | "_" .
 
 Letters and digits are ASCII for now, however we may allow for unicode later on.
 
 ## Operators
-Below are the many operators availible. The sign operators are unary operators, which can prefix numeric literals. The `escaped_char` are
+Below are the many operators available. The sign operators are unary operators, which can prefix numeric literals. The `escaped_char` are
 character escapes. The third section of characters are various logical, relational and arithmetic operations. The fourth set of characters
 group specific operations into either the unary or binary categories.
 
@@ -134,8 +134,9 @@ There are two types of blocks, a multi-block, denoted with two curly braces `{}`
 
 	Block = ( "{" [ StatementList ";" ] "}" | "->" Statement ) .
 	
-
 	{
+		statement;
+		statement;
 		statement;
 	}
 	
@@ -164,6 +165,10 @@ A method is a function bound to a specific structure.
 	struct Point {
 		float x;
 		float y;
+	}
+	
+	fn (Point ^p) distance(float x): float {
+	
 	}
 	
 	fn (Point ^p) distance(): float {
@@ -272,10 +277,8 @@ For instance, given a Point, namely `p`, one may do the following:
 	// set x to the value of y
 	int x = ^y;
 	
-## Memory Model!
-
-	Just about how frees are inserted automatically 
-	by the compiler!
+## Memory Model
+// todo
 
 ## Enumeration
 
