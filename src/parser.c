@@ -655,6 +655,7 @@ UnstructuredStatement *parseUnstructuredStatement(Parser *parser) {
 			||checkTokenTypeAndContent(parser, IDENTIFIER, BREAK_KEYWORD, 0)) {
 		stmt->leave = parseLeaveStat(parser);
 		stmt->type = LEAVE_STAT_NODE;
+		errorMessage("SWAG!\n");
 	}
 	else if ((checkTokenTypeAndContent(parser, OPERATOR, "+", 0) && checkTokenTypeAndContent(parser, OPERATOR, "+", 1))
 			|| (checkTokenTypeAndContent(parser, OPERATOR, "-", 0) && checkTokenTypeAndContent(parser, OPERATOR, "-", 1))) {
