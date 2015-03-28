@@ -1,3 +1,7 @@
-fn main(): ^int {
-	
+fn add(int a, int b): int {
+
+}
+
+fn main(): int {
+		
 }
