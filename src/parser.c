@@ -177,8 +177,9 @@ ParameterSection *parseParameterSection(Parser *parser) {
 	Type *type = parseType(parser);
 	if (type) {
 		if (checkTokenType(parser, IDENTIFIER, 0)) {
-			param->name = consumeToken(parser)->content;
+			Token *tok = consumeToken(parser);
 			param = createParameterSection(type, mutable);
+			param->name = tok->content;
 		}
 		else {
 			errorMessage("Expected an identifier, but found `%s`", consumeToken(parser)->content);
@@ -201,6 +202,7 @@ Parameters *parseParameters(Parser *parser) {
 		params = createParameters();
 		while (true) {
 			if (checkTokenTypeAndContent(parser, SEPARATOR, ")", 0)) {
+				printf("LEFT PARAMS\n");
 				consumeToken(parser);
 				break;
 			}
@@ -267,9 +269,9 @@ Receiver *parseReceiver(Parser *parser) {
 }
 
 FunctionSignature *parseFunctionSignature(Parser *parser) {
-	Receiver *receiver = NULL;
 	FunctionSignature *signature = NULL;
 
+	Receiver *receiver = NULL;
 	if (checkTokenTypeAndContent(parser, SEPARATOR, "(", 0)) {
 		receiver = parseReceiver(parser);
 	}
@@ -291,6 +293,12 @@ FunctionSignature *parseFunctionSignature(Parser *parser) {
 			if (type) {
 				signature = createFunctionSignature(functionName->content, params, mutable, type);
 			}
+			else {
+				destroyType(type);
+			}
+		}
+		else {
+			destroyParameters(params);
 		}
 	}
 
@@ -298,54 +306,59 @@ FunctionSignature *parseFunctionSignature(Parser *parser) {
 }
 
 ElseStat *parseElseStat(Parser *parser) {
-	ElseStat *stat = createElseStat();
-	Block *body = parseBlock(parser);
-	if (!body) {
-		errorMessage("Expected a block in else statement, but found `%s`", consumeToken(parser)->content);
-		destroyElseStat(stat);
-		return NULL;
+	ElseStat *stat = NULL;
+	if (stat) {
+		Block *body = parseBlock(parser);
+		if (body) {
+			stat = createElseStat();
+			stat->body = body;
+		}
+		else {
+			errorMessage("Expected a block in else statement, but found `%s`", consumeToken(parser)->content);
+			destroyBlock(body);
+		}
 	}
-	stat->body = body;
 	return stat;
 }
 
 IfStat *parseIfStat(Parser *parser) {
+	IfStat *ifStmt = NULL;
+
 	if (checkTokenTypeAndContent(parser, IDENTIFIER, IF_KEYWORD, 0)) {
 		consumeToken(parser);
 
 		Expression *expr = parseExpression(parser);
-		if (!expr) {
-			errorMessage("Expected condition in if statement, found `%s`", consumeToken(parser)->content);
-			return NULL;
-		}
+		if (expr) {
+			Block *block = parseBlock(parser);
+			if (block) {
+				ElseStat *elseStmt = NULL;
+				if (checkTokenTypeAndContent(parser, IDENTIFIER, ELSE_KEYWORD, 0)) {
+					elseStmt = parseElseStat(parser);
+					if (!elseStmt) {
+						errorMessage("Failed to parse else statement");
+						return NULL;
+					}
+				}
 
-		Block *block = parseBlock(parser);
-		if (!block) {
-			errorMessage("Expected block after condition in if statement, found `%s`", consumeToken(parser)->content);
-			destroyExpression(expr);
-			return NULL;
-		}
-
-		ElseStat *elseStmt = NULL;
-		if (checkTokenTypeAndContent(parser, IDENTIFIER, ELSE_KEYWORD, 0)) {
-			elseStmt = parseElseStat(parser);
-			if (!elseStmt) {
-				errorMessage("Failed to parse else statement");
+				ifStmt = createIfStat();
+				ifStmt->body = block;
+				ifStmt->elseStmt = elseStmt;
+				ifStmt->expr = expr;
+			}
+			else {
+				errorMessage("Expected block after condition in if statement, found `%s`", consumeToken(parser)->content);
 				destroyExpression(expr);
 				destroyBlock(block);
 				return NULL;
 			}
 		}
-
-		IfStat *ifStmt = createIfStat();
-		ifStmt->body = block;
-		ifStmt->elseStmt = elseStmt;
-		ifStmt->expr = expr;
-		return ifStmt;
+		else {
+			errorMessage("Expected condition in if statement, found `%s`", consumeToken(parser)->content);
+			destroyExpression(expr);
+		}
 	}
 
-	errorMessage("Failed to parse if statement");
-	return NULL;
+	return ifStmt;
 }
 
 ForStat *parseForStat(Parser *parser) {
@@ -629,29 +642,27 @@ UnstructuredStatement *parseUnstructuredStatement(Parser *parser) {
 			|| checkTokenTypeAndContent(parser, OPERATOR, "^", 1))) {
 		stmt->decl = parseDeclaration(parser);
 		stmt->type = DECLARATION_NODE;
-		return stmt;
 	}
 	else if (checkTokenTypeAndContent(parser, IDENTIFIER, CONTINUE_KEYWORD, 0)
 			|| checkTokenTypeAndContent(parser, IDENTIFIER, RETURN_KEYWORD, 0)
 			||checkTokenTypeAndContent(parser, IDENTIFIER, BREAK_KEYWORD, 0)) {
 		stmt->leave = parseLeaveStat(parser);
 		stmt->type = LEAVE_STAT_NODE;
-		return stmt;
 	}
 	else if ((checkTokenTypeAndContent(parser, OPERATOR, "+", 0) && checkTokenTypeAndContent(parser, OPERATOR, "+", 1))
 			|| (checkTokenTypeAndContent(parser, OPERATOR, "-", 0) && checkTokenTypeAndContent(parser, OPERATOR, "-", 1))) {
 		stmt->incDec = parseIncDecStat(parser);
 		stmt->type = INC_DEC_STAT_NODE;
-		return stmt;
 	}
 	else if (checkTokenTypeAndContent(parser, OPERATOR, "=", 1)) {
 		stmt->assignment = parseAssignment(parser);
 		stmt->type = ASSIGNMENT_NODE;
-		return stmt;
+	}
+	else {
+		destroyUnstructuredStatement(stmt);
 	}
 
-	destroyUnstructuredStatement(stmt);
-	return NULL;
+	return stmt;
 }
 
 Statement *parseStatement(Parser *parser) {
@@ -710,6 +721,8 @@ Block *parseBlock(Parser *parser) {
 		return block;
 	}
 	else if (checkTokenTypeAndContent(parser, OPERATOR, SINGLE_STATEMENT_OPERATOR, 0)) {
+		consumeToken(parser);
+
 		Statement *stmt = parseStatement(parser);
 		if (!stmt) {
 			errorMessage("Failed to parse statement in a single-line block");
@@ -725,7 +738,7 @@ Block *parseBlock(Parser *parser) {
 			return block;
 		}
 		else {
-			errorMessage("Expected a semi-colon at the end of statement, but found `%s`", consumeToken(parser)->content);
+			errorMessage("Expected a semi-colon at the end of single-block function, but found `%s`", consumeToken(parser)->content);
 			destroyStatementList(stmtList);
 			return NULL;
 		}
@@ -1094,14 +1107,17 @@ Expression *parseExpression(Parser *parser) {
 	if (expr->binary) {
 		return expr;
 	}
+
 	expr->unary = parseUnaryExpr(parser);
 	if (expr->unary) {
 		return expr;
 	}
+
 	expr->primary = parsePrimaryExpr(parser);
 	if (expr->primary) {
 		return expr;
 	}
+
 	return NULL;
 }
 

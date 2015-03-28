@@ -1,9 +1,0 @@
-fn main(): int {
-	int x = 1;
-
-	if x == 1 -> printf("%d\n", x);
-	else if x == 2 -> printf("%d\n", x);
-	else if x == 0 -> printf("x is %d\n", x);
-
-	return 0;
-}
