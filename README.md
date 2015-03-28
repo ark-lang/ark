@@ -50,17 +50,17 @@ If you want to contribute, check out the [CONTRIBUTING](CONTRIBUTING.md) file.
 ## Contributor List
 Here are the people who are working, or have worked on Alloy.
 
-* felixangell
-* vnev
-* haneefmubarak
-* torwart
-* IanMurray
-* requimrar
-* ianhedoesit
-* FelixWittmann
-* paraxor
-* andars
-* theunamedguy
+* [felixangell](https://github.com/felixangell)
+* [vnev](https://github.com/vnev)
+* [haneefmubarak](https://github.com/haneefmubarak)
+* [xhjo](https://github.com/xhjo)
+* [IanMurray](https://github.com/IanMurray)
+* [requimrar](https://github.com/requimrar)
+* [ianhedoesit](https://github.com/ianhedoesit)
+* [FelixWittmann](https://github.com/FelixWittmann)
+* [paraxor](https://github.com/paraxor)
+* [andars](https://github.com/andars)
+* [theunamedguy](https://github.com/theunamedguy)
 
 ## Additional Credits
 
