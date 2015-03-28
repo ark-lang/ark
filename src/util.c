@@ -1,5 +1,12 @@
 #include "util.h"
 
+char* alloyStrdup(const char* s) {
+	char* data = malloc(strlen(s) + 1);
+	if (data)
+		strcpy(data, s);
+	return data;
+}
+
 sds randString(size_t length) {
 
     static char charset[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_";
@@ -62,8 +69,8 @@ char *removeExtension(char *file) {
 
 char *getFileName(char *path) {
 	char *s = strrchr(path, '/');
-	if (!s) return removeExtension(strdup(path));
-	char *result = strdup(s + 1);
+	if (!s) return removeExtension(alloyStrdup(path));
+	char *result = alloyStrdup(s + 1);
 	char *resultWithoutExt = removeExtension(result);
 	return resultWithoutExt;
 }
