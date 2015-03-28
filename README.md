@@ -1,4 +1,4 @@
-# [Alloy](http://alloy-lang.org) [![BuildStatus](https://travis-ci.org/felixangell/alloy.svg?branch=master)](https://travis-ci.org/felixangell/alloy)
+# [Alloy](http://alloy-lang.org) [![BuildStatus](https://travis-ci.org/alloy-lang/alloy.svg?branch=master)](https://travis-ci.org/alloy-lang/alloy)
 Alloy is a work in progress programming language, read the [reference](docs/REFERENCE.md) to find out more about the plans, syntax, etc. Please note that the language is constantly being changed, so the Reference may be outdated, or a little bit behind the master.
 
 ## Building
@@ -9,7 +9,7 @@ need a few things:
 * Make
 
 ```bash
-$ git clone http://www.github.com/felixangell/alloy
+$ git clone http://www.github.com/alloy-lang/alloy
 $ cd alloy
 $ make
 ```
