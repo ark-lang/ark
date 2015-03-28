@@ -25,7 +25,7 @@
 #define OUTPUT_C_ARG		"-c"
 
 // flag that shows the help dialog
-#define HELP_ARG			"-help"
+#define HELP_ARG			"-h"
 
 // flag for the executables name
 #define OUTPUT_ARG			"-o"
