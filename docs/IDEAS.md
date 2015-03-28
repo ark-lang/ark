@@ -31,6 +31,3 @@ I may scratch the tilde, however you should be able to explicitly malloc somethi
 	(literal | ["~" literal])
 
 ------
-
-## Memory Model
-The memory model is pretty simple, the compiler just inserts free's.
