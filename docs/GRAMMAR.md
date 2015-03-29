@@ -4,6 +4,7 @@ The grammar pretty much maps straight onto the parsers source.
 
 	digit = { "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" } .
 	letter = "A" | "a" | ... "Z" | "z" | "_" .
+	hex_digit = { "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" | "a" | "A" | "b" | "B" | "c" | "C" | "d" | "D" | "e" | "E" | "f" | "F" } .
 	
 	identifier = letter { letter | digit } .
 	
@@ -15,6 +16,7 @@ The grammar pretty much maps straight onto the parsers source.
 	addOp = "+" | "-" | "|" | "^" .
 	mulOp = "*" | "/" | "%" | "<<" | ">>" | "&" .
 	unaryOp = "+" | "-" | "!" | "^" | "<" | ">" | "*" | "&" .
+	hex_literal = "0" ( "x" | "X" ) hex_digit { hex_digit } .
 
 	NumberLiteral = [sign] digit [ "." { digit } ]	
 	StringLiteral = """ { letter } """ . 
