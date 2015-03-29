@@ -70,16 +70,16 @@ fn (VirtualMachine ^vm) stop(): void {
 
 fn (VirtualMachine ^vm) arithmetic(int type): void {
     match type {
-        ADD -> {
+        ADD {
             vm.registers[vm.first_register] = vm.registers[vm.second_register] + vm.registers[vm.third_register];
         };
-        SUB -> {
+        SUB {
             vm.registers[vm.first_register] = vm.registers[vm.second_register] - vm.registers[vm.third_register];
         };
-        MUL -> {
+        MUL {
             vm.registers[vm.first_register] = vm.registers[vm.second_register] * vm.registers[vm.third_register];
         };
-        DIV -> {
+        DIV {
             vm.registers[vm.first_register] = vm.registers[vm.second_register] / vm.registers[vm.third_register];
         };
     }
