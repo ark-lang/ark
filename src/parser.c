@@ -59,14 +59,11 @@ IdentifierList *parseIdentifierList(Parser *parser) {
 Type *parseType(Parser *parser) {
 	Type *type = createType();
 
-	debugMessage("MUTHA FUCKA %s", peekAtTokenStream(parser, 0)->content);
-
 	if (checkTokenTypeAndContent(parser, OPERATOR, "^", 1)) {
-		debugMessage("CARET BITCH");
 		type->pointerType = createPointerType(type);
 		type->pointerType->type = parseType(parser);
+		skipNextToken(parser);
 		type->type = POINTER_TYPE_NODE;
-		consumeToken(parser); // eat the caret
 	}
 	else if (checkTokenType(parser, IDENTIFIER, 0)) {
 		Token *token = consumeToken(parser);
@@ -1159,8 +1156,13 @@ LiteralType getLiteralType(Token *tok) {
 	}
 }
 
+void skipNextToken(Parser *parser) {
+	peekAtTokenStream(parser, 1)->type = SKIP_TOKEN;
+}
+
 Token *consumeToken(Parser *parser) {
 	Token *tok = getVectorItem(parser->tokenStream, parser->tokenIndex++);
+	if (tok->type == SKIP_TOKEN) tok = getVectorItem(parser->tokenStream, parser->tokenIndex++);
 	printf("consumed token: %s, current token is %s\n", tok->content, peekAtTokenStream(parser, 0)->content);
 	if (tok->type == END_OF_FILE) parser->parsing = false;
 	return tok;
