@@ -17,37 +17,7 @@ A c binding is created as follows:
 ------
 
 ## Memory Management
-I could implement a static analyzer for memory? For instance, the compiler would basically do
-ARC **once** before code generation. So it would work as follows:
 
-    int ^x = malloc(sizeof(^x));        // alocate some memory
-                                        // the compiler will take this and create a reference to it
-
-    ^x = 10;
-
-    // it has zero references so the compiler inserts free(x) at the end of the scope.
-
-Now a more complex example:
-
-    struct Dog {
-        int y;
-    }
-
-    struct Cat {
-        int x;
-        Dog ^dog;
-    }
-
-    fn swag(Cat ^cat): void {
-        cat.dog = malloc(sizeof(^cat.dog));
-        cat.dog.y = 10;
-    }
-
-    fn main(): void {
-        Cat ^cat = malloc(sizeof(^cat));
-        cat.x = 10;
-        swag(cat);
-    }
 
 ------
 
