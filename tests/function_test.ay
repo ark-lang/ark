@@ -1,4 +1,4 @@
-fn (Lexer ^swag) add(int a, int b): int {
+fn (Lexer^ swag) add(int a, int b): int {
 
 }
 
