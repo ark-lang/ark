@@ -61,7 +61,14 @@ Type *parseType(Parser *parser) {
 
 	debugMessage("MUTHA FUCKA %s", peekAtTokenStream(parser, 0)->content);
 
-	if (checkTokenType(parser, IDENTIFIER, 0)) {
+	if (checkTokenTypeAndContent(parser, OPERATOR, "^", 1)) {
+		debugMessage("CARET BITCH");
+		type->pointerType = createPointerType(type);
+		type->pointerType->type = parseType(parser);
+		type->type = POINTER_TYPE_NODE;
+		consumeToken(parser); // eat the caret
+	}
+	else if (checkTokenType(parser, IDENTIFIER, 0)) {
 		Token *token = consumeToken(parser);
 		type->typeName = createTypeName(token->content);
 		type->type = TYPE_NAME_NODE;
@@ -88,12 +95,6 @@ Type *parseType(Parser *parser) {
 		if (!matchTokenTypeAndContent(parser, SEPARATOR, "]", 0)) {
 			errorMessage("Expected closing bracket for dat array");
 		}
-	}
-	else if (checkTokenTypeAndContent(parser, OPERATOR, "^", 1)) {
-		type->pointerType = createPointerType(type);
-		type->pointerType->type = parseType(parser);
-		type->type = POINTER_TYPE_NODE;
-		consumeToken(parser); // eat the caret
 	}
 	else {
 		errorMessage("we dun fucked %s", peekAtTokenStream(parser, 0)->content);
@@ -1166,11 +1167,11 @@ Token *consumeToken(Parser *parser) {
 }
 
 bool checkTokenType(Parser *parser, int type, int ahead) {
-	return peekAtTokenStream(parser, 0)->type == type;
+	return peekAtTokenStream(parser, ahead)->type == type;
 }
 
 bool checkTokenTypeAndContent(Parser *parser, int type, char *content, int ahead) {
-	return peekAtTokenStream(parser, 0)->type == type && !strcmp(peekAtTokenStream(parser, 0)->content, content);
+	return peekAtTokenStream(parser, ahead)->type == type && !strcmp(peekAtTokenStream(parser, ahead)->content, content);
 }
 
 bool matchTokenType(Parser *parser, int type, int ahead) {
