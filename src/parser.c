@@ -59,29 +59,44 @@ IdentifierList *parseIdentifierList(Parser *parser) {
 Type *parseType(Parser *parser) {
 	Type *type = createType();
 
+	debugMessage("MUTHA FUCKA %s", peekAtTokenStream(parser, 0)->content);
+
 	if (checkTokenType(parser, IDENTIFIER, 0)) {
 		Token *token = consumeToken(parser);
 		type->typeName = createTypeName(token->content);
 		type->type = TYPE_NAME_NODE;
 	}
 	else if (checkTokenTypeAndContent(parser, SEPARATOR, "[", 1)) {
+		Type *type = parseType(parser);
+
+		if (!matchTokenTypeAndContent(parser, SEPARATOR, "[", 0)) {
+			errorMessage("where the fuk is me fukin square bracket m8?");
+		}
+
 		Expression *expr = parseExpression(parser);
 		if (expr) {
 			type->arrayType = createArrayType(expr, type);
 			type->type = ARRAY_TYPE_NODE;
+			type->arrayType->length = expr;
+			type->arrayType->type = type;
 		}
 		else {
 			destroyExpression(expr);
 			destroyType(type);
 		}
+
+		if (!matchTokenTypeAndContent(parser, SEPARATOR, "]", 0)) {
+			errorMessage("Expected closing bracket for dat array");
+		}
 	}
 	else if (checkTokenTypeAndContent(parser, OPERATOR, "^", 1)) {
-		consumeToken(parser); // eat the caret
+		type->pointerType->type = parseType(parser);
 		type->pointerType = createPointerType(type);
 		type->type = POINTER_TYPE_NODE;
-		type->pointerType->type = parseType(parser);
+		consumeToken(parser); // eat the caret
 	}
 	else {
+		errorMessage("we dun fucked %s", peekAtTokenStream(parser, 0)->content);
 		destroyType(type);
 	}
 
@@ -257,6 +272,7 @@ Receiver *parseReceiver(Parser *parser) {
 				if (checkTokenTypeAndContent(parser, SEPARATOR, ")", 0)) {
 					consumeToken(parser);
 					receiver = createReceiver(type, iden->content, mutable);
+					return receiver;
 				}
 				else {
 					errorMessage("Expected closing parenthesis");
