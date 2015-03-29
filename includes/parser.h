@@ -131,6 +131,8 @@ int getTokenPrecedence(Parser *parser);
  */
 LiteralType getLiteralType(Token *tok);
 
+void skipNextToken(Parser *parser);
+
 /**
  * Consumes the current token
  *
