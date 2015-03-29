@@ -195,7 +195,9 @@ void startCompiler(Compiler *self) {
 
 	// append the compiler to use etc
 	buildCommand = sdscat(buildCommand, COMPILER);
-	buildCommand = sdscat(buildCommand, " -std=c99 -Wall -o ");
+	buildCommand = sdscat(buildCommand, " ");
+	buildCommand = sdscat(buildCommand, ADDITIONAL_COMPILER_ARGS);
+	buildCommand = sdscat(buildCommand, " ");
 	buildCommand = sdscat(buildCommand, OUTPUT_EXECUTABLE_NAME);
 	buildCommand = sdscat(buildCommand, " ");
 
