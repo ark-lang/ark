@@ -1157,6 +1157,7 @@ LiteralType getLiteralType(Token *tok) {
 }
 
 void skipNextToken(Parser *parser) {
+	printf("skipping token %s\n", peekAtTokenStream(parser, 1)->content);
 	peekAtTokenStream(parser, 1)->type = SKIP_TOKEN;
 }
 
