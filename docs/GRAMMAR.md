@@ -18,40 +18,36 @@ The grammar pretty much maps straight onto the parsers source.
 	unaryOp = "+" | "-" | "!" | "^" | "<" | ">" | "*" | "&" .
 	hex_literal = "0" ( "x" | "X" ) hex_digit { hex_digit } .
 
+	Literal = NumberLiteral | StringLiteral | CharacterLiteral .
 	NumberLiteral = [sign] digit [ "." { digit } ]	
 	StringLiteral = """ { letter } """ . 
 	CharacterLiteral = "'"  ( letter | escaped_char ) "'" .
-	Literal = NumberLiteral | StringLiteral | CharacterLiteral .
 	
 	IdentifierList = identifier { "," identifier }
 	ExpressionList = Expression { "," Expression }
 	
-	Type = TypeName | ArrayType | PointerType .
-	
 	TypeName = identifier .
 	
+	Type = TypeName | ArrayType | PointerType .
+	PointerType = Type "^" .
 	ArrayType = Type "[" [ Expression ] "]" .
 	
-	StructDecl = "struct" identifier "{" [ FieldDeclList ] "}" .
-	FieldDeclList = FieldDecl { FieldDecl ";" } .
-	FieldDecl = [ "mut" ] Type IdentifierList .
-
-	FunctionDecl = "fn" FunctionSignature ( ";" | Block ) .
 	FunctionSignature = [ Receiver ] identifier Parameters ":" [ "mut" ] Type .
 	Receiver = "(" [ "mut" ] Type identifier ")"
 	Parameters = "(" [ parameterList ] ")" .
 	ParameterList = ParameterSection { "," ParameterSection } .
 	ParameterSection = [ "mut" ] Type identifier .
 
-	PointerType = Type "^" .
+	StructDecl = "struct" identifier "{" [ FieldDeclList ] "}" .
+	FieldDeclList = FieldDecl { FieldDecl } .
+	FieldDecl = [ "mut" ] Type IdentifierList ";" .
+	FunctionDecl = "fn" FunctionSignature ( ";" | Block ) .
 
 	Block = ( "{" [ StatementList ] "}" | "->" Statement ) .
 	IfStat = if Expression Block [ "else" Statement ] .
 	StatementList = { Statement ";" } .
-
 	MatchStat = "match" Expression "{" { MatchClause "," } "}" . 
-	MatchClause = Expression Block [ LeaveStat ] . 
-	
+	MatchClause = Expression Block ";" . 
 	ForStat = "for" Type identifier ":" "(" PrimaryExpr "," PrimaryExpr [ "," PrimaryExpr ] ")" Block .
 	
 	Declaration = VarDecl | FunctionDecl | StructDecl.
@@ -66,7 +62,7 @@ The grammar pretty much maps straight onto the parsers source.
 		| Literal 
 		| "(" Expression ")" 
 		| Call 
-		| Expression "[" Expression [ ":" Expression ] "]" 
+		| Expression "[" ( Expression [ ":" Expression ] | ExpressionList ) "]" 
 		| Expression "." identifier.
 		
 	Call = Expression "(" [ ExpressionList ] ")" .
