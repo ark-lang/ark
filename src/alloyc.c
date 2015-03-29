@@ -4,6 +4,7 @@ bool DEBUG_MODE = false;	// default is no debug
 char *OUTPUT_EXECUTABLE_NAME = "main"; // default is main
 char *COMPILER = "gcc"; // default is GCC
 bool OUTPUT_C = false;	// default is no c output
+char *ADDITIONAL_COMPILER_ARGS = "-std=c11 -g -Wall";
 
 void help() {
 	printf("Alloy-Lang Argument List\n");
