@@ -90,8 +90,8 @@ Type *parseType(Parser *parser) {
 		}
 	}
 	else if (checkTokenTypeAndContent(parser, OPERATOR, "^", 1)) {
-		type->pointerType->type = parseType(parser);
 		type->pointerType = createPointerType(type);
+		type->pointerType->type = parseType(parser);
 		type->type = POINTER_TYPE_NODE;
 		consumeToken(parser); // eat the caret
 	}
