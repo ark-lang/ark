@@ -1,9 +1,11 @@
 /**
 
     This is a simple virtual machine, originally I wrote this in Rust, but I've ported it to Alloy.
+  
     I think this will work as a test case as it uses a fair amount of the core features in Alloy, enumeration,
     structures, methods, functions, arrays, matches, if statements, loops, etc... I'm not sure this even works yet,
-    and some of the features aren't even implemented yet on the grammar.
+    and some of the features aren't even implemented yet on the grammar, only enumeration and a few small bits like
+    where semi-colonsa are permitted, etc.
 
 **/
 
