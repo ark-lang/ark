@@ -50,8 +50,8 @@ void emitExpression(Compiler *self, Expression *expr) {
 void emitType(Compiler *self, Type *type) {
 	switch (type->type) {
 	case POINTER_TYPE_NODE:
-		emitType(self, type->pointerType->type);
 		emitCode(self, "*");
+		emitType(self, type->pointerType->type);
 		break;
 	case ARRAY_TYPE_NODE:
 		emitType(self, type->arrayType->type);
@@ -80,12 +80,26 @@ void emitParameters(Compiler *self, Parameters *params) {
 	}
 }
 
+void emitReceiver(Compiler *self, Receiver *rec) {
+	if (rec != NULL){
+		if (!rec->mutable) {
+			emitCode(self, "const ");
+		}
+		emitCode(self, rec->name);
+		emitCode(self, " ");
+		emitType(self, rec->type);
+	}
+}
+
 void emitFunctionSignature(Compiler *self, FunctionSignature *func) {
 	if (!func->mutable) {
 		emitCode(self, "const ");
 	}
 	emitType(self, func->type);
 	emitCode(self, " %s(", func->name);
+	emitReceiver(self, func->receiver);
+	// cleaner formatting, also avoids trailing comma
+	if (func->parameters->paramList->size > 1) { emitCode(self, ", "); }
 	emitParameters(self, func->parameters);
 	emitCode(self, ")");
 }
@@ -143,10 +157,38 @@ void emitFunctionDecl(Compiler *self, FunctionDecl *decl) {
 	emitBlock(self, decl->body);
 }
 
+void emitIdentifierList(Compiler *self, IdentifierList *list) {
+	for (int i = 0; i < list->values->size; i++) {
+		Token *tok = getVectorItem(list->values, i);
+		emitCode(self, tok->content);
+		if (i != list->values->size - 1 && list->values->size > 1) {
+			emitCode(self, ", ");
+		}
+	}
+}
+
+void emitFieldDeclList(Compiler *self, FieldDeclList *list) {
+	for (int i = 0; i < list->members->size; i++) {
+		FieldDecl *decl = getVectorItem(list->members, i);
+		if (!decl->mutable) {
+			emitCode(self, "const ");
+		}
+		emitType(self, decl->type);
+		emitIdentifierList(self, decl->idenList);
+	}
+}
+
+void emitStructDecl(Compiler *self, StructDecl *decl) {
+	self->writeState = WRITE_HEADER_STATE;
+	emitCode(self, "typedef struct {" CC_NEWLINE);
+	emitFieldDeclList(self, decl->fields);
+	emitCode(self, "} %s;" CC_NEWLINE, decl->name);
+}
+
 void emitDeclaration(Compiler *self, Declaration *decl) {
 	switch (decl->declType) {
 	case FUNC_DECL: emitFunctionDecl(self, decl->funcDecl); break;
-	case STRUCT_DECL: break;
+	case STRUCT_DECL: emitStructDecl(self, decl->structDecl); break;
 	case VAR_DECL: break;
 	}
 }

@@ -80,6 +80,8 @@ void emitStatementList(Compiler *self, StatementList *stmtList);
 
 void emitFunctionDecl(Compiler *self, FunctionDecl *decl);
 
+void emitStructDecl(Compiler *self, StructDecl *decl);
+
 void emitDeclaration(Compiler *self, Declaration *decl);
 
 void consumeAstNode(Compiler *self);

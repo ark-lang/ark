@@ -145,18 +145,16 @@ FieldDeclList *parseFieldDeclList(Parser *parser) {
 		consumeToken(parser);
 
 		do {
+			if (checkTokenTypeAndContent(parser, SEPARATOR, "}", 0)) {
+				consumeToken(parser);
+				break;
+			}
 			FieldDecl *fieldDecl = parseFieldDecl(parser);
 			if (fieldDecl) {
 				pushBackItem(fieldDeclList->members, fieldDecl);
-				if (checkTokenTypeAndContent(parser, SEPARATOR, "}", 0)) {
-					consumeToken(parser);
-					break;
-				}
 			}
 			else {
-				errorMessage("Expected a field declaration, but found `%s`", consumeToken(parser)->content);
 				destroyFieldDecl(fieldDecl);
-				return NULL;
 			}
 		}
 		while (true);
@@ -312,6 +310,7 @@ FunctionSignature *parseFunctionSignature(Parser *parser) {
 			Type *type = parseType(parser);
 			if (type) {
 				signature = createFunctionSignature(functionName->content, params, mutable, type);
+				signature->receiver = receiver;
 			}
 			else {
 				destroyType(type);
