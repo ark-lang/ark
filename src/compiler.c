@@ -197,7 +197,7 @@ void startCompiler(Compiler *self) {
 	buildCommand = sdscat(buildCommand, COMPILER);
 	buildCommand = sdscat(buildCommand, " ");
 	buildCommand = sdscat(buildCommand, ADDITIONAL_COMPILER_ARGS);
-	buildCommand = sdscat(buildCommand, " ");
+	buildCommand = sdscat(buildCommand, " -o ");
 	buildCommand = sdscat(buildCommand, OUTPUT_EXECUTABLE_NAME);
 	buildCommand = sdscat(buildCommand, " ");
 
