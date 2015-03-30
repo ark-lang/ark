@@ -1208,7 +1208,7 @@ void startParsingSourceFiles(Parser *parser, Vector *sourceFiles) {
 	for (i = 0; i < sourceFiles->size; i++) {
 		SourceFile *file = getVectorItem(sourceFiles, i);
 		parser->tokenStream = file->tokens;
-		parser->parseTree = createVector();
+		parser->parseTree = createVector(VECTOR_EXPONENTIAL);
 		parser->tokenIndex = 0;
 		parser->parsing = true;
 

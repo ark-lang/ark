@@ -56,7 +56,7 @@ AlloyCompiler *createAlloyCompiler(int argc, char** argv) {
 		self->lexer = NULL;
 		self->parser = NULL;
 		self->compiler = NULL;
-		self->sourceFiles = createVector();
+		self->sourceFiles = createVector(VECTOR_LINEAR);
 
 	int i;
 	// i = 1 to ignore first arg
