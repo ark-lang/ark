@@ -6,15 +6,16 @@
 
 /** forward declarations */
 typedef struct s_Type Type;
+typedef struct s_Call Call;
 typedef struct s_Expression Expression;
 typedef struct {} ContinueStat;
 typedef struct {} BreakStat;
 
 /** different types of node for a cleanup */
 typedef enum {
-	IDENTIFIER_LIST_NODE, LITERAL_NODE, BINARY_EXPR_NODE,
+	IDENTIFIER_LIST_NODE, IDENTIFIER_NODE, LITERAL_NODE, BINARY_EXPR_NODE,
 	UNARY_EXPR_NODE, ARRAY_SUB_EXPR_NODE, MEMBER_ACCESS_NODE,
-	PRIMARY_EXPR_NODE, EXPR_NODE, TYPE_NAME_NODE,
+	PRIMARY_EXPR_NODE, EXPR_NODE, TYPE_NAME_NODE, TYPE_LIT_NODE, PAREN_EXPR_NODE,
 	ARRAY_TYPE_NODE, POINTER_TYPE_NODE, FIELD_DECL_NODE,
 	FIELD_DECL_LIST_NODE, STRUCT_DECL_NODE, STATEMENT_LIST_NODE,
 	BLOCK_NODE, PARAMETER_SECTION_NODE, PARAMETERS_NODE, RECEIVER_NODE,
@@ -42,42 +43,12 @@ typedef struct {
 } IdentifierList;
 
 /**
- * Different types of literals,
- * number, string, and characters.
- */
-typedef enum {
-	LITERAL_NUMBER,
-	LITERAL_STRING,
-	LITERAL_CHARACTER,
-	LITERAL_ERRORED
-} LiteralType;
-
-/**
  * A node representing a literal.
  */
 typedef struct {
 	char *value;
-	LiteralType type;
+	int type;
 } Literal;
-
-/**
- * A node representing a binary expression,
- * for example a + b is a binary expression.
- */
-typedef struct {
-	Expression *lhand;
-	char *operand;
-	Expression *rhand;
-} BinaryExpr;
-
-/**
- * A node representing a unary expression, for instance
- * +5, or -5.
- */
-typedef struct {
-	char operand;
-	Expression *rhand;
-} UnaryExpr;
 
 /**
  * A node representing an array sub expression,
@@ -86,8 +57,6 @@ typedef struct {
 typedef struct {
 	Expression *lhand;
 	Expression *start;
-
-	// optional
 	Expression *end;
 } ArraySubExpr;
 
@@ -101,30 +70,6 @@ typedef struct {
 } MemberAccessExpr;
 
 /**
- * An enumeration for different types of expressions,
- * this is to make it cleaner than null checking everything.
- */
-typedef enum {
-	PRIMARY_EXPR,
-	BINARY_EXPR,
-	UNARY_EXPR,
-	MEMBER_ACCESS_EXPR,
-	ARRAY_SLICE_EXPR,
-	PAREN_EXPR,
-	IDENTIFIER_EXPR,
-	LITERAL_EXPR,
-	FUNC_CALL_EXPR,
-} ExpressionType;
-
-/**
- * A node representing a function call
- */
-typedef struct {
-	Expression *callee;
-	Vector *arguments;
-} Call;
-
-/**
  * A node representing a Primary Expression, which can be either a literal,
  * a primary expression, array sub expression, member access, binary expression,
  * unary expression, etc.
@@ -132,24 +77,46 @@ typedef struct {
 typedef struct {
 	Literal *literal;
 	Expression *parenExpr;
-	ArraySubExpr *arraySlice;
+	ArraySubExpr *arraySubExpr;
 	MemberAccessExpr *memberAccess;
 	char *identifier;
-	ExpressionType type;
 	Call *funcCall;
+	int type;
 } PrimaryExpr;
+
+/**
+ * A node representing a function call
+ */
+struct s_Call {
+	PrimaryExpr *callee;
+	Vector *arguments;
+};
+
+/**
+ * A node representing a unary expression, for instance
+ * +5, or -5.
+ */
+typedef struct s_UnaryExpr {
+	PrimaryExpr *prim;
+
+	char *unaryOp;
+	struct s_UnaryExpr *unary;
+
+	int type;
+} UnaryExpr;
 
 /**
  * Inheritance "emulation", an Expression Node is the parent
  * of all expressions.
  */
 struct s_Expression {
-	PrimaryExpr *primary;
-	BinaryExpr *binary;
-	UnaryExpr *unary;
-	MemberAccessExpr *memberAccess;
-	ArraySubExpr *arraySlice;
-	int expressionType;
+	UnaryExpr *unaryExpr;
+
+	Expression *lhand;
+	char *binaryOp;
+	UnaryExpr *rhand;
+
+	int type;			// binary or unary
 };
 
 /**
@@ -168,13 +135,6 @@ typedef struct {
 	Expression *length;
 	Type *type;
 } ArrayType;
-
-/**
- * A pointer type, i.e `int ^`
- */
-typedef struct {
-	Type *type;
-} PointerType;
 
 /**
  * Field declaration for a struct
@@ -209,15 +169,6 @@ typedef struct {
 } StatementList;
 
 /**
- * Different types of blocks, again for
- * no null checking
- */
-typedef enum {
-	MULTI_STATEMENT_BLOCK,
-	SINGLE_STATEMENT_BLOCK
-} BlockType;
-
-/**
  * A node representing a block. The grammar
  * suggests that a single statement block, denoted with
  * an arrow, only holds one statement, but we can just use
@@ -225,7 +176,6 @@ typedef enum {
  */
 typedef struct {
 	StatementList *stmtList;
-	BlockType type;
 } Block;
 
 /**
@@ -285,12 +235,6 @@ typedef struct {
 	Expression *expr;
 } VariableDecl;
 
-typedef enum {
-	FUNC_DECL,
-	STRUCT_DECL,
-	VAR_DECL
-} DECLARATION_TYPE;
-
 /**
  * A node representing all declarations,
  * function/struct/variable...
@@ -299,19 +243,8 @@ typedef struct {
 	FunctionDecl *funcDecl;
 	StructDecl *structDecl;
 	VariableDecl *varDecl;
-	DECLARATION_TYPE declType;
+	int type;
 } Declaration;
-
-/**
- * Used for IncDecStat, if it's incrementing
- * or decrementing.
- */
-typedef enum {
-	// IOD = Increment or Decrement
-	IOD_INCREMENT,
-	IOD_DECREMENT,
-	IOD_ERRORED,
-} IncOrDec;
 
 /**
  * A statement representing an increment
@@ -319,7 +252,7 @@ typedef enum {
  */
 typedef struct {
 	Expression *expr;
-	IncOrDec type;
+	int amount;
 } IncDecStat;
 
 /**
@@ -337,12 +270,6 @@ typedef struct {
 	Expression *expr;
 } Assignment;
 
-typedef enum {
-	RETURN_STMT,
-	BREAK_STMT,
-	CONTINUE_STMT
-} LeaveType;
-
 /**
  * Node for all the "leave" statements,
  * e.g continue, return, break
@@ -351,7 +278,6 @@ typedef struct {
 	ReturnStat *retStmt;
 	BreakStat *breakStmt;
 	ContinueStat *conStmt;
-	LeaveType type;
 } LeaveStat;
 
 /**
@@ -421,19 +347,31 @@ typedef struct {
 	int type;
 } StructuredStatement;
 
-typedef enum {
-	UNSTRUCTURED_STMT,
-	STRUCTURED_STMT
-} StatementType;
-
 /**
  * Statements, structured and unstructured
  */
 typedef struct {
 	StructuredStatement *structured;
 	UnstructuredStatement *unstructured;
-	StatementType type;
+	int type;
 } Statement;
+
+typedef struct {
+	TypeName *type;
+} BaseType;
+
+/**
+ * A pointer type, i.e `int ^`
+ */
+typedef struct {
+	BaseType *baseType;
+} PointerType;
+
+typedef struct {
+	ArrayType *arrayType;
+	PointerType *pointerType;
+	int type;
+} TypeLit;
 
 /**
  * A type, which can be a type name,
@@ -442,8 +380,7 @@ typedef struct {
  */
 struct s_Type {
 	TypeName *typeName;
-	ArrayType *arrayType;
-	PointerType *pointerType;
+	TypeLit *typeLit;
 	int type;
 };
 
@@ -451,17 +388,19 @@ Node *createNode(void *data, NodeType type);
 
 IdentifierList *createIdentifierList();
 
-Literal *createLiteral(char *value, LiteralType type);
+Literal *createLiteral(char *value, int type);
 
-BinaryExpr *createBinaryExpr(Expression *lhand, char *op, Expression *rhand);
+TypeLit *createTypeLit();
 
-UnaryExpr *createUnaryExpr(char operand, Expression *rhand);
+BaseType *createBaseType();
+
+UnaryExpr *createUnaryExpr();
 
 ArraySubExpr *createArraySubExpr(Expression *lhand);
 
 MemberAccessExpr *createMemberAccessExpr(Expression *expr, char *value);
 
-Call *createCall(Expression *expr);
+Call *createCall(PrimaryExpr *expr);
 
 PrimaryExpr *createPrimaryExpr();
 
@@ -471,7 +410,7 @@ TypeName *createTypeName(char *name);
 
 ArrayType *createArrayType(Expression *length, Type *type);
 
-PointerType *createPointerType(Type *type);
+PointerType *createPointerType(BaseType *type);
 
 FieldDecl *createFieldDecl(Type *type, bool mutable);
 
@@ -497,7 +436,7 @@ VariableDecl *createVariableDecl(Type *type, char *name, bool mutable, Expressio
 
 Declaration *createDeclaration();
 
-IncDecStat *createIncDecStat(Expression *expr, IncOrDec type);
+IncDecStat *createIncDecStat(Expression *expr, int inc);
 
 ReturnStat *createReturnStat(Expression *expr);
 
@@ -533,9 +472,9 @@ void destroyNode(Node *node);
 
 void destroyIdentifierList(IdentifierList *list);
 
-void destroyLiteral(Literal *lit);
+void destroyBaseType(BaseType *type);
 
-void destroyBinaryExpr(BinaryExpr *expr);
+void destroyLiteral(Literal *lit);
 
 void destroyUnaryExpr(UnaryExpr *expr);
 
@@ -606,6 +545,8 @@ void destroyForStat(ForStat *stmt);
 void destroyStructuredStatement(StructuredStatement *stmt);
 
 void destroyStatement(Statement *stmt);
+
+void destroyTypeLiteral(TypeLit *type);
 
 void destroyType(Type *type);
 
