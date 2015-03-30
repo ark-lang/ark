@@ -380,7 +380,7 @@ void hashmap_free(map_t in) {
 	hashmap_map* m = (hashmap_map*) in;
 	free(m->data);
 	free(m);
-	debugMessage("Destroyed Hashmap");
+	verboseModeMessage("Destroyed Hashmap");
 }
 
 /* Return the length of the hashmap */

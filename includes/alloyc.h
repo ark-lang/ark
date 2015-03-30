@@ -10,24 +10,12 @@
 #include "parser.h"
 #include "compiler.h"
 
-// flag for version of the alloy compiler
 #define VERSION_ARG 		"-ver"
-
-// flag for debug mode
 #define DEBUG_MODE_ARG 		"-d"
-
-// to define what compiler to compile the generated
-// code with
 #define COMPILER_ARG		"-compiler"
-
-// flag that controls whether or not to keep
-// the generated c files
 #define OUTPUT_C_ARG		"-c"
-
-// flag that shows the help dialog
 #define HELP_ARG			"-h"
-
-// flag for the executables name
+#define VERBOSE_ARG			"-v"
 #define OUTPUT_ARG			"-o"
 
 /**

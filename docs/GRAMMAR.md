@@ -23,7 +23,7 @@ The grammar pretty much maps straight onto the parsers source.
 	StringLiteral = """ { letter } """ . 
 	CharacterLiteral = "'"  ( letter | escaped_char ) "'" .
 	
-	IdentifierList = identifier { "," identifier }
+	IdentifierList = identifier [ { "," identifier } ]
 	ExpressionList = Expression { "," Expression }
 	
 	TypeName = identifier .
