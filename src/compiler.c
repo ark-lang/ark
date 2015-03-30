@@ -74,7 +74,7 @@ void emitParameters(Compiler *self, Parameters *params) {
 		emitType(self, param->type);
 		emitCode(self, " %s", param->name);
 
-		if (i != params->paramList->size - 1) {
+		if (params->paramList->size > 1 && i != params->paramList->size - 1) {
 			emitCode(self, ", ");
 		}
 	}
@@ -99,7 +99,7 @@ void emitFunctionSignature(Compiler *self, FunctionSignature *func) {
 	emitCode(self, " %s(", func->name);
 	emitReceiver(self, func->receiver);
 	// cleaner formatting, also avoids trailing comma
-	if (func->parameters->paramList->size > 1) { emitCode(self, ", "); }
+	if (func->receiver && func->parameters->paramList->size > 1) { emitCode(self, ", "); }
 	emitParameters(self, func->parameters);
 	emitCode(self, ")");
 }
