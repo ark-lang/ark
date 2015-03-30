@@ -33,7 +33,7 @@ The grammar pretty much maps straight onto the parsers source.
 	BaseType = Type .
 	ArrayType = "[" [ Expression ] "]" Type.
 	
-	FunctionSignature = "fn" [ Receiver ] identifier Parameters ":" [ "mut" ] Type .
+	FunctionSignature = [ Receiver ] identifier Parameters ":" [ "mut" ] Type .
 	Receiver = "(" [ "mut" ] Type identifier ")"
 	Parameters = "(" [ parameterList ] ")" .
 	ParameterList = ParameterSection { "," ParameterSection } .

@@ -3,9 +3,9 @@ struct Empty {
 }
 
 struct Cat {
-	int age;
-	int swag;
-	double yo;
+	^int age;
+	^int swag;
+	mut ^double yo;
 }
 
 fn main(): int {
