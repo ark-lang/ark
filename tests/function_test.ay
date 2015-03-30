@@ -2,7 +2,6 @@
  * File for testing functions.
  */
 
-
 fn do_stuff(mut ^int a, ^int b, ^int c): ^void {
 	
 }
