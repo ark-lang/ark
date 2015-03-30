@@ -43,19 +43,19 @@ IdentifierList *parseIdentifierList(Parser *parser) {
 }
 
 Type *parseType(Parser *parser) {
+	TypeName *typeName = parseTypeName(parser);
+		if (typeName) {
+			Type *type = createType();
+			type->typeName = typeName;
+			type->type = TYPE_NAME_NODE;
+			return type;
+		}
+
 	TypeLit *typeLit = parseTypeLit(parser);
 	if (typeLit) {
 		Type *type = createType();
 		type->typeLit = typeLit;
 		type->type = TYPE_LIT_NODE;
-		return type;
-	}
-
-	TypeName *typeName = parseTypeName(parser);
-	if (typeName) {
-		Type *type = createType();
-		type->typeName = typeName;
-		type->type = TYPE_NAME_NODE;
 		return type;
 	}
 
@@ -272,6 +272,19 @@ LeaveStat *parseLeaveStat(Parser *parser) {
 }
 
 IncDecStat *parseIncDecStat(Parser *parser) {
+	Expression *expr = parseExpression(parser);
+	if (expr) {
+		if (checkTokenTypeAndContent(parser, OPERATOR, "+", 0) && checkTokenTypeAndContent(parser, OPERATOR, "+", 1)) {
+			consumeToken(parser);
+			consumeToken(parser);
+			return createIncDecStat(expr, 1);
+		}
+		else if (checkTokenTypeAndContent(parser, OPERATOR, "-", 0) && checkTokenTypeAndContent(parser, OPERATOR, "-", 1)) {
+			consumeToken(parser);
+			consumeToken(parser);
+			return createIncDecStat(expr, -1);
+		}
+	}
 	return false;
 }
 
@@ -319,6 +332,15 @@ UnstructuredStatement *parseUnstructuredStatement(Parser *parser) {
 		stmt->type = ASSIGNMENT_NODE;
 		return stmt;
 	}
+
+	IncDecStat *incDec = parseIncDecStat(parser);
+	if (incDec) {
+		UnstructuredStatement *stmt = createUnstructuredStatement();
+		stmt->incDec = incDec;
+		stmt->type = INC_DEC_STAT_NODE;
+		return stmt;
+	}
+
 	return false;
 }
 
@@ -356,12 +378,6 @@ Block *parseBlock(Parser *parser) {
 			Statement *stat = parseStatement(parser);
 			if (stat) {
 				pushBackItem(block->stmtList->stmts, stat);
-				if (checkTokenTypeAndContent(parser, SEPARATOR, ",", 0)) {
-					if (checkTokenTypeAndContent(parser, SEPARATOR, "{", 0)) {
-						errorMessage("Trailing comma");
-					}
-					consumeToken(parser);
-				}
 			}
 		}
 		return block;
@@ -402,6 +418,9 @@ VariableDecl *parseVariableDecl(Parser *parser) {
 				consumeToken(parser);
 				rhand = parseExpression(parser);
 			}
+			if (checkTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
+				consumeToken(parser);
+			}
 			return createVariableDecl(type, var_name, mutable, rhand);
 		}
 	}
@@ -415,6 +434,14 @@ Declaration *parseDeclaration(Parser *parser) {
 		Declaration *decl = createDeclaration();
 		decl->funcDecl = func;
 		decl->type = FUNCTION_DECL_NODE;
+		return decl;
+	}
+
+	VariableDecl *varDecl = parseVariableDecl(parser);
+	if (varDecl) {
+		Declaration *decl = createDeclaration();
+		decl->varDecl = varDecl;
+		decl->type = VARIABLE_DECL_NODE;
 		return decl;
 	}
 
