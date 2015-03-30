@@ -1,18 +1,22 @@
 #include "alloyc.h"
 
 bool DEBUG_MODE = false;	// default is no debug
+bool OUTPUT_C = false;		// default is no c output
+bool VERBOSE_MODE = false;
+
 char *OUTPUT_EXECUTABLE_NAME = "main"; // default is main
 char *COMPILER = "gcc"; // default is GCC
-bool OUTPUT_C = false;	// default is no c output
 char *ADDITIONAL_COMPILER_ARGS = "-std=c11 -g -Wall";
 
 void help() {
 	printf("Alloy-Lang Argument List\n");
 	printf("  -h\t\t\tShows this help menu\n");
-	printf("  -v\t\t\tShows current version\n");
+	printf("  -ver\t\t\tShows current version\n");
+	printf("  -v\t\t\tVerbose compilation\n");
 	printf("  -d\t\t\tLogs extra debug information\n");
 	printf("  -c\t\t\tKeep the generated C code\n");
 	printf("  -compiler <cc>\tCompiles generated code with <cc>\n");
+	printf("  -o <file>\t\tPlace the output into <file>\n");
 	printf("  -o <file>\t\tPlace the output into <file>\n");
 	printf("\n");
 }
@@ -26,6 +30,9 @@ static void parse_argument(CommandLineArgument *arg) {
 	}
 	else if (!strcmp(arg->argument, OUTPUT_C_ARG)) {
 		OUTPUT_C = true;
+	}
+	else if (!strcmp(arg->argument, VERBOSE_ARG)) {
+		VERBOSE_MODE = true;
 	}
 	else if (!strcmp(arg->argument, HELP_ARG)) {
 		help();
@@ -84,7 +91,7 @@ AlloyCompiler *createAlloyCompiler(int argc, char** argv) {
 		else if (strstr(argv[i], ".ay")) {
 			SourceFile *file = createSourceFile(sdsnew(argv[i]));
 			if (!file) {
-				debugMessage("Error when attempting to create a source file");
+				verboseModeMessage("Error when attempting to create a source file");
 				return NULL;
 			}
 			pushBackItem(self->sourceFiles, file);
@@ -108,12 +115,12 @@ void startAlloyCompiler(AlloyCompiler *self) {
 	if (self->lexer->failed) {
 		return;
 	}
-	debugMessage("Finished Lexing");
+	verboseModeMessage("Finished Lexing");
 
 	// initialise parser after we tokenize
 	self->parser = createParser();
 	startParsingSourceFiles(self->parser, self->sourceFiles);
-	debugMessage("Finished parsing");
+	verboseModeMessage("Finished parsing");
 	
 	// failed parsing stage
 	if (self->parser->failed) {
@@ -132,6 +139,6 @@ void destroyAlloyCompiler(AlloyCompiler *self) {
 		if (self->compiler) destroyCompiler(self->compiler);
 		destroyVector(self->sourceFiles);
 		free(self);
-		debugMessage("Destroyed Alloy Compiler");
+		verboseModeMessage("Destroyed Alloy Compiler");
 	}
 }

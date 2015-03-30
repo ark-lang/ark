@@ -21,7 +21,7 @@ void pushToStackAtIndex(Stack *stack, StackItem item, int index) {
 	// instead of reallocating after adding an item
 	if (stack->stackPointer >= stack->defaultStackSize) {
 		stack->defaultStackSize *= 2;
-		if (DEBUG_MODE) debugMessage("stack size expanded to: %d\n", stack->defaultStackSize);
+		if (DEBUG_MODE) verboseModeMessage("stack size expanded to: %d\n", stack->defaultStackSize);
 
 		StackItem *tmp = realloc(stack->items, sizeof(*stack->items) * stack->defaultStackSize);
 		if (!tmp) {
@@ -50,5 +50,5 @@ StackItem popStack(Stack *stack) {
 void destroyStack(Stack *stack) {
 	free(stack->items);
 	free(stack);
-	debugMessage("Destroyed stack");
+	verboseModeMessage("Destroyed stack");
 }

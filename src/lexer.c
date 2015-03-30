@@ -307,14 +307,14 @@ void destroyLexer(Lexer *lexer) {
 			Token *tok = getVectorItem(lexer->tokenStream, i);
 			// eof's content isnt malloc'd so free would give us some errors
 			if (tok->type != END_OF_FILE) {
-				debugMessage("Freed `%s` token", tok->content);
+				verboseModeMessage("Freed `%s` token", tok->content);
 				sdsfree(tok->content);
 			}
 			destroyToken(tok);
 		}
 	}
 
-	debugMessage("Destroyed Lexer.");
+	verboseModeMessage("Destroyed Lexer.");
 	free(lexer);
 }
 
