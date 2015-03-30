@@ -1,11 +1,36 @@
+/**
+ * File for testing functions and methods.
+ */
+
+// A structure for testing methods
 struct Cat {
 	
 }
 
+// Mutable tests
+
+fn (Cat ^c) sub(mut int a, mut int b): mut int {
+	
+}
+
+fn (Cat ^c) div(int a, int b): int {
+	
+}
+
+fn (mut Cat ^c) mod(int a, int b): mut int {
+	
+}
+
+fn do_stuff(mut int a, int b, int c): void {
+	
+}
+
+// Testing methods
 fn (Cat ^c) add(int a, int b): int {
 	
 }
 
-fn main(): mut int {
+// Testing functions
+fn main(): int {
 
 }
