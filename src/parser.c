@@ -125,6 +125,10 @@ Receiver *parseReceiver(Parser *parser) {
 		if (type) {
 			if (checkTokenType(parser, IDENTIFIER, 0)) {
 				char *name = consumeToken(parser)->content;
+				if (checkTokenTypeAndContent(parser, SEPARATOR, ")", 0)) {
+					consumeToken(parser);
+				}
+
 				return createReceiver(type, name, mutable);
 			}
 		}
