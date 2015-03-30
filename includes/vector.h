@@ -12,6 +12,9 @@
  */
 typedef void* VectorItem;
 
+#define VECTOR_LINEAR 0
+#define VECTOR_EXPONENTIAL 1
+
 /**
  * Properties of a vector
  */
@@ -19,6 +22,7 @@ typedef struct {
 	VectorItem *items;
 	int maxSize;
 	int size;
+	int type;
 } Vector;
 
 /**
@@ -26,7 +30,7 @@ typedef struct {
  * 
  * @return the vector instance
  */
-Vector *createVector();
+Vector *createVector(int type);
 
 /**
  * Push a vector_item into the given vector
