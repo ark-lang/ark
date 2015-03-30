@@ -32,7 +32,8 @@ IdentifierList *parseIdentifierList(Parser *parser) {
 	// consume first identifier
 	while (true) {
 		if (checkTokenType(parser, IDENTIFIER, 0)) {
-			pushBackItem(idenList->values, consumeToken(parser)->content);
+			char *val = consumeToken(parser)->content;
+			pushBackItem(idenList->values, val);
 			if (checkTokenTypeAndContent(parser, SEPARATOR, ",", 0)) {
 				consumeToken(parser);
 			} else { break; }
@@ -101,7 +102,7 @@ FieldDecl *parseFieldDecl(Parser *parser) {
 	if (type) {
 		IdentifierList *idenList = parseIdentifierList(parser);
 		if (idenList) {
-			FieldDecl *decl = createFieldDecl(type, mutable);
+			decl = createFieldDecl(type, mutable);
 			decl->idenList = idenList;
 			if (checkTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
 				consumeToken(parser);
@@ -157,7 +158,8 @@ StructDecl *parseStructDecl(Parser *parser) {
 		consumeToken(parser);
 
 		if (checkTokenType(parser, IDENTIFIER, 0)) {
-			structDecl = createStructDecl(consumeToken(parser)->content);
+			char *structName = consumeToken(parser)->content;
+			structDecl = createStructDecl(structName);
 			structDecl->fields = parseFieldDeclList(parser);
 		}
 		else {

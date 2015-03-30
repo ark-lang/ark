@@ -14,7 +14,7 @@
 #include "sds.h"
 
 /** the current version of alloy */
-#define ALLOYC_VERSION "0.0.3"
+#define ALLOYC_VERSION "0.0.4"
 
 /** windows doesn't like coloured text */
 #ifdef _WIN32
@@ -25,8 +25,10 @@
 	#define GET_ORANGE_TEXT(x) ("\x1B[33m" x "\x1B[00m")
 #endif
 
+/** macro for array length */
 #define ARR_LEN(x)  (sizeof(x) / sizeof(x[0]))
 
+/** flags */
 extern bool DEBUG_MODE;
 extern bool VERBOSE_MODE;
 extern char* COMPILER;
@@ -77,6 +79,11 @@ void verboseModeMessage(const char *fmt, ...);
  */
 void warningMessage(const char *fmt, ...);
 
+/**
+ * Emits a message when in verbose mode
+ * @param msg           the message to print
+ * @param ...			extra arguments
+ */
 void verboseModeMessage(const char *fmt, ...);
 
 /**

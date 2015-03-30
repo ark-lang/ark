@@ -160,8 +160,8 @@ void emitFunctionDecl(Compiler *self, FunctionDecl *decl) {
 
 void emitIdentifierList(Compiler *self, IdentifierList *list) {
 	for (int i = 0; i < list->values->size; i++) {
-		Token *tok = getVectorItem(list->values, i);
-		emitCode(self, tok->content);
+		char *value = getVectorItem(list->values, i);
+		emitCode(self, value);
 		if (i != list->values->size - 1 && list->values->size > 1) {
 			emitCode(self, ", ");
 		}
@@ -175,7 +175,9 @@ void emitFieldDeclList(Compiler *self, FieldDeclList *list) {
 			emitCode(self, "const ");
 		}
 		emitType(self, decl->type);
+		emitCode(self, " ");
 		emitIdentifierList(self, decl->idenList);
+		emitCode(self, ";" CC_NEWLINE);
 	}
 }
 

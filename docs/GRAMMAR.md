@@ -29,8 +29,8 @@ The grammar pretty much maps straight onto the parsers source.
 	TypeName = identifier .
 	
 	Type = TypeName | ArrayType | PointerType .
-	PointerType = Type "^" .
-	ArrayType = Type "[" [ Expression ] "]" .
+	PointerType = "^" Type .
+	ArrayType = "[" [ Expression ] "]" Type.
 	
 	FunctionSignature = [ Receiver ] identifier Parameters ":" [ "mut" ] Type .
 	Receiver = "(" [ "mut" ] Type identifier ")"
