@@ -26,13 +26,14 @@ The grammar pretty much maps straight onto the parsers source.
 	IdentifierList = identifier [ { "," identifier } ]
 	ExpressionList = Expression { "," Expression }
 	
+	Type = TypeName | TypeLit.
+	TypeLit = ArrayType | PointerType .
 	TypeName = identifier .
-	
-	Type = TypeName | ArrayType | PointerType .
-	PointerType = "^" Type .
+	PointerType = BaseType "*" .
+	BaseType = Type .
 	ArrayType = "[" [ Expression ] "]" Type.
 	
-	FunctionSignature = [ Receiver ] identifier Parameters ":" [ "mut" ] Type .
+	FunctionSignature = "fn" [ Receiver ] identifier Parameters ":" [ "mut" ] Type .
 	Receiver = "(" [ "mut" ] Type identifier ")"
 	Parameters = "(" [ parameterList ] ")" .
 	ParameterList = ParameterSection { "," ParameterSection } .
@@ -41,7 +42,7 @@ The grammar pretty much maps straight onto the parsers source.
 	StructDecl = "struct" identifier "{" [ FieldDeclList ] "}" .
 	FieldDeclList = FieldDecl { FieldDecl } .
 	FieldDecl = [ "mut" ] Type IdentifierList ";" .
-	FunctionDecl = "fn" FunctionSignature ( ";" | Block ) .
+	FunctionDecl = FunctionSignature ( ";" | Block ) .
 
 	Block = ( "{" [ StatementList ] "}" | "->" Statement ) .
 	IfStat = if Expression Block [ "else" Statement ] .
@@ -53,19 +54,18 @@ The grammar pretty much maps straight onto the parsers source.
 	Declaration = VarDecl | FunctionDecl | StructDecl.
 	VarDecl = [ "mut" ] Type identifier [ "=" Expression ] ";" .
 	
-	Expression = BinaryExpr | UnaryExpr | PrimaryExpr .
-	BinaryExpr = Expression binaryOp Expression .
-	UnaryExpr = unaryOp Expression .
+	Expression = UnaryExpr | Expression binaryOp UnaryExpr .
+	UnaryExpr = PrimaryExpr | unaryOp UnaryExpr .
 
 	PrimaryExpr =
 		identifier 
 		| Literal 
 		| "(" Expression ")" 
 		| Call 
-		| Expression "[" ( Expression [ ":" Expression ] | ExpressionList ) "]" 
+		| Expression "[" Expression [ ":" Expression ] "]" 
 		| Expression "." identifier.
 		
-	Call = Expression "(" [ ExpressionList ] ")" .
+	Call = PrimaryExpr "(" [ ExpressionList ] ")" .
 	
 	Statement = ( StructuredStat | UnstructuredStat ) .
 	StructuredStat = Block | IfStat | MatchStat | ForStat .

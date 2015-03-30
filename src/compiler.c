@@ -45,85 +45,35 @@ void emitCode(Compiler *self, char *fmt, ...) {
 }
 
 void emitExpression(Compiler *self, Expression *expr) {
-	emitCode(self, "5"); // lol it'll do for now
+
 }
 
 void emitType(Compiler *self, Type *type) {
-	switch (type->type) {
-	case POINTER_TYPE_NODE:
-		emitCode(self, "*");
-		emitType(self, type->pointerType->type);
-		break;
-	case ARRAY_TYPE_NODE:
-		emitType(self, type->arrayType->type);
-		emitCode(self, "[");
-		emitExpression(self, type->arrayType->length);
-		emitCode(self, "]");
-		break;
-	case TYPE_NAME_NODE:
-		emitCode(self, "%s", type->typeName->name);
-		break;
-	}
+
 }
 
 void emitParameters(Compiler *self, Parameters *params) {
-	for (int i = 0; i < params->paramList->size; i++) {
-		ParameterSection *param = getVectorItem(params->paramList, i);
-		if (!param->mutable) {
-			emitCode(self, "const ");
-		}
-		emitType(self, param->type);
-		emitCode(self, " %s", param->name);
 
-		if (params->paramList->size > 1 && i != params->paramList->size - 1) {
-			emitCode(self, ", ");
-		}
-	}
 }
 
 void emitReceiver(Compiler *self, Receiver *rec) {
-	if (rec != NULL){
-		if (!rec->mutable) {
-			emitCode(self, "const ");
-		}
-		emitCode(self, rec->name);
-		emitCode(self, " ");
-		emitType(self, rec->type);
-	}
+
 }
 
 void emitFunctionSignature(Compiler *self, FunctionSignature *func) {
-	if (!func->mutable) {
-		emitCode(self, "const ");
-	}
-	emitType(self, func->type);
-	emitCode(self, " %s(", func->name);
-	emitReceiver(self, func->receiver);
-	// cleaner formatting, also avoids trailing comma
-	if (func->receiver && func->parameters->paramList->size > 1) { emitCode(self, ", "); }
-	emitParameters(self, func->parameters);
-	emitCode(self, ")");
+
 }
 
 void emitStructuredStatement(Compiler *self, StructuredStatement *stmt) {
-	switch (stmt->type) {
-		case BLOCK_NODE: emitBlock(self, stmt->block); break;
-		case FOR_STAT_NODE: emitForStat(self, stmt->forStmt); break;
-		case IF_STAT_NODE: emitIfStat(self, stmt->ifStmt); break;
-		case MATCH_STAT_NODE: emitMatchStat(self, stmt->matchStmt); break;
-	}
+
 }
 
 void emitUnstructuredStatement(Compiler *self, UnstructuredStatement *stmt) {
-	switch (stmt->type) {
-		case DECLARATION_NODE: emitDeclaration(self, stmt->decl); break;
-	}
+
 }
 
 void emitBlock(Compiler *self, Block *block) {
-	emitCode(self, " {" CC_NEWLINE);
-	emitStatementList(self, block->stmtList);
-	emitCode(self, "}" CC_NEWLINE);
+
 }
 
 void emitForStat(Compiler *self, ForStat *stmt) {
@@ -139,61 +89,27 @@ void emitMatchStat(Compiler *self, MatchStat *stmt) {
 }
 
 void emitStatementList(Compiler *self, StatementList *stmtList) {
-	for (int i = 0; i < stmtList->stmts->size; i++) {
-		Statement *stmt = getVectorItem(stmtList->stmts, i);
-		switch (stmt->type) {
-			case STRUCTURED_STMT: emitStructuredStatement(self, stmt->structured); break;
-			case UNSTRUCTURED_STMT: emitUnstructuredStatement(self, stmt->unstructured); break;
-		}
-	}
+
 }
 
 void emitFunctionDecl(Compiler *self, FunctionDecl *decl) {
-	self->writeState = WRITE_HEADER_STATE;
-	emitFunctionSignature(self, decl->signature);
-	emitCode(self, ";"); // semi colon at end of prototype
 
-	self->writeState = WRITE_SOURCE_STATE;
-	emitFunctionSignature(self, decl->signature);
-	emitBlock(self, decl->body);
 }
 
 void emitIdentifierList(Compiler *self, IdentifierList *list) {
-	for (int i = 0; i < list->values->size; i++) {
-		char *value = getVectorItem(list->values, i);
-		emitCode(self, value);
-		if (i != list->values->size - 1 && list->values->size > 1) {
-			emitCode(self, ", ");
-		}
-	}
+
 }
 
 void emitFieldDeclList(Compiler *self, FieldDeclList *list) {
-	for (int i = 0; i < list->members->size; i++) {
-		FieldDecl *decl = getVectorItem(list->members, i);
-		if (!decl->mutable) {
-			emitCode(self, "const ");
-		}
-		emitType(self, decl->type);
-		emitCode(self, " ");
-		emitIdentifierList(self, decl->idenList);
-		emitCode(self, ";" CC_NEWLINE);
-	}
+
 }
 
 void emitStructDecl(Compiler *self, StructDecl *decl) {
-	self->writeState = WRITE_HEADER_STATE;
-	emitCode(self, "typedef struct {" CC_NEWLINE);
-	emitFieldDeclList(self, decl->fields);
-	emitCode(self, "} %s;" CC_NEWLINE, decl->name);
+
 }
 
 void emitDeclaration(Compiler *self, Declaration *decl) {
-	switch (decl->declType) {
-		case FUNC_DECL: emitFunctionDecl(self, decl->funcDecl); break;
-		case STRUCT_DECL: emitStructDecl(self, decl->structDecl); break;
-		case VAR_DECL: break;
-	}
+
 }
 
 void consumeAstNode(Compiler *self) {
@@ -267,8 +183,8 @@ void compileAST(Compiler *self) {
 		Statement *currentStmt = getVectorItem(self->abstractSyntaxTree, i);
 
 		switch (currentStmt->type) {
-			case UNSTRUCTURED_STMT: emitUnstructuredStatement(self, currentStmt->unstructured); break;
-			case STRUCTURED_STMT: emitStructuredStatement(self, currentStmt->structured); break;
+			case UNSTRUCTURED_STATEMENT_NODE: emitUnstructuredStatement(self, currentStmt->unstructured); break;
+			case STRUCTURED_STATEMENT_NODE: emitStructuredStatement(self, currentStmt->structured); break;
 			default:
 				printf("idk?\n");
 				break;
