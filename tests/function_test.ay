@@ -1,3 +1,7 @@
-fn main(): void {
+fn (Cat ^c) add(int a, int b): int {
 	
+}
+
+fn main(): mut int {
+
 }
