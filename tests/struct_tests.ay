@@ -1,0 +1,9 @@
+struct Empty {
+
+}
+
+struct Cat {
+	int age;
+	int swag;
+	double yo;
+}

@@ -22,6 +22,7 @@ typedef struct {
 	int startPos;			// keeps track of positions without comments
 	bool running;			// if lexer is running 
 	bool failed;			// if lexing failed
+	sds buffer;				// temporary token
 	Vector *tokenStream;	// where the tokens are stored
 } Lexer;
 

@@ -254,7 +254,7 @@ void startCompiler(Compiler *self) {
 	}
 
 	// just for debug purposes
-	debugMessage("running cl args: `%s`", buildCommand);
+	verboseModeMessage("running cl args: `%s`", buildCommand);
 	system(buildCommand);
 	sdsfree(buildCommand); // deallocate dat shit baby
 }
@@ -281,11 +281,11 @@ void destroyCompiler(Compiler *self) {
 		SourceFile *sourceFile = getVectorItem(self->sourceFiles, i);
 		// don't call destroyHeaderFile since it's called in this function!!!!
 		destroySourceFile(sourceFile);
-		debugMessage("Destroyed source files on %d iteration.", i);
+		verboseModeMessage("Destroyed source files on %d iteration.", i);
 	}
 
 	hashmap_free(self->functions);
 	hashmap_free(self->structures);
 	free(self);
-	debugMessage("Destroyed compiler");
+	verboseModeMessage("Destroyed compiler");
 }

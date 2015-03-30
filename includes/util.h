@@ -28,6 +28,7 @@
 #define ARR_LEN(x)  (sizeof(x) / sizeof(x[0]))
 
 extern bool DEBUG_MODE;
+extern bool VERBOSE_MODE;
 extern char* COMPILER;
 extern bool OUTPUT_C;
 extern char* OUTPUT_EXECUTABLE_NAME;
@@ -67,7 +68,7 @@ char *getFileName(char *path);
  * @param msg           the message to print
  * @param ...			extra arguments
  */
-void debugMessage(const char *fmt, ...);
+void verboseModeMessage(const char *fmt, ...);
 
 /**
  * Emits a warning message to the console
@@ -75,6 +76,8 @@ void debugMessage(const char *fmt, ...);
  * @param ...			extra arguments
  */
 void warningMessage(const char *fmt, ...);
+
+void verboseModeMessage(const char *fmt, ...);
 
 /**
  * Emits an error message to the console, will also exit

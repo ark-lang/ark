@@ -13,7 +13,7 @@ void writeHeaderFile(HeaderFile *headerFile) {
 	headerFile->generatedHeaderName = sdscat(headerFile->generatedHeaderName, headerFile->name);
 	headerFile->generatedHeaderName = sdscat(headerFile->generatedHeaderName, ".h");
 
-	debugMessage("Generated header file `%s` as `%s`", headerFile->name, headerFile->generatedHeaderName);
+	verboseModeMessage("Generated header file `%s` as `%s`", headerFile->name, headerFile->generatedHeaderName);
 	headerFile->outputFile = fopen(headerFile->generatedHeaderName, "w");
 	if (!headerFile->outputFile) {
 		perror("fopen: failed to open file");
@@ -28,7 +28,7 @@ void closeHeaderFile(HeaderFile *headerFile) {
 void destroyHeaderFile(HeaderFile *headerFile) {
 	if (!OUTPUT_C) remove(headerFile->generatedHeaderName);
 
-	debugMessage("Destroyed Header File `%s`", headerFile->name);
+	verboseModeMessage("Destroyed Header File `%s`", headerFile->name);
 	sdsfree(headerFile->generatedHeaderName);
 	free(headerFile->name);
 	free(headerFile);
