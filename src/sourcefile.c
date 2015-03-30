@@ -51,7 +51,7 @@ void destroySourceFile(SourceFile *sourceFile) {
 
 	debugMessage("Destroyed Source File `%s`", sourceFile->name);
 	sdsfree(sourceFile->fileName);
-	free(sourceFile->name); // this isn't using sds!
+	free(sourceFile->name);
 	sdsfree(sourceFile->generatedSourceName);
 	free(sourceFile->alloyFileContents); 
 	free(sourceFile);

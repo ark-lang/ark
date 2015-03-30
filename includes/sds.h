@@ -33,6 +33,7 @@
 
 #define SDS_MAX_PREALLOC (1024*1024)
 
+#include "util.h"
 #include <sys/types.h>
 #include <stdarg.h>
 
