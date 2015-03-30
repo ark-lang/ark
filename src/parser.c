@@ -25,7 +25,21 @@ Literal *parseLiteral(Parser *parser) {
 }
 
 IdentifierList *parseIdentifierList(Parser *parser) {
-	return false;
+	IdentifierList *idenList = createIdentifierList();
+
+	while (true) {
+		if (checkTokenType(parser, IDENTIFIER, 0)) {
+			pushBackItem(idenList->values, consumeToken(parser)->content);
+			if (checkTokenTypeAndContent(parser, SEPARATOR, ",", 0)) {
+				consumeToken(parser);
+			}
+		}
+		if (!checkTokenTypeAndContent(parser, SEPARATOR, ",", 0)) {
+			break;
+		}
+	}
+
+	return idenList;
 }
 
 Type *parseType(Parser *parser) {
@@ -49,14 +63,65 @@ Type *parseType(Parser *parser) {
 }
 
 FieldDecl *parseFieldDecl(Parser *parser) {
+	bool mutable = false;
+	if (checkTokenTypeAndContent(parser, IDENTIFIER, MUT_KEYWORD, 0)) {
+		consumeToken(parser);
+		mutable = true;
+	}
+
+	Type *type = parseType(parser);
+	if (type) {
+		FieldDecl *decl = createFieldDecl(type, mutable);
+		IdentifierList *idenList = parseIdentifierList(parser);
+		if (idenList) {
+			decl->idenList = idenList;
+			return decl;
+		}
+	}
 	return false;
 }
 
 FieldDeclList *parseFieldDeclList(Parser *parser) {
+	if (checkTokenTypeAndContent(parser, SEPARATOR, "{", 0)) {
+		consumeToken(parser);
+
+		FieldDeclList *list = createFieldDeclList();
+		while (true) {
+			if (checkTokenTypeAndContent(parser, SEPARATOR, "}", 0)) {
+				consumeToken(parser);
+				break;
+			}
+
+			FieldDecl *decl = parseFieldDecl(parser);
+			if (decl) {
+				pushBackItem(list->members, decl);
+				if (checkTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
+					consumeToken(parser);
+				}
+			}
+		}
+		return list;
+	}
 	return false;
 }
 
 StructDecl *parseStructDecl(Parser *parser) {
+	if (checkTokenTypeAndContent(parser, IDENTIFIER, STRUCT_KEYWORD, 0)) {
+		consumeToken(parser);
+
+		if (checkTokenType(parser, IDENTIFIER, 0)) {
+			char *structName = consumeToken(parser)->content;
+
+			if (checkTokenTypeAndContent(parser, SEPARATOR, "{", 0)) {
+				FieldDeclList *list = parseFieldDeclList(parser);
+				if (list) {
+					StructDecl *decl = createStructDecl(structName);
+					decl->fields = list;
+					return decl;
+				}
+			}
+		}
+	}
 	return false;
 }
 
@@ -322,6 +387,14 @@ Declaration *parseDeclaration(Parser *parser) {
 		Declaration *decl = createDeclaration();
 		decl->funcDecl = func;
 		decl->type = FUNCTION_DECL_NODE;
+		return decl;
+	}
+
+	StructDecl *struc = parseStructDecl(parser);
+	if (struc) {
+		Declaration *decl = createDeclaration();
+		decl->structDecl = struc;
+		decl->type = STRUCT_DECL_NODE;
 		return decl;
 	}
 
