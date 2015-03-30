@@ -29,19 +29,19 @@ IdentifierList *parseIdentifierList(Parser *parser) {
 }
 
 Type *parseType(Parser *parser) {
-	TypeName *typeName = parseTypeName(parser);
-	if (typeName) {
-		Type *type = createType();
-		type->typeName = typeName;
-		type->type = TYPE_NAME_NODE;
-		return type;
-	}
-
 	TypeLit *typeLit = parseTypeLit(parser);
 	if (typeLit) {
 		Type *type = createType();
 		type->typeLit = typeLit;
 		type->type = TYPE_LIT_NODE;
+		return type;
+	}
+
+	TypeName *typeName = parseTypeName(parser);
+	if (typeName) {
+		Type *type = createType();
+		type->typeName = typeName;
+		type->type = TYPE_NAME_NODE;
 		return type;
 	}
 
@@ -402,19 +402,19 @@ PointerType *parsePointerType(Parser *parser) {
 }
 
 TypeLit *parseTypeLit(Parser *parser) {
-	ArrayType *arr = parseArrayType(parser);
-	if (arr) {
-		TypeLit *lit = createTypeLit();
-		lit->arrayType = arr;
-		lit->type = ARRAY_TYPE_NODE;
-		return lit;
-	}
-
 	PointerType *pntr = parsePointerType(parser);
 	if (pntr) {
 		TypeLit *lit = createTypeLit();
 		lit->pointerType = pntr;
 		lit->type = POINTER_TYPE_NODE;
+		return lit;
+	}
+
+	ArrayType *arr = parseArrayType(parser);
+	if (arr) {
+		TypeLit *lit = createTypeLit();
+		lit->arrayType = arr;
+		lit->type = ARRAY_TYPE_NODE;
 		return lit;
 	}
 

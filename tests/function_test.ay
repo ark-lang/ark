@@ -3,7 +3,7 @@
  */
 
 
-fn do_stuff(mut int a, int b, int c): void {
+fn do_stuff(mut ^int a, ^int b, ^int c): ^void {
 	
 }
 
