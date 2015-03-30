@@ -3,10 +3,6 @@
  */
 #include "hashmap.h"
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-
 #define INITIAL_SIZE (256)
 #define MAX_CHAIN_LENGTH (8)
 
