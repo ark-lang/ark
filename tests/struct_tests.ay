@@ -7,3 +7,7 @@ struct Cat {
 	int swag;
 	double yo;
 }
+
+fn main(): int {
+
+}
