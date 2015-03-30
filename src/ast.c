@@ -2,7 +2,7 @@
 
 IdentifierList *createIdentifierList() {
 	IdentifierList *iden = safeMalloc(sizeof(*iden));
-	iden->values = createVector();
+	iden->values = createVector(VECTOR_EXPONENTIAL);
 	return iden;
 }
 
@@ -43,7 +43,7 @@ MemberAccessExpr *createMemberAccessExpr(Expression *expr, char *value) {
 
 Call *createCall(Expression *expr) {
 	Call *call = safeMalloc(sizeof(*call));
-	call->arguments = createVector();
+	call->arguments = createVector(VECTOR_EXPONENTIAL);
 	call->callee = expr;
 	return call;
 }
@@ -84,7 +84,7 @@ FieldDecl *createFieldDecl(Type *type, bool mutable) {
 
 FieldDeclList *createFieldDeclList() {
 	FieldDeclList *fieldDeclList = safeMalloc(sizeof(*fieldDeclList));
-	fieldDeclList->members = createVector();
+	fieldDeclList->members = createVector(VECTOR_EXPONENTIAL);
 	return fieldDeclList;
 }
 
@@ -96,7 +96,7 @@ StructDecl *createStructDecl(char *name) {
 
 StatementList *createStatementList() {
 	StatementList *stmtList = safeMalloc(sizeof(*stmtList));
-	stmtList->stmts = createVector();
+	stmtList->stmts = createVector(VECTOR_EXPONENTIAL);
 	return stmtList;
 }
 
@@ -115,7 +115,7 @@ ParameterSection *createParameterSection(Type *type, bool mutable) {
 
 Parameters *createParameters() {
 	Parameters *params = safeMalloc(sizeof(*params));
-	params->paramList = createVector();
+	params->paramList = createVector(VECTOR_EXPONENTIAL);
 	return params;
 }
 
@@ -206,7 +206,7 @@ MatchClause *createMatchClause() {
 MatchStat *createMatchStat(Expression *expr) {
 	MatchStat *match = safeMalloc(sizeof(*match));
 	match->expr = expr;
-	match->clauses = createVector();
+	match->clauses = createVector(VECTOR_EXPONENTIAL);
 	return match;
 }
 
@@ -214,7 +214,7 @@ ForStat *createForStat(Type *type, char *index) {
 	ForStat *forStat = safeMalloc(sizeof(*forStat));
 	forStat->type = type;
 	forStat->index = index;
-	forStat->expr = createVector();
+	forStat->expr = createVector(VECTOR_EXPONENTIAL);
 	return forStat;
 }
 

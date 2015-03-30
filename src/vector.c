@@ -1,10 +1,11 @@
 #include "vector.h"
 
-Vector *createVector() {
+Vector *createVector(int type) {
 	Vector *vec = safeMalloc(sizeof(*vec));
 	vec->size = 0;
 	vec->maxSize = 2;
 	vec->items = safeMalloc(sizeof(*vec->items) * vec->maxSize);
+	vec->type = type;
 	return vec;
 }
 
@@ -13,7 +14,7 @@ void pushBackItem(Vector *vec, VectorItem item) {
 		// much more efficient to reallocate exponentially,
 		// instead of reallocating after adding an item
 		if (vec->size >= vec->maxSize) {
-			vec->maxSize *= 2;
+			vec->maxSize = vec->type == VECTOR_LINEAR ? 1 : vec->maxSize * 2;
 			vec->items = realloc(vec->items, sizeof(*vec->items) * vec->maxSize);
 			if (!vec->items) {
 				perror("realloc: failed to allocate memory for vector contents");

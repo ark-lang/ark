@@ -30,7 +30,7 @@ void startLexingFiles(Lexer *lexer, Vector *sourceFiles) {
 		lexer->lineNumber = 1;
 		lexer->charNumber = 1;
 		lexer->currentChar = lexer->input[lexer->pos];
-		lexer->tokenStream = createVector();
+		lexer->tokenStream = createVector(VECTOR_EXPONENTIAL);
 		lexer->running = true;
 
 		while (lexer->running) {
