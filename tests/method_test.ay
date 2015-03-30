@@ -2,10 +2,15 @@
  * File for testing functions and methods.
  */
 
+struct Cat {
+	^int age;
+	^int swag;
+	mut ^double yo;
+}
 
 // Mutable tests
 
-fn (^Cat c) sub(mut int a, mut int b): mut int {
+fn (^Cat c) sub(mut int a, mut int b): mut ^int {
 	
 }
 
