@@ -10,8 +10,8 @@
 #include "lexer.h"
 #include "util.h"
 #include "vector.h"
-#include "ast.h"
 #include "hashmap.h"
+#include "ast.h"
 
 #define STRUCT_KEYWORD 				"struct"
 #define MUT_KEYWORD 				"mut"
