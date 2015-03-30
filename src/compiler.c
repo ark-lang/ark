@@ -2,9 +2,10 @@
 
 char *BOILERPLATE =
 "#include <stdlib.h>\n"
+"#include <stdio.h>\n"
 "#include <stdbool.h>\n"
 "\n"
-"typedef char *string;" CC_NEWLINE
+"typedef char *str;" CC_NEWLINE
 "typedef unsigned long long u64;" CC_NEWLINE
 "typedef unsigned int u32;" CC_NEWLINE
 "typedef unsigned short u16;" CC_NEWLINE
@@ -106,16 +107,16 @@ void emitFunctionSignature(Compiler *self, FunctionSignature *func) {
 
 void emitStructuredStatement(Compiler *self, StructuredStatement *stmt) {
 	switch (stmt->type) {
-	case BLOCK_NODE: emitBlock(self, stmt->block); break;
-	case FOR_STAT_NODE: emitForStat(self, stmt->forStmt); break;
-	case IF_STAT_NODE: emitIfStat(self, stmt->ifStmt); break;
-	case MATCH_STAT_NODE: emitMatchStat(self, stmt->matchStmt); break;
+		case BLOCK_NODE: emitBlock(self, stmt->block); break;
+		case FOR_STAT_NODE: emitForStat(self, stmt->forStmt); break;
+		case IF_STAT_NODE: emitIfStat(self, stmt->ifStmt); break;
+		case MATCH_STAT_NODE: emitMatchStat(self, stmt->matchStmt); break;
 	}
 }
 
 void emitUnstructuredStatement(Compiler *self, UnstructuredStatement *stmt) {
 	switch (stmt->type) {
-	case DECLARATION_NODE: emitDeclaration(self, stmt->decl); break;
+		case DECLARATION_NODE: emitDeclaration(self, stmt->decl); break;
 	}
 }
 
@@ -141,8 +142,8 @@ void emitStatementList(Compiler *self, StatementList *stmtList) {
 	for (int i = 0; i < stmtList->stmts->size; i++) {
 		Statement *stmt = getVectorItem(stmtList->stmts, i);
 		switch (stmt->type) {
-		case STRUCTURED_STMT: emitStructuredStatement(self, stmt->structured); break;
-		case UNSTRUCTURED_STMT: emitUnstructuredStatement(self, stmt->unstructured); break;
+			case STRUCTURED_STMT: emitStructuredStatement(self, stmt->structured); break;
+			case UNSTRUCTURED_STMT: emitUnstructuredStatement(self, stmt->unstructured); break;
 		}
 	}
 }
@@ -187,9 +188,9 @@ void emitStructDecl(Compiler *self, StructDecl *decl) {
 
 void emitDeclaration(Compiler *self, Declaration *decl) {
 	switch (decl->declType) {
-	case FUNC_DECL: emitFunctionDecl(self, decl->funcDecl); break;
-	case STRUCT_DECL: emitStructDecl(self, decl->structDecl); break;
-	case VAR_DECL: break;
+		case FUNC_DECL: emitFunctionDecl(self, decl->funcDecl); break;
+		case STRUCT_DECL: emitStructDecl(self, decl->structDecl); break;
+		case VAR_DECL: break;
 	}
 }
 
@@ -264,11 +265,11 @@ void compileAST(Compiler *self) {
 		Statement *currentStmt = getVectorItem(self->abstractSyntaxTree, i);
 
 		switch (currentStmt->type) {
-		case UNSTRUCTURED_STMT: emitUnstructuredStatement(self, currentStmt->unstructured); break;
-		case STRUCTURED_STMT: emitStructuredStatement(self, currentStmt->structured); break;
-		default:
-			printf("idk?\n");
-			break;
+			case UNSTRUCTURED_STMT: emitUnstructuredStatement(self, currentStmt->unstructured); break;
+			case STRUCTURED_STMT: emitStructuredStatement(self, currentStmt->structured); break;
+			default:
+				printf("idk?\n");
+				break;
 		}
 	}
 }
