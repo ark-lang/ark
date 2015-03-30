@@ -59,13 +59,7 @@ IdentifierList *parseIdentifierList(Parser *parser) {
 Type *parseType(Parser *parser) {
 	Type *type = createType();
 
-	if (checkTokenTypeAndContent(parser, OPERATOR, "^", 1)) {
-		type->pointerType = createPointerType(type);
-		type->pointerType->type = parseType(parser);
-		skipNextToken(parser);
-		type->type = POINTER_TYPE_NODE;
-	}
-	else if (checkTokenType(parser, IDENTIFIER, 0)) {
+	if (checkTokenType(parser, IDENTIFIER, 0)) {
 		Token *token = consumeToken(parser);
 		type->typeName = createTypeName(token->content);
 		type->type = TYPE_NAME_NODE;
@@ -92,6 +86,12 @@ Type *parseType(Parser *parser) {
 		if (!matchTokenTypeAndContent(parser, SEPARATOR, "]", 0)) {
 			errorMessage("Expected closing bracket for dat array");
 		}
+	}
+	else if (checkTokenTypeAndContent(parser, OPERATOR, "^", 0)) {
+		consumeToken(parser);
+		type->pointerType = createPointerType(type);
+		type->pointerType->type = parseType(parser);
+		type->type = POINTER_TYPE_NODE;
 	}
 	else {
 		errorMessage("we dun fucked %s", peekAtTokenStream(parser, 0)->content);
@@ -262,11 +262,10 @@ Receiver *parseReceiver(Parser *parser) {
 			mutable = true;
 		}
 
-		Type *type = parseType(parser);
-		if (type) {
-			if (checkTokenType(parser, IDENTIFIER, 0)) {
-				Token *iden = consumeToken(parser);
-
+		if (checkTokenType(parser, IDENTIFIER, 0)) {
+			Token *iden = consumeToken(parser);
+			Type *type = parseType(parser);
+			if (type) {
 				if (checkTokenTypeAndContent(parser, SEPARATOR, ")", 0)) {
 					consumeToken(parser);
 					receiver = createReceiver(type, iden->content, mutable);
@@ -277,12 +276,12 @@ Receiver *parseReceiver(Parser *parser) {
 				}
 			}
 			else {
-				errorMessage("Expected an identifier in Function Receiver, errored at `%s`", consumeToken(parser)->content);
+				errorMessage("Failed to parse type in Function Receiver, errored at `%s`", consumeToken(parser)->content);
+				destroyType(type);
 			}
 		}
 		else {
-			errorMessage("Failed to parse type in Function Receiver, errored at `%s`", consumeToken(parser)->content);
-			destroyType(type);
+			errorMessage("Expected an identifier in Function Receiver, errored at `%s`", consumeToken(parser)->content);
 		}
 	}
 
@@ -1156,16 +1155,12 @@ LiteralType getLiteralType(Token *tok) {
 	}
 }
 
-void skipNextToken(Parser *parser) {
-	printf("skipping token %s\n", peekAtTokenStream(parser, 1)->content);
-	peekAtTokenStream(parser, 1)->type = SKIP_TOKEN;
-}
-
 Token *consumeToken(Parser *parser) {
 	Token *tok = getVectorItem(parser->tokenStream, parser->tokenIndex++);
-	if (tok->type == SKIP_TOKEN) tok = getVectorItem(parser->tokenStream, parser->tokenIndex++);
 	printf("consumed token: %s, current token is %s\n", tok->content, peekAtTokenStream(parser, 0)->content);
-	if (tok->type == END_OF_FILE) parser->parsing = false;
+	if (tok->type == END_OF_FILE) {
+		parser->parsing = false;
+	}
 	return tok;
 }
 
@@ -1194,6 +1189,11 @@ bool matchTokenTypeAndContent(Parser *parser, int type, char *content, int ahead
 }
 
 Token *peekAtTokenStream(Parser *parser, int ahead) {
+	if (parser->tokenIndex + ahead > parser->tokenStream->size) {
+		errorMessage("Attempting to peek at out of bounds token: %d/%d", ahead, parser->tokenStream->size);
+		parser->parsing = false;
+		return NULL;
+	}
 	return getVectorItem(parser->tokenStream, parser->tokenIndex + ahead);
 }
 
@@ -1220,7 +1220,7 @@ void startParsingSourceFiles(Parser *parser, Vector *sourceFiles) {
 }
 
 void parseTokenStream(Parser *parser) {
-	while (!checkTokenType(parser, END_OF_FILE, parser->tokenIndex)) {
+	while (!checkTokenType(parser, END_OF_FILE, 0)) {
 		Statement *stmt = parseStatement(parser);
 		if (stmt) {
 			pushBackItem(parser->parseTree, stmt);
