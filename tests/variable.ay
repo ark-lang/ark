@@ -1,0 +1,6 @@
+int x = 10;
+
+fn main(int a, int b): void {
+	int x = 5;
+	int y = 10;
+}

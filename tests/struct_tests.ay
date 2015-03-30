@@ -9,5 +9,7 @@ struct Cat {
 }
 
 fn main(): int {
-
+	struct Test {
+		^int z;
+	}
 }
