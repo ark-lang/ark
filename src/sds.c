@@ -28,12 +28,6 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
-#include <assert.h>
-
 #include "sds.h"
 
 /* Create a new sds string with the content specified by the 'init' pointer
@@ -85,6 +79,7 @@ sds sdsdup(const sds s) {
 
 /* Free an sds string. No operation is performed if 's' is NULL. */
 void sdsfree(sds s) {
+	debugMessage("Freeing string `%s`", s);
 	if (s == NULL)
 		return;
 	free(s - sizeof(struct sdshdr));
