@@ -1,3 +1,7 @@
+struct Cat {
+	
+}
+
 fn (Cat ^c) add(int a, int b): int {
 	
 }
