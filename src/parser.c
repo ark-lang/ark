@@ -11,7 +11,7 @@ Parser *createParser() {
 
 void destroyParser(Parser *parser) {
 	free(parser);
-	debugMessage("Destroyed parser");
+	verboseModeMessage("Destroyed parser");
 }
 
 /** PARSING STUFF */
@@ -29,28 +29,15 @@ Literal *parseLiteral(Parser *parser) {
 IdentifierList *parseIdentifierList(Parser *parser) {
 	IdentifierList *idenList = createIdentifierList();
 
-	if (checkTokenType(parser, IDENTIFIER, 0)) {
-		pushBackItem(idenList->values, consumeToken(parser)->content);
-
-		while (true) {
-			if (checkTokenType(parser, IDENTIFIER, 0)) {
-				pushBackItem(idenList->values, consumeToken(parser)->content);
-				if (checkTokenTypeAndContent(parser, SEPARATOR, ",", 0)) {
-					consumeToken(parser);
-				}
-				else {
-					break;
-				}
-			}
-			else {
-				errorMessage("Expected an identifier, but found: `%s`", consumeToken(parser)->content);
-				destroyIdentifierList(idenList);
-			}
+	// consume first identifier
+	while (true) {
+		if (checkTokenType(parser, IDENTIFIER, 0)) {
+			pushBackItem(idenList->values, consumeToken(parser)->content);
+			if (checkTokenTypeAndContent(parser, SEPARATOR, ",", 0)) {
+				consumeToken(parser);
+			} else { break; }
 		}
-	}
-	else {
-		errorMessage("Expected an identifier, but found `%s`", consumeToken(parser)->content);
-		destroyIdentifierList(idenList);
+		else { break; }
 	}
 
 	return idenList;
@@ -1156,7 +1143,7 @@ LiteralType getLiteralType(Token *tok) {
 
 Token *consumeToken(Parser *parser) {
 	Token *tok = getVectorItem(parser->tokenStream, parser->tokenIndex++);
-	printf("consumed token: %s, current token is %s\n", tok->content, peekAtTokenStream(parser, 0)->content);
+	verboseModeMessage("consumed token: %s, current token is %s", tok->content, peekAtTokenStream(parser, 0)->content);
 	if (tok->type == END_OF_FILE) {
 		parser->parsing = false;
 	}

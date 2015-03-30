@@ -42,6 +42,18 @@ sds toUppercase(sds str) {
 	return result;
 }
 
+void verboseModeMessage(const char *fmt, ...) {
+	if (VERBOSE_MODE) {
+		va_list arg;
+		va_start(arg, fmt);
+		char *temp = GET_ORANGE_TEXT("verbose mode: ");
+		fprintf(stdout, "%s", temp);
+		vfprintf(stdout, fmt, arg);
+		fprintf(stdout, "\n");
+		va_end(arg);
+	}
+}
+
 void debugMessage(const char *fmt, ...) {
 	if (DEBUG_MODE) {
 		va_list arg;
@@ -97,7 +109,7 @@ char *readFile(const char *fileName) {
 
 			size_t fileLength = fread(contents, sizeof(char), fileSize, file);
 			if (!fileLength) {
-				debugMessage("warning: \"%s\" is empty\n", fileName);
+				verboseModeMessage("warning: \"%s\" is empty\n", fileName);
 			}
 
 			contents[fileLength] = '\0';

@@ -79,7 +79,7 @@ sds sdsdup(const sds s) {
 
 /* Free an sds string. No operation is performed if 's' is NULL. */
 void sdsfree(sds s) {
-	debugMessage("Freeing string `%s`", s);
+	verboseModeMessage("Freeing string `%s`", s);
 	if (s == NULL)
 		return;
 	free(s - sizeof(struct sdshdr));
