@@ -62,7 +62,7 @@ AlloyCompiler *createAlloyCompiler(int argc, char** argv) {
 	AlloyCompiler *self = safeMalloc(sizeof(*self));
 		self->lexer = NULL;
 		self->parser = NULL;
-		self->compiler = NULL;
+//		self->compiler = NULL;
 		self->sourceFiles = createVector(VECTOR_LINEAR);
 
 	int i;
@@ -128,15 +128,15 @@ void startAlloyCompiler(AlloyCompiler *self) {
 	}
 
 	// compilation stage
-	self->compiler = createCompiler(self->sourceFiles);
-	startCompiler(self->compiler);
+//	self->compiler = createCompiler(self->sourceFiles);
+//	startCompiler(self->compiler);
 }
 
 void destroyAlloyCompiler(AlloyCompiler *self) {
 	if (self) {
 		if (self->lexer) destroyLexer(self->lexer);
 		if (self->parser) destroyParser(self->parser);
-		if (self->compiler) destroyCompiler(self->compiler);
+//		if (self->compiler) destroyCompiler(self->compiler);
 		destroyVector(self->sourceFiles);
 		free(self);
 		verboseModeMessage("Destroyed Alloy Compiler");

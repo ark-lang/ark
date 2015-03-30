@@ -31,6 +31,13 @@ static const char *addOp[] = { "+", "-", "|", "^" };
 static const char *mulOp[] = { "+", "/", "%", "<<", ">>", "&" };
 static const char *unaryOp[] = { "+", "-", "!", "^", "<", ">", "*", "&" };
 
+typedef enum {
+	LITERAL_NUMBER,
+	LITERAL_STRING,
+	LITERAL_CHAR,
+	LITERAL_ERRORED
+} LiteralType;
+
 /**
  * parser contents
  */
@@ -101,13 +108,23 @@ VariableDecl *parseVariableDecl(Parser *parser);
 
 Declaration *parseDeclaration(Parser *parser);
 
-PrimaryExpr *parsePrimaryExpr(Parser *parser);
+BaseType *parseBaseType(Parser *parser);
+
+TypeName *parseTypeName(Parser *parser);
+
+Expression *parseExpression(Parser *parser);
+
+ArrayType *parseArrayType(Parser *parser);
+
+PointerType *parsePointerType(Parser *parser);
+
+TypeLit *parseTypeLit(Parser *parser);
 
 UnaryExpr *parseUnaryExpr(Parser *parser);
 
-BinaryExpr *parseBinaryExpr(Parser *parser);
+Call *parseCall(Parser *parser);
 
-Expression *parseExpression(Parser *parser);
+PrimaryExpr *parsePrimaryExpr(Parser *parser);
 
 /** UTILITIES */
 
@@ -129,7 +146,7 @@ int getTokenPrecedence(Parser *parser);
  *
  * @param tok the token to check
  */
-LiteralType getLiteralType(Token *tok);
+int getLiteralType(Token *tok);
 
 /**
  * Consumes the current token
