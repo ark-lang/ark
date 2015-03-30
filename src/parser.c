@@ -276,10 +276,30 @@ IncDecStat *parseIncDecStat(Parser *parser) {
 }
 
 Assignment *parseAssignment(Parser *parser) {
+	PrimaryExpr *prim = parsePrimaryExpr(parser);
+	if (prim) {
+		if (checkTokenTypeAndContent(parser, OPERATOR, "=", 0)) {
+			consumeToken(parser);
+			Expression *expr = parseExpression(parser);
+			if (expr) {
+				if (checkTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
+					consumeToken(parser);
+				}
+				return createAssignment(prim, expr);
+			}
+		}
+	}
 	return false;
 }
 
 StructuredStatement *parseStructuredStatement(Parser *parser) {
+	Block *block = parseBlock(parser);
+	if (block) {
+		StructuredStatement *stmt = createStructuredStatement();
+		stmt->block = block;
+		stmt->type = BLOCK_NODE;
+		return stmt;
+	}
 	return false;
 }
 
@@ -289,6 +309,14 @@ UnstructuredStatement *parseUnstructuredStatement(Parser *parser) {
 		UnstructuredStatement *stmt = createUnstructuredStatement();
 		stmt->decl = decl;
 		stmt->type = UNSTRUCTURED_STATEMENT_NODE;
+		return stmt;
+	}
+
+	Assignment *assign = parseAssignment(parser);
+	if (assign) {
+		UnstructuredStatement *stmt = createUnstructuredStatement();
+		stmt->assignment = assign;
+		stmt->type = ASSIGNMENT_NODE;
 		return stmt;
 	}
 	return false;
