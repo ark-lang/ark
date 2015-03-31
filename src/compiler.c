@@ -9,7 +9,6 @@ Compiler *createCompiler(Vector *sourceFiles) {
 	self->sourceFiles = sourceFiles;
 	self->functions = hashmap_new();
 	self->structures = hashmap_new();
-	self->stackpos = 8;
 	return self;
 }
 
@@ -37,13 +36,11 @@ void emitReceiver(Compiler *self, Receiver *rec) {
 }
 
 void emitFunctionPrologue(Compiler *self) {
-	emit(self, "pushl %ebp\n");
-	emit(self, "mov %esp, %ebp\n");
+
 }
 
 void emitFunctionSignature(Compiler *self, FunctionSignature *func) {
-	emit(self, "\t.global %s\n", func->name);
-	emit(self, "%s:\n", func->name);
+
 }
 
 void emitStructuredStatement(Compiler *self, StructuredStatement *stmt) {
@@ -103,41 +100,7 @@ void consumeAstNodeBy(Compiler *self, int amount) {
 }
 
 void startCompiler(Compiler *self) {
-	int i;
-	for (i = 0; i < self->sourceFiles->size; i++) {
-		SourceFile *sourceFile = getVectorItem(self->sourceFiles, i);
-		self->currentNode = 0;
-		self->currentSourceFile = sourceFile;
-		self->abstractSyntaxTree = self->currentSourceFile->ast;
 
-		writeSourceFile(self->currentSourceFile);
-		compileAST(self);
-		closeSourceFile(self->currentSourceFile);
-	}
-	sds buildCommand = sdsempty();
-
-	// append the compiler to use etc
-	buildCommand = sdscat(buildCommand, COMPILER);
-	buildCommand = sdscat(buildCommand, " ");
-	buildCommand = sdscat(buildCommand, ADDITIONAL_COMPILER_ARGS);
-	buildCommand = sdscat(buildCommand, " ");
-
-	// append the filename to the build string
-	for (i = 0; i < self->sourceFiles->size; i++) {
-		SourceFile *sourceFile = getVectorItem(self->sourceFiles, i);
-		buildCommand = sdscat(buildCommand, sourceFile->generatedSourceName);
-	}
-
-	buildCommand = sdscat(buildCommand, " -o ");
-	buildCommand = sdscat(buildCommand, OUTPUT_EXECUTABLE_NAME);
-	buildCommand = sdscat(buildCommand, ".o");
-
-
-	// just for debug purposes
-	verboseModeMessage("running cl args: `%s`", buildCommand);
-	system(buildCommand);
-
-	sdsfree(buildCommand); // deallocate dat shit baby
 }
 
 void compileAST(Compiler *self) {
