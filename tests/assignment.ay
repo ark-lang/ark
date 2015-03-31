@@ -1,3 +1,0 @@
-fn add(int a, int b): int {
-	// a = 10; dont work
-}
