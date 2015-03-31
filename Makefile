@@ -1,5 +1,6 @@
 CC = clang
-CFLAGS = -g -Iincludes/ -Wall `llvm-config --cflags`
+LLVM_CONFIG = llvm-config
+CFLAGS = -g -Iincludes/ -Wall `llvm-config --cflags` -I`${LLVM_CONFIG} --includedir`
 LD=clang++
 LDFLAGS=`llvm-config --cxxflags --ldflags --libs core executionengine jit interpreter analysis native bitwriter --system-libs`
 SOURCES = src/*.c

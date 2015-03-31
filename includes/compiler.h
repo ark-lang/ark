@@ -22,14 +22,6 @@
 #define SEMICOLON ";"
 #define COMMA_SYM ","
 
-#define COMPACT_CODE_GEN 0
-
-#if COMPACT_CODE_GEN == 0
-	#define CC_NEWLINE "\n"
-#else
-	#define CC_NEWLINE " "
-#endif
-
 typedef struct {
 	Vector *abstractSyntaxTree;
 	Vector *sourceFiles;
@@ -41,11 +33,6 @@ typedef struct {
 
 	int currentNode;
 } Compiler;
-
-typedef struct {
-	// a list of the initial values IN ORDER!!
-	Vector *initialValues;
-} StructInitializer;
 
 Compiler *createCompiler(Vector *sourceFiles);
 
