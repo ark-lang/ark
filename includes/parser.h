@@ -44,7 +44,7 @@ typedef enum {
 typedef struct {
 	Vector *tokenStream;	// the stream of tokens to parse
 	Vector *parseTree;		// the AST created
-
+	map_t binopPrecedence;
 	int tokenIndex;			// current token
 	bool parsing;			// if we're parsing
 	bool failed;			// if parsing failed
@@ -122,9 +122,11 @@ TypeLit *parseTypeLit(Parser *parser);
 
 UnaryExpr *parseUnaryExpr(Parser *parser);
 
-Call *parseCall(Parser *parser);
+Expression *parseBinaryOperator(Parser *parser, int precedence, Expression *lhand);
 
-PrimaryExpr *parsePrimaryExpr(Parser *parser);
+Expression *parsePrimaryExpression(Parser *parser);
+
+Call *parseCall(Parser *parser);
 
 /** UTILITIES */
 
@@ -259,6 +261,8 @@ static inline bool isBinaryOp(char *val) {
  * @param sourceFiles the files to parse
  */
 void startParsingSourceFiles(Parser *parser, Vector *sourceFiles);
+
+bool isValidBinaryOp(char *val);
 
 /**
  * Parse the token stream
