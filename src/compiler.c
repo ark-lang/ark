@@ -121,9 +121,6 @@ void startCompiler(Compiler *self) {
 	for (i = 0; i < self->sourceFiles->size; i++) {
 		SourceFile *sourceFile = getVectorItem(self->sourceFiles, i);
 		buildCommand = sdscat(buildCommand, sourceFile->generatedSourceName);
-
-		if (i != self->sourceFiles->size - 1) // stop whitespace at the end!
-			buildCommand = sdscat(buildCommand, " ");
 	}
 
 	buildCommand = sdscat(buildCommand, " -o ");
