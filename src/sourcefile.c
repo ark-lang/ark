@@ -3,7 +3,6 @@
 SourceFile *createSourceFile(sds fileName) {
 	SourceFile *sourceFile = malloc(sizeof(*sourceFile));
 	sourceFile->fileName = fileName;
-	sourceFile->headerFile = createHeaderFile(fileName);
 	sourceFile->name = getFileName(sourceFile->fileName);
 	sourceFile->alloyFileContents = readFile(fileName);
 
@@ -16,16 +15,11 @@ SourceFile *createSourceFile(sds fileName) {
 	return sourceFile;
 }
 
-void writeFiles(SourceFile *sourceFile) {
-	writeSourceFile(sourceFile);
-	writeHeaderFile(sourceFile->headerFile);
-}
-
 void writeSourceFile(SourceFile *sourceFile) {
 	sourceFile->generatedSourceName = sdsempty();
-	sourceFile->generatedSourceName = sdscat(sourceFile->generatedSourceName, "_gen_");
+	sourceFile->generatedSourceName = sdscat(sourceFile->generatedSourceName, OUTPUT_PREFIX);
 	sourceFile->generatedSourceName = sdscat(sourceFile->generatedSourceName, sourceFile->name);
-	sourceFile->generatedSourceName = sdscat(sourceFile->generatedSourceName, ".c");
+	sourceFile->generatedSourceName = sdscat(sourceFile->generatedSourceName, OUTPUT_EXTENSION);
 
 	verboseModeMessage("Generated source file `%s` as `%s`", sourceFile->name, sourceFile->generatedSourceName);
 	sourceFile->outputFile = fopen(sourceFile->generatedSourceName, "w");
@@ -35,19 +29,12 @@ void writeSourceFile(SourceFile *sourceFile) {
 	}
 }
 
-void closeFiles(SourceFile *sourceFile) {
-	closeSourceFile(sourceFile);
-	closeHeaderFile(sourceFile->headerFile);
-}
-
 void closeSourceFile(SourceFile *sourceFile) {
 	fclose(sourceFile->outputFile);
 }
 
 void destroySourceFile(SourceFile *sourceFile) {
 	if (!OUTPUT_C) remove(sourceFile->generatedSourceName);
-
-	destroyHeaderFile(sourceFile->headerFile);
 
 	verboseModeMessage("Destroyed Source File `%s`", sourceFile->name);
 	sdsfree(sourceFile->fileName);

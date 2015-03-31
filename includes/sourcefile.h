@@ -4,8 +4,10 @@
 #include <stdlib.h>
 
 #include "vector.h"
-#include "headerfile.h"
 #include "util.h"
+
+#define OUTPUT_PREFIX "_gen_"
+#define OUTPUT_EXTENSION ".s"
 
 /**
  * SourceFile properties
@@ -19,8 +21,6 @@ typedef struct {
 
 	Vector *tokens;				// the token stream for the source file
 	Vector *ast;				// the output AST tree
-
-	HeaderFile *headerFile;		// the header file for the source file
 } SourceFile;
 
 /**
