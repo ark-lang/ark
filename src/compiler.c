@@ -115,8 +115,6 @@ void startCompiler(Compiler *self) {
 	buildCommand = sdscat(buildCommand, COMPILER);
 	buildCommand = sdscat(buildCommand, " ");
 	buildCommand = sdscat(buildCommand, ADDITIONAL_COMPILER_ARGS);
-	buildCommand = sdscat(buildCommand, " -o ");
-	buildCommand = sdscat(buildCommand, OUTPUT_EXECUTABLE_NAME);
 	buildCommand = sdscat(buildCommand, " ");
 
 	// append the filename to the build string
@@ -127,6 +125,9 @@ void startCompiler(Compiler *self) {
 		if (i != self->sourceFiles->size - 1) // stop whitespace at the end!
 			buildCommand = sdscat(buildCommand, " ");
 	}
+
+	buildCommand = sdscat(buildCommand, " -o ");
+	buildCommand = sdscat(buildCommand, OUTPUT_EXECUTABLE_NAME);
 
 	// just for debug purposes
 	verboseModeMessage("running cl args: `%s`", buildCommand);
