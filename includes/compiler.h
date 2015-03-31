@@ -39,6 +39,7 @@ typedef struct {
 	map_t variables;
 
 	int currentNode;
+	int stackpos;
 } Compiler;
 
 typedef struct {
@@ -48,7 +49,7 @@ typedef struct {
 
 Compiler *createCompiler(Vector *sourceFiles);
 
-void emitCode(Compiler *self, char *fmt, ...);
+void emit(Compiler *self, char *fmt, ...);
 
 void emitExpression(Compiler *self, Expression *expr);
 

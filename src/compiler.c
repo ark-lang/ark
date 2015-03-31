@@ -1,5 +1,7 @@
 #include "compiler.h"
 
+#define REGAREA_SIZE 176
+
 Compiler *createCompiler(Vector *sourceFiles) {
 	Compiler *self = safeMalloc(sizeof(*self));
 	self->abstractSyntaxTree = NULL;
@@ -7,10 +9,11 @@ Compiler *createCompiler(Vector *sourceFiles) {
 	self->sourceFiles = sourceFiles;
 	self->functions = hashmap_new();
 	self->structures = hashmap_new();
+	self->stackpos = 8;
 	return self;
 }
 
-void emitCode(Compiler *self, char *fmt, ...) {
+void emit(Compiler *self, char *fmt, ...) {
 	va_list args;
 	va_start(args, fmt);
 	vfprintf(self->currentSourceFile->outputFile, fmt, args);
@@ -33,8 +36,14 @@ void emitReceiver(Compiler *self, Receiver *rec) {
 
 }
 
-void emitFunctionSignature(Compiler *self, FunctionSignature *func) {
+void emitFunctionPrologue(Compiler *self) {
+	emit(self, "pushl %ebp\n");
+	emit(self, "mov %esp, %ebp\n");
+}
 
+void emitFunctionSignature(Compiler *self, FunctionSignature *func) {
+	emit(self, "\t.global %s\n", func->name);
+	emit(self, "%s:\n", func->name);
 }
 
 void emitStructuredStatement(Compiler *self, StructuredStatement *stmt) {
@@ -102,11 +111,7 @@ void startCompiler(Compiler *self) {
 		self->abstractSyntaxTree = self->currentSourceFile->ast;
 
 		writeSourceFile(self->currentSourceFile);
-
-		// compile code
 		compileAST(self);
-
-		// close files
 		closeSourceFile(self->currentSourceFile);
 	}
 	sds buildCommand = sdsempty();
@@ -125,10 +130,13 @@ void startCompiler(Compiler *self) {
 
 	buildCommand = sdscat(buildCommand, " -o ");
 	buildCommand = sdscat(buildCommand, OUTPUT_EXECUTABLE_NAME);
+	buildCommand = sdscat(buildCommand, ".o");
+
 
 	// just for debug purposes
 	verboseModeMessage("running cl args: `%s`", buildCommand);
 	system(buildCommand);
+
 	sdsfree(buildCommand); // deallocate dat shit baby
 }
 
