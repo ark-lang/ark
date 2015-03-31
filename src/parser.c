@@ -72,19 +72,19 @@ IdentifierList *parseIdentifierList(Parser *parser) {
 }
 
 Type *parseType(Parser *parser) {
-	TypeName *typeName = parseTypeName(parser);
-	if (typeName) {
-		Type *type = createType();
-		type->typeName = typeName;
-		type->type = TYPE_NAME_NODE;
-		return type;
-	}
-
 	TypeLit *typeLit = parseTypeLit(parser);
 	if (typeLit) {
 		Type *type = createType();
 		type->typeLit = typeLit;
 		type->type = TYPE_LIT_NODE;
+		return type;
+	}
+
+	TypeName *typeName = parseTypeName(parser);
+	if (typeName) {
+		Type *type = createType();
+		type->typeName = typeName;
+		type->type = TYPE_NAME_NODE;
 		return type;
 	}
 
@@ -318,10 +318,11 @@ IncDecStat *parseIncDecStat(Parser *parser) {
 }
 
 Assignment *parseAssignment(Parser *parser) {
-	Expression *prim = parseExpression(parser);
+	Expression *prim = parsePrimaryExpression(parser);
 	if (prim) {
 		if (checkTokenTypeAndContent(parser, OPERATOR, "=", 0)) {
 			consumeToken(parser);
+
 			Expression *expr = parseExpression(parser);
 			if (expr) {
 				if (checkTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
@@ -647,19 +648,19 @@ Expression *parsePrimaryExpression(Parser *parser) {
 		return expr;
 	}
 
-	Literal *lit = parseLiteral(parser);
-	if (lit) {
-		Expression *expr = createExpression();
-		expr->lit = lit;
-		expr->exprType = LITERAL_NODE;
-		return expr;
-	}
-
 	UnaryExpr *unary = parseUnaryExpr(parser);
 	if (unary) {
 		Expression *expr = createExpression();
 		expr->unary = unary;
 		expr->exprType = UNARY_EXPR_NODE;
+		return expr;
+	}
+
+	Literal *lit = parseLiteral(parser);
+	if (lit) {
+		Expression *expr = createExpression();
+		expr->lit = lit;
+		expr->exprType = LITERAL_NODE;
 		return expr;
 	}
 
