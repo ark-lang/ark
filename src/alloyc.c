@@ -17,7 +17,6 @@ void help() {
 	printf("  -c\t\t\tKeep the generated C code\n");
 	printf("  -compiler <cc>\tCompiles generated code with <cc>\n");
 	printf("  -o <file>\t\tPlace the output into <file>\n");
-	printf("  -o <file>\t\tPlace the output into <file>\n");
 	printf("\n");
 }
 
