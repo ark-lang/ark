@@ -1,0 +1,5 @@
+int a = 10;
+
+fn main(): void {
+	a = 21;
+}
