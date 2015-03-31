@@ -34,12 +34,12 @@ typedef struct {
 	Vector *abstractSyntaxTree;
 	Vector *sourceFiles;
 	SourceFile *currentSourceFile;
+
 	map_t functions;
 	map_t structures;
 	map_t variables;
 
 	int currentNode;
-	int stackpos;
 } Compiler;
 
 typedef struct {
