@@ -1,23 +1,5 @@
 #include "compiler.h"
 
-char *BOILERPLATE =
-"#include <stdlib.h>\n"
-"#include <stdio.h>\n"
-"#include <stdbool.h>\n"
-"\n"
-"typedef char *str;" CC_NEWLINE
-"typedef unsigned long long u64;" CC_NEWLINE
-"typedef unsigned int u32;" CC_NEWLINE
-"typedef unsigned short u16;" CC_NEWLINE
-"typedef unsigned char u8;" CC_NEWLINE
-"typedef long long s64;" CC_NEWLINE
-"typedef int s32;" CC_NEWLINE
-"typedef short s16;" CC_NEWLINE
-"typedef char s8;" CC_NEWLINE
-"typedef float f32;" CC_NEWLINE
-"typedef double f64;" CC_NEWLINE
-;
-
 Compiler *createCompiler(Vector *sourceFiles) {
 	Compiler *self = safeMalloc(sizeof(*self));
 	self->abstractSyntaxTree = NULL;
@@ -31,17 +13,8 @@ Compiler *createCompiler(Vector *sourceFiles) {
 void emitCode(Compiler *self, char *fmt, ...) {
 	va_list args;
 	va_start(args, fmt);
-
-	switch (self->writeState) {
-		case WRITE_SOURCE_STATE:
-			vfprintf(self->currentSourceFile->outputFile, fmt, args);
-			va_end(args);
-			break;
-		case WRITE_HEADER_STATE:
-			vfprintf(self->currentSourceFile->headerFile->outputFile, fmt, args);
-			va_end(args);
-			break;
-	}
+	vfprintf(self->currentSourceFile->outputFile, fmt, args);
+	va_end(args);
 }
 
 void emitExpression(Compiler *self, Expression *expr) {
@@ -128,29 +101,13 @@ void startCompiler(Compiler *self) {
 		self->currentSourceFile = sourceFile;
 		self->abstractSyntaxTree = self->currentSourceFile->ast;
 
-		writeFiles(self->currentSourceFile);
-
-		self->writeState = WRITE_SOURCE_STATE;
-		// _gen_name.h is the typical name for the headers and c files that are generated
-		emitCode(self, "#include \"_gen_%s.h\"\n", self->currentSourceFile->name);
-
-		// write to header
-		self->writeState = WRITE_HEADER_STATE;
-		emitCode(self, "#ifndef __%s_H\n", self->currentSourceFile->name);
-		emitCode(self, "#define __%s_H\n\n", self->currentSourceFile->name);
-
-		emitCode(self, BOILERPLATE);
+		writeSourceFile(self->currentSourceFile);
 
 		// compile code
 		compileAST(self);
 
-		// write to header
-		self->writeState = WRITE_HEADER_STATE;
-		emitCode(self, "\n");
-		emitCode(self, "#endif // __%s_H\n", self->currentSourceFile->name);
-
 		// close files
-		closeFiles(self->currentSourceFile);
+		closeSourceFile(self->currentSourceFile);
 	}
 	sds buildCommand = sdsempty();
 
@@ -185,9 +142,6 @@ void compileAST(Compiler *self) {
 		switch (currentStmt->type) {
 			case UNSTRUCTURED_STATEMENT_NODE: emitUnstructuredStatement(self, currentStmt->unstructured); break;
 			case STRUCTURED_STATEMENT_NODE: emitStructuredStatement(self, currentStmt->structured); break;
-			default:
-				printf("idk?\n");
-				break;
 		}
 	}
 }
@@ -197,7 +151,6 @@ void destroyCompiler(Compiler *self) {
 	int i;
 	for (i = 0; i < self->sourceFiles->size; i++) {
 		SourceFile *sourceFile = getVectorItem(self->sourceFiles, i);
-		// don't call destroyHeaderFile since it's called in this function!!!!
 		destroySourceFile(sourceFile);
 		verboseModeMessage("Destroyed source files on %d iteration.", i);
 	}
