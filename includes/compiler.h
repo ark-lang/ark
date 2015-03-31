@@ -30,11 +30,6 @@
 	#define CC_NEWLINE " "
 #endif
 
-typedef enum {
-	WRITE_HEADER_STATE,
-	WRITE_SOURCE_STATE
-} WriteState;
-
 typedef struct {
 	Vector *abstractSyntaxTree;
 	Vector *sourceFiles;
@@ -42,7 +37,6 @@ typedef struct {
 	map_t functions;
 	map_t structures;
 	map_t variables;
-	WriteState writeState;
 
 	int currentNode;
 } Compiler;
