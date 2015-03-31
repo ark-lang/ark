@@ -5,9 +5,8 @@
 #include "vector.h"
 
 /** forward declarations */
-typedef struct s_Type Type;
-typedef struct s_Call Call;
 typedef struct s_Expression Expression;
+typedef struct s_Type Type;
 typedef struct {} ContinueStat;
 typedef struct {} BreakStat;
 
@@ -19,7 +18,7 @@ typedef enum {
 	ARRAY_TYPE_NODE, POINTER_TYPE_NODE, FIELD_DECL_NODE,
 	FIELD_DECL_LIST_NODE, STRUCT_DECL_NODE, STATEMENT_LIST_NODE,
 	BLOCK_NODE, PARAMETER_SECTION_NODE, PARAMETERS_NODE, RECEIVER_NODE,
-	FUNCTION_SIGNATURE_NODE, FUNCTION_DECL_NODE, VARIABLE_DECL_NODE,
+	FUNCTION_SIGNATURE_NODE, FUNCTION_DECL_NODE, VARIABLE_DECL_NODE, FUNCTION_CALL_NODE,
 	DECLARATION_NODE, INC_DEC_STAT_NODE, RETURN_STAT_NODE, BREAK_STAT_NODE,
 	CONTINUE_STAT_NODE, LEAVE_STAT_NODE, ASSIGNMENT_NODE, UNSTRUCTURED_STATEMENT_NODE,
 	ELSE_STAT_NODE, IF_STAT_NODE, MATCH_CLAUSE_STAT, MATCH_STAT_NODE, FOR_STAT_NODE,
@@ -51,6 +50,51 @@ typedef struct {
 } Literal;
 
 /**
+ * A name of a type.
+ */
+typedef struct {
+	char *name;
+} TypeName;
+
+typedef struct {
+	TypeName *type;
+} BaseType;
+
+/**
+ * A pointer type, i.e `int ^`
+ */
+typedef struct {
+	BaseType *baseType;
+} PointerType;
+
+/**
+ * An array type, which contains the length of the array
+ * as an expression, and the type of data the array holds.
+ * i.e: int[10];
+ */
+typedef struct {
+	Expression *length;
+	Type *type;
+} ArrayType;
+
+typedef struct {
+	ArrayType *arrayType;
+	PointerType *pointerType;
+	int type;
+} TypeLit;
+
+/**
+ * A type, which can be a type name,
+ * array type, pointer type, or a structure
+ * declaration.
+ */
+struct s_Type {
+	TypeName *typeName;
+	TypeLit *typeLit;
+	int type;
+};
+
+/**
  * A node representing an array sub expression,
  * for example a[5], or optional array slices, e.g a[5: 5].
  */
@@ -70,71 +114,40 @@ typedef struct {
 } MemberAccessExpr;
 
 /**
- * A node representing a Primary Expression, which can be either a literal,
- * a primary expression, array sub expression, member access, binary expression,
- * unary expression, etc.
- */
-typedef struct {
-	Literal *literal;
-	Expression *parenExpr;
-	ArraySubExpr *arraySubExpr;
-	MemberAccessExpr *memberAccess;
-	char *identifier;
-	Call *funcCall;
-	int type;
-} PrimaryExpr;
-
-/**
  * A node representing a function call
  */
-struct s_Call {
-	PrimaryExpr *callee;
+typedef struct {
+	Expression *callee;
 	Vector *arguments;
-};
+} Call;
 
 /**
  * A node representing a unary expression, for instance
  * +5, or -5.
  */
 typedef struct s_UnaryExpr {
-	PrimaryExpr *prim;
-
+	Expression *lhand;
 	char *unaryOp;
-	struct s_UnaryExpr *unary;
-
-	int type;
 } UnaryExpr;
+
+typedef struct {
+	Expression *lhand;
+	char *binaryOp;
+	Expression *rhand;
+} BinaryExpr;
 
 /**
  * Inheritance "emulation", an Expression Node is the parent
  * of all expressions.
  */
 struct s_Expression {
-	UnaryExpr *unaryExpr;
-
-	Expression *lhand;
-	char *binaryOp;
-	UnaryExpr *rhand;
-
-	int type;			// binary or unary
-};
-
-/**
- * A name of a type.
- */
-typedef struct {
-	char *name;
-} TypeName;
-
-/**
- * An array type, which contains the length of the array
- * as an expression, and the type of data the array holds.
- * i.e: int[10];
- */
-typedef struct {
-	Expression *length;
+	Call *call;
 	Type *type;
-} ArrayType;
+	Literal *lit;
+	BinaryExpr *binary;
+	UnaryExpr *unary;
+	int exprType;
+};
 
 /**
  * Field declaration for a struct
@@ -266,7 +279,7 @@ typedef struct {
  * Node for an assignment
  */
 typedef struct {
-	PrimaryExpr *primary;
+	Expression *primary;
 	Expression *expr;
 } Assignment;
 
@@ -356,34 +369,6 @@ typedef struct {
 	int type;
 } Statement;
 
-typedef struct {
-	TypeName *type;
-} BaseType;
-
-/**
- * A pointer type, i.e `int ^`
- */
-typedef struct {
-	BaseType *baseType;
-} PointerType;
-
-typedef struct {
-	ArrayType *arrayType;
-	PointerType *pointerType;
-	int type;
-} TypeLit;
-
-/**
- * A type, which can be a type name,
- * array type, pointer type, or a structure
- * declaration.
- */
-struct s_Type {
-	TypeName *typeName;
-	TypeLit *typeLit;
-	int type;
-};
-
 Node *createNode(void *data, NodeType type);
 
 IdentifierList *createIdentifierList();
@@ -398,13 +383,13 @@ UnaryExpr *createUnaryExpr();
 
 ArraySubExpr *createArraySubExpr(Expression *lhand);
 
-MemberAccessExpr *createMemberAccessExpr(Expression *expr, char *value);
+MemberAccessExpr *createMemberAccessExpr(Expression *rhand, char *value);
 
-Call *createCall(PrimaryExpr *expr);
-
-PrimaryExpr *createPrimaryExpr();
+Call *createCall(Expression *rhand);
 
 Expression *createExpression();
+
+BinaryExpr *createBinaryExpr();
 
 TypeName *createTypeName(char *name);
 
@@ -432,13 +417,13 @@ FunctionSignature *createFunctionSignature(char *name, Parameters *params, bool 
 
 FunctionDecl *createFunctionDecl();
 
-VariableDecl *createVariableDecl(Type *type, char *name, bool mutable, Expression *expr);
+VariableDecl *createVariableDecl(Type *type, char *name, bool mutable, Expression *rhand);
 
 Declaration *createDeclaration();
 
-IncDecStat *createIncDecStat(Expression *expr, int inc);
+IncDecStat *createIncDecStat(Expression *rhand, int inc);
 
-ReturnStat *createReturnStat(Expression *expr);
+ReturnStat *createReturnStat(Expression *rhand);
 
 BreakStat *createBreakStat();
 
@@ -446,7 +431,7 @@ ContinueStat *createContinueStat();
 
 LeaveStat *createLeaveStat();
 
-Assignment *createAssignment(PrimaryExpr *primaryExpr, Expression *expr);
+Assignment *createAssignment(Expression *lhand, Expression *rhand);
 
 UnstructuredStatement *createUnstructuredStatement();
 
@@ -456,7 +441,7 @@ IfStat *createIfStat();
 
 MatchClause *createMatchClause();
 
-MatchStat *createMatchStat(Expression *expr);
+MatchStat *createMatchStat(Expression *rhand);
 
 ForStat *createForStat(Type *type, char *index);
 
@@ -476,17 +461,17 @@ void destroyBaseType(BaseType *type);
 
 void destroyLiteral(Literal *lit);
 
-void destroyUnaryExpr(UnaryExpr *expr);
+void destroyUnaryExpr(UnaryExpr *rhand);
 
-void destroyArraySubExpr(ArraySubExpr *expr);
+void destroyArraySubExpr(ArraySubExpr *rhand);
 
-void destroyMemberAccessExpr(MemberAccessExpr *expr);
+void destroyMemberAccessExpr(MemberAccessExpr *rhand);
 
 void destroyCall(Call *call);
 
-void destroyPrimaryExpr(PrimaryExpr *expr);
+void destroyExpression(Expression *rhand);
 
-void destroyExpression(Expression *expr);
+void destroyBinaryExpression(BinaryExpr *binary);
 
 void destroyTypeName(TypeName *typeName);
 

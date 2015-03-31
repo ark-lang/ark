@@ -39,19 +39,19 @@ MemberAccessExpr *createMemberAccessExpr(Expression *expr, char *value) {
 	return mem;
 }
 
-Call *createCall(PrimaryExpr *expr) {
+Call *createCall(Expression *expr) {
 	Call *call = safeMalloc(sizeof(*call));
 	call->arguments = createVector(VECTOR_EXPONENTIAL);
 	call->callee = expr;
 	return call;
 }
 
-PrimaryExpr *createPrimaryExpr() {
-	return safeMalloc(sizeof(PrimaryExpr));
-}
-
 Expression *createExpression() {
 	return safeMalloc(sizeof(Expression));
+}
+
+BinaryExpr *createBinaryExpr() {
+	return safeMalloc(sizeof(BinaryExpr));
 }
 
 TypeName *createTypeName(char *name) {
@@ -178,10 +178,10 @@ LeaveStat *createLeaveStat() {
 	return safeMalloc(sizeof(LeaveStat));
 }
 
-Assignment *createAssignment(PrimaryExpr *primaryExpr, Expression *expr) {
+Assignment *createAssignment(Expression *lhand, Expression *rhand) {
 	Assignment *assign = safeMalloc(sizeof(*assign));
-	assign->primary = primaryExpr;
-	assign->expr = expr;
+	assign->primary = lhand;
+	assign->expr = rhand;
 	return assign;
 }
 
@@ -239,7 +239,6 @@ void cleanupAST(Vector *nodes) {
 		case UNARY_EXPR_NODE: destroyUnaryExpr(node->data); break;
 		case ARRAY_SUB_EXPR_NODE: destroyArraySubExpr(node->data); break;
 		case MEMBER_ACCESS_NODE: destroyMemberAccessExpr(node->data); break;
-		case PRIMARY_EXPR_NODE: destroyPrimaryExpr(node->data); break;
 		case EXPR_NODE: destroyExpression(node->data); break;
 		case TYPE_NAME_NODE: destroyTypeName(node->data); break;
 		case ARRAY_TYPE_NODE: destroyArrayType(node->data); break;
@@ -295,8 +294,7 @@ void destroyLiteral(Literal *lit) {
 
 void destroyUnaryExpr(UnaryExpr *expr) {
 	if (!expr) return;
-	destroyPrimaryExpr(expr->prim);
-	destroyUnaryExpr(expr->unary);
+	destroyExpression(expr->lhand);
 	free(expr);
 }
 
@@ -317,28 +315,28 @@ void destroyMemberAccessExpr(MemberAccessExpr *expr) {
 void destroyCall(Call *call) {
 	if (!call) return;
 	for (int i = 0; i < call->arguments->size; i++) {
-		destroyPrimaryExpr(getVectorItem(call->arguments, i));
+		destroyExpression(getVectorItem(call->arguments, i));
 	}
 	destroyVector(call->arguments);
-	destroyPrimaryExpr(call->callee);
+	destroyExpression(call->callee);
 	free(call);
-}
-
-void destroyPrimaryExpr(PrimaryExpr *expr) {
-	if (!expr) return;
-	destroyArraySubExpr(expr->arraySubExpr);
-	destroyLiteral(expr->literal);
-	destroyMemberAccessExpr(expr->memberAccess);
-	destroyExpression(expr->parenExpr);
-	free(expr);
 }
 
 void destroyExpression(Expression *expr) {
 	if (!expr) return;
-	destroyExpression(expr->lhand);
-	destroyUnaryExpr(expr->rhand);
-	destroyUnaryExpr(expr->unaryExpr);
+	destroyBinaryExpression(expr->binary);
+	destroyCall(expr->call);
+	destroyLiteral(expr->lit);
+	destroyType(expr->type);
+	destroyUnaryExpr(expr->unary);
 	free(expr);
+}
+
+void destroyBinaryExpression(BinaryExpr *binary) {
+	if (!binary) return;
+	destroyExpression(binary->lhand);
+	destroyExpression(binary->rhand);
+	free(binary);
 }
 
 void destroyTypeName(TypeName *typeName) {
@@ -476,7 +474,7 @@ void destroyLeaveStat(LeaveStat *stmt) {
 void destroyAssignment(Assignment *assign) {
 	if (!assign) return;
 	destroyExpression(assign->expr);
-	destroyPrimaryExpr(assign->primary);
+	destroyExpression(assign->primary);
 	free(assign);
 }
 
