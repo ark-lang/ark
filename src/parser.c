@@ -1,11 +1,40 @@
 #include "parser.h"
 
+const char* BINARY_OPS[] = {
+	".", "*", "/", "%", "+", "-",
+	">", "<", ">=", "<=", "==", "!=", "&",
+	"|"
+};
+
 Parser *createParser() {
 	Parser *parser = safeMalloc(sizeof(*parser));
 	parser->tokenStream = NULL;
 	parser->tokenIndex = 0;
 	parser->parsing = true;
 	parser->failed = false;
+	parser->binopPrecedence = hashmap_new();
+
+	hashmap_put(parser->binopPrecedence, ".", createPrecedence(4));
+
+	hashmap_put(parser->binopPrecedence, "*", createPrecedence(5));
+	hashmap_put(parser->binopPrecedence, "/", createPrecedence(5));
+	hashmap_put(parser->binopPrecedence, "%", createPrecedence(5));
+
+	hashmap_put(parser->binopPrecedence, "+", createPrecedence(6));
+	hashmap_put(parser->binopPrecedence, "-", createPrecedence(6));
+
+	hashmap_put(parser->binopPrecedence, ">", createPrecedence(8));
+	hashmap_put(parser->binopPrecedence, "<", createPrecedence(8));
+	hashmap_put(parser->binopPrecedence, ">=", createPrecedence(8));
+	hashmap_put(parser->binopPrecedence, "<=", createPrecedence(8));
+
+	hashmap_put(parser->binopPrecedence, "==", createPrecedence(9));
+	hashmap_put(parser->binopPrecedence, "!=", createPrecedence(9));
+
+	hashmap_put(parser->binopPrecedence, "&", createPrecedence(10));
+
+	hashmap_put(parser->binopPrecedence, "|", createPrecedence(11));
+
 	return parser;
 }
 
@@ -44,12 +73,12 @@ IdentifierList *parseIdentifierList(Parser *parser) {
 
 Type *parseType(Parser *parser) {
 	TypeName *typeName = parseTypeName(parser);
-		if (typeName) {
-			Type *type = createType();
-			type->typeName = typeName;
-			type->type = TYPE_NAME_NODE;
-			return type;
-		}
+	if (typeName) {
+		Type *type = createType();
+		type->typeName = typeName;
+		type->type = TYPE_NAME_NODE;
+		return type;
+	}
 
 	TypeLit *typeLit = parseTypeLit(parser);
 	if (typeLit) {
@@ -289,7 +318,7 @@ IncDecStat *parseIncDecStat(Parser *parser) {
 }
 
 Assignment *parseAssignment(Parser *parser) {
-	PrimaryExpr *prim = parsePrimaryExpr(parser);
+	Expression *prim = parseExpression(parser);
 	if (prim) {
 		if (checkTokenTypeAndContent(parser, OPERATOR, "=", 0)) {
 			consumeToken(parser);
@@ -456,6 +485,24 @@ Declaration *parseDeclaration(Parser *parser) {
 	return false;
 }
 
+int getTokenPrecedence(Parser *parser) {
+	Token *tok = peekAtTokenStream(parser, 0);
+
+	if (!isascii(tok->content[0])) return -1;
+
+	Precedence *prec = NULL;
+	if (hashmap_get(parser->binopPrecedence, tok->content, (void**) &prec) == MAP_MISSING) {
+		errorMessage("Precedence doesnt exist for %s\n", tok->content);
+		return -1;
+	}
+
+	int tokenPrecedence = prec->prec;
+	if (tokenPrecedence <= 0) {
+		return -1;
+	}
+	return tokenPrecedence;
+}
+
 BaseType *parseBaseType(Parser *parser) {
 	if (checkTokenType(parser, IDENTIFIER, 0)) {
 		BaseType *baseType = createBaseType();
@@ -474,31 +521,9 @@ TypeName *parseTypeName(Parser *parser) {
 }
 
 Expression *parseExpression(Parser *parser) {
-	UnaryExpr *unary = parseUnaryExpr(parser);
-	if (unary) {
-		Expression *expr = createExpression();
-		expr->unaryExpr = unary;
-		expr->type = UNARY_EXPR_NODE;
-		return expr;
-	}
-
-	Expression *expr = parseExpression(parser);
-	if (expr) {
-		if (isBinaryOp(peekAtTokenStream(parser, 0)->content)) {
-			char *op = consumeToken(parser)->content;
-			UnaryExpr *unary = parseUnaryExpr(parser);
-			if (unary) {
-				Expression *res = createExpression();
-				res->lhand = expr;
-				res->binaryOp = op;
-				res->rhand = unary;
-				res->type = BINARY_EXPR_NODE;
-				return res;
-			}
-		}
-	}
-
-	return false;
+	Expression *expr = parsePrimaryExpression(parser);
+	if (!expr) return false;
+	return parseBinaryOperator(parser, 0, expr);
 }
 
 ArrayType *parseArrayType(Parser *parser) {
@@ -554,22 +579,13 @@ TypeLit *parseTypeLit(Parser *parser) {
 }
 
 UnaryExpr *parseUnaryExpr(Parser *parser) {
-	PrimaryExpr *prim = parsePrimaryExpr(parser);
-	if (prim) {
-		UnaryExpr *res = createUnaryExpr();
-		res->prim = prim;
-		res->type = PRIMARY_EXPR_NODE;
-		return res;
-	}
-
 	if (isUnaryOp(peekAtTokenStream(parser, 0)->content)) {
 		char *op = consumeToken(parser)->content;
-		UnaryExpr *unary = parseUnaryExpr(parser);
-		if (unary) {
+		Expression *prim = parsePrimaryExpression(parser);
+		if (prim) {
 			UnaryExpr *res = createUnaryExpr();
-			res->unary = unary;
+			res->lhand = prim;
 			res->unaryOp = op;
-			res->type = UNARY_EXPR_NODE;
 			return res;
 		}
 	}
@@ -577,115 +593,76 @@ UnaryExpr *parseUnaryExpr(Parser *parser) {
 	return false;
 }
 
-Call *parseCall(Parser *parser) {
-	PrimaryExpr *callee = parsePrimaryExpr(parser);
-	if (callee) {
-		if (checkTokenTypeAndContent(parser, SEPARATOR, "(", 0)) {
-			consumeToken(parser);
+Expression *parseBinaryOperator(Parser *parser, int precedence, Expression *lhand) {
+	for (;;) {
+		int tokenPrecedence = getTokenPrecedence(parser);
+		if (tokenPrecedence < precedence) return lhand;
 
-			Call *call = createCall(callee);
-			while (true) {
-				if (checkTokenTypeAndContent(parser, SEPARATOR, ")", 0)) {
-					consumeToken(parser);
-					break;
-				}
-
-				Expression *expr = parseExpression(parser);
-				if (expr) {
-					pushBackItem(call->arguments, expr);
-					if (checkTokenTypeAndContent(parser, SEPARATOR, ",", 0)) {
-						consumeToken(parser);
-					}
-				}
-				else {
-					break;
-				}
-			}
-
-			return call;
+		Token *tok = peekAtTokenStream(parser, 0);
+		if (!isValidBinaryOp(tok->content)) {
+			errorMessage("No precedence for %s", tok->content);
+			return false;
 		}
+		char *binaryOp = consumeToken(parser)->content;
+
+		Expression *rhand = parsePrimaryExpression(parser);
+		if (rhand) return false;
+
+		int nextPrec = getTokenPrecedence(parser);
+		if (tokenPrecedence < nextPrec) {
+			rhand = parseBinaryOperator(parser, tokenPrecedence + 1, rhand);
+			if (!rhand) return false;
+		}
+
+		Expression *temp = createExpression();
+		temp->binary = createBinaryExpr();
+		temp->binary->lhand = lhand;
+		temp->binary->binaryOp = binaryOp;
+		temp->binary->rhand = rhand;
+		temp->exprType = BINARY_EXPR_NODE;
+		lhand = temp;
 	}
 
 	return false;
 }
 
-PrimaryExpr *parsePrimaryExpr(Parser *parser) {
-	if (checkTokenType(parser, IDENTIFIER, 0)) {
-		char *value = consumeToken(parser)->content;
-		PrimaryExpr *res = createPrimaryExpr();
-		res->identifier = value;
-		res->type = IDENTIFIER_NODE;
-		return res;
+Expression *parsePrimaryExpression(Parser *parser) {
+	Call *call = parseCall(parser);
+	if (call) {
+		Expression *expr = createExpression();
+		expr->call = call;
+		expr->exprType = FUNCTION_CALL_NODE;
+		return expr;
+	}
+
+	Type *type = parseType(parser);
+	if (type) {
+		Expression *expr = createExpression();
+		expr->type = type;
+		expr->exprType = TYPE_NODE;
+		return expr;
 	}
 
 	Literal *lit = parseLiteral(parser);
 	if (lit) {
-		PrimaryExpr *res = createPrimaryExpr();
-		res->literal = lit;
-		res->type = LITERAL_NODE;
-		return res;
+		Expression *expr = createExpression();
+		expr->lit = lit;
+		expr->exprType = LITERAL_NODE;
+		return expr;
 	}
 
-	if (checkTokenTypeAndContent(parser, SEPARATOR, "(", 0)) {
-		consumeToken(parser);
-		Expression *expr = parseExpression(parser);
-		if (expr) {
-			if (checkTokenTypeAndContent(parser, SEPARATOR, "(", 1)) {
-				consumeToken(parser);
-				PrimaryExpr *res = createPrimaryExpr();
-				res->parenExpr = expr;
-				res->type = PAREN_EXPR_NODE;
-				return res;
-			}
-		}
+	UnaryExpr *unary = parseUnaryExpr(parser);
+	if (unary) {
+		Expression *expr = createExpression();
+		expr->unary = unary;
+		expr->exprType = UNARY_EXPR_NODE;
+		return expr;
 	}
 
-	Call *call = parseCall(parser);
-	if (call) {
-		PrimaryExpr *res = createPrimaryExpr();
-		res->funcCall = call;
-		res->type = FUNCTION_DECL_NODE;
-		return res;
-	}
+	return false;
+}
 
-	if (checkTokenTypeAndContent(parser, SEPARATOR, "[", 1)) {
-		Expression *lhand = parseExpression(parser);
-		if (lhand) {
-			consumeToken(parser);
-
-			Expression *start = parseExpression(parser);
-			if (start) {
-				Expression *end = NULL;
-				if (checkTokenTypeAndContent(parser, SEPARATOR, ":", 0)) {
-					consumeToken(parser);
-					end = parseExpression(parser);
-				}
-
-				if (checkTokenTypeAndContent(parser, SEPARATOR, "]", 0)) {
-					consumeToken(parser);
-					PrimaryExpr *res = createPrimaryExpr();
-					res->arraySubExpr = createArraySubExpr(lhand);
-					res->arraySubExpr->start = start;
-					res->arraySubExpr->end = end;
-					res->type = ARRAY_SUB_EXPR_NODE;
-					return res;
-				}
-			}
-		}
-	}
-	else if (checkTokenTypeAndContent(parser, SEPARATOR, ".", 1)) {
-		Expression *expr = parseExpression(parser);
-		if (expr) {
-			consumeToken(parser);
-			if (checkTokenType(parser, IDENTIFIER, 0)) {
-				char *value = consumeToken(parser)->content;
-				PrimaryExpr *res = createPrimaryExpr();
-				res->memberAccess = createMemberAccessExpr(expr, value);
-				res->type = MEMBER_ACCESS_NODE;
-				return res;
-			}
-		}
-	}
+Call *parseCall(Parser *parser) {
 
 	return false;
 }
@@ -765,6 +742,17 @@ void startParsingSourceFiles(Parser *parser, Vector *sourceFiles) {
 
 		file->ast = parser->parseTree;
 	}
+}
+
+bool isValidBinaryOp(char *tok) {
+	int size = ARR_LEN(BINARY_OPS);
+	int i;
+	for (i = 0; i < size; i++) {
+		if (!strcmp(tok, BINARY_OPS[i])) {
+			return true;
+		}
+	}
+	return false;
 }
 
 void parseTokenStream(Parser *parser) {
