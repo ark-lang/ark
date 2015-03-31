@@ -1,7 +1,5 @@
 #include "compiler.h"
 
-#define REGAREA_SIZE 176
-
 Compiler *createCompiler(Vector *sourceFiles) {
 	Compiler *self = safeMalloc(sizeof(*self));
 	self->abstractSyntaxTree = NULL;
