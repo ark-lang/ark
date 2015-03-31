@@ -523,7 +523,11 @@ TypeName *parseTypeName(Parser *parser) {
 Expression *parseExpression(Parser *parser) {
 	Expression *expr = parsePrimaryExpression(parser);
 	if (!expr) return false;
-	return parseBinaryOperator(parser, 0, expr);
+
+	if (isValidBinaryOp(peekAtTokenStream(parser, 0)->content)) {
+		return parseBinaryOperator(parser, 0, expr);
+	}
+	return expr;
 }
 
 ArrayType *parseArrayType(Parser *parser) {
