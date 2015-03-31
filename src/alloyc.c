@@ -5,7 +5,7 @@ bool OUTPUT_C = false;		// default is no c output
 bool VERBOSE_MODE = false;
 
 char *OUTPUT_EXECUTABLE_NAME = "main"; // default is main
-char *COMPILER = "gcc"; // default is GCC
+char *COMPILER = "cc"; // default is CC
 char *ADDITIONAL_COMPILER_ARGS = "-std=c11 -g -Wall";
 
 void help() {
