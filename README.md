@@ -5,7 +5,8 @@ Alloy is a work in progress programming language, read the [reference](docs/REFE
 Alloy is a work in progress, if you would like to contribute to the creation of the language, or just give it a go, you will
 need a few things:
 
-* GCC/Clang (another compiler may work, but we test it works on these mostly)
+* GCC/Clang, other compilers may work
+* LLVM 3.4 or above, we use LLVM 3.5
 * Make
 
 ```bash
@@ -18,15 +19,8 @@ After you make the project, the alloyc executable will be located in `bin/alloyc
 run the `-h` flag. There are test files under the `tests/` directory, however the one in the example may not exist
 if you are reading this in the future! We also can't guarantee that it will still work either!
 
-**The compilers generated code will be compiled with GCC by default, you can use a flag to change this however, see the code snippet!**
 ```bash
 bin/alloyc tests/factorial.ay
-
-// IF YOU DO NOT HAVE GCC OR WANT TO USE CLANG FOR EXAMPLE, DO THIS!
-bin/alloyc somefile.ay -compiler clang
-
-// an executable will be created in your current directory called `main`
-// run it like so...
 ./main
 ```
 
@@ -44,8 +38,8 @@ We have no idea how this works, but apparently we should have one. You can find 
 [Mailing List](https://groups.google.com/forum/#!forum/alloy-lang)
 
 ### IRC
-We have an IRC where we discuss Alloy, and other stuff too. Come join! If you want to help contribute,
-we highly suggest you join the IRC (although we might not always be available due to time zone differences) :)
+We have an IRC where we discuss Alloy features, problems, and other stuff too. Come join! If you want to help contribute,
+we highly suggest you join the IRC, the majority of the core developers will be active here, although we might not always be available due to time zone differences.
 
 * server: irc.freenode.net
 * channel: #alloy-lang
