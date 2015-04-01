@@ -5,16 +5,8 @@ Compiler *createCompiler(Vector *sourceFiles) {
 	self->abstractSyntaxTree = NULL;
 	self->currentNode = 0;
 	self->sourceFiles = sourceFiles;
-	self->functions = hashmap_new();
-	self->structures = hashmap_new();
+	self->symtable = hashmap_new();
 	return self;
-}
-
-void emit(Compiler *self, char *fmt, ...) {
-	va_list args;
-	va_start(args, fmt);
-	vfprintf(self->currentSourceFile->outputFile, fmt, args);
-	va_end(args);
 }
 
 void emitExpression(Compiler *self, Expression *expr) {
@@ -98,7 +90,15 @@ void consumeAstNodeBy(Compiler *self, int amount) {
 }
 
 void startCompiler(Compiler *self) {
+	int i;
+	for (i = 0; i < self->sourceFiles->size; i++) {
+		SourceFile *sf = getVectorItem(self->sourceFiles, i);
+		self->currentNode = 0;
+		self->currentSourceFile = sf;
+		self->abstractSyntaxTree = self->currentSourceFile->ast;
 
+		compileAST(self);
+	}
 }
 
 void compileAST(Compiler *self) {
@@ -114,7 +114,6 @@ void compileAST(Compiler *self) {
 }
 
 void destroyCompiler(Compiler *self) {
-	// now we can destroy stuff
 	int i;
 	for (i = 0; i < self->sourceFiles->size; i++) {
 		SourceFile *sourceFile = getVectorItem(self->sourceFiles, i);
@@ -122,8 +121,7 @@ void destroyCompiler(Compiler *self) {
 		verboseModeMessage("Destroyed source files on %d iteration.", i);
 	}
 
-	hashmap_free(self->functions);
-	hashmap_free(self->structures);
+	hashmap_free(self->symtable);
 	free(self);
 	verboseModeMessage("Destroyed compiler");
 }
