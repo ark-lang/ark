@@ -26,17 +26,11 @@ typedef struct {
 	Vector *abstractSyntaxTree;
 	Vector *sourceFiles;
 	SourceFile *currentSourceFile;
-
-	map_t functions;
-	map_t structures;
-	map_t variables;
-
+	map_t symtable;
 	int currentNode;
 } Compiler;
 
 Compiler *createCompiler(Vector *sourceFiles);
-
-void emit(Compiler *self, char *fmt, ...);
 
 void emitExpression(Compiler *self, Expression *expr);
 
