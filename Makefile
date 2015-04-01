@@ -6,7 +6,6 @@ LDFLAGS=`llvm-config --cxxflags --ldflags --libs core executionengine jit interp
 SOURCES = src/*.c
 
 all: ${SOURCES}
-	llvm-config --version
 	@mkdir -p bin/
 	$(CC) $(CFLAGS) ${SOURCES} -c ${SOURCES}
 	$(LD) *.o $(LDFLAGS) -o bin/alloyc
