@@ -12,8 +12,6 @@
 
 #define VERSION_ARG 		"-ver"
 #define DEBUG_MODE_ARG 		"-d"
-#define COMPILER_ARG		"-compiler"
-#define OUTPUT_C_ARG		"-c"
 #define HELP_ARG			"-h"
 #define VERBOSE_ARG			"-v"
 #define OUTPUT_ARG			"-o"

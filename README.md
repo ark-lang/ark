@@ -54,7 +54,8 @@ we highly suggest you join the IRC (although we might not always be available du
 If you want to contribute, check out the [CONTRIBUTING](CONTRIBUTING.md) file.
 
 ## Contributor List
-Here are the people who are working, or have worked on Alloy.
+Here are the people who are working, or have worked on Alloy. Feel free to add yourself
+to this list when you commit! :)
 
 * [felixangell](https://github.com/felixangell)
 * [vnev](https://github.com/vnev)
@@ -68,10 +69,10 @@ Here are the people who are working, or have worked on Alloy.
 * [andars](https://github.com/andars)
 * [theunamedguy](https://github.com/theunamedguy)
 
-## Additional Credits
+## Additional Credits/Libraries
 
-* antirez for the sds library
-* petewarden for the hashmap library
+* LLVM
+* SDS
 
 ## License
 Alloy is licensed under the [MIT License](/LICENSE.md).
