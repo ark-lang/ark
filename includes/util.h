@@ -31,10 +31,7 @@
 /** flags */
 extern bool DEBUG_MODE;
 extern bool VERBOSE_MODE;
-extern char* COMPILER;
-extern bool OUTPUT_C;
 extern char* OUTPUT_EXECUTABLE_NAME;
-extern char *ADDITIONAL_COMPILER_ARGS;
 
 /**
  * Strdup so we can keep everything C11 compliant
