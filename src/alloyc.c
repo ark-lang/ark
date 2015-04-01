@@ -3,10 +3,7 @@
 bool DEBUG_MODE = false;	// default is no debug
 bool OUTPUT_C = false;		// default is no c output
 bool VERBOSE_MODE = false;
-
 char *OUTPUT_EXECUTABLE_NAME = "main"; // default is main
-char *COMPILER = "cc"; // default is CC
-char *ADDITIONAL_COMPILER_ARGS = "-std=c11 -g -Wall -c";
 
 void help() {
 	printf("Alloy-Lang Argument List\n");
@@ -14,8 +11,6 @@ void help() {
 	printf("  -ver\t\t\tShows current version\n");
 	printf("  -v\t\t\tVerbose compilation\n");
 	printf("  -d\t\t\tLogs extra debug information\n");
-	printf("  -c\t\t\tKeep the generated C code\n");
-	printf("  -compiler <cc>\tCompiles generated code with <cc>\n");
 	printf("  -o <file>\t\tPlace the output into <file>\n");
 	printf("\n");
 }
@@ -27,18 +22,12 @@ static void parse_argument(CommandLineArgument *arg) {
 	else if (!strcmp(arg->argument, DEBUG_MODE_ARG)) {
 		DEBUG_MODE = true;
 	}
-	else if (!strcmp(arg->argument, OUTPUT_C_ARG)) {
-		OUTPUT_C = true;
-	}
 	else if (!strcmp(arg->argument, VERBOSE_ARG)) {
 		VERBOSE_MODE = true;
 	}
 	else if (!strcmp(arg->argument, HELP_ARG)) {
 		help();
 		return;
-	}
-	else if (!strcmp(arg->argument, COMPILER_ARG)) {
-		COMPILER = arg->nextArgument;
 	}
 	else if (!strcmp(arg->argument, OUTPUT_ARG)) {
 		if (!arg->nextArgument) {
@@ -79,8 +68,7 @@ AlloyCompiler *createAlloyCompiler(int argc, char** argv) {
 
 			// make this cleaner, I see a shit ton of if statements
 			// in our future.
-			if (!strcmp(arg.argument, OUTPUT_ARG) ||
-				!strcmp(arg.argument, COMPILER_ARG)) {
+			if (!strcmp(arg.argument, OUTPUT_ARG)) {
 				i++; // skips the argument
 			}
 
