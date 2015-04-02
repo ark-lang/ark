@@ -28,100 +28,6 @@ LLVMTypeRef getTypeRef(Type *type) {
 	return false;
 }
 
-void emitExpression(Compiler *self, Expression *expr) {
-
-}
-
-void emitType(Compiler *self, Type *type) {
-
-}
-
-void emitParameters(Compiler *self, Parameters *params) {
-
-}
-
-void emitReceiver(Compiler *self, Receiver *rec) {
-
-}
-
-void emitStructuredStatement(Compiler *self, StructuredStatement *stmt) {
-
-}
-
-void emitUnstructuredStatement(Compiler *self, UnstructuredStatement *stmt) {
-	switch (stmt->type) {
-	case DECLARATION_NODE:
-		emitDeclaration(self, stmt->decl);
-		break;
-	}
-}
-
-void emitBlock(Compiler *self, Block *block) {
-
-}
-
-void emitForStat(Compiler *self, ForStat *stmt) {
-
-}
-
-void emitIfStat(Compiler *self, IfStat *stmt) {
-
-}
-
-void emitMatchStat(Compiler *self, MatchStat *stmt) {
-
-}
-
-void emitStatementList(Compiler *self, StatementList *stmtList) {
-
-}
-
-void emitFunctionDecl(Compiler *self, FunctionDecl *decl) {
-	const int numOfParams = decl->signature->parameters->paramList->size;
-
-	LLVMTypeRef params[numOfParams];
-
-	int i;
-	for (i = 0; i < numOfParams; i++) {
-		ParameterSection *param = getVectorItem(decl->signature->parameters->paramList, i);
-		LLVMTypeRef type = getTypeRef(param->type);
-		if (type) {
-			params[i] = type;
-		}
-	}
-
-	LLVMTypeRef returnType = getTypeRef(decl->signature->type);
-	if (returnType) {
-		LLVMTypeRef funcRet = LLVMFunctionType(returnType, params, numOfParams, false);
-		LLVMValueRef func = LLVMAddFunction(self->module, decl->signature->name, funcRet);
-	}
-}
-
-void emitIdentifierList(Compiler *self, IdentifierList *list) {
-
-}
-
-void emitFieldDeclList(Compiler *self, FieldDeclList *list) {
-
-}
-
-void emitStructDecl(Compiler *self, StructDecl *decl) {
-
-}
-
-void emitDeclaration(Compiler *self, Declaration *decl) {
-	switch (decl->type) {
-	case FUNCTION_DECL_NODE:
-		emitFunctionDecl(self, decl->funcDecl);
-		break;
-	case STRUCT_DECL_NODE:
-		emitStructDecl(self, decl->structDecl);
-		break;
-	case VARIABLE_DECL_NODE:
-		break;
-	}
-}
-
 void consumeAstNode(Compiler *self) {
 	self->currentNode += 1;
 }
@@ -138,18 +44,39 @@ void startCompiler(Compiler *self) {
 		self->currentSourceFile = sf;
 		self->abstractSyntaxTree = self->currentSourceFile->ast;
 
-		compileAST(self);
+		int i;
+		for (i = 0; i < self->abstractSyntaxTree->size; i++) {
+			statementDriver(self, getVectorItem(self->abstractSyntaxTree, i));
+		}
 	}
 }
 
-void compileAST(Compiler *self) {
-	int i;
-	for (i = 0; i < self->abstractSyntaxTree->size; i++) {
-		Statement *currentStmt = getVectorItem(self->abstractSyntaxTree, i);
+void declarationDriver(Compiler *self, Declaration *decl) {
+	switch (decl->type) {
+		case FUNCTION_DECL_NODE: generateFunctionCode(self, decl->funcDecl); break;
+	}
+}
 
-		switch (currentStmt->type) {
-			case UNSTRUCTURED_STATEMENT_NODE: emitUnstructuredStatement(self, currentStmt->unstructured); break;
-			case STRUCTURED_STATEMENT_NODE: emitStructuredStatement(self, currentStmt->structured); break;
+void unstructuredStatementDriver(Compiler *self, UnstructuredStatement *stmt) {
+	switch (stmt->type) {
+		case DECLARATION_NODE: declarationDriver(self, stmt->decl); break;
+	}
+}
+
+void structuredStatementDriver(Compiler *self, StructuredStatement *stmt) {
+	switch (stmt->type) {
+
+	}
+}
+
+void statementDriver(Compiler *self, Statement *stmt) {
+	switch (stmt->type) {
+		case UNSTRUCTURED_STATEMENT_NODE: 
+			unstructuredStatementDriver(self, stmt->unstructured);
+			break;
+		case STRUCTURED_STATEMENT_NODE: {
+			structuredStatementDriver(self, stmt->structured);
+			break;
 		}
 	}
 }
