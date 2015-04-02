@@ -1,0 +1,64 @@
+#ifndef __CODE_GEN_H
+#define __CODE_GEN_H
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "util.h"
+#include "parser.h"
+#include "vector.h"
+#include "hashmap.h"
+
+#define SPACE_CHAR " "
+#define OPEN_BRACKET "("
+#define CLOSE_BRACKET ")"
+#define OPEN_BRACE "{"
+#define CLOSE_BRACE "}"
+#define CONST_KEYWORD "const"
+#define ASTERISKS "*"
+#define NEWLINE "\n"
+#define TAB "\t"
+#define EQUAL_SYM "="
+#define SEMICOLON ";"
+#define COMMA_SYM ","
+
+#define COMPACT_CODE_GEN 0
+
+#if COMPACT_CODE_GEN == 0
+	#define CC_NEWLINE "\n"
+#else
+	#define CC_NEWLINE " "
+#endif
+
+typedef enum {
+	WRITE_HEADER_STATE,
+	WRITE_SOURCE_STATE
+} WriteState;
+
+typedef struct {
+	Vector *abstractSyntaxTree;
+	Vector *sourceFiles;
+
+	SourceFile *currentSourceFile;
+	map_t symtable;
+	WriteState writeState;
+
+	int currentNode;
+} CodeGenerator;
+
+CodeGenerator *createCodeGenerator(Vector *sourceFiles);
+
+void emitCode(CodeGenerator *self, char *fmt, ...);
+
+void consumeAstNode(CodeGenerator *self);
+
+void consumeAstNodeBy(CodeGenerator *self, int amount);
+
+void traverseAST(CodeGenerator *self);
+
+void startCodeGeneration(CodeGenerator *self);
+
+void destroyCodeGenerator(CodeGenerator *self);
+
+#endif // __CODE_GEN_H

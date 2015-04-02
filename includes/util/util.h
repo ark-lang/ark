@@ -14,7 +14,7 @@
 #include "sds.h"
 
 /** the current version of alloy */
-#define ALLOYC_VERSION "0.0.5"
+#define ALLOYC_VERSION "0.0.6"
 
 /** windows doesn't like coloured text */
 #ifdef _WIN32
@@ -32,6 +32,9 @@
 extern bool DEBUG_MODE;
 extern bool VERBOSE_MODE;
 extern char* OUTPUT_EXECUTABLE_NAME;
+extern bool OUTPUT_C;
+extern char* ADDITIONAL_COMPILER_ARGS;
+extern char* COMPILER;
 
 /**
  * Strdup so we can keep everything C11 compliant
