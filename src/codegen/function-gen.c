@@ -22,5 +22,4 @@ void generateFunctionCode(Compiler *self, FunctionDecl *decl) {
 		LLVMBasicBlockRef funcBlock = LLVMAppendBasicBlock(func, decl->signature->name);
 		LLVMPositionBuilderAtEnd(self->builder, funcBlock);
 	}
-
 }
