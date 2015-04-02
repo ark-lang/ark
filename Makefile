@@ -9,10 +9,12 @@ SOURCES = $(wildcard src/*.c) \
 		  $(wildcard src/util/*.c) \
 
 # Flags n stuff
+LLVM_CONFIG = llvm-config-${LLVM_VERSION}
+
 CC = clang
-CFLAGS = -g -Wall `llvm-config --cflags` -I`llvm-config --includedir`
+CFLAGS = -g -Wall `${LLVM_CONFIG} --cflags` -I`${LLVM_CONFIG} --includedir`
 LD=clang++
-LDFLAGS=`llvm-config --cxxflags --ldflags --libs core executionengine jit interpreter analysis native bitwriter --system-libs`
+LDFLAGS=`${LLVM_CONFIG} --cxxflags --ldflags --libs core executionengine jit interpreter analysis native bitwriter --system-libs`
 
 all: ${SOURCES}
 	@mkdir -p bin/
