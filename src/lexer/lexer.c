@@ -41,23 +41,6 @@ void startLexingFiles(Lexer *lexer, Vector *sourceFiles) {
 	}
 }
 
-Token *createToken(int lineNumber, int charNumber) {
-	Token *tok = safeMalloc(sizeof(*tok));
-	tok->type = UNKNOWN;
-	tok->content = NULL;
-	tok->lineNumber = lineNumber;
-	tok->charNumber = charNumber;
-	return tok;
-}
-
-const char* getTokenName(Token *tok) {
-	return TOKEN_NAMES[tok->type];
-}
-
-void destroyToken(Token *token) {
-	free(token);
-}
-
 void consumeCharacter(Lexer *lexer) {
 	if (lexer->pos > lexer->inputLength) {
 		errorMessage("reached end of input, pos(%d) ... len(%d)", lexer->pos, lexer->inputLength);
@@ -316,18 +299,4 @@ void destroyLexer(Lexer *lexer) {
 
 	verboseModeMessage("Destroyed Lexer.");
 	free(lexer);
-}
-
-char* getTokenContext(Vector *stream, Token *tok) {
-	sds result = sdsempty();
-	
-	int i;
-	for (i = 0; i < stream->size; i++) {
-		Token *tempTok = getVectorItem(stream, i);
-		if (tempTok->lineNumber == tok->lineNumber) {
-			result = sdscat(result, tempTok->content);
-			result = sdscat(result, " ");
-		}
-	}
-	return result;
 }
