@@ -10,7 +10,8 @@ SOURCES = $(wildcard src/*.c) \
 
 # Flags n stuff
 CC = clang
-LLVM_CONFIG = llvm-config
+LLVM_CONFIG_VER = 
+LLVM_CONFIG = llvm-config ${LLVM_CONFIG_VER}
 CFLAGS = -g -Wall `${LLVM_CONFIG} --cflags` -I`${LLVM_CONFIG} --includedir`
 LD=clang++
 LDFLAGS=`${LLVM_CONFIG} --cxxflags --ldflags --libs core executionengine jit interpreter analysis native bitwriter --system-libs`
