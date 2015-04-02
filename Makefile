@@ -1,4 +1,4 @@
-# Pretty meh Makefile, we could probably clean this up a lot
+.PHONY: all clean
 
 # Source/Header Files
 INCLUDES = -Iincludes/ -Iincludes/codegen -Iincludes/lexer -Iincludes/parser -Iincludes/util
@@ -8,22 +8,14 @@ SOURCES = $(wildcard src/*.c) \
 		  $(wildcard src/parser/*.c) \
 		  $(wildcard src/util/*.c) \
 
-# Flags n stuff
-LLVM_CONFIG = llvm-config${LLVM_VERSION}
-
 CC = clang
-CFLAGS = -g -Wall `${LLVM_CONFIG} --cflags` -I`${LLVM_CONFIG} --includedir`
-LD=clang++
-LDFLAGS=`${LLVM_CONFIG} --cxxflags --ldflags --libs core executionengine jit interpreter analysis native bitwriter --system-libs`
+CFLAGS = -g -Wall 
 
 all: ${SOURCES}
 	@mkdir -p bin/
-	$(CC) $(CFLAGS) $(INCLUDES) ${SOURCES} -c ${SOURCES}
-	$(LD) *.o $(LDFLAGS) -o bin/alloyc
-	@rm *.o
+	$(CC) $(CFLAGS) $(INCLUDES) ${SOURCES} -o bin/alloyc
 
 clean:
 	@rm *.o
-	@rm -rf bin
 
 .PHONY: clean

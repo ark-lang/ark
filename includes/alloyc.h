@@ -8,13 +8,15 @@
 #include "util.h"
 #include "lexer.h"
 #include "parser.h"
-#include "compiler.h"
+#include "codegen.h"
 
 #define VERSION_ARG 		"-ver"
 #define DEBUG_MODE_ARG 		"-d"
 #define HELP_ARG			"-h"
 #define VERBOSE_ARG			"-v"
 #define OUTPUT_ARG			"-o"
+#define OUTPUT_C_ARG		"-c"
+#define COMPILER_ARG		"--compiler"
 
 /**
  * For handling command line
@@ -31,7 +33,7 @@ typedef struct {
 typedef struct {
 	Lexer *lexer;
 	Parser *parser;
-	Compiler *compiler;
+	CodeGenerator *generator;
 	Vector *sourceFiles;
 } AlloyCompiler;
 

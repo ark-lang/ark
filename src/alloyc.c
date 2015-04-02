@@ -4,6 +4,8 @@ bool DEBUG_MODE = false;	// default is no debug
 bool OUTPUT_C = false;		// default is no c output
 bool VERBOSE_MODE = false;
 char *OUTPUT_EXECUTABLE_NAME = "main"; // default is main
+char *COMPILER = "cc";
+char *ADDITIONAL_COMPILER_ARGS = "-g -Wall -std=c99";
 
 void help() {
 	printf("Alloy-Lang Argument List\n");
@@ -22,12 +24,18 @@ static void parse_argument(CommandLineArgument *arg) {
 	else if (!strcmp(arg->argument, DEBUG_MODE_ARG)) {
 		DEBUG_MODE = true;
 	}
+	else if (!strcmp(arg->argument, OUTPUT_C_ARG)) {
+		OUTPUT_C = true;
+	}
 	else if (!strcmp(arg->argument, VERBOSE_ARG)) {
 		VERBOSE_MODE = true;
 	}
 	else if (!strcmp(arg->argument, HELP_ARG)) {
 		help();
 		return;
+	}
+	else if (!strcmp(arg->argument, COMPILER_ARG)) {
+		COMPILER = arg->nextArgument;
 	}
 	else if (!strcmp(arg->argument, OUTPUT_ARG)) {
 		if (!arg->nextArgument) {
@@ -48,10 +56,10 @@ AlloyCompiler *createAlloyCompiler(int argc, char** argv) {
 	}
 
 	AlloyCompiler *self = safeMalloc(sizeof(*self));
-		self->lexer = NULL;
-		self->parser = NULL;
-		self->compiler = NULL;
-		self->sourceFiles = createVector(VECTOR_LINEAR);
+	self->lexer = NULL;
+	self->parser = NULL;
+	self->generator = NULL;
+	self->sourceFiles = createVector(VECTOR_LINEAR);
 
 	int i;
 	// i = 1 to ignore first arg
@@ -68,7 +76,8 @@ AlloyCompiler *createAlloyCompiler(int argc, char** argv) {
 
 			// make this cleaner, I see a shit ton of if statements
 			// in our future.
-			if (!strcmp(arg.argument, OUTPUT_ARG)) {
+			if (!strcmp(arg.argument, OUTPUT_ARG)
+				|| !strcmp(arg.argument, COMPILER_ARG)) {
 				i++; // skips the argument
 			}
 
@@ -115,15 +124,15 @@ void startAlloyCompiler(AlloyCompiler *self) {
 	}
 
 	// compilation stage
-	self->compiler = createCompiler(self->sourceFiles);
-	startCompiler(self->compiler);
+	self->generator = createCodeGenerator(self->sourceFiles);
+	startCodeGeneration(self->generator);
 }
 
 void destroyAlloyCompiler(AlloyCompiler *self) {
 	if (self) {
 		if (self->lexer) destroyLexer(self->lexer);
 		if (self->parser) destroyParser(self->parser);
-		if (self->compiler) destroyCompiler(self->compiler);
+		if (self->generator) destroyCodeGenerator(self->generator);
 		destroyVector(self->sourceFiles);
 		free(self);
 		verboseModeMessage("Destroyed Alloy Compiler");
