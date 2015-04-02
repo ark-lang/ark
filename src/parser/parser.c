@@ -435,7 +435,6 @@ UnstructuredStatement *parseUnstructuredStatement(Parser *parser) {
 		return stmt;
 	}
 
-
 	IncDecStat *incDec = parseIncDecStat(parser);
 	if (incDec) {
 		UnstructuredStatement *stmt = createUnstructuredStatement();
