@@ -6,7 +6,26 @@ Compiler *createCompiler(Vector *sourceFiles) {
 	self->currentNode = 0;
 	self->sourceFiles = sourceFiles;
 	self->symtable = hashmap_new();
+
+	// initialize llvm shit
+	self->module = LLVMModuleCreateWithName("jacks dog");
+	self->builder = LLVMCreateBuilder();
 	return self;
+}
+
+LLVMTypeRef getTypeRef(Type *type) {
+	if (type->type == TYPE_NAME_NODE) {
+		int dataType = getTypeFromString(type->typeName->name);
+		switch (dataType) {
+		case INT_64_TYPE: return LLVMInt64Type();
+		case INT_32_TYPE: return LLVMInt32Type();
+		case INT_16_TYPE: return LLVMInt16Type();
+		case INT_8_TYPE: return LLVMInt8Type();
+		case VOID_TYPE: return LLVMVoidType();
+		}
+	}
+
+	return false;
 }
 
 void emitExpression(Compiler *self, Expression *expr) {
@@ -25,20 +44,16 @@ void emitReceiver(Compiler *self, Receiver *rec) {
 
 }
 
-void emitFunctionPrologue(Compiler *self) {
-
-}
-
-void emitFunctionSignature(Compiler *self, FunctionSignature *func) {
-
-}
-
 void emitStructuredStatement(Compiler *self, StructuredStatement *stmt) {
 
 }
 
 void emitUnstructuredStatement(Compiler *self, UnstructuredStatement *stmt) {
-
+	switch (stmt->type) {
+	case DECLARATION_NODE:
+		emitDeclaration(self, stmt->decl);
+		break;
+	}
 }
 
 void emitBlock(Compiler *self, Block *block) {
@@ -62,7 +77,24 @@ void emitStatementList(Compiler *self, StatementList *stmtList) {
 }
 
 void emitFunctionDecl(Compiler *self, FunctionDecl *decl) {
+	const int numOfParams = decl->signature->parameters->paramList->size;
 
+	LLVMTypeRef params[numOfParams];
+
+	int i;
+	for (i = 0; i < numOfParams; i++) {
+		ParameterSection *param = getVectorItem(decl->signature->parameters->paramList, i);
+		LLVMTypeRef type = getTypeRef(param->type);
+		if (type) {
+			params[i] = type;
+		}
+	}
+
+	LLVMTypeRef returnType = getTypeRef(decl->signature->type);
+	if (returnType) {
+		LLVMTypeRef funcRet = LLVMFunctionType(returnType, params, numOfParams, false);
+		LLVMValueRef func = LLVMAddFunction(self->module, decl->signature->name, funcRet);
+	}
 }
 
 void emitIdentifierList(Compiler *self, IdentifierList *list) {
@@ -78,7 +110,16 @@ void emitStructDecl(Compiler *self, StructDecl *decl) {
 }
 
 void emitDeclaration(Compiler *self, Declaration *decl) {
-
+	switch (decl->type) {
+	case FUNCTION_DECL_NODE:
+		emitFunctionDecl(self, decl->funcDecl);
+		break;
+	case STRUCT_DECL_NODE:
+		emitStructDecl(self, decl->structDecl);
+		break;
+	case VARIABLE_DECL_NODE:
+		break;
+	}
 }
 
 void consumeAstNode(Compiler *self) {
