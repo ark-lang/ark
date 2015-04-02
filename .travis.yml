@@ -15,7 +15,7 @@ install:
 script: make
 
 env:
-  LLVM_VERSION=3.5
+  LLVM_VERSION=-3.5
 
 notifications:
   email: false
