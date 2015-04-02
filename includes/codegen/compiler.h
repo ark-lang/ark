@@ -5,6 +5,12 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <llvm-c/Core.h>
+#include <llvm-c/ExecutionEngine.h>
+#include <llvm-c/Target.h>
+#include <llvm-c/Analysis.h>
+#include <llvm-c/BitWriter.h>
+
 #include "parser.h"
 #include "vector.h"
 #include "hashmap.h"
@@ -25,6 +31,12 @@
 typedef struct {
 	Vector *abstractSyntaxTree;
 	Vector *sourceFiles;
+	
+	// llvm stuff
+	LLVMModuleRef module;
+	LLVMExecutionEngineRef engine;
+	LLVMBuilderRef builder;
+
 	SourceFile *currentSourceFile;
 	map_t symtable;
 	int currentNode;
