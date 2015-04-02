@@ -291,6 +291,7 @@ typedef struct {
 	ReturnStat *retStmt;
 	BreakStat *breakStmt;
 	ContinueStat *conStmt;
+	int type;
 } LeaveStat;
 
 /**
