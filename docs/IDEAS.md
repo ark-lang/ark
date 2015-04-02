@@ -12,13 +12,13 @@
 # Option Types
 No NULL's, option types are better.
 
-	fn doStuff(int a, int b): <int> {
+	func doStuff(int a, int b): <int> {
 		return Some(a / b);
 	}
 
 # Tuples
 
-	fn readFile(string path): <string> {
+	func readFile(string path): <string> {
 		string fileContents = ...
 		if (success) {
 			return Some(fileContents);
@@ -30,7 +30,14 @@ No NULL's, option types are better.
 
 	int z = 0;
 
-	fn add(int a, int b) { // no colon = void?
+	func add(int a, int b) { // no colon = void?
 		z = a + b;
 	}
 
+# Cleaner memory allocations
+This is tricky. A C++ `new` and `delete` would be nice, seems to object oriented,
+like I'm calling a constructor:
+
+	Entity ^e = new Entity;
+
+Perhaps 
