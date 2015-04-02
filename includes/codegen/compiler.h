@@ -44,33 +44,9 @@ typedef struct {
 
 Compiler *createCompiler(Vector *sourceFiles);
 
-void emitExpression(Compiler *self, Expression *expr);
+LLVMTypeRef getTypeRef(Type *type);
 
-void emitType(Compiler *self, Type *type);
-
-void emitParameters(Compiler *self, Parameters *params);
-
-void emitFunctionSignature(Compiler *self, FunctionSignature *func);
-
-void emitStructuredStatement(Compiler *self, StructuredStatement *stmt);
-
-void emitUnstructuredStatement(Compiler *self, UnstructuredStatement *stmt);
-
-void emitBlock(Compiler *self, Block *block);
-
-void emitForStat(Compiler *self, ForStat *stmt);
-
-void emitIfStat(Compiler *self, IfStat *stmt);
-
-void emitMatchStat(Compiler *self, MatchStat *stmt);
-
-void emitStatementList(Compiler *self, StatementList *stmtList);
-
-void emitFunctionDecl(Compiler *self, FunctionDecl *decl);
-
-void emitStructDecl(Compiler *self, StructDecl *decl);
-
-void emitDeclaration(Compiler *self, Declaration *decl);
+void generateFunctionCode(Compiler *self, FunctionDecl *decl);
 
 void consumeAstNode(Compiler *self);
 
@@ -78,7 +54,13 @@ void consumeAstNodeBy(Compiler *self, int amount);
 
 void startCompiler(Compiler *self);
 
-void compileAST(Compiler *self);
+void declarationDriver(Compiler *self, Declaration *decl);
+
+void unstructuredStatementDriver(Compiler *self, UnstructuredStatement *stmt);
+
+void structuredStatementDriver(Compiler *self, StructuredStatement *stmt);
+
+void statementDriver(Compiler *self, Statement *stmt);
 
 void destroyCompiler(Compiler *self);
 
