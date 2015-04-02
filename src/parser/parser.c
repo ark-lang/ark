@@ -301,18 +301,66 @@ MatchStat *parseMatchStat(Parser *parser) {
 }
 
 ContinueStat *parseContinueStat(Parser *parser) {
+	if (checkTokenTypeAndContent(parser, IDENTIFIER, CONTINUE_KEYWORD, 0)) {
+		consumeToken(parser);
+		if (checkTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
+			consumeToken(parser);
+		}
+		return createContinueStat();
+	}
 	return false;
 }
 
 BreakStat *parseBreakStat(Parser *parser) {
+	if (checkTokenTypeAndContent(parser, IDENTIFIER, BREAK_KEYWORD, 0)) {
+		consumeToken(parser);
+		if (checkTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
+			consumeToken(parser);
+		}
+		return createBreakStat();
+	}
 	return false;
 }
 
 ReturnStat *parseReturnStat(Parser *parser) {
+	if (checkTokenTypeAndContent(parser, IDENTIFIER, RETURN_KEYWORD, 0)) {
+		consumeToken(parser);
+
+		Expression *expr = parseExpression(parser);
+		if (checkTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
+			consumeToken(parser);
+		}
+		return createReturnStat(expr);
+	}
 	return false;
 }
 
 LeaveStat *parseLeaveStat(Parser *parser) {
+	ContinueStat *cont = parseContinueStat(parser);
+	if (cont) {
+		LeaveStat *stat = createLeaveStat();
+		stat->conStmt = cont;
+		stat->type = CONTINUE_STAT_NODE;
+		return stat;
+	}
+
+	BreakStat *brk = parseBreakStat(parser);
+	if (brk) {
+		LeaveStat *stat = createLeaveStat();
+		stat->breakStmt = brk;
+		stat->type = BREAK_STAT_NODE;
+		return stat;
+	}
+
+	ReturnStat *ret = parseReturnStat(parser);
+	if (ret) {
+		LeaveStat *stat = createLeaveStat();
+		stat->retStmt = ret;
+		stat->type = RETURN_STAT_NODE;
+		return stat;
+	}
+
+
 	return false;
 }
 
@@ -363,6 +411,14 @@ StructuredStatement *parseStructuredStatement(Parser *parser) {
 }
 
 UnstructuredStatement *parseUnstructuredStatement(Parser *parser) {
+	LeaveStat *leave = parseLeaveStat(parser);
+	if (leave) {
+		UnstructuredStatement *stmt = createUnstructuredStatement();
+		stmt->leave = leave;
+		stmt->type = LEAVE_STAT_NODE;
+		return stmt;
+	}
+
 	Declaration *decl = parseDeclaration(parser);
 	if (decl) {
 		UnstructuredStatement *stmt = createUnstructuredStatement();
@@ -378,6 +434,7 @@ UnstructuredStatement *parseUnstructuredStatement(Parser *parser) {
 		stmt->type = ASSIGNMENT_NODE;
 		return stmt;
 	}
+
 
 	IncDecStat *incDec = parseIncDecStat(parser);
 	if (incDec) {
