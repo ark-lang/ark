@@ -18,5 +18,9 @@ void generateFunctionCode(Compiler *self, FunctionDecl *decl) {
 	if (returnType) {
 		LLVMTypeRef funcRet = LLVMFunctionType(returnType, params, numOfParams, false);
 		LLVMValueRef func = LLVMAddFunction(self->module, decl->signature->name, funcRet);
+
+		LLVMBasicBlockRef funcBlock = LLVMAppendBasicBlock(func, decl->signature->name);
+		LLVMPositionBuilderAtEnd(self->builder, funcBlock);
 	}
+
 }

@@ -16,11 +16,13 @@ Compiler *createCompiler(Vector *sourceFiles) {
 LLVMTypeRef getTypeRef(Type *type) {
 	if (type->type == TYPE_NAME_NODE) {
 		int dataType = getTypeFromString(type->typeName->name);
+		verboseModeMessage("Retrieved type val %d from %s\n", dataType, type->typeName->name);
 		switch (dataType) {
 		case INT_64_TYPE: return LLVMInt64Type();
 		case INT_32_TYPE: return LLVMInt32Type();
 		case INT_16_TYPE: return LLVMInt16Type();
 		case INT_8_TYPE: return LLVMInt8Type();
+		case INT_TYPE: return LLVMInt32Type();
 		case VOID_TYPE: return LLVMVoidType();
 		}
 	}
