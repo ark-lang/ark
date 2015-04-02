@@ -1,3 +1,7 @@
+# Polymorphism
+
+# Macro System
+
 # Data Types
 
 	int -> 32 bit 
@@ -35,9 +39,46 @@ No NULL's, option types are better.
 	}
 
 # Cleaner memory allocations
-This is tricky. A C++ `new` and `delete` would be nice, seems to object oriented,
-like I'm calling a constructor:
 
-	Entity ^e = new Entity;
+	struct Entity {
+		int x = 0;
+		int y = 0;
+		int time_alive = 0;
+		bool alive = true;
+	}
 
-Perhaps 
+	// constructor-y thing?
+	// if you provide params
+	// it will set x from struct to
+	// x given, names must match
+	// the struct member
+	// can change self to this, entity, e, etc..
+	impl Entity(int x, int y) as self {
+
+		func render(): void {
+			gl.fillRect(self.x, self.y);
+		}
+
+		func update(): void {
+			self.time_alive += 1;
+			if self.time_alive > 2000 {
+				self.alive = false;
+			}
+		}
+	}
+
+	// "constructor" call, not directly
+	// setting struct values.
+	// if it's a pointer, will malloc memory
+	// if passed to function expecting pointer, will malloc memory
+	Entity ^e = Entity(10, 10);
+
+	loop {
+		e.render();
+		e.update();
+		if !e.alive {
+			break;
+		}
+	}
+
+	some_vector.push_back(Entity(10, 10));
