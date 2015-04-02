@@ -38,6 +38,15 @@ typedef enum {
 	LITERAL_ERRORED
 } LiteralType;
 
+typedef enum {
+	INT_64_TYPE, INT_32_TYPE, INT_16_TYPE, INT_8_TYPE,
+	UINT_64_TYPE, UINT_32_TYPE, UINT_16_TYPE, UINT_8_TYPE,
+	FLOAT_64_TYPE, FLOAT_32_TYPE,
+	BOOL_TYPE, CHAR_TYPE, VOID_TYPE, UNKNOWN_TYPE
+} DataType;
+
+int getTypeFromString(char *type);
+
 /**
  * parser contents
  */

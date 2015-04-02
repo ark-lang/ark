@@ -6,6 +6,22 @@ const char* BINARY_OPS[] = {
 	"|"
 };
 
+const char* DATA_TYPES[] = {
+	"i64", "i32", "i16", "i8",
+	"u64", "u32", "u16", "u8",
+	"f64", "f32",
+	"bool", "char", "void"
+};
+
+int getTypeFromString(char *type) {
+	int i;
+	for (i = 0; i < ARR_LEN(DATA_TYPES); i++) {
+		if (!strcmp(type, DATA_TYPES[i]))
+			return i;
+	}
+	return UNKNOWN_TYPE;
+}
+
 Parser *createParser() {
 	Parser *parser = safeMalloc(sizeof(*parser));
 	parser->tokenStream = NULL;
@@ -351,7 +367,7 @@ UnstructuredStatement *parseUnstructuredStatement(Parser *parser) {
 	if (decl) {
 		UnstructuredStatement *stmt = createUnstructuredStatement();
 		stmt->decl = decl;
-		stmt->type = UNSTRUCTURED_STATEMENT_NODE;
+		stmt->type = DECLARATION_NODE;
 		return stmt;
 	}
 
