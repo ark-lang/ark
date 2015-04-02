@@ -9,7 +9,7 @@ SOURCES = $(wildcard src/*.c) \
 		  $(wildcard src/util/*.c) \
 
 # Flags n stuff
-LLVM_CONFIG = llvm-config-${LLVM_VERSION}
+LLVM_CONFIG = llvm-config${LLVM_VERSION}
 
 CC = clang
 CFLAGS = -g -Wall `${LLVM_CONFIG} --cflags` -I`${LLVM_CONFIG} --includedir`

@@ -11,7 +11,6 @@ install:
   - sudo apt-get --force-yes update
   - sudo apt-get --force-yes install llvm-3.5 llvm-3.5-dev llvm-3.5-runtime libllvm3.5 libedit2 libedit-dev
   - sudo apt-get --force-yes install llvm
-  - sudo alias llvm-config='llvm-config-3.5'
 
 script: make
 
