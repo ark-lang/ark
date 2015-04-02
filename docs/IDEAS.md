@@ -1,51 +1,36 @@
-# Ideas
-Please don't take this document seriously, just some random ideas I throw around.
+# Data Types
 
-------
+	int -> 32 bit 
+	float -> 32 bit
 
-## C Bindings
-A c binding is created as follows:
+	u8, u16, u32, u64
+	i8, i16, i32, i64
 
-    binding {
-        'file.h' -> fn add(int a, int b): int;
-    }
+	byte -> u8
+	bool -> i8
 
-    And then it can be used in your code i.e: 
+# Option Types
+No NULL's, option types are better.
 
-        int x = add(5, 5);
+	fn doStuff(int a, int b): <int> {
+		return Some(a / b);
+	}
 
-------
+# Tuples
 
-## Memory Management
+	fn readFile(string path): <string> {
+		string fileContents = ...
+		if (success) {
+			return Some(fileContents);
+		}
+		return None;
+	}
 
+# Void shorthand?
 
-------
+	int z = 0;
 
-## Direct memory allocation
-A tilde could perhaps be shorthand for allocating memory and setting it in
-one swoop. For example the following:
-    
-    int ^x = alloc
-    ^x = 21
+	fn add(int a, int b) { // no colon = void?
+		z = a + b;
+	}
 
-Can be simplfied to:
-
-    int ^x = ~21
-
-Perhaps arrays can be
-
-    int ^a = ~[10, 11, 12, 13]
-
-Which is the same as 
-
-    int ^a = alloc(int * 4)
-    a[0] = 10
-    a[1] = 11
-    a[2] = 12
-    a[3] = 13
-
-I may scratch the tilde, however you should be able to explicitly malloc something. The grammar would probably be something like:
-
-	(literal | ["~" literal])
-
-------
