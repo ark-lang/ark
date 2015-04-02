@@ -1,4 +1,3 @@
 fn main(): int {
-	int x = 5 + 5;
-	int z = x + a;
+	return 1;
 }
