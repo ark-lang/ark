@@ -11,6 +11,7 @@
 #include <llvm-c/Analysis.h>
 #include <llvm-c/BitWriter.h>
 
+#include "util.h"
 #include "parser.h"
 #include "vector.h"
 #include "hashmap.h"
