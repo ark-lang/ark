@@ -152,3 +152,21 @@ In alloy, we enforce braces:
 	else {
 
 	}
+
+# Loops
+
+	// while loop
+	for xyz {
+		...
+	}
+
+	// infinite loop
+	for {
+		...
+	}
+
+	// traditional loop
+	for i = 0; i < 10; i++ {
+		...
+	}
+

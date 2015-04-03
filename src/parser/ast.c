@@ -208,12 +208,8 @@ MatchStat *createMatchStat(Expression *expr) {
 	return match;
 }
 
-ForStat *createForStat(Type *type, char *index) {
-	ForStat *forStat = safeMalloc(sizeof(*forStat));
-	forStat->type = type;
-	forStat->index = index;
-	forStat->expr = createVector(VECTOR_EXPONENTIAL);
-	return forStat;
+ForStat *createForStat() {
+	return safeMalloc(sizeof(ForStat));
 }
 
 StructuredStatement *createStructuredStatement() {
@@ -484,6 +480,7 @@ void destroyUnstructuredStatement(UnstructuredStatement *stmt) {
 		case DECLARATION_NODE: destroyDeclaration(stmt->decl); break;
 		case INC_DEC_STAT_NODE: destroyIncDecStat(stmt->incDec); break;
 		case LEAVE_STAT_NODE: destroyLeaveStat(stmt->leave); break;
+		case FUNCTION_CALL_NODE: destroyCall(stmt->call); break;
 	}
 	free(stmt);
 }
