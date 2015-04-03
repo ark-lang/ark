@@ -3,7 +3,7 @@
 ## Code Generation
 
 * [x] Functions
-* [ ] Methods
+* [x] Methods
 * [ ] Variable Declaration
 * [ ] Variable Definition
 * [ ] Variable Re-assignment
@@ -13,7 +13,7 @@
 * [ ] If Statement, Else If, Elses
 * [x] Structures
 * [ ] Implementations
-* [ ] Expressions
+* [x] Expressions
 * [ ] Enumeration
 * [ ] Match
 
