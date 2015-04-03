@@ -51,8 +51,49 @@ void consumeAstNodeBy(CodeGenerator *self, int amount) {
 	self->currentNode += amount;
 }
 
-void traverseAST(CodeGenerator *self) {
+void emitType(CodeGenerator *self, Type *type) {
 
+}
+
+void emitFunctionDecl(CodeGenerator *self, FunctionDecl *decl) {
+	char *name = decl->signature->name;
+}
+
+void emitDeclaration(CodeGenerator *self, Declaration *decl) {
+	switch (decl->type) {
+		case FUNCTION_DECL_NODE: emitFunctionDecl(self, decl->funcDecl); break;
+	}
+}
+
+void emitUnstructuredStat(CodeGenerator *self, UnstructuredStatement *stmt) {
+	switch (stmt->type) {
+		case DECLARATION_NODE: emitDeclaration(self, stmt->decl); break;
+	}
+}
+
+void emitStructuredStat(CodeGenerator *self, StructuredStatement *stmt) {
+	switch (stmt->type) {
+
+	}
+}
+
+void traverseAST(CodeGenerator *self) {
+	int i;
+	for (i = 0; i < self->abstractSyntaxTree->size; i++) {
+		Statement *stmt = getVectorItem(self->abstractSyntaxTree, i);
+
+		switch (stmt->type) {
+			case UNSTRUCTURED_STATEMENT_NODE: 
+				
+				break;
+			case STRUCTURED_STATEMENT_NODE: 
+
+				break;
+			default:
+				printf("oh shit\n");
+				break;
+		}
+	}
 }
 
 void startCodeGeneration(CodeGenerator *self) {
