@@ -118,7 +118,7 @@ void emitFieldList(CodeGenerator *self, FieldDeclList *list) {
 			emitCode(self, "const ");
 		}
 		emitType(self, decl->type);
-		emitCode(self, " %s;" CC_NEWLINE, decl->name);
+		emitCode(self, " %s;" CC_NEWLINE CC_NEWLINE, decl->name);
 	}
 }
 
@@ -135,7 +135,7 @@ void emitFunctionDecl(CodeGenerator *self, FunctionDecl *decl) {
 	emitType(self, decl->signature->type);
 	emitCode(self, " %s(", decl->signature->name);
 	emitParameters(self, decl->signature->parameters);
-	emitCode(self, ");");
+	emitCode(self, ");" CC_NEWLINE);
 
 	// definition
 	self->writeState = WRITE_SOURCE_STATE;
