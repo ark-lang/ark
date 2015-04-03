@@ -149,7 +149,7 @@ void emitFieldList(CodeGenerator *self, FieldDeclList *list) {
 			emitCode(self, "const ");
 		}
 		emitType(self, decl->type);
-		emitCode(self, " %s;" CC_NEWLINE CC_NEWLINE, decl->name);
+		emitCode(self, " %s;" CC_NEWLINE, decl->name);
 	}
 }
 
@@ -157,7 +157,7 @@ void emitStructDecl(CodeGenerator *self, StructDecl *decl) {
 	self->writeState = WRITE_HEADER_STATE;
 	emitCode(self, "typedef struct {" CC_NEWLINE);
 	emitFieldList(self, decl->fields);
-	emitCode(self, "} %s;" CC_NEWLINE, decl->name);
+	emitCode(self, "} %s;" CC_NEWLINE CC_NEWLINE, decl->name);
 }
 
 void emitFunctionDecl(CodeGenerator *self, FunctionDecl *decl) {
@@ -165,6 +165,16 @@ void emitFunctionDecl(CodeGenerator *self, FunctionDecl *decl) {
 	self->writeState = WRITE_HEADER_STATE;
 	emitType(self, decl->signature->type);
 	emitCode(self, " %s(", decl->signature->name);
+	if (decl->signature->receiver) {
+		if (!decl->signature->receiver->mutable) {
+			emitCode(self, "const ");
+		}
+		emitType(self, decl->signature->receiver->type);
+		emitCode(self, " %s", decl->signature->receiver->name);
+		if (decl->signature->parameters->paramList->size > 1) {
+			emitCode(self, ", ");
+		}
+	}
 	emitParameters(self, decl->signature->parameters);
 	emitCode(self, ");" CC_NEWLINE);
 
@@ -172,6 +182,16 @@ void emitFunctionDecl(CodeGenerator *self, FunctionDecl *decl) {
 	self->writeState = WRITE_SOURCE_STATE;
 	emitType(self, decl->signature->type);
 	emitCode(self, " %s(", decl->signature->name);
+	if (decl->signature->receiver) {
+		if (!decl->signature->receiver->mutable) {
+			emitCode(self, "const ");
+		}
+		emitType(self, decl->signature->receiver->type);
+		emitCode(self, " %s", decl->signature->receiver->name);
+		if (decl->signature->parameters->paramList->size > 1) {
+			emitCode(self, ", ");
+		}
+	}
 	emitParameters(self, decl->signature->parameters);
 	emitCode(self, ") {" CC_NEWLINE);
 	// TODO: block
