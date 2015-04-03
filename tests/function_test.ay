@@ -1,3 +1,7 @@
+fn add(int a, int b): int {
+	return a + b;
+}
+
 fn main(): int {
 	return 5;
 }

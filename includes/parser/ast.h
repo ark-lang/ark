@@ -25,6 +25,10 @@ typedef enum {
 	STRUCTURED_STATEMENT_NODE, STATEMENT_NODE, TYPE_NODE
 } NodeType;
 
+typedef enum {
+	INFINITE_FOR_LOOP, WHILE_FOR_LOOP, INDEX_FOR_LOOP
+} ForLoopType;
+
 /**
  * Wrapper for a node
  */
@@ -304,6 +308,7 @@ typedef struct {
 	LeaveStat *leave;
 	IncDecStat *incDec;
 	Assignment *assignment;
+	Call *call;
 	int type;
 } UnstructuredStatement;
 
@@ -345,9 +350,9 @@ typedef struct {
  */
 typedef struct {
 	Type *type;
-	char *index;
 	Vector *expr;
 	Block *body;
+	int forType;
 } ForStat;
 
 /**
@@ -445,7 +450,7 @@ MatchClause *createMatchClause();
 
 MatchStat *createMatchStat(Expression *rhand);
 
-ForStat *createForStat(Type *type, char *index);
+ForStat *createForStat();
 
 StructuredStatement *createStructuredStatement();
 
