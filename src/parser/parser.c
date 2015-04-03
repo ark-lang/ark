@@ -539,19 +539,19 @@ Declaration *parseDeclaration(Parser *parser) {
 		return decl;
 	}
 
-	VariableDecl *varDecl = parseVariableDecl(parser);
-	if (varDecl) {
-		Declaration *decl = createDeclaration();
-		decl->varDecl = varDecl;
-		decl->type = VARIABLE_DECL_NODE;
-		return decl;
-	}
-
 	StructDecl *struc = parseStructDecl(parser);
 	if (struc) {
 		Declaration *decl = createDeclaration();
 		decl->structDecl = struc;
 		decl->type = STRUCT_DECL_NODE;
+		return decl;
+	}
+
+	VariableDecl *varDecl = parseVariableDecl(parser);
+	if (varDecl) {
+		Declaration *decl = createDeclaration();
+		decl->varDecl = varDecl;
+		decl->type = VARIABLE_DECL_NODE;
 		return decl;
 	}
 

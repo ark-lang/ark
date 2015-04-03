@@ -1,15 +1,8 @@
 struct Empty {
-
-}
-
-struct Cat {
-	^int age;
-	^int swag;
-	mut ^double yo;
+	int x;
+	int y;
 }
 
 fn main(): int {
-	struct Test {
-		^int z;
-	}
+
 }
