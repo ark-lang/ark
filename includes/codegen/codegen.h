@@ -50,6 +50,14 @@ typedef struct {
 
 CodeGenerator *createCodeGenerator(Vector *sourceFiles);
 
+void emitLiteral(CodeGenerator *self, Literal *lit);
+
+void emitBinaryExpr(CodeGenerator *self, BinaryExpr *expr);
+
+void emitUnaryExpr(CodeGenerator *self, UnaryExpr *expr);
+
+void emitExpression(CodeGenerator *self, Expression *expr);
+
 void emitCode(CodeGenerator *self, char *fmt, ...);
 
 void emitTypeLit(CodeGenerator *self, TypeLit *lit);
