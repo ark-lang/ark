@@ -359,7 +359,6 @@ void destroyPointerType(PointerType *pointerType) {
 
 void destroyFieldDecl(FieldDecl *decl) {
 	if (!decl) return;
-	destroyIdentifierList(decl->idenList);
 	destroyType(decl->type);
 	free(decl);
 }
