@@ -22,13 +22,13 @@ No NULL's, option types are better.
 
 # Tuples
 
-	func readFile(string path): <string> {
-		string fileContents = ...
-		if (success) {
-			return Some(fileContents);
-		}
-		return None;
+	func swap(int a, int b): (int, int) {
+		return (b, a);
 	}
+
+	(int, int) x = swap(5, 10);
+	// something like that for access
+	printf("%d %d\n", x.0, x.1);
 
 # Void shorthand?
 
@@ -39,6 +39,7 @@ No NULL's, option types are better.
 	}
 
 # Cleaner memory allocations
+This is really weird
 
 	struct Entity {
 		int x = 0;
@@ -82,3 +83,72 @@ No NULL's, option types are better.
 	}
 
 	some_vector.push_back(Entity(10, 10));
+
+## Match
+Match is better and safer than a switch
+
+	switch (x) {
+		case 0:
+			printf("hey\n"); // no break! common pit fall
+		case 1:
+			printf("hi\n");
+			break;
+	}
+
+	// doesn't fall through
+	match x {
+		0 -> printf("hey\n");
+		1 -> printf("hi\n");
+	}
+
+	// what if we want to "emulate" a fall through?
+	// it's cleaner!
+	// defaults to break
+	// you can specify continue or return, but only
+	// through a block, instead of a ->
+
+	match x {
+		0, 1 -> printf("hey hi\n");
+		2 {
+			printf("more hi\n");
+			printf("wow!\n");
+			return 5;
+		}
+	}
+
+## Enforcing braces
+Error in C
+
+	if (x == 1)
+		if (y == 2)
+			printf("hi");
+	else
+		printf("swag");
+
+Is evaluated as:
+
+	if (x == 1)
+		if (y == 2)
+			printf("hi");
+		else
+			printf("swag");
+
+Fixed with a block:
+
+	if (x == 1) {
+		if (y == 2)
+			printf("hi");
+	}
+	else 
+		printf("swag");
+
+In alloy, we enforce braces:
+
+	if x == 1 {
+		if y == 2 {
+
+		}
+	}
+	else {
+
+	}
