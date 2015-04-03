@@ -15,8 +15,22 @@ char *BOILERPLATE =
 "typedef short s16;" CC_NEWLINE
 "typedef char s8;" CC_NEWLINE
 "typedef float f32;" CC_NEWLINE
-"typedef double f64;" CC_NEWLINE
+"typedef double f64;" CC_NEWLINE CC_NEWLINE
 ;
+
+const char *NODE_NAME[] = {
+	"IDENTIFIER_LIST_NODE", "IDENTIFIER_NODE", "LITERAL_NODE", "BINARY_EXPR_NODE",
+	"UNARY_EXPR_NODE", "ARRAY_SUB_EXPR_NODE", "MEMBER_ACCESS_NODE",
+	"PRIMARY_EXPR_NODE", "EXPR_NODE", "TYPE_NAME_NODE", "TYPE_LIT_NODE", "PAREN_EXPR_NODE",
+	"ARRAY_TYPE_NODE", "POINTER_TYPE_NODE", "FIELD_DECL_NODE",
+	"FIELD_DECL_LIST_NODE", "STRUCT_DECL_NODE", "STATEMENT_LIST_NODE",
+	"BLOCK_NODE", "PARAMETER_SECTION_NODE", "PARAMETERS_NODE", "RECEIVER_NODE",
+	"FUNCTION_SIGNATURE_NODE", "FUNCTION_DECL_NODE", "VARIABLE_DECL_NODE", "FUNCTION_CALL_NODE",
+	"DECLARATION_NODE", "INC_DEC_STAT_NODE", "RETURN_STAT_NODE", "BREAK_STAT_NODE",
+	"CONTINUE_STAT_NODE", "LEAVE_STAT_NODE", "ASSIGNMENT_NODE", "UNSTRUCTURED_STATEMENT_NODE",
+	"ELSE_STAT_NODE", "IF_STAT_NODE", "MATCH_CLAUSE_STAT", "MATCH_STAT_NODE", "FOR_STAT_NODE",
+	"STRUCTURED_STATEMENT_NODE", "STATEMENT_NODE", "TYPE_NODE"
+};
 
 CodeGenerator *createCodeGenerator(Vector *sourceFiles) {
 	CodeGenerator *self = safeMalloc(sizeof(*self));
@@ -74,6 +88,27 @@ void emitParameters(CodeGenerator *self, Parameters *params) {
 	}
 }
 
+void emitFieldList(CodeGenerator *self, FieldDeclList *list) {
+	const int size = list->members->size;
+
+	for (int i = 0; i < size; i++) {
+		FieldDecl *decl = getVectorItem(list->members, i);
+		emitCode(self, "\t");
+		if (!decl->mutable) {
+			emitCode(self, "const ");
+		}
+		emitType(self, decl->type);
+		emitCode(self, " %s;" CC_NEWLINE, getVectorItem(decl->idenList->values, 0));
+	}
+}
+
+void emitStructDecl(CodeGenerator *self, StructDecl *decl) {
+	self->writeState = WRITE_HEADER_STATE;
+	emitCode(self, "typedef struct {" CC_NEWLINE);
+	emitFieldList(self, decl->fields);
+	emitCode(self, "} %s;" CC_NEWLINE, decl->name);
+}
+
 void emitFunctionDecl(CodeGenerator *self, FunctionDecl *decl) {
 	// prototype in header
 	self->writeState = WRITE_HEADER_STATE;
@@ -92,9 +127,18 @@ void emitFunctionDecl(CodeGenerator *self, FunctionDecl *decl) {
 	emitCode(self, "}" CC_NEWLINE);
 }
 
+void emitVariableDecl(CodeGenerator *self, VariableDecl *decl) {
+
+}
+
 void emitDeclaration(CodeGenerator *self, Declaration *decl) {
 	switch (decl->type) {
 		case FUNCTION_DECL_NODE: emitFunctionDecl(self, decl->funcDecl); break;
+		case STRUCT_DECL_NODE: emitStructDecl(self, decl->structDecl); break;
+		case VARIABLE_DECL_NODE: emitVariableDecl(self, decl->varDecl); break;
+		default:
+			printf("unknown node %s\n", NODE_NAME[decl->type]);
+			break;
 	}
 }
 
