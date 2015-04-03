@@ -52,7 +52,25 @@ CodeGenerator *createCodeGenerator(Vector *sourceFiles);
 
 void emitCode(CodeGenerator *self, char *fmt, ...);
 
-void generateFunctionCode(CodeGenerator *self, FunctionDecl *decl);
+void emitTypeLit(CodeGenerator *self, TypeLit *lit);
+
+void emitType(CodeGenerator *self, Type *type);
+
+void emitParameters(CodeGenerator *self, Parameters *params);
+
+void emitFieldList(CodeGenerator *self, FieldDeclList *list);
+
+void emitStructDecl(CodeGenerator *self, StructDecl *decl);
+
+void emitFunctionDecl(CodeGenerator *self, FunctionDecl *decl);
+
+void emitVariableDecl(CodeGenerator *self, VariableDecl *decl);
+
+void emitDeclaration(CodeGenerator *self, Declaration *decl);
+
+void emitUnstructuredStat(CodeGenerator *self, UnstructuredStatement *stmt);
+
+void emitStructuredStat(CodeGenerator *self, StructuredStatement *stmt);
 
 void consumeAstNode(CodeGenerator *self);
 

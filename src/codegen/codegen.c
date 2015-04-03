@@ -65,10 +65,30 @@ void consumeAstNodeBy(CodeGenerator *self, int amount) {
 	self->currentNode += amount;
 }
 
+void emitTypeLit(CodeGenerator *self, TypeLit *lit) {
+	switch (lit->type) {
+		case ARRAY_TYPE_NODE: {
+			break;
+		}
+		case POINTER_TYPE_NODE: {
+			char *name = lit->pointerType->baseType->type->name;
+			emitCode(self, "%s*", name);
+			break;
+		}
+		default: {
+			printf("wat type lit\n");
+			break;
+		}
+	}
+}
+
 void emitType(CodeGenerator *self, Type *type) {
 	switch (type->type) {
 		case TYPE_NAME_NODE: 
 			emitCode(self, "%s", type->typeName->name);
+			break;
+		case TYPE_LIT_NODE:
+			emitTypeLit(self, type->typeLit);
 			break;
 	}
 }

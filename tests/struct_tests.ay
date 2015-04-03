@@ -1,6 +1,6 @@
 struct Empty {
-	int x;
-	int y;
+	^int x;
+	^int y;
 }
 
 fn main(): int {
