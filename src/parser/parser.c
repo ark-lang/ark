@@ -499,6 +499,14 @@ FunctionDecl *parseFunctionDecl(Parser *parser) {
 				return decl;
 			}
 		}
+		else if (checkTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
+			consumeToken(parser);
+
+			FunctionDecl *decl = createFunctionDecl();
+			decl->signature = signature;
+			decl->prototype = true;
+			return decl;
+		}
 	}
 
 	return false;
