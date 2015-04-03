@@ -289,6 +289,62 @@ IfStat *parseIfStat(Parser *parser) {
 }
 
 ForStat *parseForStat(Parser *parser) {
+	if (checkTokenTypeAndContent(parser, IDENTIFIER, FOR_KEYWORD, 0)) {
+		consumeToken(parser);
+
+		// infinite loop
+		if (checkTokenTypeAndContent(parser, SEPARATOR, "{", 0)) {
+			Block *block = parseBlock(parser);
+			if (block) {
+				ForStat *stmt = createForStat();
+				stmt->forType = INFINITE_FOR_LOOP;
+				stmt->body = block;
+				return stmt;
+			}
+			else {
+				errorMessage("Expected block in for loop");
+			}
+		}
+
+		Expression *index = parseExpression(parser);
+		if (index) {
+			if (checkTokenTypeAndContent(parser, SEPARATOR, "{", 0)) {
+				Block *block = parseBlock(parser);
+				if (block) {
+					ForStat *stmt = createForStat();
+					stmt->forType = WHILE_FOR_LOOP;
+					stmt->body = block;
+					return stmt;
+				}
+				else {
+					errorMessage("Expected block in for loop");
+				}
+			}
+			else if (checkTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
+				consumeToken(parser);
+
+				ForStat *stmt = createForStat();
+				stmt->expr = createVector(VECTOR_LINEAR);
+				pushBackItem(stmt->expr, index);
+				for (int i = 0; i < 2; i++) {
+					Expression *expr = parseExpression(parser);
+					if (expr) {
+						pushBackItem(stmt->expr, expr);
+						if (checkTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
+							consumeToken(parser);
+						}
+					}
+				}
+				Block *block = parseBlock(parser);
+				stmt->forType = INDEX_FOR_LOOP;
+				stmt->body = block;
+				return stmt;
+			}
+			else {
+				errorMessage("Unknown symbol in for loop");
+			}
+		}
+	}
 	return false;
 }
 
@@ -407,6 +463,15 @@ StructuredStatement *parseStructuredStatement(Parser *parser) {
 		stmt->type = BLOCK_NODE;
 		return stmt;
 	}
+
+	ForStat *fer = parseForStat(parser);
+	if (fer) {
+		StructuredStatement *stmt = createStructuredStatement();
+		stmt->forStmt = fer;
+		stmt->type = FOR_STAT_NODE;
+		return stmt;
+	}
+
 	return false;
 }
 
@@ -432,6 +497,14 @@ UnstructuredStatement *parseUnstructuredStatement(Parser *parser) {
 		UnstructuredStatement *stmt = createUnstructuredStatement();
 		stmt->assignment = assign;
 		stmt->type = ASSIGNMENT_NODE;
+		return stmt;
+	}
+
+	Call *call = parseCall(parser);
+	if (call) {
+		UnstructuredStatement *stmt = createUnstructuredStatement();
+		stmt->call = call;
+		stmt->type = FUNCTION_CALL_NODE;
 		return stmt;
 	}
 
@@ -712,11 +785,11 @@ Expression *parseBinaryOperator(Parser *parser, int precedence, Expression *lhan
 }
 
 Expression *parsePrimaryExpression(Parser *parser) {
-	Call *call = parseCall(parser);
-	if (call) {
+	Literal *lit = parseLiteral(parser);
+	if (lit) {
 		Expression *expr = createExpression();
-		expr->call = call;
-		expr->exprType = FUNCTION_CALL_NODE;
+		expr->lit = lit;
+		expr->exprType = LITERAL_NODE;
 		return expr;
 	}
 
@@ -736,11 +809,11 @@ Expression *parsePrimaryExpression(Parser *parser) {
 		return expr;
 	}
 
-	Literal *lit = parseLiteral(parser);
-	if (lit) {
+	Call *call = parseCall(parser);
+	if (call) {
 		Expression *expr = createExpression();
-		expr->lit = lit;
-		expr->exprType = LITERAL_NODE;
+		expr->call = call;
+		expr->exprType = FUNCTION_CALL_NODE;
 		return expr;
 	}
 
@@ -748,6 +821,31 @@ Expression *parsePrimaryExpression(Parser *parser) {
 }
 
 Call *parseCall(Parser *parser) {
+	Expression *callee = parseExpression(parser);
+	if (callee) {
+		if (checkTokenTypeAndContent(parser, SEPARATOR, "(", 0)) {
+			consumeToken(parser);
+
+			Call *call = createCall(callee);
+			while (true) {
+				if (checkTokenTypeAndContent(parser, SEPARATOR, ")", 0)) {
+					consumeToken(parser);
+					break;
+				}
+
+				Expression *expr = parseExpression(parser);
+				if (expr) {
+					pushBackItem(call->arguments, expr);
+					if (checkTokenTypeAndContent(parser, SEPARATOR, ",", 0)) {
+						if (checkTokenTypeAndContent(parser, SEPARATOR, ")", 1)) {
+							errorMessage("Warning, trailing comma in function call for %s. Skipping.\n", callee);
+						}
+						consumeToken(parser);
+					}
+				}
+			}
+		}
+	}
 
 	return false;
 }
