@@ -6,7 +6,6 @@ Alloy is a work in progress, if you would like to contribute to the creation of 
 need a few things:
 
 * GCC/Clang, other compilers may work
-* LLVM 3.4 or above, we use LLVM 3.5
 * Make
 
 ```bash
