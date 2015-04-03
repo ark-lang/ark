@@ -52,11 +52,44 @@ void consumeAstNodeBy(CodeGenerator *self, int amount) {
 }
 
 void emitType(CodeGenerator *self, Type *type) {
+	switch (type->type) {
+		case TYPE_NAME_NODE: 
+			emitCode(self, "%s", type->typeName->name);
+			break;
+	}
+}
 
+void emitParameters(CodeGenerator *self, Parameters *params) {
+	for (int i = 0; i < params->paramList->size; i++) {
+		ParameterSection *param = getVectorItem(params->paramList, i);
+		if (!param->mutable) {
+			emitCode(self, "const ");
+		}
+		emitType(self, param->type);
+		emitCode(self, "%s", param->name);
+
+		if (params->paramList->size > 1 && i != params->paramList->size - 1) {
+			emitCode(self, ", "); // cleaner formatting
+		}
+	}
 }
 
 void emitFunctionDecl(CodeGenerator *self, FunctionDecl *decl) {
-	char *name = decl->signature->name;
+	// prototype in header
+	self->writeState = WRITE_HEADER_STATE;
+	emitType(self, decl->signature->type);
+	emitCode(self, " %s(", decl->signature->name);
+	emitParameters(self, decl->signature->parameters);
+	emitCode(self, ");");
+
+	// definition
+	self->writeState = WRITE_SOURCE_STATE;
+	emitType(self, decl->signature->type);
+	emitCode(self, " %s(", decl->signature->name);
+	emitParameters(self, decl->signature->parameters);
+	emitCode(self, ") {" CC_NEWLINE);
+	// TODO: block
+	emitCode(self, "}" CC_NEWLINE);
 }
 
 void emitDeclaration(CodeGenerator *self, Declaration *decl) {
@@ -84,7 +117,7 @@ void traverseAST(CodeGenerator *self) {
 
 		switch (stmt->type) {
 			case UNSTRUCTURED_STATEMENT_NODE: 
-				
+				emitUnstructuredStat(self, stmt->unstructured);
 				break;
 			case STRUCTURED_STATEMENT_NODE: 
 
