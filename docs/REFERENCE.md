@@ -3,8 +3,7 @@ This document is an informal specification for Alloy, a systems programming lang
 
 ## Guiding Principles
 Alloy is a systems programming language, intended as an alternative to C. It's main purpose is to modernize C, without
-deviating from C's original goal of simplicity. Alloy is written in C, the frontend is all hand-written, i.e no parser
-or lexer libraries. We use LLVM for the backend, this means it's fast, portable, and we can take advantage of JIT.
+deviating from C's original goal of simplicity. Alloy is written in C, the frontend and backend is all hand-written, i.e no parser or lexer libraries, and no LLVM, etc.
 
 The design is motivated by the following:
 
