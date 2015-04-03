@@ -106,8 +106,10 @@ Other basic types include:
 	
 	bool        alias of u8
 	char        alias of i8
+	usize		unsigned integer at least 16 bit
 
-`true` and `false` are reserved words, which represent the corresponding boolean constant values.
+`true` and `false` are reserved words, which represent the corresponding boolean constant values. `usize` is a guaranteed unsigned integer, and is
+at least 16 bit. It is also guaranteed to hold any array index.
 
 ## Struct Types
 Struct types are similar to C structs. Each member in a struct represents a variable within the data structure.

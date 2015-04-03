@@ -6,6 +6,7 @@ char *BOILERPLATE =
 "#include <stdbool.h>\n"
 "\n"
 "typedef char *str;" CC_NEWLINE
+"typedef size_t usize;" CC_NEWLINE
 "typedef unsigned long long u64;" CC_NEWLINE
 "typedef unsigned int u32;" CC_NEWLINE
 "typedef unsigned short u16;" CC_NEWLINE
@@ -100,7 +101,7 @@ void emitParameters(CodeGenerator *self, Parameters *params) {
 			emitCode(self, "const ");
 		}
 		emitType(self, param->type);
-		emitCode(self, "%s", param->name);
+		emitCode(self, " %s", param->name);
 
 		if (params->paramList->size > 1 && i != params->paramList->size - 1) {
 			emitCode(self, ", "); // cleaner formatting
