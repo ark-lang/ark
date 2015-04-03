@@ -65,7 +65,6 @@ to this list when you commit! :)
 
 ## Additional Credits/Libraries
 
-* LLVM
 * SDS
 
 ## License
