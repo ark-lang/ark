@@ -98,7 +98,7 @@ void emitFieldList(CodeGenerator *self, FieldDeclList *list) {
 			emitCode(self, "const ");
 		}
 		emitType(self, decl->type);
-		emitCode(self, " %s;" CC_NEWLINE, getVectorItem(decl->idenList->values, 0));
+		emitCode(self, " %s;" CC_NEWLINE, decl->name);
 	}
 }
 
