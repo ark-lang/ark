@@ -1,0 +1,5 @@
+fn add(int a, int b): void;
+
+fn main(): int {
+
+}
