@@ -202,6 +202,29 @@ void emitVariableDecl(CodeGenerator *self, VariableDecl *decl) {
 
 }
 
+void emitWhileForLoop(CodeGenerator *self, ForStat *stmt) {
+
+}
+
+void emitBlock(CodeGenerator *self, Block *block) {
+
+}
+
+void emitInfiniteForLoop(CodeGenerator *self, ForStat *stmt) {
+	self->writeState = WRITE_SOURCE_STATE;
+	emitCode(self, "while (true) {" CC_NEWLINE);
+	emitBlock(self, stmt->body);
+	emitCode(self, "}" CC_NEWLINE);
+}
+
+void emitForStat(CodeGenerator *self, ForStat *stmt) {
+	switch (stmt->forType) {
+		case WHILE_FOR_LOOP: emitWhileForLoop(self, stmt); break;
+		case INFINITE_FOR_LOOP: emitInfiniteForLoop(self, stmt); break;
+		case INDEX_FOR_LOOP: break;
+	}
+}
+
 void emitDeclaration(CodeGenerator *self, Declaration *decl) {
 	switch (decl->type) {
 		case FUNCTION_DECL_NODE: emitFunctionDecl(self, decl->funcDecl); break;
@@ -221,7 +244,10 @@ void emitUnstructuredStat(CodeGenerator *self, UnstructuredStatement *stmt) {
 
 void emitStructuredStat(CodeGenerator *self, StructuredStatement *stmt) {
 	switch (stmt->type) {
-
+		case FOR_STAT_NODE: emitForStat(self, stmt->forStmt); break;
+		default:
+			printf("unknown node type %s\n", NODE_NAME[stmt->type]);
+			break;
 	}
 }
 
@@ -235,10 +261,10 @@ void traverseAST(CodeGenerator *self) {
 				emitUnstructuredStat(self, stmt->unstructured);
 				break;
 			case STRUCTURED_STATEMENT_NODE: 
-
+				emitStructuredStat(self, stmt->structured);
 				break;
 			default:
-				printf("oh shit\n");
+				printf("unknown node type %s\n", NODE_NAME[stmt->type]);
 				break;
 		}
 	}
