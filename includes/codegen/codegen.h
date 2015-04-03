@@ -25,6 +25,7 @@
 
 #define COMPACT_CODE_GEN 0
 
+// meh, fixme
 #if COMPACT_CODE_GEN == 0
 	#define CC_NEWLINE "\n"
 #else
@@ -50,6 +51,8 @@ typedef struct {
 CodeGenerator *createCodeGenerator(Vector *sourceFiles);
 
 void emitCode(CodeGenerator *self, char *fmt, ...);
+
+void generateFunctionCode(CodeGenerator *self, FunctionDecl *decl);
 
 void consumeAstNode(CodeGenerator *self);
 
