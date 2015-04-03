@@ -66,9 +66,39 @@ void consumeAstNodeBy(CodeGenerator *self, int amount) {
 	self->currentNode += amount;
 }
 
+void emitLiteral(CodeGenerator *self, Literal *lit) {
+	emitCode(self, "%s", lit->value);
+}
+
+void emitBinaryExpr(CodeGenerator *self, BinaryExpr *expr) {
+	emitExpression(self, expr->lhand);
+	emitCode(self, " %c ", expr->binaryOp);
+	emitExpression(self, expr->rhand);
+}
+
+void emitUnaryExpr(CodeGenerator *self, UnaryExpr *expr) {
+	emitCode(self, "%c", expr->unaryOp);
+	emitExpression(self, expr->lhand);
+}
+
+void emitExpression(CodeGenerator *self, Expression *expr) {
+	switch (expr->exprType) {
+		case TYPE_NODE: emitType(self, expr->type); break;
+		case LITERAL_NODE: emitLiteral(self, expr->lit); break;
+		case BINARY_EXPR_NODE: emitBinaryExpr(self, expr->binary); break;
+		case UNARY_EXPR_NODE: emitUnaryExpr(self, expr->unary); break;
+		default:
+			printf("Unknown node %s\n", NODE_NAME[expr->exprType]);
+			break;
+	}
+}
+
 void emitTypeLit(CodeGenerator *self, TypeLit *lit) {
 	switch (lit->type) {
 		case ARRAY_TYPE_NODE: {
+			emitCode(self, "[");
+			emitExpression(self, lit->arrayType->length);
+			emitCode(self, "]");
 			break;
 		}
 		case POINTER_TYPE_NODE: {
