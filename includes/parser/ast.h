@@ -230,12 +230,13 @@ typedef struct {
 } FunctionSignature;
 
 /**
- * A function declaration, which consists
- * of a function prototype and a block.
+ * A function, which consists
+ * of a function prototype and an optional block.
  */
 typedef struct {
 	FunctionSignature *signature;
 	Block *body;
+	bool prototype;
 } FunctionDecl;
 
 /**
