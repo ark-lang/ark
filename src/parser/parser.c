@@ -117,12 +117,12 @@ FieldDecl *parseFieldDecl(Parser *parser) {
 	Type *type = parseType(parser);
 	if (type) {
 		FieldDecl *decl = createFieldDecl(type, mutable);
-		IdentifierList *idenList = parseIdentifierList(parser);
-		if (idenList) {
-			decl->idenList = idenList;
+		if (checkTokenType(parser, IDENTIFIER, 0)) {
+			decl->name = consumeToken(parser)->content;
 			return decl;
 		}
 	}
+
 	return false;
 }
 

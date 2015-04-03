@@ -153,8 +153,8 @@ struct s_Expression {
  * Field declaration for a struct
  */
 typedef struct {
-	IdentifierList *idenList;
 	Type *type;
+	char *name;
 	bool mutable;
 } FieldDecl;
 
