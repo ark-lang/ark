@@ -1,5 +1,5 @@
-#ifndef SOURCE_FILE_H
-#define SOURCE_FILE_H
+#ifndef __SOURCE_FILE_H
+#define __SOURCE_FILE_H
 
 #include <stdlib.h>
 
@@ -66,4 +66,4 @@ void closeFiles(SourceFile *sourceFile);
  */
 void destroySourceFile(SourceFile *sourceFile);
 
-#endif // SOURCE_FILE_H
+#endif // __SOURCE_FILE_H
