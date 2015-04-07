@@ -2,8 +2,8 @@
  * Creds
  * https://githubusercontent.com/petewarden/c_hashmap/
  */
-#ifndef __HASHMAP_H__
-#define __HASHMAP_H__
+#ifndef __HASHMAP_H
+#define __HASHMAP_H
 
 #define MAP_MISSING -3  /* No such element */
 #define MAP_FULL -2 	/* Hashmap is full */
@@ -76,4 +76,4 @@ void hashmap_free(map_t in);
  */
 int hashmap_length(map_t in);
 
-#endif
+#endif // __HASHMAP_H
