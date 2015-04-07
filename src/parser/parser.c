@@ -1,17 +1,10 @@
 #include "parser.h"
 
-const char* BINARY_OPS[] = {
-	".", "*", "/", "%", "+", "-",
-	">", "<", ">=", "<=", "==", "!=", "&",
-	"|"
-};
+const char* BINARY_OPS[] = { ".", "*", "/", "%", "+", "-", ">", "<", ">=", "<=",
+		"==", "!=", "&", "|" };
 
-const char* DATA_TYPES[] = {
-	"i64", "i32", "i16", "i8",
-	"u64", "u32", "u16", "u8",
-	"f64", "f32",
-	"int", "bool", "char", "void"
-};
+const char* DATA_TYPES[] = { "i64", "i32", "i16", "i8", "u64", "u32", "u16",
+		"u8", "f64", "f32", "int", "bool", "char", "void" };
 
 int getTypeFromString(char *type) {
 	int i;
@@ -218,8 +211,7 @@ Parameters *parseParameters(Parser *parser) {
 					}
 					consumeToken(parser);
 				}
-			}
-			else {
+			} else {
 				break;
 			}
 		}
@@ -269,30 +261,32 @@ FunctionSignature *parseFunctionSignature(Parser *parser) {
 						consumeToken(parser);
 
 						bool mutable = false;
-						if (checkTokenTypeAndContent(parser, IDENTIFIER, MUT_KEYWORD, 0)) {
+						if (checkTokenTypeAndContent(parser, IDENTIFIER,
+						MUT_KEYWORD, 0)) {
 							consumeToken(parser);
 							mutable = true;
 						}
 
 						Type *type = parseType(parser);
 						if (type) {
-							FunctionSignature *sign = createFunctionSignature(functionName, params, mutable, type);
+							FunctionSignature *sign = createFunctionSignature(
+									functionName, params, mutable, type);
 							sign->receiver = receiver;
 							return sign;
 						}
 						// else no type specified
-					}
-					else if (checkTokenTypeAndContent(parser, SEPARATOR, "{", 0)) {
+					} else if (checkTokenTypeAndContent(parser, SEPARATOR, "{",
+							0)) {
 						// just assume it's void.
 						Type *type = createType();
 						type->typeName = createTypeName(VOID_KEYWORD);
 						type->type = TYPE_NAME_NODE;
-						
-						FunctionSignature *sign = createFunctionSignature(functionName, params, false, type);
+
+						FunctionSignature *sign = createFunctionSignature(
+								functionName, params, false, type);
 						sign->receiver = receiver;
 						return sign;
-					}
-					else {
+					} else {
 						// TODO: colon missing, or block opener missing?
 					}
 				}
@@ -322,8 +316,7 @@ ForStat *parseForStat(Parser *parser) {
 				stmt->forType = INFINITE_FOR_LOOP;
 				stmt->body = block;
 				return stmt;
-			}
-			else {
+			} else {
 				errorMessage("Expected block in for loop");
 			}
 		}
@@ -337,12 +330,10 @@ ForStat *parseForStat(Parser *parser) {
 					stmt->forType = WHILE_FOR_LOOP;
 					stmt->body = block;
 					return stmt;
-				}
-				else {
+				} else {
 					errorMessage("Expected block in for loop");
 				}
-			}
-			else if (checkTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
+			} else if (checkTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
 				consumeToken(parser);
 
 				ForStat *stmt = createForStat();
@@ -352,7 +343,8 @@ ForStat *parseForStat(Parser *parser) {
 					Expression *expr = parseExpression(parser);
 					if (expr) {
 						pushBackItem(stmt->expr, expr);
-						if (checkTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
+						if (checkTokenTypeAndContent(parser, SEPARATOR, ";",
+								0)) {
 							consumeToken(parser);
 						}
 					}
@@ -361,8 +353,7 @@ ForStat *parseForStat(Parser *parser) {
 				stmt->forType = INDEX_FOR_LOOP;
 				stmt->body = block;
 				return stmt;
-			}
-			else {
+			} else {
 				errorMessage("Unknown symbol in for loop");
 			}
 		}
@@ -438,19 +429,19 @@ LeaveStat *parseLeaveStat(Parser *parser) {
 		return stat;
 	}
 
-
 	return false;
 }
 
 IncDecStat *parseIncDecStat(Parser *parser) {
 	Expression *expr = parseExpression(parser);
 	if (expr) {
-		if (checkTokenTypeAndContent(parser, OPERATOR, "+", 0) && checkTokenTypeAndContent(parser, OPERATOR, "+", 1)) {
+		if (checkTokenTypeAndContent(parser, OPERATOR, "+", 0)
+				&& checkTokenTypeAndContent(parser, OPERATOR, "+", 1)) {
 			consumeToken(parser);
 			consumeToken(parser);
 			return createIncDecStat(expr, 1);
-		}
-		else if (checkTokenTypeAndContent(parser, OPERATOR, "-", 0) && checkTokenTypeAndContent(parser, OPERATOR, "-", 1)) {
+		} else if (checkTokenTypeAndContent(parser, OPERATOR, "-", 0)
+				&& checkTokenTypeAndContent(parser, OPERATOR, "-", 1)) {
 			consumeToken(parser);
 			consumeToken(parser);
 			return createIncDecStat(expr, -1);
@@ -595,8 +586,7 @@ FunctionDecl *parseFunctionDecl(Parser *parser) {
 				decl->body = block;
 				return decl;
 			}
-		}
-		else if (checkTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
+		} else if (checkTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
 			consumeToken(parser);
 
 			FunctionDecl *decl = createFunctionDecl();
@@ -631,16 +621,19 @@ VariableDecl *parseVariableDecl(Parser *parser) {
 				// check if it's a pointer, and it's being assigned to a value
 				// this is so we can short hand ^int x = 5; to int *x = malloc...; *x = 5;
 				// TODO: check if we're assigning a literal, so we don't shorthand it
-				pointer = type->type == TYPE_LIT_NODE && type->typeLit->type == POINTER_TYPE_NODE;
-				pushPointer(parser, var_name);
-
+				pointer = type->type == TYPE_LIT_NODE
+						&& type->typeLit->type == POINTER_TYPE_NODE;
+				if (pointer) {
+					pushPointer(parser, var_name);
+				}
 				rhand = parseExpression(parser);
 			}
 			if (checkTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
 				consumeToken(parser);
 			}
 
-			VariableDecl *decl = createVariableDecl(type, var_name, mutable, rhand);
+			VariableDecl *decl = createVariableDecl(type, var_name, mutable,
+					rhand);
 			decl->pointer = pointer;
 			decl->assigned = assigned;
 			return decl;
@@ -681,11 +674,13 @@ Declaration *parseDeclaration(Parser *parser) {
 int getTokenPrecedence(Parser *parser) {
 	Token *tok = peekAtTokenStream(parser, 0);
 
-	if (!isascii(tok->content[0])) return -1;
+	if (!isascii(tok->content[0]))
+		return -1;
 
 	Precedence *prec = NULL;
-	if (hashmap_get(parser->binopPrecedence, tok->content, (void**) &prec) == MAP_MISSING) {
-		errorMessage("Precedence doesnt exist for %s\n", tok->content);
+	if (hashmap_get(parser->binopPrecedence, tok->content,
+			(void**) &prec) == MAP_MISSING) {
+		verboseModeMessage("Precedence doesnt exist for %s\n", tok->content);
 		return -1;
 	}
 
@@ -715,7 +710,8 @@ TypeName *parseTypeName(Parser *parser) {
 
 Expression *parseExpression(Parser *parser) {
 	Expression *expr = parsePrimaryExpression(parser);
-	if (!expr) return false;
+	if (!expr)
+		return false;
 
 	if (isValidBinaryOp(peekAtTokenStream(parser, 0)->content)) {
 		return parseBinaryOperator(parser, 0, expr);
@@ -730,8 +726,7 @@ ArrayType *parseArrayType(Parser *parser) {
 		Expression *expr = parseExpression(parser);
 		if (!expr) {
 			destroyExpression(expr);
-		}
-		else if (checkTokenTypeAndContent(parser, SEPARATOR, "]", 0)) {
+		} else if (checkTokenTypeAndContent(parser, SEPARATOR, "]", 0)) {
 			consumeToken(parser);
 			Type *type = parseType(parser);
 			if (type) {
@@ -790,10 +785,12 @@ UnaryExpr *parseUnaryExpr(Parser *parser) {
 	return false;
 }
 
-Expression *parseBinaryOperator(Parser *parser, int precedence, Expression *lhand) {
+Expression *parseBinaryOperator(Parser *parser, int precedence,
+		Expression *lhand) {
 	for (;;) {
 		int tokenPrecedence = getTokenPrecedence(parser);
-		if (tokenPrecedence < precedence) return lhand;
+		if (tokenPrecedence < precedence)
+			return lhand;
 
 		Token *tok = peekAtTokenStream(parser, 0);
 		if (!isValidBinaryOp(tok->content)) {
@@ -803,12 +800,14 @@ Expression *parseBinaryOperator(Parser *parser, int precedence, Expression *lhan
 		char *binaryOp = consumeToken(parser)->content;
 
 		Expression *rhand = parsePrimaryExpression(parser);
-		if (rhand) return false;
+		if (!rhand)
+			return false;
 
 		int nextPrec = getTokenPrecedence(parser);
 		if (tokenPrecedence < nextPrec) {
 			rhand = parseBinaryOperator(parser, tokenPrecedence + 1, rhand);
-			if (!rhand) return false;
+			if (!rhand)
+				return false;
 		}
 
 		Expression *temp = createExpression();
@@ -824,14 +823,6 @@ Expression *parseBinaryOperator(Parser *parser, int precedence, Expression *lhan
 }
 
 Expression *parsePrimaryExpression(Parser *parser) {
-	Literal *lit = parseLiteral(parser);
-	if (lit) {
-		Expression *expr = createExpression();
-		expr->lit = lit;
-		expr->exprType = LITERAL_NODE;
-		return expr;
-	}
-
 	Type *type = parseType(parser);
 	if (type) {
 		Expression *expr = createExpression();
@@ -856,31 +847,57 @@ Expression *parsePrimaryExpression(Parser *parser) {
 		return expr;
 	}
 
+	Literal *lit = parseLiteral(parser);
+	if (lit) {
+		Expression *expr = createExpression();
+		expr->lit = lit;
+		expr->exprType = LITERAL_NODE;
+		return expr;
+	}
+
 	return false;
 }
 
 Call *parseCall(Parser *parser) {
-	Expression *callee = parseExpression(parser);
-	if (callee) {
-		if (checkTokenTypeAndContent(parser, SEPARATOR, "(", 0)) {
-			consumeToken(parser);
 
-			Call *call = createCall(callee);
-			while (true) {
-				if (checkTokenTypeAndContent(parser, SEPARATOR, ")", 0)) {
-					consumeToken(parser);
-					break;
-				}
+	Vector *idens = NULL;
+	errorMessage("%s tok", peekAtTokenStream(parser, 0)->content);
+	if (checkTokenType(parser, IDENTIFIER, 0)) {
+		idens = createVector(VECTOR_LINEAR);
+		while(true) {
+			if (checkTokenType(parser, IDENTIFIER, 0)) {
+				pushBackItem(idens, consumeToken(parser)->content);
+			}
+			if (checkTokenTypeAndContent(parser, SEPARATOR, ".", 0)) {
+				consumeToken(parser);
+			}
+			if (!checkTokenType(parser, IDENTIFIER, 0)) {
+				break;
+			}
+		}
+	}
+	for(int i = 0; i < idens->size; i++) {
+		verboseModeMessage(getVectorItem(idens, i));
+	}
+	if (checkTokenTypeAndContent(parser, SEPARATOR, "(", 0)) {
+		consumeToken(parser);
+		Call *call = createCall(idens);
+		while (true) {
+			if (checkTokenTypeAndContent(parser, SEPARATOR, ")", 0)) {
+				consumeToken(parser);
+				break;
+			}
 
-				Expression *expr = parseExpression(parser);
-				if (expr) {
-					pushBackItem(call->arguments, expr);
-					if (checkTokenTypeAndContent(parser, SEPARATOR, ",", 0)) {
-						if (checkTokenTypeAndContent(parser, SEPARATOR, ")", 1)) {
-							errorMessage("Warning, trailing comma in function call for %s. Skipping.\n", callee);
-						}
-						consumeToken(parser);
+			Expression *expr = parseExpression(parser);
+			if (expr) {
+				pushBackItem(call->arguments, expr);
+				if (checkTokenTypeAndContent(parser, SEPARATOR, ",", 0)) {
+					if (checkTokenTypeAndContent(parser, SEPARATOR, ")", 1)) {
+						errorMessage(
+								"Warning, trailing comma in function call for %s. Skipping.\n",
+								idens);
 					}
+					consumeToken(parser);
 				}
 			}
 		}
@@ -889,7 +906,7 @@ Call *parseCall(Parser *parser) {
 	return false;
 }
 
-/** UTILITIY */
+/** UTILITY */
 
 void pushScope(Parser *parser) {
 	pushToStack(parser->scope, createScope());
@@ -905,24 +922,27 @@ void popScope(Parser *parser, Block *block) {
 
 	for (int i = 0; i < scope->pointers->size; i++) {
 		PointerFree *pntr = getVectorItem(scope->pointers, i);
-		
+
 		UnstructuredStatement *unstructured = createUnstructuredStatement();
 		unstructured->pointerFree = pntr;
 		unstructured->type = POINTER_FREE_NODE;
-		
+
 		Statement *stmt = createStatement();
 		stmt->unstructured = unstructured;
 		stmt->type = UNSTRUCTURED_STATEMENT_NODE;
-		
+
 		pushBackItem(block->stmtList->stmts, stmt);
 	}
 }
 
 int getLiteralType(Token *tok) {
 	switch (tok->type) {
-	case CHARACTER: return LITERAL_CHAR;
-	case NUMBER: return LITERAL_NUMBER;
-	case STRING: return LITERAL_STRING;
+	case CHARACTER:
+		return LITERAL_CHAR;
+	case NUMBER:
+		return LITERAL_NUMBER;
+	case STRING:
+		return LITERAL_STRING;
 	default:
 		errorMessage("Unknown literal `%s`", tok->content);
 		return LITERAL_ERRORED;
@@ -931,7 +951,8 @@ int getLiteralType(Token *tok) {
 
 Token *consumeToken(Parser *parser) {
 	Token *tok = getVectorItem(parser->tokenStream, parser->tokenIndex++);
-	verboseModeMessage("consumed token: %s, current token is %s", tok->content, peekAtTokenStream(parser, 0)->content);
+	verboseModeMessage("consumed token: %s, current token is %s", tok->content,
+			peekAtTokenStream(parser, 0)->content);
 	if (tok->type == END_OF_FILE) {
 		parser->parsing = false;
 	}
@@ -942,8 +963,10 @@ bool checkTokenType(Parser *parser, int type, int ahead) {
 	return peekAtTokenStream(parser, ahead)->type == type;
 }
 
-bool checkTokenTypeAndContent(Parser *parser, int type, char *content, int ahead) {
-	return peekAtTokenStream(parser, ahead)->type == type && !strcmp(peekAtTokenStream(parser, ahead)->content, content);
+bool checkTokenTypeAndContent(Parser *parser, int type, char *content,
+		int ahead) {
+	return peekAtTokenStream(parser, ahead)->type == type
+			&& !strcmp(peekAtTokenStream(parser, ahead)->content, content);
 }
 
 bool matchTokenType(Parser *parser, int type, int ahead) {
@@ -954,7 +977,8 @@ bool matchTokenType(Parser *parser, int type, int ahead) {
 	return false;
 }
 
-bool matchTokenTypeAndContent(Parser *parser, int type, char *content, int ahead) {
+bool matchTokenTypeAndContent(Parser *parser, int type, char *content,
+		int ahead) {
 	if (checkTokenTypeAndContent(parser, type, content, ahead)) {
 		consumeToken(parser);
 		return true;
@@ -964,7 +988,8 @@ bool matchTokenTypeAndContent(Parser *parser, int type, char *content, int ahead
 
 Token *peekAtTokenStream(Parser *parser, int ahead) {
 	if (parser->tokenIndex + ahead > parser->tokenStream->size) {
-		errorMessage("Attempting to peek at out of bounds token: %d/%d", ahead, parser->tokenStream->size);
+		errorMessage("Attempting to peek at out of bounds token: %d/%d", ahead,
+				parser->tokenStream->size);
 		parser->parsing = false;
 		return NULL;
 	}
