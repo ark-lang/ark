@@ -23,10 +23,9 @@
 #define SEMICOLON ";"
 #define COMMA_SYM ","
 
-#define COMPACT_CODE_GEN 0
+#define COMPACT_CODE_GEN false
 
-// meh, fixme
-#if COMPACT_CODE_GEN == 0
+#if COMPACT_CODE_GEN == true
 	#define CC_NEWLINE "\n"
 #else
 	#define CC_NEWLINE " "
