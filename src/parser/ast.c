@@ -39,10 +39,10 @@ MemberAccessExpr *createMemberAccessExpr(Expression *expr, char *value) {
 	return mem;
 }
 
-Call *createCall(Expression *expr) {
+Call *createCall(Vector *member) {
 	Call *call = safeMalloc(sizeof(*call));
 	call->arguments = createVector(VECTOR_EXPONENTIAL);
-	call->callee = expr;
+	call->member = member;
 	return call;
 }
 
@@ -320,7 +320,7 @@ void destroyCall(Call *call) {
 		destroyExpression(getVectorItem(call->arguments, i));
 	}
 	destroyVector(call->arguments);
-	destroyExpression(call->callee);
+	destroyVector(call->member);
 	free(call);
 }
 

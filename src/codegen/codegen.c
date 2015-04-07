@@ -72,12 +72,12 @@ void emitLiteral(CodeGenerator *self, Literal *lit) {
 
 void emitBinaryExpr(CodeGenerator *self, BinaryExpr *expr) {
 	emitExpression(self, expr->lhand);
-	emitCode(self, " %c ", expr->binaryOp);
+	emitCode(self, " %s ", expr->binaryOp);
 	emitExpression(self, expr->rhand);
 }
 
 void emitUnaryExpr(CodeGenerator *self, UnaryExpr *expr) {
-	emitCode(self, "%c", expr->unaryOp);
+	emitCode(self, "%s", expr->unaryOp);
 	emitExpression(self, expr->lhand);
 }
 

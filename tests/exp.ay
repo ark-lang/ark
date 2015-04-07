@@ -1,0 +1,3 @@
+fn main(): int {
+	int x = r.s.add(1,2);
+}
