@@ -691,7 +691,6 @@ int getTokenPrecedence(Parser *parser) {
 	}
 
 	int tokenPrecedence = prec->prec;
-	printf("\n\n\n\n%d\n", tokenPrecedence);
 	if (tokenPrecedence <= 0) {
 		return -1;
 	}
