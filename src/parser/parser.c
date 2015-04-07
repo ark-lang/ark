@@ -890,7 +890,7 @@ Call *parseCall(Parser *parser) {
 	return false;
 }
 
-/** UTILITIY */
+/** UTILITY */
 
 void pushScope(Parser *parser) {
 	pushToStack(parser->scope, createScope());
