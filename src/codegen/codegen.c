@@ -30,7 +30,7 @@ const char *NODE_NAME[] = {
 	"DECLARATION_NODE", "INC_DEC_STAT_NODE", "RETURN_STAT_NODE", "BREAK_STAT_NODE",
 	"CONTINUE_STAT_NODE", "LEAVE_STAT_NODE", "ASSIGNMENT_NODE", "UNSTRUCTURED_STATEMENT_NODE",
 	"ELSE_STAT_NODE", "IF_STAT_NODE", "MATCH_CLAUSE_STAT", "MATCH_STAT_NODE", "FOR_STAT_NODE",
-	"STRUCTURED_STATEMENT_NODE", "STATEMENT_NODE", "TYPE_NODE"
+	"STRUCTURED_STATEMENT_NODE", "STATEMENT_NODE", "TYPE_NODE", "POINTER_FREE_NODE"
 };
 
 CodeGenerator *createCodeGenerator(Vector *sourceFiles) {
@@ -270,6 +270,9 @@ void emitDeclaration(CodeGenerator *self, Declaration *decl) {
 void emitUnstructuredStat(CodeGenerator *self, UnstructuredStatement *stmt) {
 	switch (stmt->type) {
 		case DECLARATION_NODE: emitDeclaration(self, stmt->decl); break;
+		case POINTER_FREE_NODE: 
+			emitCode(self, "free(%s);" CC_NEWLINE, stmt->pointerFree->name);
+			break;
 	}
 }
 
