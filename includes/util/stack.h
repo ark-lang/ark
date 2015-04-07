@@ -1,5 +1,5 @@
-#ifndef STACK_H
-#define STACK_H
+#ifndef __STACK_H
+#define __STACK_H
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -67,4 +67,4 @@ StackItem popStack(Stack *stack);
  */
 void destroyStack(Stack *stack);
 
-#endif // STACK_H
+#endif // __STACK_H

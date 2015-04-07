@@ -1,5 +1,5 @@
-#ifndef AST_H
-#define AST_H
+#ifndef __AST_H
+#define __AST_H
 
 #include "util.h"
 #include "vector.h"
@@ -542,4 +542,4 @@ void destroyTypeLiteral(TypeLit *type);
 
 void destroyType(Type *type);
 
-#endif // AST_H
+#endif // __AST_H
