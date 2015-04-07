@@ -839,14 +839,6 @@ Expression *parsePrimaryExpression(Parser *parser) {
 		return expr;
 	}
 
-	Literal *lit = parseLiteral(parser);
-	if (lit) {
-		Expression *expr = createExpression();
-		expr->lit = lit;
-		expr->exprType = LITERAL_NODE;
-		return expr;
-	}
-
 	Call *call = parseCall(parser);
 	if (call) {
 		Expression *expr = createExpression();
@@ -855,11 +847,21 @@ Expression *parsePrimaryExpression(Parser *parser) {
 		return expr;
 	}
 
+	Literal *lit = parseLiteral(parser);
+	if (lit) {
+		Expression *expr = createExpression();
+		expr->lit = lit;
+		expr->exprType = LITERAL_NODE;
+		return expr;
+	}
+
 	return false;
 }
 
 Call *parseCall(Parser *parser) {
+
 	Vector *idens = NULL;
+	errorMessage("%s tok", peekAtTokenStream(parser, 0)->content);
 	if (checkTokenType(parser, IDENTIFIER, 0)) {
 		idens = createVector(VECTOR_LINEAR);
 		while(true) {
