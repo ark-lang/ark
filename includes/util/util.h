@@ -1,5 +1,5 @@
-#ifndef BOOL_H
-#define BOOL_H
+#ifndef __BOOL_H
+#define __BOOL_H
 
 #include <stdio.h>
 #include <stdarg.h>
@@ -116,4 +116,4 @@ const char *getFilenameExtension(const char *filename);
  */
 void *safeMalloc(size_t size);
 
-#endif // BOOL_H
+#endif // __BOOL_H
