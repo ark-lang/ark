@@ -12,6 +12,8 @@
 #include "vector.h"
 #include "hashmap.h"
 #include "ast.h"
+#include "stack.h"
+#include "scope.h"
 
 #define VOID_KEYWORD				"void"
 #define STRUCT_KEYWORD 				"struct"
@@ -54,8 +56,11 @@ int getTypeFromString(char *type);
 typedef struct {
 	Vector *tokenStream;	// the stream of tokens to parse
 	Vector *parseTree;		// the AST created
+	Stack *scope;
+
 	map_t binopPrecedence;
 	int tokenIndex;			// current token
+
 	bool parsing;			// if we're parsing
 	bool failed;			// if parsing failed
 } Parser;
@@ -151,6 +156,12 @@ static inline void destroyPrecedence(Precedence *prec) {
 }
 
 int getTokenPrecedence(Parser *parser);
+
+void pushScope(Parser *parser);
+
+void pushPointer(Parser *parser, char *name);
+
+void popScope(Parser *parser, Block *block);
 
 /**
  * Returns the literal type based on the token
