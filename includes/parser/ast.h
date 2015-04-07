@@ -248,6 +248,8 @@ typedef struct {
  */
 typedef struct {
 	bool mutable;
+	bool pointer;
+	bool assigned;
 	Type *type;
 	char *name;
 	Expression *expr;
