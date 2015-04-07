@@ -833,19 +833,19 @@ Expression *parsePrimaryExpression(Parser *parser) {
 		return expr;
 	}
 
-	Literal *lit = parseLiteral(parser);
-	if (lit) {
-		Expression *expr = createExpression();
-		expr->lit = lit;
-		expr->exprType = LITERAL_NODE;
-		return expr;
-	}
-
 	UnaryExpr *unary = parseUnaryExpr(parser);
 	if (unary) {
 		Expression *expr = createExpression();
 		expr->unary = unary;
 		expr->exprType = UNARY_EXPR_NODE;
+		return expr;
+	}
+
+	Literal *lit = parseLiteral(parser);
+	if (lit) {
+		Expression *expr = createExpression();
+		expr->lit = lit;
+		expr->exprType = LITERAL_NODE;
 		return expr;
 	}
 
