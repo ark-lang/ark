@@ -2,6 +2,10 @@ fn add(int a, int b): int {
 	return a + b;
 }
 
+fn do_stuff() {
+	
+}
+
 fn main(): int {
 	return 5;
 }
