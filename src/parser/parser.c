@@ -55,6 +55,14 @@ Parser *createParser() {
 }
 
 void destroyParser(Parser *parser) {
+	if (parser->scope->stackPointer != -1) {
+		errorMessage("Some kind of memory leak occurred?");
+		while (parser->scope->stackPointer >= 0) {
+			popStack(parser->scope);
+		}
+	}
+
+	destroyStack(parser->scope);
 	free(parser);
 	verboseModeMessage("Destroyed parser");
 }
@@ -555,11 +563,13 @@ Statement *parseStatement(Parser *parser) {
 
 Block *parseBlock(Parser *parser) {
 	if (checkTokenTypeAndContent(parser, SEPARATOR, "{", 0)) {
+		pushScope(parser);
 		consumeToken(parser);
 
 		Block *block = createBlock();
 		while (true) {
 			if (checkTokenTypeAndContent(parser, SEPARATOR, "}", 0)) {
+				popScope(parser, block);
 				consumeToken(parser);
 				break;
 			}
@@ -622,6 +632,7 @@ VariableDecl *parseVariableDecl(Parser *parser) {
 				// this is so we can short hand ^int x = 5; to int *x = malloc...; *x = 5;
 				// TODO: check if we're assigning a literal, so we don't shorthand it
 				pointer = type->type == TYPE_LIT_NODE && type->typeLit->type == POINTER_TYPE_NODE;
+				pushPointer(parser, var_name);
 
 				rhand = parseExpression(parser);
 			}
@@ -880,6 +891,33 @@ Call *parseCall(Parser *parser) {
 
 /** UTILITIY */
 
+void pushScope(Parser *parser) {
+	pushToStack(parser->scope, createScope());
+}
+
+void pushPointer(Parser *parser, char *name) {
+	Scope *scope = getStackItem(parser->scope, parser->scope->stackPointer);
+	pushBackItem(scope->pointers, createPointerFree(name));
+}
+
+void popScope(Parser *parser, Block *block) {
+	Scope *scope = popStack(parser->scope);
+
+	for (int i = 0; i < scope->pointers->size; i++) {
+		PointerFree *pntr = getVectorItem(scope->pointers, i);
+		
+		UnstructuredStatement *unstructured = createUnstructuredStatement();
+		unstructured->pointerFree = pntr;
+		unstructured->type = POINTER_FREE_NODE;
+		
+		Statement *stmt = createStatement();
+		stmt->unstructured = unstructured;
+		stmt->type = UNSTRUCTURED_STATEMENT_NODE;
+		
+		pushBackItem(block->stmtList->stmts, stmt);
+	}
+}
+
 int getLiteralType(Token *tok) {
 	switch (tok->type) {
 	case CHARACTER: return LITERAL_CHAR;
@@ -948,6 +986,7 @@ void startParsingSourceFiles(Parser *parser, Vector *sourceFiles) {
 		parser->parseTree = createVector(VECTOR_EXPONENTIAL);
 		parser->tokenIndex = 0;
 		parser->parsing = true;
+		parser->scope = createStack();
 
 		parseTokenStream(parser);
 
