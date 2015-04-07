@@ -99,4 +99,4 @@ void sdsIncrLen(sds s, int incr);
 sds sdsRemoveFreeSpace(sds s);
 size_t sdsAllocSize(sds s);
 
-#endif
+#endif // __SDS_H
