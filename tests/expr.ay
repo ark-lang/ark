@@ -1,4 +1,12 @@
+fn add() {
+
+}
+
 fn main(): int {
+	^int abc = 10;
+	mut ^int cba = 123;
+	int ddd = ^abc;
+
 	int y = -23 + 5;	
 	int x = -y - y + 5;
 	str z = "test";
