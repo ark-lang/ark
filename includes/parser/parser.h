@@ -13,7 +13,7 @@
 #include "hashmap.h"
 #include "ast.h"
 
-#define VOID_TYPE					"void"
+#define VOID_KEYWORD				"void"
 #define STRUCT_KEYWORD 				"struct"
 #define MUT_KEYWORD 				"mut"
 #define FUNCTION_KEYWORD 			"fn"
