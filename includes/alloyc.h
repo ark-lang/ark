@@ -1,5 +1,5 @@
-#ifndef ALLOY_LANG_H
-#define ALLOY_LANG_H
+#ifndef __ALLOY_LANG_H
+#define __ALLOY_LANG_H
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -60,4 +60,4 @@ void startAlloyCompiler(AlloyCompiler *self);
  */
 void destroyAlloyCompiler(AlloyCompiler *self);
 
-#endif // INK_LANG_H
+#endif // __ALLOY_LANG_H
