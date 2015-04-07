@@ -283,7 +283,7 @@ FunctionSignature *parseFunctionSignature(Parser *parser) {
 
 						// just assume it's void.
 						Type *type = createType();
-						type->typeName = createTypeName(VOID_TYPE);
+						type->typeName = createTypeName(VOID_KEYWORD);
 						type->type = TYPE_NAME_NODE;
 						
 						FunctionSignature *sign = createFunctionSignature(functionName, params, mutable, type);
