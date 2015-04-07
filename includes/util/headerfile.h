@@ -1,5 +1,5 @@
-#ifndef HEADER_FILE_H
-#define HEADER_FILE_H
+#ifndef __HEADER_FILE_H
+#define __HEADER_FILE_H
 
 #include <stdlib.h>
 
@@ -45,4 +45,4 @@ void closeHeaderFile(HeaderFile *headerFile);
  */
 void destroyHeaderFile(HeaderFile *headerFile);
 
-#endif // HEADER_FILE_H
+#endif // __HEADER_FILE_H
