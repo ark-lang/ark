@@ -30,7 +30,7 @@ const char *NODE_NAME[] = {
 	"DECLARATION_NODE", "INC_DEC_STAT_NODE", "RETURN_STAT_NODE", "BREAK_STAT_NODE",
 	"CONTINUE_STAT_NODE", "LEAVE_STAT_NODE", "ASSIGNMENT_NODE", "UNSTRUCTURED_STATEMENT_NODE",
 	"ELSE_STAT_NODE", "IF_STAT_NODE", "MATCH_CLAUSE_STAT", "MATCH_STAT_NODE", "FOR_STAT_NODE",
-	"STRUCTURED_STATEMENT_NODE", "STATEMENT_NODE", "TYPE_NODE"
+	"STRUCTURED_STATEMENT_NODE", "STATEMENT_NODE", "TYPE_NODE", "POINTER_FREE_NODE"
 };
 
 CodeGenerator *createCodeGenerator(Vector *sourceFiles) {
@@ -194,12 +194,30 @@ void emitFunctionDecl(CodeGenerator *self, FunctionDecl *decl) {
 	}
 	emitParameters(self, decl->signature->parameters);
 	emitCode(self, ") {" CC_NEWLINE);
-	// TODO: block
+	emitBlock(self, decl->body);
 	emitCode(self, "}" CC_NEWLINE);
 }
 
 void emitVariableDecl(CodeGenerator *self, VariableDecl *decl) {
-
+	if (!decl->mutable) {
+		emitCode(self, "const ");
+	}
+	emitType(self, decl->type);
+	if (decl->assigned) {
+		emitCode(self, " %s = ", decl->name);
+		if (decl->pointer) {
+			emitCode(self, "malloc(sizeof(*%s));" CC_NEWLINE, decl->name);
+			emitCode(self, "*%s = ", decl->name);
+			emitExpression(self, decl->expr);
+		}
+		else {
+			emitExpression(self, decl->expr);
+		}
+		emitCode(self, ";" CC_NEWLINE);
+	}
+	else {
+		emitCode(self, " %s;" CC_NEWLINE, decl->name);
+	}
 }
 
 void emitWhileForLoop(CodeGenerator *self, ForStat *stmt) {
@@ -207,7 +225,20 @@ void emitWhileForLoop(CodeGenerator *self, ForStat *stmt) {
 }
 
 void emitBlock(CodeGenerator *self, Block *block) {
-
+	for (int i = 0; i < block->stmtList->stmts->size; i++) {
+		Statement *stmt = getVectorItem(block->stmtList->stmts, i);
+		switch (stmt->type) {
+			case UNSTRUCTURED_STATEMENT_NODE: 
+				emitUnstructuredStat(self, stmt->unstructured);
+				break;
+			case STRUCTURED_STATEMENT_NODE: 
+				emitStructuredStat(self, stmt->structured);
+				break;
+			default:
+				printf("unknown node type %s\n", NODE_NAME[stmt->type]);
+				break;
+		}
+	}
 }
 
 void emitInfiniteForLoop(CodeGenerator *self, ForStat *stmt) {
@@ -239,6 +270,9 @@ void emitDeclaration(CodeGenerator *self, Declaration *decl) {
 void emitUnstructuredStat(CodeGenerator *self, UnstructuredStatement *stmt) {
 	switch (stmt->type) {
 		case DECLARATION_NODE: emitDeclaration(self, stmt->decl); break;
+		case POINTER_FREE_NODE: 
+			emitCode(self, "free(%s);" CC_NEWLINE, stmt->pointerFree->name);
+			break;
 	}
 }
 
