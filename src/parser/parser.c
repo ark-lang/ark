@@ -632,8 +632,9 @@ VariableDecl *parseVariableDecl(Parser *parser) {
 				// this is so we can short hand ^int x = 5; to int *x = malloc...; *x = 5;
 				// TODO: check if we're assigning a literal, so we don't shorthand it
 				pointer = type->type == TYPE_LIT_NODE && type->typeLit->type == POINTER_TYPE_NODE;
-				pushPointer(parser, var_name);
-
+				if(pointer) {
+				    pushPointer(parser, var_name);
+				}
 				rhand = parseExpression(parser);
 			}
 			if (checkTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
@@ -690,6 +691,7 @@ int getTokenPrecedence(Parser *parser) {
 	}
 
 	int tokenPrecedence = prec->prec;
+	printf("\n\n\n\n%d\n", tokenPrecedence);
 	if (tokenPrecedence <= 0) {
 		return -1;
 	}
@@ -803,7 +805,7 @@ Expression *parseBinaryOperator(Parser *parser, int precedence, Expression *lhan
 		char *binaryOp = consumeToken(parser)->content;
 
 		Expression *rhand = parsePrimaryExpression(parser);
-		if (rhand) return false;
+		if (!rhand) return false;
 
 		int nextPrec = getTokenPrecedence(parser);
 		if (tokenPrecedence < nextPrec) {
