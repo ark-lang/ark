@@ -1,5 +1,5 @@
 fn main(): int {
-	int y = 23 + 5;	
+	int y = -23 + 5;	
 	int x = y - y + 5;
 	str z = "test";
 	char c = 'a';
