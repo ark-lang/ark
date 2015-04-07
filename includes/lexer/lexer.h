@@ -1,5 +1,5 @@
-#ifndef LEXER_H
-#define LEXER_H
+#ifndef __LEXER_H
+#define __LEXER_H
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -307,4 +307,4 @@ static inline bool isEndOfLine(char ch) {
 	return ch == '\n'; 
 }
 
-#endif // LEXER_H
+#endif // __LEXER_H

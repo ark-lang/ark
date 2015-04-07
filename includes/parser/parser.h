@@ -1,5 +1,5 @@
-#ifndef parser_H
-#define parser_H
+#ifndef __PARSER_H
+#define __PARSER_H
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -281,4 +281,4 @@ bool isValidBinaryOp(char *val);
  */
 void parseTokenStream(Parser *parser);
 
-#endif // parser_H
+#endif // __PARSER_H
