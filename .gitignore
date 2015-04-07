@@ -17,9 +17,10 @@
 *.la
 *.lo
 
-# generated code stuff
+# Alloy specific things
 _gen_*.c
 _gen_*.h
+main			# default build name
 
 # Shared Objects
 *.dll
