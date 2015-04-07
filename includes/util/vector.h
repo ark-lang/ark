@@ -1,5 +1,5 @@
-#ifndef vector_H
-#define vector_H
+#ifndef __VECTOR_H
+#define __VECTOR_H
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -57,4 +57,4 @@ VectorItem getVectorItem(Vector *vec, int index);
  */
 void destroyVector(Vector *vec);
 
-#endif // vector_H
+#endif // __VECTOR_H
