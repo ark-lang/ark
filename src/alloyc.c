@@ -14,6 +14,7 @@ void help() {
 	printf("  -v\t\t\tVerbose compilation\n");
 	printf("  -d\t\t\tLogs extra debug information\n");
 	printf("  -o <file>\t\tPlace the output into <file>\n");
+	printf("  -c <file>\t\tWill keep the output C code\n");
 	printf("\n");
 }
 

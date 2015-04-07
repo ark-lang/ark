@@ -16,6 +16,6 @@ all: ${SOURCES}
 	$(CC) $(CFLAGS) $(INCLUDES) ${SOURCES} -o bin/alloyc
 
 clean:
-	@rm *.o
-
-.PHONY: clean
+	@rm *.o	
+	@rm bin/
+	@rm _gen_* 		# remove any output code if it's there
