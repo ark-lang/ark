@@ -825,19 +825,19 @@ Expression *parseBinaryOperator(Parser *parser, int precedence, Expression *lhan
 }
 
 Expression *parsePrimaryExpression(Parser *parser) {
-	Literal *lit = parseLiteral(parser);
-	if (lit) {
-		Expression *expr = createExpression();
-		expr->lit = lit;
-		expr->exprType = LITERAL_NODE;
-		return expr;
-	}
-
 	Type *type = parseType(parser);
 	if (type) {
 		Expression *expr = createExpression();
 		expr->type = type;
 		expr->exprType = TYPE_NODE;
+		return expr;
+	}
+
+	Literal *lit = parseLiteral(parser);
+	if (lit) {
+		Expression *expr = createExpression();
+		expr->lit = lit;
+		expr->exprType = LITERAL_NODE;
 		return expr;
 	}
 
