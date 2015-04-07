@@ -686,7 +686,7 @@ int getTokenPrecedence(Parser *parser) {
 
 	Precedence *prec = NULL;
 	if (hashmap_get(parser->binopPrecedence, tok->content, (void**) &prec) == MAP_MISSING) {
-		errorMessage("Precedence doesnt exist for %s\n", tok->content);
+		verboseModeMessage("Precedence doesnt exist for %s\n", tok->content);
 		return -1;
 	}
 
@@ -795,6 +795,7 @@ UnaryExpr *parseUnaryExpr(Parser *parser) {
 Expression *parseBinaryOperator(Parser *parser, int precedence, Expression *lhand) {
 	for (;;) {
 		int tokenPrecedence = getTokenPrecedence(parser);
+		printf("%d < %d\n", tokenPrecedence, precedence);
 		if (tokenPrecedence < precedence) return lhand;
 
 		Token *tok = peekAtTokenStream(parser, 0);
