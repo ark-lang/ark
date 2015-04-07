@@ -611,14 +611,28 @@ VariableDecl *parseVariableDecl(Parser *parser) {
 		if (checkTokenType(parser, IDENTIFIER, 0)) {
 			char *var_name = consumeToken(parser)->content;
 			Expression *rhand = NULL;
+			bool pointer = false;
+			bool assigned = false;
+
 			if (checkTokenTypeAndContent(parser, OPERATOR, "=", 0)) {
 				consumeToken(parser);
+				assigned = true;
+
+				// check if it's a pointer, and it's being assigned to a value
+				// this is so we can short hand ^int x = 5; to int *x = malloc...; *x = 5;
+				// TODO: check if we're assigning a literal, so we don't shorthand it
+				pointer = type->type == TYPE_LIT_NODE && type->typeLit->type == POINTER_TYPE_NODE;
+
 				rhand = parseExpression(parser);
 			}
 			if (checkTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
 				consumeToken(parser);
 			}
-			return createVariableDecl(type, var_name, mutable, rhand);
+
+			VariableDecl *decl = createVariableDecl(type, var_name, mutable, rhand);
+			decl->pointer = pointer;
+			decl->assigned = assigned;
+			return decl;
 		}
 	}
 

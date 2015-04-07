@@ -25,7 +25,7 @@
 
 #define COMPACT_CODE_GEN false
 
-#if COMPACT_CODE_GEN == true
+#if COMPACT_CODE_GEN == false
 	#define CC_NEWLINE "\n"
 #else
 	#define CC_NEWLINE " "
@@ -70,6 +70,13 @@ void emitFieldList(CodeGenerator *self, FieldDeclList *list);
 void emitStructDecl(CodeGenerator *self, StructDecl *decl);
 
 void emitFunctionDecl(CodeGenerator *self, FunctionDecl *decl);
+
+void emitWhileForLoop(CodeGenerator *self, ForStat *stmt);
+
+void emitBlock(CodeGenerator *self, Block *block);
+
+void emitInfiniteForLoop(CodeGenerator *self, ForStat *stmt);
+void emitForStat(CodeGenerator *self, ForStat *stmt);
 
 void emitVariableDecl(CodeGenerator *self, VariableDecl *decl);
 
