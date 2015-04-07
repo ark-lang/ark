@@ -275,12 +275,6 @@ FunctionSignature *parseFunctionSignature(Parser *parser) {
 						// else no type specified
 					}
 					else if (checkTokenTypeAndContent(parser, SEPARATOR, "{", 0)) {
-						bool mutable = false;
-						if (checkTokenTypeAndContent(parser, IDENTIFIER, MUT_KEYWORD, 0)) {
-							consumeToken(parser);
-							mutable = true;
-						}
-
 						// just assume it's void.
 						Type *type = createType();
 						type->typeName = createTypeName(VOID_KEYWORD);
