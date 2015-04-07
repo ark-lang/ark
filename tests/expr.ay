@@ -1,5 +1,6 @@
 fn main(): int {
-   int x = 5 + 5 + 5;
-   str y = "test";
-   char x = 'a';
+	int y = 23 + 5;	
+	int x = y - y + 5;
+	str z = "test";
+	char x = 'a';
 }
