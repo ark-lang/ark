@@ -189,6 +189,12 @@ UnstructuredStatement *createUnstructuredStatement() {
 	return safeMalloc(sizeof(UnstructuredStatement));
 }
 
+PointerFree *createPointerFree(char *name) {
+	PointerFree *pntr = safeMalloc(sizeof(*pntr));
+	pntr->name = name;
+	return pntr;
+}
+
 ElseStat *createElseStat() {
 	return safeMalloc(sizeof(ElseStat));
 }
@@ -483,6 +489,10 @@ void destroyUnstructuredStatement(UnstructuredStatement *stmt) {
 		case FUNCTION_CALL_NODE: destroyCall(stmt->call); break;
 	}
 	free(stmt);
+}
+
+void destroyPointerFree(PointerFree *pntr) {
+	free(pntr);
 }
 
 void destroyElseStat(ElseStat *stmt) {

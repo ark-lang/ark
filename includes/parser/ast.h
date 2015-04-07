@@ -22,7 +22,7 @@ typedef enum {
 	DECLARATION_NODE, INC_DEC_STAT_NODE, RETURN_STAT_NODE, BREAK_STAT_NODE,
 	CONTINUE_STAT_NODE, LEAVE_STAT_NODE, ASSIGNMENT_NODE, UNSTRUCTURED_STATEMENT_NODE,
 	ELSE_STAT_NODE, IF_STAT_NODE, MATCH_CLAUSE_STAT, MATCH_STAT_NODE, FOR_STAT_NODE,
-	STRUCTURED_STATEMENT_NODE, STATEMENT_NODE, TYPE_NODE
+	STRUCTURED_STATEMENT_NODE, STATEMENT_NODE, TYPE_NODE, POINTER_FREE_NODE
 } NodeType;
 
 typedef enum {
@@ -248,6 +248,8 @@ typedef struct {
  */
 typedef struct {
 	bool mutable;
+	bool pointer;
+	bool assigned;
 	Type *type;
 	char *name;
 	Expression *expr;
@@ -299,6 +301,10 @@ typedef struct {
 	int type;
 } LeaveStat;
 
+typedef struct {
+	char *name;
+} PointerFree;
+
 /**
  * Unstructured statements, i.e things that don't have
  * a body, i.e declaration, assignment...
@@ -309,6 +315,7 @@ typedef struct {
 	IncDecStat *incDec;
 	Assignment *assignment;
 	Call *call;
+	PointerFree *pointerFree;
 	int type;
 } UnstructuredStatement;
 
@@ -442,6 +449,8 @@ Assignment *createAssignment(Expression *lhand, Expression *rhand);
 
 UnstructuredStatement *createUnstructuredStatement();
 
+PointerFree *createPointerFree(char *name);
+
 ElseStat *createElseStat();
 
 IfStat *createIfStat();
@@ -523,6 +532,8 @@ void destroyLeaveStat(LeaveStat *stmt);
 void destroyAssignment(Assignment *assign);
 
 void destroyUnstructuredStatement(UnstructuredStatement *stmt);
+
+void destroyPointerFree(PointerFree *pntr);
 
 void destroyElseStat(ElseStat *stmt);
 
