@@ -77,7 +77,7 @@ void emitBinaryExpr(CodeGenerator *self, BinaryExpr *expr) {
 }
 
 void emitUnaryExpr(CodeGenerator *self, UnaryExpr *expr) {
-	emitCode(self, "%c", expr->unaryOp);
+	emitCode(self, "%s", expr->unaryOp);
 	emitExpression(self, expr->lhand);
 }
 
