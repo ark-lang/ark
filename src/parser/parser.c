@@ -794,7 +794,6 @@ UnaryExpr *parseUnaryExpr(Parser *parser) {
 Expression *parseBinaryOperator(Parser *parser, int precedence, Expression *lhand) {
 	for (;;) {
 		int tokenPrecedence = getTokenPrecedence(parser);
-		printf("%d < %d\n", tokenPrecedence, precedence);
 		if (tokenPrecedence < precedence) return lhand;
 
 		Token *tok = peekAtTokenStream(parser, 0);
