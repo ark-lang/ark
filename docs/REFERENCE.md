@@ -279,7 +279,12 @@ For instance, given a Point, namely `p`, one may do the following:
 	int x = ^y;
 	
 ## Memory Model
-// todo
+Alloy adopts a similar memory model to Swift/Objective-C's Automatic Reference Counting (ARC). This means that you don't have to worry
+about freeing your memory after allocation. Memory that is allocated is automatically freed by the compiler, when a pointer to some
+memory goes out of scope the compiler will insert the cleanup functions just before it goes out of scope in its block. 
+
+The memory model is a lot more efficient and cleaner than garbage collection. This is mostly due to it being a compile-time operation,
+instead of during execution, therefore there is no overhead in your programs.
 
 ## Enumeration
 
