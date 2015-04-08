@@ -42,7 +42,7 @@ void startLexingFiles(Lexer *lexer, Vector *sourceFiles) {
 }
 
 void consumeCharacter(Lexer *lexer) {
-	if (lexer->pos > lexer->inputLength) {
+	if (lexer->pos > (int) lexer->inputLength) {
 		errorMessage("reached end of input, pos(%d) ... len(%d)", lexer->pos, lexer->inputLength);
 		return;
 	}
