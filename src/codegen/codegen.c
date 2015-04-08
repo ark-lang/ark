@@ -221,7 +221,8 @@ void emitVariableDecl(CodeGenerator *self, VariableDecl *decl) {
 }
 
 void emitWhileForLoop(CodeGenerator *self, ForStat *stmt) {
-
+	ALLOY_UNUSED_OBJ(self);
+	ALLOY_UNUSED_OBJ(stmt);
 }
 
 void emitBlock(CodeGenerator *self, Block *block) {
