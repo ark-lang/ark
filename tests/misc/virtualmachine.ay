@@ -17,7 +17,7 @@ struct VirtualMachine {
     int imm_value;
     bool running;
     int pc;
-    int registers[4];
+    int [4]registers;
 }
 
 enum _ {
@@ -27,16 +27,16 @@ enum _ {
     DIV,
 }
 
-fn (VirtualMachine ^vm) fetch(int prog[]): int {
+fn (^VirtualMachine vm) fetch(int []prog): int {
     vm.pc = vm.pc + 1;
     return prog[vm.pc];
 }
 
-fn (VirtualMachine ^vm) goto(): void {
+fn (^VirtualMachine vm) goto(): void {
     vm.pc = vm.imm_value;
 }
 
-fn (VirtualMachine ^vm) eval(): void {
+fn (^VirtualMachine vm) eval(): void {
     match vm.instruction_num {
         0 -> vm.stop();
         1 -> vm.set();
@@ -51,7 +51,7 @@ fn (VirtualMachine ^vm) eval(): void {
     }
 }
 
-fn (VirtualMachine ^vm) decode(int instruction): void {
+fn (^VirtualMachine vm) decode(int instruction): void {
     vm.instruction_num = (instruction & 0xF000) >> 12;
     vm.first_register = (instruction & 0xF00) >> 8;
     vm.second_register = (instruction & 0xF0) >> 4;
@@ -59,16 +59,16 @@ fn (VirtualMachine ^vm) decode(int instruction): void {
     vm.imm_value = instruction & 0xFF;
 }
 
-fn (VirtualMachine ^vm) set(): void {
+fn (^VirtualMachine vm) set(): void {
     int temp = vm.registers[vm.first_register];
     vm.registers[vm.first_register] = vm.imm_value;
 }
 
-fn (VirtualMachine ^vm) stop(): void {
+fn (^VirtualMachine vm) stop(): void {
     vm.running = false;
 }
 
-fn (VirtualMachine ^vm) arithmetic(int type): void {
+fn (^VirtualMachine vm) arithmetic(int type): void {
     match type {
         ADD {
             vm.registers[vm.first_register] = vm.registers[vm.second_register] + vm.registers[vm.third_register];
@@ -85,8 +85,8 @@ fn (VirtualMachine ^vm) arithmetic(int type): void {
     }
 }
 
-fn (VirtualMachine ^vm) start(int prog[]): void {
-    while vm.running {
+fn (^VirtualMachine vm) start(int prog[]): void {
+    for vm.running {
         int instr = vm.fetch(prog);
         vm.decode(instr);
         vm.eval();
@@ -94,7 +94,7 @@ fn (VirtualMachine ^vm) start(int prog[]): void {
 }
 
 fn main(): int {
-    VirtualMachine ^vm = {
+    ^VirtualMachine vm = {
         instruction_num = 0,
         first_register = 0,
         second_register = 0,
@@ -104,7 +104,7 @@ fn main(): int {
         registers = [ 0, 0, 0, 0 ],
     };
 
-    int prog = [
+    int []prog = [
         0x10C8,
         0x7000,
         0x11f4,
