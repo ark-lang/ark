@@ -15,6 +15,7 @@
 
 /** the current version of alloy */
 #define ALLOYC_VERSION "0.0.6"
+#define ALLOY_UNUSED_OBJ(x) (void)(x)
 
 /** windows doesn't like coloured text */
 #ifdef _WIN32
@@ -26,7 +27,7 @@
 #endif
 
 /** macro for array length */
-#define ARR_LEN(x)  (sizeof(x) / sizeof(x[0]))
+#define ARR_LEN(x) (int) (sizeof(x) / sizeof(x[0]))
 
 /** flags */
 extern bool DEBUG_MODE;
@@ -35,6 +36,13 @@ extern char* OUTPUT_EXECUTABLE_NAME;
 extern bool OUTPUT_C;
 extern char* ADDITIONAL_COMPILER_ARGS;
 extern char* COMPILER;
+
+/**
+ * Returns if the char is ASCII
+ * @param  c the char to check
+ * @return   true if the char is ascii
+ */
+bool isASCII(char c);
 
 /**
  * Strdup so we can keep everything C11 compliant
