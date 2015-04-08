@@ -863,47 +863,35 @@ Expression *parsePrimaryExpression(Parser *parser) {
 }
 
 Call *parseCall(Parser *parser) {
-
-	Vector *idens = NULL;
-	errorMessage("%s tok", peekAtTokenStream(parser, 0)->content);
-	if (checkTokenType(parser, IDENTIFIER, 0)) {
-		idens = createVector(VECTOR_LINEAR);
-		while(true) {
-			if (checkTokenType(parser, IDENTIFIER, 0)) {
-				pushBackItem(idens, consumeToken(parser)->content);
-			}
-			if (checkTokenTypeAndContent(parser, SEPARATOR, ".", 0)) {
-				consumeToken(parser);
-			}
-			if (!checkTokenType(parser, IDENTIFIER, 0)) {
-				break;
-			}
-		}
+	if (!checkTokenType(parser, IDENTIFIER, 0) &&
+		(!checkTokenTypeAndContent(parser, SEPARATOR, "(", 1) || !checkTokenTypeAndContent(parser, SEPARATOR, "(", 1))) {
+		return false;
 	}
-	for(int i = 0; i < idens->size; i++) {
-		verboseModeMessage(getVectorItem(idens, i));
-	}
-	if (checkTokenTypeAndContent(parser, SEPARATOR, "(", 0)) {
-		consumeToken(parser);
-		Call *call = createCall(idens);
-		while (true) {
-			if (checkTokenTypeAndContent(parser, SEPARATOR, ")", 0)) {
-				consumeToken(parser);
-				break;
-			}
 
-			Expression *expr = parseExpression(parser);
-			if (expr) {
-				pushBackItem(call->arguments, expr);
-				if (checkTokenTypeAndContent(parser, SEPARATOR, ",", 0)) {
-					if (checkTokenTypeAndContent(parser, SEPARATOR, ")", 1)) {
-						errorMessage(
-								"Warning, trailing comma in function call for %s. Skipping.\n",
-								idens);
-					}
+	Expression *callee = parseExpression(parser);
+	if (callee) {
+		if (checkTokenTypeAndContent(parser, SEPARATOR, "(", 0)) {
+			consumeToken(parser);
+			Call *call = createCall(callee);
+			while (true) {
+				if (checkTokenTypeAndContent(parser, SEPARATOR, ")", 0)) {
 					consumeToken(parser);
+					break;
+				}
+
+				Expression *expr = parseExpression(parser);
+				if (expr) {
+					pushBackItem(call->arguments, expr);
+					if (checkTokenTypeAndContent(parser, SEPARATOR, ",", 0)) {
+						if (checkTokenTypeAndContent(parser, SEPARATOR, ")", 1)) {
+							errorMessage("Warning, trailing comma in function call. Skipping.\n");
+						}
+						consumeToken(parser);
+					}
 				}
 			}
+
+			return call;
 		}
 	}
 
