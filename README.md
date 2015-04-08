@@ -4,70 +4,26 @@ Alloy is a work in progress programming language, read the [reference](docs/REFE
 ## Disclaimer?
 Alloy is a somewhat experimental language, this means it can and probably will change at any point, be it a small change, or a complete re-write. This means we cannot promise any backwards compatibility. 
 
-## Building
-Alloy is a work in progress, if you would like to contribute to the creation of the language, or just give it a go, you will
-need a few things:
+## I am interested in programming with Alloy
+Alloy isn't quite ready yet! We're still patching up bugs, implementing features, and writing documentation. You can still clone the repository, build it, and hope that it works. Although, it is still under development, which means that it can break at any point. In the mean time, you can help us with Alloy, or check out the various documentation in the [docs folder](/docs).
 
-* GCC/Clang, other compilers may work
-* Make
+## I am looking to contribute to Alloy
+If you're interested in helping us improve Alloy, that's great! You can either skip straight on to the [CONTRIBUTING.md](CONTRIBUTING.md) file, or you can see what category you fall under. Even if you know what you're doing, we recommend you read the below, just so you are aware of other ways that you can help contribute to Alloy.
 
-```bash
-$ git clone http://www.github.com/alloy-lang/alloy
-$ cd alloy
-$ make
-```
+### I have little experience in programming
+Since the compiler is in it's *very* early stages, there is bound to be a lot of bugs and errors littered around, you can either try and patch these up, or report them to the [issue handler](https://github.com/alloy-lang/alloy/issues).
 
-After you make the project, the alloyc executable will be located in `bin/alloyc`. For a list of commands,
-run the `-h` flag. There are test files under the `tests/` directory, however the one in the example may not exist
-if you are reading this in the future! We also can't guarantee that it will still work either!
+### I'm new to programming compilers
+That's not a problem. In the [issue handler](https://github.com/alloy-lang/alloy/issues). there are issues marked with their "grading" on how difficult they are. If you're just starting out, try the `easy` issues, if you're feeling more confident, then you can give the `intermediate` issues a try. If you're feeling really confident, you can try the `hard` issues. We also suggest that you read the [CONTRIBUTING.md](CONTRIBUTING.md) file.
 
-```bash
-bin/alloyc tests/factorial.ay
-./main
-```
+### I'm an expert in programming compilers
+Brilliant, you can either try and close issues, implement features, fix bugs, or submit proposals for the language. If we notice that you're a fairly regular contributor, we will consider adding you to the contributors team so you have write access to the repositories.
 
-## Community
-If you are looking for some help, want to ask a question, or just want to talk to us for whatever reason, we have a few
-places where you can find us.
+### I'm an expert in the design of compilers
+Great, we could use your voice in the issues. Give us your opinion on proposals, and other issues posted.
 
-### Subreddit
-We have a subreddit, this is mostly to get it before someone else does, but a lot of the developers are active Redditors. So feel
-free to ask questions on there, etc.
-[Link to the subreddit](http://www.reddit.com/r/alloy_lang)
-
-### Mailing List
-We have no idea how this works, but apparently we should have one. You can find it here:
-[Mailing List](https://groups.google.com/forum/#!forum/alloy-lang)
-
-### IRC
-We have an IRC where we discuss Alloy features, problems, and other stuff too. Come join! If you want to help contribute,
-we highly suggest you join the IRC, the majority of the core developers will be active here, although we might not always be available due to time zone differences.
-
-* server: irc.freenode.net
-* channel: #alloy-lang
-
-## Contributing
-If you want to contribute, check out the [CONTRIBUTING](CONTRIBUTING.md) file.
-
-## Contributor List
-Here are the people who are working, or have worked on Alloy. Feel free to add yourself
-to this list when you commit! :)
-
-* [felixangell](https://github.com/felixangell)
-* [vnev](https://github.com/vnev)
-* [haneefmubarak](https://github.com/haneefmubarak)
-* [xhjo](https://github.com/xhjo)
-* [IanMurray](https://github.com/IanMurray)
-* [requimrar](https://github.com/requimrar)
-* [ianhedoesit](https://github.com/ianhedoesit)
-* [FelixWittmann](https://github.com/FelixWittmann)
-* [paraxor](https://github.com/paraxor)
-* [andars](https://github.com/andars)
-* [theunamedguy](https://github.com/theunamedguy)
-
-## Additional Credits/Libraries
-
-* SDS
+### I am a hobbyist/professional web developer
+Awesome, we have the source code for the [website](http://www.alloy-lang.org) published under our organization [here](https://github.com/alloy-lang/alloy-lang.org). Feel free to contribute, fix grammatical errors, styles, etc. and send us a pull request!
 
 ## License
 Alloy is licensed under the [MIT License](/LICENSE.md).
