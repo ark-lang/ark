@@ -297,10 +297,12 @@ FunctionSignature *parseFunctionSignature(Parser *parser) {
 }
 
 ElseStat *parseElseStat(Parser *parser) {
+	ALLOY_UNUSED_OBJ(parser);
 	return false;
 }
 
 IfStat *parseIfStat(Parser *parser) {
+	ALLOY_UNUSED_OBJ(parser);
 	return false;
 }
 
@@ -362,10 +364,12 @@ ForStat *parseForStat(Parser *parser) {
 }
 
 MatchClause *parseMatchClause(Parser *parser) {
+	ALLOY_UNUSED_OBJ(parser);
 	return false;
 }
 
 MatchStat *parseMatchStat(Parser *parser) {
+	ALLOY_UNUSED_OBJ(parser);
 	return false;
 }
 
@@ -674,7 +678,7 @@ Declaration *parseDeclaration(Parser *parser) {
 int getTokenPrecedence(Parser *parser) {
 	Token *tok = peekAtTokenStream(parser, 0);
 
-	if (!isascii(tok->content[0]))
+	if (!isASCII(tok->content[0]))
 		return -1;
 
 	Precedence *prec = NULL;
