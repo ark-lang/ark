@@ -4,6 +4,13 @@ Alloy is a work in progress programming language, read the [reference](docs/REFE
 ## Disclaimer?
 Alloy is a somewhat experimental language, this means it can and probably will change at any point, be it a small change, or a complete re-write. This means we cannot promise any backwards compatibility. 
 
+## Just show me what it looks like already
+Sure, you can either see a small virtual machine implemented in Alloy [here](tests/misc/virtualmachine.ay). Or you can just see a small snippet below:
+
+    fn main(): int {
+        println("Hello, World");
+    }
+
 ## I am interested in programming with Alloy
 Alloy isn't quite ready yet! We're still patching up bugs, implementing features, and writing documentation. You can still clone the repository, build it, and hope that it works. Although, it is still under development, which means that it can break at any point. In the mean time, you can help us with Alloy, or check out the various documentation in the [docs folder](/docs).
 
