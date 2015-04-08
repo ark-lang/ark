@@ -7,6 +7,11 @@ char* alloyStrdup(const char* s) {
 	return data;
 }
 
+bool isASCII(char c) {
+	// wot
+	return ((c & (~0x7f)) == 0);
+}
+
 sds randString(size_t length) {
 
     static char charset[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_";
@@ -16,9 +21,8 @@ sds randString(size_t length) {
     	randomString = sdscat(randomString, "__");
 
         if (randomString) {
-            int n;
-            for (n = 2; n < length;n++) {
-                int key = rand() % (int)(sizeof(charset)-1);
+            for (size_t n = 2; n < length; n++) {
+                int key = rand() % (int) (sizeof(charset) - 1);
                 randomString = sdscatlen(randomString, &charset[key], 1);
             }
         }
@@ -34,8 +38,7 @@ sds toUppercase(sds str) {
 
 	sds result = sdsnewlen("", len);
 
-	int i;
-	for (i = 0; i < len; i++) {
+	for (size_t i = 0; i < len; i++) {
 		result[i] = toupper(str[i]);
 	}
 
