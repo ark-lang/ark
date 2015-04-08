@@ -1,14 +1,17 @@
 # Polymorphism
+TODO, some kind of generics would be nice.
 
 # Macro System
+TODO
 
 # Data Types
 
-	int -> 32 bit 
-	float -> 32 bit
+	int -> 32/64 bit (architechture dependant)
+	float -> 32/64 bit (architechture dependant)
 
-	u8, u16, u32, u64
-	i8, i16, i32, i64
+	u8, u16, u32, u64 -> unsigned, X bits, not guaranteed
+
+	i8, i16, i32, i64 -> signed, X bits, not guaranteed
 
 	byte -> u8
 	bool -> i8
@@ -166,6 +169,7 @@ In alloy, we enforce braces:
 	}
 
 	// traditional loop
+	// inferred type?
 	for i = 0; i < 10; i++ {
 		...
 	}
