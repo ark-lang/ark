@@ -4,9 +4,9 @@
 
 * [x] Functions
 * [x] Methods
-* [ ] Variable Declaration
-* [ ] Variable Definition
-* [ ] Variable Re-assignment
+* [x] Variable Declaration
+* [x] Variable Definition
+* [x] Variable Re-assignment
 * [ ] While Loops
 * [ ] For Loops
 * [ ] Infinite Loops
@@ -16,5 +16,5 @@
 * [x] Expressions
 * [ ] Enumeration
 * [ ] Match
-
-
+* [x] Pointers
+* [x] Memory Model
