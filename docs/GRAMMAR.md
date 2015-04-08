@@ -17,7 +17,7 @@ The grammar pretty much maps straight onto the parsers source.
 	mulOp = "*" | "/" | "%" | "<<" | ">>" | "&";
 	unaryOp = "+" | "-" | "!" | "^" | "<" | ">" | "*" | "&";
 	hex_literal = "0" ( "x" | "X" ) hex_digit { hex_digit };
-
+	
 	Literal = NumberLiteral | StringLiteral | CharacterLiteral;
 	NumberLiteral = [sign] digit [ "." { digit } ]	
 	StringLiteral = """ { letter } """; 

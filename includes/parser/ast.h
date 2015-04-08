@@ -121,7 +121,7 @@ typedef struct {
  * A node representing a function call
  */
 typedef struct {
-	Vector *member;
+	Expression *callee;
 	Vector *arguments;
 } Call;
 
@@ -399,7 +399,7 @@ ArraySubExpr *createArraySubExpr(Expression *lhand);
 
 MemberAccessExpr *createMemberAccessExpr(Expression *rhand, char *value);
 
-Call *createCall(Vector *rhand);
+Call *createCall(Expression *callee);
 
 Expression *createExpression();
 
