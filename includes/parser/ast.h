@@ -216,6 +216,7 @@ typedef struct {
  */
 typedef struct {
 	Vector *paramList;
+	bool variadic;
 } Parameters;
 
 /**
