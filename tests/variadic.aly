@@ -1,0 +1,11 @@
+///
+/// This is just for 
+/// compatibility with C
+///
+
+fn printf(str fmt, _): int;
+
+fn main(): int {
+	printf("this is a test\n");
+	return 0;
+}

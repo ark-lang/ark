@@ -2,7 +2,6 @@
 
 char *BOILERPLATE =
 "#include <stdlib.h>\n"
-"#include <stdio.h>\n"
 "#include <stdbool.h>\n"
 "\n"
 "typedef char *str;" CC_NEWLINE
@@ -195,26 +194,31 @@ void emitFunctionDecl(CodeGenerator *self, FunctionDecl *decl) {
 		}
 	}
 	emitParameters(self, decl->signature->parameters);
+	if (decl->signature->parameters->variadic) {
+		emitCode(self, ", ...");
+	}
 	emitCode(self, ");" CC_NEWLINE);
 
-	// definition
 	self->writeState = WRITE_SOURCE_STATE;
-	emitType(self, decl->signature->type);
-	emitCode(self, " %s(", decl->signature->name);
-	if (decl->signature->receiver) {
-		if (!decl->signature->receiver->mutable) {
-			emitCode(self, "const ");
+	if (decl->body) {
+		// definition
+		emitType(self, decl->signature->type);
+		emitCode(self, " %s(", decl->signature->name);
+		if (decl->signature->receiver) {
+			if (!decl->signature->receiver->mutable) {
+				emitCode(self, "const ");
+			}
+			emitType(self, decl->signature->receiver->type);
+			emitCode(self, " %s", decl->signature->receiver->name);
+			if (decl->signature->parameters->paramList->size > 1) {
+				emitCode(self, ", ");
+			}
 		}
-		emitType(self, decl->signature->receiver->type);
-		emitCode(self, " %s", decl->signature->receiver->name);
-		if (decl->signature->parameters->paramList->size > 1) {
-			emitCode(self, ", ");
-		}
+		emitParameters(self, decl->signature->parameters);
+		emitCode(self, ") {" CC_NEWLINE);
+		emitBlock(self, decl->body);
+		emitCode(self, "}" CC_NEWLINE);
 	}
-	emitParameters(self, decl->signature->parameters);
-	emitCode(self, ") {" CC_NEWLINE);
-	emitBlock(self, decl->body);
-	emitCode(self, "}" CC_NEWLINE);
 }
 
 void emitVariableDecl(CodeGenerator *self, VariableDecl *decl) {
