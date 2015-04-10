@@ -184,19 +184,27 @@ StructDecl *parseStructDecl(Parser *parser) {
 }
 
 ParameterSection *parseParameterSection(Parser *parser) {
-	bool mutable = false;
-	if (checkTokenTypeAndContent(parser, IDENTIFIER, MUT_KEYWORD, 0)) {
+	if (checkTokenTypeAndContent(parser, IDENTIFIER, "_", 0)) {
 		consumeToken(parser);
-		mutable = true;
+		ParameterSection *param = createParameterSection(false, true);
+		param->name = "_";
+		return param;
 	}
+	else {
+		bool mutable = false;
+		if (checkTokenTypeAndContent(parser, IDENTIFIER, MUT_KEYWORD, 0)) {
+			consumeToken(parser);
+			mutable = true;
+		}
 
-	Type *type = parseType(parser);
-	if (type) {
-		if (checkTokenType(parser, IDENTIFIER, 0)) {
-			char *name = consumeToken(parser)->content;
-			ParameterSection *paramSec = createParameterSection(type, mutable);
-			paramSec->name = name;
-			return paramSec;
+		Type *type = parseType(parser);
+		if (type) {
+			if (checkTokenType(parser, IDENTIFIER, 0)) {
+				char *name = consumeToken(parser)->content;
+				ParameterSection *paramSec = createParameterSection(type, mutable);
+				paramSec->name = name;
+				return paramSec;
+			}
 		}
 	}
 	return false;
@@ -216,7 +224,16 @@ Parameters *parseParameters(Parser *parser) {
 
 			ParameterSection *paramSection = parseParameterSection(parser);
 			if (paramSection) {
-				pushBackItem(params->paramList, paramSection);
+				// its our variadic thing, dont push it back.
+				if (!strcmp(paramSection->name, "_")
+					&& paramSection->mutable
+					&& !paramSection->type) {
+					params->variadic = true;
+				}
+				else {
+					pushBackItem(params->paramList, paramSection);
+				}
+
 				if (checkTokenTypeAndContent(parser, SEPARATOR, ",", 0)) {
 					if (checkTokenTypeAndContent(parser, SEPARATOR, ")", 1)) {
 						errorMessage("trailing comma");
@@ -287,8 +304,9 @@ FunctionSignature *parseFunctionSignature(Parser *parser) {
 							return sign;
 						}
 						// else no type specified
-					} else if (checkTokenTypeAndContent(parser, SEPARATOR, "{",
-							0)) {
+					} 
+					else if (checkTokenTypeAndContent(parser, SEPARATOR, "{", 0)
+						|| checkTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
 						// just assume it's void.
 						Type *type = createType();
 						type->typeName = createTypeName(VOID_KEYWORD);
@@ -298,7 +316,8 @@ FunctionSignature *parseFunctionSignature(Parser *parser) {
 								functionName, params, false, type);
 						sign->receiver = receiver;
 						return sign;
-					} else {
+					} 
+					else {
 						// TODO: colon missing, or block opener missing?
 					}
 				}
