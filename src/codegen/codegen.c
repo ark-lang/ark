@@ -240,8 +240,12 @@ void emitVariableDecl(CodeGenerator *self, VariableDecl *decl) {
 }
 
 void emitWhileForLoop(CodeGenerator *self, ForStat *stmt) {
-	ALLOY_UNUSED_OBJ(self);
-	ALLOY_UNUSED_OBJ(stmt);
+	self->writeState = WRITE_SOURCE_STATE;
+	emitCode(self, "while (");
+	emitExpression(self, getVectorItem(stmt->expr, 0));
+	emitCode(self, ") {" CC_NEWLINE);
+	emitBlock(self, stmt->body);
+	emitCode(self, "}" CC_NEWLINE);
 }
 
 void emitBlock(CodeGenerator *self, Block *block) {

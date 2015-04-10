@@ -344,6 +344,8 @@ ForStat *parseForStat(Parser *parser) {
 				if (block) {
 					ForStat *stmt = createForStat();
 					stmt->forType = WHILE_FOR_LOOP;
+					stmt->expr = createVector(VECTOR_LINEAR);
+					pushBackItem(stmt->expr, index);
 					stmt->body = block;
 					return stmt;
 				} else {
@@ -355,16 +357,21 @@ ForStat *parseForStat(Parser *parser) {
 				ForStat *stmt = createForStat();
 				stmt->expr = createVector(VECTOR_LINEAR);
 				pushBackItem(stmt->expr, index);
-				for (int i = 0; i < 2; i++) {
-					Expression *expr = parseExpression(parser);
-					if (expr) {
-						pushBackItem(stmt->expr, expr);
-						if (checkTokenTypeAndContent(parser, SEPARATOR, ";",
-								0)) {
-							consumeToken(parser);
-						}
-					}
+				if (checkTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
+					consumeToken(parser);
 				}
+				else {
+					// FIXME expected scolon
+				}
+
+				Expression *step = parseExpression(parser);
+				if (step) {
+					pushBackItem(stmt->expr, step);
+				}
+				else {
+					// FIXME expected expr
+				}
+
 				Block *block = parseBlock(parser);
 				stmt->forType = INDEX_FOR_LOOP;
 				stmt->body = block;
