@@ -8,8 +8,11 @@ Alloy is a somewhat experimental language, this means it can and probably will c
 Sure, you can either see a small virtual machine implemented in Alloy [here](tests/misc/virtualmachine.ay). Or you can just see a small Hello World example below:
 
 ```rust
+use "stdio"
+
 fn main(): int {
     println("Hello, World");
+    return 0;
 }
 ```
 
