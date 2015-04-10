@@ -286,7 +286,7 @@ typedef struct {
  * Node for an assignment
  */
 typedef struct {
-	Expression *primary;
+	char *val;
 	Expression *expr;
 } Assignment;
 
@@ -445,7 +445,7 @@ ContinueStat *createContinueStat();
 
 LeaveStat *createLeaveStat();
 
-Assignment *createAssignment(Expression *lhand, Expression *rhand);
+Assignment *createAssignment(char *val, Expression *rhand);
 
 UnstructuredStatement *createUnstructuredStatement();
 

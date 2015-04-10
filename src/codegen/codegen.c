@@ -261,9 +261,29 @@ void emitBlock(CodeGenerator *self, Block *block) {
 	}
 }
 
+void emitAssignment(CodeGenerator *self, Assignment *assign) {
+	emitCode(self, "%s = ", assign->val);
+	emitExpression(self, assign->expr);
+	emitCode(self, ";" CC_NEWLINE);
+}
+
 void emitInfiniteForLoop(CodeGenerator *self, ForStat *stmt) {
 	self->writeState = WRITE_SOURCE_STATE;
 	emitCode(self, "while (true) {" CC_NEWLINE);
+	emitBlock(self, stmt->body);
+	emitCode(self, "}" CC_NEWLINE);
+}
+
+void emitIndexForLoop(CodeGenerator *self, ForStat *stmt) {
+	emitCode(self, "for (");
+	emitType(self, stmt->type);
+	for (int i = 0; i < stmt->expr->size; i++) {
+		emitExpression(self, getVectorItem(stmt->expr, i));
+		if (i != stmt->expr->size - 1) {
+			emitCode(self, "; ");
+		}
+	}
+	emitCode(self, ") {" CC_NEWLINE);
 	emitBlock(self, stmt->body);
 	emitCode(self, "}" CC_NEWLINE);
 }
@@ -272,7 +292,7 @@ void emitForStat(CodeGenerator *self, ForStat *stmt) {
 	switch (stmt->forType) {
 		case WHILE_FOR_LOOP: emitWhileForLoop(self, stmt); break;
 		case INFINITE_FOR_LOOP: emitInfiniteForLoop(self, stmt); break;
-		case INDEX_FOR_LOOP: break;
+		case INDEX_FOR_LOOP: emitIndexForLoop(self, stmt); break;
 	}
 }
 
@@ -308,15 +328,25 @@ void emitUnstructuredStat(CodeGenerator *self, UnstructuredStatement *stmt) {
 		case DECLARATION_NODE: emitDeclaration(self, stmt->decl); break;
 		case FUNCTION_CALL_NODE: emitFunctionCall(self, stmt->call); break;
 		case LEAVE_STAT_NODE: emitLeaveStat(self, stmt->leave); break;
+		case ASSIGNMENT_NODE: emitAssignment(self, stmt->assignment); break;
 		case POINTER_FREE_NODE: 
 			emitCode(self, "free(%s);" CC_NEWLINE, stmt->pointerFree->name);
 			break;
 	}
 }
 
+void emitIfStat(CodeGenerator *self, IfStat *ifs) {
+	emitCode(self, "if (");
+	emitExpression(self, ifs->expr);
+	emitCode(self, ") {" CC_NEWLINE);
+	emitBlock(self, ifs->body);
+	emitCode(self, "}" CC_NEWLINE);
+}
+
 void emitStructuredStat(CodeGenerator *self, StructuredStatement *stmt) {
 	switch (stmt->type) {
 		case FOR_STAT_NODE: emitForStat(self, stmt->forStmt); break;
+		case IF_STAT_NODE: emitIfStat(self, stmt->ifStmt); break;
 		default:
 			printf("unknown node type %s\n", NODE_NAME[stmt->type]);
 			break;
