@@ -1,7 +1,6 @@
 #include "codegen.h"
 
 char *BOILERPLATE =
-"#include <stdlib.h>\n"
 "#include <stdbool.h>\n"
 "\n"
 "typedef char *str;" CC_NEWLINE
@@ -37,7 +36,6 @@ CodeGenerator *createCodeGenerator(Vector *sourceFiles) {
 	self->abstractSyntaxTree = NULL;
 	self->currentNode = 0;
 	self->sourceFiles = sourceFiles;
-	self->symtable = hashmap_new();
 	return self;
 }
 
@@ -470,7 +468,6 @@ void destroyCodeGenerator(CodeGenerator *self) {
 		verboseModeMessage("Destroyed source files on %d iteration.", i);
 	}
 
-	hashmap_free(self->symtable);
 	free(self);
 	verboseModeMessage("Destroyed compiler");
 }
