@@ -10,8 +10,8 @@ int main(int argc, char** argv) {
 	AlloyCompiler *alloyc = createAlloyCompiler(argc, argv);
 	if (alloyc) {
 		startAlloyCompiler(alloyc);
+		destroyAlloyCompiler(alloyc);
 	}
-	destroyAlloyCompiler(alloyc);
 
 	// finished timer
 	timer = clock() - timer;	// calculate time taken
@@ -20,7 +20,7 @@ int main(int argc, char** argv) {
 	double secondsTaken = ((double) timer) / CLOCKS_PER_SEC;
 	double msTaken = secondsTaken * 1000;
 
-	if(alloyc->flag == 0) {
+	if (alloyc && alloyc->flag == 0) {
 		primaryMessage("Finished in %.6f/s (%.0f/ms)", secondsTaken, msTaken);
 	}
 	
