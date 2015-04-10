@@ -1,3 +1,6 @@
+echo "not working yet!"
+exit
+
 for T in `echo *.aly | sort` ;
 do
 	if [ -z "../bin/alloyc $T -o $T.o" ]; then

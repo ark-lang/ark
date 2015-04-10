@@ -22,7 +22,8 @@ typedef enum {
 	DECLARATION_NODE, INC_DEC_STAT_NODE, RETURN_STAT_NODE, BREAK_STAT_NODE,
 	CONTINUE_STAT_NODE, LEAVE_STAT_NODE, ASSIGNMENT_NODE, UNSTRUCTURED_STATEMENT_NODE,
 	ELSE_STAT_NODE, IF_STAT_NODE, MATCH_CLAUSE_STAT, MATCH_STAT_NODE, FOR_STAT_NODE,
-	STRUCTURED_STATEMENT_NODE, STATEMENT_NODE, TYPE_NODE, POINTER_FREE_NODE
+	STRUCTURED_STATEMENT_NODE, STATEMENT_NODE, TYPE_NODE, POINTER_FREE_NODE,
+	USE_STATEMENT_NODE
 } NodeType;
 
 typedef enum {
@@ -70,6 +71,10 @@ typedef struct {
 typedef struct {
 	BaseType *baseType;
 } PointerType;
+
+typedef struct {
+	char *file;
+} UseStatement;
 
 /**
  * An array type, which contains the length of the array
@@ -316,6 +321,7 @@ typedef struct {
 	Assignment *assignment;
 	Call *call;
 	PointerFree *pointerFree;
+	UseStatement *use;
 	int type;
 } UnstructuredStatement;
 
@@ -357,7 +363,8 @@ typedef struct {
  */
 typedef struct {
 	Type *type;
-	Vector *expr;
+	Expression *index;
+	Expression *step;
 	Block *body;
 	int forType;
 } ForStat;
@@ -384,6 +391,8 @@ typedef struct {
 } Statement;
 
 Node *createNode(void *data, NodeType type);
+
+UseStatement *createUseStatement(char *file);
 
 IdentifierList *createIdentifierList();
 
@@ -470,6 +479,8 @@ Type *createType();
 void cleanupAST(Vector *nodes);
 
 void destroyNode(Node *node);
+
+void destroyUseStatement(UseStatement *use);
 
 void destroyIdentifierList(IdentifierList *list);
 
