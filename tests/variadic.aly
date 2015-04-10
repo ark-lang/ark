@@ -5,7 +5,10 @@
 
 fn printf(str fmt, _): int;
 
+fn malloc(usize size): ^void;
+
 fn main(): int {
 	printf("this is a test\n");
-	return 0;
+
+	mut ^int x = malloc(23);
 }
