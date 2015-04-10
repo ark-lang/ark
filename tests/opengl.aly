@@ -1,0 +1,26 @@
+struct SDL_Window {}
+struct SDL_Renderer {}
+
+u32 SDL_WINDOW_OPENGL = 2;
+
+fn SDL_CreateWindow(str title, int x, int y, int w, int h, u32 flags): mut ^SDL_Window;
+fn SDL_CreateRenderer(mut ^SDL_Window window, int index, u32 flags): mut ^SDL_Renderer;
+
+fn SDL_DestroyRenderer(mut ^SDL_Renderer renderer);
+fn SDL_DestroyWindow(mut ^SDL_Window window);
+fn SDL_Delay(u32 ms);
+fn SDL_RenderClear(mut ^SDL_Renderer renderer);
+fn SDL_RenderPresent(mut ^SDL_Renderer renderer);
+fn SDL_Quit();
+
+fn main(): int {
+	mut ^SDL_Window window = SDL_CreateWindow("swag", 2000, 300, 640, 480, SDL_WINDOW_OPENGL);
+	mut ^SDL_Renderer ren = SDL_CreateRenderer(window, -1, 2 | 4);
+
+	SDL_Delay(3000);
+
+	SDL_DestroyRenderer(ren);
+	SDL_DestroyWindow(window);
+	SDL_Quit();
+	return 0;
+}
