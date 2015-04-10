@@ -87,6 +87,7 @@ void emitExpression(CodeGenerator *self, Expression *expr) {
 		case LITERAL_NODE: emitLiteral(self, expr->lit); break;
 		case BINARY_EXPR_NODE: emitBinaryExpr(self, expr->binary); break;
 		case UNARY_EXPR_NODE: emitUnaryExpr(self, expr->unary); break;
+		case FUNCTION_CALL_NODE: emitFunctionCall(self, expr->call); break;
 		default:
 			printf("Unknown node %s\n", NODE_NAME[expr->exprType]);
 			break;
@@ -286,10 +287,27 @@ void emitDeclaration(CodeGenerator *self, Declaration *decl) {
 	}
 }
 
+void emitReturnStat(CodeGenerator *self, ReturnStat *ret) {
+	emitCode(self, "return ");
+	if (ret->expr) {
+		emitExpression(self, ret->expr);
+	}
+	emitCode(self, ";" CC_NEWLINE);
+}
+
+void emitLeaveStat(CodeGenerator *self, LeaveStat *leave) {
+	switch (leave->type) {
+		case RETURN_STAT_NODE: emitReturnStat(self, leave->retStmt); break;
+		case CONTINUE_STAT_NODE: emitCode(self, "continue;" CC_NEWLINE); break;
+		case BREAK_STAT_NODE: emitCode(self, "break;" CC_NEWLINE); break;
+	}
+}
+
 void emitUnstructuredStat(CodeGenerator *self, UnstructuredStatement *stmt) {
 	switch (stmt->type) {
 		case DECLARATION_NODE: emitDeclaration(self, stmt->decl); break;
 		case FUNCTION_CALL_NODE: emitFunctionCall(self, stmt->call); break;
+		case LEAVE_STAT_NODE: emitLeaveStat(self, stmt->leave); break;
 		case POINTER_FREE_NODE: 
 			emitCode(self, "free(%s);" CC_NEWLINE, stmt->pointerFree->name);
 			break;
