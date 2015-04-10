@@ -160,6 +160,24 @@ void emitStructDecl(CodeGenerator *self, StructDecl *decl) {
 	emitCode(self, "} %s;" CC_NEWLINE CC_NEWLINE, decl->name);
 }
 
+void emitFunctionCall(CodeGenerator *self, Call *call) {
+	for (int i = 0; i < call->callee->size; i++) {
+		char *value = getVectorItem(call->callee, i);
+		emitCode(self, "%s", value);
+	}
+
+	emitCode(self, "(");
+	for (int i = 0; i < call->arguments->size; i++) {
+		Expression *expr = getVectorItem(call->arguments, i);
+		emitExpression(self, expr);
+		
+		if (call->arguments->size > 1 && i != call->arguments->size - 1) {
+			emitCode(self, ", ");
+		}
+	}
+	emitCode(self, ");" CC_NEWLINE);
+}
+
 void emitFunctionDecl(CodeGenerator *self, FunctionDecl *decl) {
 	// prototype in header
 	self->writeState = WRITE_HEADER_STATE;
@@ -271,6 +289,7 @@ void emitDeclaration(CodeGenerator *self, Declaration *decl) {
 void emitUnstructuredStat(CodeGenerator *self, UnstructuredStatement *stmt) {
 	switch (stmt->type) {
 		case DECLARATION_NODE: emitDeclaration(self, stmt->decl); break;
+		case FUNCTION_CALL_NODE: emitFunctionCall(self, stmt->call); break;
 		case POINTER_FREE_NODE: 
 			emitCode(self, "free(%s);" CC_NEWLINE, stmt->pointerFree->name);
 			break;
