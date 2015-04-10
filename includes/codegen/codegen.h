@@ -61,6 +61,8 @@ void emitCode(CodeGenerator *self, char *fmt, ...);
 
 void emitTypeLit(CodeGenerator *self, TypeLit *lit);
 
+void emitFunctionCall(CodeGenerator *self, Call *call);
+
 void emitType(CodeGenerator *self, Type *type);
 
 void emitParameters(CodeGenerator *self, Parameters *params);
@@ -76,11 +78,16 @@ void emitWhileForLoop(CodeGenerator *self, ForStat *stmt);
 void emitBlock(CodeGenerator *self, Block *block);
 
 void emitInfiniteForLoop(CodeGenerator *self, ForStat *stmt);
+
 void emitForStat(CodeGenerator *self, ForStat *stmt);
 
 void emitVariableDecl(CodeGenerator *self, VariableDecl *decl);
 
 void emitDeclaration(CodeGenerator *self, Declaration *decl);
+
+void emitReturnStat(CodeGenerator *self, ReturnStat *ret);
+
+void emitLeaveStat(CodeGenerator *self, LeaveStat *leave);
 
 void emitUnstructuredStat(CodeGenerator *self, UnstructuredStatement *stmt);
 

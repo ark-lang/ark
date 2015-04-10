@@ -1,7 +1,8 @@
-fn add() {
-
+fn add(int a, int b): int {
+	return a + b;
 }
 
 fn main(): int {
-	add(5,5);
+	int x = 5 + add(5,5);
+	printf("%d\n", x);
 }
