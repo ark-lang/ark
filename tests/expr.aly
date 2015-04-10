@@ -4,7 +4,7 @@ fn malloc(usize sz): mut ^void;
 
 fn free(mut ^void x): mut void;
 
-fn alloc_memory(usize sz): mut ^void {
+fn alloc_memory(usize sz): <mut ^void> {
 	mut ^void x = malloc(sz);
 	if x {
 		printf("Allocated %zu bytes of memory\n", sz);
