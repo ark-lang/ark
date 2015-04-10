@@ -15,6 +15,7 @@
 #include "stack.h"
 #include "scope.h"
 
+#define SET_KEYWORD					"set"
 #define VOID_KEYWORD				"void"
 #define STRUCT_KEYWORD 				"struct"
 #define USE_KEYWORD					"use"

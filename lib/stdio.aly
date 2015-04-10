@@ -1,1 +1,1 @@
-fn printf(str format, ...): ^void;
+fn printf(str format, _): int;
