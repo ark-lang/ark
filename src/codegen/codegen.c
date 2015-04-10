@@ -2,6 +2,8 @@
 
 char *BOILERPLATE =
 "#include <stdbool.h>\n"
+"#include <stddef.h>\n"
+"#define nullptr NULL" CC_NEWLINE
 "\n"
 "typedef char *str;" CC_NEWLINE
 "typedef size_t usize;" CC_NEWLINE
@@ -453,6 +455,8 @@ void startCodeGeneration(CodeGenerator *self) {
 		if (i != self->sourceFiles->size - 1) // stop whitespace at the end!
 			buildCommand = sdscat(buildCommand, " ");
 	}
+
+	buildCommand = sdscat(buildCommand, " -lSDL2");
 
 	// just for debug purposes
 	verboseModeMessage("running cl args: `%s`", buildCommand);
