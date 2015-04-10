@@ -70,6 +70,19 @@ Literal *parseLiteral(Parser *parser) {
 	return false;
 }
 
+UseStatement *parseUseStatement(Parser *parser) {
+	if (checkTokenTypeAndContent(parser, IDENTIFIER, USE_KEYWORD, 0)) {
+		consumeToken(parser);
+
+		if (checkTokenType(parser, STRING, 0)) {
+			char *file = consumeToken(parser)->content;
+
+			return createUseStatement(file);
+		}
+	}
+	return false;
+}
+
 IdentifierList *parseIdentifierList(Parser *parser) {
 	IdentifierList *idenList = createIdentifierList();
 
@@ -104,7 +117,6 @@ Type *parseType(Parser *parser) {
 		type->type = TYPE_NAME_NODE;
 		return type;
 	}
-
 	return false;
 }
 
@@ -251,6 +263,7 @@ FunctionSignature *parseFunctionSignature(Parser *parser) {
 		consumeToken(parser);
 
 		Receiver *receiver = parseReceiver(parser);
+
 		if (checkTokenType(parser, IDENTIFIER, 0)) {
 			char *functionName = consumeToken(parser)->content;
 
@@ -339,44 +352,37 @@ ForStat *parseForStat(Parser *parser) {
 
 		Expression *index = parseExpression(parser);
 		if (index) {
+			// expr {
 			if (checkTokenTypeAndContent(parser, SEPARATOR, "{", 0)) {
 				Block *block = parseBlock(parser);
 				if (block) {
 					ForStat *stmt = createForStat();
 					stmt->forType = WHILE_FOR_LOOP;
-					stmt->expr = createVector(VECTOR_LINEAR);
-					pushBackItem(stmt->expr, index);
+					stmt->index = index;
 					stmt->body = block;
 					return stmt;
 				} else {
 					errorMessage("Expected block in for loop");
 				}
-			} else if (checkTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
+			}
+			// expr, expr
+			else if (checkTokenTypeAndContent(parser, SEPARATOR, ",", 0)) {
 				consumeToken(parser);
-
-				ForStat *stmt = createForStat();
-				stmt->expr = createVector(VECTOR_LINEAR);
-				pushBackItem(stmt->expr, index);
-				if (checkTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
-					consumeToken(parser);
-				}
-				else {
-					// FIXME expected scolon
-				}
 
 				Expression *step = parseExpression(parser);
 				if (step) {
-					pushBackItem(stmt->expr, step);
-				}
-				else {
-					// FIXME expected expr
-				}
+					ForStat *stmt = createForStat();
+					stmt->index = index;
+					stmt->step = step;
 
-				Block *block = parseBlock(parser);
-				stmt->forType = INDEX_FOR_LOOP;
-				stmt->body = block;
-				return stmt;
-			} else {
+					Block *block = parseBlock(parser);
+					stmt->forType = INDEX_FOR_LOOP;
+					stmt->body = block;
+					return stmt;
+				}
+			} 
+			// no fukin clue m8
+			else {
 				errorMessage("Unknown symbol in for loop");
 			}
 		}
@@ -523,6 +529,14 @@ StructuredStatement *parseStructuredStatement(Parser *parser) {
 }
 
 UnstructuredStatement *parseUnstructuredStatement(Parser *parser) {
+	UseStatement *use = parseUseStatement(parser);
+	if (use) {
+		UnstructuredStatement *stmt = createUnstructuredStatement();
+		stmt->use = use;
+		stmt->type = USE_STATEMENT_NODE;
+		return stmt;
+	}
+
 	LeaveStat *leave = parseLeaveStat(parser);
 	if (leave) {
 		UnstructuredStatement *stmt = createUnstructuredStatement();

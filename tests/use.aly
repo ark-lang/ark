@@ -1,0 +1,7 @@
+use "expr"
+
+fn main(): int {
+	int x = add(5, 5, 5);
+	printf("%d\n", x);
+	return 0;
+}
