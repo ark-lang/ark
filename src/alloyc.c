@@ -5,7 +5,7 @@ bool OUTPUT_C = false;		// default is no c output
 bool VERBOSE_MODE = false;
 char *OUTPUT_EXECUTABLE_NAME = "main"; // default is main
 char *COMPILER = "cc";
-char *ADDITIONAL_COMPILER_ARGS = "-g -Wall -std=c99";
+char *ADDITIONAL_COMPILER_ARGS = "-g -Wall -std=c99 -fno-builtin";
 
 void help() {
 	printf("Alloy-Lang Argument List\n");
