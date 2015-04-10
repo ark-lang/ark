@@ -1,7 +1,7 @@
 #include "parser.h"
 
 const char* BINARY_OPS[] = { ".", "*", "/", "%", "+", "-", ">", "<", ">=", "<=",
-		"==", "!=", "&", "|" };
+		"==", "!=", "&", "|", };
 
 const char* DATA_TYPES[] = { "i64", "i32", "i16", "i8", "u64", "u32", "u16",
 		"u8", "f64", "f32", "int", "bool", "char", "void" };
@@ -261,8 +261,7 @@ FunctionSignature *parseFunctionSignature(Parser *parser) {
 						consumeToken(parser);
 
 						bool mutable = false;
-						if (checkTokenTypeAndContent(parser, IDENTIFIER,
-						MUT_KEYWORD, 0)) {
+						if (checkTokenTypeAndContent(parser, IDENTIFIER, MUT_KEYWORD, 0)) {
 							consumeToken(parser);
 							mutable = true;
 						}
@@ -302,7 +301,22 @@ ElseStat *parseElseStat(Parser *parser) {
 }
 
 IfStat *parseIfStat(Parser *parser) {
-	ALLOY_UNUSED_OBJ(parser);
+	if (checkTokenTypeAndContent(parser, IDENTIFIER, IF_KEYWORD, 0)) {
+		consumeToken(parser);
+
+		Expression *expr = parseExpression(parser);
+		if (expr) {
+			if (checkTokenTypeAndContent(parser, SEPARATOR, "{", 0)) {
+				Block *block = parseBlock(parser);
+				if (block) {
+					IfStat *ifStmt = createIfStat();
+					ifStmt->expr = expr;
+					ifStmt->body = block;
+					return ifStmt;
+				}
+			}
+		}
+	}
 	return false;
 }
 
@@ -455,8 +469,9 @@ IncDecStat *parseIncDecStat(Parser *parser) {
 }
 
 Assignment *parseAssignment(Parser *parser) {
-	Expression *prim = parsePrimaryExpression(parser);
-	if (prim) {
+	if (checkTokenType(parser, IDENTIFIER, 0) && checkTokenTypeAndContent(parser, OPERATOR, "=", 1)) {
+		char *iden = consumeToken(parser)->content;
+
 		if (checkTokenTypeAndContent(parser, OPERATOR, "=", 0)) {
 			consumeToken(parser);
 
@@ -465,7 +480,7 @@ Assignment *parseAssignment(Parser *parser) {
 				if (checkTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
 					consumeToken(parser);
 				}
-				return createAssignment(prim, expr);
+				return createAssignment(iden, expr);
 			}
 		}
 	}
@@ -478,6 +493,14 @@ StructuredStatement *parseStructuredStatement(Parser *parser) {
 		StructuredStatement *stmt = createStructuredStatement();
 		stmt->block = block;
 		stmt->type = BLOCK_NODE;
+		return stmt;
+	}
+
+	IfStat *ifs = parseIfStat(parser);
+	if (ifs) {
+		StructuredStatement *stmt = createStructuredStatement();
+		stmt->ifStmt = ifs;
+		stmt->type = IF_STAT_NODE;
 		return stmt;
 	}
 
@@ -515,19 +538,19 @@ UnstructuredStatement *parseUnstructuredStatement(Parser *parser) {
 		return stmt;
 	}
 
-	Declaration *decl = parseDeclaration(parser);
-	if (decl) {
-		UnstructuredStatement *stmt = createUnstructuredStatement();
-		stmt->decl = decl;
-		stmt->type = DECLARATION_NODE;
-		return stmt;
-	}
-
 	Assignment *assign = parseAssignment(parser);
 	if (assign) {
 		UnstructuredStatement *stmt = createUnstructuredStatement();
 		stmt->assignment = assign;
 		stmt->type = ASSIGNMENT_NODE;
+		return stmt;
+	}
+
+	Declaration *decl = parseDeclaration(parser);
+	if (decl) {
+		UnstructuredStatement *stmt = createUnstructuredStatement();
+		stmt->decl = decl;
+		stmt->type = DECLARATION_NODE;
 		return stmt;
 	}
 
@@ -844,7 +867,6 @@ Expression *parsePrimaryExpression(Parser *parser) {
 			return expr;
 		}
 	}
-
 
 	Type *type = parseType(parser);
 	if (type) {

@@ -1,0 +1,1 @@
+fn printf(str format, ...): ^void;
