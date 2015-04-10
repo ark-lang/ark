@@ -1,4 +1,4 @@
-for T in `echo *.ay | sort` ;
+for T in `echo *.aly | sort` ;
 do
 	if [ -z "../bin/alloyc $T -o $T.o" ]; then
 		echo $T OK.
