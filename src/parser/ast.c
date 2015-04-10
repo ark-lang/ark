@@ -1,5 +1,11 @@
 #include "ast.h"
 
+UseStatement *createUseStatement(char *file) {
+	UseStatement *use = safeMalloc(sizeof(*use));
+	use->file = file;
+	return use;
+}
+
 IdentifierList *createIdentifierList() {
 	IdentifierList *iden = safeMalloc(sizeof(*iden));
 	iden->values = createVector(VECTOR_EXPONENTIAL);
@@ -277,6 +283,10 @@ void cleanupAST(Vector *nodes) {
 	}
 }
 
+void destroyUseStatement(UseStatement *use) {
+	free(use);
+}
+
 void destroyIdentifierList(IdentifierList *list) {
 	if (!list) return;
 	destroyVector(list->values);
@@ -484,6 +494,7 @@ void destroyUnstructuredStatement(UnstructuredStatement *stmt) {
 		case ASSIGNMENT_NODE: destroyAssignment(stmt->assignment); break;
 		case DECLARATION_NODE: destroyDeclaration(stmt->decl); break;
 		case INC_DEC_STAT_NODE: destroyIncDecStat(stmt->incDec); break;
+		case USE_STATEMENT_NODE: destroyUseStatement(stmt->use); break;
 		case LEAVE_STAT_NODE: destroyLeaveStat(stmt->leave); break;
 		case FUNCTION_CALL_NODE: destroyCall(stmt->call); break;
 	}
@@ -528,10 +539,8 @@ void destroyMatchStat(MatchStat *match) {
 void destroyForStat(ForStat *stmt) {
 	if (!stmt) return;
 	destroyBlock(stmt->body);
-	for (int i = 0 ; i < stmt->expr->size; i++) {
-		destroyExpression(getVectorItem(stmt->expr, i));
-	}
-	destroyVector(stmt->expr);
+	destroyExpression(stmt->index);
+	destroyExpression(stmt->step);
 	destroyType(stmt->type);
 	free(stmt);
 }

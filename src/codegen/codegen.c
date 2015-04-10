@@ -176,7 +176,7 @@ void emitFunctionCall(CodeGenerator *self, Call *call) {
 			emitCode(self, ", ");
 		}
 	}
-	emitCode(self, ");" CC_NEWLINE);
+	emitCode(self, ")");
 }
 
 void emitFunctionDecl(CodeGenerator *self, FunctionDecl *decl) {
@@ -242,7 +242,7 @@ void emitVariableDecl(CodeGenerator *self, VariableDecl *decl) {
 void emitWhileForLoop(CodeGenerator *self, ForStat *stmt) {
 	self->writeState = WRITE_SOURCE_STATE;
 	emitCode(self, "while (");
-	emitExpression(self, getVectorItem(stmt->expr, 0));
+	emitExpression(self, stmt->index);
 	emitCode(self, ") {" CC_NEWLINE);
 	emitBlock(self, stmt->body);
 	emitCode(self, "}" CC_NEWLINE);
@@ -279,14 +279,31 @@ void emitInfiniteForLoop(CodeGenerator *self, ForStat *stmt) {
 }
 
 void emitIndexForLoop(CodeGenerator *self, ForStat *stmt) {
-	emitCode(self, "for (");
-	emitType(self, stmt->type);
-	for (int i = 0; i < stmt->expr->size; i++) {
-		emitExpression(self, getVectorItem(stmt->expr, i));
-		if (i != stmt->expr->size - 1) {
-			emitCode(self, "; ");
-		}
-	}
+	/**
+	 * We assume that the index for the loop
+	 * is already defined outside of the for statement,
+	 * for example:
+	 *
+	 * int x = 0;
+	 * for x < 10, x + 1 {
+	 * 
+	 * }
+	 */
+	
+
+	// FIXME, this should be better?
+	char *iden = stmt->index->binary->lhand->type->typeName->name;
+
+	emitCode(self, "for (%s;", iden);
+
+	// emit index
+	emitExpression(self, stmt->index);
+	emitCode(self, "; ");
+	// then step, but we do x + 1, so we need to prefix
+	// x = EXPR??
+	emitCode(self, "%s = ", iden);
+	emitExpression(self, stmt->step);
+
 	emitCode(self, ") {" CC_NEWLINE);
 	emitBlock(self, stmt->body);
 	emitCode(self, "}" CC_NEWLINE);
@@ -327,10 +344,24 @@ void emitLeaveStat(CodeGenerator *self, LeaveStat *leave) {
 	}
 }
 
+void emitUseStatement(CodeGenerator *self, UseStatement *use) {
+	// substring
+	size_t size = strlen(use->file);
+	char temp[size - 2];
+	memcpy(temp, &use->file[1], size - 2);
+	temp[size - 2] = '\0';
+
+	emitCode(self, "#include \"_gen_%s.h\"" CC_NEWLINE, temp);
+}
+
 void emitUnstructuredStat(CodeGenerator *self, UnstructuredStatement *stmt) {
 	switch (stmt->type) {
 		case DECLARATION_NODE: emitDeclaration(self, stmt->decl); break;
-		case FUNCTION_CALL_NODE: emitFunctionCall(self, stmt->call); break;
+		case FUNCTION_CALL_NODE: 
+			emitFunctionCall(self, stmt->call); 
+			emitCode(self, ";" CC_NEWLINE); // pop a semi colon at the end
+			break;
+		case USE_STATEMENT_NODE: emitUseStatement(self, stmt->use); break;
 		case LEAVE_STAT_NODE: emitLeaveStat(self, stmt->leave); break;
 		case ASSIGNMENT_NODE: emitAssignment(self, stmt->assignment); break;
 		case POINTER_FREE_NODE: 

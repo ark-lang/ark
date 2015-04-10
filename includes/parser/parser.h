@@ -17,6 +17,7 @@
 
 #define VOID_KEYWORD				"void"
 #define STRUCT_KEYWORD 				"struct"
+#define USE_KEYWORD					"use"
 #define MUT_KEYWORD 				"mut"
 #define FUNCTION_KEYWORD 			"fn"
 #define SINGLE_STATEMENT_OPERATOR 	"->"
