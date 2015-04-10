@@ -1,9 +1,14 @@
 fn main(): int {
+	mut int i = 0;
 	for {
-
+		i = i + 1;
+		if i > 10 {
+			break;
+		}
+		printf("infinite loop\n");
 	}
 
 	for 1 {
-
+		printf("looping 1!\n");
 	}
 }

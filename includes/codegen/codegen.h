@@ -77,6 +77,8 @@ void emitWhileForLoop(CodeGenerator *self, ForStat *stmt);
 
 void emitBlock(CodeGenerator *self, Block *block);
 
+void emitAssignment(CodeGenerator *self, Assignment *assign);
+
 void emitInfiniteForLoop(CodeGenerator *self, ForStat *stmt);
 
 void emitForStat(CodeGenerator *self, ForStat *stmt);
