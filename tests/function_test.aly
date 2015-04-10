@@ -1,3 +1,10 @@
+struct Test {
+	int x;
+}
+
+fn (^Test t) add(int x): int {
+}
+
 fn add(int a, int b): int {
 	return a + b;
 }

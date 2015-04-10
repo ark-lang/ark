@@ -3,6 +3,10 @@ struct Empty {
 	^int y;
 }
 
+fn (^Empty e) add() {
+	
+}
+
 fn main(): int {
 
 }

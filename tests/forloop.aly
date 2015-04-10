@@ -20,8 +20,8 @@ fn main(): int {
 	}
 	printf("finished the while loop at %d\n", i); // 20
 
-	i = 0;
-	for i: (0, 10) {
-
+	mut int x = 0;
+	for x < 10, x + 1 {
+		printf("swag the police %d\n", x);
 	}
 }
