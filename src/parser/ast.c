@@ -120,6 +120,7 @@ ParameterSection *createParameterSection(Type *type, bool mutable) {
 Parameters *createParameters() {
 	Parameters *params = safeMalloc(sizeof(*params));
 	params->paramList = createVector(VECTOR_EXPONENTIAL);
+	params->variadic = false;
 	return params;
 }
 
