@@ -145,21 +145,23 @@ void recognizeIdentifierToken(Lexer *lexer) {
 
 void recognizeNumberToken(Lexer *lexer) {
 	consumeCharacter(lexer);
+	
 	if (lexer->currentChar == '.') {
 		consumeCharacter(lexer); // consume dot
 		while (isDigit(lexer->currentChar)) {
 			consumeCharacter(lexer);
 		}
 	}
-
-	while (isDigit(lexer->currentChar)) {
-		if (peekAhead(lexer, 1) == '.') {
-			consumeCharacter(lexer);
-			while (isDigit(lexer->currentChar)) {
+	else {
+		while (isDigit(lexer->currentChar)) {
+			if (peekAhead(lexer, 1) == '.') {
 				consumeCharacter(lexer);
+				while (isDigit(lexer->currentChar)) {
+					consumeCharacter(lexer);
+				}
 			}
+			consumeCharacter(lexer);
 		}
-		consumeCharacter(lexer);
 	}
 
 	pushToken(lexer, NUMBER);

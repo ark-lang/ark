@@ -1,3 +1,15 @@
-fn add(int a, int b, int c): int {
-	return a + b + c;
+fn printf(str fmt, _): int;
+
+fn malloc(usize sz): mut ^void;
+
+fn free(mut ^void x): mut void;
+
+fn alloc_memory(usize sz): mut ^void {
+	mut ^void x = malloc(sz);
+	if x {
+		printf("Allocated %zu bytes of memory\n", sz);
+		return x;
+	}
+	printf("Failed to allocate memory for %zu\n", sz);
+	return false;
 }
