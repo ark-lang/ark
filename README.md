@@ -5,7 +5,7 @@ Alloy is a work in progress programming language, read the [reference](docs/REFE
 Alloy is a somewhat experimental language, this means it can and probably will change at any point, be it a small change, or a complete re-write. This means we cannot promise any backwards compatibility. 
 
 ## Just show me what it looks like already
-Sure, you can either see a small virtual machine implemented in Alloy [here](tests/misc/virtualmachine.ay). Or you can just see a small Hello World example below:
+Sure, you can either see a small virtual machine implemented in Alloy [here](tests/misc/virtualmachine.aly). Or you can just see a small Hello World example below:
 
 ```rust
 fn main(): int {
