@@ -501,6 +501,15 @@ UnstructuredStatement *parseUnstructuredStatement(Parser *parser) {
 		return stmt;
 	}
 
+	errorMessage("Meowington");
+	Call *call = parseCall(parser);
+	if (call) {
+		UnstructuredStatement *stmt = createUnstructuredStatement();
+		stmt->call = call;
+		stmt->type = FUNCTION_CALL_NODE;
+		return stmt;
+	}
+
 	Declaration *decl = parseDeclaration(parser);
 	if (decl) {
 		UnstructuredStatement *stmt = createUnstructuredStatement();
@@ -514,14 +523,6 @@ UnstructuredStatement *parseUnstructuredStatement(Parser *parser) {
 		UnstructuredStatement *stmt = createUnstructuredStatement();
 		stmt->assignment = assign;
 		stmt->type = ASSIGNMENT_NODE;
-		return stmt;
-	}
-
-	Call *call = parseCall(parser);
-	if (call) {
-		UnstructuredStatement *stmt = createUnstructuredStatement();
-		stmt->call = call;
-		stmt->type = FUNCTION_CALL_NODE;
 		return stmt;
 	}
 
@@ -827,6 +828,22 @@ Expression *parseBinaryOperator(Parser *parser, int precedence,
 }
 
 Expression *parsePrimaryExpression(Parser *parser) {
+
+	printf("%s\n", peekAtTokenStream(parser, 0)->content);
+	Call *call = NULL;
+
+	if(checkTokenType(parser, IDENTIFIER, 0) && (checkTokenTypeAndContent(parser, SEPARATOR, "(", 1) || checkTokenTypeAndContent(parser, SEPARATOR, ".", 1))) {
+		errorMessage("Called from parsePrimaryExpression");
+		call = parseCall(parser);
+	}
+
+	if (call) {
+		Expression *expr = createExpression();
+		expr->call = call;
+		expr->exprType = FUNCTION_CALL_NODE;
+		return expr;
+	}
+
 	Type *type = parseType(parser);
 	if (type) {
 		Expression *expr = createExpression();
@@ -843,14 +860,6 @@ Expression *parsePrimaryExpression(Parser *parser) {
 		return expr;
 	}
 
-	Call *call = parseCall(parser);
-	if (call) {
-		Expression *expr = createExpression();
-		expr->call = call;
-		expr->exprType = FUNCTION_CALL_NODE;
-		return expr;
-	}
-
 	Literal *lit = parseLiteral(parser);
 	if (lit) {
 		Expression *expr = createExpression();
@@ -863,36 +872,49 @@ Expression *parsePrimaryExpression(Parser *parser) {
 }
 
 Call *parseCall(Parser *parser) {
+
 	if (!checkTokenType(parser, IDENTIFIER, 0) &&
 		(!checkTokenTypeAndContent(parser, SEPARATOR, "(", 1) || !checkTokenTypeAndContent(parser, SEPARATOR, "(", 1))) {
 		return false;
 	}
+	printf("%s\n", peekAtTokenStream(parser, 0)->content);
+	Vector *idens = NULL;
+	if (checkTokenType(parser, IDENTIFIER, 0)) {
+		idens = createVector(VECTOR_LINEAR);
+		while(true) {
+			if (checkTokenType(parser, IDENTIFIER, 0)) {
+				pushBackItem(idens, consumeToken(parser)->content);
+			}
+			if (checkTokenTypeAndContent(parser, SEPARATOR, ".", 0)) {
+				consumeToken(parser);
+			}
+			if (!checkTokenType(parser, IDENTIFIER, 0) || !checkTokenTypeAndContent(parser, SEPARATOR, "(", 0)) {
+				break;
+			}
+		}
+	}
 
-	Expression *callee = parseExpression(parser);
-	if (callee) {
-		if (checkTokenTypeAndContent(parser, SEPARATOR, "(", 0)) {
-			consumeToken(parser);
-			Call *call = createCall(callee);
-			while (true) {
-				if (checkTokenTypeAndContent(parser, SEPARATOR, ")", 0)) {
-					consumeToken(parser);
-					break;
-				}
-
-				Expression *expr = parseExpression(parser);
-				if (expr) {
-					pushBackItem(call->arguments, expr);
-					if (checkTokenTypeAndContent(parser, SEPARATOR, ",", 0)) {
-						if (checkTokenTypeAndContent(parser, SEPARATOR, ")", 1)) {
-							errorMessage("Warning, trailing comma in function call. Skipping.\n");
-						}
-						consumeToken(parser);
-					}
-				}
+	if (checkTokenTypeAndContent(parser, SEPARATOR, "(", 0)) {
+		consumeToken(parser);
+		Call *call = createCall(idens);
+		while (true) {
+			if (checkTokenTypeAndContent(parser, SEPARATOR, ")", 0)) {
+				consumeToken(parser);
+				break;
 			}
 
-			return call;
+			Expression *expr = parseExpression(parser);
+			if (expr) {
+				pushBackItem(call->arguments, expr);
+				if (checkTokenTypeAndContent(parser, SEPARATOR, ",", 0)) {
+					if (checkTokenTypeAndContent(parser, SEPARATOR, ")", 1)) {
+						errorMessage("Warning, trailing comma in function call. Skipping.\n");
+					}
+					consumeToken(parser);
+				}
+			}
 		}
+		return call;
 	}
 
 	return false;
