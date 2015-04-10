@@ -253,11 +253,22 @@ typedef struct {
  * A node representing a variable declaration
  */
 typedef struct {
+	// if the variable declaration is mutable
 	bool mutable;
+	
+	// if it's a pointer
 	bool pointer;
+
+	// is it being assigned a value
 	bool assigned;
+	
+	// the decl type
 	Type *type;
+	
+	// the decl name
 	char *name;
+	
+	// the decl expr rhand value
 	Expression *expr;
 } VariableDecl;
 

@@ -228,14 +228,7 @@ void emitVariableDecl(CodeGenerator *self, VariableDecl *decl) {
 	emitType(self, decl->type);
 	if (decl->assigned) {
 		emitCode(self, " %s = ", decl->name);
-		if (decl->pointer) {
-			emitCode(self, "malloc(sizeof(*%s));" CC_NEWLINE, decl->name);
-			emitCode(self, "*%s = ", decl->name);
-			emitExpression(self, decl->expr);
-		}
-		else {
-			emitExpression(self, decl->expr);
-		}
+		emitExpression(self, decl->expr);
 		emitCode(self, ";" CC_NEWLINE);
 	}
 	else {
