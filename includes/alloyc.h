@@ -31,6 +31,7 @@ typedef struct {
  * The core of alloyc
  */
 typedef struct {
+	int flag;
 	Lexer *lexer;
 	Parser *parser;
 	CodeGenerator *generator;
