@@ -1,12 +1,12 @@
 use "../assignment.aly"
 
-fn printf(str fmt, _): int;
+fn printf(fmt: str, _): int;
 
-fn malloc(usize sz): mut ^void;
+fn malloc(sz: usize): mut ^void;
 
-fn free(mut ^void x): mut void;
+fn free(x: mut ^void): mut void;
 
-fn alloc_memory(usize sz): <mut ^void> {
+fn alloc_memory(sz: usize): mut ^void {
 	mut ^void x = malloc(sz);
 	if x {
 		printf("Allocated %zu bytes of memory\n", sz);
