@@ -80,7 +80,15 @@ void emitBinaryExpr(CodeGenerator *self, BinaryExpr *expr) {
 }
 
 void emitUnaryExpr(CodeGenerator *self, UnaryExpr *expr) {
-	emitCode(self, "%s", expr->unaryOp);
+	if (!strcmp(expr->unaryOp, "^")) {
+		// change it to a dereference
+		// im pretty sure this shouldn't conflict with
+		// XOR?
+		emitCode(self, "*");
+	}
+	else {
+		emitCode(self, "%s", expr->unaryOp);
+	}
 	emitExpression(self, expr->lhand);
 }
 
@@ -270,7 +278,8 @@ void emitBlock(CodeGenerator *self, Block *block) {
 }
 
 void emitAssignment(CodeGenerator *self, Assignment *assign) {
-	emitCode(self, "%s = ", assign->val);
+	emitUnaryExpr(self, assign->unary);
+	emitCode(self, " = ");
 	emitExpression(self, assign->expr);
 	emitCode(self, ";" CC_NEWLINE);
 }
