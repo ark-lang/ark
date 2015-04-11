@@ -38,10 +38,9 @@ ArraySubExpr *createArraySubExpr(Expression *lhand) {
 	return expr;
 }
 
-MemberAccessExpr *createMemberAccessExpr(Expression *expr, char *value) {
+MemberAccessExpr *createMemberAccessExpr(Vector *members) {
 	MemberAccessExpr *mem = safeMalloc(sizeof(*mem));
-	mem->expr = expr;
-	mem->value = value;
+	mem->members = members;
 	return mem;
 }
 
@@ -321,7 +320,7 @@ void destroyArraySubExpr(ArraySubExpr *expr) {
 
 void destroyMemberAccessExpr(MemberAccessExpr *expr) {
 	if (!expr) return;
-	destroyExpression(expr->expr);
+	destroyVector(expr->members);
 	free(expr);
 }
 

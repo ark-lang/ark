@@ -118,8 +118,7 @@ typedef struct {
  * i.e someStruct.x
  */
 typedef struct {
-	Expression *expr;
-	char *value;
+	Vector *members;
 } MemberAccessExpr;
 
 /**
@@ -299,10 +298,6 @@ typedef struct {
 	Expression *expr;
 } ReturnStat;
 
-typedef struct {
-	Vector *members;
-} MemberAccess;
-
 /**
  * Node for an assignment
  */
@@ -422,7 +417,7 @@ UnaryExpr *createUnaryExpr();
 
 ArraySubExpr *createArraySubExpr(Expression *lhand);
 
-MemberAccessExpr *createMemberAccessExpr(Expression *rhand, char *value);
+MemberAccessExpr *createMemberAccessExpr(Vector *idens);
 
 Call *createCall(Vector *callee);
 
