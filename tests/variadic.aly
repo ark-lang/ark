@@ -3,9 +3,9 @@
 /// compatibility with C
 ///
 
-fn printf(str fmt, _): int;
+fn printf(fmt: str, _): int;
 
-fn malloc(usize size): ^void;
+fn malloc(size: usize): ^void;
 
 fn main(): int {
 	printf("this is a test\n");

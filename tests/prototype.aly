@@ -1,4 +1,4 @@
-fn add(int a, int b): void;
+fn add(a: int, b: int): void;
 
 fn main(): int {
 

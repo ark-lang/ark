@@ -10,25 +10,25 @@ struct Cat {
 
 // Mutable tests
 
-fn (^Cat c) sub(mut int a, mut int b): mut ^int {
+fn (^Cat c) sub(a: mut int, b: mut int): mut ^int {
 	
 }
 
 // was div, changed to divide, since stdlib already has "div"
-fn (^Cat c) divide(int a, int b): int {
+fn (^Cat c) divide(a: int, b: int): int {
 	
 }
 
-fn (mut ^Cat c) mod(int a, int b): mut int {
+fn (mut ^Cat c) mod(a: int,  b: int): mut int {
 	
 }
 
-fn do_stuff(mut int a, int b, int c): void {
+fn do_stuff(a: mut int, b: int, c: int): void {
 	
 }
 
 // Testing methods
-fn (^Cat c) add(int a, int b): int {
+fn (^Cat c) add(a: int, b: int): int {
 	
 }
 
