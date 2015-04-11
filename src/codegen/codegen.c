@@ -350,23 +350,22 @@ void emitLeaveStat(CodeGenerator *self, LeaveStat *leave) {
 
 void emitUseStatement(CodeGenerator *self, UseStatement *use) {
 	// substring
-	size_t size = strlen(use->file);
-	char temp[size - 2];
-	memcpy(temp, &use->file[1], size - 2);
-	temp[size - 2] = '\0';
-
+	char *temp = removeExtension(use->file);
+	size_t sz = strlen(temp);
 	if(strstr(temp, "../")) {
-		char newFileName[strlen(temp) - 3];
+		char newFileName[sz - 3];
 		int ctr = 0;
-		for(int i = 3; i < strlen(temp); i++) {
+		for(int i = 3; i < sz; i++) {
 			newFileName[ctr] = temp[i];
 			ctr++;
 		}
 		emitCode(self, "#include \"../_gen_%s.h\"" CC_NEWLINE, newFileName);
 	} 
 	else {
-	emitCode(self, "#include \"_gen_%s.h\"" CC_NEWLINE, temp);
+		emitCode(self, "#include \"_gen_%s.h\"" CC_NEWLINE, temp);
 	}
+
+	free(temp);
 }
 
 void emitUnstructuredStat(CodeGenerator *self, UnstructuredStatement *stmt) {
