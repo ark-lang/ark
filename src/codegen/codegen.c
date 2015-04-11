@@ -355,9 +355,8 @@ void emitUseStatement(CodeGenerator *self, UseStatement *use) {
 	if(strstr(temp, "../")) {
 		char newFileName[sz - 3];
 		int ctr = 0;
-		for(int i = 3; i < sz; i++) {
-			newFileName[ctr] = temp[i];
-			ctr++;
+		for (size_t i = 3; i < sz; i++) {
+			newFileName[ctr++] = temp[i];
 		}
 		emitCode(self, "#include \"../_gen_%s.h\"" CC_NEWLINE, newFileName);
 	} 
