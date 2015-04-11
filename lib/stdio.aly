@@ -3,13 +3,23 @@ fn printf(str format, _): int;
 fn println(str format, _): int {
 	mut va_list arg;
 	va_start(arg, format);
-	printf(format, arg);
+	mut int x = printf(format, arg);
 	va_end(arg);
-	printf("\n");
-	return true;
+	x = x + printf("\n");
+	return x;
+}
+
+fn print(str format, _): int {
+	mut va_list arg;
+	va_start(arg, format);
+	mut int x = printf(format, arg);
+	va_end(arg);
+	return x;
 }
 
 fn main(): int {
 	println("this is a test!");
+	print("amazing!");
+	println("felix");
 	return 0;
 }
