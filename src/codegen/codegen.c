@@ -3,7 +3,6 @@
 char *BOILERPLATE =
 "#include <stdbool.h>\n"
 "#include <stddef.h>\n"
-"#define nullptr NULL" CC_NEWLINE
 "\n"
 "typedef char *str;" CC_NEWLINE
 "typedef size_t usize;" CC_NEWLINE
