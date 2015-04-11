@@ -1,5 +1,9 @@
 #include "codegen.h"
 
+/**
+ * A boilerplate for our generated C files. Eventually
+ * we should only write this into one file?
+ */
 char *BOILERPLATE =
 "#include <stdbool.h>\n"
 "#include <stddef.h>\n"
@@ -455,7 +459,8 @@ void startCodeGeneration(CodeGenerator *self) {
 			buildCommand = sdscat(buildCommand, " ");
 	}
 
-	buildCommand = sdscat(buildCommand, " -lSDL2");
+	// this was for SDL, and isn't required.
+	// buildCommand = sdscat(buildCommand, " -lSDL2");
 
 	// just for debug purposes
 	verboseModeMessage("running cl args: `%s`", buildCommand);
