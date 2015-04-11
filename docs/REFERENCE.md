@@ -2,8 +2,7 @@
 This document is an informal specification for Alloy, a systems programming language. 
 
 ## Guiding Principles
-Alloy is a systems programming language, intended as an alternative to C. It's main purpose is to modernize C, without
-deviating from C's original goal of simplicity. Alloy is written in C, the frontend and backend is all hand-written, i.e no parser or lexer libraries, and no LLVM, etc.
+Alloy is a systems programming language, intended as an alternative to C. It's main purpose is to modernize C, without deviating from C's original goal of simplicity. Alloy is written in C, the frontend and backend is all hand-written, i.e no parser or lexer libraries, and no LLVM, etc.
 
 The design is motivated by the following:
 
@@ -35,7 +34,7 @@ syntax will typically show the grammar for the syntax, and an example of the syn
 ## Characters and Letters
 
     digit = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" .
-    letter = "A" | "a" | ... "Z" | "z" | "_" .
+    letter = "A" | "a" ... "Z" | "z" | "_" .
 
 Letters and digits are ASCII for now, however we may allow for unicode later on.
 
@@ -306,15 +305,16 @@ instead of during execution, therefore there is no overhead in your programs.
 	match x {
 		NotAnonymous::CAR {
 		
-		},
+		}
 		SWAG {
 		
 		}
+		_ -> println("oh");
 	}
 
 ## Option Types
 
-	fn divide(int a, int b): Option<int> {
+	fn divide(int a, int b): <int> {
 		if b == 0 {
 			return None;
 		}
@@ -323,27 +323,8 @@ instead of during execution, therefore there is no overhead in your programs.
 		}
 	}
 
-## Enumerated Structs
-This is a work in progress feature, if you don't like it or have a better idea, go post an Issue!
-
-	struct Cat {
-		int x;
-	}
-	
-	struct Dog {
-		int x;
-	}
-	
-	variant Something {
-		Cat,
-		Dog
-	}	
-
-	fn doStuff(Something s): void {
-		s::Cat.x = 10;		// only do this if s is of type Cat
-		s::Dog.x = 20;		// only do this if s is of type Dog
-	}		
-
+## Generics
+???
 
 
 

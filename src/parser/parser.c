@@ -240,7 +240,8 @@ Parameters *parseParameters(Parser *parser) {
 					}
 					consumeToken(parser);
 				}
-			} else {
+			} 
+			else {
 				break;
 			}
 		}
