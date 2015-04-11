@@ -355,7 +355,20 @@ void emitUseStatement(CodeGenerator *self, UseStatement *use) {
 	memcpy(temp, &use->file[1], size - 2);
 	temp[size - 2] = '\0';
 
+	if(strstr(temp, "../")) {
+		char *newFileName = NULL;
+		int ctr = 0;
+		int i;
+		for(i = 3; i < strlen(temp); i++) {
+			newFileName[ctr] = temp[i];
+			ctr++;
+		}
+		newFileName = removeExtension(newFileName);
+		emitCode(self, "#include \"../_gen_%s.h\"" CC_NEWLINE, newFileName);
+	} 
+	else {
 	emitCode(self, "#include \"_gen_%s.h\"" CC_NEWLINE, temp);
+	}
 }
 
 void emitUnstructuredStat(CodeGenerator *self, UnstructuredStatement *stmt) {
