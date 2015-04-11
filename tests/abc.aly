@@ -1,0 +1,8 @@
+// im just playing around with this...
+
+fn printf(fmt: str, _): int;
+
+fn main(): int {
+	printf("Hi mum\n");
+	return 0;
+}
