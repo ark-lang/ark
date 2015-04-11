@@ -1,1 +1,12 @@
+struct va_list {}
+
+fn va_start(mut ^va_list list, int num_of_args): void;
+
+fn va_end(mut ^va_list list): void;
+
 fn printf(str format, _): int;
+
+fn main(): int {
+
+	return 0;
+}
