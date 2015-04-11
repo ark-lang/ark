@@ -1,0 +1,5 @@
+fn malloc(sz: usize): ^void;
+
+fn main(): int {
+	^int x = malloc(sizeof(^x));
+}
