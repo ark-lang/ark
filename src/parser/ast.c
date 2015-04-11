@@ -184,9 +184,9 @@ LeaveStat *createLeaveStat() {
 	return safeMalloc(sizeof(LeaveStat));
 }
 
-Assignment *createAssignment(char *val, Expression *rhand) {
+Assignment *createAssignment(UnaryExpr *unary, Expression *rhand) {
 	Assignment *assign = safeMalloc(sizeof(*assign));
-	assign->val = val;
+	assign->unary = unary;
 	assign->expr = rhand;
 	return assign;
 }

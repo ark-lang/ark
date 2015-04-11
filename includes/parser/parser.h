@@ -232,7 +232,7 @@ static inline bool isLogOp(char *val) {
  * @return if the given string is a relational operator
  */
 static inline bool isRelOp(char *val) {
-	for (int i = 0; i < ARR_LEN(logOp); i++) {
+	for (int i = 0; i < ARR_LEN(relOp); i++) {
 		if (!strcmp(val, relOp[i])) return true;
 	}
 	return false;
@@ -242,7 +242,7 @@ static inline bool isRelOp(char *val) {
  * @return if the given string is a arithmetic operator
  */
 static inline bool isAddOp(char *val) {
-	for (int i = 0; i < ARR_LEN(logOp); i++) {
+	for (int i = 0; i < ARR_LEN(addOp); i++) {
 		if (!strcmp(val, addOp[i])) return true;
 	}
 	return false;
@@ -252,7 +252,7 @@ static inline bool isAddOp(char *val) {
  * @return if the given string is a arithmetic operator
  */
 static inline bool isMulOp(char *val) {
-	for (int i = 0; i < ARR_LEN(logOp); i++) {
+	for (int i = 0; i < ARR_LEN(mulOp); i++) {
 		if (!strcmp(val, mulOp[i])) return true;
 	}
 	return false;
@@ -262,7 +262,7 @@ static inline bool isMulOp(char *val) {
  * @return if the given string is a unary operator
  */
 static inline bool isUnaryOp(char *val) {
-	for (int i = 0; i < ARR_LEN(logOp); i++) {
+	for (int i = 0; i < ARR_LEN(unaryOp); i++) {
 		if (!strcmp(val, unaryOp[i])) return true;
 	}
 	return false;
