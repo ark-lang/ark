@@ -1,5 +1,16 @@
+/**
+ * Binding for C's `printf`, will return
+ * the amount of characters it printed,
+ * or a negative value if it failed.
+ */
 fn printf(str format, _): int;
 
+/**
+ * Will print the given string, and then
+ * append a new line. It will return the
+ * amount of characters it printed, or a negative
+ * value if it failed.
+ */
 fn println(str format, _): int {
 	mut va_list arg;
 	va_start(arg, format);
@@ -9,17 +20,13 @@ fn println(str format, _): int {
 	return x;
 }
 
+/**
+ * See `printf`.
+ */
 fn print(str format, _): int {
 	mut va_list arg;
 	va_start(arg, format);
 	mut int x = printf(format, arg);
 	va_end(arg);
 	return x;
-}
-
-fn main(): int {
-	println("this is a test!");
-	print("amazing!");
-	println("felix");
-	return 0;
 }
