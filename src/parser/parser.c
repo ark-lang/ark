@@ -684,11 +684,9 @@ VariableDecl *parseVariableDecl(Parser *parser) {
 		if (checkTokenType(parser, IDENTIFIER, 0)) {
 			char *var_name = consumeToken(parser)->content;
 			Expression *rhand = NULL;
-			bool assigned = false;
 
 			if (checkTokenTypeAndContent(parser, OPERATOR, "=", 0)) {
 				consumeToken(parser);
-				assigned = true;
 
 				rhand = parseExpression(parser);
 				if (rhand) {
@@ -697,9 +695,16 @@ VariableDecl *parseVariableDecl(Parser *parser) {
 					}
 
 					VariableDecl *decl = createVariableDecl(type, var_name, mutable, rhand);
-					decl->assigned = assigned;
+					decl->assigned = true;
 					return decl;
 				}
+			}
+			else if (checkTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
+				consumeToken(parser); // eat the semi colon!
+
+				VariableDecl *decl = createVariableDecl(type, var_name, mutable, rhand);
+				decl->assigned = false;
+				return decl;
 			}
 		}
 	}
