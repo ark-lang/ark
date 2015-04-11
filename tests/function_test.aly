@@ -2,10 +2,10 @@ struct Test {
 	int x;
 }
 
-fn (^Test t) add(int x): int {
+fn (^Test t) add(x: int): int {
 }
 
-fn add(int a, int b): int {
+fn add(a: int, b: int): int {
 	return a + b;
 }
 
