@@ -89,15 +89,12 @@ AlloyCompiler *createAlloyCompiler(int argc, char** argv) {
 			SourceFile *file = createSourceFile(sdsnew(argv[i]));
 			if (!file) {
 				verboseModeMessage("Error when attempting to create a source file");
-				self->flag = 0;
 				return NULL;
 			}
-			self->flag = 1;
 			pushBackItem(self->sourceFiles, file);
 		}
 		else {
 			errorMessage("argument not recognized: %s\n", argv[i]);
-			self->flag = 1;
 		}
 	}
 
