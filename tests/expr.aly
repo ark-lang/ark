@@ -1,5 +1,3 @@
-use "../assignment.aly"
-
 fn printf(fmt: str, _): int;
 
 fn malloc(sz: usize): mut ^void;
