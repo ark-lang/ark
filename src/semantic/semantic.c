@@ -9,11 +9,13 @@ SemanticAnalysis *createSemanticAnalysis(Vector *parseTree) {
 }
 
 void analyzeUnstructuredStatement(SemanticAnalysis *self, UnstructuredStatement *unstructured) {
-	
+	ALLOY_UNUSED_OBJ(self);
+	ALLOY_UNUSED_OBJ(unstructured);	
 }
 
-void analyzeStructuredStatement(SemanticAnalysis *self, StructuredStatement *unstructured) {
-	
+void analyzeStructuredStatement(SemanticAnalysis *self, StructuredStatement *structured) {
+	ALLOY_UNUSED_OBJ(self);
+	ALLOY_UNUSED_OBJ(structured);	
 }
 
 void analyzeStatement(SemanticAnalysis *self, Statement *stmt) {
