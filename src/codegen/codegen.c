@@ -7,6 +7,7 @@
 char *BOILERPLATE =
 "#include <stdbool.h>\n"
 "#include <stddef.h>\n"
+"#include <stdarg.h>\n"
 "\n"
 "typedef char *str;" CC_NEWLINE
 "typedef size_t usize;" CC_NEWLINE
@@ -218,6 +219,9 @@ void emitFunctionDecl(CodeGenerator *self, FunctionDecl *decl) {
 			}
 		}
 		emitParameters(self, decl->signature->parameters);
+		if (decl->signature->parameters->variadic) {
+			emitCode(self, ", ...");
+		}
 		emitCode(self, ") {" CC_NEWLINE);
 		emitBlock(self, decl->body);
 		emitCode(self, "}" CC_NEWLINE);
