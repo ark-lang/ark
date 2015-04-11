@@ -122,16 +122,23 @@ Type *parseType(Parser *parser) {
 
 FieldDecl *parseFieldDecl(Parser *parser) {
 	bool mutable = false;
-	if (checkTokenTypeAndContent(parser, IDENTIFIER, MUT_KEYWORD, 0)) {
-		consumeToken(parser);
-		mutable = true;
-	}
 
-	Type *type = parseType(parser);
-	if (type) {
-		FieldDecl *decl = createFieldDecl(type, mutable);
-		if (checkTokenType(parser, IDENTIFIER, 0)) {
-			decl->name = consumeToken(parser)->content;
+	if (checkTokenType(parser, IDENTIFIER, 0)) {
+		char *name = consumeToken(parser)->content;
+
+		if (checkTokenTypeAndContent(parser, OPERATOR, ":", 0)) {
+			consumeToken(parser);
+		}
+
+		if (checkTokenTypeAndContent(parser, IDENTIFIER, MUT_KEYWORD, 0)) {
+			consumeToken(parser);
+			mutable = true;
+		}
+
+		Type *type = parseType(parser);
+		if (type) {
+			FieldDecl *decl = createFieldDecl(type, mutable);
+			decl->name = name;
 			return decl;
 		}
 	}
@@ -191,16 +198,22 @@ ParameterSection *parseParameterSection(Parser *parser) {
 		return param;
 	}
 	else {
-		bool mutable = false;
-		if (checkTokenTypeAndContent(parser, IDENTIFIER, MUT_KEYWORD, 0)) {
-			consumeToken(parser);
-			mutable = true;
-		}
+		if (checkTokenType(parser, IDENTIFIER, 0)) {
+			char *name = consumeToken(parser)->content;
+			
+			if (checkTokenTypeAndContent(parser, OPERATOR, ":", 0)) {
+				consumeToken(parser);
+			}
+			// else oh shit
 
-		Type *type = parseType(parser);
-		if (type) {
-			if (checkTokenType(parser, IDENTIFIER, 0)) {
-				char *name = consumeToken(parser)->content;
+			bool mutable = false;
+			if (checkTokenTypeAndContent(parser, IDENTIFIER, MUT_KEYWORD, 0)) {
+				consumeToken(parser);
+				mutable = true;
+			}
+
+			Type *type = parseType(parser);
+			if (type) {
 				ParameterSection *paramSec = createParameterSection(type, mutable);
 				paramSec->name = name;
 				return paramSec;
