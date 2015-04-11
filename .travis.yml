@@ -4,14 +4,6 @@ compiler:
   - gcc
   - clang
 
-install:
-  - sudo sh -c "echo 'deb http://llvm.org/apt/precise/ llvm-toolchain-precise-3.5 main' >> /etc/apt/sources.list"
-  - sudo sh -c "echo 'deb http://ppa.launchpad.net/ubuntu-toolchain-r/test/ubuntu precise main' >> /etc/apt/sources.list"
-  - wget -O - http://llvm.org/apt/llvm-snapshot.gpg.key | sudo apt-key add -
-  - sudo apt-get --force-yes update
-  - sudo apt-get --force-yes install llvm-3.5 llvm-3.5-dev llvm-3.5-runtime libllvm3.5 libedit2 libedit-dev
-  - sudo apt-get --force-yes install llvm
-
 script: make
 
 notifications:
