@@ -356,14 +356,14 @@ void emitUseStatement(CodeGenerator *self, UseStatement *use) {
 	temp[size - 2] = '\0';
 
 	if(strstr(temp, "../")) {
-		char *newFileName = NULL;
+		char *newFileName;
 		int ctr = 0;
 		int i;
 		for(i = 3; i < strlen(temp); i++) {
 			newFileName[ctr] = temp[i];
 			ctr++;
 		}
-		newFileName = removeExtension(newFileName);
+		removeExtension(newFileName);
 		emitCode(self, "#include \"../_gen_%s.h\"" CC_NEWLINE, newFileName);
 	} 
 	else {
