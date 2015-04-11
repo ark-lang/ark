@@ -15,10 +15,10 @@ char *BOILERPLATE =
 "typedef unsigned int u32;" CC_NEWLINE
 "typedef unsigned short u16;" CC_NEWLINE
 "typedef unsigned char u8;" CC_NEWLINE
-"typedef long long s64;" CC_NEWLINE
-"typedef int s32;" CC_NEWLINE
-"typedef short s16;" CC_NEWLINE
-"typedef char s8;" CC_NEWLINE
+"typedef long long i64;" CC_NEWLINE
+"typedef int i32;" CC_NEWLINE
+"typedef short i16;" CC_NEWLINE
+"typedef char i8;" CC_NEWLINE
 "typedef float f32;" CC_NEWLINE
 "typedef double f64;" CC_NEWLINE CC_NEWLINE
 ;

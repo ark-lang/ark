@@ -20,7 +20,7 @@ int main(int argc, char** argv) {
 	double secondsTaken = ((double) timer) / CLOCKS_PER_SEC;
 	double msTaken = secondsTaken * 1000;
 
-	if (alloyc && alloyc->flag == 0) {
+	if (alloyc) {
 		primaryMessage("Finished in %.6f/s (%.0f/ms)", secondsTaken, msTaken);
 	}
 	
