@@ -918,6 +918,30 @@ Expression *parsePrimaryExpression(Parser *parser) {
 		}
 	}
 
+	if (checkTokenType(parser, IDENTIFIER, 0) 
+		&& checkTokenTypeAndContent(parser, SEPARATOR, ".", 1)) {
+		Vector *members = createVector(VECTOR_EXPONENTIAL);
+		while (true) {
+			if (checkTokenType(parser, IDENTIFIER, 0)) {
+				char *iden = consumeToken(parser)->content;
+				printf("EATING %s\n", iden);
+				pushBackItem(members, iden);
+				if (checkTokenTypeAndContent(parser, SEPARATOR, ".", 0)) {
+					consumeToken(parser);
+				}
+				else {
+					break;
+				}
+			}
+
+			for (int i = 0; i < members->size; i++) {
+				printf("%s\n", getVectorItem(members, i));
+			}
+
+			
+		}
+	}
+
 	Type *type = parseType(parser);
 	if (type) {
 		Expression *expr = createExpression();
