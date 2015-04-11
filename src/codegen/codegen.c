@@ -349,7 +349,6 @@ void emitLeaveStat(CodeGenerator *self, LeaveStat *leave) {
 }
 
 void emitUseStatement(CodeGenerator *self, UseStatement *use) {
-	// substring
 	char *temp = removeExtension(use->file);
 	size_t sz = strlen(temp);
 	if(strstr(temp, "../")) {

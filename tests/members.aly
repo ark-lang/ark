@@ -1,0 +1,8 @@
+struct Cat {
+	x: int;
+}
+
+fn main(): int {
+	^Cat c;
+	c.x = 10;
+}

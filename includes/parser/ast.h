@@ -299,6 +299,10 @@ typedef struct {
 	Expression *expr;
 } ReturnStat;
 
+typedef struct {
+	Vector *members;
+} MemberAccess;
+
 /**
  * Node for an assignment
  */
