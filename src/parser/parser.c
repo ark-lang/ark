@@ -515,9 +515,8 @@ IncDecStat *parseIncDecStat(Parser *parser) {
 }
 
 Assignment *parseAssignment(Parser *parser) {
-	if (checkTokenType(parser, IDENTIFIER, 0) && checkTokenTypeAndContent(parser, OPERATOR, "=", 1)) {
-		char *iden = consumeToken(parser)->content;
-
+	UnaryExpr *unary = parseUnaryExpr(parser);
+	if (unary) {
 		if (checkTokenTypeAndContent(parser, OPERATOR, "=", 0)) {
 			consumeToken(parser);
 
@@ -526,7 +525,7 @@ Assignment *parseAssignment(Parser *parser) {
 				if (checkTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
 					consumeToken(parser);
 				}
-				return createAssignment(iden, expr);
+				return createAssignment(unary, expr);
 			}
 		}
 	}
@@ -942,19 +941,19 @@ Expression *parsePrimaryExpression(Parser *parser) {
 		}
 	}
 
-	Type *type = parseType(parser);
-	if (type) {
-		Expression *expr = createExpression();
-		expr->type = type;
-		expr->exprType = TYPE_NODE;
-		return expr;
-	}
-
 	UnaryExpr *unary = parseUnaryExpr(parser);
 	if (unary) {
 		Expression *expr = createExpression();
 		expr->unary = unary;
 		expr->exprType = UNARY_EXPR_NODE;
+		return expr;
+	}
+
+	Type *type = parseType(parser);
+	if (type) {
+		Expression *expr = createExpression();
+		expr->type = type;
+		expr->exprType = TYPE_NODE;
 		return expr;
 	}
 
