@@ -9,7 +9,7 @@ SemanticAnalysis *createSemanticAnalysis(Vector *parseTree) {
 }
 
 void analyzeUnstructuredStatement(SemanticAnalysis *self, UnstructuredStatement *unstructured) {
-
+	
 }
 
 void analyzeStructuredStatement(SemanticAnalysis *self, StructuredStatement *unstructured) {
