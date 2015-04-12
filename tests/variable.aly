@@ -1,8 +1,0 @@
-int x = 10;
-
-fn main(): int {
-	int x = 5;
-	int y = 10;
-
-	return 0;
-}
