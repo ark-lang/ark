@@ -1,5 +1,0 @@
-fn add(a: int, b: int): void;
-
-fn main(): int {
-
-}
