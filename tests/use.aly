@@ -1,9 +1,0 @@
-use "expr"
-
-fn main(): int {
-	mut ^void x = alloc_memory(8);
-
-	free(x);
-
-	return 0;
-}

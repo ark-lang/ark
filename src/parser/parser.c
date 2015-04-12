@@ -905,10 +905,8 @@ Expression *parseBinaryOperator(Parser *parser, int precedence,
 }
 
 Expression *parsePrimaryExpression(Parser *parser) {
-	Call *call = NULL;
-
-	if(checkTokenType(parser, IDENTIFIER, 0) && (checkTokenTypeAndContent(parser, SEPARATOR, "(", 1) || checkTokenTypeAndContent(parser, SEPARATOR, ".", 1))) {
-		call = parseCall(parser);
+	if(checkTokenType(parser, IDENTIFIER, 0) && (checkTokenTypeAndContent(parser, SEPARATOR, "(", 1))) {
+		Call *call = parseCall(parser);
 		if (call) {
 			Expression *expr = createExpression();
 			expr->call = call;
@@ -923,7 +921,6 @@ Expression *parsePrimaryExpression(Parser *parser) {
 		while (true) {
 			if (checkTokenType(parser, IDENTIFIER, 0)) {
 				char *iden = consumeToken(parser)->content;
-				printf("EATING %s\n", iden);
 				pushBackItem(members, iden);
 				if (checkTokenTypeAndContent(parser, SEPARATOR, ".", 0)) {
 					consumeToken(parser);
@@ -936,8 +933,6 @@ Expression *parsePrimaryExpression(Parser *parser) {
 			for (int i = 0; i < members->size; i++) {
 				printf("%s\n", getVectorItem(members, i));
 			}
-
-			
 		}
 	}
 

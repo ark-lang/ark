@@ -1,5 +1,0 @@
-mut int a = 10;
-
-fn main(): int {
-	a = 21;
-}
