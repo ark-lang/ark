@@ -3,7 +3,7 @@
  * the amount of characters it printed,
  * or a negative value if it failed.
  */
-fn printf(str format, _): int;
+fn printf(format: str, _): int;
 
 /**
  * Will print the given string, and then
@@ -11,7 +11,7 @@ fn printf(str format, _): int;
  * amount of characters it printed, or a negative
  * value if it failed.
  */
-fn println(str format, _): int {
+fn println(format: str, _): int {
 	mut va_list arg;
 	va_start(arg, format);
 	mut int x = printf(format, arg);
@@ -23,7 +23,7 @@ fn println(str format, _): int {
 /**
  * See `printf`.
  */
-fn print(str format, _): int {
+fn print(format: str, _): int {
 	mut va_list arg;
 	va_start(arg, format);
 	mut int x = printf(format, arg);

@@ -1,3 +1,0 @@
-fn main(): int {
-	mut ^int x = 5;
-}
