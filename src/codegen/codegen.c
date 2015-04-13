@@ -288,8 +288,8 @@ void emitMemberExpr(CodeGenerator *self, MemberExpr *mem) {
 }
 
 void emitAssignment(CodeGenerator *self, Assignment *assign) {
-	emitMemberExpr(self, assign->memberExpr);
-	emitCode(self, " = ");
+	// emitMemberExpr(self, assign->memberExpr);
+	emitCode(self, "%s = ", assign->iden);
 	emitExpression(self, assign->expr);
 	emitCode(self, ";" CC_NEWLINE);
 }
