@@ -486,7 +486,6 @@ IncDecStat *parseIncDecStat(Parser *parser) {
 MemberAccess *parseMemberAccess(Parser *parser) {
 	if (checkTokenType(parser, IDENTIFIER, 0)) {
 		char *iden = consumeToken(parser)->content;
-
 		MemberExpr *mem = parseMemberExpr(parser);
 		if (mem) {
 			MemberAccess *access = createMemberAccess();
