@@ -195,17 +195,33 @@ void emitFunctionDecl(CodeGenerator *self, FunctionDecl *decl) {
 	self->writeState = WRITE_HEADER_STATE;
 	emitType(self, decl->signature->type);
 	emitCode(self, " %s(", decl->signature->name);
+	if (decl->signature->owner && decl->signature->ownerArg) {
+		// this should work?
+		emitCode(self, "%s *%s", decl->signature->owner, decl->signature->ownerArg);
+		if (decl->signature->parameters->paramList->size > 0) {
+			emitCode(self, ",");
+		}
+	}
 	emitParameters(self, decl->signature->parameters);
 	if (decl->signature->parameters->variadic) {
 		emitCode(self, ", ...");
 	}
 	emitCode(self, ");" CC_NEWLINE);
 
+	// write to the source!
+
 	self->writeState = WRITE_SOURCE_STATE;
 	if (decl->body) {
 		// definition
 		emitType(self, decl->signature->type);
 		emitCode(self, " %s(", decl->signature->name);
+		if (decl->signature->owner && decl->signature->ownerArg) {
+			// this should work?
+			emitCode(self, "%s *%s", decl->signature->owner, decl->signature->ownerArg);
+			if (decl->signature->parameters->paramList->size > 0) {
+				emitCode(self, ",");
+			}
+		}
 		emitParameters(self, decl->signature->parameters);
 		if (decl->signature->parameters->variadic) {
 			emitCode(self, ", ...");
@@ -265,6 +281,13 @@ void emitMemberExpr(CodeGenerator *self, MemberExpr *mem) {
 		case IDENTIFIER: emitCode(self, "%s", mem->identifier); break;
 		case MEMBER_ACCESS_NODE: printf("todo\n"); break;
 	}	
+}
+
+void emitImpl(CodeGenerator *self, Impl *impl) {
+	for (int i = 0; i < impl->funcs->size; i++) {
+		FunctionDecl *func = getVectorItem(impl->funcs, i);
+		emitFunctionDecl(self, func);
+	}
 }
 
 void emitAssignment(CodeGenerator *self, Assignment *assign) {
@@ -366,6 +389,7 @@ void emitUnstructuredStat(CodeGenerator *self, UnstructuredStatement *stmt) {
 		case USE_STATEMENT_NODE: emitUseStatement(self, stmt->use); break;
 		case LEAVE_STAT_NODE: emitLeaveStat(self, stmt->leave); break;
 		case ASSIGNMENT_NODE: emitAssignment(self, stmt->assignment); break;
+		case IMPL_NODE: emitImpl(self, stmt->impl); break;
 		case POINTER_FREE_NODE: 
 			emitCode(self, "free(%s);" CC_NEWLINE, stmt->pointerFree->name);
 			break;
