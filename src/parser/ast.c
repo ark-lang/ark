@@ -6,6 +6,14 @@ UseStatement *createUseStatement(char *file) {
 	return use;
 }
 
+MemberAccess *createMemberAccess() {
+	return safeMalloc(sizeof(MemberAccess));
+}
+
+MemberExpr *createMemberExpr() {
+	return safeMalloc(sizeof(MemberExpr));
+}
+
 IdentifierList *createIdentifierList() {
 	IdentifierList *iden = safeMalloc(sizeof(*iden));
 	iden->values = createVector(VECTOR_EXPONENTIAL);
@@ -36,12 +44,6 @@ ArraySubExpr *createArraySubExpr(Expression *lhand) {
 	ArraySubExpr *expr = safeMalloc(sizeof(*expr));
 	expr->lhand = lhand;
 	return expr;
-}
-
-MemberAccessExpr *createMemberAccessExpr(Vector *members) {
-	MemberAccessExpr *mem = safeMalloc(sizeof(*mem));
-	mem->members = members;
-	return mem;
 }
 
 Call *createCall(Vector *callee) {
@@ -184,9 +186,9 @@ LeaveStat *createLeaveStat() {
 	return safeMalloc(sizeof(LeaveStat));
 }
 
-Assignment *createAssignment(UnaryExpr *unary, Expression *rhand) {
+Assignment *createAssignment(MemberExpr *memberExpr, Expression *rhand) {
 	Assignment *assign = safeMalloc(sizeof(*assign));
-	assign->unary = unary;
+	assign->memberExpr = memberExpr;
 	assign->expr = rhand;
 	return assign;
 }
@@ -246,7 +248,7 @@ void cleanupAST(Vector *nodes) {
 		case LITERAL_NODE: destroyLiteral(node->data); break;
 		case UNARY_EXPR_NODE: destroyUnaryExpr(node->data); break;
 		case ARRAY_SUB_EXPR_NODE: destroyArraySubExpr(node->data); break;
-		case MEMBER_ACCESS_NODE: destroyMemberAccessExpr(node->data); break;
+		case MEMBER_ACCESS_NODE: destroyMemberAccess(node->data); break;
 		case EXPR_NODE: destroyExpression(node->data); break;
 		case TYPE_NAME_NODE: destroyTypeName(node->data); break;
 		case ARRAY_TYPE_NODE: destroyArrayType(node->data); break;
@@ -315,12 +317,6 @@ void destroyArraySubExpr(ArraySubExpr *expr) {
 	destroyExpression(expr->lhand);
 	destroyExpression(expr->start);
 	destroyExpression(expr->end);
-	free(expr);
-}
-
-void destroyMemberAccessExpr(MemberAccessExpr *expr) {
-	if (!expr) return;
-	destroyVector(expr->members);
 	free(expr);
 }
 
@@ -482,8 +478,24 @@ void destroyLeaveStat(LeaveStat *stmt) {
 	free(stmt);
 }
 
+void destroyMemberAccess(MemberAccess *member) {
+	destroyMemberExpr(member->expr);
+	free(member);
+}
+
+void destroyMemberExpr(MemberExpr *member) {
+	switch (member->type) {
+		case FUNCTION_CALL_NODE: destroyCall(member->call); break;
+		case ARRAY_TYPE_NODE: destroyArrayType(member->array); break;
+		case UNARY_EXPR_NODE: destroyUnaryExpr(member->unary);
+		case MEMBER_ACCESS_NODE: destroyMemberAccess(member->member); break;
+	}
+	free(member);
+}
+
 void destroyAssignment(Assignment *assign) {
 	if (!assign) return;
+	destroyMemberExpr(assign->memberExpr);
 	destroyExpression(assign->expr);
 	free(assign);
 }

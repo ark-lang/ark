@@ -115,6 +115,22 @@ MatchClause *parseMatchClause(Parser *parser);
 
 MatchStat *parseMatchStat(Parser *parser);
 
+ContinueStat *parseContinueStat(Parser *parser);
+
+BreakStat *parseBreakStat(Parser *parser);
+
+ReturnStat *parseReturnStat(Parser *parser);
+
+LeaveStat *parseLeaveStat(Parser *parser);
+
+IncDecStat *parseIncDecStat(Parser *parser);
+
+MemberAccess *parseMemberAccess(Parser *parser);
+
+MemberExpr *parseMemberExpr(Parser *parser);
+
+Assignment *parseAssignment(Parser *parser);
+
 Statement *parseStatement(Parser *parser);
 
 Block *parseBlock(Parser *parser);

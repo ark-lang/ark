@@ -7,6 +7,7 @@
 /** forward declarations */
 typedef struct s_Expression Expression;
 typedef struct s_Type Type;
+typedef struct s_MemberExpr MemberExpr;
 typedef struct {} ContinueStat;
 typedef struct {} BreakStat;
 
@@ -114,14 +115,6 @@ typedef struct {
 } ArraySubExpr;
 
 /**
- * A node representing member access using the dot operator.
- * i.e someStruct.x
- */
-typedef struct {
-	Vector *members;
-} MemberAccessExpr;
-
-/**
  * A node representing a function call
  */
 typedef struct {
@@ -155,6 +148,20 @@ struct s_Expression {
 	BinaryExpr *binary;
 	UnaryExpr *unary;
 	int exprType;
+};
+
+typedef struct {
+	char *iden;
+	MemberExpr *expr;
+} MemberAccess;
+
+struct s_MemberExpr {
+	Call *call;
+	ArrayType *array;
+	UnaryExpr *unary;
+	char *identifier;
+	MemberAccess *member;
+	int type;
 };
 
 /**
@@ -302,7 +309,7 @@ typedef struct {
  * Node for an assignment
  */
 typedef struct {
-	UnaryExpr *unary;
+	MemberExpr *memberExpr;
 	Expression *expr;
 } Assignment;
 
@@ -403,11 +410,15 @@ typedef struct {
 
 Node *createNode(void *data, NodeType type);
 
+MemberAccess *createMemberAccess();
+
 UseStatement *createUseStatement(char *file);
 
 IdentifierList *createIdentifierList();
 
 Literal *createLiteral(char *value, int type);
+
+MemberExpr *createMemberExpr();
 
 TypeLit *createTypeLit();
 
@@ -416,8 +427,6 @@ BaseType *createBaseType();
 UnaryExpr *createUnaryExpr();
 
 ArraySubExpr *createArraySubExpr(Expression *lhand);
-
-MemberAccessExpr *createMemberAccessExpr(Vector *idens);
 
 Call *createCall(Vector *callee);
 
@@ -465,7 +474,7 @@ ContinueStat *createContinueStat();
 
 LeaveStat *createLeaveStat();
 
-Assignment *createAssignment(UnaryExpr *unary, Expression *rhand);
+Assignment *createAssignment(MemberExpr *memberExpr, Expression *rhand);
 
 UnstructuredStatement *createUnstructuredStatement();
 
@@ -491,6 +500,8 @@ void cleanupAST(Vector *nodes);
 
 void destroyNode(Node *node);
 
+void destroyMemberAccess(MemberAccess *member);
+
 void destroyUseStatement(UseStatement *use);
 
 void destroyIdentifierList(IdentifierList *list);
@@ -503,8 +514,6 @@ void destroyUnaryExpr(UnaryExpr *rhand);
 
 void destroyArraySubExpr(ArraySubExpr *rhand);
 
-void destroyMemberAccessExpr(MemberAccessExpr *rhand);
-
 void destroyCall(Call *call);
 
 void destroyExpression(Expression *rhand);
@@ -516,6 +525,8 @@ void destroyTypeName(TypeName *typeName);
 void destroyArrayType(ArrayType *arrayType);
 
 void destroyPointerType(PointerType *pointerType);
+
+void destroyMemberExpr(MemberExpr *member);
 
 void destroyFieldDecl(FieldDecl *decl);
 
