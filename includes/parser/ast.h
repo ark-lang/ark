@@ -247,6 +247,8 @@ typedef struct {
  */
 typedef struct {
 	char *name;
+	char *owner;
+	char *ownerArg;
 	Parameters *parameters;
 	bool mutable;
 	Type *type;
@@ -346,6 +348,7 @@ typedef struct {
 	IncDecStat *incDec;
 	Assignment *assignment;
 	Call *call;
+	Impl *impl;
 	PointerFree *pointerFree;
 	UseStatement *use;
 	int type;

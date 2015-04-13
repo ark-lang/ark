@@ -534,7 +534,7 @@ MemberExpr *parseMemberExpr(Parser *parser) {
 	return false;
 }
 
-Vector *parseImplBlock(Parser *parser) {
+Vector *parseImplBlock(Parser *parser, char *name, char *as) {
 	if (checkTokenTypeAndContent(parser, SEPARATOR, "{", 0)) {
 		consumeToken(parser);
 
@@ -548,6 +548,8 @@ Vector *parseImplBlock(Parser *parser) {
 
 			FunctionDecl *func = parseFunctionDecl(parser);
 			if (func) {
+				func->signature->owner = name;
+				func->signature->ownerArg = as;
 				pushBackItem(v, func);
 			}
 		}
@@ -576,7 +578,7 @@ Impl *parseImpl(Parser *parser) {
 			as = consumeToken(parser)->content;
 		}
 
-		Vector *implBlock = parseImplBlock(parser);
+		Vector *implBlock = parseImplBlock(parser, name, as);
 		if (implBlock) {
 			Impl *impl = createImpl(name, as);
 			impl->funcs = implBlock;
@@ -642,6 +644,14 @@ UnstructuredStatement *parseUnstructuredStatement(Parser *parser) {
 		UnstructuredStatement *stmt = createUnstructuredStatement();
 		stmt->use = use;
 		stmt->type = USE_STATEMENT_NODE;
+		return stmt;
+	}
+
+	Impl *impl = parseImpl(parser);
+	if (impl) {
+		UnstructuredStatement *stmt = createUnstructuredStatement();
+		stmt->impl = impl;
+		stmt->type = IMPL_NODE;
 		return stmt;
 	}
 

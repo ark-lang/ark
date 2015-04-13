@@ -508,6 +508,7 @@ void destroyUnstructuredStatement(UnstructuredStatement *stmt) {
 		case USE_STATEMENT_NODE: destroyUseStatement(stmt->use); break;
 		case LEAVE_STAT_NODE: destroyLeaveStat(stmt->leave); break;
 		case FUNCTION_CALL_NODE: destroyCall(stmt->call); break;
+		case IMPL_NODE: destroyImpl(stmt->impl); break;
 	}
 	free(stmt);
 }
