@@ -6,6 +6,14 @@ UseStatement *createUseStatement(char *file) {
 	return use;
 }
 
+Impl *createImpl(char *name, char *as) {
+	Impl *impl = safeMalloc(sizeof(*impl));
+	impl->name = name;
+	impl->as = as;
+	impl->funcs = createVector(VECTOR_EXPONENTIAL);
+	return impl;
+}
+
 MemberAccess *createMemberAccess() {
 	return safeMalloc(sizeof(MemberAccess));
 }
@@ -123,14 +131,6 @@ Parameters *createParameters() {
 	params->paramList = createVector(VECTOR_EXPONENTIAL);
 	params->variadic = false;
 	return params;
-}
-
-Receiver *createReceiver(Type *type, char *name, bool mutable) {
-	Receiver *receiver = safeMalloc(sizeof(*receiver));
-	receiver->type = type;
-	receiver->name = name;
-	receiver->mutable = mutable;
-	return receiver;
 }
 
 FunctionSignature *createFunctionSignature(char *name, Parameters *params,
@@ -260,7 +260,7 @@ void cleanupAST(Vector *nodes) {
 		case BLOCK_NODE: destroyBlock(node->data); break;
 		case PARAMETER_SECTION_NODE: destroyParameterSection(node->data); break;
 		case PARAMETERS_NODE: destroyParameters(node->data); break;
-		case RECEIVER_NODE: destroyReceiver(node->data); break;
+		case IMPL_NODE: destroyImpl(node->data); break;
 		case FUNCTION_SIGNATURE_NODE: destroyFunctionSignature(node->data); break;
 		case FUNCTION_DECL_NODE: destroyFunctionDecl(node->data); break;
 		case VARIABLE_DECL_NODE: destroyVariableDecl(node->data); break;
@@ -293,6 +293,12 @@ void destroyIdentifierList(IdentifierList *list) {
 	if (!list) return;
 	destroyVector(list->values);
 	free(list);
+}
+
+void destroyImpl(Impl *impl) {
+	if (!impl) return;
+	destroyVector(impl->funcs);
+	free(impl);
 }
 
 void destroyBaseType(BaseType *type) {
@@ -413,15 +419,8 @@ void destroyParameters(Parameters *params) {
 	free(params);
 }
 
-void destroyReceiver(Receiver *receiver) {
-	if (!receiver) return;
-	destroyType(receiver->type);
-	free(receiver);
-}
-
 void destroyFunctionSignature(FunctionSignature *func) {
 	if (!func) return;
-	destroyReceiver(func->receiver);
 	destroyParameters(func->parameters);
 	free(func);
 }

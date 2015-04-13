@@ -101,8 +101,6 @@ ParameterSection *parseParameterSection(Parser *parser);
 
 Parameters *parseParameters(Parser *parser);
 
-Receiver *parseReceiver(Parser *parser);
-
 FunctionSignature *parseFunctionSignature(Parser *parser);
 
 ElseStat *parseElseStat(Parser *parser);
@@ -128,6 +126,10 @@ IncDecStat *parseIncDecStat(Parser *parser);
 MemberAccess *parseMemberAccess(Parser *parser);
 
 MemberExpr *parseMemberExpr(Parser *parser);
+
+Vector *parseImplBlock(Parser *parser);
+
+Impl *parseImpl(Parser *parser);
 
 Assignment *parseAssignment(Parser *parser);
 

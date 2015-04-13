@@ -8,17 +8,30 @@
  * Different types of token
  */
 typedef enum {
-	END_OF_FILE, IDENTIFIER, NUMBER,
-	OPERATOR, SEPARATOR, ERRORNEOUS,
-	STRING, CHARACTER, UNKNOWN, SPECIAL_CHAR,
-	SKIP_TOKEN
+	IDENTIFIER,			// A | a ... z | Z | 0 ... 9 | _
+	OPERATOR,			// todo
+	SEPARATOR,			// todo
+	HEX,				// 0x | A | B | C | D | E | F | 0 ... 9
+	NUMBER,				// digit { digit } "." { digit }
+	ERRORNEOUS,			// error'd token
+	STRING,
+	CHARACTER,
+	UNKNOWN,			// we dont know it durr
+	END_OF_FILE, 		// EOF
 } TokenType;
 
 // this is just for debugging
 static const char* TOKEN_NAMES[] = {
-	"END_OF_FILE", "IDENTIFIER", "NUMBER",
-	"OPERATOR", "SEPARATOR", "ERRORNEOUS",
-	"STRING", "CHARACTER", "UNKNOWN"
+	"IDENTIFIER",
+	"OPERATOR",
+	"SEPARATOR",
+	"HEX",
+	"NUMBER",
+	"ERRORNEOUS",
+	"STRING",
+	"CHARACTER",
+	"UNKNOWN",
+	"END_OF_FILE",
 };
 
 /**
