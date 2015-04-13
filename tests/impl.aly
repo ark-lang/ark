@@ -1,0 +1,16 @@
+struct Cat {
+	cat_age: int;
+	cat_name: str;
+}
+
+impl Cat as self {
+	fn swag(fuck: int);
+
+	fn say(say: str) {
+		println("%s (age %d): %s", self.cat_name, self.cat_age, say);
+	}
+}
+
+fn main(): int {
+	cat: Cat;
+}
