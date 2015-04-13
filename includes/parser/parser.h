@@ -127,7 +127,7 @@ MemberAccess *parseMemberAccess(Parser *parser);
 
 MemberExpr *parseMemberExpr(Parser *parser);
 
-Vector *parseImplBlock(Parser *parser);
+Vector *parseImplBlock(Parser *parser, char *name, char *as);
 
 Impl *parseImpl(Parser *parser);
 

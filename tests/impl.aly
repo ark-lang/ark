@@ -3,6 +3,10 @@ struct Cat {
 	cat_name: str;
 }
 
+impl Cat {
+	fn yooo(fuck: f32);
+}
+
 impl Cat as self {
 	fn swag(fuck: int);
 
