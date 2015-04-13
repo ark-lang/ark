@@ -54,7 +54,7 @@ The grammar pretty much maps straight onto the parsers source.
 	VarDecl = [ "mut" ] Type identifier [ "=" Expression ] ";";
 
 	UnaryExpr = unaryOp PrimaryExpr;
-	MemberAccess = [ identifier "." ] identifier
+	MemberAccess = { [ identifier "." ] } identifier
 
 	PrimaryExpr =
 		Type
