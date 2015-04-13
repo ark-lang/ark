@@ -277,8 +277,18 @@ void emitBlock(CodeGenerator *self, Block *block) {
 	}
 }
 
+void emitMemberExpr(CodeGenerator *self, MemberExpr *mem) {
+	switch (mem->type) {
+		case FUNCTION_CALL_NODE: emitFunctionCall(self, mem->call); break;
+		case ARRAY_TYPE_NODE: printf("todo\n"); break;
+		case UNARY_EXPR_NODE: emitUnaryExpr(self, mem->unary); break;
+		case IDENTIFIER: emitCode(self, "%s", mem->identifier); break;
+		case MEMBER_ACCESS_NODE: printf("todo\n"); break;
+	}	
+}
+
 void emitAssignment(CodeGenerator *self, Assignment *assign) {
-	emitUnaryExpr(self, assign->unary);
+	emitMemberExpr(self, assign->memberExpr);
 	emitCode(self, " = ");
 	emitExpression(self, assign->expr);
 	emitCode(self, ";" CC_NEWLINE);
