@@ -3,8 +3,14 @@ struct Cat {
 	cat_name: str;
 }
 
-impl Cat {
-	fn yooo(fuck: f32);
+// temporary println function
+fn println(format: str, _): int {
+	mut arg: va_list;
+	va_start(arg, format);
+	mut x: int = printf(format, arg);
+	va_end(arg);
+	x = x + printf("\n");
+	return x;
 }
 
 impl Cat as self {
