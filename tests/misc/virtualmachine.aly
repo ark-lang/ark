@@ -10,14 +10,14 @@
 **/
 
 struct VirtualMachine {
-    int instruction_num;
-    int first_register;
-    int second_register;
-    int third_register;
-    int imm_value;
-    bool running;
-    int pc;
-    int [4]registers;
+    instruction_num: int;
+    first_register: int;
+    second_register: int;
+    third_register: int;
+    imm_value: int; 
+    running: bool;
+    pc: int;
+    registers: int[4];
 }
 
 enum _ {
@@ -27,16 +27,16 @@ enum _ {
     DIV,
 }
 
-fn (^VirtualMachine vm) fetch(int []prog): int {
+fn (vm: ^VirtualMachine) fetch(prog: int[]): int {
     vm.pc = vm.pc + 1;
     return prog[vm.pc];
 }
 
-fn (^VirtualMachine vm) goto(): void {
+fn (vm: ^VirtualMachine) goto(): void {
     vm.pc = vm.imm_value;
 }
 
-fn (^VirtualMachine vm) eval(): void {
+fn (vm: ^VirtualMachine) eval(): void {
     match vm.instruction_num {
         0 -> vm.stop();
         1 -> vm.set();
@@ -51,7 +51,7 @@ fn (^VirtualMachine vm) eval(): void {
     }
 }
 
-fn (^VirtualMachine vm) decode(int instruction): void {
+fn (vm: ^VirtualMachine) decode(instruction: int): void {
     vm.instruction_num = (instruction & 0xF000) >> 12;
     vm.first_register = (instruction & 0xF00) >> 8;
     vm.second_register = (instruction & 0xF0) >> 4;
@@ -59,16 +59,16 @@ fn (^VirtualMachine vm) decode(int instruction): void {
     vm.imm_value = instruction & 0xFF;
 }
 
-fn (^VirtualMachine vm) set(): void {
-    int temp = vm.registers[vm.first_register];
+fn (vm: ^VirtualMachine) set(): void {
+    temp: int = vm.registers[vm.first_register];
     vm.registers[vm.first_register] = vm.imm_value;
 }
 
-fn (^VirtualMachine vm) stop(): void {
+fn (vm: ^VirtualMachine) stop(): void {
     vm.running = false;
 }
 
-fn (^VirtualMachine vm) arithmetic(int type): void {
+fn (vm: ^VirtualMachine) arithmetic(type: int): void {
     match type {
         ADD {
             vm.registers[vm.first_register] = vm.registers[vm.second_register] + vm.registers[vm.third_register];
@@ -85,16 +85,16 @@ fn (^VirtualMachine vm) arithmetic(int type): void {
     }
 }
 
-fn (^VirtualMachine vm) start(int prog[]): void {
+fn (vm: ^VirtualMachine) start(prog: int[]): void {
     for vm.running {
-        int instr = vm.fetch(prog);
+        instr: int = vm.fetch(prog);
         vm.decode(instr);
         vm.eval();
     }
 }
 
 fn main(): int {
-    ^VirtualMachine vm = {
+    vm: ^VirtualMachine = {
         instruction_num = 0,
         first_register = 0,
         second_register = 0,
@@ -104,7 +104,7 @@ fn main(): int {
         registers = [ 0, 0, 0, 0 ],
     };
 
-    int []prog = [
+    prog: int[] = [
         0x10C8,
         0x7000,
         0x11f4,
