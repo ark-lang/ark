@@ -1,6 +1,9 @@
 # Alloy Reference
 This document is an informal specification for Alloy, a systems programming language. 
 
+# IMPORTANT
+**IM WRITING THIS IN FULL CAPITALS TO GET YOUR ATTENTION, WE'VE ALSO BOLDED IT!!!! SO IT'S IMPORTANT! WE'VE MADE SOME BIG CHANGES TO THE LANGUAGE AND ARE YET TO UPDATE THE REFERENCE AND RELEVANT GRAMMAR, SO PLEASE BARE WITH US TILL WE FIX THESE CHANGES!**
+
 ## Guiding Principles
 Alloy is a systems programming language, intended as an alternative to C. It's main purpose is to modernize C, without deviating from C's original goal of simplicity. Alloy is written in C, the frontend and backend is all hand-written, i.e no parser or lexer libraries, and no LLVM, etc.
 
@@ -118,8 +121,8 @@ Struct types are similar to C structs. Each member in a struct represents a vari
 	FieldDecl = [ "mut" ] Type IdentifierList .
 	
 	struct Cat {
-		string name;
-		int age;
+		name: str;
+		age: int;
 	}
 
 Structure members cannot be initialized, this is for semantics.
@@ -127,7 +130,7 @@ Structure members cannot be initialized, this is for semantics.
 ## Pointer Types
 Pointers are similar to C, however pointer arithmetic is not permitted. They are also denoted with the caret symbol '^', instead of an asterisks '*'.
 
-	int ^x;
+	^x: int;
 	
 ## Blocks
 There are two types of blocks, a multi-block, denoted with two curly braces `{}`. And a single-block, denoted with an arrow `->`. A multi-block contains multiple statements, and a single-block can only contain a single statement.
@@ -152,27 +155,25 @@ Functions contain declarations and statements. They can be recursive. Functions 
 	ParameterList = ParameterSection { "," ParameterSection } .
 	ParameterSection = [ "mut" ] Type IdentifierList .
 
-	fn add(int a, int b): int {
+	fn add(a: int, b: int): int {
 		return a + b;
 	}
 	
 	// simplified to
-	fn add(int a, int b): int -> return a + b;
+	fn add(a: int, b: int): int -> return a + b;
 	
 ## Methods
 A method is a function bound to a specific structure.
 
 	struct Point {
-		float x;
-		float y;
+		x: float;
+		y: float;
 	}
 	
-	fn (Point ^p) distance(float x): float {
-	
-	}
-	
-	fn (Point ^p) distance(): float {
-		return p.x * p.x + p.y * p.y;
+	impl Point as self {
+		fn distance(x: float): float {
+			return p.x * p.x + p.y * p.y;
+		}
 	}
 	
 Creates a method for the structure Point. It is worth noting that methods are not declared within their structure declaration. When the method is invoked, a method behaves like a function, in which the first argument is the receiver. However, in Alloy the receiver is bound to the method using the following notation:
