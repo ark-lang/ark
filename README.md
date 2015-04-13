@@ -16,6 +16,7 @@ Here are the list of things that need to be done in order for the first iteratio
 * [ ] Memory Model
 * [ ] Macro System (?)
 * [ ] Macro for whether a file is compiled on "use"
+* [x] Implementation of structs for owned functions, or methods.
 
 ## Status
 Alloy is still constantly being worked on. At the moment it compiles,
