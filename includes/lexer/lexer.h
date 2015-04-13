@@ -10,8 +10,6 @@
 #include "vector.h"
 #include "sourcefile.h"
 
-#define ASCII_CHARACTER_THRESHOLD 128
-
 /** Lexer stuff */
 typedef struct {
 	sds input;				// input to lex
@@ -289,14 +287,6 @@ static inline bool isExpressionOperator(char ch) {
  */
 static inline bool isSeparator(char ch) { 
 	return (strchr(" ;,.`@(){}[] ", ch) != 0); 
-}
-
-/**
- * @return if the character is a special character like the British symbol or alike 
- * @param ch character to check
- */
-static inline bool isSpecialChar(char ch) { 
-	return (int) ch >= ASCII_CHARACTER_THRESHOLD; 
 }
 
 /**

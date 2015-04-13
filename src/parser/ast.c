@@ -186,9 +186,9 @@ LeaveStat *createLeaveStat() {
 	return safeMalloc(sizeof(LeaveStat));
 }
 
-Assignment *createAssignment(MemberExpr *memberExpr, Expression *rhand) {
+Assignment *createAssignment(char *iden, Expression *rhand) {
 	Assignment *assign = safeMalloc(sizeof(*assign));
-	assign->memberExpr = memberExpr;
+	assign->iden = iden;
 	assign->expr = rhand;
 	return assign;
 }
@@ -495,7 +495,7 @@ void destroyMemberExpr(MemberExpr *member) {
 
 void destroyAssignment(Assignment *assign) {
 	if (!assign) return;
-	destroyMemberExpr(assign->memberExpr);
+	// destroyMemberExpr(assign->memberExpr);
 	destroyExpression(assign->expr);
 	free(assign);
 }

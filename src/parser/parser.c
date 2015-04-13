@@ -566,8 +566,8 @@ MemberExpr *parseMemberExpr(Parser *parser) {
 }
 
 Assignment *parseAssignment(Parser *parser) {
-	MemberExpr *memberExpr = parseMemberExpr(parser);
-	if (memberExpr) {
+	if (checkTokenType(parser, IDENTIFIER, 0) && checkTokenTypeAndContent(parser, OPERATOR, "=", 1)) {
+		char *iden = consumeToken(parser)->content;
 		if (checkTokenTypeAndContent(parser, OPERATOR, "=", 0)) {
 			consumeToken(parser);
 
@@ -576,7 +576,7 @@ Assignment *parseAssignment(Parser *parser) {
 				if (checkTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
 					consumeToken(parser);
 				}
-				return createAssignment(memberExpr, expr);
+				return createAssignment(iden, expr);
 			}
 		}
 	}
@@ -643,19 +643,19 @@ UnstructuredStatement *parseUnstructuredStatement(Parser *parser) {
 		return stmt;
 	}
 
-	Assignment *assign = parseAssignment(parser);
-	if (assign) {
-		UnstructuredStatement *stmt = createUnstructuredStatement();
-		stmt->assignment = assign;
-		stmt->type = ASSIGNMENT_NODE;
-		return stmt;
-	}
-
 	Declaration *decl = parseDeclaration(parser);
 	if (decl) {
 		UnstructuredStatement *stmt = createUnstructuredStatement();
 		stmt->decl = decl;
 		stmt->type = DECLARATION_NODE;
+		return stmt;
+	}
+
+	Assignment *assign = parseAssignment(parser);
+	if (assign) {
+		UnstructuredStatement *stmt = createUnstructuredStatement();
+		stmt->assignment = assign;
+		stmt->type = ASSIGNMENT_NODE;
 		return stmt;
 	}
 

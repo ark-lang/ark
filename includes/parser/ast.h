@@ -309,6 +309,7 @@ typedef struct {
  * Node for an assignment
  */
 typedef struct {
+	char *iden;
 	MemberExpr *memberExpr;
 	Expression *expr;
 } Assignment;
@@ -474,7 +475,7 @@ ContinueStat *createContinueStat();
 
 LeaveStat *createLeaveStat();
 
-Assignment *createAssignment(MemberExpr *memberExpr, Expression *rhand);
+Assignment *createAssignment(char *iden, Expression *rhand);
 
 UnstructuredStatement *createUnstructuredStatement();
 
