@@ -514,9 +514,60 @@ IncDecStat *parseIncDecStat(Parser *parser) {
 	return false;
 }
 
-Assignment *parseAssignment(Parser *parser) {
+MemberAccess *parseMemberAccess(Parser *parser) {
+	if (checkTokenType(parser, IDENTIFIER, 0)) {
+		char *iden = consumeToken(parser)->content;
+
+		MemberExpr *mem = parseMemberExpr(parser);
+		if (mem) {
+			MemberAccess *access = createMemberAccess();
+			access->iden = iden;
+			access->expr = mem;
+			return access;
+		}
+	}
+	return false;
+}
+
+MemberExpr *parseMemberExpr(Parser *parser) {
+	Call *call = parseCall(parser);
+	if (call) {
+		MemberExpr *expr = createMemberExpr();
+		expr->call = call;
+		expr->type = FUNCTION_CALL_NODE;
+		return expr;
+	}
+
+	ArrayType *arr = parseArrayType(parser);
+	if (arr) {
+		MemberExpr *expr = createMemberExpr();
+		expr->array = arr;
+		expr->type = ARRAY_TYPE_NODE;
+		return expr;
+	}
+
 	UnaryExpr *unary = parseUnaryExpr(parser);
 	if (unary) {
+		MemberExpr *expr = createMemberExpr();
+		expr->unary = unary;
+		expr->type = UNARY_EXPR_NODE;
+		return expr;
+	}
+
+	MemberAccess *mem = parseMemberAccess(parser);
+	if (mem) {
+		MemberExpr *expr = createMemberExpr();
+		expr->member = mem;
+		expr->type = MEMBER_ACCESS_NODE;
+		return expr;
+	}
+
+	return false;
+}
+
+Assignment *parseAssignment(Parser *parser) {
+	MemberExpr *memberExpr = parseMemberExpr(parser);
+	if (memberExpr) {
 		if (checkTokenTypeAndContent(parser, OPERATOR, "=", 0)) {
 			consumeToken(parser);
 
@@ -525,10 +576,11 @@ Assignment *parseAssignment(Parser *parser) {
 				if (checkTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
 					consumeToken(parser);
 				}
-				return createAssignment(unary, expr);
+				return createAssignment(memberExpr, expr);
 			}
 		}
 	}
+
 	return false;
 }
 
@@ -692,11 +744,20 @@ VariableDecl *parseVariableDecl(Parser *parser) {
 		mutable = true;
 	}
 
-	Type *type = parseType(parser);
-	if (type) {
-		if (checkTokenType(parser, IDENTIFIER, 0)) {
-			char *var_name = consumeToken(parser)->content;
-			Expression *rhand = NULL;
+	// int x = expr;
+
+	// x: int = expr;
+	if (checkTokenType(parser, IDENTIFIER, 0)) {
+		char *var_name = consumeToken(parser)->content;
+		Expression *rhand = NULL;
+
+		if (checkTokenTypeAndContent(parser, OPERATOR, ":", 0)) {
+			consumeToken(parser);
+			
+			Type *type = parseType(parser);
+			if (!type) {
+				errorMessage("NO TYPE!");
+			}
 
 			if (checkTokenTypeAndContent(parser, OPERATOR, "=", 0)) {
 				consumeToken(parser);
@@ -721,6 +782,8 @@ VariableDecl *parseVariableDecl(Parser *parser) {
 			}
 		}
 	}
+
+
 
 	return false;
 }
