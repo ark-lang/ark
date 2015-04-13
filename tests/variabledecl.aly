@@ -6,49 +6,4 @@ fn main(): int {
 	z : int = x + y;
 	a = z;
 	printf("%d %d %d\n", x, y, z);
-
-	// tuples
-	// arrays
 }
-
-/*
-
-	my_tuple : (int, i32) = (0, 1);
-	x : [int] = [ 0, 1, 2, 3, 4, 5 ];
-
-	x.y.a[0].add()
-
-	memberExpr 
-		call
-		array
-		unaryexpr
-		identifier
-
-	identifier . memberExpr
-}
-
-array {
-	if iden {
-		if [
-			parse expr
-			if ]
-	}
-}
-
-parseMemberExpr {
-	parseCall
-
-	parsearray
-
-	parseUnary
-
-	if (iden) consume return iden?
-
-	return false
-}
-
-if iden
-
-	if parseMemberExpr
-
- */
