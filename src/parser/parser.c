@@ -643,19 +643,19 @@ UnstructuredStatement *parseUnstructuredStatement(Parser *parser) {
 		return stmt;
 	}
 
-	Declaration *decl = parseDeclaration(parser);
-	if (decl) {
-		UnstructuredStatement *stmt = createUnstructuredStatement();
-		stmt->decl = decl;
-		stmt->type = DECLARATION_NODE;
-		return stmt;
-	}
-
 	Assignment *assign = parseAssignment(parser);
 	if (assign) {
 		UnstructuredStatement *stmt = createUnstructuredStatement();
 		stmt->assignment = assign;
 		stmt->type = ASSIGNMENT_NODE;
+		return stmt;
+	}
+
+	Declaration *decl = parseDeclaration(parser);
+	if (decl) {
+		UnstructuredStatement *stmt = createUnstructuredStatement();
+		stmt->decl = decl;
+		stmt->type = DECLARATION_NODE;
 		return stmt;
 	}
 
