@@ -12,9 +12,9 @@ fn printf(format: str, _): int;
  * value if it failed.
  */
 fn println(format: str, _): int {
-	mut va_list arg;
+	mut arg: va_list;
 	va_start(arg, format);
-	mut int x = printf(format, arg);
+	mut x: int = printf(format, arg);
 	va_end(arg);
 	x = x + printf("\n");
 	return x;
@@ -24,9 +24,9 @@ fn println(format: str, _): int {
  * See `printf`.
  */
 fn print(format: str, _): int {
-	mut va_list arg;
+	mut arg: va_list;
 	va_start(arg, format);
-	mut int x = printf(format, arg);
+	mut x: int = printf(format, arg);
 	va_end(arg);
 	return x;
 }
