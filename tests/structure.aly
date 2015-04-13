@@ -1,0 +1,10 @@
+struct Cat {
+	cat_name: str;
+	cat_age: int;
+}
+
+fn main(): int {
+	cat: Cat;
+	cat.cat_name = "Dave Fuck";
+	cat.cat_age = "123";
+}

@@ -264,36 +264,9 @@ Parameters *parseParameters(Parser *parser) {
 	return false;
 }
 
-Receiver *parseReceiver(Parser *parser) {
-	if (checkTokenTypeAndContent(parser, SEPARATOR, "(", 0)) {
-		consumeToken(parser);
-
-		bool mutable = false;
-		if (checkTokenTypeAndContent(parser, IDENTIFIER, MUT_KEYWORD, 0)) {
-			consumeToken(parser);
-			mutable = true;
-		}
-
-		Type *type = parseType(parser);
-		if (type) {
-			if (checkTokenType(parser, IDENTIFIER, 0)) {
-				char *name = consumeToken(parser)->content;
-				if (checkTokenTypeAndContent(parser, SEPARATOR, ")", 0)) {
-					consumeToken(parser);
-				}
-
-				return createReceiver(type, name, mutable);
-			}
-		}
-	}
-	return false;
-}
-
 FunctionSignature *parseFunctionSignature(Parser *parser) {
 	if (checkTokenTypeAndContent(parser, IDENTIFIER, FUNCTION_KEYWORD, 0)) {
 		consumeToken(parser);
-
-		Receiver *receiver = parseReceiver(parser);
 
 		if (checkTokenType(parser, IDENTIFIER, 0)) {
 			char *functionName = consumeToken(parser)->content;
@@ -312,9 +285,7 @@ FunctionSignature *parseFunctionSignature(Parser *parser) {
 
 						Type *type = parseType(parser);
 						if (type) {
-							FunctionSignature *sign = createFunctionSignature(
-									functionName, params, mutable, type);
-							sign->receiver = receiver;
+							FunctionSignature *sign = createFunctionSignature(functionName, params, mutable, type);
 							return sign;
 						}
 						// else no type specified
@@ -326,9 +297,7 @@ FunctionSignature *parseFunctionSignature(Parser *parser) {
 						type->typeName = createTypeName(VOID_KEYWORD);
 						type->type = TYPE_NAME_NODE;
 
-						FunctionSignature *sign = createFunctionSignature(
-								functionName, params, false, type);
-						sign->receiver = receiver;
+						FunctionSignature *sign = createFunctionSignature(functionName, params, false, type);
 						return sign;
 					} 
 					else {
@@ -559,6 +528,61 @@ MemberExpr *parseMemberExpr(Parser *parser) {
 		expr->member = mem;
 		expr->type = MEMBER_ACCESS_NODE;
 		return expr;
+	}
+
+	return false;
+}
+
+Vector *parseImplBlock(Parser *parser) {
+	if (checkTokenTypeAndContent(parser, SEPARATOR, "{", 0)) {
+		consumeToken(parser);
+
+		Vector *v = createVector(VECTOR_EXPONENTIAL);
+
+		while (true) {
+			if (checkTokenTypeAndContent(parser, SEPARATOR, "}", 0)) {
+				consumeToken(parser);
+				break;
+			}
+
+			FunctionDecl *func = parseFunctionDecl(parser);
+			if (func) {
+				pushBackItem(v, func);
+			}
+		}
+
+		return v;
+	}
+
+	return false;
+}
+
+Impl *parseImpl(Parser *parser) {
+	if (checkTokenTypeAndContent(parser, IDENTIFIER, "impl", 0)) {
+		consumeToken(parser);
+
+		char *name = NULL;
+		if (checkTokenType(parser, IDENTIFIER, 0)) {
+			name = consumeToken(parser)->content;
+		}
+		else {
+			errorMessage("NEEDS A NAME PEASANT");
+		}
+
+		char *as = NULL;
+		if (checkTokenTypeAndContent(parser, IDENTIFIER, "as", 0) && checkTokenType(parser, IDENTIFIER, 1)) {
+			consumeToken(parser);
+			as = consumeToken(parser)->content;
+		}
+
+		Vector *implBlock = parseImplBlock(parser);
+		if (implBlock) {
+			Impl *impl = createImpl(name, as);
+			impl->funcs = implBlock;
+			return impl;
+		}
+
+		errorMessage("shite");
 	}
 
 	return false;

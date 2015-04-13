@@ -238,6 +238,14 @@ static inline bool isDigit(char ch) {
 }
 
 /**
+ * @return if the character given is a hex number,
+ * i.e 0xABCDEF 0x0123456789
+ */
+static inline bool isHexChar(char ch) {
+	return isDigit(ch) || ('a' <= ch && ch <= 'f') || ('A' <= ch && ch <= 'F');
+}
+
+/**
  * @return if the character given is a letter or digit a-z, A-Z, 0-9
  * @param ch the character to check
  */
