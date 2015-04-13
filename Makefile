@@ -23,6 +23,7 @@ all: ${SOURCES}
 	$(CC) $(CFLAGS) $(INCLUDES) ${SOURCES} -o bin/alloyc
 
 clean:
-	@rm *.o	
-	@rm bin/
-	@rm _gen_* 		# remove any output code if it's there
+	@rm -f *.o	
+	@rm -rf bin/
+	@rm -f _gen_*	# remove any output code if it's there
+	@rm -rf *.dSYM/
