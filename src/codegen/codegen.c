@@ -29,7 +29,7 @@ const char *NODE_NAME[] = {
 	"PRIMARY_EXPR_NODE", "EXPR_NODE", "TYPE_NAME_NODE", "TYPE_LIT_NODE", "PAREN_EXPR_NODE",
 	"ARRAY_TYPE_NODE", "POINTER_TYPE_NODE", "FIELD_DECL_NODE",
 	"FIELD_DECL_LIST_NODE", "STRUCT_DECL_NODE", "STATEMENT_LIST_NODE",
-	"BLOCK_NODE", "PARAMETER_SECTION_NODE", "PARAMETERS_NODE", "RECEIVER_NODE",
+	"BLOCK_NODE", "PARAMETER_SECTION_NODE", "PARAMETERS_NODE", "IMPL_NODE",
 	"FUNCTION_SIGNATURE_NODE", "FUNCTION_DECL_NODE", "VARIABLE_DECL_NODE", "FUNCTION_CALL_NODE",
 	"DECLARATION_NODE", "INC_DEC_STAT_NODE", "RETURN_STAT_NODE", "BREAK_STAT_NODE",
 	"CONTINUE_STAT_NODE", "LEAVE_STAT_NODE", "ASSIGNMENT_NODE", "UNSTRUCTURED_STATEMENT_NODE",
@@ -195,16 +195,6 @@ void emitFunctionDecl(CodeGenerator *self, FunctionDecl *decl) {
 	self->writeState = WRITE_HEADER_STATE;
 	emitType(self, decl->signature->type);
 	emitCode(self, " %s(", decl->signature->name);
-	if (decl->signature->receiver) {
-		if (!decl->signature->receiver->mutable) {
-			emitCode(self, "const ");
-		}
-		emitType(self, decl->signature->receiver->type);
-		emitCode(self, " %s", decl->signature->receiver->name);
-		if (decl->signature->parameters->paramList->size > 1) {
-			emitCode(self, ", ");
-		}
-	}
 	emitParameters(self, decl->signature->parameters);
 	if (decl->signature->parameters->variadic) {
 		emitCode(self, ", ...");
@@ -216,16 +206,6 @@ void emitFunctionDecl(CodeGenerator *self, FunctionDecl *decl) {
 		// definition
 		emitType(self, decl->signature->type);
 		emitCode(self, " %s(", decl->signature->name);
-		if (decl->signature->receiver) {
-			if (!decl->signature->receiver->mutable) {
-				emitCode(self, "const ");
-			}
-			emitType(self, decl->signature->receiver->type);
-			emitCode(self, " %s", decl->signature->receiver->name);
-			if (decl->signature->parameters->paramList->size > 1) {
-				emitCode(self, ", ");
-			}
-		}
 		emitParameters(self, decl->signature->parameters);
 		if (decl->signature->parameters->variadic) {
 			emitCode(self, ", ...");

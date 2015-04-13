@@ -18,7 +18,7 @@ typedef enum {
 	PRIMARY_EXPR_NODE, EXPR_NODE, TYPE_NAME_NODE, TYPE_LIT_NODE, PAREN_EXPR_NODE,
 	ARRAY_TYPE_NODE, POINTER_TYPE_NODE, FIELD_DECL_NODE,
 	FIELD_DECL_LIST_NODE, STRUCT_DECL_NODE, STATEMENT_LIST_NODE,
-	BLOCK_NODE, PARAMETER_SECTION_NODE, PARAMETERS_NODE, RECEIVER_NODE,
+	BLOCK_NODE, PARAMETER_SECTION_NODE, PARAMETERS_NODE, IMPL_NODE,
 	FUNCTION_SIGNATURE_NODE, FUNCTION_DECL_NODE, VARIABLE_DECL_NODE, FUNCTION_CALL_NODE,
 	DECLARATION_NODE, INC_DEC_STAT_NODE, RETURN_STAT_NODE, BREAK_STAT_NODE,
 	CONTINUE_STAT_NODE, LEAVE_STAT_NODE, ASSIGNMENT_NODE, UNSTRUCTURED_STATEMENT_NODE,
@@ -73,9 +73,26 @@ typedef struct {
 	BaseType *baseType;
 } PointerType;
 
+/**
+ * Use statement node
+ */
 typedef struct {
 	char *file;
 } UseStatement;
+
+/**
+ * Implementation node
+ */
+typedef struct {
+	// what we're implementing
+	char *name;	
+
+	// what we're aliasing it as
+	char *as;
+
+	// functions
+	Vector *funcs;
+} Impl;
 
 /**
  * An array type, which contains the length of the array
@@ -226,19 +243,9 @@ typedef struct {
 } Parameters;
 
 /**
- * A node representing a receiver.
- */
-typedef struct {
-	Type *type;
-	char *name;
-	bool mutable;
-} Receiver;
-
-/**
  * A function signature or prototype.
  */
 typedef struct {
-	Receiver *receiver;
 	char *name;
 	Parameters *parameters;
 	bool mutable;
@@ -411,6 +418,8 @@ typedef struct {
 
 Node *createNode(void *data, NodeType type);
 
+Impl *createImpl(char *name, char *as);
+
 MemberAccess *createMemberAccess();
 
 UseStatement *createUseStatement(char *file);
@@ -454,8 +463,6 @@ Block *createBlock();
 ParameterSection *createParameterSection(Type *type, bool mutable);
 
 Parameters *createParameters();
-
-Receiver *createReceiver(Type *type, char *name, bool mutable);
 
 FunctionSignature *createFunctionSignature(char *name, Parameters *params, bool mutable, Type *type);
 
@@ -501,6 +508,8 @@ void cleanupAST(Vector *nodes);
 
 void destroyNode(Node *node);
 
+void destroyImpl(Impl *impl);
+
 void destroyMemberAccess(MemberAccess *member);
 
 void destroyUseStatement(UseStatement *use);
@@ -542,8 +551,6 @@ void destroyBlock(Block *block);
 void destroyParameterSection(ParameterSection *param);
 
 void destroyParameters(Parameters *params);
-
-void destroyReceiver(Receiver *receiver);
 
 void destroyFunctionSignature(FunctionSignature *func);
 

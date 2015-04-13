@@ -143,6 +143,20 @@ void recognizeIdentifierToken(Lexer *lexer) {
 	pushToken(lexer, IDENTIFIER);
 }
 
+void recognizeHexToken(Lexer *lexer) {
+	consumeCharacter(lexer);
+
+	if (lexer->currentChar == 'x' || lexer->currentChar == 'X') {
+		consumeCharacter(lexer);
+
+		while (isHexChar(lexer->currentChar)) {
+			consumeCharacter(lexer);
+		}
+	}
+
+	pushToken(lexer, HEX);
+}
+
 void recognizeNumberToken(Lexer *lexer) {
 	consumeCharacter(lexer);
 	
@@ -255,6 +269,9 @@ void getNextToken(Lexer *lexer) {
 	if (isDigit(lexer->currentChar) || lexer->currentChar == '.') {
 		// number
 		recognizeNumberToken(lexer);
+	}
+	else if (lexer->currentChar == '0' && (peekAhead(lexer, 0) == 'x' || peekAhead(lexer, 0) == 'X')) {
+		recognizeHexToken(lexer);
 	}
 	else if (isLetterOrDigit(lexer->currentChar) || lexer->currentChar == '_') {
 		// ident
