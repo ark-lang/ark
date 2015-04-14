@@ -11,14 +11,14 @@ char *BOILERPLATE =
 "\n"
 "typedef char *str;" CC_NEWLINE
 "typedef size_t usize;" CC_NEWLINE
-"typedef unsigned long long u64;" CC_NEWLINE
-"typedef unsigned int u32;" CC_NEWLINE
-"typedef unsigned short u16;" CC_NEWLINE
 "typedef unsigned char u8;" CC_NEWLINE
-"typedef long long i64;" CC_NEWLINE
-"typedef int i32;" CC_NEWLINE
-"typedef short i16;" CC_NEWLINE
+"typedef unsigned short u16;" CC_NEWLINE
+"typedef unsigned int u32;" CC_NEWLINE
+"typedef unsigned long long u64;" CC_NEWLINE
 "typedef char i8;" CC_NEWLINE
+"typedef short i16;" CC_NEWLINE
+"typedef int i32;" CC_NEWLINE
+"typedef long long i64;" CC_NEWLINE
 "typedef float f32;" CC_NEWLINE
 "typedef double f64;" CC_NEWLINE CC_NEWLINE
 ;

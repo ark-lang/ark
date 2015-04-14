@@ -14,7 +14,7 @@
 #include "sds.h"
 
 /** the current version of alloy */
-#define ALLOYC_VERSION "0.0.6"
+#define ALLOYC_VERSION "0.0.7"
 #define ALLOY_UNUSED_OBJ(x) (void)(x)
 
 /** windows doesn't like coloured text */
