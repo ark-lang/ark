@@ -1,9 +1,6 @@
 # Alloy Reference
 This document is an informal specification for Alloy, a systems programming language. 
 
-# IMPORTANT
-**IM WRITING THIS IN FULL CAPITALS TO GET YOUR ATTENTION, WE'VE ALSO BOLDED IT!!!! SO IT'S IMPORTANT! WE'VE MADE SOME BIG CHANGES TO THE LANGUAGE AND ARE YET TO UPDATE THE REFERENCE AND RELEVANT GRAMMAR, SO PLEASE BARE WITH US TILL WE FIX THESE CHANGES!**
-
 ## Guiding Principles
 Alloy is a systems programming language, intended as an alternative to C. It's main purpose is to modernize C, without deviating from C's original goal of simplicity. Alloy is written in C, the frontend and backend is all hand-written, i.e no parser or lexer libraries, and no LLVM, etc.
 
@@ -18,317 +15,143 @@ The design is motivated by the following:
 
 The language should be strong enough that it can be self-hosted.
 
-## Language Definition
-This is the definition for the Alloy programming language. This section is an attempt to accurately describe the language
-in as much detail as possible, including grammars, syntax, etc.
+## Primitive Types
+Alloy provides various primitive types:
 
-### Program Structure
-A program consists of multiple functions, one function by convention called "main", is the entry point of execution. This is
-the first function invoked at run time, and the core of the program.
+	int			at least 16 bits in size
+	float		IEEE 754 single-precision binary floating-point
+	double		IEEE 754 double-precision binary floating-point
+	bool		unsigned 8 bits
+	char		signed 8 bits
 
-### Values and References
-Alloy is pass by value, if you called a function that takes an array, if you were to simply pass the array,
-it would make a copy of this array. If you want to pass a reference, one must explicitly pass a pointer to the array.
-
-## Notation
-Before reading the notation, it is recommended you have an understanding of Extended Backus-Naur Form, the code snippet that introduce certain
-syntax will typically show the grammar for the syntax, and an example of the syntax in use.
-
-## Characters and Letters
-
-    digit = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" .
-    letter = "A" | "a" ... "Z" | "z" | "_" .
-
-Letters and digits are ASCII for now, however we may allow for unicode later on.
-
-## Operators
-Below are the many operators available. The sign operators are unary operators, which can prefix numeric literals. The `escaped_char` are
-character escapes. The third section of characters are various logical, relational and arithmetic operations. The fourth set of characters
-group specific operations into either the unary or binary categories.
-
-	sign = "+" | "-" .
+## Precision Types
+The precision types are there for when you want a data type to be a specific
+size. If you're writing portable code, we suggest that you use the primitive
+types, however the precision types are available for when you need them.
 	
-	escaped_char = "\" ( "a" | "b" | "f" | "n" | "r" | "t" | "v" | "\" | "'" | """ ) .
+	f32			IEEE 754 single-precision binary floating-point
+	f64			IEEE 754 double-precision binary floating-point
 	
-	logOp = "||" | "&&" .
-	relOp = "==" | "!=" | "<" | "<=" | ">" | ">=" .
-	addOp = "+" | "-" | "|" | "^" .
-	mulOp = "*" | "/" | "%" | "<<" | ">>" | "&" .
-
-	binaryOp = logOp | relOp | addOp | mulOp .
-	unaryOp = "+" | "-" | "!" | "^" | "<" | ">" | "*" | "&" .
-
-## Identifiers
-An identifier is a name for an entity in the source code, for example a variable, a type, a function, etc. An identifier must **not** be
-a reserved word.
-
-	identifier = letter { letter | digit } .
-
-	some_thing
-	a
-	_example
-	Amazing_NumberTwo2
-
-## Source Code Representation
-The source code is in unicode text, encoded in utf-8. Source text is case-sensitive. Whitespace is blanks,
-newlines, carriage returns, or tabs. Comments are denoted with `//` for single line, or `/* */` **without nesting**.
-For simplicity, identifiers are treated as ASCII, however unicode may be supported in the future, but aren't a priority.
-
-## Reserved Words
-These words are reserved, i.e they cannot be used in identifiers.
-     
-	u64 u32 u16 u8 i64 i32 i16 i8 f64 f32 bool char int float struct
-	enum fn void for loop while if else mut return continue break
-	use do 
-
-## Types
-
-    Type = TypeName | ArrayType | PointerType .
-
-## Basic Types
-Alloy defines a number of basic types. 
-
-	u64         unsigned 64-bit integer
-	u32         unsigned 32-bit integer
-	u16         unsigned 16-bit integer
-	u8          unsigned 8-bit integer
+	i8			signed 8 bits
+	i16			signed 16 bits
+	i32			signed 32 bits
+	i64			signed 64 bits
 	
-	i64         signed 64-bit integer
-	i32         signed 32-bit integer
-	i16         signed 16-bit integer
-	i8          signed 8-bit integer
+	u8			unsigned 8 bits
+	u16			unsigned 16 bits
+	u32			unsigned 32 bits
+	u64			unsigned 64 bits
+
+## Other
+Other types that don't quite fit a category.
+
+### `usize`
+The `usize` or unsigned size, it can not represent any negative values. It is used
+when you are counting something that cannot be negative, typically it is used for
+memory.
+
+	usize		unsigned at least 16 bits
 	
-	f64         IEEE-754 valid 64-bit floating point number
-	f32         IEEE-754 valid 32-bit floating point number
+## Variables
+Unlike languages like C or C++, variables are immutable unless otherwise specified with
+the `mut` keyword. A variable can be defined like so:
 
-Additionally, there are several platform-specific type aliases that are declared by Alloy: int, float, and double. The bit width of each of these types is natural for their respective types of the given
-platform. For example, an integer `int` is typically an i32 or a 32-bit architecture, and an i64 on a 64-bit architecture.
-
-Other basic types include:
+	name: type;
 	
-	bool        alias of u8
-	char        alias of i8
-	usize		unsigned integer at least 16 bit
+And declared as follows:
 
-`true` and `false` are reserved words, which represent the corresponding boolean constant values. `usize` is a guaranteed unsigned integer, and is
-at least 16 bit. It is also guaranteed to hold any array index.
+	name: type = some_val;
 
-## Struct Types
-Struct types are similar to C structs. Each member in a struct represents a variable within the data structure.
+## Tuples
+A tuple is define similarly to a variable, however you specify the types in parenthesis. For
+instance:
 
-	StructDecl = "struct" "{" [ FieldList ] "}" .
-	FieldList = FieldDecl { ";" FieldDecl } .
-	FieldDecl = [ "mut" ] Type IdentifierList .
+	mut my_tuple: (int, int);
+
+To initialize the tuple with values, we use a similar notation to the tuples signature, and we
+wrap the values in parenthesis. The order should be corresponding to the types in the signature,
+for instance:
+
+	// this is valid
+	mut my_type: (int, double) = (10, 3.4);
 	
+	// the following errors, note the order of the types/values
+	mut another_type: (int, double) = (3.4, 10);
+
+### Mutability
+When a variable is mutable, it can be mutated or changed. When a variable is immutable,
+it cannot be changed. By default, alloy assumes that a variable you define is immutable.
+You can however, specify the `mut` keyword, this will indicate to the compiler that you intend
+to modify the variable later on in the code. For instance:
+
+	x: int = 5;
+	x = 10;			// ERROR: x is constant!
+	
+We can also error it like so:
+
+	x: int;			// ERROR: no value assigned for constant!
+	
+Why? Because variables are treated as constants unless otherwise specified, therefore they must 
+have a value assigned on definition.
+
+## Functions
+A function defines a sequence of statements and an optional return value, along with a name,
+and a set of parameters. Functions are declared with the keyword `fn`. Followed by a name to
+identify the function, and then a list of parameters. Finally, an optional colon `:` followed by
+a return type, e.g. a struct, data type or `void`. Note that if you do not specify a colon and
+a return type, the function is assumed to be void by default.
+
+An example of a function:
+
+	mut int result;
+
+	// if the function returns void,
+	// the return type is optional, thus
+	// fn add(x: int, y: int) { }
+	// is perfectly valid.
+	fn add(x: int, y: int): void {
+		result = x + y;
+	}
+
+### Function Return Types
+We can simplify this using a return type of `int`, for instance:
+
+	fn add(x: int, y: int): mut int {
+		return x + y;
+	}
+
+## Structures
+A structure is a complex structure that define a list of variables all grouped under one name
+in memory:
+
 	struct Cat {
+	
+	}
+	
+A structure contains variable definitions terminated by a semi-colon. For example, we can write
+a structure to define a Cat's properties like so:
+
+	struct cat {
 		name: str;
 		age: int;
-	}
-
-Structure members cannot be initialized, this is for semantics.
-	
-## Pointer Types
-Pointers are similar to C, however pointer arithmetic is not permitted. They are also denoted with the caret symbol '^', instead of an asterisks '*'.
-
-	^x: int;
-	
-## Blocks
-There are two types of blocks, a multi-block, denoted with two curly braces `{}`. And a single-block, denoted with an arrow `->`. A multi-block contains multiple statements, and a single-block can only contain a single statement.
-
-	Block = ( "{" [ StatementList ";" ] "}" | "->" Statement ) .
-	
-	{
-		statement;
-		statement;
-		statement;
+		weight: float;
 	}
 	
-	-> statement;
-	
-## Functions
-Functions contain declarations and statements. They can be recursive. Functions can either return a value, or void. A function consists of a function prototype, which is then followed by a Block, which can either be a single-block or a multi-block.
+Structures are more complex types, therefore they are defined like an orindary type such as an integer
+or float:
 
-	FunctionDecl = "fn" FunctionSignature ( ";" | Block ) .
-	FunctionSignature = [ Receiver ] identifier Parameters ":" [ "mut" ] Type .
-	Receiver = "(" [ "mut" ] Type identifier ")"
-	Parameters = "(" [ parameterList ] ")" .
-	ParameterList = ParameterSection { "," ParameterSection } .
-	ParameterSection = [ "mut" ] Type IdentifierList .
+	mut terry: cat;
+	
+Note how the structure declared is mutable, this is because we aren't declaring any of the fields in the
+structure. We can define the contents of the structure like so:
 
-	fn add(a: int, b: int): int {
-		return a + b;
-	}
+	terry: cat = {
+		name: "Terry",
+		age: 2,
+		weight: 3.12
+	};
 	
-	// simplified to
-	fn add(a: int, b: int): int -> return a + b;
-	
-## Methods
-A method is a function bound to a specific structure.
-
-	struct Point {
-		x: float;
-		y: float;
-	}
-	
-	impl Point as self {
-		fn distance(x: float): float {
-			return p.x * p.x + p.y * p.y;
-		}
-	}
-	
-Creates a method for the structure Point. It is worth noting that methods are not declared within their structure declaration. When the method is invoked, a method behaves like a function, in which the first argument is the receiver. However, in Alloy the receiver is bound to the method using the following notation:
-
-	receiver.method();
-	
-For instance, given a Point, namely `p`, one may do the following:
-
-	Point ^p = { 0.0, 0.0 };
-	float dist = p.distance();
-
-# TODO!
-**We still have to write up the rest for the following!! However, I've given some basic guidelines for the syntax**
-
-## Variables
-
-	int x = 5;
-	x = 10; // fails not mutable!
-	
-	mut int x = 5;
-	x = 20; // yay!
-
-## If Statements
-
-	if x == 5 {
-	
-	}
-	
-## Else If
-
-	if x == 5 {
-	
-	}
-	else if x == 12 {
-	
-	}
-	
-## Else
-
-	if x == 12 {
-	
-	}
-	else {
-	
-	}
-	
-## For Loops
-
-	for type index: (0, 10) {
-	
-	}
-	
-	int step = 2;
-	for type _: (0, 100, step) {
-	
-	}
-	
-## While Loops
-
-	while true {
-		// do stuff
-	}
-	
-	while x == 5 {
-		// do stuff
-	}
-	
-	do x == 5 {
-		// do stuff at least once
-	}
-	
-	loop {
-		// infinite till break!
-	}
-	
-## Match
-
-	int y = 10;
-	int some_value = 5;
-	int x = some_value;
-	match x {
-		5 {
-		
-		},
-		some_value -> y = 21,
-		_ {
-			// dont care
-		}
-	}
-	
-## Pointers!
-
-	// short hand for malloc, and setting value
-	int ^x = 10;
-	
-	// alloc it yourself	
-	int ^y = alloc;
-	
-	// set the value
-	^y = 10;
-	
-	// set x to the value of y
-	int x = ^y;
-	
-## Memory Model
-Alloy adopts a similar memory model to Swift/Objective-C's Automatic Reference Counting (ARC). This means that you don't have to worry
-about freeing your memory after allocation. Memory that is allocated is automatically freed by the compiler, when a pointer to some
-memory goes out of scope the compiler will insert the cleanup functions just before it goes out of scope in its block. 
-
-The memory model is a lot more efficient and cleaner than garbage collection. This is mostly due to it being a compile-time operation,
-instead of during execution, therefore there is no overhead in your programs.
-
-## Enumeration
-
-	// anonymous enumeration!
-	enum _ {
-		SWAG,
-		ASDAS,
-		SAINSBURYS
-	}
-	
-	enum NotAnonymous {
-		CAR,
-		DOG,
-		LION
-	}
-	
-	int x = NotAnonymous::CAR;
-	
-	match x {
-		NotAnonymous::CAR {
-		
-		}
-		SWAG {
-		
-		}
-		_ -> println("oh");
-	}
-
-## Option Types
-
-	fn divide(int a, int b): <int> {
-		if b == 0 {
-			return None;
-		}
-		else {
-			return Some(a / b);
-		}
-	}
-
-## Generics
-???
-
-
-
-
-
+The struct initializer is a statement, therefore it must be terminated with a semi-colon. Note that
+the values in the struct initializer do not have to be in order, but we suggest you do to keep things
+consistent.
 
