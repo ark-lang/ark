@@ -140,6 +140,8 @@ FunctionSignature *createFunctionSignature(char *name, Parameters *params,
 	func->parameters = params;
 	func->mutable = mutable;
 	func->type = type;
+	func->owner = NULL;
+	func->ownerArg = NULL;
 	return func;
 }
 
