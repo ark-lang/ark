@@ -1,7 +1,7 @@
 #include "ast.h"
 
-UseStatement *createUseStatement(char *file) {
-	UseStatement *use = safeMalloc(sizeof(*use));
+UseMacro *createUseMacro(char *file) {
+	UseMacro *use = safeMalloc(sizeof(*use));
 	use->file = file;
 	return use;
 }
@@ -199,6 +199,10 @@ UnstructuredStatement *createUnstructuredStatement() {
 	return safeMalloc(sizeof(UnstructuredStatement));
 }
 
+Macro *createMacro() {
+	return safeMalloc(sizeof(Macro));
+}
+
 PointerFree *createPointerFree(char *name) {
 	PointerFree *pntr = safeMalloc(sizeof(*pntr));
 	pntr->name = name;
@@ -250,6 +254,7 @@ void cleanupAST(Vector *nodes) {
 		case LITERAL_NODE: destroyLiteral(node->data); break;
 		case UNARY_EXPR_NODE: destroyUnaryExpr(node->data); break;
 		case ARRAY_SUB_EXPR_NODE: destroyArraySubExpr(node->data); break;
+		case MACRO_NODE: destroyMacro(node->data); break;
 		case MEMBER_ACCESS_NODE: destroyMemberAccess(node->data); break;
 		case EXPR_NODE: destroyExpression(node->data); break;
 		case TYPE_NAME_NODE: destroyTypeName(node->data); break;
@@ -287,7 +292,7 @@ void cleanupAST(Vector *nodes) {
 	}
 }
 
-void destroyUseStatement(UseStatement *use) {
+void destroyUseMacro(UseMacro *use) {
 	free(use);
 }
 
@@ -507,12 +512,19 @@ void destroyUnstructuredStatement(UnstructuredStatement *stmt) {
 		case ASSIGNMENT_NODE: destroyAssignment(stmt->assignment); break;
 		case DECLARATION_NODE: destroyDeclaration(stmt->decl); break;
 		case INC_DEC_STAT_NODE: destroyIncDecStat(stmt->incDec); break;
-		case USE_STATEMENT_NODE: destroyUseStatement(stmt->use); break;
 		case LEAVE_STAT_NODE: destroyLeaveStat(stmt->leave); break;
 		case FUNCTION_CALL_NODE: destroyCall(stmt->call); break;
 		case IMPL_NODE: destroyImpl(stmt->impl); break;
 	}
 	free(stmt);
+}
+
+void destroyMacro(Macro *macro) {
+	if (!macro) return;
+	switch (macro->type) {
+		case USE_MACRO_NODE: destroyUseMacro(macro->use); break;
+	}
+	free(macro);
 }
 
 void destroyPointerFree(PointerFree *pntr) {
