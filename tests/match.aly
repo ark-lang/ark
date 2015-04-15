@@ -1,0 +1,11 @@
+fn printf(format: str, _): int;
+
+fn main(): int {
+	mut x: int = 0;
+	match x {
+		0 {
+			x = 21;
+		}
+	}
+	printf("%d\n", x);
+}
