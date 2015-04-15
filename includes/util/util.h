@@ -108,6 +108,10 @@ void errorMessage(const char *fmt, ...);
  */
 void primaryMessage(const char *fmt, ...);
 
+/**
+ * Reads a file, returns the contents of the file
+ * or NULL if it failed.
+ */
 char *readFile(const char *fileName);
 
 /**
