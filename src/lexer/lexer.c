@@ -14,8 +14,7 @@ Lexer *createLexer() {
 }
 
 void startLexingFiles(Lexer *lexer, Vector *sourceFiles) {
-	int i;
-	for (i = 0; i < sourceFiles->size; i++) {
+	for (int i = 0; i < sourceFiles->size; i++) {
 		SourceFile *sourceFile = getVectorItem(sourceFiles, i);
 
 		// reset everything
@@ -33,10 +32,14 @@ void startLexingFiles(Lexer *lexer, Vector *sourceFiles) {
 		lexer->tokenStream = createVector(VECTOR_EXPONENTIAL);
 		lexer->running = true;
 
+		// get all the tokens
 		while (lexer->running) {
 			getNextToken(lexer);
 		}
 
+		// set the tokens to the current
+		// token stream of the file being
+		// lexed.
 		sourceFile->tokens = lexer->tokenStream;
 	}
 }

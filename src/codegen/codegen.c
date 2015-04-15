@@ -2,9 +2,15 @@
 
 /**
  * A boilerplate for our generated C files. Eventually
- * we should only write this into one file?
+ * we should only write this into one file included into
+ * all the headers instead of generate on top of all the header
+ * files?
+ *
+ * It includes a few vital header files that will eventually
+ * be written in Alloy itself. Also a few aliases for certain
+ * types.
  */
-char *BOILERPLATE =
+const char *BOILERPLATE =
 "#include <stdbool.h>\n"
 "#include <stddef.h>\n"
 "#include <stdarg.h>\n"
@@ -20,9 +26,12 @@ char *BOILERPLATE =
 "typedef int i32;" CC_NEWLINE
 "typedef long long i64;" CC_NEWLINE
 "typedef float f32;" CC_NEWLINE
-"typedef double f64;" CC_NEWLINE CC_NEWLINE
+"typedef double f64;" CC_NEWLINE
 ;
 
+/**
+ * Node names corresponding to their enumerated counterpart
+ */
 const char *NODE_NAME[] = {
 	"IDENTIFIER_LIST_NODE", "IDENTIFIER_NODE", "LITERAL_NODE", "BINARY_EXPR_NODE",
 	"UNARY_EXPR_NODE", "ARRAY_SUB_EXPR_NODE", "MEMBER_ACCESS_NODE",
@@ -45,7 +54,7 @@ CodeGenerator *createCodeGenerator(Vector *sourceFiles) {
 	return self;
 }
 
-void emitCode(CodeGenerator *self, char *fmt, ...) {
+void emitCode(CodeGenerator *self, const char *fmt, ...) {
 	va_list args;
 	va_start(args, fmt);
 
