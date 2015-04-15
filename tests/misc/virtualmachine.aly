@@ -5,9 +5,16 @@
     I think this will work as a test case as it uses a fair amount of the core features in Alloy, enumeration,
     structures, methods, functions, arrays, matches, if statements, loops, etc... I'm not sure this even works yet,
     and some of the features aren't even implemented yet on the grammar, only enumeration and a few small bits like
-    where semi-colonsa are permitted, etc.
+    where semi-colons are permitted, etc.
 
 **/
+
+enum _ {
+    ADD,
+    SUB,
+    MUL,
+    DIV,
+}
 
 struct VirtualMachine {
     instruction_num: int;
@@ -17,79 +24,74 @@ struct VirtualMachine {
     imm_value: int; 
     running: bool;
     pc: int;
-    registers: int[4];
+    registers: [4]int;
 }
 
-enum _ {
-    ADD,
-    SUB,
-    MUL,
-    DIV,
-}
-
-fn (vm: ^VirtualMachine) fetch(prog: int[]): int {
-    vm.pc = vm.pc + 1;
-    return prog[vm.pc];
-}
-
-fn (vm: ^VirtualMachine) goto(): void {
-    vm.pc = vm.imm_value;
-}
-
-fn (vm: ^VirtualMachine) eval(): void {
-    match vm.instruction_num {
-        0 -> vm.stop();
-        1 -> vm.set();
-        2 -> vm.arithmetic(ADD);
-        3 -> vm.arithmetic(SUB);
-        4 -> vm.arithmetic(MUL);
-        5 -> vm.arithmetic(DIV);
-        6 -> vm.arithmetic(POW);
-        7 -> vm.out();
-        8 -> vm.goto();
-        _ -> printf("unknown instruction %d\n", vm.instruction_num);
+impl VirtualMachine {
+    fn fetch(prog: []int): int {
+        vm.pc = vm.pc + 1;
+        return prog[vm.pc];
     }
-}
 
-fn (vm: ^VirtualMachine) decode(instruction: int): void {
-    vm.instruction_num = (instruction & 0xF000) >> 12;
-    vm.first_register = (instruction & 0xF00) >> 8;
-    vm.second_register = (instruction & 0xF0) >> 4;
-    vm.third_register = instruction & 0xF;
-    vm.imm_value = instruction & 0xFF;
-}
-
-fn (vm: ^VirtualMachine) set(): void {
-    temp: int = vm.registers[vm.first_register];
-    vm.registers[vm.first_register] = vm.imm_value;
-}
-
-fn (vm: ^VirtualMachine) stop(): void {
-    vm.running = false;
-}
-
-fn (vm: ^VirtualMachine) arithmetic(type: int): void {
-    match type {
-        ADD {
-            vm.registers[vm.first_register] = vm.registers[vm.second_register] + vm.registers[vm.third_register];
-        };
-        SUB {
-            vm.registers[vm.first_register] = vm.registers[vm.second_register] - vm.registers[vm.third_register];
-        };
-        MUL {
-            vm.registers[vm.first_register] = vm.registers[vm.second_register] * vm.registers[vm.third_register];
-        };
-        DIV {
-            vm.registers[vm.first_register] = vm.registers[vm.second_register] / vm.registers[vm.third_register];
-        };
+    fn goto() {
+        vm.pc = vm.imm_value;
     }
-}
 
-fn (vm: ^VirtualMachine) start(prog: int[]): void {
-    for vm.running {
-        instr: int = vm.fetch(prog);
-        vm.decode(instr);
-        vm.eval();
+    fn eval() {
+        match vm.instruction_num {
+            0 -> vm.stop();
+            1 -> vm.set();
+            2 -> vm.arithmetic(ADD);
+            3 -> vm.arithmetic(SUB);
+            4 -> vm.arithmetic(MUL);
+            5 -> vm.arithmetic(DIV);
+            6 -> vm.arithmetic(POW);
+            7 -> vm.out();
+            8 -> vm.goto();
+            _ -> printf("unknown instruction %d\n", vm.instruction_num);
+        }
+    }
+
+    fn decode(instruction: int) {
+        vm.instruction_num = (instruction & 0xF000) >> 12;
+        vm.first_register = (instruction & 0xF00) >> 8;
+        vm.second_register = (instruction & 0xF0) >> 4;
+        vm.third_register = instruction & 0xF;
+        vm.imm_value = instruction & 0xFF;
+    }
+
+    fn set() {
+        temp: int = vm.registers[vm.first_register];
+        vm.registers[vm.first_register] = vm.imm_value;
+    }
+
+    fn stop() {
+        vm.running = false;
+    }
+
+    fn arithmetic(typ: int) {
+        match typ {
+            ADD {
+                vm.registers[vm.first_register] = vm.registers[vm.second_register] + vm.registers[vm.third_register];
+            };
+            SUB {
+                vm.registers[vm.first_register] = vm.registers[vm.second_register] - vm.registers[vm.third_register];
+            };
+            MUL {
+                vm.registers[vm.first_register] = vm.registers[vm.second_register] * vm.registers[vm.third_register];
+            };
+            DIV {
+                vm.registers[vm.first_register] = vm.registers[vm.second_register] / vm.registers[vm.third_register];
+            };
+        }
+    }
+
+    fn start(prog: []int) {
+        for vm.running {
+            instr: int = vm.fetch(prog);
+            vm.decode(instr);
+            vm.eval();
+        }
     }
 }
 
@@ -104,7 +106,7 @@ fn main(): int {
         registers = [ 0, 0, 0, 0 ],
     };
 
-    prog: int[] = [
+    prog: []int = [
         0x10C8,
         0x7000,
         0x11f4,

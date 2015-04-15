@@ -32,8 +32,7 @@ The grammar pretty much maps straight onto the parsers source.
 	PointerType = "^" BaseType;
 	ArrayType = "[" [ Expression ] "]" Type.
 	
-	FunctionSignature = [ Receiver ] identifier Parameters ":" [ "mut" ] Type;
-	Receiver = "(" [ "mut" ] Type identifier ")"
+	FunctionSignature = identifier Parameters ":" [ "mut" ] Type;
 	Parameters = "(" [ parameterList ] ")";
 	ParameterList = ParameterSection { "," ParameterSection };
 	ParameterSection = [ "mut" ] Type identifier;
@@ -43,15 +42,20 @@ The grammar pretty much maps straight onto the parsers source.
 	FieldDecl = [ "mut" ] Type IdentifierList ";";
 	FunctionDecl = FunctionSignature ( ";" | Block );
 
+	Impl = "impl" identifier [ "as" identifier ] "{" { FunctionDecl } "}"
 	Block = ( "{" [ StatementList ] "}" | "->" Statement );
 	IfStat = if Expression Block [ "else" Statement ];
 	StatementList = { Statement ";" };
 	MatchStat = "match" Expression "{" { MatchClause "," } "}"; 
 	MatchClause = Expression Block ";"; 
-	ForStat = "for" Type identifier ":" "(" PrimaryExpr "," PrimaryExpr [ "," PrimaryExpr ] ")" Block;
-	
+
+	ForInfiniteLoop = "for" Block;
+	ForWhileLoop = "for" PrimaryExpr Block;
+	ForStepLoop = "for" PrimaryExpr "," PrimaryExpr Block;
+	ForStat = ForInfiniteLoop | ForWhileLoop | ForStepLoop;
+
 	Declaration = VarDecl | FunctionDecl | StructDecl.
-	VarDecl = [ "mut" ] Type identifier [ "=" Expression ] ";";
+	VarDecl = [ "mut" ] identifier : Type [ "=" Expression ] ";";
 
 	UnaryExpr = unaryOp PrimaryExpr;
 	MemberAccess = [ { PrimaryExpr "." } ] identifier
@@ -68,7 +72,7 @@ The grammar pretty much maps straight onto the parsers source.
 	
 	Statement = ( StructuredStat | UnstructuredStat );
 	StructuredStat = Block | IfStat | MatchStat | ForStat;
-	UnstructuredStat = Declaration | LeaveStat | IncDecStat | Assignment.
+	UnstructuredStat = Declaration | Impl | LeaveStat | IncDecStat | Assignment.
 	LeaveStat = ReturnStat | BreakStat | ContinueStat;
 	Assignment = PrimaryExpr "=" Expression;
 	ReturnStat = "return" [ Expression ] ";";
