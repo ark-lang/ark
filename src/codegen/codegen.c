@@ -100,7 +100,7 @@ void emitExpression(CodeGenerator *self, Expression *expr) {
 		case UNARY_EXPR_NODE: emitUnaryExpr(self, expr->unary); break;
 		case FUNCTION_CALL_NODE: emitFunctionCall(self, expr->call); break;
 		default:
-			printf("Unknown node %s\n", NODE_NAME[expr->exprType]);
+			printf("Unknown node in expression %s\n", NODE_NAME[expr->exprType]);
 			break;
 	}
 }
@@ -272,7 +272,7 @@ void emitBlock(CodeGenerator *self, Block *block) {
 				emitStructuredStat(self, stmt->structured);
 				break;
 			default:
-				printf("unknown node type %s\n", NODE_NAME[stmt->type]);
+				printf("unknown node type in block %s\n", NODE_NAME[stmt->type]);
 				break;
 		}
 	}
@@ -354,7 +354,7 @@ void emitDeclaration(CodeGenerator *self, Declaration *decl) {
 		case STRUCT_DECL_NODE: emitStructDecl(self, decl->structDecl); break;
 		case VARIABLE_DECL_NODE: emitVariableDecl(self, decl->varDecl); break;
 		default:
-			printf("unknown node %s\n", NODE_NAME[decl->type]);
+			printf("unknown node in declaration %s\n", NODE_NAME[decl->type]);
 			break;
 	}
 }
@@ -375,15 +375,6 @@ void emitLeaveStat(CodeGenerator *self, LeaveStat *leave) {
 	}
 }
 
-void emitUseStatement(CodeGenerator *self, UseStatement *use) {
-	size_t len = strlen(use->file);
-	char temp[len - 2];
-	memcpy(temp, &use->file[1], len - 2);
-	temp[len - 2] = '\0';
-
-	emitCode(self, "#include \"_gen_%s.h\"" CC_NEWLINE, temp);
-}
-
 void emitUnstructuredStat(CodeGenerator *self, UnstructuredStatement *stmt) {
 	switch (stmt->type) {
 		case DECLARATION_NODE: emitDeclaration(self, stmt->decl); break;
@@ -391,7 +382,6 @@ void emitUnstructuredStat(CodeGenerator *self, UnstructuredStatement *stmt) {
 			emitFunctionCall(self, stmt->call); 
 			emitCode(self, ";" CC_NEWLINE); // pop a semi colon at the end
 			break;
-		case USE_STATEMENT_NODE: emitUseStatement(self, stmt->use); break;
 		case LEAVE_STAT_NODE: emitLeaveStat(self, stmt->leave); break;
 		case ASSIGNMENT_NODE: emitAssignment(self, stmt->assignment); break;
 		case IMPL_NODE: emitImpl(self, stmt->impl); break;
@@ -414,14 +404,13 @@ void emitStructuredStat(CodeGenerator *self, StructuredStatement *stmt) {
 		case FOR_STAT_NODE: emitForStat(self, stmt->forStmt); break;
 		case IF_STAT_NODE: emitIfStat(self, stmt->ifStmt); break;
 		default:
-			printf("unknown node type %s\n", NODE_NAME[stmt->type]);
+			printf("unknown node type found in structured statement %s\n", NODE_NAME[stmt->type]);
 			break;
 	}
 }
 
 void traverseAST(CodeGenerator *self) {
-	int i;
-	for (i = 0; i < self->abstractSyntaxTree->size; i++) {
+	for (int i = 0; i < self->abstractSyntaxTree->size; i++) {
 		Statement *stmt = getVectorItem(self->abstractSyntaxTree, i);
 
 		switch (stmt->type) {
@@ -432,7 +421,7 @@ void traverseAST(CodeGenerator *self) {
 				emitStructuredStat(self, stmt->structured);
 				break;
 			default:
-				printf("unknown node type %s\n", NODE_NAME[stmt->type]);
+				printf("unknown node type found in top level node %s\n", NODE_NAME[stmt->type]);
 				break;
 		}
 	}
@@ -456,6 +445,8 @@ void startCodeGeneration(CodeGenerator *self) {
 		self->writeState = WRITE_HEADER_STATE;
 		emitCode(self, "#ifndef __%s_H\n", self->currentSourceFile->name);
 		emitCode(self, "#define __%s_H\n\n", self->currentSourceFile->name);
+
+		generateMacros(self);
 
 		emitCode(self, BOILERPLATE);
 

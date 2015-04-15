@@ -70,14 +70,14 @@ Literal *parseLiteral(Parser *parser) {
 	return false;
 }
 
-UseStatement *parseUseStatement(Parser *parser) {
+UseMacro *parseUseMacro(Parser *parser) {
 	if (checkTokenTypeAndContent(parser, IDENTIFIER, USE_KEYWORD, 0)) {
 		consumeToken(parser);
 
 		if (checkTokenType(parser, STRING, 0)) {
 			char *file = consumeToken(parser)->content;
 
-			return createUseStatement(file);
+			return createUseMacro(file);
 		}
 	}
 	return false;
@@ -638,14 +638,6 @@ StructuredStatement *parseStructuredStatement(Parser *parser) {
 }
 
 UnstructuredStatement *parseUnstructuredStatement(Parser *parser) {
-	UseStatement *use = parseUseStatement(parser);
-	if (use) {
-		UnstructuredStatement *stmt = createUnstructuredStatement();
-		stmt->use = use;
-		stmt->type = USE_STATEMENT_NODE;
-		return stmt;
-	}
-
 	Impl *impl = parseImpl(parser);
 	if (impl) {
 		UnstructuredStatement *stmt = createUnstructuredStatement();
@@ -703,7 +695,27 @@ UnstructuredStatement *parseUnstructuredStatement(Parser *parser) {
 	return false;
 }
 
+Macro *parseMacro(Parser *parser) {
+	UseMacro *use = parseUseMacro(parser);
+	if (use) {
+		Macro *stmt = createMacro();
+		stmt->use = use;
+		stmt->type = USE_MACRO_NODE;
+		return stmt;
+	}
+
+	return false;
+}
+
 Statement *parseStatement(Parser *parser) {
+	Macro *macro = parseMacro(parser);
+	if (macro) {
+		Statement *stmt = createStatement();
+		stmt->macro = macro;
+		stmt->type = MACRO_NODE;
+		return stmt;
+	}
+
 	StructuredStatement *strucStmt = parseStructuredStatement(parser);
 	if (strucStmt) {
 		Statement *stmt = createStatement();
