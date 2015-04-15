@@ -1,6 +1,13 @@
 #ifndef __CODE_GEN_H
 #define __CODE_GEN_H
 
+/**
+ * The code generator! This works in 2 stages, the first stage it
+ * will try and emit code for all of the macros we're given. The second
+ * stage is where we generate the "meat" of the program, all of the statements,
+ * structures, declarations, etc are generated.
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -129,7 +136,7 @@ void emitExpression(CodeGenerator *self, Expression *expr);
  * @param fmt  the string to print
  * @param ...  additional parameters
  */
-void emitCode(CodeGenerator *self, char *fmt, ...);
+void emitCode(CodeGenerator *self, const char *fmt, ...);
 
 /**
  * Emits a type literal
@@ -247,30 +254,100 @@ void emitForStat(CodeGenerator *self, ForStat *stmt);
  */
 void emitVariableDecl(CodeGenerator *self, VariableDecl *decl);
 
+/**
+ * This will emit a declaration top level node
+ * @param self the code gen instance
+ * @param decl the decl node to emit
+ */
 void emitDeclaration(CodeGenerator *self, Declaration *decl);
 
+/**
+ * This will emit a return statement
+ * @param self the code gen instance
+ * @param ret  the return statement node to emit
+ */
 void emitReturnStat(CodeGenerator *self, ReturnStat *ret);
 
+/**
+ * This will emit a leave statement, which is
+ * a top level node for Return, Break and Continue
+ * @param self  the code gen instance
+ * @param leave the leave statement to emit
+ */
 void emitLeaveStat(CodeGenerator *self, LeaveStat *leave);
 
+/**
+ * This will emit a top level unstructed node
+ * @param self the code gen instance
+ * @param stmt the unstructured node to emit
+ */
 void emitUnstructuredStat(CodeGenerator *self, UnstructuredStatement *stmt);
 
+/**
+ * This will emit a structured statement, a structured
+ * statement is something with a block or some form of structure,
+ * for instance a for loop, or an if statement.
+ * @param self the code gen instance
+ * @param stmt the structured statement to emit
+ */
 void emitStructuredStat(CodeGenerator *self, StructuredStatement *stmt);
 
+/**
+ * Consumes a node in the AST that we're parsing
+ * @param self [description]
+ */
 void consumeAstNode(CodeGenerator *self);
 
+/**
+ * Jumps ahead in the AST we're parsing
+ * @param self   the code gen instance
+ * @param amount the amount to consume by
+ */
 void consumeAstNodeBy(CodeGenerator *self, int amount);
 
+/**
+ * Run through all the nodes in the AST and
+ * generate the code for them!
+ * @param self the code gen instance
+ */
 void traverseAST(CodeGenerator *self);
 
+/**
+ * This is pretty much where the magic happens, this will
+ * start the code gen
+ * @param self the code gen instance
+ */
 void startCodeGeneration(CodeGenerator *self);
 
+/** MACROS */
+
+/**
+ * Emit a macro for a file inclusion
+ * @param self the code gen instance
+ * @param use  the use macro
+ */
 void emitUseMacro(CodeGenerator *self, UseMacro *use);
 
+/**
+ * Emit a top level node for macros
+ * @param self  the code gen instance
+ * @param macro the macro to emit
+ */
 void emitMacroNode(CodeGenerator *self, Macro *macro);
 
+/**
+ * Generates the code for all the macros, the code generator
+ * is currently in 2 passes, the first will generate the code
+ * for all of the macros, the second will generate code for other
+ * statements
+ * @param self the code gen instance
+ */
 void generateMacros(CodeGenerator *self);
 
+/**
+ * Destroys the given code gen instance
+ * @param self the code gen instance
+ */
 void destroyCodeGenerator(CodeGenerator *self);
 
 #endif // __CODE_GEN_H

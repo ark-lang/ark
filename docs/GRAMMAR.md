@@ -2,9 +2,9 @@ This document specifies the grammar for the Alloy programming language. It's sti
 some of the language may be missing, or some of the following may be incorrect/invalid or out-dated.
 The grammar pretty much maps straight onto the parsers source.
 
-	digit = { "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" };
-	letter = "A" | "a" | ... "Z" | "z" | "_";
-	hex_digit = { "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" | "a" | "A" | "b" | "B" | "c" | "C" | "d" | "D" | "e" | "E" | "f" | "F" };
+	digit = { "0" ... "9" }
+	letter = "a" ... "Z" | "_";
+	hex_digit = "0" ... "9" | "A" ... "F" | "a" ... "f"
 	
 	identifier = letter { letter | digit };
 	
