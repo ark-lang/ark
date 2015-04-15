@@ -1,6 +1,13 @@
 #ifndef __LEXER_H
 #define __LEXER_H
 
+/**
+ * This handles the Lexical Analysis stage of our compiler,
+ * it's a fairly quick and messy implementation and should be
+ * cleaned up. Also, we should consider supporting utf-8, however
+ * this may be tricky...
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -10,7 +17,9 @@
 #include "vector.h"
 #include "sourcefile.h"
 
-/** Lexer stuff */
+/**
+ * Properties of our Lexer.
+ */
 typedef struct {
 	sds input;				// input to lex
 	int pos;				// position in the input

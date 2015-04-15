@@ -1,6 +1,16 @@
 #ifndef __AST_H
 #define __AST_H
 
+/**
+ * This contains all of the nodes, enums, etc
+ * related to the AST. It's all in a separate file
+ * because if you haven't noticed, there are fucking
+ * loads.
+ *
+ * The node types represent every type of node that there
+ * is in the language, including macros.
+ */
+
 #include "util.h"
 #include "vector.h"
 
