@@ -265,6 +265,12 @@ void traverseAST(CodeGenerator *self);
 
 void startCodeGeneration(CodeGenerator *self);
 
+void emitUseMacro(CodeGenerator *self, UseMacro *use);
+
+void emitMacroNode(CodeGenerator *self, Macro *macro);
+
+void generateMacros(CodeGenerator *self);
+
 void destroyCodeGenerator(CodeGenerator *self);
 
 #endif // __CODE_GEN_H

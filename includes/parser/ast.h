@@ -24,7 +24,7 @@ typedef enum {
 	CONTINUE_STAT_NODE, LEAVE_STAT_NODE, ASSIGNMENT_NODE, UNSTRUCTURED_STATEMENT_NODE,
 	ELSE_STAT_NODE, IF_STAT_NODE, MATCH_CLAUSE_STAT, MATCH_STAT_NODE, FOR_STAT_NODE,
 	STRUCTURED_STATEMENT_NODE, STATEMENT_NODE, TYPE_NODE, POINTER_FREE_NODE,
-	USE_STATEMENT_NODE
+	USE_MACRO_NODE, MACRO_NODE
 } NodeType;
 
 typedef enum {
@@ -78,7 +78,7 @@ typedef struct {
  */
 typedef struct {
 	char *file;
-} UseStatement;
+} UseMacro;
 
 /**
  * Implementation node
@@ -338,6 +338,11 @@ typedef struct {
 	char *name;
 } PointerFree;
 
+typedef struct {
+	UseMacro *use;
+	int type;
+} Macro;
+
 /**
  * Unstructured statements, i.e things that don't have
  * a body, i.e declaration, assignment...
@@ -350,7 +355,6 @@ typedef struct {
 	Call *call;
 	Impl *impl;
 	PointerFree *pointerFree;
-	UseStatement *use;
 	int type;
 } UnstructuredStatement;
 
@@ -416,6 +420,7 @@ typedef struct {
 typedef struct {
 	StructuredStatement *structured;
 	UnstructuredStatement *unstructured;
+	Macro *macro;
 	int type;
 } Statement;
 
@@ -425,7 +430,7 @@ Impl *createImpl(char *name, char *as);
 
 MemberAccess *createMemberAccess();
 
-UseStatement *createUseStatement(char *file);
+UseMacro *createUseMacro(char *file);
 
 IdentifierList *createIdentifierList();
 
@@ -489,6 +494,8 @@ Assignment *createAssignment(char *iden, Expression *rhand);
 
 UnstructuredStatement *createUnstructuredStatement();
 
+Macro *createMacro();
+
 PointerFree *createPointerFree(char *name);
 
 ElseStat *createElseStat();
@@ -515,7 +522,7 @@ void destroyImpl(Impl *impl);
 
 void destroyMemberAccess(MemberAccess *member);
 
-void destroyUseStatement(UseStatement *use);
+void destroyUseMacro(UseMacro *use);
 
 void destroyIdentifierList(IdentifierList *list);
 
@@ -576,6 +583,8 @@ void destroyLeaveStat(LeaveStat *stmt);
 void destroyAssignment(Assignment *assign);
 
 void destroyUnstructuredStatement(UnstructuredStatement *stmt);
+
+void destroyMacro(Macro *macro);
 
 void destroyPointerFree(PointerFree *pntr);
 
