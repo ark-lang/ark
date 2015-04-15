@@ -420,9 +420,6 @@ void traverseAST(CodeGenerator *self) {
 			case STRUCTURED_STATEMENT_NODE: 
 				emitStructuredStat(self, stmt->structured);
 				break;
-			default:
-				printf("unknown node type found in top level node %s\n", NODE_NAME[stmt->type]);
-				break;
 		}
 	}
 }
