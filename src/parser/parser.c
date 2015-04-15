@@ -23,11 +23,18 @@ Parser *createParser() {
 	parser->failed = false;
 	parser->binopPrecedence = hashmap_new();
 
+	hashmap_put(parser->binopPrecedence, "++", createPrecedence(3));
+	hashmap_put(parser->binopPrecedence, "--", createPrecedence(3));
+	hashmap_put(parser->binopPrecedence, "!", createPrecedence(3));
+	hashmap_put(parser->binopPrecedence, "~", createPrecedence(3));
+	hashmap_put(parser->binopPrecedence, "&", createPrecedence(3));
+
 	hashmap_put(parser->binopPrecedence, ".", createPrecedence(4));
 
 	hashmap_put(parser->binopPrecedence, "*", createPrecedence(5));
 	hashmap_put(parser->binopPrecedence, "/", createPrecedence(5));
 	hashmap_put(parser->binopPrecedence, "%", createPrecedence(5));
+
 
 	hashmap_put(parser->binopPrecedence, "+", createPrecedence(6));
 	hashmap_put(parser->binopPrecedence, "-", createPrecedence(6));
@@ -43,6 +50,8 @@ Parser *createParser() {
 	hashmap_put(parser->binopPrecedence, "&", createPrecedence(10));
 
 	hashmap_put(parser->binopPrecedence, "|", createPrecedence(11));
+
+	hashmap_put(parser->binopPrecedence, "=", createPrecedence(15));
 
 	return parser;
 }
@@ -389,17 +398,72 @@ ForStat *parseForStat(Parser *parser) {
 			}
 		}
 	}
+
 	return false;
 }
 
 MatchClause *parseMatchClause(Parser *parser) {
-	ALLOY_UNUSED_OBJ(parser);
-	return false;
+
+    Expression *expr = parseExpression(parser);
+    if (expr) {
+        if (checkTokenTypeAndContent(parser, SEPARATOR, "{", 0) ||
+        	checkTokenTypeAndContent(parser, SEPARATOR, SINGLE_STATEMENT_OPERATOR, 0)) {
+
+		    MatchClause *clause = createMatchClause();
+            if (clause) {
+            	Block *block = parseBlock(parser);
+	            if (block) {
+	                clause->expr = expr;
+	                clause->body = block;
+	                return clause;
+	            }
+            }
+        }
+    }
+
+    return false;
 }
 
 MatchStat *parseMatchStat(Parser *parser) {
-	ALLOY_UNUSED_OBJ(parser);
-	return false;
+    if (checkTokenTypeAndContent(parser, IDENTIFIER, MATCH_KEYWORD, 0)) {
+        consumeToken(parser);
+        
+        Expression *expr = parseExpression(parser);
+        if (expr) {
+        	MatchStat *stmt = createMatchStat(expr);
+	        if (!stmt) {
+	        	verboseModeMessage("Failed to create statement");
+	        	return false;
+	        }
+
+        	if (checkTokenTypeAndContent(parser, SEPARATOR, "{", 0)) {
+	            consumeToken(parser);
+	            
+	            while (true) {
+		            MatchClause *clause = parseMatchClause(parser);
+		            if (clause) {
+		                pushBackItem(stmt->clauses, clause);
+		            }
+		            else {
+		            	break;
+		            }
+	            }
+            	errorMessage("oh shit we fuckled up %s", peekAtTokenStream(parser, 0)->content);
+
+	            if (checkTokenTypeAndContent(parser, SEPARATOR, "}", 0)) {
+	            	errorMessage("consumed that shit nigga");
+	            	consumeToken(parser);
+	            }
+	            else {
+	            	// TODO error no closing brace
+	            }
+
+	            return stmt;
+	        }
+        }
+    }
+
+    return false;
 }
 
 ContinueStat *parseContinueStat(Parser *parser) {
@@ -610,6 +674,14 @@ Assignment *parseAssignment(Parser *parser) {
 }
 
 StructuredStatement *parseStructuredStatement(Parser *parser) {
+	MatchStat *match = parseMatchStat(parser);
+	if (match) {
+		StructuredStatement *stmt = createStructuredStatement();
+		stmt->matchStmt = match;
+		stmt->type = MATCH_STAT_NODE;
+		return stmt;
+	}
+
 	Block *block = parseBlock(parser);
 	if (block) {
 		StructuredStatement *stmt = createStructuredStatement();
@@ -975,8 +1047,7 @@ UnaryExpr *parseUnaryExpr(Parser *parser) {
 	return false;
 }
 
-Expression *parseBinaryOperator(Parser *parser, int precedence,
-		Expression *lhand) {
+Expression *parseBinaryOperator(Parser *parser, int precedence, Expression *lhand) {
 	for (;;) {
 		int tokenPrecedence = getTokenPrecedence(parser);
 		if (tokenPrecedence < precedence)
@@ -1036,10 +1107,6 @@ Expression *parsePrimaryExpression(Parser *parser) {
 				else {
 					break;
 				}
-			}
-
-			for (int i = 0; i < members->size; i++) {
-				printf("%s\n", getVectorItem(members, i));
 			}
 		}
 	}
