@@ -1,0 +1,27 @@
+use "stdio"
+
+// this is an idea
+// more than a test.
+// take this document
+// with a grain of salt
+
+fn main(): int {
+
+	/*
+		An array can be represented as an array,
+		the index is the address, and it contains
+		a value
+	*/
+	
+	// tidle represents block of memory, not an array
+	test: i32 = ~[32];	// new block in memory
+
+	// note the tilde in the definition
+	test: ~[4: i32] = ~[0, 1, 2, 3];
+
+	// or 4 times the size of i32?
+	test: ~[4 * i32] = ~[0, 1, 2, 3];
+
+
+
+}
