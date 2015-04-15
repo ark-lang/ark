@@ -3,7 +3,6 @@
 void emitUseMacro(CodeGenerator *self, UseMacro *use) {
 	// cuts out the extension from the file
 	// name of the current file.
-	printf("%s mate\n", use->file);
 	size_t len = strlen(use->file);
 	char temp[len - 2];
 	memcpy(temp, &use->file[1], len - 2);
