@@ -1,6 +1,13 @@
 #ifndef __TOKEN_H
 #define __TOKEN_H
 
+/**
+ * This represents a Token, a Token has a type,
+ * a value that it contains (content), a lineNumber
+ * and a charNumber. The last two are mostly for debugging
+ * when we find errors in the program.
+ */
+
 #include "util.h"
 #include "vector.h"
 

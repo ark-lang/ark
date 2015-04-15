@@ -1,6 +1,11 @@
 #ifndef __SEMANTIC_H
 #define __SEMANTIC_H
 
+/**
+ * Semantic analysis of our parser, not a high priority as
+ * of writing this, so it's partially unimplemented.
+ */
+
 #include "ast.h"
 #include "vector.h"
 #include "hashmap.h"
