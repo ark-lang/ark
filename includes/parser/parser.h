@@ -32,7 +32,7 @@
 
 static const char *logOp[] = { "||", "&&" };
 static const char *relOp[] = { "==", "!=", "<", "<=", ">", ">=" };
-static const char *addOp[] = { "+", "-", "|", "^" };
+static const char *addOp[] = { "+", "-", "|", "^", "=" };
 static const char *mulOp[] = { "+", "/", "%", "<<", ">>", "&" };
 static const char *unaryOp[] = { "+", "-", "!", "^", "<", ">", "*", "&" };
 
