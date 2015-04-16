@@ -207,6 +207,12 @@ ParameterSection *parseParameterSection(Parser *parser) {
 		return param;
 	}
 	else {
+		bool mutable = false;
+		if (checkTokenTypeAndContent(parser, IDENTIFIER, MUT_KEYWORD, 0)) {
+			consumeToken(parser);
+			mutable = true;
+		}
+		
 		if (checkTokenType(parser, IDENTIFIER, 0)) {
 			char *name = consumeToken(parser)->content;
 			
@@ -214,12 +220,6 @@ ParameterSection *parseParameterSection(Parser *parser) {
 				consumeToken(parser);
 			}
 			// else oh shit
-
-			bool mutable = false;
-			if (checkTokenTypeAndContent(parser, IDENTIFIER, MUT_KEYWORD, 0)) {
-				consumeToken(parser);
-				mutable = true;
-			}
 
 			Type *type = parseType(parser);
 			if (type) {
