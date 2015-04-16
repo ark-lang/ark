@@ -1,0 +1,22 @@
+fn printf(format: str, _): int;
+
+fn calculateFizzBuzz(mut val: int) {
+	if val % 15 == 0 {
+		printf("%d: fizz buzz\n", val);
+	}
+	if val % 3 == 0 {
+		printf("%d: fizz\n", val);
+	}
+	if val % 5 == 0 {
+		printf("%d: buzz\n", val);
+	}
+}
+
+fn main(): int {
+	mut i: int = 0;
+	for {
+		calculateFizzBuzz(i);
+		i = i + 1;
+	}
+	return 0;	
+}
