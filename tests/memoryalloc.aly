@@ -17,9 +17,12 @@ fn main(): int {
 	*/
 	
 	// tidle represents block of memory, not an array
+	// allocates 
 	test: ^i32 = ~[32];	// new block in memory
 
 	// note the tilde in the definition
 	test: ~[4: ^i32] = ~[0, 1, 2, 3];
+
+
 
 }
