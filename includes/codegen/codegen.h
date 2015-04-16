@@ -41,7 +41,7 @@
  * produce is somewhat readable, or
  * all minified
  */
-#define COMPACT_CODE_GEN false
+#define COMPACT_CODE_GEN true
 
 #if COMPACT_CODE_GEN == false
 	#define CC_NEWLINE "\n"
@@ -275,6 +275,13 @@ void emitReturnStat(CodeGenerator *self, ReturnStat *ret);
  * @param leave the leave statement to emit
  */
 void emitLeaveStat(CodeGenerator *self, LeaveStat *leave);
+
+/**
+ * This will emit the top level node for a statement
+ * @param self the code gen instance
+ * @param stmt the statement to emit
+ */
+void emitStatement(CodeGenerator *self, Statement *stmt);
 
 /**
  * This will emit a top level unstructed node

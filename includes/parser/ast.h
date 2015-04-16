@@ -231,6 +231,7 @@ typedef struct {
  */
 typedef struct {
 	StatementList *stmtList;
+	bool singleStatementBlock;
 } Block;
 
 /**

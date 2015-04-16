@@ -116,6 +116,7 @@ StatementList *createStatementList() {
 Block *createBlock() {
 	Block *block = safeMalloc(sizeof(*block));
 	block->stmtList = createStatementList();
+	block->singleStatementBlock = false;
 	return block;
 }
 
