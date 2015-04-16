@@ -1,14 +1,17 @@
+ITERATIONS: int = 1000000;
+
 fn printf(format: str, _): int;
 
 fn calculateFizzBuzz(mut val: int) {
+	// else ifs not supported lol
 	if val % 15 == 0 {
-		printf("%d: fizz buzz\n", val);
-	}
-	if val % 3 == 0 {
-		printf("%d: fizz\n", val);
+		printf("%d/%d: fizz buzz\n", val, ITERATIONS);
 	}
 	if val % 5 == 0 {
-		printf("%d: buzz\n", val);
+		printf("%d/%d: buzz\n", val, ITERATIONS);
+	}
+	if val % 3 == 0 {
+		printf("%d/%d: fizz\n", val, ITERATIONS);
 	}
 }
 
@@ -17,6 +20,9 @@ fn main(): int {
 	for {
 		calculateFizzBuzz(i);
 		i = i + 1;
+		if i > ITERATIONS {
+			break;
+		}
 	}
 	return 0;	
 }
