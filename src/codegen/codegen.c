@@ -318,11 +318,17 @@ void emitInfiniteForLoop(CodeGenerator *self, ForStat *stmt) {
 	emitCode(self, "}" CC_NEWLINE);
 }
 
+void emitMatchClause(CodeGenerator *self, MatchClause *clause) {
+	
+}
+
 void emitMatchStat(CodeGenerator *self, MatchStat *match) {
 	emitCode(self, "switch (");
 	emitExpression(self, match->expr);
 	emitCode(self, ") {" CC_NEWLINE);
-
+	for (int i = 0; i < match->clauses->size; i++) {
+		emitMatchClause(self, getVectorItem(match->clauses, i));
+	}
 	emitCode(self, "}" CC_NEWLINE);
 }
 
