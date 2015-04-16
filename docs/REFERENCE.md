@@ -15,6 +15,20 @@ The design is motivated by the following:
 
 The language should be strong enough that it can be self-hosted.
 
+## Comments
+Single-line comments are denoted with two forward slashes:
+
+	// vedant is a scrotum
+
+Multi-line comments are denoted with a forward slash followed by an asterisks. They must be closed
+with an asterisks, followed by a forward slash. For instance:
+
+	/*
+		Vedant is a scrotum	
+	 */
+	
+Comments cannot be nested.
+
 ## Primitive Types
 Alloy provides various primitive types:
 
@@ -155,3 +169,7 @@ The struct initializer is a statement, therefore it must be terminated with a se
 the values in the struct initializer do not have to be in order, but we suggest you do to keep things
 consistent.
 
+## Implementations & Methods
+An `impl` is an implementation of the given `struct`, or structure. An implementation contains methods
+that 'belong' to the structure, i.e you can call these methods through the given structure and the methods
+can manipulate their owners data.
