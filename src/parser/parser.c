@@ -212,7 +212,7 @@ ParameterSection *parseParameterSection(Parser *parser) {
 			consumeToken(parser);
 			mutable = true;
 		}
-		
+
 		if (checkTokenType(parser, IDENTIFIER, 0)) {
 			char *name = consumeToken(parser)->content;
 			
@@ -406,17 +406,13 @@ MatchClause *parseMatchClause(Parser *parser) {
 
     Expression *expr = parseExpression(parser);
     if (expr) {
-        if (checkTokenTypeAndContent(parser, SEPARATOR, "{", 0) ||
-        	checkTokenTypeAndContent(parser, SEPARATOR, SINGLE_STATEMENT_OPERATOR, 0)) {
-
-		    MatchClause *clause = createMatchClause();
-            if (clause) {
-            	Block *block = parseBlock(parser);
-	            if (block) {
-	                clause->expr = expr;
-	                clause->body = block;
-	                return clause;
-	            }
+	    MatchClause *clause = createMatchClause();
+        if (clause) {
+        	Block *block = parseBlock(parser);
+            if (block) {
+                clause->expr = expr;
+                clause->body = block;
+                return clause;
             }
         }
     }
@@ -440,22 +436,15 @@ MatchStat *parseMatchStat(Parser *parser) {
 	            consumeToken(parser);
 	            
 	            while (true) {
+		        	if (checkTokenTypeAndContent(parser, SEPARATOR, "}", 0)) {
+		            	consumeToken(parser);
+		            	break;
+		            }
+
 		            MatchClause *clause = parseMatchClause(parser);
 		            if (clause) {
 		                pushBackItem(stmt->clauses, clause);
 		            }
-		            else {
-		            	break;
-		            }
-	            }
-            	errorMessage("oh shit we fuckled up %s", peekAtTokenStream(parser, 0)->content);
-
-	            if (checkTokenTypeAndContent(parser, SEPARATOR, "}", 0)) {
-	            	errorMessage("consumed that shit nigga");
-	            	consumeToken(parser);
-	            }
-	            else {
-	            	// TODO error no closing brace
 	            }
 
 	            return stmt;
@@ -808,7 +797,21 @@ Statement *parseStatement(Parser *parser) {
 }
 
 Block *parseBlock(Parser *parser) {
-	if (checkTokenTypeAndContent(parser, SEPARATOR, "{", 0)) {
+	if (checkTokenTypeAndContent(parser, OPERATOR, SINGLE_STATEMENT_OPERATOR, 0)) {
+		consumeToken(parser);
+
+		Block *block = createBlock();
+		if (block) {
+			Statement *stat = parseStatement(parser);
+			if (stat) {
+				pushBackItem(block->stmtList->stmts, stat);
+			}
+			block->singleStatementBlock = true;
+
+			return block;
+		}
+	}
+	else if (checkTokenTypeAndContent(parser, SEPARATOR, "{", 0)) {
 		pushScope(parser);
 		consumeToken(parser);
 
@@ -827,6 +830,7 @@ Block *parseBlock(Parser *parser) {
 		}
 		return block;
 	}
+
 	return false;
 }
 
