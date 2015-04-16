@@ -837,7 +837,8 @@ Block *parseBlock(Parser *parser) {
 FunctionDecl *parseFunctionDecl(Parser *parser) {
 	FunctionSignature *signature = parseFunctionSignature(parser);
 	if (signature) {
-		if (checkTokenTypeAndContent(parser, SEPARATOR, "{", 0)) {
+		if (checkTokenTypeAndContent(parser, SEPARATOR, "{", 0)
+			|| checkTokenTypeAndContent(parser, OPERATOR, SINGLE_STATEMENT_OPERATOR, 0)) {
 			Block *block = parseBlock(parser);
 			if (block) {
 				FunctionDecl *decl = createFunctionDecl();
