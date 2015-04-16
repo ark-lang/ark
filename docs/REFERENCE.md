@@ -172,4 +172,35 @@ consistent.
 ## Implementations & Methods
 An `impl` is an implementation of the given `struct`, or structure. An implementation contains methods
 that 'belong' to the structure, i.e you can call these methods through the given structure and the methods
-can manipulate their owners data.
+can manipulate their owners data. First we must have a struct that will be the owner of these methods:
+
+	struct Person {
+		name: str;
+		age: int;
+		gender: Gender;
+	}
+
+We can then define various methods for this structure. To do so, they must be wrapped in an `impl`. The `impl`
+or implementation, must declare what it is implementing. In this case `Person`.
+
+	impl Person {
+		...
+	}
+
+The functions for `Person` are declared inside of this `impl`:
+
+	impl Person {
+		fn say() {
+			println("Hi my name is %s and I'm %d years of age.", self.name, self.age);
+		}
+	}
+
+To access the structure that the we're implementing, you use the `self` keyword. To call the `say`
+function we defined, you need to have an instance of the structure. Functions can then be accessed
+via the dot operator:
+
+	fn main(): int {
+		Person p;
+		p.say();
+	}
+
