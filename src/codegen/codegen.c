@@ -271,18 +271,18 @@ void emitWhileForLoop(CodeGenerator *self, ForStat *stmt) {
 }
 
 void emitBlock(CodeGenerator *self, Block *block) {
-	for (int i = 0; i < block->stmtList->stmts->size; i++) {
-		Statement *stmt = getVectorItem(block->stmtList->stmts, i);
-		switch (stmt->type) {
-			case UNSTRUCTURED_STATEMENT_NODE: 
-				emitUnstructuredStat(self, stmt->unstructured);
-				break;
-			case STRUCTURED_STATEMENT_NODE: 
-				emitStructuredStat(self, stmt->structured);
-				break;
-			default:
-				printf("unknown node type in block %s\n", NODE_NAME[stmt->type]);
-				break;
+	if (block->singleStatementBlock) {
+		Statement *stmt = getVectorItem(block->stmtList->stmts, 0);
+		if (stmt) {
+			emitStatement(self, stmt);
+		}
+	}
+	else {
+		for (int i = 0; i < block->stmtList->stmts->size; i++) {
+			Statement *stmt = getVectorItem(block->stmtList->stmts, i);
+			if (stmt) {
+				emitStatement(self, stmt);
+			}
 		}
 	}
 }
@@ -315,6 +315,14 @@ void emitInfiniteForLoop(CodeGenerator *self, ForStat *stmt) {
 	self->writeState = WRITE_SOURCE_STATE;
 	emitCode(self, "while (true) {" CC_NEWLINE);
 	emitBlock(self, stmt->body);
+	emitCode(self, "}" CC_NEWLINE);
+}
+
+void emitMatchStat(CodeGenerator *self, MatchStat *match) {
+	emitCode(self, "switch (");
+	emitExpression(self, match->expr);
+	emitCode(self, ") {" CC_NEWLINE);
+
 	emitCode(self, "}" CC_NEWLINE);
 }
 
@@ -406,6 +414,20 @@ void emitIfStat(CodeGenerator *self, IfStat *ifs) {
 	emitCode(self, ") {" CC_NEWLINE);
 	emitBlock(self, ifs->body);
 	emitCode(self, "}" CC_NEWLINE);
+}
+
+void emitStatement(CodeGenerator *self, Statement *stmt) {
+	switch (stmt->type) {
+		case UNSTRUCTURED_STATEMENT_NODE: 
+			emitUnstructuredStat(self, stmt->unstructured);
+			break;
+		case STRUCTURED_STATEMENT_NODE: 
+			emitStructuredStat(self, stmt->structured);
+			break;
+		default:
+			printf("unknown node type in block %s\n", NODE_NAME[stmt->type]);
+			break;
+	}
 }
 
 void emitStructuredStat(CodeGenerator *self, StructuredStatement *stmt) {
