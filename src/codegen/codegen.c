@@ -319,7 +319,8 @@ void emitInfiniteForLoop(CodeGenerator *self, ForStat *stmt) {
 }
 
 void emitMatchClause(CodeGenerator *self, MatchClause *clause) {
-	
+	ALLOY_UNUSED_OBJ(self);
+	ALLOY_UNUSED_OBJ(clause);	
 }
 
 void emitMatchStat(CodeGenerator *self, MatchStat *match) {
