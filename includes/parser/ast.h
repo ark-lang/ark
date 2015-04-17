@@ -72,6 +72,9 @@ typedef struct {
 	char *name;
 } TypeName;
 
+/**
+ * ??
+ */
 typedef struct {
 	TypeName *type;
 } BaseType;
@@ -287,6 +290,9 @@ typedef struct {
 
 	// is it being assigned a value
 	bool assigned;
+
+	// if the type is infered
+	bool inferred;
 	
 	// the decl type
 	Type *type;

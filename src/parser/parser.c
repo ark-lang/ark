@@ -7,8 +7,7 @@ const char* DATA_TYPES[] = { "i64", "i32", "i16", "i8", "u64", "u32", "u16",
 		"u8", "f64", "f32", "int", "bool", "char", "void" };
 
 int getTypeFromString(char *type) {
-	int i;
-	for (i = 0; i < ARR_LEN(DATA_TYPES); i++) {
+	for (int i = 0; i < ARR_LEN(DATA_TYPES); i++) {
 		if (!strcmp(type, DATA_TYPES[i]))
 			return i;
 	}
@@ -58,7 +57,6 @@ Parser *createParser() {
 
 void destroyParser(Parser *parser) {
 	if (parser->scope->stackPointer != -1) {
-		errorMessage("Some kind of memory leak occurred?");
 		while (parser->scope->stackPointer >= 0) {
 			popStack(parser->scope);
 		}
@@ -866,9 +864,6 @@ VariableDecl *parseVariableDecl(Parser *parser) {
 		mutable = true;
 	}
 
-	// int x = expr;
-
-	// x: int = expr;
 	if (checkTokenType(parser, IDENTIFIER, 0)) {
 		char *var_name = consumeToken(parser)->content;
 		Expression *rhand = NULL;
@@ -876,9 +871,18 @@ VariableDecl *parseVariableDecl(Parser *parser) {
 		if (checkTokenTypeAndContent(parser, OPERATOR, ":", 0)) {
 			consumeToken(parser);
 			
-			Type *type = parseType(parser);
-			if (!type) {
-				errorMessage("NO TYPE!");
+			bool inferred = false;
+			Type *type = NULL;
+
+			if (checkTokenTypeAndContent(parser, OPERATOR, "=", 0)) {
+				consumeToken(parser);
+				inferred = true;
+			}
+			else {
+				type = parseType(parser);
+				if (!type) {
+					errorMessage("NO TYPE blame vedant!");
+				}
 			}
 
 			if (checkTokenTypeAndContent(parser, OPERATOR, "=", 0)) {
@@ -890,7 +894,12 @@ VariableDecl *parseVariableDecl(Parser *parser) {
 						consumeToken(parser);
 					}
 
-					VariableDecl *decl = createVariableDecl(type, var_name, mutable, rhand);
+					Type *varType = type;
+					if (!varType && inferred) {
+						// varType = inferTypeFromExpr(rhand);
+						errorMessage("TODO: type inference lol");
+					}
+					VariableDecl *decl = createVariableDecl(varType, var_name, mutable, rhand);
 					decl->assigned = true;
 					return decl;
 				}

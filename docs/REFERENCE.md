@@ -76,6 +76,20 @@ And declared as follows:
 
 	name: type = some_val;
 
+### Type Inference
+The syntax for type inference is nearly identical to a typical variable declaration, all
+you have to do is omit the type, for instance:
+
+	my_type := 5;
+	a_float := 5.3f;
+	a_double := 5.2d;
+
+Note how for floats and doubles, you have to be somewhat explicit, and suffix the value
+with an `f` for a float, or a `d` for double. If the value is a decimal number and is
+not suffixed with an `f` or a `d`, the value will be assumed to be a double. This is
+because it is guaranteed that no floating-point precision errors will be caused by
+the type inference.
+
 ## Tuples
 A tuple is define similarly to a variable, however you specify the types in parenthesis. For
 instance:
