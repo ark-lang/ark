@@ -874,10 +874,11 @@ VariableDecl *parseVariableDecl(Parser *parser) {
 			bool inferred = false;
 			Type *type = NULL;
 
+			// next char is =, not a type so its type inference!
 			if (checkTokenTypeAndContent(parser, OPERATOR, "=", 0)) {
-				consumeToken(parser);
 				inferred = true;
 			}
+			// not type inference, let's hope theres a type defined...
 			else {
 				type = parseType(parser);
 				if (!type) {
@@ -885,6 +886,7 @@ VariableDecl *parseVariableDecl(Parser *parser) {
 				}
 			}
 
+			// var decl
 			if (checkTokenTypeAndContent(parser, OPERATOR, "=", 0)) {
 				consumeToken(parser);
 
@@ -894,16 +896,15 @@ VariableDecl *parseVariableDecl(Parser *parser) {
 						consumeToken(parser);
 					}
 
-					Type *varType = type;
-					if (!varType && inferred) {
-						// varType = inferTypeFromExpr(rhand);
+					if (!type && inferred) {
 						errorMessage("TODO: type inference lol");
 					}
-					VariableDecl *decl = createVariableDecl(varType, var_name, mutable, rhand);
+					VariableDecl *decl = createVariableDecl(type, var_name, mutable, rhand);
 					decl->assigned = true;
 					return decl;
 				}
 			}
+			// var definition
 			else if (checkTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
 				consumeToken(parser); // eat the semi colon!
 
@@ -913,8 +914,6 @@ VariableDecl *parseVariableDecl(Parser *parser) {
 			}
 		}
 	}
-
-
 
 	return false;
 }
