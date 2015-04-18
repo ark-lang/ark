@@ -67,9 +67,8 @@ AlloyCompiler *createAlloyCompiler(int argc, char** argv) {
 	self->generator = NULL;
 	self->sourceFiles = createVector(VECTOR_LINEAR);
 
-	int i;
-	// i = 1 to ignore first arg
-	for (i = 1; i < argc; i++) {
+	// i = 1, ignores first argument
+	for (int i = 1; i < argc; i++) {
 		if (argv[i][0] == '-') {
 			CommandLineArgument arg;
 
