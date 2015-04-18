@@ -16,8 +16,7 @@ const char* getTokenName(Token *tok) {
 char* getTokenContext(Vector *stream, Token *tok) {
 	sds result = sdsempty();
 	
-	int i;
-	for (i = 0; i < stream->size; i++) {
+	for (int i = 0; i < stream->size; i++) {
 		Token *tempTok = getVectorItem(stream, i);
 		if (tempTok->lineNumber == tok->lineNumber) {
 			result = sdscat(result, tempTok->content);

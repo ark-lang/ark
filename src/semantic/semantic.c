@@ -106,7 +106,7 @@ void analyzeBinaryExpr(SemanticAnalyzer *self, BinaryExpr *expr) {
 }
 
 void analyzeUnaryExpr(SemanticAnalyzer *self, UnaryExpr *expr) {
-	analyzeExpression(self, expr->rhand);
+	analyzeExpression(self, expr->lhand);
 }
 
 void analyzeExpression(SemanticAnalyzer *self, Expression *expr) {

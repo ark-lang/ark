@@ -142,11 +142,10 @@ static unsigned long crc32_tab[] = { 0x00000000L, 0x77073096L, 0xee0e612cL,
 /* Return a 32-bit CRC of the contents of the buffer. */
 
 unsigned long crc32(const unsigned char *s, unsigned int len) {
-	unsigned int i;
 	unsigned long crc32val;
 
 	crc32val = 0;
-	for (i = 0; i < len; i++) {
+	for (unsigned int i = 0; i < len; i++) {
 		crc32val = crc32_tab[(crc32val ^ s[i]) & 0xff] ^ (crc32val >> 8);
 	}
 	return crc32val;
@@ -181,7 +180,6 @@ unsigned int hashmap_hash_int(hashmap_map * m, char* keystring) {
  */
 int hashmap_hash(map_t in, char* key) {
 	int curr;
-	int i;
 
 	/* Cast the hashmap */
 	hashmap_map* m = (hashmap_map *) in;
@@ -194,7 +192,7 @@ int hashmap_hash(map_t in, char* key) {
 	curr = hashmap_hash_int(m, key);
 
 	/* Linear probing */
-	for (i = 0; i < MAX_CHAIN_LENGTH; i++) {
+	for (int i = 0; i < MAX_CHAIN_LENGTH; i++) {
 		if (m->data[curr].in_use == 0)
 			return curr;
 
@@ -211,7 +209,6 @@ int hashmap_hash(map_t in, char* key) {
  * Doubles the size of the hashmap, and rehashes all the elements
  */
 int hashmap_rehash(map_t in) {
-	int i;
 	int old_size;
 	hashmap_element* curr;
 
@@ -232,7 +229,7 @@ int hashmap_rehash(map_t in) {
 	m->size = 0;
 
 	/* Rehash the elements */
-	for (i = 0; i < old_size; i++) {
+	for (int i = 0; i < old_size; i++) {
 		int status;
 
 		if (curr[i].in_use == 0)
@@ -281,7 +278,6 @@ int hashmap_put(map_t in, char* key, any_t value) {
  */
 int hashmap_get(map_t in, char* key, any_t *arg) {
 	int curr;
-	int i;
 	hashmap_map* m;
 
 	/* Cast the hashmap */
@@ -291,7 +287,7 @@ int hashmap_get(map_t in, char* key, any_t *arg) {
 	curr = hashmap_hash_int(m, key);
 
 	/* Linear probing, if necessary */
-	for (i = 0; i < MAX_CHAIN_LENGTH; i++) {
+	for (int i = 0; i < MAX_CHAIN_LENGTH; i++) {
 
 		int in_use = m->data[curr].in_use;
 		if (in_use == 1) {
@@ -316,8 +312,6 @@ int hashmap_get(map_t in, char* key, any_t *arg) {
  * argument and the hashmap element is the second.
  */
 int hashmap_iterate(map_t in, PFany f, any_t item) {
-	int i;
-
 	/* Cast the hashmap */
 	hashmap_map* m = (hashmap_map*) in;
 
@@ -326,7 +320,7 @@ int hashmap_iterate(map_t in, PFany f, any_t item) {
 		return MAP_MISSING;
 
 	/* Linear probing */
-	for (i = 0; i < m->table_size; i++)
+	for (int i = 0; i < m->table_size; i++)
 		if (m->data[i].in_use != 0) {
 			any_t data = (any_t) (m->data[i].data);
 			int status = f(item, data);
@@ -342,7 +336,6 @@ int hashmap_iterate(map_t in, PFany f, any_t item) {
  * Remove an element with that key from the map
  */
 int hashmap_remove(map_t in, char* key) {
-	int i;
 	int curr;
 	hashmap_map* m;
 
@@ -353,7 +346,7 @@ int hashmap_remove(map_t in, char* key) {
 	curr = hashmap_hash_int(m, key);
 
 	/* Linear probing, if necessary */
-	for (i = 0; i < MAX_CHAIN_LENGTH; i++) {
+	for (int i = 0; i < MAX_CHAIN_LENGTH; i++) {
 
 		int in_use = m->data[curr].in_use;
 		if (in_use == 1) {
