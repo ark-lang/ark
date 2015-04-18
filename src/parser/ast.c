@@ -247,8 +247,7 @@ Type *createType() {
 }
 
 void cleanupAST(Vector *nodes) {
-	int i;
-	for (i = 0; i < nodes->size; i++) {
+	for (int i = 0; i < nodes->size; i++) {
 		Node *node = getVectorItem(nodes, i);
 
 		switch (node->type) {

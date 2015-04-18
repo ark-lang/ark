@@ -307,8 +307,7 @@ void getNextToken(Lexer *lexer) {
 
 void destroyLexer(Lexer *lexer) {
 	if (lexer->tokenStream != NULL) {
-		int i;
-		for (i = 0; i < lexer->tokenStream->size; i++) {
+		for (int i = 0; i < lexer->tokenStream->size; i++) {
 			Token *tok = getVectorItem(lexer->tokenStream, i);
 			// eof's content isnt malloc'd so free would give us some errors
 			if (tok->type != END_OF_FILE) {
