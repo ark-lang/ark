@@ -1,0 +1,11 @@
+fn printf(format: str, _): int;
+
+fn add(a: int, b: int): int {
+	return a + b;
+}
+
+fn main(): int {
+	z: int = add(10);
+	printf("%d\n", z);
+	return 0;
+}

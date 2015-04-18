@@ -220,14 +220,31 @@ ParameterSection *parseParameterSection(Parser *parser) {
 			if (checkTokenTypeAndContent(parser, OPERATOR, ":", 0)) {
 				consumeToken(parser);
 			}
-			// else oh shit
+			else {
+				errorMessage("no : oh shit todo");
+			}
 
 			Type *type = parseType(parser);
-			if (type) {
-				ParameterSection *paramSec = createParameterSection(type, mutable);
-				paramSec->name = name;
-				return paramSec;
+			if (!type) {
+				errorMessage("no type in func arg, shit todo felix");
 			}
+
+			ParameterSection *paramSec = createParameterSection(type, mutable);
+			if (checkTokenTypeAndContent(parser, OPERATOR, "=", 0)) {
+				consumeToken(parser);
+
+				Expression *expr = parseExpression(parser);
+				if (!expr) {
+					errorMessage("Expected expression somefuckadoodgle TODO");
+				}
+				else {
+					paramSec->optional = true;
+					paramSec->optionalExpr = expr;
+				}
+			}
+			
+			paramSec->name = name;
+			return paramSec;
 		}
 	}
 	return false;
@@ -298,7 +315,10 @@ FunctionSignature *parseFunctionSignature(Parser *parser) {
 							FunctionSignature *sign = createFunctionSignature(functionName, params, mutable, type);
 							return sign;
 						}
-						// else no type specified
+						else {
+							errorMessage("no type wtf todo noob");
+						}
+
 					} 
 					else if (checkTokenTypeAndContent(parser, SEPARATOR, "{", 0)
 						|| checkTokenTypeAndContent(parser, SEPARATOR, ";", 0)) {
