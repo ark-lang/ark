@@ -39,10 +39,23 @@ void analyzeVariableDeclaration(SemanticAnalyzer *self, VariableDecl *decl) {
 	VariableDecl *mapDecl = NULL;	
 	if (hashmap_get(self->varSymTable, decl->name, (void**) &mapDecl) == MAP_MISSING) {
 		hashmap_put(self->varSymTable, decl->name, decl);
-
 	}
 	else {
 		semanticError("Redefinition of `%s`", decl->name);
+	}
+}
+
+void analyzeAssignment(SemanticAnalyzer *self, Assignment *assign) {
+	VariableDecl *mapDecl = NULL;
+	// check assign thing exists
+	if (hashmap_get(self->varSymTable, assign->iden, (void**) &mapDecl) == MAP_MISSING) {
+		semanticError("`%s` undeclared", assign->iden);
+	}
+	// check mutability, etc.
+	else {
+		if (!mapDecl->mutable) {
+			semanticError("Assignment of read-only variable `%s`", assign->iden);
+		}
 	}
 }
 
@@ -82,6 +95,7 @@ void analyzeUnstructuredStatement(SemanticAnalyzer *self, UnstructuredStatement 
 	switch (unstructured->type) {
 		case DECLARATION_NODE: analyzeDeclaration(self, unstructured->decl); break;
 		case FUNCTION_CALL_NODE: analyzeFunctionCall(self, unstructured->call); break;
+		case ASSIGNMENT_NODE: analyzeAssignment(self, unstructured->assignment); break;
 	}
 }
 
