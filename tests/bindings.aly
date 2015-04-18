@@ -1,0 +1,7 @@
+use "testlib"
+
+fn main(): int {
+	x: double = cos(3.141);
+	println("%d", x);
+	return 0;
+}

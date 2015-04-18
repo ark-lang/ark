@@ -262,13 +262,13 @@ We could write a really simple "math" library with some bindings to C's `<math.h
 	fn sin(x: double): double;
 	fn sinh(x: double): double;
 
+	// just for the printf example, it's somewhat irrelevant
+	fn printf(format: str, _): int;
+
 And we can use this library in a file:
 
 	// main.aly
 	use "math" // note we don't use "math.aly", just "math"
-
-	// just for the printf example, it's somewhat irrelevant
-	fn printf(format: str, _): int;
 
 	fn main(): int {
 		x: double = cos(3.141);
