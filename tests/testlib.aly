@@ -1,0 +1,30 @@
+// this is a library with various c bindings that may be useful. This is for the 
+// unit tests!
+
+// MATH
+fn acos(x: double): double;
+fn asin(x: double): double;
+fn atan(x: double): double;
+fn atan2(y: double, x: double): double;
+fn cos(x: double): double;
+fn cosh(x: double): double;
+fn sin(x: double): double;
+fn sinh(x: double): double;
+
+// PRINTING STUFF
+fn printf(format: str, _): int;
+fn println(format: str, _): int {
+	mut arg: va_list;
+	va_start(arg, format);
+	mut x: int = printf(format, arg);
+	va_end(arg);
+	x = x + printf("\n");
+	return x;
+}
+fn print(format: str, _): int {
+	mut arg: va_list;
+	va_start(arg, format);
+	mut x: int = printf(format, arg);
+	va_end(arg);
+	return x;
+}
