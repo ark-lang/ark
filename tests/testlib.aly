@@ -2,14 +2,14 @@
 // unit tests!
 
 // MATH
-fn acos(x: double): double;
-fn asin(x: double): double;
-fn atan(x: double): double;
-fn atan2(y: double, x: double): double;
-fn cos(x: double): double;
-fn cosh(x: double): double;
-fn sin(x: double): double;
-fn sinh(x: double): double;
+fn acos(mut x: double): mut double;
+fn asin(mut x: double): mut double;
+fn atan(mut x: double): mut double;
+fn atan2(mut y: double, mut x: double): mut double;
+fn cos(mut x: double): mut double;
+fn cosh(mut x: double): mut double;
+fn sin(mut x: double): mut double;
+fn sinh(mut x: double): mut double;
 
 // PRINTING STUFF
 fn printf(format: str, _): int;
