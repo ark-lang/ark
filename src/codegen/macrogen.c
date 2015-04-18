@@ -8,7 +8,7 @@ void emitUseMacro(CodeGenerator *self, UseMacro *use) {
 	memcpy(temp, &use->file[1], len - 2);
 	temp[len - 2] = '\0';
 
-	emitCode(self, "#include \"_gen_%s.h\"" CC_NEWLINE, temp);
+	emitCode(self, "#include \"_gen_%s.h\"\n", temp);
 }
 
 void emitMacroNode(CodeGenerator *self, Macro *macro) {
