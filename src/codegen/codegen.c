@@ -497,6 +497,12 @@ void startCodeGeneration(CodeGenerator *self) {
 		closeFiles(self->currentSourceFile);
 	}
 
+	/**
+	 *
+	 * THIS IS MESSY PLS FIX FELIX!
+	 * 
+	 */
+
 	sds buildCommand = sdsempty();
 
 	// append the compiler to use etc
@@ -515,6 +521,9 @@ void startCodeGeneration(CodeGenerator *self) {
 		if (i != self->sourceFiles->size - 1) // stop whitespace at the end!
 			buildCommand = sdscat(buildCommand, " ");
 	}
+
+	buildCommand = sdscat(buildCommand, " ");
+	buildCommand = sdscat(buildCommand, LINKER_FLAGS);
 
 	// this was for SDL, and isn't required.
 	// buildCommand = sdscat(buildCommand, " -lSDL2");

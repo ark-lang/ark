@@ -78,13 +78,16 @@ Literal *parseLiteral(Parser *parser) {
 }
 
 UseMacro *parseUseMacro(Parser *parser) {
-	if (checkTokenTypeAndContent(parser, IDENTIFIER, USE_KEYWORD, 0)) {
+	if (checkTokenTypeAndContent(parser, OPERATOR, "!", 0)) {
 		consumeToken(parser);
+		if (checkTokenTypeAndContent(parser, IDENTIFIER, USE_KEYWORD, 0)) {
+			consumeToken(parser);
 
-		if (checkTokenType(parser, STRING, 0)) {
-			char *file = consumeToken(parser)->content;
+			if (checkTokenType(parser, STRING, 0)) {
+				char *file = consumeToken(parser)->content;
 
-			return createUseMacro(file);
+				return createUseMacro(file);
+			}
 		}
 	}
 	return false;
@@ -755,6 +758,10 @@ UnstructuredStatement *parseUnstructuredStatement(Parser *parser) {
 }
 
 Macro *parseMacro(Parser *parser) {
+	if (!checkTokenTypeAndContent(parser, OPERATOR, "!", 0)) {
+		return false;
+	}	
+
 	UseMacro *use = parseUseMacro(parser);
 	if (use) {
 		Macro *stmt = createMacro();
