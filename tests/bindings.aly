@@ -1,7 +1,7 @@
 use "testlib"
 
 fn main(): int {
-	x: double = cos(3.141);
-	println("%d", x);
+	mut x: double = cos(5);
+	println("%f", x);
 	return 0;
 }
