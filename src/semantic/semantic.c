@@ -35,9 +35,21 @@ void analyzeFunctionDeclaration(SemanticAnalyzer *self, FunctionDecl *decl) {
 	}
 }
 
+void analyzeVariableDeclaration(SemanticAnalyzer *self, VariableDecl *decl) {
+	VariableDecl *mapDecl = NULL;	
+	if (hashmap_get(self->varSymTable, decl->name, (void**) &mapDecl) == MAP_MISSING) {
+		hashmap_put(self->varSymTable, decl->name, decl);
+
+	}
+	else {
+		semanticError("Redefinition of `%s`", decl->name);
+	}
+}
+
 void analyzeDeclaration(SemanticAnalyzer *self, Declaration *decl) {
 	switch (decl->type) {
 		case FUNCTION_DECL_NODE: analyzeFunctionDeclaration(self, decl->funcDecl); break;
+		case VARIABLE_DECL_NODE: analyzeVariableDeclaration(self, decl->varDecl); break;
 	}
 }
 
@@ -85,9 +97,6 @@ void analyzeStatement(SemanticAnalyzer *self, Statement *stmt) {
 			break;
 		case STRUCTURED_STATEMENT_NODE: 
 			analyzeStructuredStatement(self, stmt->structured);
-			break;
-		default:
-			semanticError("WHAT YEAR IS IT?");
 			break;
 	}
 }
