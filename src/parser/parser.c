@@ -1324,8 +1324,7 @@ bool isLiteral(Parser *parser, int ahead) {
 /** DRIVER */
 
 void startParsingSourceFiles(Parser *parser, Vector *sourceFiles) {
-	int i;
-	for (i = 0; i < sourceFiles->size; i++) {
+	for (int i = 0; i < sourceFiles->size; i++) {
 		SourceFile *file = getVectorItem(sourceFiles, i);
 		parser->tokenStream = file->tokens;
 		parser->parseTree = createVector(VECTOR_EXPONENTIAL);
@@ -1341,8 +1340,7 @@ void startParsingSourceFiles(Parser *parser, Vector *sourceFiles) {
 
 bool isValidBinaryOp(char *tok) {
 	int size = ARR_LEN(BINARY_OPS);
-	int i;
-	for (i = 0; i < size; i++) {
+	for (int i = 0; i < size; i++) {
 		if (!strcmp(tok, BINARY_OPS[i])) {
 			return true;
 		}

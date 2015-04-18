@@ -540,8 +540,7 @@ void startCodeGeneration(CodeGenerator *self) {
 }
 
 void destroyCodeGenerator(CodeGenerator *self) {
-	int i;
-	for (i = 0; i < self->sourceFiles->size; i++) {
+	for (int i = 0; i < self->sourceFiles->size; i++) {
 		SourceFile *sourceFile = getVectorItem(self->sourceFiles, i);
 		destroySourceFile(sourceFile);
 		verboseModeMessage("Destroyed source files on %d iteration.", i);
