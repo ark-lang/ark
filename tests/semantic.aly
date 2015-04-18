@@ -3,5 +3,5 @@ fn add(a: int, b: int): int {
 }
 
 fn main(): int {
-	add(5, 5);
+	
 }
