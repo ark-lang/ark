@@ -124,6 +124,7 @@ ParameterSection *createParameterSection(Type *type, bool mutable) {
 	ParameterSection *param = safeMalloc(sizeof(*param));
 	param->type = type;
 	param->mutable = mutable;
+	param->optional = false;
 	return param;
 }
 

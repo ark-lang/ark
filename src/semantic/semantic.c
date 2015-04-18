@@ -37,9 +37,11 @@ void analyzeFunctionDeclaration(SemanticAnalyzer *self, FunctionDecl *decl) {
 
 void analyzeVariableDeclaration(SemanticAnalyzer *self, VariableDecl *decl) {
 	VariableDecl *mapDecl = NULL;	
+	// doesnt exist
 	if (hashmap_get(self->varSymTable, decl->name, (void**) &mapDecl) == MAP_MISSING) {
 		hashmap_put(self->varSymTable, decl->name, decl);
 	}
+	// does exist, oh shit
 	else {
 		semanticError("Redefinition of `%s`", decl->name);
 	}
@@ -80,6 +82,8 @@ void analyzeFunctionCall(SemanticAnalyzer *self, Call *call) {
 		int argsGot = call->arguments->size;
 		char *callee = getVectorItem(call->callee, 0); // FIXME
 
+		// only do this on non-variadic functions, otherwise
+		// it will fuck you over since variadic is variable amount of args
 		if (!decl->signature->parameters->variadic) {
 			if (argsGot > argsNeeded) {
 				semanticError("Too many arguments to function `%s`", callee);
@@ -88,6 +92,29 @@ void analyzeFunctionCall(SemanticAnalyzer *self, Call *call) {
 				semanticError("Too few arguments to function `%s`", callee);
 			}
 		}
+	}
+}
+
+void analyzeLiteral(SemanticAnalyzer *self, Literal *lit) {
+
+}
+
+void analyzeBinaryExpr(SemanticAnalyzer *self, BinaryExpr *expr) {
+	analyzeExpression(self, expr->lhand);
+	// TODO operand
+	analyzeExpression(self, expr->rhand);
+}
+
+void analyzeUnaryExpr(SemanticAnalyzer *self, UnaryExpr *expr) {
+	analyzeExpression(self, expr->rhand);
+}
+
+void analyzeExpression(SemanticAnalyzer *self, Expression *expr) {
+	switch (expr->exprType) {
+		case LITERAL_NODE: analyzeLiteral(self, expr->lit); break;
+		case BINARY_EXPR_NODE: analyzeBinaryExpr(self, expr->binary); break;
+		case UNARY_EXPR_NODE: analyzeUnaryExpr(self, expr->unary); break;
+		case FUNCTION_CALL_NODE: analyzeFunctionCall(self, expr->call); break;
 	}
 }
 
