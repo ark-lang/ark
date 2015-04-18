@@ -8,6 +8,7 @@
 #include "util.h"
 #include "lexer.h"
 #include "parser.h"
+#include "semantic.h"
 #include "codegen.h"
 
 #define VERSION_ARG 		"-ver"
@@ -34,6 +35,7 @@ typedef struct {
 	Lexer *lexer;
 	Parser *parser;
 	CodeGenerator *generator;
+	SemanticAnalyzer *semantic;
 	Vector *sourceFiles;
 } AlloyCompiler;
 

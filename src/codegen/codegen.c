@@ -463,8 +463,7 @@ void traverseAST(CodeGenerator *self) {
 }
 
 void startCodeGeneration(CodeGenerator *self) {
-	int i;
-	for (i = 0; i < self->sourceFiles->size; i++) {
+	for (int i = 0; i < self->sourceFiles->size; i++) {
 		SourceFile *sf = getVectorItem(self->sourceFiles, i);
 		self->currentNode = 0;
 		self->currentSourceFile = sf;
@@ -503,18 +502,24 @@ void startCodeGeneration(CodeGenerator *self) {
 	 * 
 	 */
 
+	// empty command
 	sds buildCommand = sdsempty();
 
-	// append the compiler to use etc
+	// what compiler to use
 	buildCommand = sdscat(buildCommand, COMPILER);
 	buildCommand = sdscat(buildCommand, " ");
+	
+	// additional compiler flags, i.e -g, -Wall etc
 	buildCommand = sdscat(buildCommand, ADDITIONAL_COMPILER_ARGS);
+
+	// output name
 	buildCommand = sdscat(buildCommand, " -o ");
 	buildCommand = sdscat(buildCommand, OUTPUT_EXECUTABLE_NAME);
-	buildCommand = sdscat(buildCommand, " ");
 
+	// files to compile	
+	buildCommand = sdscat(buildCommand, " ");
 	// append the filename to the build string
-	for (i = 0; i < self->sourceFiles->size; i++) {
+	for (int i = 0; i < self->sourceFiles->size; i++) {
 		SourceFile *sourceFile = getVectorItem(self->sourceFiles, i);
 		buildCommand = sdscat(buildCommand, sourceFile->generatedSourceName);
 
@@ -522,14 +527,14 @@ void startCodeGeneration(CodeGenerator *self) {
 			buildCommand = sdscat(buildCommand, " ");
 	}
 
+	// linker options
 	buildCommand = sdscat(buildCommand, " ");
 	buildCommand = sdscat(buildCommand, LINKER_FLAGS);
 
-	// this was for SDL, and isn't required.
-	// buildCommand = sdscat(buildCommand, " -lSDL2");
-
 	// just for debug purposes
 	verboseModeMessage("running cl args: `%s`", buildCommand);
+
+	// do the command we just created
 	system(buildCommand);
 	sdsfree(buildCommand); // deallocate dat shit baby
 }
