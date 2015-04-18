@@ -5,6 +5,7 @@ fn add(a: int, b: int): int {
 }
 
 fn main(): int {
-	a: int = 10;
+	mut a: int = 10;
+	a = 21;
 	printf("%d\n", a);
 }
