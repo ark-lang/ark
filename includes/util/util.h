@@ -36,6 +36,7 @@ extern char* OUTPUT_EXECUTABLE_NAME;
 extern bool OUTPUT_C;
 extern char* ADDITIONAL_COMPILER_ARGS;
 extern char* COMPILER;
+extern char* LINKER_FLAGS;
 
 /**
  * Returns if the char is ASCII

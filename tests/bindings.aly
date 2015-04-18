@@ -1,7 +1,7 @@
-use "testlib"
+!use "testlib"
 
 fn main(): int {
-	mut x: double = cos(5);
-	println("%f", x);
+	mut x: double = pow(5, 2);
+	printf("%f\n", x);
 	return 0;
 }
