@@ -1,7 +1,10 @@
+!use "fuck"
+!linker_option ("m", "SDL2")
+
 fn add(a: int, b: int): int {
 	return a + b;
 }
 
 fn main(): int {
-	
+	a : = 5;
 }
