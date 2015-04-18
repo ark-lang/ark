@@ -218,3 +218,61 @@ via the dot operator:
 		p.say();
 	}
 
+## Function Prototypes
+A function prototype is similar to the syntax for a function declaration, however instead of using
+curly braces to start a new block, you end the statement with a semi-colon. For example, a function prototype
+for a function `add` that takes two parameters (both integers), and returns an integer would be as follows:
+
+	fn add(a: int, b: int): int;
+
+### Calling C Functions
+You can use the function prototypes showcased above to call c functions. Say we wanted to use the `printf`
+function in `stdio`, we create a prototype for it. Note that the printf is a variadic function, i.e. it can
+take an unspecified amount of arguments. This is denoted with an ellipses in C, and in Alloy, an underscore.
+Note that this is mostly for backwards compatibility with C code, and we don't suggest you use it in your code
+generally. Once you've created the prototype, it is called like any other function.
+
+Here's an example of printf in Alloy:
+
+	// main.aly
+	fn printf(format: str, _): int;
+
+	// usage
+	fn main(): int {
+		printf("this is a test\n");
+		return 0;
+	}
+
+## File Inclusion
+File inclusion is very simple in Alloy. One of the problems with C is the tedious header files. To include
+a file, you must use the `use` macro<sup>disclaimer: not an actual macro yet, but it still works</sup>, which is
+the `use` keyword followed by the filename to include (minus the `aly` extension) in quotes. For example:
+
+	use "myfile"
+
+We could write a really simple "math" library with some bindings to C's `<math.h>`:
+
+	// math.aly
+	fn acos(x: double): double;
+	fn asin(x: double): double;
+	fn atan(x: double): double;
+	fn atan2(y: double, x: double): double;
+	fn cos(x: double): double;
+	fn cosh(x: double): double;
+	fn sin(x: double): double;
+	fn sinh(x: double): double;
+
+And we can use this library in a file:
+
+	// main.aly
+	use "math" // note we don't use "math.aly", just "math"
+
+	// just for the printf example, it's somewhat irrelevant
+	fn printf(format: str, _): int;
+
+	fn main(): int {
+		x: double = cos(3.141);
+		printf("%d\n", x);
+		return 0;
+	}
+
