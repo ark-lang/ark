@@ -45,8 +45,22 @@ void analyzeFunctionCall(SemanticAnalyzer *self, Call *call) {
 	char *callee = getVectorItem(call->callee, 0);
 
 	FunctionDecl *decl = NULL;	
+	// check the function we're calling exists
 	if (hashmap_get(self->funcSymTable, callee, (void**) &decl) == MAP_MISSING) {
 		semanticError("Attempting to call undefined function `%s`", callee);
+	}
+	// it exists, check arguments match in length
+	else {
+		int argsNeeded = decl->signature->parameters->paramList->size;
+		int argsGot = call->arguments->size;
+		char *callee = getVectorItem(call->callee, 0); // FIXME
+
+		if (argsNeeded > argsGot) {
+			semanticError("Too many arguments to function `%s`", callee);
+		}
+		else if (argsNeeded < argsGot) {
+			semanticError("Too few arguments to function `%s`", callee);
+		}
 	}
 }
 
