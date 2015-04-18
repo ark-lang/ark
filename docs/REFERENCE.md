@@ -261,9 +261,14 @@ We could write a really simple "math" library with some bindings to C's `<math.h
 	fn cosh(mut x: double): mut double;
 	fn sin(mut x: double): mut double;
 	fn sinh(mut x: double): mut double;
-
-	// just for the printf example, it's somewhat irrelevant
-	fn printf(format: str, _): int;
+	fn tanh(mut x: double): mut double;
+	fn exp(mut x: double): mut double;
+	fn log(mut x: double): mut double;
+	fn log10(mut x: double): mut double;
+	fn pow(mut x: double, mut y: double): mut double;
+	fn sqrt(mut x: double): mut double;
+	fn ceil(mut x: double): mut double;
+	fn floor(mut x: double): mut double;
 
 And we can use this library in a file:
 
@@ -271,8 +276,7 @@ And we can use this library in a file:
 	use "math" // note we don't use "math.aly", just "math"
 
 	fn main(): int {
-		mut x: double = cos(3.141);
+		mut x: double = pow(5, 2);
 		printf("%f\n", x);
 		return 0;
 	}
-
