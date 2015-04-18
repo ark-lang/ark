@@ -55,11 +55,13 @@ void analyzeFunctionCall(SemanticAnalyzer *self, Call *call) {
 		int argsGot = call->arguments->size;
 		char *callee = getVectorItem(call->callee, 0); // FIXME
 
-		if (argsGot > argsNeeded) {
-			semanticError("Too many arguments to function `%s`", callee);
-		}
-		else if (argsGot < argsNeeded) {
-			semanticError("Too few arguments to function `%s`", callee);
+		if (!decl->signature->parameters->variadic) {
+			if (argsGot > argsNeeded) {
+				semanticError("Too many arguments to function `%s`", callee);
+			}
+			else if (argsGot < argsNeeded) {
+				semanticError("Too few arguments to function `%s`", callee);
+			}
 		}
 	}
 }
