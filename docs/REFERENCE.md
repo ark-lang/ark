@@ -280,3 +280,10 @@ And we can use this library in a file:
 		printf("%f\n", x);
 		return 0;
 	}
+
+Note that you need to compile any files that you use, so the code sample above
+would be compiled as:
+
+	alloyc math.aly main.aly
+
+Note that the order matters too. We plan to fix this in the future.
