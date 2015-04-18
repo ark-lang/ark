@@ -55,10 +55,10 @@ void analyzeFunctionCall(SemanticAnalyzer *self, Call *call) {
 		int argsGot = call->arguments->size;
 		char *callee = getVectorItem(call->callee, 0); // FIXME
 
-		if (argsNeeded > argsGot) {
+		if (argsGot > argsNeeded) {
 			semanticError("Too many arguments to function `%s`", callee);
 		}
-		else if (argsNeeded < argsGot) {
+		else if (argsGot < argsNeeded) {
 			semanticError("Too few arguments to function `%s`", callee);
 		}
 	}
@@ -68,9 +68,6 @@ void analyzeUnstructuredStatement(SemanticAnalyzer *self, UnstructuredStatement 
 	switch (unstructured->type) {
 		case DECLARATION_NODE: analyzeDeclaration(self, unstructured->decl); break;
 		case FUNCTION_CALL_NODE: analyzeFunctionCall(self, unstructured->call); break;
-		default:
-			semanticError("BAKIN SODA");
-			break;
 	}
 }
 
