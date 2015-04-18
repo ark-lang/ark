@@ -3,28 +3,36 @@
 
 // MATH
 fn acos(mut x: double): mut double;
+
 fn asin(mut x: double): mut double;
+
 fn atan(mut x: double): mut double;
+
 fn atan2(mut y: double, mut x: double): mut double;
+
 fn cos(mut x: double): mut double;
+
 fn cosh(mut x: double): mut double;
+
 fn sin(mut x: double): mut double;
+
 fn sinh(mut x: double): mut double;
+
+fn tanh(mut x: double): mut double;
+
+fn exp(mut x: double): mut double;
+
+fn log(mut x: double): mut double;
+
+fn log10(mut x: double): mut double;
+
+fn pow(mut x: double, mut y: double): mut double;
+
+fn sqrt(mut x: double): mut double;
+
+fn ceil(mut x: double): mut double;
+
+fn floor(mut x: double): mut double;
 
 // PRINTING STUFF
 fn printf(format: str, _): int;
-fn println(format: str, _): int {
-	mut arg: va_list;
-	va_start(arg, format);
-	mut x: int = printf(format, arg);
-	va_end(arg);
-	x = x + printf("\n");
-	return x;
-}
-fn print(format: str, _): int {
-	mut arg: va_list;
-	va_start(arg, format);
-	mut x: int = printf(format, arg);
-	va_end(arg);
-	return x;
-}
