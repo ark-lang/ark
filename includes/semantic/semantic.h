@@ -43,37 +43,119 @@ typedef struct {
 } SemanticAnalyzer;
 
 /**
- * Create a new Semantic Analysis instance
+ * Create instance of semantic analyzer
+ * @return             the instance created
  */
-SemanticAnalyzer *createSemanticAnalyzer();
+SemanticAnalyzer *createSemanticAnalyzer(Vector *sourceFiles);
 
 /**
- * Analyzes an unstructured statement top level node
+ * Analyze the block node given
+ * @param self  the semantic analyzer instance
+ * @param block the block node to analyze
+ */
+void analyzeBlock(SemanticAnalyzer *self, Block *block);
+
+/**
+ * Analyze a function decl
+ * @param self the semantic analyzer instance
+ * @param decl the function decl node to analyze
+ */
+void analyzeFunctionDeclaration(SemanticAnalyzer *self, FunctionDecl *decl);
+
+/**
+ * Analyze a variable declaration
+ * @param self the semantic analyzer instance
+ * @param decl the variable decl node to analyze
+ */
+void analyzeVariableDeclaration(SemanticAnalyzer *self, VariableDecl *decl);
+
+/**
+ * Analyze an assignment
+ * @param self   the semantic analyzer instance
+ * @param assign the assignment node to analyze
+ */
+void analyzeAssignment(SemanticAnalyzer *self, Assignment *assign);
+
+/**
+ * Analyze a decl parent node
+ * @param self the semantic analyzer instance
+ * @param decl the parent decl node to analyze
+ */
+void analyzeDeclaration(SemanticAnalyzer *self, Declaration *decl);
+
+/**
+ * Analyze a function call
+ * @param self the semantic analyzer instance
+ * @param call the function call node to analyze
+ */
+void analyzeFunctionCall(SemanticAnalyzer *self, Call *call);
+
+/**
+ * Analyze a literal
+ * @param self the semantic analyzer instance
+ * @param lit  the literal node to analyze
+ */
+void analyzeLiteral(SemanticAnalyzer *self, Literal *lit);
+
+/**
+ * Analyze a binary expression
+ * @param self the semantic analyzer instance
+ * @param expr the binary expr to analyze
+ */
+void analyzeBinaryExpr(SemanticAnalyzer *self, BinaryExpr *expr);
+
+/**
+ * Analyze a unary expression
+ * @param self the semantic analyzer instance
+ * @param expr the unary expr to analyze
+ */
+void analyzeUnaryExpr(SemanticAnalyzer *self, UnaryExpr *expr);
+
+/**
+ * Analyze an expression
+ * @param self the semantic analyzer instance
+ * @param expr the expression to analyze
+ */
+void analyzeExpression(SemanticAnalyzer *self, Expression *expr);
+
+/**
+ * analyze an unstructured statement
+ * @param self         the semantic analyzer instance
+ * @param unstructured the unstructured statement to analyze
  */
 void analyzeUnstructuredStatement(SemanticAnalyzer *self, UnstructuredStatement *unstructured);
 
 /**
- * Analyzes a structured statement top level node
+ * Analyze a structured statement
+ * @param self       the semantic analyzer instance
+ * @param structured the structured statement to analyze
  */
-void analyzeStructuredStatement(SemanticAnalyzer *self, StructuredStatement *unstructured);
+void analyzeStructuredStatement(SemanticAnalyzer *self, StructuredStatement *structured);
 
 /**
- * Analyzes a statement top level node
+ * Analyze a top level statement
+ * @param self the semantic analyzer instance
+ * @param stmt the top level statement node
  */
 void analyzeStatement(SemanticAnalyzer *self, Statement *stmt);
 
 /**
- * Start semantically analyzing the source files. 
- *
- * NOTE TO SELF FELIKS:
- * I have a feeling the order of source files being analyzed will matter
- * especially if we're doing this recursively... so I should probably think
- * about this.
+ * Checks that the main functions is defined, will also
+ * check the variables given, etc.
+ * @param self the semantic analyzer instance
+ */
+void checkMainExists(SemanticAnalyzer *self);
+
+/**
+ * Starts semantically analyzing everything, will scan through
+ * all the files, and their trees etc
+ * @param self the semantic analyzer instance
  */
 void startSemanticAnalysis(SemanticAnalyzer *self);
 
 /**
- * Destroys the semantic analysis instance given
+ * Destroy the semantic analyzer instance
+ * @param self the semantic analyzer instance to destroy
  */
 void destroySemanticAnalyzer(SemanticAnalyzer *self);
 

@@ -1,6 +1,6 @@
 fn printf(format: str, _): int;
 
-fn add(a: int, b: int): int {
+fn add(a: int = 5, b: int, c: int = 10, z: double): int {
 	return a + b;
 }
 
