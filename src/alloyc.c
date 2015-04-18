@@ -129,6 +129,12 @@ void startAlloyCompiler(AlloyCompiler *self) {
 		return; // don't do stuff after this
 	}
 
+	self->semantic = createSemanticAnalyzer(self->sourceFiles);
+	startSemanticAnalysis(self->semantic);
+	if (self->semantic->failed) {
+		return;
+	}
+
 	// compilation stage
 	self->generator = createCodeGenerator(self->sourceFiles);
 	startCodeGeneration(self->generator);

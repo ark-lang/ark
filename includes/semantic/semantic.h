@@ -15,37 +15,52 @@
 #include "ast.h"
 #include "vector.h"
 #include "hashmap.h"
+#include "sourcefile.h"
+
+#define MAIN_FUNC "main"
 
 typedef struct {
-	/** the AST to semantically analyze */
-	Vector *parseTree;
+	/** The current AST being analyzed */
+	Vector *abstractSyntaxTree;
+
+	/**  */
+	SourceFile *currentSourceFile;
+
+	/** the source files to semantically analyze */
+	Vector *sourceFiles;
+
+	/** the current node in the ast */
+	int currentNode;
 
 	/** hashmap for functions defined */
 	map_t funcSymTable;
 
 	/** hashmap for variables defined */
 	map_t varSymTable;
-} SemanticAnalysis;
+
+	/** if this stage failed or not */
+	bool failed;
+} SemanticAnalyzer;
 
 /**
  * Create a new Semantic Analysis instance
  */
-SemanticAnalysis *createSemanticAnalysis();
+SemanticAnalyzer *createSemanticAnalyzer();
 
 /**
  * Analyzes an unstructured statement top level node
  */
-void analyzeUnstructuredStatement(SemanticAnalysis *self, UnstructuredStatement *unstructured);
+void analyzeUnstructuredStatement(SemanticAnalyzer *self, UnstructuredStatement *unstructured);
 
 /**
  * Analyzes a structured statement top level node
  */
-void analyzeStructuredStatement(SemanticAnalysis *self, StructuredStatement *unstructured);
+void analyzeStructuredStatement(SemanticAnalyzer *self, StructuredStatement *unstructured);
 
 /**
  * Analyzes a statement top level node
  */
-void analyzeStatement(SemanticAnalysis *self, Statement *stmt);
+void analyzeStatement(SemanticAnalyzer *self, Statement *stmt);
 
 /**
  * Start semantically analyzing the source files. 
@@ -55,11 +70,11 @@ void analyzeStatement(SemanticAnalysis *self, Statement *stmt);
  * especially if we're doing this recursively... so I should probably think
  * about this.
  */
-void startSemanticAnalysis(SemanticAnalysis *self);
+void startSemanticAnalysis(SemanticAnalyzer *self);
 
 /**
  * Destroys the semantic analysis instance given
  */
-void destroySemanticAnalysis(SemanticAnalysis *self);
+void destroySemanticAnalyzer(SemanticAnalyzer *self);
 
 #endif // __SEMANTIC_H
