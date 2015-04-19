@@ -199,13 +199,11 @@ void analyzeLiteral(SemanticAnalyzer *self, Literal *lit) {
 }
 
 void analyzeBinaryExpr(SemanticAnalyzer *self, BinaryExpr *expr) {
-	analyzeExpression(self, expr->lhand);
-	// TODO operand
-	analyzeExpression(self, expr->rhand);
+
 }
 
 void analyzeUnaryExpr(SemanticAnalyzer *self, UnaryExpr *expr) {
-	analyzeExpression(self, expr->lhand);
+
 }
 
 void analyzeExpression(SemanticAnalyzer *self, Expression *expr) {
