@@ -162,26 +162,32 @@ void recognizeHexToken(Lexer *self) {
 
 void recognizeNumberToken(Lexer *self) {
 	consumeCharacter(self);
-	
+
 	if (self->currentChar == '.') {
 		consumeCharacter(self); // consume dot
+		
 		while (isDigit(self->currentChar)) {
 			consumeCharacter(self);
 		}
+
+		pushToken(self, DECIMAL);
 	}
 	else {
+		// it'll do 
+		bool isDecimal = false;
+
 		while (isDigit(self->currentChar)) {
 			if (peekAhead(self, 1) == '.') {
 				consumeCharacter(self);
 				while (isDigit(self->currentChar)) {
 					consumeCharacter(self);
 				}
+				isDecimal = true;
 			}
 			consumeCharacter(self);
 		}
+		pushToken(self, isDecimal ? DECIMAL : WHOLE_NUMBER);
 	}
-
-	pushToken(self, NUMBER);
 }
 
 void recognizeStringToken(Lexer *self) {

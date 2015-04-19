@@ -276,8 +276,16 @@ typedef struct {
  * of a function prototype and an optional block.
  */
 typedef struct {
+	// the function signature of the func
 	FunctionSignature *signature;
+	
+	// body for func
 	Block *body;
+
+	// how many required args for func
+	int numOfRequiredArgs;
+
+	// if the function decl is a prototype
 	bool prototype;
 } FunctionDecl;
 
