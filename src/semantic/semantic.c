@@ -34,6 +34,7 @@ SemanticAnalyzer *createSemanticAnalyzer(Vector *sourceFiles) {
 	self->abstractSyntaxTree = NULL;
 	self->currentSourceFile = NULL;
 	self->currentNode = 0;
+	self->scopes = createStack();
 	self->failed = false;
 	return self;
 }
@@ -258,6 +259,52 @@ void startSemanticAnalysis(SemanticAnalyzer *self) {
 	checkMainExists(self);
 }
 
+StructDecl *checkStructureExists(SemanticAnalyzer *self, char *structName) {
+	StructDecl *decl = checkLocalStructureExists(self, structName);
+	if (decl) {
+		return decl;
+	}
+
+	decl = checkGlobalStructureExists(self, structName);
+	if (decl) {
+		return decl;
+	}
+
+	return false;
+}
+
+VariableDecl *checkVariableExists(SemanticAnalyzer *self, char *varName) {
+	VariableDecl *decl = checkLocalVariableExists(self, varName);
+	if (decl) {
+		return decl;
+	}
+
+	decl = checkGlobalVariableExists(self, varName);
+	if (decl) {
+		return decl;
+	}
+
+	return false;
+}
+
+StructDecl *checkLocalStructureExists(SemanticAnalyzer *self, char *structName) {
+	StructDecl *structure = NULL;
+	Scope *scope = getStackItem(self->scopes, self->scopes->stackPointer);
+	if (hashmap_get(scope->structSymTable, structName, (void**) &structure) == MAP_MISSING) {
+		return false;
+	}
+	return structure;
+}
+
+VariableDecl *checkLocalVariableExists(SemanticAnalyzer *self, char *varName) {
+	VariableDecl *var = NULL;
+	Scope *scope = getStackItem(self->scopes, self->scopes->stackPointer);
+	if (hashmap_get(scope->varSymTable, varName, (void**) &var) == MAP_MISSING) {
+		return false;
+	}
+	return var;
+}
+
 StructDecl *checkGlobalStructureExists(SemanticAnalyzer *self, char *structName) {
 	StructDecl *structure = NULL;
 	if (hashmap_get(self->structSymTable, structName, (void**) &structure) == MAP_MISSING) {
@@ -282,8 +329,26 @@ FunctionDecl *checkFunctionExists(SemanticAnalyzer *self, char *funcName) {
 	return func;
 }
 
+void pushScope(SemanticAnalyzer *self) {
+	pushToStack(self->scopes, createScope());
+}
+
+void popScope(SemanticAnalyzer *self) {
+	Scope *scope = popStack(self->scopes);
+	hashmap_free(scope->varSymTable);
+	hashmap_free(scope->structSymTable);
+}
+
 void destroySemanticAnalyzer(SemanticAnalyzer *self) {
 	hashmap_free(self->funcSymTable);
 	hashmap_free(self->varSymTable);
+	hashmap_free(self->structSymTable);
+
+	// clear up the remaining scope stuff
+	for (int i = 0; i < self->scopes->stackPointer; i++) {
+		popScope(self);
+	}
+	destroyStack(self->scopes);
+
 	free(self);
 }
