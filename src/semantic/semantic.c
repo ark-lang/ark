@@ -7,11 +7,12 @@
 #define GLOBAL_SCOPE_INDEX 0
 
 const char *VARIABLE_TYPE_NAMES[] = {
-	"INTEGER_VAR_TYPE",
-	"DOUBLE_VAR_TYPE",
-	"STRING_VAR_TYPE",
-	"STRUCTURE_VAR_TYPE",
-	"CHAR_VAR_TYPE",
+	"int",
+	"double",
+	"str",
+	"struct",
+	"char",
+	"???"
 };
 
 Scope *createScope() {
@@ -72,12 +73,19 @@ VariableType mergeTypes(VariableType a, VariableType b) {
 	if (a == DOUBLE_VAR_TYPE || b == DOUBLE_VAR_TYPE) {
 		return DOUBLE_VAR_TYPE;
 	}
-	else if (a == STRING_VAR_TYPE || b == STRING_VAR_TYPE) {
-		return STRING_VAR_TYPE;
-	}
-	else {
+	else if (a == INTEGER_VAR_TYPE && b == INTEGER_VAR_TYPE) {
 		return INTEGER_VAR_TYPE;
 	}
+	else if (a == STRING_VAR_TYPE && b == STRING_VAR_TYPE) {
+		return STRING_VAR_TYPE;
+	}
+	else if (a == CHAR_VAR_TYPE && b != CHAR_VAR_TYPE) {
+		return INTEGER_VAR_TYPE;
+	}
+	else if (a == CHAR_VAR_TYPE && b == CHAR_VAR_TYPE) {
+		return CHAR_VAR_TYPE;
+	}
+	return UNKNOWN_VAR_TYPE;
 }
 
 VariableType literalToType(Literal *literal) {
@@ -115,6 +123,9 @@ VariableType deduceType(SemanticAnalyzer *self, Expression *expr) {
 			
 			// merge them
 			VariableType finalType = mergeTypes(lhandType, rhandType);
+			if (finalType == UNKNOWN_VAR_TYPE) {
+				semanticError("Incompatible types `%s` and `%s` in expression: ", VARIABLE_TYPE_NAMES[lhandType], VARIABLE_TYPE_NAMES[rhandType]);
+			}
 			return finalType;
 		}
 	}
@@ -127,9 +138,7 @@ TypeName *createTypeDeduction(VariableType type) {
 		case DOUBLE_VAR_TYPE: return createTypeName("double");
 		case STRING_VAR_TYPE: return createTypeName("str");
 		case CHAR_VAR_TYPE: return createTypeName("char");
-		default:
-			printf("what to do for %s\n", VARIABLE_TYPE_NAMES[type]);
-			break;
+		default: break;
 	}
 	return false;
 }
