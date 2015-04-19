@@ -3,9 +3,7 @@ swag := 5;
 fn printf(format: str, _): int;
 
 fn add() {
-	fn sub() {
-		
-	}	
+
 }
 
 fn main(): int {
