@@ -1,3 +1,5 @@
+swag := 5;
+
 fn printf(format: str, _): int;
 
 fn main(): int {
@@ -10,4 +12,6 @@ fn main(): int {
 
 	b := 'a';
 	printf("%c\n", b);
+
+	printf("%d\n", swag);
 }
