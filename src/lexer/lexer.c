@@ -221,12 +221,18 @@ void recognizeCharacterToken(Lexer *self) {
 }
 
 void recognizeOperatorToken(Lexer *self) {
-	consumeCharacter(self);
-
-
-	// for double operators
-	if (isOperator(self->currentChar)) {
+	// stop the annoying := treated as an operator
+	// treat them as individual operators instead.
+	if (self->currentChar == ':' && peekAhead(self, 1) == '=') {
 		consumeCharacter(self);
+	}
+	else {
+		consumeCharacter(self);
+
+		// for double operators
+		if (isOperator(self->currentChar)) {
+			consumeCharacter(self);
+		}
 	}
 
 	pushToken(self, OPERATOR);
