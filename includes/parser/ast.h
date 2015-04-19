@@ -253,7 +253,6 @@ typedef struct {
 	Type *type;
 	char *name;
 	bool mutable;
-	bool optional;
 	Expression *optionalExpr;
 } ParameterSection;
 
