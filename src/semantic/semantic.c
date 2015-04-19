@@ -83,6 +83,17 @@ void analyzeFunctionCall(SemanticAnalyzer *self, Call *call) {
 		int argsGot = call->arguments->size;
 		char *callee = getVectorItem(call->callee, 0); // FIXME
 
+		int optionalArgs = 0;
+
+		// loop through to see how many arguments are required
+		// this could probably be O(1) if we refactor a bit
+		for (int i = 0; i < decl->signature->parameters->paramList->size; i++) {
+			ParameterSection *param = getVectorItem(decl->signature->parameters->paramList, i);
+			if (param->optional) {
+				optionalArgs += 1;
+			}
+		}
+
 		// only do this on non-variadic functions, otherwise
 		// it will fuck you over since variadic is variable amount of args
 		if (!decl->signature->parameters->variadic) {

@@ -19,7 +19,8 @@ typedef enum {
 	OPERATOR,			// todo
 	SEPARATOR,			// todo
 	HEX,				// 0x | A | B | C | D | E | F | 0 ... 9
-	NUMBER,				// digit { digit } "." { digit }
+	DECIMAL,			// digit { digit } "." { digit }
+	WHOLE_NUMBER,		// digit { digit }
 	ERRORNEOUS,			// error'd token
 	STRING,
 	CHARACTER,
