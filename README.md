@@ -4,12 +4,6 @@ Alloy is a work in progress programming language, read the [reference](docs/REFE
 ## Disclaimer?
 Alloy is a somewhat experimental language, this means it can and probably will change at any point, be it a small change, or a complete re-write. This means we cannot promise any backwards compatibility. 
 
-## Trello
-We have a [Trello](https://trello.com/b/CEIhYFlr/alloy-lang), which is used by the core
-developers of Alloy, but you can check it out to see what we're working on, fixing, or 
-doing currently. Note that this doesn't replace the Issue Tracker, we just use it as we prefer
-the layout.
-
 ## Status
 Alloy is still constantly being worked on. At the moment it compiles,
 however some aspects of the language are unimplemented or broken.

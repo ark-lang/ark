@@ -16,6 +16,7 @@
 #include "vector.h"
 #include "hashmap.h"
 #include "sourcefile.h"
+#include "parser.h"
 
 #define MAIN_FUNC "main"
 
