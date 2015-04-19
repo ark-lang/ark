@@ -352,7 +352,7 @@ void pushStructureDeclaration(SemanticAnalyzer *self, StructDecl *structure) {
 }
 
 void pushFunctionDeclaration(SemanticAnalyzer *self, FunctionDecl *func) {
-	Scope *scope = getStackItem(self->scopes, self->scopes->stackPointer);
+	Scope *scope = getStackItem(self->scopes, GLOBAL_SCOPE_INDEX);
 	if (checkLocalVariableExists(self, func->signature->name)) {
 		semanticError("Function with the name `%s` has already been defined", func->signature->name);
 		return;
