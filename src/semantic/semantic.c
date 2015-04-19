@@ -49,6 +49,10 @@ void analyzeBlock(SemanticAnalyzer *self, Block *block) {
 }
 
 void analyzeFunctionDeclaration(SemanticAnalyzer *self, FunctionDecl *decl) {
+	if (self->scopes->stackPointer != GLOBAL_SCOPE_INDEX) {
+		semanticError("Function definition for `%s` is illegal", decl->signature->name);
+	}
+
 	pushFunctionDeclaration(self, decl);
 	if (!decl->prototype) {
 		pushScope(self);
