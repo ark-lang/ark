@@ -70,6 +70,7 @@ typedef struct {
  */
 typedef struct {
 	char *name;
+	int type;
 } TypeName;
 
 /**
