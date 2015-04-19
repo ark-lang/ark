@@ -4,7 +4,7 @@ fn printf(format: str, _): int;
 
 fn main(): int {
 	y := 10.5;
-	x := 5.5 + y;
+	x := 21;
 	printf("%f\n", x);
 
 	z := "test";
