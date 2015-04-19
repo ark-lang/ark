@@ -369,6 +369,7 @@ void popScope(SemanticAnalyzer *self) {
 	hashmap_free(scope->funcSymTable);
 	hashmap_free(scope->varSymTable);
 	hashmap_free(scope->structSymTable);
+	free(scope);
 }
 
 void destroySemanticAnalyzer(SemanticAnalyzer *self) {
