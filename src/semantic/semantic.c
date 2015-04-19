@@ -251,11 +251,11 @@ void startSemanticAnalysis(SemanticAnalyzer *self) {
 		
 		// global scope
 		pushScope(self);
-		checkMainExists(self);
 		for (int j = 0; j < self->abstractSyntaxTree->size; j++) {
 			Statement *stmt = getVectorItem(self->abstractSyntaxTree, j);
 			analyzeStatement(self, stmt);
 		}
+		checkMainExists(self);
 		popScope(self);
 	}
 }
