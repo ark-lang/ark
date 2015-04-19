@@ -4,6 +4,22 @@
 #define semanticError(...) self->failed = true; \
 						   errorMessage(__VA_ARGS__)
 
+typedef enum {
+	INTEGER_VAR_TYPE,
+	DOUBLE_VAR_TYPE,
+	STRING_VAR_TYPE,
+	STRUCTURE_VAR_TYPE,
+	CHAR_VAR_TYPE,
+} VariableType;
+
+const char *VARIABLE_TYPE_NAMES[] = {
+	"INTEGER_VAR_TYPE",
+	"DOUBLE_VAR_TYPE",
+	"STRING_VAR_TYPE",
+	"STRUCTURE_VAR_TYPE",
+	"CHAR_VAR_TYPE",
+};
+
 SemanticAnalyzer *createSemanticAnalyzer(Vector *sourceFiles) {
 	SemanticAnalyzer *self = safeMalloc(sizeof(*self));
 	self->funcSymTable = hashmap_new();
@@ -36,8 +52,68 @@ void analyzeFunctionDeclaration(SemanticAnalyzer *self, FunctionDecl *decl) {
 	}
 }
 
-DataType deduceType(SemanticAnalyzer *self, Expression *expr) {
+// wat
+VariableType mergeTypes(VariableType a, VariableType b) {
+	if (a == DOUBLE_VAR_TYPE || b == DOUBLE_VAR_TYPE) {
+		return DOUBLE_VAR_TYPE;
+	}
+	else if (a == STRING_VAR_TYPE || b == STRING_VAR_TYPE) {
+		return STRING_VAR_TYPE;
+	}
+	else {
+		return INTEGER_VAR_TYPE;
+	}
+}
+
+VariableType literalToType(SemanticAnalyzer *self, Literal *literal) {
+	switch (literal->type) {
+		case LITERAL_WHOLE_NUMBER: return INTEGER_VAR_TYPE;
+		case LITERAL_DECIMAL_NUMBER: return DOUBLE_VAR_TYPE;
+		case LITERAL_HEX_NUMBER: return INTEGER_VAR_TYPE;
+		case LITERAL_STRING: return STRING_VAR_TYPE;
+		case LITERAL_CHAR: return CHAR_VAR_TYPE;
+	}
+}
+
+VariableType deduceType(SemanticAnalyzer *self, Expression *expr) {
+	switch (expr->exprType) {
+		case LITERAL_NODE: {
+			VariableType type = literalToType(self, expr->lit);
+			return type;
+		}
+		case TYPE_NODE: {
+			// type lit not supported atm
+			if (expr->type->type == TYPE_NAME_NODE) {
+				VariableDecl *varDecl = NULL;
+				if (hashmap_get(self->varSymTable, expr->type->typeName->name, (void**) &varDecl) == MAP_OK) {
+					return deduceType(self, varDecl->expr);
+				}
+				else {
+					semanticError("Could not deduce %s", expr->type->typeName->name);
+				}
+			}
+			break;
+		}
+		case BINARY_EXPR_NODE: {
+			VariableType lhandType = deduceType(self, expr->binary->lhand);
+			VariableType rhandType = deduceType(self, expr->binary->rhand);
+			VariableType finalType = mergeTypes(lhandType, rhandType);
+			return finalType;
+		}
+	}
 	return false;
+}
+
+TypeName *createTypeDeduction(SemanticAnalyzer *self, VariableType type) {
+	switch (type) {
+		case INTEGER_VAR_TYPE: return createTypeName("int");
+		case DOUBLE_VAR_TYPE: return createTypeName("double");
+		case STRING_VAR_TYPE: return createTypeName("str");
+		case CHAR_VAR_TYPE: return createTypeName("char");
+		default:
+			printf("what to do for %s\n", VARIABLE_TYPE_NAMES[type]);
+			break;
+	}
 }
 
 void analyzeVariableDeclaration(SemanticAnalyzer *self, VariableDecl *decl) {
@@ -46,8 +122,11 @@ void analyzeVariableDeclaration(SemanticAnalyzer *self, VariableDecl *decl) {
 	if (hashmap_get(self->varSymTable, decl->name, (void**) &mapDecl) == MAP_MISSING) {
 		hashmap_put(self->varSymTable, decl->name, decl);
 		
-		if (decl->inferred && decl->assigned) {
-
+		if (decl->inferred) {
+			VariableType type = deduceType(self, decl->expr);
+			decl->type = createType();
+			decl->type->type = TYPE_NAME_NODE;
+			decl->type->typeName = createTypeDeduction(self, type);
 		}
 	}
 	// does exist, oh shit
