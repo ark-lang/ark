@@ -201,28 +201,72 @@ void checkMainExists(SemanticAnalyzer *self);
 void startSemanticAnalysis(SemanticAnalyzer *self);
 
 /**
- * Checks if a structure exists in the structure symbol table
+ * Checks if a structure exists globally or locally
  * @param  self       the semantic analyzer instance
- * @param  structName the name of the structure to lookup
- * @return            the structure if its there, otherwise false or NULL
+ * @param  structName the structure name to lookup
+ * @return            the structure if it exists
+ */
+StructDecl *checkStructureExists(SemanticAnalyzer *self, char *structName);
+
+/**
+ * Check if a variable exists globally or locally
+ * @param  self    the semantic analyzer instance
+ * @param  varName the variable name to lookup
+ * @return         the variable if it exists
+ */
+VariableDecl *checkVariableExists(SemanticAnalyzer *self, char *varName);
+
+/**
+ * Checks if a structure exists locally
+ * @param  self       the semantic analyzer instance
+ * @param  structName the structure name to lookup
+ * @return            the structure if it exists
+ */
+StructDecl *checkLocalStructureExists(SemanticAnalyzer *self, char *structName);
+
+/**
+ * Check if a variable exists locally
+ * @param  self    the semantic analyzer instance
+ * @param  varName the variable name to lookup
+ * @return         the variable if it exists
+ */
+VariableDecl *checkLocalVariableExists(SemanticAnalyzer *self, char *varName);
+
+/**
+ * Checks if a structure exists globally
+ * @param  self       the semantic analyzer instance
+ * @param  structName the structure name to lookup
+ * @return            the structure if it exists
  */
 StructDecl *checkGlobalStructureExists(SemanticAnalyzer *self, char *structName);
 
 /**
- * Checks if a variable exists in the variable symbol table
- * @param  self       the semantic analyzer instance
- * @param  varName 	  the name of the variable to lookup
- * @return            the variable if its there, otherwise false or NULL
+ * Check if a variable exists globally
+ * @param  self    the semantic analyzer instance
+ * @param  varName the variable name to lookup
+ * @return         the variable if it exists
  */
 VariableDecl *checkGlobalVariableExists(SemanticAnalyzer *self, char *varName);
 
 /**
- * Checks if a function exists in the function symbol table
- * @param  self       the semantic analyzer instance
- * @param  funcName   the name of the function to lookup
- * @return            the function if its there, otherwise false or NULL
+ * Check if a function exists globally
+ * @param  self    the semantic analyzer instance
+ * @param  varName the function name to lookup
+ * @return         the function if it exists
  */
 FunctionDecl *checkFunctionExists(SemanticAnalyzer *self, char *funcName);
+
+/**
+ * Push a new scope to the scope stack
+ * @param self  the semantic analyzer instance
+ */
+void pushScope(SemanticAnalyzer *self);
+
+/**
+ * Pop a scope from the scope stack
+ * @param self the semantic analyzer instance
+ */
+void popScope(SemanticAnalyzer *self);
 
 /**
  * Destroy the semantic analyzer instance
