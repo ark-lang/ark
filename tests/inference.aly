@@ -1,13 +1,13 @@
 fn printf(format: str, _): int;
 
 fn main(): int {
-	y : = 10.5;
-	x : = 5.5 + y;
+	y := 10.5;
+	x := 5.5 + y;
 	printf("%f\n", x);
 
-	z : = "test";
+	z := "test";
 	printf("%s\n", z);
 
-	b : = 'a';
+	b := 'a';
 	printf("%c\n", b);
 }
