@@ -4,6 +4,8 @@
 #define semanticError(...) self->failed = true; \
 						   errorMessage(__VA_ARGS__)
 
+#define GLOBAL_SCOPE_INDEX 0
+
 const char *VARIABLE_TYPE_NAMES[] = {
 	"INTEGER_VAR_TYPE",
 	"DOUBLE_VAR_TYPE",
@@ -14,12 +16,14 @@ const char *VARIABLE_TYPE_NAMES[] = {
 
 Scope *createScope() {
 	Scope *self = safeMalloc(sizeof(*self));
+	self->funcSymTable = hashmap_new();
 	self->varSymTable = hashmap_new();
 	self->structSymTable = hashmap_new();
 	return self;
 }
 
 void destroyScope(Scope *self) {
+	hashmap_free(self->funcSymTable);
 	hashmap_free(self->varSymTable);
 	hashmap_free(self->structSymTable);
 	free(self);
@@ -27,9 +31,6 @@ void destroyScope(Scope *self) {
 
 SemanticAnalyzer *createSemanticAnalyzer(Vector *sourceFiles) {
 	SemanticAnalyzer *self = safeMalloc(sizeof(*self));
-	self->funcSymTable = hashmap_new();
-	self->varSymTable = hashmap_new();
-	self->structSymTable = hashmap_new();
 	self->sourceFiles = sourceFiles;
 	self->abstractSyntaxTree = NULL;
 	self->currentSourceFile = NULL;
@@ -40,22 +41,20 @@ SemanticAnalyzer *createSemanticAnalyzer(Vector *sourceFiles) {
 }
 
 void analyzeBlock(SemanticAnalyzer *self, Block *block) {
+	pushScope(self);
+
 	for (int i = 0; i < block->stmtList->stmts->size; i++) {
 		Statement *stmt = getVectorItem(block->stmtList->stmts, i);
 		analyzeStatement(self, stmt);
 	}
+
+	popScope(self);
 }
 
 void analyzeFunctionDeclaration(SemanticAnalyzer *self, FunctionDecl *decl) {
-	FunctionDecl *mapDecl = NULL;	
-	if (hashmap_get(self->funcSymTable, decl->signature->name, (void**) &mapDecl) == MAP_MISSING) {
-		hashmap_put(self->funcSymTable, decl->signature->name, decl);
-		if (!decl->prototype) {
-			analyzeBlock(self, decl->body);
-		}
-	}
-	else {
-		semanticError("Function with name `%s` already exists", decl->signature->name);
+	pushFunctionDeclaration(self, decl);
+	if (!decl->prototype) {
+		analyzeBlock(self, decl->body);
 	}
 }
 
@@ -90,7 +89,7 @@ VariableType deduceType(SemanticAnalyzer *self, Expression *expr) {
 		case TYPE_NODE: {
 			// type lit not supported atm TODO
 			if (expr->type->type == TYPE_NAME_NODE) {
-				VariableDecl *varDecl = checkGlobalVariableExists(self, expr->type->typeName->name);
+				VariableDecl *varDecl = checkVariableExists(self, expr->type->typeName->name);
 				if (varDecl) {
 					return deduceType(self, varDecl->expr);
 				}
@@ -127,10 +126,10 @@ TypeName *createTypeDeduction(VariableType type) {
 }
 
 void analyzeVariableDeclaration(SemanticAnalyzer *self, VariableDecl *decl) {
-	VariableDecl *mapDecl = NULL;	
+	VariableDecl *mapDecl = checkVariableExists(self, decl->name);
 	// doesnt exist
-	if (hashmap_get(self->varSymTable, decl->name, (void**) &mapDecl) == MAP_MISSING) {
-		hashmap_put(self->varSymTable, decl->name, decl);
+	if (!mapDecl) {
+		pushVariableDeclaration(self, decl);
 		
 		if (decl->inferred) {
 			VariableType type = deduceType(self, decl->expr);
@@ -146,9 +145,9 @@ void analyzeVariableDeclaration(SemanticAnalyzer *self, VariableDecl *decl) {
 }
 
 void analyzeAssignment(SemanticAnalyzer *self, Assignment *assign) {
-	VariableDecl *mapDecl = NULL;
+	VariableDecl *mapDecl = checkVariableExists(self, assign->iden);
 	// check assign thing exists
-	if (hashmap_get(self->varSymTable, assign->iden, (void**) &mapDecl) == MAP_MISSING) {
+	if (mapDecl) {
 		semanticError("`%s` undeclared", assign->iden);
 	}
 	// check mutability, etc.
@@ -250,13 +249,15 @@ void startSemanticAnalysis(SemanticAnalyzer *self) {
 		self->currentSourceFile = sf;
 		self->abstractSyntaxTree = self->currentSourceFile->ast;
 		
+		// global scope
+		pushScope(self);
+		checkMainExists(self);
 		for (int j = 0; j < self->abstractSyntaxTree->size; j++) {
 			Statement *stmt = getVectorItem(self->abstractSyntaxTree, j);
 			analyzeStatement(self, stmt);
 		}
+		popScope(self);
 	}
-
-	checkMainExists(self);
 }
 
 StructDecl *checkStructureExists(SemanticAnalyzer *self, char *structName) {
@@ -290,43 +291,73 @@ VariableDecl *checkVariableExists(SemanticAnalyzer *self, char *varName) {
 StructDecl *checkLocalStructureExists(SemanticAnalyzer *self, char *structName) {
 	StructDecl *structure = NULL;
 	Scope *scope = getStackItem(self->scopes, self->scopes->stackPointer);
-	if (hashmap_get(scope->structSymTable, structName, (void**) &structure) == MAP_MISSING) {
-		return false;
+	if (hashmap_get(scope->structSymTable, structName, (void**) &structure) == MAP_OK) {
+		return structure;
 	}
-	return structure;
+	return false;
 }
 
 VariableDecl *checkLocalVariableExists(SemanticAnalyzer *self, char *varName) {
 	VariableDecl *var = NULL;
 	Scope *scope = getStackItem(self->scopes, self->scopes->stackPointer);
-	if (hashmap_get(scope->varSymTable, varName, (void**) &var) == MAP_MISSING) {
-		return false;
+	if (hashmap_get(scope->varSymTable, varName, (void**) &var) == MAP_OK) {
+		return var;
 	}
-	return var;
+	return false;
 }
 
 StructDecl *checkGlobalStructureExists(SemanticAnalyzer *self, char *structName) {
 	StructDecl *structure = NULL;
-	if (hashmap_get(self->structSymTable, structName, (void**) &structure) == MAP_MISSING) {
-		return false;
+	Scope *scope = getStackItem(self->scopes, GLOBAL_SCOPE_INDEX);
+	if (hashmap_get(scope->structSymTable, structName, (void**) &structure) == MAP_OK) {
+		return structure;
 	}
-	return structure;
+	return false;
 }
 
 VariableDecl *checkGlobalVariableExists(SemanticAnalyzer *self, char *varName) {
 	VariableDecl *var = NULL;
-	if (hashmap_get(self->funcSymTable, varName, (void**) &var) == MAP_MISSING) {
-		return false;
+	Scope *scope = getStackItem(self->scopes, GLOBAL_SCOPE_INDEX);
+	if (hashmap_get(scope->varSymTable, varName, (void**) &var) == MAP_OK) {
+		return var;
 	}
-	return var;
+	return false;
 }
 
 FunctionDecl *checkFunctionExists(SemanticAnalyzer *self, char *funcName) {
 	FunctionDecl *func = NULL;
-	if (hashmap_get(self->funcSymTable, funcName, (void**) &func) == MAP_MISSING) {
-		return false;
+	Scope *scope = getStackItem(self->scopes, GLOBAL_SCOPE_INDEX);
+	if (hashmap_get(scope->funcSymTable, funcName, (void**) &func) == MAP_OK) {
+		return func;
 	}
-	return func;
+	return false;
+}
+
+void pushVariableDeclaration(SemanticAnalyzer *self, VariableDecl *var) {
+	Scope *scope = getStackItem(self->scopes, self->scopes->stackPointer);
+	if (checkLocalVariableExists(self, var->name)) {
+		semanticError("Variable with the name `%s` already exists locally", var->name);
+		return;
+	}
+	hashmap_put(scope->varSymTable, var->name, var);
+}
+
+void pushStructureDeclaration(SemanticAnalyzer *self, StructDecl *structure) {
+	Scope *scope = getStackItem(self->scopes, self->scopes->stackPointer);
+	if (checkLocalVariableExists(self, structure->name)) {
+		semanticError("Structure with the name `%s` already exists locally", structure->name);
+		return;
+	}
+	hashmap_put(scope->structSymTable, structure->name, structure);
+}
+
+void pushFunctionDeclaration(SemanticAnalyzer *self, FunctionDecl *func) {
+	Scope *scope = getStackItem(self->scopes, self->scopes->stackPointer);
+	if (checkLocalVariableExists(self, func->signature->name)) {
+		semanticError("Function with the name `%s` has already been defined", func->signature->name);
+		return;
+	}
+	hashmap_put(scope->funcSymTable, func->signature->name, func);
 }
 
 void pushScope(SemanticAnalyzer *self) {
@@ -335,15 +366,12 @@ void pushScope(SemanticAnalyzer *self) {
 
 void popScope(SemanticAnalyzer *self) {
 	Scope *scope = popStack(self->scopes);
+	hashmap_free(scope->funcSymTable);
 	hashmap_free(scope->varSymTable);
 	hashmap_free(scope->structSymTable);
 }
 
 void destroySemanticAnalyzer(SemanticAnalyzer *self) {
-	hashmap_free(self->funcSymTable);
-	hashmap_free(self->varSymTable);
-	hashmap_free(self->structSymTable);
-
 	// clear up the remaining scope stuff
 	for (int i = 0; i < self->scopes->stackPointer; i++) {
 		popScope(self);
