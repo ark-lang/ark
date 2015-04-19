@@ -925,12 +925,9 @@ VariableDecl *parseVariableDecl(Parser *self) {
 					if (checkTokenTypeAndContent(self, SEPARATOR, ";", 0)) {
 						consumeToken(self);
 					}
-
-					if (!type && inferred) {
-						errorMessage("TODO: type inference lol");
-					}
 					VariableDecl *decl = createVariableDecl(type, var_name, mutable, rhand);
 					decl->assigned = true;
+					decl->inferred = inferred;
 					return decl;
 				}
 			}

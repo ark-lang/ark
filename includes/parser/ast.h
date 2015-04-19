@@ -118,6 +118,13 @@ typedef struct {
 	Type *type;
 } ArrayType;
 
+/**
+ * A type literal, i.e Array or Pointer. These
+ * are not what you think they are and need
+ * fixing. I don't even  remember myself, well
+ * I do I just can't be bothered to write it. Yet
+ * I've written all this. Wow.
+ */
 typedef struct {
 	ArrayType *arrayType;
 	PointerType *pointerType;
