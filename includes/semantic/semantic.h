@@ -46,6 +46,7 @@ typedef enum {
 	STRING_VAR_TYPE,
 	STRUCTURE_VAR_TYPE,
 	CHAR_VAR_TYPE,
+	UNKNOWN_VAR_TYPE
 } VariableType;
 
 typedef struct {
