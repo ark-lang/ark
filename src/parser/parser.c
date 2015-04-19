@@ -59,13 +59,6 @@ Parser *createParser() {
 }
 
 void destroyParser(Parser *self) {
-	if (self->scope->stackPointer != -1) {
-		while (self->scope->stackPointer >= 0) {
-			popStack(self->scope);
-		}
-	}
-
-	destroyStack(self->scope);
 	free(self);
 	verboseModeMessage("Destroyed self");
 }
@@ -233,19 +226,6 @@ ParameterSection *parseParameterSection(Parser *self) {
 			}
 
 			ParameterSection *paramSec = createParameterSection(type, mutable);
-			if (checkTokenTypeAndContent(self, OPERATOR, "=", 0)) {
-				consumeToken(self);
-
-				Expression *expr = parseExpression(self);
-				if (!expr) {
-					errorMessage("Expected expression somefuckadoodgle TODO");
-				}
-				else {
-					paramSec->optional = true;
-					paramSec->optionalExpr = expr;
-				}
-			}
-			
 			paramSec->name = name;
 			return paramSec;
 		}
@@ -840,13 +820,11 @@ Block *parseBlock(Parser *self) {
 		}
 	}
 	else if (checkTokenTypeAndContent(self, SEPARATOR, "{", 0)) {
-		pushScope(self);
 		consumeToken(self);
 
 		Block *block = createBlock();
 		while (true) {
 			if (checkTokenTypeAndContent(self, SEPARATOR, "}", 0)) {
-				popScope(self, block);
 				consumeToken(self);
 				break;
 			}
@@ -1228,33 +1206,6 @@ Call *parseCall(Parser *self) {
 
 /** UTILITY */
 
-void pushScope(Parser *self) {
-	pushToStack(self->scope, createScope());
-}
-
-void pushPointer(Parser *self, char *name) {
-	Scope *scope = getStackItem(self->scope, self->scope->stackPointer);
-	pushBackItem(scope->pointers, createPointerFree(name));
-}
-
-void popScope(Parser *self, Block *block) {
-	Scope *scope = popStack(self->scope);
-
-	for (int i = 0; i < scope->pointers->size; i++) {
-		PointerFree *pntr = getVectorItem(scope->pointers, i);
-
-		UnstructuredStatement *unstructured = createUnstructuredStatement();
-		unstructured->pointerFree = pntr;
-		unstructured->type = POINTER_FREE_NODE;
-
-		Statement *stmt = createStatement();
-		stmt->unstructured = unstructured;
-		stmt->type = UNSTRUCTURED_STATEMENT_NODE;
-
-		pushBackItem(block->stmtList->stmts, stmt);
-	}
-}
-
 int getLiteralType(Token *tok) {
 	switch (tok->type) {
 	case CHARACTER:
@@ -1338,7 +1289,6 @@ void startParsingSourceFiles(Parser *self, Vector *sourceFiles) {
 		self->parseTree = createVector(VECTOR_EXPONENTIAL);
 		self->tokenIndex = 0;
 		self->parsing = true;
-		self->scope = createStack();
 
 		parseTokenStream(self);
 

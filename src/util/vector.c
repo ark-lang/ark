@@ -17,22 +17,22 @@ void pushBackItem(Vector *vec, VectorItem item) {
 			vec->maxSize = vec->type == VECTOR_LINEAR ? 1 : vec->maxSize * 2;
 			vec->items = realloc(vec->items, sizeof(*vec->items) * vec->maxSize);
 			if (!vec->items) {
-				perror("realloc: failed to allocate memory for vector contents");
+				verboseModeMessage("realloc: failed to allocate memory for vector contents");
 				return;
 			}
 		}
 		vec->items[vec->size++] = item;
 	}
 	else {
-		errorMessage("Cannot push item to a null vector");
+		verboseModeMessage("Cannot push item to a null vector");
 		return;
 	}
 }
 
 VectorItem getVectorItem(Vector *vec, int index) {
 	if (index > vec->size) {
-		printf("index out of vector bounds, index: %d, size: %d\n", index, vec->size);
-		return NULL;
+		verboseModeMessage("index out of vector bounds, index: %d, size: %d\n", index, vec->size);
+		return false;
 	}
 	return vec->items[index];
 }
