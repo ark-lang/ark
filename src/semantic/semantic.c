@@ -17,6 +17,7 @@ const char *VARIABLE_TYPE_NAMES[] = {
 Scope *createScope() {
 	Scope *self = safeMalloc(sizeof(*self));
 	self->funcSymTable = hashmap_new();
+	self->paramSymTable = hashmap_new();
 	self->varSymTable = hashmap_new();
 	self->structSymTable = hashmap_new();
 	return self;
@@ -41,20 +42,24 @@ SemanticAnalyzer *createSemanticAnalyzer(Vector *sourceFiles) {
 }
 
 void analyzeBlock(SemanticAnalyzer *self, Block *block) {
-	pushScope(self);
-
 	for (int i = 0; i < block->stmtList->stmts->size; i++) {
 		Statement *stmt = getVectorItem(block->stmtList->stmts, i);
 		analyzeStatement(self, stmt);
 	}
-
-	popScope(self);
 }
 
 void analyzeFunctionDeclaration(SemanticAnalyzer *self, FunctionDecl *decl) {
 	pushFunctionDeclaration(self, decl);
 	if (!decl->prototype) {
+		pushScope(self);
+	}
+	for (int i = 0; i < decl->signature->parameters->paramList->size; i++) {
+		ParameterSection *param = getVectorItem(decl->signature->parameters->paramList, i);
+		pushParameterSection(self, param);
+	}
+	if (!decl->prototype) {
 		analyzeBlock(self, decl->body);
+		popScope(self);
 	}
 }
 
@@ -146,13 +151,15 @@ void analyzeVariableDeclaration(SemanticAnalyzer *self, VariableDecl *decl) {
 
 void analyzeAssignment(SemanticAnalyzer *self, Assignment *assign) {
 	VariableDecl *mapDecl = checkVariableExists(self, assign->iden);
+	ParameterSection *paramDecl = checkLocalParameterExists(self, assign->iden);
+	
 	// check assign thing exists
-	if (mapDecl) {
+	if (!mapDecl && !paramDecl) {
 		semanticError("`%s` undeclared", assign->iden);
 	}
 	// check mutability, etc.
 	else {
-		if (!mapDecl->mutable) {
+		if ((mapDecl && !mapDecl->mutable) || (paramDecl && !paramDecl->mutable)) {
 			semanticError("Assignment of read-only variable `%s`", assign->iden);
 		}
 	}
@@ -333,6 +340,25 @@ FunctionDecl *checkFunctionExists(SemanticAnalyzer *self, char *funcName) {
 	return false;
 }
 
+ParameterSection *checkLocalParameterExists(SemanticAnalyzer *self, char *paramName) {
+	ParameterSection *param = NULL;
+	Scope *scope = getStackItem(self->scopes, self->scopes->stackPointer);
+	if (hashmap_get(scope->paramSymTable, paramName, (void**) &param) == MAP_OK) {
+		printf("param %s exists in scope level %d\n", paramName, self->scopes->stackPointer);
+		return param;
+	}
+	return false;
+}
+
+void pushParameterSection(SemanticAnalyzer *self, ParameterSection *param) {
+	Scope *scope = getStackItem(self->scopes, self->scopes->stackPointer);
+	if (self->scopes->stackPointer == GLOBAL_SCOPE_INDEX) return;
+	if (!checkLocalParameterExists(self, param->name)) {
+		hashmap_put(scope->paramSymTable, param->name, param);
+		printf("pushed param %s to scope level %d\n", param->name, self->scopes->stackPointer);
+	}
+}
+
 void pushVariableDeclaration(SemanticAnalyzer *self, VariableDecl *var) {
 	Scope *scope = getStackItem(self->scopes, self->scopes->stackPointer);
 	if (checkLocalVariableExists(self, var->name)) {
@@ -367,6 +393,7 @@ void pushScope(SemanticAnalyzer *self) {
 void popScope(SemanticAnalyzer *self) {
 	Scope *scope = popStack(self->scopes);
 	hashmap_free(scope->funcSymTable);
+	hashmap_free(scope->paramSymTable);
 	hashmap_free(scope->varSymTable);
 	hashmap_free(scope->structSymTable);
 	free(scope);

@@ -51,6 +51,7 @@ typedef enum {
 typedef struct {
 	map_t funcSymTable;
 	map_t varSymTable;
+	map_t paramSymTable;
 	map_t structSymTable;
 } Scope;
 
@@ -247,6 +248,10 @@ VariableDecl *checkGlobalVariableExists(SemanticAnalyzer *self, char *varName);
  * @return         the function if it exists
  */
 FunctionDecl *checkFunctionExists(SemanticAnalyzer *self, char *funcName);
+
+ParameterSection *checkLocalParameterExists(SemanticAnalyzer *self, char *paramName);
+
+void pushParameterSection(SemanticAnalyzer *self, ParameterSection *param);
 
 void pushVariableDeclaration(SemanticAnalyzer *self, VariableDecl *var);
 
