@@ -4,14 +4,6 @@
 #define semanticError(...) self->failed = true; \
 						   errorMessage(__VA_ARGS__)
 
-typedef enum {
-	INTEGER_VAR_TYPE,
-	DOUBLE_VAR_TYPE,
-	STRING_VAR_TYPE,
-	STRUCTURE_VAR_TYPE,
-	CHAR_VAR_TYPE,
-} VariableType;
-
 const char *VARIABLE_TYPE_NAMES[] = {
 	"INTEGER_VAR_TYPE",
 	"DOUBLE_VAR_TYPE",
@@ -20,10 +12,24 @@ const char *VARIABLE_TYPE_NAMES[] = {
 	"CHAR_VAR_TYPE",
 };
 
+Scope *createScope() {
+	Scope *self = safeMalloc(sizeof(*self));
+	self->varSymTable = hashmap_new();
+	self->structSymTable = hashmap_new();
+	return self;
+}
+
+void destroyScope(Scope *self) {
+	hashmap_free(self->varSymTable);
+	hashmap_free(self->structSymTable);
+	free(self);
+}
+
 SemanticAnalyzer *createSemanticAnalyzer(Vector *sourceFiles) {
 	SemanticAnalyzer *self = safeMalloc(sizeof(*self));
 	self->funcSymTable = hashmap_new();
 	self->varSymTable = hashmap_new();
+	self->structSymTable = hashmap_new();
 	self->sourceFiles = sourceFiles;
 	self->abstractSyntaxTree = NULL;
 	self->currentSourceFile = NULL;
@@ -65,7 +71,7 @@ VariableType mergeTypes(VariableType a, VariableType b) {
 	}
 }
 
-VariableType literalToType(SemanticAnalyzer *self, Literal *literal) {
+VariableType literalToType(Literal *literal) {
 	switch (literal->type) {
 		case LITERAL_WHOLE_NUMBER: return INTEGER_VAR_TYPE;
 		case LITERAL_DECIMAL_NUMBER: return DOUBLE_VAR_TYPE;
@@ -73,19 +79,18 @@ VariableType literalToType(SemanticAnalyzer *self, Literal *literal) {
 		case LITERAL_STRING: return STRING_VAR_TYPE;
 		case LITERAL_CHAR: return CHAR_VAR_TYPE;
 	}
+
+	return false;
 }
 
 VariableType deduceType(SemanticAnalyzer *self, Expression *expr) {
 	switch (expr->exprType) {
-		case LITERAL_NODE: {
-			VariableType type = literalToType(self, expr->lit);
-			return type;
-		}
+		case LITERAL_NODE: return literalToType(expr->lit);
 		case TYPE_NODE: {
-			// type lit not supported atm
+			// type lit not supported atm TODO
 			if (expr->type->type == TYPE_NAME_NODE) {
-				VariableDecl *varDecl = NULL;
-				if (hashmap_get(self->varSymTable, expr->type->typeName->name, (void**) &varDecl) == MAP_OK) {
+				VariableDecl *varDecl = checkGlobalVariableExists(self, expr->type->typeName->name);
+				if (varDecl) {
 					return deduceType(self, varDecl->expr);
 				}
 				else {
@@ -95,8 +100,11 @@ VariableType deduceType(SemanticAnalyzer *self, Expression *expr) {
 			break;
 		}
 		case BINARY_EXPR_NODE: {
+			// deduce type for lhand & rhand
 			VariableType lhandType = deduceType(self, expr->binary->lhand);
 			VariableType rhandType = deduceType(self, expr->binary->rhand);
+			
+			// merge them
 			VariableType finalType = mergeTypes(lhandType, rhandType);
 			return finalType;
 		}
@@ -104,7 +112,7 @@ VariableType deduceType(SemanticAnalyzer *self, Expression *expr) {
 	return false;
 }
 
-TypeName *createTypeDeduction(SemanticAnalyzer *self, VariableType type) {
+TypeName *createTypeDeduction(VariableType type) {
 	switch (type) {
 		case INTEGER_VAR_TYPE: return createTypeName("int");
 		case DOUBLE_VAR_TYPE: return createTypeName("double");
@@ -114,6 +122,7 @@ TypeName *createTypeDeduction(SemanticAnalyzer *self, VariableType type) {
 			printf("what to do for %s\n", VARIABLE_TYPE_NAMES[type]);
 			break;
 	}
+	return false;
 }
 
 void analyzeVariableDeclaration(SemanticAnalyzer *self, VariableDecl *decl) {
@@ -126,7 +135,7 @@ void analyzeVariableDeclaration(SemanticAnalyzer *self, VariableDecl *decl) {
 			VariableType type = deduceType(self, decl->expr);
 			decl->type = createType();
 			decl->type->type = TYPE_NAME_NODE;
-			decl->type->typeName = createTypeDeduction(self, type);
+			decl->type->typeName = createTypeDeduction(type);
 		}
 	}
 	// does exist, oh shit
@@ -159,9 +168,8 @@ void analyzeDeclaration(SemanticAnalyzer *self, Declaration *decl) {
 void analyzeFunctionCall(SemanticAnalyzer *self, Call *call) {
 	char *callee = getVectorItem(call->callee, 0);
 
-	FunctionDecl *decl = NULL;	
-	// check the function we're calling exists
-	if (hashmap_get(self->funcSymTable, callee, (void**) &decl) == MAP_MISSING) {
+	FunctionDecl *decl = checkFunctionExists(self, callee);	
+	if (!decl) {
 		semanticError("Attempting to call undefined function `%s`", callee);
 	}
 	// it exists, check arguments match in length
@@ -169,17 +177,6 @@ void analyzeFunctionCall(SemanticAnalyzer *self, Call *call) {
 		int argsNeeded = decl->signature->parameters->paramList->size;
 		int argsGot = call->arguments->size;
 		char *callee = getVectorItem(call->callee, 0); // FIXME
-
-		int optionalArgs = 0;
-
-		// loop through to see how many arguments are required
-		// this could probably be O(1) if we refactor a bit
-		for (int i = 0; i < decl->signature->parameters->paramList->size; i++) {
-			ParameterSection *param = getVectorItem(decl->signature->parameters->paramList, i);
-			if (param->optional) {
-				optionalArgs += 1;
-			}
-		}
 
 		// only do this on non-variadic functions, otherwise
 		// it will fuck you over since variadic is variable amount of args
@@ -194,21 +191,18 @@ void analyzeFunctionCall(SemanticAnalyzer *self, Call *call) {
 	}
 }
 
-void analyzeLiteral(SemanticAnalyzer *self, Literal *lit) {
-	// TODO:
-}
-
 void analyzeBinaryExpr(SemanticAnalyzer *self, BinaryExpr *expr) {
-
+	// probably some more shit we can do here, it'll do for now though
+	analyzeExpression(self, expr->lhand);
+	analyzeExpression(self, expr->rhand);
 }
 
 void analyzeUnaryExpr(SemanticAnalyzer *self, UnaryExpr *expr) {
-
+	analyzeExpression(self, expr->lhand);
 }
 
 void analyzeExpression(SemanticAnalyzer *self, Expression *expr) {
 	switch (expr->exprType) {
-		case LITERAL_NODE: analyzeLiteral(self, expr->lit); break;
 		case BINARY_EXPR_NODE: analyzeBinaryExpr(self, expr->binary); break;
 		case UNARY_EXPR_NODE: analyzeUnaryExpr(self, expr->unary); break;
 		case FUNCTION_CALL_NODE: analyzeFunctionCall(self, expr->call); break;
@@ -241,8 +235,8 @@ void analyzeStatement(SemanticAnalyzer *self, Statement *stmt) {
 }
 
 void checkMainExists(SemanticAnalyzer *self) {
-	FunctionDecl *main = NULL;
-	if (hashmap_get(self->funcSymTable, MAIN_FUNC, (void**) &main) == MAP_MISSING) {
+	FunctionDecl *main = checkFunctionExists(self, MAIN_FUNC);
+	if (!main) {
 		semanticError("Undefined reference to `main`");
 		self->failed = true;
 	}
@@ -262,6 +256,30 @@ void startSemanticAnalysis(SemanticAnalyzer *self) {
 	}
 
 	checkMainExists(self);
+}
+
+StructDecl *checkGlobalStructureExists(SemanticAnalyzer *self, char *structName) {
+	StructDecl *structure = NULL;
+	if (hashmap_get(self->structSymTable, structName, (void**) &structure) == MAP_MISSING) {
+		return false;
+	}
+	return structure;
+}
+
+VariableDecl *checkGlobalVariableExists(SemanticAnalyzer *self, char *varName) {
+	VariableDecl *var = NULL;
+	if (hashmap_get(self->funcSymTable, varName, (void**) &var) == MAP_MISSING) {
+		return false;
+	}
+	return var;
+}
+
+FunctionDecl *checkFunctionExists(SemanticAnalyzer *self, char *funcName) {
+	FunctionDecl *func = NULL;
+	if (hashmap_get(self->funcSymTable, funcName, (void**) &func) == MAP_MISSING) {
+		return false;
+	}
+	return func;
 }
 
 void destroySemanticAnalyzer(SemanticAnalyzer *self) {

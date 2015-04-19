@@ -25,8 +25,6 @@
 #include "vector.h"
 #include "hashmap.h"
 #include "ast.h"
-#include "stack.h"
-#include "scope.h"
 
 /**
  * These are keywords that we use a lot in the parser code,
@@ -94,7 +92,6 @@ int getTypeFromString(char *type);
 typedef struct {
 	Vector *tokenStream;	// the stream of tokens to parse
 	Vector *parseTree;		// the AST created
-	Stack *scope;			// for emulating scope for ARC
 
 	map_t binopPrecedence;
 	int tokenIndex;			// current token
@@ -434,34 +431,6 @@ static inline void destroyPrecedence(Precedence *prec) {
  * @return the token precedence of the current operator
  */
 int getTokenPrecedence(Parser *parser);
-
-/**
- * Push a new scope to the stack
- * @param parser the parser instance
- */
-void pushScope(Parser *parser);
-
-/**
- * Push a pointer to the current scope, this is
- * used for our ARC model, however is temporarily
- * unused since we're separating it into a different
- * module.
- * @param  parser the parser instance
- */
-void pushPointer(Parser *parser, char *name);
-
-/**
- * Pops a scope from the stack, this will also
- * clean up any pointers allocated, note we need
- * to make this not cleanup aliases of pointers?
- * It also takes the block too, this is so we know
- * where to insert frees, however I decided to remove
- * this since it is going to be implemented after parsing
- * some time during semantic analysis...
- * FIXME
- * @param  parser the parser instance
- */
-void popScope(Parser *parser, Block *block);
 
 /**
  * Returns the literal type based on the token

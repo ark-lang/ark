@@ -17,6 +17,7 @@
 #include "hashmap.h"
 #include "sourcefile.h"
 #include "parser.h"
+#include "stack.h"
 
 #define MAIN_FUNC "main"
 
@@ -33,15 +34,37 @@ typedef struct {
 	/** the current node in the ast */
 	int currentNode;
 
-	/** hashmap for functions defined */
+	/** hashmap for global functions */
 	map_t funcSymTable;
 
-	/** hashmap for variables defined */
+	/** hashmap for global variables */
 	map_t varSymTable;
+
+	/** hashmap for global structured */
+	map_t structSymTable;
 
 	/** if this stage failed or not */
 	bool failed;
+
+	Stack *scopes;
 } SemanticAnalyzer;
+
+typedef enum {
+	INTEGER_VAR_TYPE,
+	DOUBLE_VAR_TYPE,
+	STRING_VAR_TYPE,
+	STRUCTURE_VAR_TYPE,
+	CHAR_VAR_TYPE,
+} VariableType;
+
+typedef struct {
+	map_t varSymTable;
+	map_t structSymTable;
+} Scope;
+
+Scope *createScope();
+
+void destroyScope(Scope *scope);
 
 /**
  * Create instance of semantic analyzer
@@ -62,6 +85,36 @@ void analyzeBlock(SemanticAnalyzer *self, Block *block);
  * @param decl the function decl node to analyze
  */
 void analyzeFunctionDeclaration(SemanticAnalyzer *self, FunctionDecl *decl);
+
+/**
+ * Merges two variable types together
+ * @param  a first type to merge
+ * @param  b second type to merge
+ * @return   a and b merged
+ */
+VariableType mergeTypes(VariableType a, VariableType b);
+
+/**
+ * Converts a literal to a variable type
+ * @param  literal the literal to convert
+ * @return         the variable type
+ */
+VariableType literalToType(Literal *literal);
+
+/**
+ * Deduce a type from the given expression
+ * @param  self the semantic analyzer instance
+ * @param  expr the expr to deduce
+ * @return      the deduced type
+ */
+VariableType deduceType(SemanticAnalyzer *self, Expression *expr);
+
+/**
+ * Creates a type to be inserted into the AST post-deduction
+ * @param  type the type to convert
+ * @return      the type instance created
+ */
+TypeName *createTypeDeduction(VariableType type);
 
 /**
  * Analyze a variable declaration
@@ -90,13 +143,6 @@ void analyzeDeclaration(SemanticAnalyzer *self, Declaration *decl);
  * @param call the function call node to analyze
  */
 void analyzeFunctionCall(SemanticAnalyzer *self, Call *call);
-
-/**
- * Analyze a literal
- * @param self the semantic analyzer instance
- * @param lit  the literal node to analyze
- */
-void analyzeLiteral(SemanticAnalyzer *self, Literal *lit);
 
 /**
  * Analyze a binary expression
@@ -153,6 +199,30 @@ void checkMainExists(SemanticAnalyzer *self);
  * @param self the semantic analyzer instance
  */
 void startSemanticAnalysis(SemanticAnalyzer *self);
+
+/**
+ * Checks if a structure exists in the structure symbol table
+ * @param  self       the semantic analyzer instance
+ * @param  structName the name of the structure to lookup
+ * @return            the structure if its there, otherwise false or NULL
+ */
+StructDecl *checkGlobalStructureExists(SemanticAnalyzer *self, char *structName);
+
+/**
+ * Checks if a variable exists in the variable symbol table
+ * @param  self       the semantic analyzer instance
+ * @param  varName 	  the name of the variable to lookup
+ * @return            the variable if its there, otherwise false or NULL
+ */
+VariableDecl *checkGlobalVariableExists(SemanticAnalyzer *self, char *varName);
+
+/**
+ * Checks if a function exists in the function symbol table
+ * @param  self       the semantic analyzer instance
+ * @param  funcName   the name of the function to lookup
+ * @return            the function if its there, otherwise false or NULL
+ */
+FunctionDecl *checkFunctionExists(SemanticAnalyzer *self, char *funcName);
 
 /**
  * Destroy the semantic analyzer instance
