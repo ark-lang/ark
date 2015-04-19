@@ -1,5 +1,6 @@
 #include "semantic.h"
 
+// a lazy macro for failing when the error message is called.
 #define semanticError(...) self->failed = true; \
 						   errorMessage(__VA_ARGS__)
 
@@ -96,7 +97,7 @@ void analyzeFunctionCall(SemanticAnalyzer *self, Call *call) {
 }
 
 void analyzeLiteral(SemanticAnalyzer *self, Literal *lit) {
-
+	// TODO:
 }
 
 void analyzeBinaryExpr(SemanticAnalyzer *self, BinaryExpr *expr) {
@@ -128,7 +129,8 @@ void analyzeUnstructuredStatement(SemanticAnalyzer *self, UnstructuredStatement 
 
 void analyzeStructuredStatement(SemanticAnalyzer *self, StructuredStatement *structured) {
 	ALLOY_UNUSED_OBJ(self);
-	ALLOY_UNUSED_OBJ(structured);	
+	ALLOY_UNUSED_OBJ(structured);
+	// TODO:
 }
 
 void analyzeStatement(SemanticAnalyzer *self, Statement *stmt) {
