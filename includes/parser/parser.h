@@ -61,7 +61,9 @@ static const char *unaryOp[] = { "+", "-", "!", "^", "<", ">", "*", "&" };
  * Various types of Literals, mostly for lookups
  */
 typedef enum {
-	LITERAL_NUMBER,
+	LITERAL_WHOLE_NUMBER,
+	LITERAL_DECIMAL_NUMBER,
+	LITERAL_HEX_NUMBER,
 	LITERAL_STRING,
 	LITERAL_CHAR,
 	LITERAL_ERRORED

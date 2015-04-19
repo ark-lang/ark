@@ -22,6 +22,6 @@ int main(int argc, char** argv) {
 		// write the message
 		primaryMessage("Finished in %.6f/s (%.0f/ms)", secondsTaken, msTaken);
 	}
-	
+
 	return 0;
 }
