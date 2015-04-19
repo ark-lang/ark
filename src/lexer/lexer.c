@@ -186,6 +186,7 @@ void recognizeNumberToken(Lexer *self) {
 			}
 			consumeCharacter(self);
 		}
+		
 		pushToken(self, isDecimal ? DECIMAL : WHOLE_NUMBER);
 	}
 }

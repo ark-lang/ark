@@ -36,11 +36,19 @@ void analyzeFunctionDeclaration(SemanticAnalyzer *self, FunctionDecl *decl) {
 	}
 }
 
+DataType deduceType(SemanticAnalyzer *self, Expression *expr) {
+	return false;
+}
+
 void analyzeVariableDeclaration(SemanticAnalyzer *self, VariableDecl *decl) {
 	VariableDecl *mapDecl = NULL;	
 	// doesnt exist
 	if (hashmap_get(self->varSymTable, decl->name, (void**) &mapDecl) == MAP_MISSING) {
 		hashmap_put(self->varSymTable, decl->name, decl);
+		
+		if (decl->inferred && decl->assigned) {
+
+		}
 	}
 	// does exist, oh shit
 	else {

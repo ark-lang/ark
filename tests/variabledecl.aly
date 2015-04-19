@@ -4,6 +4,5 @@ fn main(): int {
 	mut x : int = 5;
 	mut y : int;
 	z : int = x + y;
-	a = z;
 	printf("%d %d %d\n", x, y, z);
 }
