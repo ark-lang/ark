@@ -34,15 +34,6 @@ typedef struct {
 	/** the current node in the ast */
 	int currentNode;
 
-	/** hashmap for global functions */
-	map_t funcSymTable;
-
-	/** hashmap for global variables */
-	map_t varSymTable;
-
-	/** hashmap for global structured */
-	map_t structSymTable;
-
 	/** if this stage failed or not */
 	bool failed;
 
@@ -58,6 +49,7 @@ typedef enum {
 } VariableType;
 
 typedef struct {
+	map_t funcSymTable;
 	map_t varSymTable;
 	map_t structSymTable;
 } Scope;
@@ -255,6 +247,12 @@ VariableDecl *checkGlobalVariableExists(SemanticAnalyzer *self, char *varName);
  * @return         the function if it exists
  */
 FunctionDecl *checkFunctionExists(SemanticAnalyzer *self, char *funcName);
+
+void pushVariableDeclaration(SemanticAnalyzer *self, VariableDecl *var);
+
+void pushStructureDeclaration(SemanticAnalyzer *self, StructDecl *structure);
+
+void pushFunctionDeclaration(SemanticAnalyzer *self, FunctionDecl *func);
 
 /**
  * Push a new scope to the scope stack
