@@ -2,6 +2,12 @@ swag := 5;
 
 fn printf(format: str, _): int;
 
+fn add() {
+	fn sub() {
+		
+	}	
+}
+
 fn main(): int {
 	y := 10.5;
 	x := 21;
