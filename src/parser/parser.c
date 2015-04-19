@@ -1262,8 +1262,12 @@ int getLiteralType(Token *tok) {
 	switch (tok->type) {
 	case CHARACTER:
 		return LITERAL_CHAR;
-	case NUMBER:
-		return LITERAL_NUMBER;
+	case HEX:
+		return LITERAL_HEX_NUMBER;
+	case DECIMAL:
+		return LITERAL_DECIMAL_NUMBER;
+	case WHOLE_NUMBER:
+		return LITERAL_WHOLE_NUMBER;
 	case STRING:
 		return LITERAL_STRING;
 	default:
@@ -1321,7 +1325,11 @@ Token *peekAtTokenStream(Parser *self, int ahead) {
 
 bool isLiteral(Parser *self, int ahead) {
 	Token *tok = peekAtTokenStream(self, ahead);
-	return tok->type == STRING || tok->type == NUMBER || tok->type == CHARACTER;
+	return tok->type == STRING 
+			|| tok->type == WHOLE_NUMBER 
+			|| tok->type == CHARACTER
+			|| tok->type == DECIMAL
+			|| tok->type == HEX;
 }
 
 /** DRIVER */

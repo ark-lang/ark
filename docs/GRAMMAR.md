@@ -55,7 +55,7 @@ The grammar pretty much maps straight onto the parsers source.
 	ForStat = ForInfiniteLoop | ForWhileLoop | ForStepLoop;
 
 	Declaration = VarDecl | FunctionDecl | StructDecl.
-	VarDecl = [ "mut" ] identifier : Type [ "=" Expression ] ";";
+	VarDecl = [ "mut" ] identifier : [ Type ] [ "=" Expression ] ";";
 
 	UnaryExpr = unaryOp PrimaryExpr;
 	MemberAccess = [ { PrimaryExpr "." } ] identifier
