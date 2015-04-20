@@ -3,6 +3,8 @@ Alloy is a work in progress programming language, read the [reference](docs/REFE
 
 <p align="center">
 <img src="misc/example.gif" width="256px" height="256px" />
+</p>
+<p align="center">
 Here's a 3d cube being rendered using SDL and OpenGL in Alloy.
 </p>
 
