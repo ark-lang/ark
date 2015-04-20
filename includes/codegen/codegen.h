@@ -41,7 +41,7 @@
  * produce is somewhat readable, or
  * all minified
  */
-#define COMPACT_CODE_GEN true
+#define COMPACT_CODE_GEN false
 
 #if COMPACT_CODE_GEN == false
 	#define CC_NEWLINE "\n"

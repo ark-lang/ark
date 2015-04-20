@@ -847,7 +847,6 @@ Block *parseBlock(Parser *self) {
 		consumeToken(self);
 
 		Block *block = createBlock();
-		block->singleStatementBlock = false;
 		while (true) {
 			if (checkTokenTypeAndContent(self, SEPARATOR, "}", 0)) {
 				consumeToken(self);
@@ -875,6 +874,7 @@ FunctionDecl *parseFunctionDecl(Parser *self) {
 				FunctionDecl *decl = createFunctionDecl();
 				decl->signature = signature;
 				decl->body = block;
+				decl->prototype = false;
 				return decl;
 			}
 		} else if (checkTokenTypeAndContent(self, SEPARATOR, ";", 0)) {
