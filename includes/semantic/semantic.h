@@ -31,6 +31,8 @@ typedef struct {
 	/** the source files to semantically analyze */
 	Vector *sourceFiles;
 
+	map_t dataTypes;
+
 	/** the current node in the ast */
 	int currentNode;
 
@@ -55,6 +57,14 @@ typedef struct {
 	map_t paramSymTable;
 	map_t structSymTable;
 } Scope;
+
+// this is stupid, little
+// trick so we can store
+// a type on the heap for our
+// hashmap
+typedef struct {
+	VariableType type;
+} VariableTypeHeap;
 
 Scope *createScope();
 
