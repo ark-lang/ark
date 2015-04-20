@@ -2,10 +2,11 @@
 Alloy is a work in progress programming language, read the [reference](docs/REFERENCE.md) to find out more about the plans, syntax, etc. Please note that the language is constantly being changed, so the Reference may be out-dated, or a little bit behind the master.
 
 <p align="center">
-<img src="misc/example.gif" width="256px" height="256px" />
+<img src="misc/example.gif" width="312px" height="312px" />
 </p>
 <p align="center">
-Here's a 3d cube being rendered using SDL and OpenGL in Alloy.
+Here's a 3d cube being rendered using SDL and OpenGL in Alloy. In which
+you can find the source <a href="//www.github.com/alloy-lang/space-invaders">here</a>
 </p>
 
 ## Disclaimer?
