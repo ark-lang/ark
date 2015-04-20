@@ -219,14 +219,13 @@ void analyzeVariableDeclaration(SemanticAnalyzer *self, VariableDecl *decl) {
 	VariableDecl *mapDecl = checkVariableExists(self, decl->name);
 	// doesnt exist
 	if (!mapDecl) {
-		pushVariableDeclaration(self, decl);
-		
 		if (decl->inferred) {
 			VariableType type = deduceType(self, decl->expr);
 			decl->type = createType();
 			decl->type->type = TYPE_NAME_NODE;
 			decl->type->typeName = createTypeDeduction(type);
 		}
+		pushVariableDeclaration(self, decl);
 	}
 	// does exist, oh shit
 	else {

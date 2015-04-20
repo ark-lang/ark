@@ -86,6 +86,8 @@ typedef struct {
 	 */
 	WriteState writeState;
 
+	sds LINKER_FLAGS;
+
 	/**
 	 * Our index in the abstract syntax
 	 * tree
