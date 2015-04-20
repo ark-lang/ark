@@ -2,7 +2,7 @@
 Alloy is a work in progress programming language, read the [reference](docs/REFERENCE.md) to find out more about the plans, syntax, etc. Please note that the language is constantly being changed, so the Reference may be out-dated, or a little bit behind the master.
 
 <p align="center">
-<img src="misc/example.gif" />
+<img src="misc/example.gif" width="256px" height="256px" />
 </p>
 
 ## Disclaimer?
