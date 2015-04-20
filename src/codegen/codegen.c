@@ -223,7 +223,7 @@ void emitFunctionDecl(CodeGenerator *self, FunctionDecl *decl) {
 	// write to the source!
 
 	self->writeState = WRITE_SOURCE_STATE;
-	if (decl->body) {
+	if (decl->body && !decl->prototype) {
 		// definition
 		emitType(self, decl->signature->type);
 		emitCode(self, " %s(", decl->signature->name);
