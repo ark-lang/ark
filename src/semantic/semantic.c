@@ -4,6 +4,7 @@
 #define semanticError(...) self->failed = true; \
 						   errorMessage(__VA_ARGS__)
 
+// global scope is always on the bottom of the stack
 #define GLOBAL_SCOPE_INDEX 0
 
 const char *VARIABLE_TYPE_NAMES[] = {
@@ -31,6 +32,12 @@ void destroyScope(Scope *self) {
 	free(self);
 }
 
+VariableTypeHeap *createHeapType(VariableType type) {
+	VariableTypeHeap *var = safeMalloc(sizeof(*var));
+	var->type = type;
+	return var;
+}
+
 SemanticAnalyzer *createSemanticAnalyzer(Vector *sourceFiles) {
 	SemanticAnalyzer *self = safeMalloc(sizeof(*self));
 	self->sourceFiles = sourceFiles;
@@ -39,7 +46,44 @@ SemanticAnalyzer *createSemanticAnalyzer(Vector *sourceFiles) {
 	self->currentNode = 0;
 	self->scopes = createStack();
 	self->failed = false;
+	
+	// data types
+	self->dataTypes = hashmap_new();
+
+	// this will do for now....
+
+	// signed precision
+	hashmap_put(self->dataTypes, "i8", createHeapType(INTEGER_VAR_TYPE));
+	hashmap_put(self->dataTypes, "i16", createHeapType(INTEGER_VAR_TYPE));
+	hashmap_put(self->dataTypes, "i32", createHeapType(INTEGER_VAR_TYPE));
+	hashmap_put(self->dataTypes, "i64", createHeapType(INTEGER_VAR_TYPE));
+
+	// unsigned precision
+	hashmap_put(self->dataTypes, "u8", createHeapType(INTEGER_VAR_TYPE));
+	hashmap_put(self->dataTypes, "u16", createHeapType(INTEGER_VAR_TYPE));
+	hashmap_put(self->dataTypes, "u32", createHeapType(INTEGER_VAR_TYPE));
+	hashmap_put(self->dataTypes, "u64", createHeapType(INTEGER_VAR_TYPE));
+	hashmap_put(self->dataTypes, "usize", createHeapType(INTEGER_VAR_TYPE));
+
+	// precision floats
+	hashmap_put(self->dataTypes, "f32", createHeapType(DOUBLE_VAR_TYPE));
+	hashmap_put(self->dataTypes, "f64", createHeapType(DOUBLE_VAR_TYPE));
+
+	// primitive types
+	hashmap_put(self->dataTypes, "int", createHeapType(INTEGER_VAR_TYPE));
+	hashmap_put(self->dataTypes, "char", createHeapType(CHAR_VAR_TYPE));
+	hashmap_put(self->dataTypes, "str", createHeapType(STRING_VAR_TYPE));
+	hashmap_put(self->dataTypes, "bool", createHeapType(INTEGER_VAR_TYPE));
+
 	return self;
+}
+
+int getDataType(SemanticAnalyzer *self, char *type) {
+	VariableTypeHeap *varType = NULL;
+	if (hashmap_get(self->dataTypes, type, (void**) &varType) == MAP_OK) {
+		return varType->type;
+	}
+	return -1;
 }
 
 void analyzeBlock(SemanticAnalyzer *self, Block *block) {
@@ -100,28 +144,19 @@ VariableType literalToType(Literal *literal) {
 	return false;
 }
 
-int isDataType(char *type) {
-	// ignore structure and ???
-	for (int i = 0; ARR_LEN(VARIABLE_TYPE_NAMES) - 2; i++) {
-		if (!strcmp(type, VARIABLE_TYPE_NAMES[i]))
-			return i;
-	}
-	return -1;
-}
-
 VariableType getTypeFromFunctionSignature(SemanticAnalyzer *self, Type *type) {
 	if (type->type == TYPE_NAME_NODE) {
 		VariableDecl *varDecl = checkVariableExists(self, type->typeName->name);
-		int dataType = isDataType(type->typeName->name);
-		
+		int varType;
+
 		if (varDecl) {
 			return deduceType(self, varDecl->expr);
 		}
-		else if (dataType != -1) {
-			return dataType;
+		else if ((varType = getDataType(self, type->typeName->name)) != -1) {
+			return varType;
 		}
 		else {
-			semanticError("Could not deduce type based on function signature");
+			semanticError("Could not deduce type based on function signature: `%s`", type->typeName->name);
 		}
 	}
 	return false;
@@ -394,7 +429,6 @@ ParameterSection *checkLocalParameterExists(SemanticAnalyzer *self, char *paramN
 	ParameterSection *param = NULL;
 	Scope *scope = getStackItem(self->scopes, self->scopes->stackPointer);
 	if (hashmap_get(scope->paramSymTable, paramName, (void**) &param) == MAP_OK) {
-		printf("param %s exists in scope level %d\n", paramName, self->scopes->stackPointer);
 		return param;
 	}
 	return false;
@@ -405,7 +439,6 @@ void pushParameterSection(SemanticAnalyzer *self, ParameterSection *param) {
 	if (self->scopes->stackPointer == GLOBAL_SCOPE_INDEX) return;
 	if (!checkLocalParameterExists(self, param->name)) {
 		hashmap_put(scope->paramSymTable, param->name, param);
-		printf("pushed param %s to scope level %d\n", param->name, self->scopes->stackPointer);
 	}
 }
 
@@ -454,6 +487,7 @@ void destroySemanticAnalyzer(SemanticAnalyzer *self) {
 	for (int i = 0; i < self->scopes->stackPointer; i++) {
 		popScope(self);
 	}
+	hashmap_free(self->dataTypes);
 	destroyStack(self->scopes);
 
 	free(self);
