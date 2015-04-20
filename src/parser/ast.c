@@ -6,6 +6,12 @@ UseMacro *createUseMacro(char *file) {
 	return use;
 }
 
+LinkerFlagMacro *createLinkerFlagMacro(char *flag) {
+	LinkerFlagMacro *linker = safeMalloc(sizeof(*linker));
+	linker->flag = flag;
+	return linker;
+}
+
 Impl *createImpl(char *name, char *as) {
 	Impl *impl = safeMalloc(sizeof(*impl));
 	impl->name = name;
@@ -296,6 +302,10 @@ void destroyUseMacro(UseMacro *use) {
 	free(use);
 }
 
+void destroyLinkerFlagMacro(LinkerFlagMacro *linker) {
+	free(linker);
+}
+
 void destroyIdentifierList(IdentifierList *list) {
 	if (!list) return;
 	destroyVector(list->values);
@@ -523,6 +533,7 @@ void destroyMacro(Macro *macro) {
 	if (!macro) return;
 	switch (macro->type) {
 		case USE_MACRO_NODE: destroyUseMacro(macro->use); break;
+		case LINKER_FLAG_MACRO_NODE: destroyLinkerFlagMacro(macro->linker); break;
 	}
 	free(macro);
 }

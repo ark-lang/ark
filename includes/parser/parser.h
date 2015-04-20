@@ -44,6 +44,7 @@
 #define CONTINUE_KEYWORD			"continue"
 #define RETURN_KEYWORD				"return"
 #define BREAK_KEYWORD				"break"
+#define LINKER_FLAG_KEYWORD			"linker_flag"
 
 /**
  * Various operators that are used in the parser, also used

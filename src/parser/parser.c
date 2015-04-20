@@ -89,6 +89,22 @@ UseMacro *parseUseMacro(Parser *self) {
 	return false;
 }
 
+LinkerFlagMacro *parseLinkerFlagMacro(Parser *self) {
+	if (checkTokenTypeAndContent(self, OPERATOR, "!", 0)) {
+		consumeToken(self);
+
+		if (checkTokenTypeAndContent(self, IDENTIFIER, LINKER_FLAG_KEYWORD, 0)) {
+			consumeToken(self);
+
+			if (checkTokenType(self, STRING, 0)) {
+				char *flag = consumeToken(self)->content;
+				return createLinkerFlagMacro(flag);
+			}
+		}
+	}
+	return false;
+}
+
 IdentifierList *parseIdentifierList(Parser *self) {
 	IdentifierList *idenList = createIdentifierList();
 
@@ -765,6 +781,14 @@ Macro *parseMacro(Parser *self) {
 		return false;
 	}	
 
+	LinkerFlagMacro *linker = parseLinkerFlagMacro(self);
+	if (linker) {
+		Macro *stmt = createMacro();
+		stmt->linker = linker;
+		stmt->type = LINKER_FLAG_MACRO_NODE;
+		return stmt;
+	}
+
 	UseMacro *use = parseUseMacro(self);
 	if (use) {
 		Macro *stmt = createMacro();
@@ -823,6 +847,7 @@ Block *parseBlock(Parser *self) {
 		consumeToken(self);
 
 		Block *block = createBlock();
+		block->singleStatementBlock = false;
 		while (true) {
 			if (checkTokenTypeAndContent(self, SEPARATOR, "}", 0)) {
 				consumeToken(self);
@@ -877,17 +902,17 @@ VariableDecl *parseVariableDecl(Parser *self) {
 		Expression *rhand = NULL;
 
 		if (checkTokenTypeAndContent(self, OPERATOR, ":", 0)) {
-			consumeToken(self);
-			
+			// check for type inference
 			bool inferred = false;
-			Type *type = NULL;
-
-			// next char is =, not a type so its type inference!
-			if (checkTokenTypeAndContent(self, OPERATOR, "=", 0)) {
+			if (checkTokenTypeAndContent(self, OPERATOR, "=", 1)) {
 				inferred = true;
 			}
-			// not type inference, let's hope theres a type defined...
-			else {
+
+			// consume dat colon bby
+			consumeToken(self);
+			
+			Type *type = NULL;
+			if (!inferred) {
 				type = parseType(self);
 				if (!type) {
 					errorMessage("NO TYPE blame vedant!");
@@ -915,6 +940,7 @@ VariableDecl *parseVariableDecl(Parser *self) {
 
 				VariableDecl *decl = createVariableDecl(type, var_name, mutable, rhand);
 				decl->assigned = false;
+				decl->inferred = inferred;
 				return decl;
 			}
 		}

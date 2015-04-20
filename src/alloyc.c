@@ -7,11 +7,6 @@ char *OUTPUT_EXECUTABLE_NAME = "main"; // default is main
 char *COMPILER = "cc";
 char *ADDITIONAL_COMPILER_ARGS = "-g -Wall -std=c99 -fno-builtin";
 
-// TODO: we currently link math lib here, I need to write
-// the macro system, then I need to write a way of adding
-// linker flags from code?
-char *LINKER_FLAGS = "-lm";
-
 void help() {
 	printf("Alloy-Lang Argument List\n");
 	printf("  -h\t\t\tShows this help menu\n");

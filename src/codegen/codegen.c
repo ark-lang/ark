@@ -51,6 +51,7 @@ CodeGenerator *createCodeGenerator(Vector *sourceFiles) {
 	self->abstractSyntaxTree = NULL;
 	self->currentNode = 0;
 	self->sourceFiles = sourceFiles;
+	self->LINKER_FLAGS = sdsempty();
 	return self;
 }
 
@@ -529,13 +530,14 @@ void startCodeGeneration(CodeGenerator *self) {
 
 	// linker options
 	buildCommand = sdscat(buildCommand, " ");
-	buildCommand = sdscat(buildCommand, LINKER_FLAGS);
+	buildCommand = sdscat(buildCommand, self->LINKER_FLAGS);
 
 	// just for debug purposes
 	verboseModeMessage("running cl args: `%s`", buildCommand);
 
 	// do the command we just created
 	system(buildCommand);
+	sdsfree(self->LINKER_FLAGS);
 	sdsfree(buildCommand); // deallocate dat shit baby
 }
 
