@@ -5,6 +5,7 @@ fn printf(format: str, _): int;
 // single line functions
 fn add(a: int, b: int): int -> return a + b;
 
+// pow binding
 fn pow(a: f64, b: f64): f64;
 
 fn main(): int {
