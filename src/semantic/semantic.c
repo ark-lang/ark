@@ -10,8 +10,8 @@ const char *VARIABLE_TYPE_NAMES[] = {
 	"int",
 	"double",
 	"str",
-	"struct",
 	"char",
+	"struct",
 	"???"
 };
 
@@ -100,6 +100,33 @@ VariableType literalToType(Literal *literal) {
 	return false;
 }
 
+int isDataType(char *type) {
+	// ignore structure and ???
+	for (int i = 0; ARR_LEN(VARIABLE_TYPE_NAMES) - 2; i++) {
+		if (!strcmp(type, VARIABLE_TYPE_NAMES[i]))
+			return i;
+	}
+	return -1;
+}
+
+VariableType getTypeFromFunctionSignature(SemanticAnalyzer *self, Type *type) {
+	if (type->type == TYPE_NAME_NODE) {
+		VariableDecl *varDecl = checkVariableExists(self, type->typeName->name);
+		int dataType = isDataType(type->typeName->name);
+		
+		if (varDecl) {
+			return deduceType(self, varDecl->expr);
+		}
+		else if (dataType != -1) {
+			return dataType;
+		}
+		else {
+			semanticError("Could not deduce type based on function signature");
+		}
+	}
+	return false;
+}
+
 VariableType deduceType(SemanticAnalyzer *self, Expression *expr) {
 	switch (expr->exprType) {
 		case LITERAL_NODE: return literalToType(expr->lit);
@@ -113,6 +140,16 @@ VariableType deduceType(SemanticAnalyzer *self, Expression *expr) {
 				else {
 					semanticError("Could not deduce %s", expr->type->typeName->name);
 				}
+			}
+			break;
+		}
+		case FUNCTION_CALL_NODE: {
+			FunctionDecl *decl = checkFunctionExists(self, getVectorItem(expr->call->callee, 0));
+			if (decl) {
+				return getTypeFromFunctionSignature(self, decl->signature->type);
+			}
+			else {
+				semanticError("Cannot deduce type for undefined function `%s`", getVectorItem(expr->call->callee, 0));
 			}
 			break;
 		}
