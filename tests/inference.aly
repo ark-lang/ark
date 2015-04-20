@@ -1,21 +1,16 @@
-swag := 5;
 
+// c bindings
 fn printf(format: str, _): int;
 
-fn add() {
-
-}
+// single line functions
+fn add(a: int, b: int): int -> return a + b;
 
 fn main(): int {
-	y := 10.5;
-	x := 21;
-	printf("%f\n", x);
+	x := "type inference";
+	printf("%s\n", x);
 
-	z := "test";
-	printf("%s\n", z);
+	y := add(5, 5);
+	printf("5 + 5 = %d\n", y);
 
-	b := 'a';
-	printf("%c\n", b);
-
-	printf("%d\n", swag);
+	return 0;
 }
