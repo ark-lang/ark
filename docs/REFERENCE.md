@@ -81,14 +81,15 @@ The syntax for type inference is nearly identical to a typical variable declarat
 you have to do is omit the type, for instance:
 
 	my_type := 5;
-	a_float := 5.3f;
-	a_double := 5.2d;
+	my_double := 5.3;
 
-Note how for floats and doubles, you have to be somewhat explicit, and suffix the value
-with an `f` for a float, or a `d` for double. If the value is a decimal number and is
-not suffixed with an `f` or a `d`, the value will be assumed to be a double. This is
-because it is guaranteed that no floating-point precision errors will be caused by
-the type inference.
+Type-inference is still an early implementation, decimal values will be stored as doubles
+as opposed to floats. This is so you don't lose precision. Type-inference works with variables,
+literals, and function calls. For instance:
+
+	a := 5;
+	b := 10;
+	c := a + b * 2;
 
 ## Tuples
 A tuple is define similarly to a variable, however you specify the types in parenthesis. For

@@ -34,7 +34,7 @@ typedef enum {
 	CONTINUE_STAT_NODE, LEAVE_STAT_NODE, ASSIGNMENT_NODE, UNSTRUCTURED_STATEMENT_NODE,
 	ELSE_STAT_NODE, IF_STAT_NODE, MATCH_CLAUSE_STAT, MATCH_STAT_NODE, FOR_STAT_NODE,
 	STRUCTURED_STATEMENT_NODE, STATEMENT_NODE, TYPE_NODE, POINTER_FREE_NODE,
-	MACRO_NODE, USE_MACRO_NODE
+	MACRO_NODE, USE_MACRO_NODE, LINKER_FLAG_MACRO_NODE
 } NodeType;
 
 typedef enum {
@@ -93,6 +93,10 @@ typedef struct {
 typedef struct {
 	char *file;
 } UseMacro;
+
+typedef struct {
+	char *flag;
+} LinkerFlagMacro;
 
 /**
  * Implementation node
@@ -374,6 +378,7 @@ typedef struct {
 
 typedef struct {
 	UseMacro *use;
+	LinkerFlagMacro *linker;
 	int type;
 } Macro;
 
@@ -466,6 +471,8 @@ MemberAccess *createMemberAccess();
 
 UseMacro *createUseMacro(char *file);
 
+LinkerFlagMacro *createLinkerFlagMacro(char *flag);
+
 IdentifierList *createIdentifierList();
 
 Literal *createLiteral(char *value, int type);
@@ -557,6 +564,8 @@ void destroyImpl(Impl *impl);
 void destroyMemberAccess(MemberAccess *member);
 
 void destroyUseMacro(UseMacro *use);
+
+void destroyLinkerFlagMacro(LinkerFlagMacro *linker);
 
 void destroyIdentifierList(IdentifierList *list);
 
