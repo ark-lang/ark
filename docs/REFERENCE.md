@@ -350,5 +350,8 @@ todo
 ## Arrays
 todo
 
+## Generics
+we're still thinking about this...
+
 ## Macro System
-todo
+we're still thinking about this...
