@@ -80,6 +80,9 @@ void consumeAstNodeBy(CodeGenerator *self, int amount) {
 }
 
 void emitLiteral(CodeGenerator *self, Literal *lit) {
+	if (lit->type == HEX) {
+		
+	}
 	emitCode(self, "%s", lit->value);
 }
 

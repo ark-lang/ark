@@ -348,4 +348,24 @@ for inside the box operator, and the compiler will do the rest.
 	y: ^int = [double];
 
 Now when you want to manipulate this memory that we've allocated, we need to specify the pointer to the address that we
-want to manipulate, and then the address relative to this pointers address. So for example, we have a box 
+want to manipulate, and then the address relative to this pointers address. The pointer will by default point to the 
+memory at the offset of 0, to get the next value it's 1, then 2, etc. So for instance, we allocate enough space for
+two integers, 
+
+## Flow Control
+todo
+
+## Tuples
+todo
+
+## Option Types
+todo
+
+## Enums
+todo
+
+## Arrays
+todo
+
+## Macro System
+todo
