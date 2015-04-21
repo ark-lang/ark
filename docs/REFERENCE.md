@@ -249,7 +249,7 @@ File inclusion is very simple in Alloy. One of the problems with C is the tediou
 a file, you must use the `use` macro<sup>disclaimer: not an actual macro yet, but it still works</sup>, which is
 the `use` keyword followed by the filename to include (minus the `aly` extension) in quotes. For example:
 
-	use "myfile"
+	!use "myfile"
 
 We could write a really simple "math" library with some bindings to C's `<math.h>`:
 
@@ -333,24 +333,7 @@ that points to it. This is again done with the caret (`^`), for example:
 We've introduced a new variable `z`, that stored the value at the address `y`.
 
 ### Managing Memory
-To allocate your own memory, we have a few more operators for you. Namely, the **box** operator. The box operator
-is two square brackets, `[]` -- named after their appearance of a little box. Now say we want to allocate 14 bytes
-of memory, we put that inside of the box, like so:
-
-	x: ^int = [14]; // x points to a box of 14 bytes of memory
-
-Note that `x` is a pointer, this is because the box operator (`[]`) is a compile time operation, and the compiler
-will give back an address of memory where this 14 bytes is allocated. Now that's great, but what if we want to allocate
-memory for the size of a data type or structure. That's simple, just put the type that you want to allocate enough space
-for inside the box operator, and the compiler will do the rest.
-
-	x: ^int = [int];
-	y: ^int = [double];
-
-Now when you want to manipulate this memory that we've allocated, we need to specify the pointer to the address that we
-want to manipulate, and then the address relative to this pointers address. The pointer will by default point to the 
-memory at the offset of 0, to get the next value it's 1, then 2, etc. So for instance, we allocate enough space for
-two integers, 
+we're still thinking about this...
 
 ## Flow Control
 todo
