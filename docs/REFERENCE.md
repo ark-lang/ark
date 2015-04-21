@@ -18,13 +18,13 @@ The language should be strong enough that it can be self-hosted.
 ## Comments
 Single-line comments are denoted with two forward slashes:
 
-	// vedant is a scrotum
+	// vident pls give me some bread
 
 Multi-line comments are denoted with a forward slash followed by an asterisks. They must be closed
 with an asterisks, followed by a forward slash. For instance:
 
 	/*
-		Vedant is a scrotum	
+		vident pls give me some bread
 	 */
 	
 Comments cannot be nested.
