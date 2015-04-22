@@ -9,10 +9,6 @@ Token *createToken(int lineNumber, int charNumber) {
 	return tok;
 }
 
-const char* getTokenName(Token *tok) {
-	return TOKEN_NAMES[tok->type];
-}
-
 char* getTokenContext(Vector *stream, Token *tok) {
 	sds result = sdsempty();
 	
