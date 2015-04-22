@@ -112,6 +112,15 @@ typedef struct {
 	Vector *funcs;
 } Impl;
 
+typedef struct {
+	char *name;
+	Expression *val;
+} EnumItem;
+
+typedef struct {
+	Vector *items;
+} EnumDecl;
+
 /**
  * An array type, which contains the length of the array
  * as an expression, and the type of data the array holds.
@@ -485,6 +494,10 @@ BaseType *createBaseType();
 
 UnaryExpr *createUnaryExpr();
 
+EnumItem *createEnumItem(char *name);
+
+EnumDecl *createEnumDecl();
+
 ArraySubExpr *createArraySubExpr(Expression *lhand);
 
 Call *createCall(Vector *callee);
@@ -574,6 +587,10 @@ void destroyBaseType(BaseType *type);
 void destroyLiteral(Literal *lit);
 
 void destroyUnaryExpr(UnaryExpr *rhand);
+
+void destroyEnumItem(EnumItem *item);
+
+void destroyEnumDecl(EnumDecl *decl);
 
 void destroyArraySubExpr(ArraySubExpr *rhand);
 
