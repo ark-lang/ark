@@ -369,8 +369,7 @@ EnumItem *parseEnumItem(Parser *self) {
 		char *itemName = consumeToken(self)->content;
 
 		EnumItem *item = createEnumItem(itemName);
-
-		if (checkTokenTypeAndContent(self, SEPARATOR, "=", 0)) {
+		if (checkTokenTypeAndContent(self, OPERATOR, "=", 0)) {
 			consumeToken(self);
 
 			Expression *expr = parseExpression(self);
@@ -397,7 +396,7 @@ EnumDecl *parseEnumDecl(Parser *self) {
 			if (checkTokenTypeAndContent(self, SEPARATOR, "{", 0)) {
 				consumeToken(self);
 
-				EnumDecl *enumDecl = createEnumDecl();
+				EnumDecl *enumDecl = createEnumDecl(enumName);
 				while (true) {
 					if (checkTokenTypeAndContent(self, SEPARATOR, "}", 0)) {
 						consumeToken(self);
@@ -408,19 +407,19 @@ EnumDecl *parseEnumDecl(Parser *self) {
 					if (item) {
 						pushBackItem(enumDecl->items, item);
 						if (checkTokenTypeAndContent(self, SEPARATOR, ",", 0)) {
-							if (checkTokenTypeAndContent(self, SEPARATOR, "}", 0)) {
+							if (checkTokenTypeAndContent(self, SEPARATOR, "}", 1)) {
 								parserError("Trailing comma in enumerator `%s`, found: %s", enumName, peekAtTokenStream(self, 0)->content);
 							}
 							consumeToken(self);
-						}
-						else if (!checkTokenTypeAndContent(self, SEPARATOR, "}", 1)) {
-							parserError("Expected a comma after enumerator in `%s`, found: %s", enumName, peekAtTokenStream(self, 0)->content);
 						}
 					}
 				}
 
 				return enumDecl;
 			}
+		}
+		else {
+			parserError("Enumerator expected a name, found: %s", peekAtTokenStream(self, 0)->content);
 		}
 	}
 
@@ -1082,6 +1081,14 @@ Declaration *parseDeclaration(Parser *self) {
 		Declaration *decl = createDeclaration();
 		decl->structDecl = struc;
 		decl->type = STRUCT_DECL_NODE;
+		return decl;
+	}
+
+	EnumDecl *enumDecl = parseEnumDecl(self);
+	if (enumDecl) {
+		Declaration *decl = createDeclaration();
+		decl->enumDecl = enumDecl;
+		decl->type = ENUM_DECL_NODE;
 		return decl;
 	}
 

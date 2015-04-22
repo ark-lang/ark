@@ -60,8 +60,11 @@ EnumItem *createEnumItem(char *name) {
 	return item;
 }
 
-EnumDecl *createEnumDecl() {
-	return safeMalloc(sizeof(EnumDecl));
+EnumDecl *createEnumDecl(char *name) {
+	EnumDecl *decl = safeMalloc(sizeof(*decl));
+	decl->name = name;
+	decl->items = createVector(VECTOR_EXPONENTIAL);
+	return decl;
 }
 
 ArraySubExpr *createArraySubExpr(Expression *lhand) {
