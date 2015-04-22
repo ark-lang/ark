@@ -376,11 +376,26 @@ void emitForStat(CodeGenerator *self, ForStat *stmt) {
 	}
 }
 
+void emitEnumDecl(CodeGenerator *self, EnumDecl *enumDecl) {
+	emitCode(self, "typedef enum {" CC_NEWLINE);
+	for (int i = 0; i < enumDecl->items->size; i++) {
+		EnumItem *item = getVectorItem(enumDecl->items, i);
+		emitCode(self, "%s", item->name);
+		if (item->val) {
+			emitCode(self, "=");
+			emitExpression(self, item->val);
+		}
+		emitCode(self, ",");
+	}
+	emitCode(self, "} %s;" CC_NEWLINE CC_NEWLINE, enumDecl->name);
+}
+
 void emitDeclaration(CodeGenerator *self, Declaration *decl) {
 	switch (decl->type) {
 		case FUNCTION_DECL_NODE: emitFunctionDecl(self, decl->funcDecl); break;
 		case STRUCT_DECL_NODE: emitStructDecl(self, decl->structDecl); break;
 		case VARIABLE_DECL_NODE: emitVariableDecl(self, decl->varDecl); break;
+		case ENUM_DECL_NODE: emitEnumDecl(self, decl->enumDecl); break;
 		default:
 			printf("unknown node in declaration %s\n", NODE_NAME[decl->type]);
 			break;
