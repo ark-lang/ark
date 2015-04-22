@@ -54,6 +54,18 @@ UnaryExpr *createUnaryExpr() {
 	return unary;
 }
 
+EnumItem *createEnumItem(char *name) {
+	EnumItem *item = safeMalloc(sizeof(*item));
+	item->name = name;
+	return item;
+}
+
+EnumDecl *createEnumDecl() {
+	EnumDecl *decl = safeMalloc(sizeof(*decl));
+	decl->items = createVector(VECTOR_EXPONENTIAL);
+	return decl;
+}
+
 ArraySubExpr *createArraySubExpr(Expression *lhand) {
 	ArraySubExpr *expr = safeMalloc(sizeof(*expr));
 	expr->lhand = lhand;
@@ -333,6 +345,20 @@ void destroyUnaryExpr(UnaryExpr *expr) {
 	if (!expr) return;
 	destroyExpression(expr->lhand);
 	free(expr);
+}
+
+void destroyEnumItem(EnumItem *item) {
+	if (!item) return;
+	destroyExpression(item->val);
+	free(item);
+}
+
+void destroyEnumDecl(EnumDecl *decl) {
+	if (!decl) return;
+	for (int i = 0; i < decl->items->size; i++) {
+		destroyEnumItem(getVectorItem(decl->items, i));
+	}
+	free(decl);
 }
 
 void destroyArraySubExpr(ArraySubExpr *expr) {

@@ -334,21 +334,21 @@ void checkMainExists(SemanticAnalyzer *self) {
 }
 
 void startSemanticAnalysis(SemanticAnalyzer *self) {
+	// global scope
+	pushScope(self);
 	for (int i = 0; i < self->sourceFiles->size; i++) {
 		SourceFile *sf = getVectorItem(self->sourceFiles, i);
 		self->currentNode = 0;
 		self->currentSourceFile = sf;
 		self->abstractSyntaxTree = self->currentSourceFile->ast;
 		
-		// global scope
-		pushScope(self);
 		for (int j = 0; j < self->abstractSyntaxTree->size; j++) {
 			Statement *stmt = getVectorItem(self->abstractSyntaxTree, j);
 			analyzeStatement(self, stmt);
 		}
-		checkMainExists(self);
-		popScope(self);
 	}
+	checkMainExists(self);
+	popScope(self);
 }
 
 StructDecl *checkStructureExists(SemanticAnalyzer *self, char *structName) {
