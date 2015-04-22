@@ -61,9 +61,7 @@ EnumItem *createEnumItem(char *name) {
 }
 
 EnumDecl *createEnumDecl() {
-	EnumDecl *decl = safeMalloc(sizeof(*decl));
-	decl->items = createVector(VECTOR_EXPONENTIAL);
-	return decl;
+	return safeMalloc(sizeof(EnumDecl));
 }
 
 ArraySubExpr *createArraySubExpr(Expression *lhand) {
