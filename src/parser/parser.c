@@ -339,6 +339,8 @@ FunctionSignature *parseFunctionSignature(Parser *self) {
 	return false;
 }
 
+
+
 ElseStat *parseElseStat(Parser *self) {
 	ALLOY_UNUSED_OBJ(self);
 	return false;
