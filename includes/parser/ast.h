@@ -34,7 +34,7 @@ typedef enum {
 	PRIMARY_EXPR_NODE, EXPR_NODE, TYPE_NAME_NODE, TYPE_LIT_NODE, PAREN_EXPR_NODE,
 	ARRAY_TYPE_NODE, POINTER_TYPE_NODE, FIELD_DECL_NODE,
 	FIELD_DECL_LIST_NODE, STRUCT_DECL_NODE, STATEMENT_LIST_NODE,
-	BLOCK_NODE, PARAMETER_SECTION_NODE, PARAMETERS_NODE, IMPL_NODE,
+	BLOCK_NODE, PARAMETER_SECTION_NODE, PARAMETERS_NODE, IMPL_NODE, ENUM_DECL_NODE,
 	FUNCTION_SIGNATURE_NODE, FUNCTION_DECL_NODE, VARIABLE_DECL_NODE, FUNCTION_CALL_NODE,
 	DECLARATION_NODE, INC_DEC_STAT_NODE, RETURN_STAT_NODE, BREAK_STAT_NODE,
 	CONTINUE_STAT_NODE, LEAVE_STAT_NODE, ASSIGNMENT_NODE, UNSTRUCTURED_STATEMENT_NODE,
@@ -124,6 +124,7 @@ typedef struct {
 } EnumItem;
 
 typedef struct {
+	char *name;
 	Vector *items;
 } EnumDecl;
 
@@ -348,6 +349,7 @@ typedef struct {
 	FunctionDecl *funcDecl;
 	StructDecl *structDecl;
 	VariableDecl *varDecl;
+	EnumDecl *enumDecl;
 	int type;
 } Declaration;
 
@@ -502,7 +504,7 @@ UnaryExpr *createUnaryExpr();
 
 EnumItem *createEnumItem(char *name);
 
-EnumDecl *createEnumDecl();
+EnumDecl *createEnumDecl(char *name);
 
 ArraySubExpr *createArraySubExpr(Expression *lhand);
 
