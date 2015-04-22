@@ -40,11 +40,14 @@
 #define IF_KEYWORD					"if"
 #define ELSE_KEYWORD				"else"
 #define FOR_KEYWORD					"for"
+#define ENUM_KEYWORD				"enum"
 #define MATCH_KEYWORD				"match"
 #define CONTINUE_KEYWORD			"continue"
 #define RETURN_KEYWORD				"return"
 #define BREAK_KEYWORD				"break"
 #define LINKER_FLAG_KEYWORD			"linker_flag"
+#define IMPL_KEYWORD				"impl"
+#define IMPL_AS_KEYWORD				"as"
 
 /**
  * Various operators that are used in the parser, also used

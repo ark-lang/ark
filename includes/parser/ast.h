@@ -18,8 +18,14 @@
 typedef struct s_Expression Expression;
 typedef struct s_Type Type;
 typedef struct s_MemberExpr MemberExpr;
-typedef struct {} ContinueStat;
-typedef struct {} BreakStat;
+
+typedef struct {
+	char a;
+} ContinueStat;
+
+typedef struct {
+	char a;
+} BreakStat;
 
 /** different types of node for a cleanup */
 typedef enum {
