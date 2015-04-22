@@ -28,20 +28,6 @@ typedef enum {
 	END_OF_FILE, 		// EOF
 } TokenType;
 
-// this is just for debugging
-static const char* TOKEN_NAMES[] = {
-	"IDENTIFIER",
-	"OPERATOR",
-	"SEPARATOR",
-	"HEX",
-	"NUMBER",
-	"ERRORNEOUS",
-	"STRING",
-	"CHARACTER",
-	"UNKNOWN",
-	"END_OF_FILE",
-};
-
 /**
  * Token properties:
  * type 		- the token type

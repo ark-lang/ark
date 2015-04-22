@@ -1,7 +1,7 @@
 #include "parser.h"
 
-#define selfError(...) self->failed = true; \
-						   errorMessage(__VA_ARGS__)
+#define parserError(...) self->failed = true; \
+						 errorMessage(__VA_ARGS__)
 
 const char* BINARY_OPS[] = { ".", "*", "/", "%", "+", "-", ">", "<", ">=", "<=",
 		"==", "!=", "&", "|", };
@@ -81,9 +81,11 @@ UseMacro *parseUseMacro(Parser *self) {
 
 			if (checkTokenType(self, STRING, 0)) {
 				char *file = consumeToken(self)->content;
-
 				return createUseMacro(file);
 			}
+		}
+		else {
+			parserError("Unrecognized macro %s", peekAtTokenStream(self, 0)->content);
 		}
 	}
 	return false;
@@ -100,6 +102,9 @@ LinkerFlagMacro *parseLinkerFlagMacro(Parser *self) {
 				char *flag = consumeToken(self)->content;
 				return createLinkerFlagMacro(flag);
 			}
+		}
+		else {
+			parserError("Unrecognized macro %s", peekAtTokenStream(self, 0)->content);
 		}
 	}
 	return false;
@@ -151,6 +156,9 @@ FieldDecl *parseFieldDecl(Parser *self) {
 		if (checkTokenTypeAndContent(self, OPERATOR, ":", 0)) {
 			consumeToken(self);
 		}
+		else {
+			parserError("Expected colon in field declaration, found: %s", peekAtTokenStream(self, 0)->content);
+		}
 
 		if (checkTokenTypeAndContent(self, IDENTIFIER, MUT_KEYWORD, 0)) {
 			consumeToken(self);
@@ -162,6 +170,9 @@ FieldDecl *parseFieldDecl(Parser *self) {
 			FieldDecl *decl = createFieldDecl(type, mutable);
 			decl->name = name;
 			return decl;
+		}
+		else {
+			parserError("Expected type in field declaration, found: %s", peekAtTokenStream(self, 0)->content);
 		}
 	}
 
@@ -182,8 +193,14 @@ FieldDeclList *parseFieldDeclList(Parser *self) {
 			FieldDecl *decl = parseFieldDecl(self);
 			if (decl) {
 				pushBackItem(list->members, decl);
-				if (checkTokenTypeAndContent(self, SEPARATOR, ";", 0)) {
+				if (checkTokenTypeAndContent(self, SEPARATOR, ",", 0)) {
+					if (checkTokenTypeAndContent(self, SEPARATOR, "}", 1)) {
+						parserError("Trailing comma in field declaration, found: %s", peekAtTokenStream(self, 0)->content);
+					}
 					consumeToken(self);
+				}
+				else if (!checkTokenTypeAndContent(self, SEPARATOR, "}", 1)) {
+					parserError("Expected comma after field declaration, found: %s", peekAtTokenStream(self, 0)->content);
 				}
 			}
 		}
@@ -206,6 +223,9 @@ StructDecl *parseStructDecl(Parser *self) {
 					decl->fields = list;
 					return decl;
 				}
+			}
+			else {
+				parserError("Expected body for structure `%s`, found: %s", structName, peekAtTokenStream(self, 0)->content);
 			}
 		}
 	}
@@ -233,12 +253,12 @@ ParameterSection *parseParameterSection(Parser *self) {
 				consumeToken(self);
 			}
 			else {
-				errorMessage("no : oh shit todo");
+				parserError("Expected colon after argument identifier, found: %s", peekAtTokenStream(self, 0)->content);
 			}
 
 			Type *type = parseType(self);
 			if (!type) {
-				errorMessage("no type in func arg, shit todo felix");
+				parserError("Expected Type after colon in argument, found: %s", peekAtTokenStream(self, 0)->content);
 			}
 
 			ParameterSection *paramSec = createParameterSection(type, mutable);
@@ -275,9 +295,12 @@ Parameters *parseParameters(Parser *self) {
 
 				if (checkTokenTypeAndContent(self, SEPARATOR, ",", 0)) {
 					if (checkTokenTypeAndContent(self, SEPARATOR, ")", 1)) {
-						errorMessage("trailing comma");
+						parserError("Trailing comma in parameter list, found: %s", peekAtTokenStream(self, 0)->content);
 					}
 					consumeToken(self);
+				}
+				else if (!checkTokenTypeAndContent(self, SEPARATOR, "}", 1)) {
+					parserError("Expected comma after parameter, found: %s", peekAtTokenStream(self, 0)->content);
 				}
 			} 
 			else {
@@ -315,9 +338,8 @@ FunctionSignature *parseFunctionSignature(Parser *self) {
 							return sign;
 						}
 						else {
-							errorMessage("no type wtf todo noob");
+							parserError("Expected function return type in `%s`, found: %s", functionName, peekAtTokenStream(self, 0)->content);
 						}
-
 					} 
 					else if (checkTokenTypeAndContent(self, SEPARATOR, "{", 0)
 						|| checkTokenTypeAndContent(self, SEPARATOR, ";", 0)) {
@@ -330,7 +352,7 @@ FunctionSignature *parseFunctionSignature(Parser *self) {
 						return sign;
 					} 
 					else {
-						// TODO: colon missing, or block opener missing?
+						parserError("Function `%s` is missing a block, return type, or semi-colon, found: %s", functionName, peekAtTokenStream(self, 0)->content);
 					}
 				}
 			}
@@ -339,7 +361,71 @@ FunctionSignature *parseFunctionSignature(Parser *self) {
 	return false;
 }
 
+EnumItem *parseEnumItem(Parser *self) {
+	// a = expr,
+	// b,
+	
+	if (checkTokenType(self, IDENTIFIER, 0)) {
+		char *itemName = consumeToken(self)->content;
 
+		EnumItem *item = createEnumItem(itemName);
+
+		if (checkTokenTypeAndContent(self, SEPARATOR, "=", 0)) {
+			consumeToken(self);
+
+			Expression *expr = parseExpression(self);
+			if (expr) {
+				item->val = expr;
+			}
+			else {
+				parserError("Expected expression after assignment operator for enumerator item `%s`", item);
+			}
+		}
+		return item;
+	}
+
+	return false;
+}
+
+EnumDecl *parseEnumDecl(Parser *self) {
+	if (checkTokenTypeAndContent(self, IDENTIFIER, ENUM_KEYWORD, 0)) {
+		consumeToken(self);
+
+		if (checkTokenType(self, IDENTIFIER, 0)) {
+			char *enumName = consumeToken(self)->content;
+
+			if (checkTokenTypeAndContent(self, SEPARATOR, "{", 0)) {
+				consumeToken(self);
+
+				EnumDecl *enumDecl = createEnumDecl();
+				while (true) {
+					if (checkTokenTypeAndContent(self, SEPARATOR, "}", 0)) {
+						consumeToken(self);
+						break;
+					}
+
+					EnumItem *item = parseEnumItem(self);
+					if (item) {
+						pushBackItem(enumDecl->items, item);
+						if (checkTokenTypeAndContent(self, SEPARATOR, ",", 0)) {
+							if (checkTokenTypeAndContent(self, SEPARATOR, "}", 0)) {
+								parserError("Trailing comma in enumerator `%s`, found: %s", enumName, peekAtTokenStream(self, 0)->content);
+							}
+							consumeToken(self);
+						}
+						else if (!checkTokenTypeAndContent(self, SEPARATOR, "}", 1)) {
+							parserError("Expected a comma after enumerator in `%s`, found: %s", enumName, peekAtTokenStream(self, 0)->content);
+						}
+					}
+				}
+
+				return enumDecl;
+			}
+		}
+	}
+
+	return false;
+}
 
 ElseStat *parseElseStat(Parser *self) {
 	ALLOY_UNUSED_OBJ(self);
@@ -361,6 +447,9 @@ IfStat *parseIfStat(Parser *self) {
 					return ifStmt;
 				}
 			}
+			else {
+				parserError("If Statement expected a block, found: %s", peekAtTokenStream(self, 0)->content);
+			}
 		}
 	}
 	return false;
@@ -378,8 +467,9 @@ ForStat *parseForStat(Parser *self) {
 				stmt->forType = INFINITE_FOR_LOOP;
 				stmt->body = block;
 				return stmt;
-			} else {
-				errorMessage("Expected block in for loop");
+			} 
+			else {
+				parserError("For Loop expected a block, found: %s", peekAtTokenStream(self, 0)->content);
 			}
 		}
 
@@ -394,8 +484,9 @@ ForStat *parseForStat(Parser *self) {
 					stmt->index = index;
 					stmt->body = block;
 					return stmt;
-				} else {
-					errorMessage("Expected block in for loop");
+				} 
+				else {
+					parserError("For Loop expected a block, found: %s", peekAtTokenStream(self, 0)->content);
 				}
 			}
 			// expr, expr
@@ -414,9 +505,8 @@ ForStat *parseForStat(Parser *self) {
 					return stmt;
 				}
 			} 
-			// no fukin clue m8
 			else {
-				errorMessage("Unknown symbol in for loop");
+				parserError("Invalid signature in for loop, found: %s", peekAtTokenStream(self, 0)->content);
 			}
 		}
 	}
@@ -483,6 +573,9 @@ ContinueStat *parseContinueStat(Parser *self) {
 		if (checkTokenTypeAndContent(self, SEPARATOR, ";", 0)) {
 			consumeToken(self);
 		}
+		else {
+			parserError("Expected semi-colon at end of continue statement, found: %s", peekAtTokenStream(self, 0)->content);
+		}
 		return createContinueStat();
 	}
 	return false;
@@ -493,6 +586,9 @@ BreakStat *parseBreakStat(Parser *self) {
 		consumeToken(self);
 		if (checkTokenTypeAndContent(self, SEPARATOR, ";", 0)) {
 			consumeToken(self);
+		}
+		else {
+			parserError("Expected semi-colon at end of break statement, found: %s", peekAtTokenStream(self, 0)->content);
 		}
 		return createBreakStat();
 	}
@@ -506,6 +602,9 @@ ReturnStat *parseReturnStat(Parser *self) {
 		Expression *expr = parseExpression(self);
 		if (checkTokenTypeAndContent(self, SEPARATOR, ";", 0)) {
 			consumeToken(self);
+		}
+		else {
+			parserError("Expected semi-colon at end of return statement, found: %s", peekAtTokenStream(self, 0)->content);
 		}
 		return createReturnStat(expr);
 	}
@@ -540,6 +639,7 @@ LeaveStat *parseLeaveStat(Parser *self) {
 	return false;
 }
 
+// TODO FIXME
 IncDecStat *parseIncDecStat(Parser *self) {
 	Expression *expr = parseExpression(self);
 	if (expr) {
@@ -558,6 +658,7 @@ IncDecStat *parseIncDecStat(Parser *self) {
 	return false;
 }
 
+// FIXME
 MemberAccess *parseMemberAccess(Parser *self) {
 	if (checkTokenType(self, IDENTIFIER, 0)) {
 		char *iden = consumeToken(self)->content;
@@ -572,6 +673,7 @@ MemberAccess *parseMemberAccess(Parser *self) {
 	return false;
 }
 
+// FIXME
 MemberExpr *parseMemberExpr(Parser *self) {
 	Call *call = parseCall(self);
 	if (call) {
@@ -635,7 +737,7 @@ Vector *parseImplBlock(Parser *self, char *name, char *as) {
 }
 
 Impl *parseImpl(Parser *self) {
-	if (checkTokenTypeAndContent(self, IDENTIFIER, "impl", 0)) {
+	if (checkTokenTypeAndContent(self, IDENTIFIER, IMPL_KEYWORD, 0)) {
 		consumeToken(self);
 
 		char *name = NULL;
@@ -643,13 +745,18 @@ Impl *parseImpl(Parser *self) {
 			name = consumeToken(self)->content;
 		}
 		else {
-			errorMessage("NEEDS A NAME PEASANT");
+			parserError("Implementation expecting Type to implement, found: %s", peekAtTokenStream(self, 0)->content);
 		}
 
 		char *as = NULL;
-		if (checkTokenTypeAndContent(self, IDENTIFIER, "as", 0) && checkTokenType(self, IDENTIFIER, 1)) {
-			consumeToken(self);
-			as = consumeToken(self)->content;
+		if (checkTokenTypeAndContent(self, IDENTIFIER, IMPL_AS_KEYWORD, 0)) {
+			if (checkTokenType(self, IDENTIFIER, 1)) {
+				consumeToken(self);
+				as = consumeToken(self)->content;
+			}
+			else {
+				parserError("Implementation expects identifier after `as` keyword, found: %s", peekAtTokenStream(self, 0)->content);
+			}
 		}
 
 		Vector *implBlock = parseImplBlock(self, name, as);
@@ -658,8 +765,6 @@ Impl *parseImpl(Parser *self) {
 			impl->funcs = implBlock;
 			return impl;
 		}
-
-		errorMessage("shite");
 	}
 
 	return false;
@@ -675,6 +780,9 @@ Assignment *parseAssignment(Parser *self) {
 			if (expr) {
 				if (checkTokenTypeAndContent(self, SEPARATOR, ";", 0)) {
 					consumeToken(self);
+				}
+				else {
+					parserError("Assignment expects semi-colon, found: %s", peekAtTokenStream(self, 0)->content);
 				}
 				return createAssignment(iden, expr);
 			}
@@ -746,7 +854,7 @@ UnstructuredStatement *parseUnstructuredStatement(Parser *self) {
 			consumeToken(self);
 		}
 		else {
-			// FIXME EXPECTED SEMI COLON
+			parserError("Function call expects a semi-colon, found: %s", peekAtTokenStream(self, 0)->content);
 		}
 		return stmt;
 	}
@@ -841,7 +949,6 @@ Block *parseBlock(Parser *self) {
 				pushBackItem(block->stmtList->stmts, stat);
 			}
 			block->singleStatementBlock = true;
-
 			return block;
 		}
 	}
@@ -879,13 +986,17 @@ FunctionDecl *parseFunctionDecl(Parser *self) {
 				decl->prototype = false;
 				return decl;
 			}
-		} else if (checkTokenTypeAndContent(self, SEPARATOR, ";", 0)) {
+		} 
+		else if (checkTokenTypeAndContent(self, SEPARATOR, ";", 0)) {
 			consumeToken(self);
 
 			FunctionDecl *decl = createFunctionDecl();
 			decl->signature = signature;
 			decl->prototype = true;
 			return decl;
+		}
+		else {
+			parserError("Function `%s` expects a block, or semi-colon, found: %s", signature->name, peekAtTokenStream(self, 0)->content);
 		}
 	}
 
@@ -917,7 +1028,7 @@ VariableDecl *parseVariableDecl(Parser *self) {
 			if (!inferred) {
 				type = parseType(self);
 				if (!type) {
-					errorMessage("NO TYPE blame vedant!");
+					parserError("Expected type in variable declaration `%s`, found: %s", var_name, peekAtTokenStream(self, 0)->content);
 				}
 			}
 
@@ -929,6 +1040,9 @@ VariableDecl *parseVariableDecl(Parser *self) {
 				if (rhand) {
 					if (checkTokenTypeAndContent(self, SEPARATOR, ";", 0)) {
 						consumeToken(self);
+					}
+					else {
+						parserError("Expected semi-colon at the end of variable declaration `%s`, found: %s", var_name, peekAtTokenStream(self, 0)->content);
 					}
 					VariableDecl *decl = createVariableDecl(type, var_name, mutable, rhand);
 					decl->assigned = true;
@@ -944,6 +1058,9 @@ VariableDecl *parseVariableDecl(Parser *self) {
 				decl->assigned = false;
 				decl->inferred = inferred;
 				return decl;
+			}
+			else {
+				parserError("Dangling variable declaration for `%s`, found: %s", var_name, peekAtTokenStream(self, 0)->content);
 			}
 		}
 	}
@@ -986,8 +1103,7 @@ int getTokenPrecedence(Parser *self) {
 		return -1;
 
 	Precedence *prec = NULL;
-	if (hashmap_get(self->binopPrecedence, tok->content,
-			(void**) &prec) == MAP_MISSING) {
+	if (hashmap_get(self->binopPrecedence, tok->content, (void**) &prec) == MAP_MISSING) {
 		verboseModeMessage("Precedence doesnt exist for %s\n", tok->content);
 		return -1;
 	}
@@ -1034,7 +1150,8 @@ ArrayType *parseArrayType(Parser *self) {
 		Expression *expr = parseExpression(self);
 		if (!expr) {
 			destroyExpression(expr);
-		} else if (checkTokenTypeAndContent(self, SEPARATOR, "]", 0)) {
+		} 
+		else if (checkTokenTypeAndContent(self, SEPARATOR, "]", 0)) {
 			consumeToken(self);
 			Type *type = parseType(self);
 			if (type) {
@@ -1101,7 +1218,7 @@ Expression *parseBinaryOperator(Parser *self, int precedence, Expression *lhand)
 
 		Token *tok = peekAtTokenStream(self, 0);
 		if (!isValidBinaryOp(tok->content)) {
-			errorMessage("No precedence for %s", tok->content);
+			parserError("Invalid binary operator in expression `%s`", tok->content);
 			return false;
 		}
 		char *binaryOp = consumeToken(self)->content;
@@ -1219,9 +1336,12 @@ Call *parseCall(Parser *self) {
 					pushBackItem(call->arguments, expr);
 					if (checkTokenTypeAndContent(self, SEPARATOR, ",", 0)) {
 						if (checkTokenTypeAndContent(self, SEPARATOR, ")", 1)) {
-							errorMessage("Warning, trailing comma in function call. Skipping.\n");
+							parserError("Trailing comma in function call `%s`", getVectorItem(call->callee, 0));
 						}
 						consumeToken(self);
+					}
+					else if (!checkTokenTypeAndContent(self, SEPARATOR, ")", 1)) {
+						parserError("Expected comma after function call argument for `%s`", getVectorItem(call->callee, 0));
 					}
 				}
 			}
@@ -1291,7 +1411,7 @@ bool matchTokenTypeAndContent(Parser *self, int type, char *content,
 
 Token *peekAtTokenStream(Parser *self, int ahead) {
 	if (self->tokenIndex + ahead > self->tokenStream->size) {
-		errorMessage("Attempting to peek at out of bounds token: %d/%d", ahead,
+		verboseModeMessage("Attempting to peek at out of bounds token: %d/%d", ahead,
 				self->tokenStream->size);
 		self->parsing = false;
 		return NULL;
