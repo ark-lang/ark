@@ -3,11 +3,9 @@
 #define parserError(...) self->failed = true; \
 						 errorMessage(__VA_ARGS__)
 
-const char* BINARY_OPS[] = { ".", "*", "/", "%", "+", "-", ">", "<", ">=", "<=",
-		"==", "!=", "&", "|", };
+const char* BINARY_OPS[] = { ".", "*", "/", "%", "+", "-", ">", "<", ">=", "<=", "==", "!=", "&", "|", };
 
-const char* DATA_TYPES[] = { "i64", "i32", "i16", "i8", "u64", "u32", "u16",
-		"u8", "f64", "f32", "int", "bool", "char", "void" };
+const char* DATA_TYPES[] = { "i64", "i32", "i16", "i8", "u64", "u32", "u16", "u8", "f64", "f32", "int", "bool", "char", "void" };
 
 int getTypeFromString(char *type) {
 	for (int i = 0; i < ARR_LEN(DATA_TYPES); i++) {
@@ -654,58 +652,6 @@ IncDecStat *parseIncDecStat(Parser *self) {
 			return createIncDecStat(expr, -1);
 		}
 	}
-	return false;
-}
-
-// FIXME
-MemberAccess *parseMemberAccess(Parser *self) {
-	if (checkTokenType(self, IDENTIFIER, 0)) {
-		char *iden = consumeToken(self)->content;
-		MemberExpr *mem = parseMemberExpr(self);
-		if (mem) {
-			MemberAccess *access = createMemberAccess();
-			access->iden = iden;
-			access->expr = mem;
-			return access;
-		}
-	}
-	return false;
-}
-
-// FIXME
-MemberExpr *parseMemberExpr(Parser *self) {
-	Call *call = parseCall(self);
-	if (call) {
-		MemberExpr *expr = createMemberExpr();
-		expr->call = call;
-		expr->type = FUNCTION_CALL_NODE;
-		return expr;
-	}
-
-	ArrayType *arr = parseArrayType(self);
-	if (arr) {
-		MemberExpr *expr = createMemberExpr();
-		expr->array = arr;
-		expr->type = ARRAY_TYPE_NODE;
-		return expr;
-	}
-
-	UnaryExpr *unary = parseUnaryExpr(self);
-	if (unary) {
-		MemberExpr *expr = createMemberExpr();
-		expr->unary = unary;
-		expr->type = UNARY_EXPR_NODE;
-		return expr;
-	}
-
-	MemberAccess *mem = parseMemberAccess(self);
-	if (mem) {
-		MemberExpr *expr = createMemberExpr();
-		expr->member = mem;
-		expr->type = MEMBER_ACCESS_NODE;
-		return expr;
-	}
-
 	return false;
 }
 
