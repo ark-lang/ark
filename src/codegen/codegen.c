@@ -410,6 +410,10 @@ void emitUnstructuredStat(CodeGenerator *self, UnstructuredStatement *stmt) {
 			emitFunctionCall(self, stmt->call); 
 			emitCode(self, ";" CC_NEWLINE); // pop a semi colon at the end
 			break;
+		case EXPR_STAT_NODE:
+			emitExpression(self, stmt->expr);
+			emitCode(self, ";" CC_NEWLINE);
+			break;
 		case LEAVE_STAT_NODE: emitLeaveStat(self, stmt->leave); break;
 		case ASSIGNMENT_NODE: emitAssignment(self, stmt->assignment); break;
 		case IMPL_NODE: emitImpl(self, stmt->impl); break;

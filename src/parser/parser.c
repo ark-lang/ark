@@ -3,7 +3,7 @@
 #define parserError(...) self->failed = true; \
 						 errorMessage(__VA_ARGS__)
 
-const char* BINARY_OPS[] = { ".", "*", "/", "%", "+", "-", ">", "<", ">=", "<=", "==", "!=", "&", "|", };
+const char* BINARY_OPS[] = { ".", "*", "/", "%", "+", "=", "-", ">", "<", ">=", "<=", "==", "!=", "&", "|", };
 
 const char* DATA_TYPES[] = { "i64", "i32", "i16", "i8", "u64", "u32", "u16", "u8", "f64", "f32", "int", "bool", "char", "void" };
 
@@ -128,19 +128,19 @@ IdentifierList *parseIdentifierList(Parser *self) {
 }
 
 Type *parseType(Parser *self) {
-	TypeLit *typeLit = parseTypeLit(self);
-	if (typeLit) {
-		Type *type = createType();
-		type->typeLit = typeLit;
-		type->type = TYPE_LIT_NODE;
-		return type;
-	}
-
 	TypeName *typeName = parseTypeName(self);
 	if (typeName) {
 		Type *type = createType();
 		type->typeName = typeName;
 		type->type = TYPE_NAME_NODE;
+		return type;
+	}
+
+	TypeLit *typeLit = parseTypeLit(self);
+	if (typeLit) {
+		Type *type = createType();
+		type->typeLit = typeLit;
+		type->type = TYPE_LIT_NODE;
 		return type;
 	}
 	return false;
@@ -713,28 +713,6 @@ Impl *parseImpl(Parser *self) {
 	return false;
 }
 
-Assignment *parseAssignment(Parser *self) {
-	if (checkTokenType(self, IDENTIFIER, 0) && checkTokenTypeAndContent(self, OPERATOR, "=", 1)) {
-		char *iden = consumeToken(self)->content;
-		if (checkTokenTypeAndContent(self, OPERATOR, "=", 0)) {
-			consumeToken(self);
-
-			Expression *expr = parseExpression(self);
-			if (expr) {
-				if (checkTokenTypeAndContent(self, SEPARATOR, ";", 0)) {
-					consumeToken(self);
-				}
-				else {
-					parserError("Assignment expects semi-colon, found: %s", peekAtTokenStream(self, 0)->content);
-				}
-				return createAssignment(iden, expr);
-			}
-		}
-	}
-
-	return false;
-}
-
 StructuredStatement *parseStructuredStatement(Parser *self) {
 	MatchStat *match = parseMatchStat(self);
 	if (match) {
@@ -802,14 +780,6 @@ UnstructuredStatement *parseUnstructuredStatement(Parser *self) {
 		return stmt;
 	}
 
-	Assignment *assign = parseAssignment(self);
-	if (assign) {
-		UnstructuredStatement *stmt = createUnstructuredStatement();
-		stmt->assignment = assign;
-		stmt->type = ASSIGNMENT_NODE;
-		return stmt;
-	}
-
 	Declaration *decl = parseDeclaration(self);
 	if (decl) {
 		UnstructuredStatement *stmt = createUnstructuredStatement();
@@ -818,11 +788,17 @@ UnstructuredStatement *parseUnstructuredStatement(Parser *self) {
 		return stmt;
 	}
 
-	IncDecStat *incDec = parseIncDecStat(self);
-	if (incDec) {
+	Expression *expr = parseExpression(self);
+	if (expr) {
 		UnstructuredStatement *stmt = createUnstructuredStatement();
-		stmt->incDec = incDec;
-		stmt->type = INC_DEC_STAT_NODE;
+		if (checkTokenTypeAndContent(self, SEPARATOR, ";", 0)) {
+			consumeToken(self);
+		}
+		else {
+			parserError("Expected semi-colon at the end of expression, found %s", peekAtTokenStream(self, 0)->content);
+		}
+		stmt->expr = expr;
+		stmt->type = EXPR_STAT_NODE;
 		return stmt;
 	}
 
