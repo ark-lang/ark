@@ -4,6 +4,7 @@ enum Test {
 }
 
 fn main(): int {
-
+	mut x: int = 0;
+	x = 5 + 5;
 	return 0;
 }
