@@ -1066,16 +1066,6 @@ int getTokenPrecedence(Parser *self) {
 	return tokenPrecedence;
 }
 
-BaseType *parseBaseType(Parser *self) {
-	if (checkTokenType(self, IDENTIFIER, 0)) {
-		BaseType *baseType = createBaseType();
-		baseType->type = createTypeName(consumeToken(self)->content);
-		return baseType;
-	}
-
-	return false;
-}
-
 TypeName *parseTypeName(Parser *self) {
 	if (checkTokenType(self, IDENTIFIER, 0)) {
 		return createTypeName(consumeToken(self)->content);
@@ -1094,20 +1084,16 @@ Expression *parseExpression(Parser *self) {
 	return expr;
 }
 
-ArrayType *parseArrayType(Parser *self) {
-	if (checkTokenTypeAndContent(self, SEPARATOR, "[", 0)) {
-		consumeToken(self);
 
-		Expression *expr = parseExpression(self);
-		if (!expr) {
-			destroyExpression(expr);
-		} 
-		else if (checkTokenTypeAndContent(self, SEPARATOR, "]", 0)) {
-			consumeToken(self);
-			Type *type = parseType(self);
-			if (type) {
-				return createArrayType(expr, type);
-			}
+ArrayType *parseArrayType(Parser *self) {
+	if (checkTokenTypeAndContent(self, SEPARATOR, "[", 0) && checkTokenTypeAndContent(self, SEPARATOR, "]", 0)) {
+		consumeToken(self); // eat the [
+		consumeToken(self); // eat the ]
+
+		// parse the type
+		Type *type = parseType(self);
+		if (type) {
+			return createArrayType(type);
 		}
 	}
 
@@ -1117,11 +1103,10 @@ ArrayType *parseArrayType(Parser *self) {
 PointerType *parsePointerType(Parser *self) {
 	if (checkTokenTypeAndContent(self, OPERATOR, "^", 0)) {
 		consumeToken(self);
-		BaseType *type = parseBaseType(self);
+		Type *type = parseType(self);
 		if (type) {
 			return createPointerType(type);
 		}
-		destroyBaseType(type);
 	}
 	return false;
 }

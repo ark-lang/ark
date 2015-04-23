@@ -37,10 +37,6 @@ TypeLit *createTypeLit() {
 	return safeMalloc(sizeof(TypeLit));
 }
 
-BaseType *createBaseType() {
-	return safeMalloc(sizeof(BaseType));
-}
-
 UnaryExpr *createUnaryExpr() {
 	UnaryExpr *unary = safeMalloc(sizeof(*unary));
 	return unary;
@@ -57,12 +53,6 @@ EnumDecl *createEnumDecl(char *name) {
 	decl->name = name;
 	decl->items = createVector(VECTOR_EXPONENTIAL);
 	return decl;
-}
-
-ArraySubExpr *createArraySubExpr(Expression *lhand) {
-	ArraySubExpr *expr = safeMalloc(sizeof(*expr));
-	expr->lhand = lhand;
-	return expr;
 }
 
 Call *createCall(Vector *callee) {
@@ -86,16 +76,15 @@ TypeName *createTypeName(char *name) {
 	return type;
 }
 
-ArrayType *createArrayType(Expression *length, Type *type) {
+ArrayType *createArrayType(Type *type) {
 	ArrayType *arr = safeMalloc(sizeof(*arr));
-	arr->length = length;
 	arr->type = type;
 	return arr;
 }
 
-PointerType *createPointerType(BaseType *type) {
+PointerType *createPointerType(Type *type) {
 	PointerType *pointer = safeMalloc(sizeof(*pointer));
-	pointer->baseType = type;
+	pointer->type = type;
 	return pointer;
 }
 
@@ -264,7 +253,6 @@ void cleanupAST(Vector *nodes) {
 		case IDENTIFIER_LIST_NODE: destroyIdentifierList(node->data); break;
 		case LITERAL_NODE: destroyLiteral(node->data); break;
 		case UNARY_EXPR_NODE: destroyUnaryExpr(node->data); break;
-		case ARRAY_SUB_EXPR_NODE: destroyArraySubExpr(node->data); break;
 		case MACRO_NODE: destroyMacro(node->data); break;
 		case EXPR_NODE: destroyExpression(node->data); break;
 		case TYPE_NAME_NODE: destroyTypeName(node->data); break;
@@ -322,12 +310,6 @@ void destroyImpl(Impl *impl) {
 	free(impl);
 }
 
-void destroyBaseType(BaseType *type) {
-	if (!type) return;
-	destroyTypeName(type->type);
-	free(type);
-}
-
 void destroyLiteral(Literal *lit) {
 	if (!lit) return;
 	free(lit);
@@ -351,14 +333,6 @@ void destroyEnumDecl(EnumDecl *decl) {
 		destroyEnumItem(getVectorItem(decl->items, i));
 	}
 	free(decl);
-}
-
-void destroyArraySubExpr(ArraySubExpr *expr) {
-	if (!expr) return;
-	destroyExpression(expr->lhand);
-	destroyExpression(expr->start);
-	destroyExpression(expr->end);
-	free(expr);
 }
 
 void destroyCall(Call *call) {
@@ -395,14 +369,13 @@ void destroyTypeName(TypeName *typeName) {
 
 void destroyArrayType(ArrayType *arrayType) {
 	if (!arrayType) return;
-	destroyExpression(arrayType->length);
 	destroyType(arrayType->type);
 	free(arrayType);
 }
 
 void destroyPointerType(PointerType *pointerType) {
 	if (!pointerType) return;
-	destroyBaseType(pointerType->baseType);
+	destroyType(pointerType->type);
 	free(pointerType);
 }
 
