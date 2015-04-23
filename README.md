@@ -1,5 +1,5 @@
 # [Alloy](http://alloy-lang.org) [![BuildStatus](https://travis-ci.org/alloy-lang/alloy.svg?branch=master)](https://travis-ci.org/alloy-lang/alloy)
-Alloy is a work in progress programming language, read the [reference](docs/REFERENCE.md) to find out more about the plans, syntax, etc. Please note that the language is constantly being changed, so the Reference may be out-dated, or a little bit behind the master.
+Alloy is a work in progress programming language, read the [reference](docs/REFERENCE.md) to find out more about the plans, syntax, etc. Please note that the language is constantly being changed, so the Reference may be out-dated.
 
 <p align="center">
 <img src="misc/example.gif" width="312px" height="312px" />
@@ -20,10 +20,13 @@ however some aspects of the language are unimplemented or broken.
 Sure, you can either see a small virtual machine implemented in Alloy [here](tests/misc/virtualmachine.aly). Or you can just see a small Hello World example below:
 
 ```rust
-use "stdio"
+// c binding for printf
+// you have to do this for now, but soon
+// we'll have a standard library for this
+fn printf(format: str, _): int;
 
 fn main(): int {
-    println("Hello, World");
+    printf("Hello, World");
     return 0;
 }
 ```
