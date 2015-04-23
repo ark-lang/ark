@@ -323,13 +323,6 @@ VariableDecl *parseVariableDecl(Parser *parser);
 Declaration *parseDeclaration(Parser *parser);
 
 /**
- * Parses a base type, or an identifier type. This is used
- * for pointer types I believe.
- * @param  parser the parser instance
- */
-BaseType *parseBaseType(Parser *parser);
-
-/**
  * Parses a type name, or an identifier for an expression?
  * i.e x: int, x is the TypeName
  * @param  parser the parser instance

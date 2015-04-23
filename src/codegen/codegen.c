@@ -121,18 +121,14 @@ void emitExpression(CodeGenerator *self, Expression *expr) {
 void emitTypeLit(CodeGenerator *self, TypeLit *lit) {
 	switch (lit->type) {
 		case ARRAY_TYPE_NODE: {
+			emitType(self, lit->arrayType->type);
 			emitCode(self, "[");
-			emitExpression(self, lit->arrayType->length);
 			emitCode(self, "]");
 			break;
 		}
 		case POINTER_TYPE_NODE: {
-			char *name = lit->pointerType->baseType->type->name;
-			emitCode(self, "%s*", name);
-			break;
-		}
-		default: {
-			printf("wat type lit\n");
+			emitType(self, lit->pointerType->type);
+			emitCode(self, "*");
 			break;
 		}
 	}
