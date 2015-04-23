@@ -34,7 +34,7 @@ const char *BOILERPLATE =
  */
 const char *NODE_NAME[] = {
 	"IDENTIFIER_LIST_NODE", "IDENTIFIER_NODE", "LITERAL_NODE", "BINARY_EXPR_NODE",
-	"UNARY_EXPR_NODE", "ARRAY_SUB_EXPR_NODE", "MEMBER_ACCESS_NODE",
+	"UNARY_EXPR_NODE", "ARRAY_SUB_EXPR_NODE",
 	"PRIMARY_EXPR_NODE", "EXPR_NODE", "TYPE_NAME_NODE", "TYPE_LIT_NODE", "PAREN_EXPR_NODE",
 	"ARRAY_TYPE_NODE", "POINTER_TYPE_NODE", "FIELD_DECL_NODE",
 	"FIELD_DECL_LIST_NODE", "STRUCT_DECL_NODE", "STATEMENT_LIST_NODE",
@@ -291,16 +291,6 @@ void emitBlock(CodeGenerator *self, Block *block) {
 	}
 }
 
-void emitMemberExpr(CodeGenerator *self, MemberExpr *mem) {
-	switch (mem->type) {
-		case FUNCTION_CALL_NODE: emitFunctionCall(self, mem->call); break;
-		case ARRAY_TYPE_NODE: printf("todo\n"); break;
-		case UNARY_EXPR_NODE: emitUnaryExpr(self, mem->unary); break;
-		case IDENTIFIER: emitCode(self, "%s", mem->identifier); break;
-		case MEMBER_ACCESS_NODE: printf("todo\n"); break;
-	}	
-}
-
 void emitImpl(CodeGenerator *self, Impl *impl) {
 	for (int i = 0; i < impl->funcs->size; i++) {
 		FunctionDecl *func = getVectorItem(impl->funcs, i);
@@ -309,7 +299,6 @@ void emitImpl(CodeGenerator *self, Impl *impl) {
 }
 
 void emitAssignment(CodeGenerator *self, Assignment *assign) {
-	// emitMemberExpr(self, assign->memberExpr);
 	emitCode(self, "%s = ", assign->iden);
 	emitExpression(self, assign->expr);
 	emitCode(self, ";" CC_NEWLINE);

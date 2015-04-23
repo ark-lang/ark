@@ -17,7 +17,6 @@
 /** forward declarations */
 typedef struct s_Expression Expression;
 typedef struct s_Type Type;
-typedef struct s_MemberExpr MemberExpr;
 
 typedef struct {
 	char a;
@@ -30,7 +29,7 @@ typedef struct {
 /** different types of node for a cleanup */
 typedef enum {
 	IDENTIFIER_LIST_NODE, IDENTIFIER_NODE, LITERAL_NODE, BINARY_EXPR_NODE,
-	UNARY_EXPR_NODE, ARRAY_SUB_EXPR_NODE, MEMBER_ACCESS_NODE,
+	UNARY_EXPR_NODE, ARRAY_SUB_EXPR_NODE, 
 	PRIMARY_EXPR_NODE, EXPR_NODE, TYPE_NAME_NODE, TYPE_LIT_NODE, PAREN_EXPR_NODE,
 	ARRAY_TYPE_NODE, POINTER_TYPE_NODE, FIELD_DECL_NODE,
 	FIELD_DECL_LIST_NODE, STRUCT_DECL_NODE, STATEMENT_LIST_NODE,
@@ -208,19 +207,6 @@ struct s_Expression {
 	int exprType;
 };
 
-typedef struct {
-	char *iden;
-	MemberExpr *expr;
-} MemberAccess;
-
-struct s_MemberExpr {
-	Call *call;
-	ArrayType *array;
-	UnaryExpr *unary;
-	char *identifier;
-	MemberAccess *member;
-	int type;
-};
 
 /**
  * Field declaration for a struct
@@ -374,7 +360,6 @@ typedef struct {
  */
 typedef struct {
 	char *iden;
-	MemberExpr *memberExpr;
 	Expression *expr;
 } Assignment;
 
@@ -484,8 +469,6 @@ Node *createNode(void *data, NodeType type);
 
 Impl *createImpl(char *name, char *as);
 
-MemberAccess *createMemberAccess();
-
 UseMacro *createUseMacro(char *file);
 
 LinkerFlagMacro *createLinkerFlagMacro(char *flag);
@@ -493,8 +476,6 @@ LinkerFlagMacro *createLinkerFlagMacro(char *flag);
 IdentifierList *createIdentifierList();
 
 Literal *createLiteral(char *value, int type);
-
-MemberExpr *createMemberExpr();
 
 TypeLit *createTypeLit();
 
@@ -582,8 +563,6 @@ void destroyNode(Node *node);
 
 void destroyImpl(Impl *impl);
 
-void destroyMemberAccess(MemberAccess *member);
-
 void destroyUseMacro(UseMacro *use);
 
 void destroyLinkerFlagMacro(LinkerFlagMacro *linker);
@@ -613,8 +592,6 @@ void destroyTypeName(TypeName *typeName);
 void destroyArrayType(ArrayType *arrayType);
 
 void destroyPointerType(PointerType *pointerType);
-
-void destroyMemberExpr(MemberExpr *member);
 
 void destroyFieldDecl(FieldDecl *decl);
 

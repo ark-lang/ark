@@ -220,11 +220,6 @@ void emitWhileForLoop(CodeGenerator *self, ForStat *stmt);
 void emitBlock(CodeGenerator *self, Block *block);
 
 /**
- * This will emit the member expression given
- */
-void emitMemberExpr(CodeGenerator *self, MemberExpr *memberExpr);
-
-/**
  * This will emit a reassignment, i.e
  * x = 10;
  * 
