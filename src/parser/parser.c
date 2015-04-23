@@ -74,6 +74,7 @@ Literal *parseLiteral(Parser *self) {
 UseMacro *parseUseMacro(Parser *self) {
 	if (checkTokenTypeAndContent(self, OPERATOR, "!", 0)) {
 		consumeToken(self);
+
 		if (checkTokenTypeAndContent(self, IDENTIFIER, USE_KEYWORD, 0)) {
 			consumeToken(self);
 
@@ -197,7 +198,7 @@ FieldDeclList *parseFieldDeclList(Parser *self) {
 					}
 					consumeToken(self);
 				}
-				else if (!checkTokenTypeAndContent(self, SEPARATOR, "}", 1)) {
+				else if (!checkTokenTypeAndContent(self, SEPARATOR, "}", 0)) {
 					parserError("Expected comma after field declaration, found: %s", peekAtTokenStream(self, 0)->content);
 				}
 			}
@@ -296,9 +297,6 @@ Parameters *parseParameters(Parser *self) {
 						parserError("Trailing comma in parameter list, found: %s", peekAtTokenStream(self, 0)->content);
 					}
 					consumeToken(self);
-				}
-				else if (!checkTokenTypeAndContent(self, SEPARATOR, "}", 1)) {
-					parserError("Expected comma after parameter, found: %s", peekAtTokenStream(self, 0)->content);
 				}
 			} 
 			else {
@@ -835,20 +833,20 @@ Macro *parseMacro(Parser *self) {
 	if (!checkTokenTypeAndContent(self, OPERATOR, "!", 0)) {
 		return false;
 	}	
+	
+	UseMacro *use = parseUseMacro(self);
+	if (use) {
+		Macro *stmt = createMacro();
+		stmt->use = use;
+		stmt->type = USE_MACRO_NODE;
+		return stmt;
+	}
 
 	LinkerFlagMacro *linker = parseLinkerFlagMacro(self);
 	if (linker) {
 		Macro *stmt = createMacro();
 		stmt->linker = linker;
 		stmt->type = LINKER_FLAG_MACRO_NODE;
-		return stmt;
-	}
-
-	UseMacro *use = parseUseMacro(self);
-	if (use) {
-		Macro *stmt = createMacro();
-		stmt->use = use;
-		stmt->type = USE_MACRO_NODE;
 		return stmt;
 	}
 
@@ -1292,9 +1290,6 @@ Call *parseCall(Parser *self) {
 							parserError("Trailing comma in function call `%s`", getVectorItem(call->callee, 0));
 						}
 						consumeToken(self);
-					}
-					else if (!checkTokenTypeAndContent(self, SEPARATOR, ")", 1)) {
-						parserError("Expected comma after function call argument for `%s`", getVectorItem(call->callee, 0));
 					}
 				}
 			}
