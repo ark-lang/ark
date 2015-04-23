@@ -29,9 +29,8 @@ typedef struct {
 /** different types of node for a cleanup */
 typedef enum {
 	IDENTIFIER_LIST_NODE, IDENTIFIER_NODE, LITERAL_NODE, BINARY_EXPR_NODE,
-	UNARY_EXPR_NODE, ARRAY_SUB_EXPR_NODE, 
 	PRIMARY_EXPR_NODE, EXPR_NODE, TYPE_NAME_NODE, TYPE_LIT_NODE, PAREN_EXPR_NODE,
-	ARRAY_TYPE_NODE, POINTER_TYPE_NODE, FIELD_DECL_NODE,
+	ARRAY_TYPE_NODE, POINTER_TYPE_NODE, FIELD_DECL_NODE, UNARY_EXPR_NODE,
 	FIELD_DECL_LIST_NODE, STRUCT_DECL_NODE, STATEMENT_LIST_NODE,
 	BLOCK_NODE, PARAMETER_SECTION_NODE, PARAMETERS_NODE, IMPL_NODE, ENUM_DECL_NODE,
 	FUNCTION_SIGNATURE_NODE, FUNCTION_DECL_NODE, VARIABLE_DECL_NODE, FUNCTION_CALL_NODE,
@@ -79,17 +78,10 @@ typedef struct {
 } TypeName;
 
 /**
- * ??
- */
-typedef struct {
-	TypeName *type;
-} BaseType;
-
-/**
  * A pointer type, i.e `int ^`
  */
 typedef struct {
-	BaseType *baseType;
+	Type *type;
 } PointerType;
 
 /**
@@ -128,12 +120,10 @@ typedef struct {
 } EnumDecl;
 
 /**
- * An array type, which contains the length of the array
- * as an expression, and the type of data the array holds.
- * i.e: int[10];
+ * An array type
+ * i.e: []int;
  */
 typedef struct {
-	Expression *length;
 	Type *type;
 } ArrayType;
 
@@ -160,16 +150,6 @@ struct s_Type {
 	TypeLit *typeLit;
 	int type;
 };
-
-/**
- * A node representing an array sub expression,
- * for example a[5], or optional array slices, e.g a[5: 5].
- */
-typedef struct {
-	Expression *lhand;
-	Expression *start;
-	Expression *end;
-} ArraySubExpr;
 
 /**
  * A node representing a function call
@@ -479,15 +459,11 @@ Literal *createLiteral(char *value, int type);
 
 TypeLit *createTypeLit();
 
-BaseType *createBaseType();
-
 UnaryExpr *createUnaryExpr();
 
 EnumItem *createEnumItem(char *name);
 
 EnumDecl *createEnumDecl(char *name);
-
-ArraySubExpr *createArraySubExpr(Expression *lhand);
 
 Call *createCall(Vector *callee);
 
@@ -497,9 +473,9 @@ BinaryExpr *createBinaryExpr();
 
 TypeName *createTypeName(char *name);
 
-ArrayType *createArrayType(Expression *length, Type *type);
+ArrayType *createArrayType(Type *type);
 
-PointerType *createPointerType(BaseType *type);
+PointerType *createPointerType(Type *type);
 
 FieldDecl *createFieldDecl(Type *type, bool mutable);
 
@@ -569,8 +545,6 @@ void destroyLinkerFlagMacro(LinkerFlagMacro *linker);
 
 void destroyIdentifierList(IdentifierList *list);
 
-void destroyBaseType(BaseType *type);
-
 void destroyLiteral(Literal *lit);
 
 void destroyUnaryExpr(UnaryExpr *rhand);
@@ -578,8 +552,6 @@ void destroyUnaryExpr(UnaryExpr *rhand);
 void destroyEnumItem(EnumItem *item);
 
 void destroyEnumDecl(EnumDecl *decl);
-
-void destroyArraySubExpr(ArraySubExpr *rhand);
 
 void destroyCall(Call *call);
 
