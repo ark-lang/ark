@@ -267,23 +267,6 @@ LeaveStat *parseLeaveStat(Parser *parser);
 IncDecStat *parseIncDecStat(Parser *parser);
 
 /**
- * Parses member access, for instance:
- *
- *     a[0].createSomething().y = 10;
- *
- * Broken, not used FIXME
- * @param  parser the parser instance
- */
-MemberAccess *parseMemberAccess(Parser *parser);
-
-/**
- * Parses member expressions
- * Broken, not used FIXME
- * @param  parser the parser instance
- */
-MemberExpr *parseMemberExpr(Parser *parser);
-
-/**
  * Parses an implementation block, i.e a group of functions
  * @param  parser the parser instance
  * @param  name   the name of the implementation, or struct owner

@@ -20,14 +20,6 @@ Impl *createImpl(char *name, char *as) {
 	return impl;
 }
 
-MemberAccess *createMemberAccess() {
-	return safeMalloc(sizeof(MemberAccess));
-}
-
-MemberExpr *createMemberExpr() {
-	return safeMalloc(sizeof(MemberExpr));
-}
-
 IdentifierList *createIdentifierList() {
 	IdentifierList *iden = safeMalloc(sizeof(*iden));
 	iden->values = createVector(VECTOR_EXPONENTIAL);
@@ -274,7 +266,6 @@ void cleanupAST(Vector *nodes) {
 		case UNARY_EXPR_NODE: destroyUnaryExpr(node->data); break;
 		case ARRAY_SUB_EXPR_NODE: destroyArraySubExpr(node->data); break;
 		case MACRO_NODE: destroyMacro(node->data); break;
-		case MEMBER_ACCESS_NODE: destroyMemberAccess(node->data); break;
 		case EXPR_NODE: destroyExpression(node->data); break;
 		case TYPE_NAME_NODE: destroyTypeName(node->data); break;
 		case ARRAY_TYPE_NODE: destroyArrayType(node->data); break;
@@ -521,24 +512,8 @@ void destroyLeaveStat(LeaveStat *stmt) {
 	free(stmt);
 }
 
-void destroyMemberAccess(MemberAccess *member) {
-	destroyMemberExpr(member->expr);
-	free(member);
-}
-
-void destroyMemberExpr(MemberExpr *member) {
-	switch (member->type) {
-		case FUNCTION_CALL_NODE: destroyCall(member->call); break;
-		case ARRAY_TYPE_NODE: destroyArrayType(member->array); break;
-		case UNARY_EXPR_NODE: destroyUnaryExpr(member->unary);
-		case MEMBER_ACCESS_NODE: destroyMemberAccess(member->member); break;
-	}
-	free(member);
-}
-
 void destroyAssignment(Assignment *assign) {
 	if (!assign) return;
-	// destroyMemberExpr(assign->memberExpr);
 	destroyExpression(assign->expr);
 	free(assign);
 }
