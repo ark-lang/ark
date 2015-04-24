@@ -1160,13 +1160,51 @@ Expression *parseBinaryOperator(Parser *self, int precedence, Expression *lhand)
 	return false;
 }
 
+ArrayInitializer *parseArrayInitializer(Parser *self) {
+	if (checkTokenTypeAndContent(self, SEPARATOR, "[", 0)) {
+		consumeToken(self);
+
+		ArrayInitializer *arr = createArrayInitializer();
+
+		while (true) {
+			if (checkTokenTypeAndContent(self, SEPARATOR, "]", 0)) {
+				consumeToken(self);
+				break;
+			}
+
+			Expression *expr = parseExpression(self);
+			if (expr) {
+				pushBackItem(arr->values, expr);
+				if (checkTokenTypeAndContent(self, SEPARATOR, ",", 0)) {
+					consumeToken(self);
+				}
+			}
+		}
+
+		return arr;
+	}
+
+	return false;
+}
+
 Expression *parsePrimaryExpression(Parser *self) {
-	if(checkTokenType(self, IDENTIFIER, 0) && (checkTokenTypeAndContent(self, SEPARATOR, "(", 1))) {
+	if (checkTokenType(self, IDENTIFIER, 0) && (checkTokenTypeAndContent(self, SEPARATOR, "(", 1))) {
 		Call *call = parseCall(self);
 		if (call) {
 			Expression *expr = createExpression();
 			expr->call = call;
 			expr->exprType = FUNCTION_CALL_NODE;
+			return expr;
+		}
+	}
+
+	// array initializer.
+	if (checkTokenTypeAndContent(self, SEPARATOR, "[", 0)) {
+		ArrayInitializer *arr = parseArrayInitializer(self);
+		if (arr) {
+			Expression *expr = createExpression();
+			expr->arrayInitializer = arr;
+			expr->exprType = ARRAY_INITIALIZER_NODE;
 			return expr;
 		}
 	}

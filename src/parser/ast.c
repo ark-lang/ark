@@ -6,6 +6,12 @@ UseMacro *createUseMacro(char *file) {
 	return use;
 }
 
+ArrayInitializer *createArrayInitializer() {
+	ArrayInitializer *arr = safeMalloc(sizeof(*arr));
+	arr->values = createVector(VECTOR_EXPONENTIAL);
+	return arr;
+}
+
 LinkerFlagMacro *createLinkerFlagMacro(char *flag) {
 	LinkerFlagMacro *linker = safeMalloc(sizeof(*linker));
 	linker->flag = flag;
@@ -292,6 +298,14 @@ void cleanupAST(Vector *nodes) {
 
 void destroyUseMacro(UseMacro *use) {
 	free(use);
+}
+
+void destroyArrayInitializer(ArrayInitializer *array) {
+	for (int i = 0; i < array->values->size; i++) {
+		destroyExpression(getVectorItem(array->values, i));
+	}
+	destroyVector(array->values);
+	free(array);
 }
 
 void destroyLinkerFlagMacro(LinkerFlagMacro *linker) {
