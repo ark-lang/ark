@@ -1,0 +1,8 @@
+fn printf(fmt: str, _): int;
+
+fn main(): int {
+	mut x : int = 5;
+	mut y : int;
+	z : int = x + y;
+	printf("%d %d %d\n", x, y, z);
+}
