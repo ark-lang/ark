@@ -34,7 +34,7 @@ typedef enum {
 	CONTINUE_STAT_NODE, LEAVE_STAT_NODE, ASSIGNMENT_NODE, UNSTRUCTURED_STATEMENT_NODE,
 	ELSE_STAT_NODE, IF_STAT_NODE, MATCH_CLAUSE_STAT, MATCH_STAT_NODE, FOR_STAT_NODE,
 	STRUCTURED_STATEMENT_NODE, STATEMENT_NODE, TYPE_NODE, POINTER_FREE_NODE, TUPLE_TYPE_NODE,
-	TUPLE_EXPR_NODE, 
+	TUPLE_EXPR_NODE, OPTION_TYPE_NODE, 
 	MACRO_NODE, USE_MACRO_NODE, LINKER_FLAG_MACRO_NODE, EXPR_STAT_NODE, ARRAY_INITIALIZER_NODE
 } NodeType;
 
@@ -155,6 +155,7 @@ typedef struct {
 	ArrayType *arrayType;
 	PointerType *pointerType;
 	TupleType *tupleType;
+	OptionType *optionType; 
 	int type;
 } TypeLit;
 
@@ -483,6 +484,8 @@ Literal *createLiteral(char *value, int type);
 TypeLit *createTypeLit();
 
 UnaryExpr *createUnaryExpr();
+
+OptionType *createOptionType(Type *type);
 
 TupleType *createTupleType();
 
