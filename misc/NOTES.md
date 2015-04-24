@@ -6,7 +6,7 @@ Notes, todo stuff etc...
 - [ ] Member access
 - [x] Assignment as an expression
 - [x] Arrays
-- [ ] Array static initializers
+- [x] Array static initializers
 - [ ] Tuple parsing
 - [ ] Option Type parsing
 - [ ] Pointer syntax, or just malloc/free

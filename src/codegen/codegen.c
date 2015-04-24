@@ -105,6 +105,17 @@ void emitUnaryExpr(CodeGenerator *self, UnaryExpr *expr) {
 	emitExpression(self, expr->lhand);
 }
 
+void emitArrayInitializer(CodeGenerator *self, ArrayInitializer *arr) {
+	emitCode(self, "{");
+	for (int i = 0; i < arr->values->size; i++) {
+		emitExpression(self, getVectorItem(arr->values, i));
+		if (arr->values->size > 1 && i != arr->values->size - 1) {
+			emitCode(self, ", ");
+		}
+	}
+	emitCode(self, "}");
+}
+
 void emitExpression(CodeGenerator *self, Expression *expr) {
 	switch (expr->exprType) {
 		case TYPE_NODE: emitType(self, expr->type); break;
@@ -112,6 +123,7 @@ void emitExpression(CodeGenerator *self, Expression *expr) {
 		case BINARY_EXPR_NODE: emitBinaryExpr(self, expr->binary); break;
 		case UNARY_EXPR_NODE: emitUnaryExpr(self, expr->unary); break;
 		case FUNCTION_CALL_NODE: emitFunctionCall(self, expr->call); break;
+		case ARRAY_INITIALIZER_NODE: emitArrayInitializer(self, expr->arrayInitializer); break;
 		default:
 			printf("Unknown node in expression %s\n", NODE_NAME[expr->exprType]);
 			break;
@@ -122,8 +134,6 @@ void emitTypeLit(CodeGenerator *self, TypeLit *lit) {
 	switch (lit->type) {
 		case ARRAY_TYPE_NODE: {
 			emitType(self, lit->arrayType->type);
-			emitCode(self, "[");
-			emitCode(self, "]");
 			break;
 		}
 		case POINTER_TYPE_NODE: {
@@ -247,18 +257,23 @@ void emitFunctionDecl(CodeGenerator *self, FunctionDecl *decl) {
 }
 
 void emitVariableDecl(CodeGenerator *self, VariableDecl *decl) {
+	// hack
+	bool isArray = decl->type->type == TYPE_LIT_NODE 
+					&& decl->type->typeLit->type == ARRAY_TYPE_NODE;
+
 	if (!decl->mutable) {
 		emitCode(self, "const ");
 	}
 	emitType(self, decl->type);
+	emitCode(self, " %s", decl->name);
+	if (isArray) {
+		emitCode(self, "[]");
+	}
 	if (decl->assigned) {
-		emitCode(self, " %s = ", decl->name);
+		emitCode(self, " = ");
 		emitExpression(self, decl->expr);
-		emitCode(self, ";" CC_NEWLINE);
 	}
-	else {
-		emitCode(self, " %s;" CC_NEWLINE, decl->name);
-	}
+	emitCode(self, ";" CC_NEWLINE);
 }
 
 void emitWhileForLoop(CodeGenerator *self, ForStat *stmt) {
