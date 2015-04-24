@@ -22,3 +22,11 @@ Notes, todo stuff etc...
 - [ ] Binary Literals
 - [ ] Generics
 - [ ] Multi-dimensional arrays
+- [ ] Type checking
+  * [ ] Validate expressions
+  * [ ] Validate function return types
+  * [ ] Validate arrays
+- [ ] Fix hacky type inference
+  * [ ] Arrays Type Inference
+  * [ ] Structure type inference
+  * [ ] `f` and `d` suffix for float/double inference
