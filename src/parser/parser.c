@@ -1093,14 +1093,24 @@ TupleType *parseTupleType(Parser *self) {
 	if (checkTokenTypeAndContent(self, SEPARATOR, "(", 0)) {
 		consumeToken(self);
 
+		TupleType *tuple = createTupleType();
+
 		while (true) {
 			if (checkTokenTypeAndContent(self, SEPARATOR, ")", 0)) {
 				consumeToken(self);
 				break;
 			}
+
+			Type *type = parseType(self);
+			if (type) {
+				pushBackItem(tuple->types, type);
+				if (checkTokenTypeAndContent(self, SEPARATOR, ",", 0)) {
+					consumeToken(self);
+				}
+			}
 		}
 
-		// todo
+		return tuple;
 	}
 	return false;
 }
@@ -1211,6 +1221,33 @@ ArrayInitializer *parseArrayInitializer(Parser *self) {
 	return false;
 }
 
+TupleExpr *parseTupleExpr(Parser *self) {
+	if (checkTokenTypeAndContent(self, SEPARATOR, "(", 0)) {
+		consumeToken(self);
+
+		TupleExpr *tuple = createTupleExpr();
+
+		while (true) {
+			if (checkTokenTypeAndContent(self, SEPARATOR, ")", 0)) {
+				consumeToken(self);
+				break;
+			}
+
+			Expression *expr = parseExpression(self);
+			if (expr) {
+				pushBackItem(tuple->values, expr);
+				if (checkTokenTypeAndContent(self, SEPARATOR, ",", 0)) {
+					consumeToken(self);
+				}
+			}
+		}	
+
+		return tuple;
+	}
+
+	return false;
+}
+
 Expression *parsePrimaryExpression(Parser *self) {
 	if (checkTokenType(self, IDENTIFIER, 0) && (checkTokenTypeAndContent(self, SEPARATOR, "(", 1))) {
 		Call *call = parseCall(self);
@@ -1218,6 +1255,16 @@ Expression *parsePrimaryExpression(Parser *self) {
 			Expression *expr = createExpression();
 			expr->call = call;
 			expr->exprType = FUNCTION_CALL_NODE;
+			return expr;
+		}
+	}
+
+	if (checkTokenTypeAndContent(self, SEPARATOR, "(", 0)) {
+		TupleExpr *tuple = parseTupleExpr(self);
+		if (tuple) {
+			Expression *expr = createExpression();
+			expr->tupleExpr = tuple;
+			expr->exprType = TUPLE_EXPR_NODE;
 			return expr;
 		}
 	}
