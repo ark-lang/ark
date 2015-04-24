@@ -1,0 +1,4 @@
+fn main(): int {
+	test: (int, int) = (1, 1);
+	return 0;
+}
