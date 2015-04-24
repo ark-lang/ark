@@ -128,14 +128,6 @@ IdentifierList *parseIdentifierList(Parser *self) {
 }
 
 Type *parseType(Parser *self) {
-	TypeName *typeName = parseTypeName(self);
-	if (typeName) {
-		Type *type = createType();
-		type->typeName = typeName;
-		type->type = TYPE_NAME_NODE;
-		return type;
-	}
-
 	TypeLit *typeLit = parseTypeLit(self);
 	if (typeLit) {
 		Type *type = createType();
@@ -143,6 +135,15 @@ Type *parseType(Parser *self) {
 		type->type = TYPE_LIT_NODE;
 		return type;
 	}
+
+	TypeName *typeName = parseTypeName(self);
+	if (typeName) {
+		Type *type = createType();
+		type->typeName = typeName;
+		type->type = TYPE_NAME_NODE;
+		return type;
+	}
+	
 	return false;
 }
 
@@ -1062,7 +1063,8 @@ Expression *parseExpression(Parser *self) {
 
 
 ArrayType *parseArrayType(Parser *self) {
-	if (checkTokenTypeAndContent(self, SEPARATOR, "[", 0) && checkTokenTypeAndContent(self, SEPARATOR, "]", 0)) {
+	if (checkTokenTypeAndContent(self, SEPARATOR, "[", 0) 
+		&& checkTokenTypeAndContent(self, SEPARATOR, "]", 1)) {
 		consumeToken(self); // eat the [
 		consumeToken(self); // eat the ]
 
@@ -1088,19 +1090,19 @@ PointerType *parsePointerType(Parser *self) {
 }
 
 TypeLit *parseTypeLit(Parser *self) {
-	PointerType *pntr = parsePointerType(self);
-	if (pntr) {
-		TypeLit *lit = createTypeLit();
-		lit->pointerType = pntr;
-		lit->type = POINTER_TYPE_NODE;
-		return lit;
-	}
-
 	ArrayType *arr = parseArrayType(self);
 	if (arr) {
 		TypeLit *lit = createTypeLit();
 		lit->arrayType = arr;
 		lit->type = ARRAY_TYPE_NODE;
+		return lit;
+	}
+
+	PointerType *pntr = parsePointerType(self);
+	if (pntr) {
+		TypeLit *lit = createTypeLit();
+		lit->pointerType = pntr;
+		lit->type = POINTER_TYPE_NODE;
 		return lit;
 	}
 
