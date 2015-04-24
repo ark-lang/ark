@@ -21,3 +21,4 @@ Notes, todo stuff etc...
 - [ ] Forward declarations for struct/enum/etc..
 - [ ] Binary Literals
 - [ ] Generics
+- [ ] Multi-dimensional arrays

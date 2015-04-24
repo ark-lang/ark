@@ -158,11 +158,17 @@ void emitType(CodeGenerator *self, Type *type) {
 void emitParameters(CodeGenerator *self, Parameters *params) {
 	for (int i = 0; i < params->paramList->size; i++) {
 		ParameterSection *param = getVectorItem(params->paramList, i);
+		bool isArray = param->type->type == TYPE_LIT_NODE 
+					&& param->type->typeLit->type == ARRAY_TYPE_NODE;
+
 		if (!param->mutable) {
 			emitCode(self, "const ");
 		}
 		emitType(self, param->type);
 		emitCode(self, " %s", param->name);
+		if (isArray) {
+			emitCode(self, "[]");
+		}
 
 		if (params->paramList->size > 1 && i != params->paramList->size - 1) {
 			emitCode(self, ", "); // cleaner formatting
