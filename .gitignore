@@ -1,0 +1,56 @@
+#Object Files
+*.o
+*.ko
+*.obj
+*.elf
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# emacs
+\#*\#
+
+# Libraries
+*.lib
+*.a
+*.la
+*.lo
+
+# Alloy specific things
+_gen_*.c
+_gen_*.h
+main			# default build name
+
+# Shared Objects
+*.dll
+*.so
+*.so.*
+*.dylib
+
+# eclipse shit
+.settings
+.cproject
+.project
+
+# floo stuff
+.floo
+.flooignore
+
+# Binaries
+*.exe
+*.out
+*.app
+*.i*86
+*.x86_64
+*.hex
+bin/alloyc
+
+# Other
+builds/
+*~
+.DS_Store
+*.swp
+*.swo
+*.dSYM
+*sublime-*
