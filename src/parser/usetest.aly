@@ -1,0 +1,7 @@
+!use {
+	"macro",
+}
+
+fn main(): int {
+
+}

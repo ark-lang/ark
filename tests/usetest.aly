@@ -1,0 +1,9 @@
+!use {
+	"testlib",
+	"fileinclusion"
+}
+
+fn main(): int {
+	x := printf("test\n");
+	printf("%d\n", x);
+}
