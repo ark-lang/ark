@@ -7,7 +7,7 @@ Notes, todo stuff etc...
 - [x] Assignment as an expression
 - [x] Arrays
 - [x] Array static initializers
-- [ ] Tuple parsing
+- [x] Tuple parsing
 - [ ] Option Type parsing
 - [ ] Pointer syntax, or just malloc/free
 - [ ] Code generation for match statements

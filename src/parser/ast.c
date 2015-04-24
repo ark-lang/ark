@@ -1,8 +1,8 @@
 #include "ast.h"
 
-UseMacro *createUseMacro(char *file) {
+UseMacro *createUseMacro() {
 	UseMacro *use = safeMalloc(sizeof(*use));
-	use->file = file;
+	use->files = createVector(VECTOR_EXPONENTIAL);
 	return use;
 }
 
