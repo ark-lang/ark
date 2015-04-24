@@ -228,9 +228,14 @@ void emitFunctionDecl(CodeGenerator *self, FunctionDecl *decl) {
 	self->writeState = WRITE_HEADER_STATE;
 	emitType(self, decl->signature->type);
 	emitCode(self, " %s(", decl->signature->name);
-	if (decl->signature->owner && decl->signature->ownerArg) {
-		// assumes its a pointer, probably not a good idea.
-		emitCode(self, "%s *%s", decl->signature->owner, decl->signature->ownerArg);
+	if (decl->signature->owner) {
+		if (decl->signature->ownerArg) {
+			// assumes its a pointer, probably not a good idea.
+			emitCode(self, "%s *%s", decl->signature->owner, decl->signature->ownerArg);
+		}
+		else {
+			emitCode(self, "%s *self", decl->signature->owner, decl->signature->ownerArg);
+		}
 
 		// this will emit a comma if there are more than zero paramters.
 		if (decl->signature->parameters->paramList->size > 0) {
@@ -250,10 +255,14 @@ void emitFunctionDecl(CodeGenerator *self, FunctionDecl *decl) {
 		// definition
 		emitType(self, decl->signature->type);
 		emitCode(self, " %s(", decl->signature->name);
-		if (decl->signature->owner && decl->signature->ownerArg) {
-			// this should work?
-			// probably shouldnt be a pointer
-			emitCode(self, "%s *%s", decl->signature->owner, decl->signature->ownerArg);
+		if (decl->signature->owner) {
+			if (decl->signature->ownerArg) {
+				// assumes its a pointer, probably not a good idea.
+				emitCode(self, "%s *%s", decl->signature->owner, decl->signature->ownerArg);
+			}
+			else {
+				emitCode(self, "%s *self", decl->signature->owner, decl->signature->ownerArg);
+			}
 
 			// this will emit a comma if there are more than zero paramters.
 			if (decl->signature->parameters->paramList->size > 0) {

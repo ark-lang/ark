@@ -1,26 +1,16 @@
 struct Cat {
-	cat_age: int;
-	cat_name: str;
+	cat_age: int,
+	cat_name: str
 }
 
 // printf binding for println
 fn printf(format: str, _): int;
 
-// temporary println function
-fn println(format: str, _): int {
-	mut arg: va_list;
-	va_start(arg, format);
-	mut x: int = printf(format, arg);
-	va_end(arg);
-	x = x + printf("\n");
-	return x;
-}
-
-impl Cat as self {
+impl Cat {
 	fn swag(fuck: int);
 
 	fn say(say: str) {
-		println("this is temporary for now but eventually will do something with struct values");
+		printf("this is temporary for now but eventually will do something with struct values\n");
 	}
 }
 
