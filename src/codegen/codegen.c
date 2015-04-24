@@ -181,12 +181,20 @@ void emitFieldList(CodeGenerator *self, FieldDeclList *list) {
 
 	for (int i = 0; i < size; i++) {
 		FieldDecl *decl = getVectorItem(list->members, i);
+		// hack
+		bool isArray = decl->type->type == TYPE_LIT_NODE 
+					&& decl->type->typeLit->type == ARRAY_TYPE_NODE;
+
 		emitCode(self, "\t");
 		if (!decl->mutable) {
 			emitCode(self, "const ");
 		}
 		emitType(self, decl->type);
-		emitCode(self, " %s;" CC_NEWLINE, decl->name);
+		emitCode(self, " %s", decl->name);
+		if (isArray) {
+			emitCode(self, "[]");
+		}
+		emitCode(self, ";" CC_NEWLINE);
 	}
 }
 
