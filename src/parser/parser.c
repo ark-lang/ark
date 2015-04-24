@@ -1138,12 +1138,39 @@ TupleType *parseTupleType(Parser *self) {
 	return false;
 }
 
+OptionType *parseOptionType(Parser *self) {
+	if (checkTokenTypeAndContent(self, OPERATOR, "<", 0)) {
+		consumeToken(self);
+
+		Type *type = parseType(self);
+		if (type) {
+			if (checkTokenTypeAndContent(self, OPERATOR, ">", 0)) {
+				consumeToken(self);
+			}
+			return createOptionType(type);
+		}
+
+		errorMessage("todo option type");
+		return false;
+	}
+
+	return false;
+}
+
 TypeLit *parseTypeLit(Parser *self) {
 	ArrayType *arr = parseArrayType(self);
 	if (arr) {
 		TypeLit *lit = createTypeLit();
 		lit->arrayType = arr;
 		lit->type = ARRAY_TYPE_NODE;
+		return lit;
+	}
+
+	OptionType *option = parseOptionType(self);
+	if (option) {
+		TypeLit *lit = createTypeLit();
+		lit->optionType = option;
+		lit->type = OPTION_TYPE_NODE;
 		return lit;
 	}
 
