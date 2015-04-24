@@ -11,7 +11,6 @@ The design is motivated by the following:
 * Strongly Typed
 * Concise, clean and semantic syntax
 * **No** garbage collection
-* Efficient
 
 The language should be strong enough that it can be self-hosted.
 
@@ -312,7 +311,67 @@ Alloy is not a garbage collected language, therefore when you allocate memory, y
 no longer using it.
 
 ## Flow Control
-todo
+### If Statements
+If statements are denoted with the `if` keyword followed by a condition. Parenthesis around an expression
+are optional:
+
+	if x == 1 {
+		....
+	}
+
+### Match Statements
+Match statements are very similar to switchs in C. Note that by default, a match clause will break instead
+of continuing to other clauses. A match is denoted with the `match` keyword, followed by something to match
+and then a block:
+
+	match some_var {
+		...
+	}
+
+Within the match statement, are match clauses. Match clauses consist of an expression, followed by a single
+statement operator `->`, or a block if you want to do multiple statements:
+
+	match x {
+		0 -> ...;
+		1 {
+
+		};
+	}
+
+Each clause must end with a semi-colon, including blocks.
+
+### For Loops
+For loops are a little more different in Alloy. There are no while loops, or do while loops.
+
+#### Infinite Loop
+If you want to just loop till you break, you write a for loop with no condition, for instance:
+
+	for {
+		printf("loop....\n");
+	}
+
+#### "While" Loop
+If you want to loop while a condition is true, you do the same for loop, but with a condition
+after the `for` keyword:
+
+	for x {
+		printf("loop while x is true\n");
+	}
+
+#### "Traditional" For Loop
+Finally, if you want to iterate from A to B or vice versa, you write a for loop with two conditions.
+The first being the range, the second condition being the step. For instance:
+
+	for x < 10, x++ {
+		...
+	}
+
+Note that `x` is not defined in the for loop, but must be defined outside of the for loop. For instance:
+
+	mut x: int = 0;
+	for x < 10, x++ {
+		...
+	}
 
 ## Tuples
 todo
@@ -321,10 +380,26 @@ todo
 todo
 
 ## Enums
-todo
+An enumeration is denoted with the `enum` keyword, followed by a name, and a block. The block contains
+the enum items, which are identifiers (typically uppercase) with an optional default value. Enum items
+must be terminated with a comma (excluding the final item in the enumerion). For example:
+
+	enum DogBreed {
+		POODLE,
+		GRAYHOUND,
+		SHIH_ZU
+	}
+
+To refer to the enum item, you need to specify the name of the enumeration, followed by two colons `::`,
+and finally the enum item.
+
+	fn main(): int {
+		match DogBreed {
+			DogBreed::POODLE -> ...;
+		}
+	}
 
 ## Arrays
-todo
 
 ## Generics
 we're still thinking about this...
