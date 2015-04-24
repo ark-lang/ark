@@ -289,33 +289,8 @@ would be compiled as:
 
 Note that the order matters too. We plan to fix this in the future.
 
-## Pointers and the Memory Model
-Before we talk about pointers, you should have a good understanding of Alloy's memory model. We've
-adopted a memory model initially used and created by the developers of Objective-C,/Swift, namely
-Automatic Reference Counting.
-
-In the memory model you can allocate memory, this memory can then have aliases or references to this
-memory. When memory is allocated, it stores information about the type of memory it's storing, and how
-many aliases there are to this memory.
-
-When this memory you allocate is no longer in use, it is automatically freed by ARC. This means that the
-memory is no longer taking up space when it's not needed, thus making your program more efficient; and
-safer from memory leaks.
-
-However, when you create an alias of some allocated memory and the memory has been freed... the alias still
-exists, and if you attempt to access the allocated memory it would likely crash your program. To make sure that
-memory isnt freed when it's still in use, ARC keeps track of how many aliases there are to the allocated memory.
-ARC will not deallocate any memory if there are still one or more aliases pointing to this memory.
-
 ### Pointers
-With the ARC system, memory management is a lot easier. However, this doesn't completely free you from worrying
-about memory management. Alloy has a bit of a stranger way of allocating memory, you're probably used to using
-a keyword(s) like `new`, or a function call(s) like `malloc`.
-
-We've introduced a few operators for memory management, it may look a bit complicated, but if you understand each
-symbol, it's easier than you think.
-
-Firstly, the caret symbol. The caret (`^`) is what we used to denote a pointer, i.e something that points to an
+The caret (`^`) is what we used to denote a pointer, i.e something that points to an
 address in memory. Then there is the ampersand (`&`), which means **address of**. For instance:
 
 	x: int = 5;
@@ -333,7 +308,8 @@ that points to it. This is again done with the caret (`^`), for example:
 We've introduced a new variable `z`, that stored the value at the address `y`.
 
 ### Managing Memory
-we're still thinking about this...
+Alloy is not a garbage collected language, therefore when you allocate memory, you must free it after you are
+no longer using it.
 
 ## Flow Control
 todo
