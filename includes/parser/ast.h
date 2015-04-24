@@ -33,7 +33,7 @@ typedef enum {
 	DECLARATION_NODE, INC_DEC_STAT_NODE, RETURN_STAT_NODE, BREAK_STAT_NODE,
 	CONTINUE_STAT_NODE, LEAVE_STAT_NODE, ASSIGNMENT_NODE, UNSTRUCTURED_STATEMENT_NODE,
 	ELSE_STAT_NODE, IF_STAT_NODE, MATCH_CLAUSE_STAT, MATCH_STAT_NODE, FOR_STAT_NODE,
-	STRUCTURED_STATEMENT_NODE, STATEMENT_NODE, TYPE_NODE, POINTER_FREE_NODE,
+	STRUCTURED_STATEMENT_NODE, STATEMENT_NODE, TYPE_NODE, POINTER_FREE_NODE, TUPLE_TYPE_NODE,
 	MACRO_NODE, USE_MACRO_NODE, LINKER_FLAG_MACRO_NODE, EXPR_STAT_NODE, ARRAY_INITIALIZER_NODE
 } NodeType;
 
@@ -123,6 +123,18 @@ typedef struct {
 	Vector *items;
 } EnumDecl;
 
+typedef struct {
+	Vector *types;
+} TupleType;
+
+typedef struct {
+	Type *type;
+} OptionType;
+
+typedef struct {
+	Vector *values;
+} TupleExpr;
+
 /**
  * An array type
  * i.e: []int;
@@ -141,6 +153,7 @@ typedef struct {
 typedef struct {
 	ArrayType *arrayType;
 	PointerType *pointerType;
+	TupleType *tupleType;
 	int type;
 } TypeLit;
 
@@ -469,6 +482,8 @@ TypeLit *createTypeLit();
 
 UnaryExpr *createUnaryExpr();
 
+TupleExpr *createTupleExpr();
+
 EnumItem *createEnumItem(char *name);
 
 EnumDecl *createEnumDecl(char *name);
@@ -558,6 +573,12 @@ void destroyIdentifierList(IdentifierList *list);
 void destroyLiteral(Literal *lit);
 
 void destroyUnaryExpr(UnaryExpr *rhand);
+
+void destroyTupleType(TupleType *tuple);
+
+void destroyOptionType(OptionType *type);
+
+void destroyTupleExpr(TupleExpr *tuple);
 
 void destroyEnumItem(EnumItem *item);
 
