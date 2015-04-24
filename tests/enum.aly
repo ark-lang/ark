@@ -1,9 +1,0 @@
-enum Test {
-	SOME_VALUE = 0,
-	ANOTHER_VALUE = SOME_VALUE
-}
-
-fn main(): int {
-
-	return 0;
-}
