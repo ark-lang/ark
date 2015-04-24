@@ -42,6 +42,7 @@ typedef struct {
 	Stack *scopes;
 } SemanticAnalyzer;
 
+// for the hacky type inference
 typedef enum {
 	INTEGER_VAR_TYPE,
 	DOUBLE_VAR_TYPE,

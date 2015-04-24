@@ -1089,12 +1089,36 @@ PointerType *parsePointerType(Parser *self) {
 	return false;
 }
 
+TupleType *parseTupleType(Parser *self) {
+	if (checkTokenTypeAndContent(self, SEPARATOR, "(", 0)) {
+		consumeToken(self);
+
+		while (true) {
+			if (checkTokenTypeAndContent(self, SEPARATOR, ")", 0)) {
+				consumeToken(self);
+				break;
+			}
+		}
+
+		// todo
+	}
+	return false;
+}
+
 TypeLit *parseTypeLit(Parser *self) {
 	ArrayType *arr = parseArrayType(self);
 	if (arr) {
 		TypeLit *lit = createTypeLit();
 		lit->arrayType = arr;
 		lit->type = ARRAY_TYPE_NODE;
+		return lit;
+	}
+
+	TupleType *tuple = parseTupleType(self);
+	if (tuple) {
+		TypeLit *lit = createTypeLit();
+		lit->tupleType = tuple;
+		lit->type = TUPLE_TYPE_NODE;
 		return lit;
 	}
 

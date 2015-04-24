@@ -48,6 +48,24 @@ UnaryExpr *createUnaryExpr() {
 	return unary;
 }
 
+TupleType *createTupleType() {
+	TupleType *tuple = safeMalloc(sizeof(*tuple));
+	tuple->types = createVector(VECTOR_EXPONENTIAL);
+	return tuple;
+}
+
+OptionType *createOptionType(Type *type) {
+	OptionType *option = safeMalloc(sizeof(*option));
+	option->type = type;
+	return option;
+}
+
+TupleExpr *createTupleExpr() {
+	TupleExpr *tuple = safeMalloc(sizeof(*tuple));
+	tuple->values = createVector(VECTOR_EXPONENTIAL);
+	return tuple;
+}
+
 EnumItem *createEnumItem(char *name) {
 	EnumItem *item = safeMalloc(sizeof(*item));
 	item->name = name;
@@ -327,6 +345,27 @@ void destroyImpl(Impl *impl) {
 void destroyLiteral(Literal *lit) {
 	if (!lit) return;
 	free(lit);
+}
+
+void destroyTupleType(TupleType *tuple) {
+	for (int i = 0; i < tuple->types->size; i++) {
+		destroyType(getVectorItem(tuple->types, i));
+	}
+	destroyVector(tuple->types);
+	free(tuple);
+}
+
+void destroyOptionType(OptionType *type) {
+	destroyType(type->type);
+	free(type);
+}
+
+void destroyTupleExpr(TupleExpr *tuple) {
+	for (int i = 0; i < tuple->values->size; i++) {
+		destroyExpression(getVectorItem(tuple->values, i));
+	}
+	destroyVector(tuple->values);
+	free(tuple);
 }
 
 void destroyUnaryExpr(UnaryExpr *expr) {
