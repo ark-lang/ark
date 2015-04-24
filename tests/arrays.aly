@@ -1,9 +1,0 @@
-fn swag(x: []int): void {
-
-}
-
-fn main(): int {
-	x: []int = [ 0, 1, 2, 3 ];
-	y := [ 0, 1, 2, 3, 4 ];
-	swag(x);
-}
