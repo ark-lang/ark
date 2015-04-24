@@ -93,7 +93,7 @@ typedef struct {
  * Use statement node
  */
 typedef struct {
-	char *file;
+	Vector *files;
 } UseMacro;
 
 typedef struct {
@@ -470,7 +470,7 @@ Node *createNode(void *data, NodeType type);
 
 Impl *createImpl(char *name, char *as);
 
-UseMacro *createUseMacro(char *file);
+UseMacro *createUseMacro();
 
 ArrayInitializer *createArrayInitializer();
 

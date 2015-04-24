@@ -1,14 +1,16 @@
 #include "codegen.h"
 
 void emitUseMacro(CodeGenerator *self, UseMacro *use) {
-	// cuts out the extension from the file
-	// name of the current file.
-	size_t len = strlen(use->file);
-	char temp[len - 2];
-	memcpy(temp, &use->file[1], len - 2);
-	temp[len - 2] = '\0';
+	for (int i = 0; i < use->files->size; i++) {
+		char *fileName = getVectorItem(use->files, i);
 
-	emitCode(self, "#include \"_gen_%s.h\"\n", temp);
+		size_t len = strlen(fileName);
+		char temp[len - 2];
+		memcpy(temp, &fileName[1], len - 2);
+		temp[len - 2] = '\0';
+
+		emitCode(self, "#include \"_gen_%s.h\"\n", temp);
+	}
 }
 
 void emitLinkerFlagMacro(CodeGenerator *self, LinkerFlagMacro *linker) {

@@ -78,9 +78,32 @@ UseMacro *parseUseMacro(Parser *self) {
 		if (checkTokenTypeAndContent(self, IDENTIFIER, USE_KEYWORD, 0)) {
 			consumeToken(self);
 
+			UseMacro *use = createUseMacro();
+
 			if (checkTokenType(self, STRING, 0)) {
-				char *file = consumeToken(self)->content;
-				return createUseMacro(file);
+				char *fileName = consumeToken(self)->content;
+				pushBackItem(use->files, fileName);
+				return use;
+			}
+			else if (checkTokenTypeAndContent(self, SEPARATOR, "{", 0)) {
+				consumeToken(self);
+
+				while (true) {
+					if (checkTokenTypeAndContent(self, SEPARATOR, "}", 0)) {
+						consumeToken(self);
+						break;
+					}
+
+					if (checkTokenType(self, STRING, 0)) {
+						char *fileName = consumeToken(self)->content;
+						if (checkTokenTypeAndContent(self, SEPARATOR, ",", 0)) {
+							consumeToken(self);
+						}
+						pushBackItem(use->files, fileName);
+					}
+				}
+
+				return use;
 			}
 		}
 		else {
