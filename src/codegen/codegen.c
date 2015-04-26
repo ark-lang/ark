@@ -62,13 +62,13 @@ void emitCode(CodeGenerator *self, const char *fmt, ...) {
 	switch (self->writeState) {
 		case WRITE_SOURCE_STATE:
 			vfprintf(self->currentSourceFile->outputFile, fmt, args);
-			va_end(args);
 			break;
 		case WRITE_HEADER_STATE:
 			vfprintf(self->currentSourceFile->headerFile->outputFile, fmt, args);
-			va_end(args);
 			break;
 	}
+
+	va_end(args);
 }
 
 void consumeAstNode(CodeGenerator *self) {
@@ -80,9 +80,6 @@ void consumeAstNodeBy(CodeGenerator *self, int amount) {
 }
 
 void emitLiteral(CodeGenerator *self, Literal *lit) {
-	if (lit->type == HEX) {
-		
-	}
 	emitCode(self, "%s", lit->value);
 }
 
