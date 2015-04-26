@@ -833,20 +833,20 @@ Macro *parseMacro(Parser *self) {
 	if (!checkTokenTypeAndContent(self, OPERATOR, "!", 0)) {
 		return false;
 	}	
-	
-	UseMacro *use = parseUseMacro(self);
-	if (use) {
-		Macro *stmt = createMacro();
-		stmt->use = use;
-		stmt->type = USE_MACRO_NODE;
-		return stmt;
-	}
 
 	LinkerFlagMacro *linker = parseLinkerFlagMacro(self);
 	if (linker) {
 		Macro *stmt = createMacro();
 		stmt->linker = linker;
 		stmt->type = LINKER_FLAG_MACRO_NODE;
+		return stmt;
+	}
+	
+	UseMacro *use = parseUseMacro(self);
+	if (use) {
+		Macro *stmt = createMacro();
+		stmt->use = use;
+		stmt->type = USE_MACRO_NODE;
 		return stmt;
 	}
 
