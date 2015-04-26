@@ -273,7 +273,7 @@ We could write a really simple "math" library with some bindings to C's `<math.h
 And we can use this library in a file:
 
 	// main.aly
-	use "math" // note we don't use "math.aly", just "math"
+	!use "math" // note we don't use "math.aly", just "math"
 
 	fn main(): int {
 		mut x: double = pow(5, 2);
@@ -373,9 +373,6 @@ Note that `x` is not defined in the for loop, but must be defined outside of the
 		...
 	}
 
-## Tuples
-todo
-
 ## Option Types
 todo
 
@@ -394,7 +391,7 @@ To refer to the enum item, you need to specify the name of the enumeration, foll
 and finally the enum item.
 
 	fn main(): int {
-		match DogBreed {
+		match x {
 			DogBreed::POODLE -> ...;
 		}
 	}
