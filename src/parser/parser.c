@@ -447,7 +447,42 @@ EnumDecl *parseEnumDecl(Parser *self) {
 }
 
 ElseStat *parseElseStat(Parser *self) {
-	ALLOY_UNUSED_OBJ(self);
+	if (checkTokenTypeAndContent(self, IDENTIFIER, ELSE_KEYWORD, 0)) {
+		consumeToken(self);
+
+		if (checkTokenTypeAndContent(self, SEPARATOR, "{", 0)) {
+			Block *block = parseBlock(self);
+			if (block) {
+				ElseStat *elseStat = createElseStat();
+				elseStat->body = block;
+				return elseStat;
+			}
+			else {
+				parserError("Failed to parse block");
+			}
+		}
+	}
+	return false;
+}
+
+ElseIfStat *parseElseIfStat(Parser *self) {
+	if (checkTokenTypeAndContent(self, IDENTIFIER, ELSE_KEYWORD, 0)) {
+		consumeToken(self);
+
+		if (checkTokenTypeAndContent(self, IDENTIFIER, IF_KEYWORD, 0)) {
+			consumeToken(self);
+
+			if (checkTokenTypeAndContent(self, SEPARATOR, "{", 0)) {
+				Block *block = parseBlock(self);
+				if (block) {
+					ElseIfStat *elif = createElseIfStat(self);
+
+					return elif;
+				}
+			}
+		}
+	}
+
 	return false;
 }
 
@@ -461,6 +496,14 @@ IfStat *parseIfStat(Parser *self) {
 				Block *block = parseBlock(self);
 				if (block) {
 					IfStat *ifStmt = createIfStat();
+					if (checkTokenTypeAndContent(self, IDENTIFIER, ELSE_KEYWORD, 0)
+						&& checkTokenTypeAndContent(self, SEPARATOR, "{", 1)) {
+						ifStmt->elseStmt = parseElseStat(self);
+					}
+					else if (checkTokenTypeAndContent(self, IDENTIFIER, ELSE_KEYWORD, 0)
+						&& checkTokenTypeAndContent(self, IDENTIFIER, IF_KEYWORD, 1)) {
+
+					}
 					ifStmt->expr = expr;
 					ifStmt->body = block;
 					return ifStmt;

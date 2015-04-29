@@ -48,6 +48,7 @@
 #define LINKER_FLAG_KEYWORD			"linker_flag"
 #define IMPL_KEYWORD				"impl"
 #define IMPL_AS_KEYWORD				"as"
+#define ELSE_KEYWORD 				"else"
 
 /**
  * Various operators that are used in the parser, also used
