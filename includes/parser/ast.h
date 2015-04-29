@@ -409,12 +409,21 @@ typedef struct {
 } ElseStat;
 
 /**
+ * Else If Block
+ */
+typedef struct {
+	Expression *condition;
+	Block *body;
+} ElseIfStat;
+
+/**
  * If statement node, expr is
  * for a condition
  */
 typedef struct {
 	Expression *expr;
 	Block *body;
+	Vector *elseIfStmts;
 	ElseStat *elseStmt;
 } IfStat;
 
@@ -549,6 +558,8 @@ PointerFree *createPointerFree(char *name);
 
 ElseStat *createElseStat();
 
+ElseIfStat *createElseIfStat();
+
 IfStat *createIfStat();
 
 MatchClause *createMatchClause();
@@ -644,6 +655,8 @@ void destroyMacro(Macro *macro);
 void destroyPointerFree(PointerFree *pntr);
 
 void destroyElseStat(ElseStat *stmt);
+
+void destroyElseIfStat(ElseIfStat *stmt);
 
 void destroyIfStat(IfStat *stmt);
 
