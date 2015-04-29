@@ -238,8 +238,14 @@ ElseStat *createElseStat() {
 	return safeMalloc(sizeof(ElseStat));
 }
 
+ElseIfStat *createElseIfStat() {
+	return safeMalloc(sizeof(ElseIfStat));
+}
+
 IfStat *createIfStat() {
-	return safeMalloc(sizeof(IfStat));
+	IfStat *ifStmt = safeMalloc(sizeof(*ifStmt));
+	ifStmt->elseIfStmts = createVector(VECTOR_EXPONENTIAL);
+	return ifStmt;
 }
 
 MatchClause *createMatchClause() {
@@ -274,42 +280,44 @@ void cleanupAST(Vector *nodes) {
 		Node *node = getVectorItem(nodes, i);
 
 		switch (node->type) {
-		case IDENTIFIER_LIST_NODE: destroyIdentifierList(node->data); break;
-		case LITERAL_NODE: destroyLiteral(node->data); break;
-		case UNARY_EXPR_NODE: destroyUnaryExpr(node->data); break;
-		case MACRO_NODE: destroyMacro(node->data); break;
-		case EXPR_NODE: destroyExpression(node->data); break;
-		case TYPE_NAME_NODE: destroyTypeName(node->data); break;
-		case ARRAY_TYPE_NODE: destroyArrayType(node->data); break;
-		case POINTER_TYPE_NODE: destroyPointerType(node->data); break;
-		case FIELD_DECL_NODE: destroyFieldDecl(node->data); break;
-		case FIELD_DECL_LIST_NODE: destroyFieldDeclList(node->data); break;
-		case STRUCT_DECL_NODE: destroyStructDecl(node->data); break;
-		case STATEMENT_LIST_NODE: destroyStatementList(node->data); break;
-		case BLOCK_NODE: destroyBlock(node->data); break;
-		case PARAMETER_SECTION_NODE: destroyParameterSection(node->data); break;
-		case PARAMETERS_NODE: destroyParameters(node->data); break;
-		case IMPL_NODE: destroyImpl(node->data); break;
-		case FUNCTION_SIGNATURE_NODE: destroyFunctionSignature(node->data); break;
-		case FUNCTION_DECL_NODE: destroyFunctionDecl(node->data); break;
-		case VARIABLE_DECL_NODE: destroyVariableDecl(node->data); break;
-		case DECLARATION_NODE: destroyDeclaration(node->data); break;
-		case INC_DEC_STAT_NODE: destroyIncDecStat(node->data); break;
-		case RETURN_STAT_NODE: destroyReturnStat(node->data); break;
-		case BREAK_STAT_NODE: destroyBreakStat(node->data); break;
-		case CONTINUE_STAT_NODE: destroyContinueStat(node->data); break;
-		case LEAVE_STAT_NODE: destroyLeaveStat(node->data); break;
-		case ASSIGNMENT_NODE: destroyAssignment(node->data); break;
-		case UNSTRUCTURED_STATEMENT_NODE: destroyUnstructuredStatement(node->data); break;
-		case ELSE_STAT_NODE: destroyElseStat(node->data); break;
-		case IF_STAT_NODE: destroyIfStat(node->data); break;
-		case MATCH_CLAUSE_STAT: destroyMatchClause(node->data); break;
-		case MATCH_STAT_NODE: destroyMatchStat(node->data); break;
-		case FOR_STAT_NODE: destroyForStat(node->data); break;
-		case STRUCTURED_STATEMENT_NODE: destroyStructuredStatement(node->data); break;
-		case STATEMENT_NODE: destroyStatement(node->data); break;
-		case TYPE_NODE: destroyType(node->data); break;
-		default: printf("un-recognized node %d\n", node->type); break;
+			case IDENTIFIER_LIST_NODE: destroyIdentifierList(node->data); break;
+			case LITERAL_NODE: destroyLiteral(node->data); break;
+			case UNARY_EXPR_NODE: destroyUnaryExpr(node->data); break;
+			case MACRO_NODE: destroyMacro(node->data); break;
+			case EXPR_NODE: destroyExpression(node->data); break;
+			case TYPE_NAME_NODE: destroyTypeName(node->data); break;
+			case ARRAY_TYPE_NODE: destroyArrayType(node->data); break;
+			case POINTER_TYPE_NODE: destroyPointerType(node->data); break;
+			case FIELD_DECL_NODE: destroyFieldDecl(node->data); break;
+			case FIELD_DECL_LIST_NODE: destroyFieldDeclList(node->data); break;
+			case STRUCT_DECL_NODE: destroyStructDecl(node->data); break;
+			case STATEMENT_LIST_NODE: destroyStatementList(node->data); break;
+			case BLOCK_NODE: destroyBlock(node->data); break;
+			case PARAMETER_SECTION_NODE: destroyParameterSection(node->data); break;
+			case PARAMETERS_NODE: destroyParameters(node->data); break;
+			case IMPL_NODE: destroyImpl(node->data); break;
+			case FUNCTION_SIGNATURE_NODE: destroyFunctionSignature(node->data); break;
+			case FUNCTION_DECL_NODE: destroyFunctionDecl(node->data); break;
+			case VARIABLE_DECL_NODE: destroyVariableDecl(node->data); break;
+			case DECLARATION_NODE: destroyDeclaration(node->data); break;
+			case INC_DEC_STAT_NODE: destroyIncDecStat(node->data); break;
+			case RETURN_STAT_NODE: destroyReturnStat(node->data); break;
+			case BREAK_STAT_NODE: destroyBreakStat(node->data); break;
+			case CONTINUE_STAT_NODE: destroyContinueStat(node->data); break;
+			case LEAVE_STAT_NODE: destroyLeaveStat(node->data); break;
+			case ASSIGNMENT_NODE: destroyAssignment(node->data); break;
+			case UNSTRUCTURED_STATEMENT_NODE: destroyUnstructuredStatement(node->data); break;
+			case ELSE_STAT_NODE: destroyElseStat(node->data); break;
+			case IF_STAT_NODE: destroyIfStat(node->data); break;
+			case MATCH_CLAUSE_STAT: destroyMatchClause(node->data); break;
+			case MATCH_STAT_NODE: destroyMatchStat(node->data); break;
+			case FOR_STAT_NODE: destroyForStat(node->data); break;
+			case STRUCTURED_STATEMENT_NODE: destroyStructuredStatement(node->data); break;
+			case STATEMENT_NODE: destroyStatement(node->data); break;
+			case TYPE_NODE: destroyType(node->data); break;
+			default: 
+				printf("un-recognized node %d\n", node->type); 
+				break;
 		}
 	}
 }
@@ -553,6 +561,9 @@ void destroyUnstructuredStatement(UnstructuredStatement *stmt) {
 		case LEAVE_STAT_NODE: destroyLeaveStat(stmt->leave); break;
 		case FUNCTION_CALL_NODE: destroyCall(stmt->call); break;
 		case IMPL_NODE: destroyImpl(stmt->impl); break;
+		default:
+			errorMessage("unstructured statement isn't being destroyed!?");
+			break;
 	}
 	free(stmt);
 }
@@ -562,12 +573,22 @@ void destroyMacro(Macro *macro) {
 	switch (macro->type) {
 		case USE_MACRO_NODE: destroyUseMacro(macro->use); break;
 		case LINKER_FLAG_MACRO_NODE: destroyLinkerFlagMacro(macro->linker); break;
+		default:
+			errorMessage("macro not being destroyed?");
+			break;
 	}
 	free(macro);
 }
 
 void destroyPointerFree(PointerFree *pntr) {
 	free(pntr);
+}
+
+void destroyElseIfStat(ElseIfStat *stmt) {
+	if (!stmt) return;
+	destroyBlock(stmt->body);
+	destroyExpression(stmt->condition);
+	free(stmt);
 }
 
 void destroyElseStat(ElseStat *stmt) {
@@ -581,6 +602,11 @@ void destroyIfStat(IfStat *stmt) {
 	destroyBlock(stmt->body);
 	destroyElseStat(stmt->elseStmt);
 	destroyExpression(stmt->expr);
+	for (int i = 0; i < stmt->elseIfStmts->size; i++) {
+		ElseIfStat *elseIfStat = getVectorItem(stmt->elseIfStmts, i);
+		destroyElseIfStat(elseIfStat);
+	}
+	destroyVector(stmt->elseIfStmts);
 	free(stmt);
 }
 
