@@ -7,15 +7,6 @@
 // global scope is always on the bottom of the stack
 #define GLOBAL_SCOPE_INDEX 0
 
-const char *VARIABLE_TYPE_NAMES[] = {
-	"int",
-	"double",
-	"str",
-	"char",
-	"struct",
-	"???"
-};
-
 Scope *createScope() {
 	Scope *self = safeMalloc(sizeof(*self));
 	self->funcSymTable = hashmap_new();
@@ -32,12 +23,6 @@ void destroyScope(Scope *self) {
 	free(self);
 }
 
-VariableTypeHeap *createHeapType(VariableType type) {
-	VariableTypeHeap *var = safeMalloc(sizeof(*var));
-	var->type = type;
-	return var;
-}
-
 SemanticAnalyzer *createSemanticAnalyzer(Vector *sourceFiles) {
 	SemanticAnalyzer *self = safeMalloc(sizeof(*self));
 	self->sourceFiles = sourceFiles;
@@ -46,44 +31,7 @@ SemanticAnalyzer *createSemanticAnalyzer(Vector *sourceFiles) {
 	self->currentNode = 0;
 	self->scopes = createStack();
 	self->failed = false;
-	
-	// data types
-	self->dataTypes = hashmap_new();
-
-	// this will do for now....
-
-	// signed precision
-	hashmap_put(self->dataTypes, "i8", createHeapType(INTEGER_VAR_TYPE));
-	hashmap_put(self->dataTypes, "i16", createHeapType(INTEGER_VAR_TYPE));
-	hashmap_put(self->dataTypes, "i32", createHeapType(INTEGER_VAR_TYPE));
-	hashmap_put(self->dataTypes, "i64", createHeapType(INTEGER_VAR_TYPE));
-
-	// unsigned precision
-	hashmap_put(self->dataTypes, "u8", createHeapType(INTEGER_VAR_TYPE));
-	hashmap_put(self->dataTypes, "u16", createHeapType(INTEGER_VAR_TYPE));
-	hashmap_put(self->dataTypes, "u32", createHeapType(INTEGER_VAR_TYPE));
-	hashmap_put(self->dataTypes, "u64", createHeapType(INTEGER_VAR_TYPE));
-	hashmap_put(self->dataTypes, "usize", createHeapType(INTEGER_VAR_TYPE));
-
-	// precision floats
-	hashmap_put(self->dataTypes, "f32", createHeapType(DOUBLE_VAR_TYPE));
-	hashmap_put(self->dataTypes, "f64", createHeapType(DOUBLE_VAR_TYPE));
-
-	// primitive types
-	hashmap_put(self->dataTypes, "int", createHeapType(INTEGER_VAR_TYPE));
-	hashmap_put(self->dataTypes, "char", createHeapType(CHAR_VAR_TYPE));
-	hashmap_put(self->dataTypes, "str", createHeapType(STRING_VAR_TYPE));
-	hashmap_put(self->dataTypes, "bool", createHeapType(INTEGER_VAR_TYPE));
-
 	return self;
-}
-
-int getDataType(SemanticAnalyzer *self, char *type) {
-	VariableTypeHeap *varType = NULL;
-	if (hashmap_get(self->dataTypes, type, (void**) &varType) == MAP_OK) {
-		return varType->type;
-	}
-	return -1;
 }
 
 void analyzeBlock(SemanticAnalyzer *self, Block *block) {
@@ -112,118 +60,12 @@ void analyzeFunctionDeclaration(SemanticAnalyzer *self, FunctionDecl *decl) {
 	}
 }
 
-// wat
-VariableType mergeTypes(VariableType a, VariableType b) {
-	if (a == DOUBLE_VAR_TYPE || b == DOUBLE_VAR_TYPE) {
-		return DOUBLE_VAR_TYPE;
-	}
-	else if (a == INTEGER_VAR_TYPE && b == INTEGER_VAR_TYPE) {
-		return INTEGER_VAR_TYPE;
-	}
-	else if (a == STRING_VAR_TYPE && b == STRING_VAR_TYPE) {
-		return STRING_VAR_TYPE;
-	}
-	else if (a == CHAR_VAR_TYPE && b != CHAR_VAR_TYPE) {
-		return INTEGER_VAR_TYPE;
-	}
-	else if (a == CHAR_VAR_TYPE && b == CHAR_VAR_TYPE) {
-		return CHAR_VAR_TYPE;
-	}
-	return UNKNOWN_VAR_TYPE;
-}
-
-VariableType literalToType(Literal *literal) {
-	switch (literal->type) {
-		case LITERAL_WHOLE_NUMBER: return INTEGER_VAR_TYPE;
-		case LITERAL_DECIMAL_NUMBER: return DOUBLE_VAR_TYPE;
-		case LITERAL_HEX_NUMBER: return INTEGER_VAR_TYPE;
-		case LITERAL_STRING: return STRING_VAR_TYPE;
-		case LITERAL_CHAR: return CHAR_VAR_TYPE;
-	}
-
-	return false;
-}
-
-VariableType getTypeFromFunctionSignature(SemanticAnalyzer *self, Type *type) {
-	if (type->type == TYPE_NAME_NODE) {
-		VariableDecl *varDecl = checkVariableExists(self, type->typeName->name);
-		int varType;
-
-		if (varDecl) {
-			return deduceType(self, varDecl->expr);
-		}
-		else if ((varType = getDataType(self, type->typeName->name)) != -1) {
-			return varType;
-		}
-		else {
-			semanticError("Could not deduce type based on function signature: `%s`", type->typeName->name);
-		}
-	}
-	return false;
-}
-
-VariableType deduceType(SemanticAnalyzer *self, Expression *expr) {
-	switch (expr->exprType) {
-		case LITERAL_NODE: return literalToType(expr->lit);
-		case TYPE_NODE: {
-			// type lit not supported atm TODO
-			if (expr->type->type == TYPE_NAME_NODE) {
-				VariableDecl *varDecl = checkVariableExists(self, expr->type->typeName->name);
-				if (varDecl) {
-					return deduceType(self, varDecl->expr);
-				}
-				else {
-					semanticError("Could not deduce %s", expr->type->typeName->name);
-				}
-			}
-			break;
-		}
-		case FUNCTION_CALL_NODE: {
-			FunctionDecl *decl = checkFunctionExists(self, getVectorItem(expr->call->callee, 0));
-			if (decl) {
-				return getTypeFromFunctionSignature(self, decl->signature->type);
-			}
-			else {
-				semanticError("Cannot deduce type for undefined function `%s`", getVectorItem(expr->call->callee, 0));
-			}
-			break;
-		}
-		case BINARY_EXPR_NODE: {
-			// deduce type for lhand & rhand
-			VariableType lhandType = deduceType(self, expr->binary->lhand);
-			VariableType rhandType = deduceType(self, expr->binary->rhand);
-			
-			// merge them
-			VariableType finalType = mergeTypes(lhandType, rhandType);
-			if (finalType == UNKNOWN_VAR_TYPE) {
-				semanticError("Incompatible types `%s` and `%s` in expression: ", VARIABLE_TYPE_NAMES[lhandType], VARIABLE_TYPE_NAMES[rhandType]);
-			}
-			return finalType;
-		}
-	}
-	return false;
-}
-
-TypeName *createTypeDeduction(VariableType type) {
-	switch (type) {
-		case INTEGER_VAR_TYPE: return createTypeName("int");
-		case DOUBLE_VAR_TYPE: return createTypeName("double");
-		case STRING_VAR_TYPE: return createTypeName("str");
-		case CHAR_VAR_TYPE: return createTypeName("char");
-		default: break;
-	}
-	return false;
-}
-
 void analyzeVariableDeclaration(SemanticAnalyzer *self, VariableDecl *decl) {
 	VariableDecl *mapDecl = checkVariableExists(self, decl->name);
 	// doesnt exist
 	if (!mapDecl) {
 		if (decl->inferred) {
-			VariableType type = deduceType(self, decl->expr);
-			decl->type = createType();
-			decl->type->type = TYPE_NAME_NODE;
-			decl->type->typeName = createTypeDeduction(type);
+			errorMessage("todo: type inference lol");
 		}
 		pushVariableDeclaration(self, decl);
 	}
