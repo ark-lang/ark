@@ -17,7 +17,7 @@ Alloy has a fairly strict code-style to keep things consistent:
     would be replaced with the name of the class, e.g. `createLexer`, `destroyLexer`.
 
 ## Community
-Having any problems? [Open an Issue](https://github.com/alloy-lang/alloy/issues). 
+Having any problems? [Open an Issue](https://github.com/felixangell/alloy/issues). 
 
 ### IRC
 There is also an IRC room over on freenode: [#alloy-lang](http://webchat.freenode.net/?channels=%23alloy-lang), here's the info if you want to enter it into your own client:
@@ -38,7 +38,7 @@ Please ensure that you rebase your commits against remote master prior to submit
 
 ## Proposing a feature or change
 If you want to have a say in the language, feel free to
-[open an issue](https://github.com/alloy-lang/alloy/issues). We use proposals
+[open an issue](https://github.com/felixangell/alloy/issues). We use proposals
 so that people can vote on the idea, since the smallest change can put Alloy
 in a completely different direction. To help us all out, please include
 the following when submitting your issue:
