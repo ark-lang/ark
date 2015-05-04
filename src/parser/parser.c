@@ -3,6 +3,8 @@
 #define parserError(...) self->failed = true; \
 						 errorMessage(__VA_ARGS__)
 
+#define PRINT_CURR_TOK() printf("current token: %s\n", peekAtTokenStream(self, 0)->content);
+
 const char* BINARY_OPS[] = { ".", "*", "/", "%", "+", "=", "-", ">", "<", ">=", "<=", "==", "!=", "&", "|", };
 
 const char* DATA_TYPES[] = { "i64", "i32", "i16", "i8", "u64", "u32", "u16", "u8", "f64", "f32", "int", "bool", "char", "void" };
@@ -996,7 +998,8 @@ VariableDecl *parseVariableDecl(Parser *self) {
 		mutable = true;
 	}
 
-	if (checkTokenType(self, IDENTIFIER, 0)) {
+	if (checkTokenType(self, IDENTIFIER, 0)
+		&& checkTokenTypeAndContent(self, OPERATOR, ":", 1)) {
 		char *var_name = consumeToken(self)->content;
 		Expression *rhand = NULL;
 
@@ -1123,6 +1126,9 @@ Expression *parseExpression(Parser *self) {
 
 	if (isValidBinaryOp(peekAtTokenStream(self, 0)->content)) {
 		return parseBinaryOperator(self, 0, expr);
+	}
+	else {
+		PRINT_CURR_TOK(); 
 	}
 	return expr;
 }
