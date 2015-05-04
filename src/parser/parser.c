@@ -1127,9 +1127,6 @@ Expression *parseExpression(Parser *self) {
 	if (isValidBinaryOp(peekAtTokenStream(self, 0)->content)) {
 		return parseBinaryOperator(self, 0, expr);
 	}
-	else {
-		PRINT_CURR_TOK(); 
-	}
 	return expr;
 }
 
