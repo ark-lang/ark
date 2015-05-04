@@ -34,16 +34,17 @@ const char *BOILERPLATE =
  */
 const char *NODE_NAME[] = {
 	"IDENTIFIER_LIST_NODE", "IDENTIFIER_NODE", "LITERAL_NODE", "BINARY_EXPR_NODE",
-	"UNARY_EXPR_NODE", "ARRAY_SUB_EXPR_NODE",
 	"PRIMARY_EXPR_NODE", "EXPR_NODE", "TYPE_NAME_NODE", "TYPE_LIT_NODE", "PAREN_EXPR_NODE",
-	"ARRAY_TYPE_NODE", "POINTER_TYPE_NODE", "FIELD_DECL_NODE",
+	"ARRAY_TYPE_NODE", "POINTER_TYPE_NODE", "FIELD_DECL_NODE", "UNARY_EXPR_NODE",
 	"FIELD_DECL_LIST_NODE", "STRUCT_DECL_NODE", "STATEMENT_LIST_NODE",
-	"BLOCK_NODE", "PARAMETER_SECTION_NODE", "PARAMETERS_NODE", "IMPL_NODE",
+	"BLOCK_NODE", "PARAMETER_SECTION_NODE", "PARAMETERS_NODE", "IMPL_NODE", "ENUM_DECL_NODE",
 	"FUNCTION_SIGNATURE_NODE", "FUNCTION_DECL_NODE", "VARIABLE_DECL_NODE", "FUNCTION_CALL_NODE",
 	"DECLARATION_NODE", "INC_DEC_STAT_NODE", "RETURN_STAT_NODE", "BREAK_STAT_NODE",
 	"CONTINUE_STAT_NODE", "LEAVE_STAT_NODE", "ASSIGNMENT_NODE", "UNSTRUCTURED_STATEMENT_NODE",
 	"ELSE_STAT_NODE", "IF_STAT_NODE", "MATCH_CLAUSE_STAT", "MATCH_STAT_NODE", "FOR_STAT_NODE",
-	"STRUCTURED_STATEMENT_NODE", "STATEMENT_NODE", "TYPE_NODE", "POINTER_FREE_NODE"
+	"STRUCTURED_STATEMENT_NODE", "STATEMENT_NODE", "TYPE_NODE", "POINTER_FREE_NODE", "TUPLE_TYPE_NODE",
+	"TUPLE_EXPR_NODE", "OPTION_TYPE_NODE", 
+	"MACRO_NODE", "USE_MACRO_NODE", "LINKER_FLAG_MACRO_NODE", "EXPR_STAT_NODE", "ARRAY_INITIALIZER_NODE"
 };
 
 CodeGenerator *createCodeGenerator(Vector *sourceFiles) {
@@ -103,6 +104,7 @@ void emitUnaryExpr(CodeGenerator *self, UnaryExpr *expr) {
 }
 
 void emitArrayInitializer(CodeGenerator *self, ArrayInitializer *arr) {
+	if (arr == NULL || arr->values) return;
 	emitCode(self, "{");
 	for (int i = 0; i < arr->values->size; i++) {
 		emitExpression(self, getVectorItem(arr->values, i));
@@ -122,7 +124,7 @@ void emitExpression(CodeGenerator *self, Expression *expr) {
 		case FUNCTION_CALL_NODE: emitFunctionCall(self, expr->call); break;
 		case ARRAY_INITIALIZER_NODE: emitArrayInitializer(self, expr->arrayInitializer); break;
 		default:
-			printf("Unknown node in expression %s\n", NODE_NAME[expr->exprType]);
+			printf("Unknown node in expression %d\n", expr->exprType);
 			break;
 	}
 }
@@ -401,11 +403,13 @@ void emitEnumDecl(CodeGenerator *self, EnumDecl *enumDecl) {
 	for (int i = 0; i < enumDecl->items->size; i++) {
 		EnumItem *item = getVectorItem(enumDecl->items, i);
 		emitCode(self, "%s", item->name);
-		if (item->val) {
-			emitCode(self, "=");
-			emitExpression(self, item->val);
+		// if (item->val) { FIXME!!
+		// 	emitCode(self, "=");
+		// 	emitExpression(self, item->val);
+		// }
+		if (enumDecl->items->size > 1 && i != enumDecl->items->size - 1) {
+			emitCode(self, ",");
 		}
-		emitCode(self, ",");
 	}
 	emitCode(self, "} %s;" CC_NEWLINE CC_NEWLINE, enumDecl->name);
 }
