@@ -170,6 +170,10 @@ void recognizeNumberToken(Lexer *self) {
 			consumeCharacter(self);
 		}
 
+		if (self->currentChar == 'f' || self->currentChar == 'd') {
+			consumeCharacter(self);
+		}
+
 		pushToken(self, DECIMAL);
 	}
 	else {
@@ -180,6 +184,10 @@ void recognizeNumberToken(Lexer *self) {
 			if (peekAhead(self, 1) == '.') {
 				consumeCharacter(self);
 				while (isDigit(self->currentChar)) {
+					consumeCharacter(self);
+				}
+
+				if (self->currentChar == 'f' || self->currentChar == 'd') {
 					consumeCharacter(self);
 				}
 				isDecimal = true;
