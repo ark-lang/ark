@@ -74,61 +74,51 @@ Literal *parseLiteral(Parser *self) {
 }
 
 UseMacro *parseUseMacro(Parser *self) {
-	if (checkTokenTypeAndContent(self, OPERATOR, "!", 0)) {
+	if (checkTokenTypeAndContent(self, OPERATOR, "!", 0)
+		&& checkTokenTypeAndContent(self, IDENTIFIER, USE_KEYWORD, 1)) {
+		consumeToken(self);
 		consumeToken(self);
 
-		if (checkTokenTypeAndContent(self, IDENTIFIER, USE_KEYWORD, 0)) {
+		UseMacro *use = createUseMacro();
+
+		if (checkTokenType(self, STRING, 0)) {
+			char *fileName = consumeToken(self)->content;
+			pushBackItem(use->files, fileName);
+			return use;
+		}
+		else if (checkTokenTypeAndContent(self, SEPARATOR, "{", 0)) {
 			consumeToken(self);
 
-			UseMacro *use = createUseMacro();
-
-			if (checkTokenType(self, STRING, 0)) {
-				char *fileName = consumeToken(self)->content;
-				pushBackItem(use->files, fileName);
-				return use;
-			}
-			else if (checkTokenTypeAndContent(self, SEPARATOR, "{", 0)) {
-				consumeToken(self);
-
-				while (true) {
-					if (checkTokenTypeAndContent(self, SEPARATOR, "}", 0)) {
-						consumeToken(self);
-						break;
-					}
-
-					if (checkTokenType(self, STRING, 0)) {
-						char *fileName = consumeToken(self)->content;
-						if (checkTokenTypeAndContent(self, SEPARATOR, ",", 0)) {
-							consumeToken(self);
-						}
-						pushBackItem(use->files, fileName);
-					}
+			while (true) {
+				if (checkTokenTypeAndContent(self, SEPARATOR, "}", 0)) {
+					consumeToken(self);
+					break;
 				}
 
-				return use;
+				if (checkTokenType(self, STRING, 0)) {
+					char *fileName = consumeToken(self)->content;
+					if (checkTokenTypeAndContent(self, SEPARATOR, ",", 0)) {
+						consumeToken(self);
+					}
+					pushBackItem(use->files, fileName);
+				}
 			}
-		}
-		else {
-			parserError("Unrecognized macro %s", peekAtTokenStream(self, 0)->content);
+
+			return use;
 		}
 	}
 	return false;
 }
 
 LinkerFlagMacro *parseLinkerFlagMacro(Parser *self) {
-	if (checkTokenTypeAndContent(self, OPERATOR, "!", 0)) {
+	if (checkTokenTypeAndContent(self, OPERATOR, "!", 0)
+		&& checkTokenTypeAndContent(self, IDENTIFIER, LINKER_FLAG_KEYWORD, 1)) {
+		consumeToken(self);
 		consumeToken(self);
 
-		if (checkTokenTypeAndContent(self, IDENTIFIER, LINKER_FLAG_KEYWORD, 0)) {
-			consumeToken(self);
-
-			if (checkTokenType(self, STRING, 0)) {
-				char *flag = consumeToken(self)->content;
-				return createLinkerFlagMacro(flag);
-			}
-		}
-		else {
-			parserError("Unrecognized macro %s", peekAtTokenStream(self, 0)->content);
+		if (checkTokenType(self, STRING, 0)) {
+			char *flag = consumeToken(self)->content;
+			return createLinkerFlagMacro(flag);
 		}
 	}
 	return false;
