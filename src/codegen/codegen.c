@@ -104,7 +104,10 @@ void emitUnaryExpr(CodeGenerator *self, UnaryExpr *expr) {
 }
 
 void emitArrayInitializer(CodeGenerator *self, ArrayInitializer *arr) {
-	if (arr == NULL || arr->values) return;
+	if (arr == NULL || arr->values == NULL) {
+		printf("something is null, we're leaving..\n");
+		return;
+	}
 	emitCode(self, "{");
 	for (int i = 0; i < arr->values->size; i++) {
 		emitExpression(self, getVectorItem(arr->values, i));
