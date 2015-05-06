@@ -36,7 +36,8 @@ Alloy provides various primitive types:
 	double		IEEE 754 double-precision binary floating-point
 	bool		unsigned 8 bits
 	char		signed 8 bits
-
+	uint 		an unsigned integer at least 16 bits in size
+	
 ## Precision Types
 The precision types are there for when you want a data type to be a specific
 size. If you're writing portable code, we suggest that you use the primitive
