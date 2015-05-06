@@ -27,6 +27,7 @@ const char *BOILERPLATE =
 "typedef long long i64;" CC_NEWLINE
 "typedef float f32;" CC_NEWLINE
 "typedef double f64;" CC_NEWLINE
+"typedef unsigned int uint;" CC_NEWLINE
 ;
 
 /**
