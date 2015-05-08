@@ -166,7 +166,7 @@ a structure to define a Cat's properties like so:
 		weight: float;
 	}
 	
-Structures are more complex types, however they are defined like an ordinary type such as an integer
+While structures are more complex types, they are defined just as any ordinary type such as an integer
 or float:
 
 	mut terry: cat;
