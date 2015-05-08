@@ -40,7 +40,7 @@ fn fmod(x: f64, y: f64): f64;
 // TODO consider implenting as macros/inline functions if they get implemented
 
 fn degToRad(deg: f64): f64 {
-	return deg * 2 * PI / 360.0; // TODO replace with PI constant
+	return deg * 2 * PI / 360.0;
 }
 
 fn radToDeg(rad: f64): f64 {
