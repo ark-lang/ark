@@ -149,6 +149,12 @@ We can simplify this using a return type of `int`, for instance:
 		return x + y;
 	}
 
+### Single-line Functions
+If you have a function that consists of a single statement, it's suggested that you use the
+`->` operator instead of an entire block.
+
+	fn add(a: int, b: int): int -> return a + b;
+
 ## Structures
 A structure is a complex data type that defines a list of variables all grouped under one name
 in memory:
