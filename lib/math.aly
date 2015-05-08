@@ -5,7 +5,7 @@
 
 !linker_flag "m"
 
-//PI: f64 = 3.14159265358979323846;
+PI: f64 = 3.14159265358979323846;
 
 //
 // Wraper functions
@@ -40,11 +40,11 @@ fn fmod(x: f64, y: f64): f64;
 // TODO consider implenting as macros/inline functions if they get implemented
 
 fn degToRad(deg: f64): f64 {
-	return deg * 2 * 3.14159265358979323846 / 360.0; // TODO replace with PI constant
+	return deg * 2 * PI / 360.0; // TODO replace with PI constant
 }
 
 fn radToDeg(rad: f64): f64 {
-	return rad / 2 / 3.14159265358979323846 * 360.0;
+	return rad / 2 / PI * 360.0;
 }
 
 fn max(x: f64, y: f64): f64 {
