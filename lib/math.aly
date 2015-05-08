@@ -1,0 +1,64 @@
+//
+// math.aly
+// Wrapper around the C math.h library.
+//
+
+//PI: f64 = 3.14159265358979323846;
+
+//
+// Wraper functions
+//
+
+fn acos(x: f64): f64;
+fn asin(x: f64): f64;
+fn atan(x: f64): f64;
+fn atan2(y: f64, x: f64): f64;
+fn cos(x: f64): f64;
+fn cosh(x: f64): f64;
+fn sin(x: f64): f64;
+fn sinh(x: f64): f64;
+fn tanh(x: f64): f64;
+fn exp(x: f64): f64;
+fn frexp(x: f64, exponent: ^int): f64;
+//fn ldexp(x: f64, exponent: f64): f64; // TODO find out why this doesn't work properly
+fn log(x: f64): f64;
+fn log10(x: f64): f64;
+fn modf(x: f64, integer: ^int): f64;
+fn pow(x: f64, y: f64): f64;
+fn sqrt(x: f64): f64;
+fn ceil(x: f64): f64;
+fn fabs(x: f64): f64;
+fn floor(x: f64): f64;
+fn fmod(x: f64, y: f64): f64;
+
+//
+// Native functions
+//
+
+// TODO consider implenting as macros/inline functions if they get implemented
+
+fn degToRad(deg: f64): f64 {
+	return deg * 2 * 3.14159265358979323846 / 360.0; // TODO replace with PI constant
+}
+
+fn radToDeg(rad: f64): f64 {
+	return rad / 2 / 3.14159265358979323846 * 360.0;
+}
+
+fn max(x: f64, y: f64): f64 {
+	if x > y {
+		return x;
+	}
+	return y;
+}
+
+fn min(x: f64, y: f64) {
+	if x < y {
+		return x;
+	}
+	return y;
+}
+
+fn log2(x: f64): f64 {
+	return log(f) / log(2);
+}
