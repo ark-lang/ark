@@ -5,7 +5,7 @@
 
 #define PRINT_CURR_TOK() printf("current token: %s\n", peekAtTokenStream(self, 0)->content);
 
-const char* BINARY_OPS[] = { ".", "*", "/", "%", "+", "=", "-", ">", "<", ">=", "<=", "==", "!=", "&", "|", };
+const char* BINARY_OPS[] = { ".", "*", "/", "%", "+", "=", "-", ">", "<", ">=", "<=", "==", "!=", "&", "|", "&&", "||" };
 
 const char* DATA_TYPES[] = { "i64", "i32", "i16", "i8", "u64", "u32", "u16", "u8", "f64", "f32", "int", "bool", "char", "void" };
 
@@ -52,6 +52,10 @@ Parser *createParser() {
 	hashmap_put(self->binopPrecedence, "&", createPrecedence(10));
 
 	hashmap_put(self->binopPrecedence, "|", createPrecedence(11));
+
+	hashmap_put(self->binopPrecedence, "&&", createPrecedence(12));
+
+	hashmap_put(self->binopPrecedence, "||", createPrecedence(13));
 
 	hashmap_put(self->binopPrecedence, "=", createPrecedence(15));
 
