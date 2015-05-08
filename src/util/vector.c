@@ -14,7 +14,7 @@ void pushBackItem(Vector *vec, VectorItem item) {
 		// much more efficient to reallocate exponentially,
 		// instead of reallocating after adding an item
 		if (vec->size >= vec->maxSize) {
-			vec->maxSize = vec->type == VECTOR_LINEAR ? 1 : vec->maxSize * 2;
+			vec->maxSize = vec->type == VECTOR_LINEAR ? vec->maxSize + 1 : vec->maxSize * 2;
 			vec->items = realloc(vec->items, sizeof(*vec->items) * vec->maxSize);
 			if (!vec->items) {
 				verboseModeMessage("realloc: failed to allocate memory for vector contents");
