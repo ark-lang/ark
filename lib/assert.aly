@@ -1,0 +1,17 @@
+//
+// assert.aly
+// Contains a native library for assertions.
+// Not based on the C library.
+//
+
+!use "stdio"
+!use "stdlib"
+
+// TODO - print to stderr, once it is implemented.
+
+fn assertTrue(expr: bool, failureMessage: str) {
+	if expr == false {
+		printf("assertTrue() failure: %s\n", failureMessage);
+		abort();
+	}
+}
