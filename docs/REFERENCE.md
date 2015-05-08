@@ -150,7 +150,7 @@ We can simplify this using a return type of `int`, for instance:
 	}
 
 ## Structures
-A structure is a complex structure that define a list of variables all grouped under one name
+A structure is a complex data type that defines a list of variables all grouped under one name
 in memory:
 
 	struct Cat {
@@ -166,7 +166,7 @@ a structure to define a Cat's properties like so:
 		weight: float;
 	}
 	
-Structures are more complex types, therefore they are defined like an orindary type such as an integer
+Structures are more complex types, however they are defined like an ordinary type such as an integer
 or float:
 
 	mut terry: cat;
