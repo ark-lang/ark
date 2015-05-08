@@ -290,7 +290,7 @@ void emitVariableDecl(CodeGenerator *self, VariableDecl *decl) {
 	// kinda hacky, but it works
 	bool isHeaderVariable = self->writeState == WRITE_HEADER_STATE;
 
-	if (isHeaderVariable) {
+	if (isHeaderVariable && decl->assigned) {
 		emitCode(self, "extern ");
 	}
 	if (!decl->mutable) {
@@ -307,7 +307,9 @@ void emitVariableDecl(CodeGenerator *self, VariableDecl *decl) {
 		if (isHeaderVariable) {
 			emitCode(self, ";" CC_NEWLINE);
 			self->writeState = WRITE_SOURCE_STATE;
-			emitCode(self, "const ");
+			if (!decl->mutable) {
+				emitCode(self, "const ");
+			}
 			emitType(self, decl->type);
 			emitCode(self, " %s", decl->name);
 			if (isArray) {
