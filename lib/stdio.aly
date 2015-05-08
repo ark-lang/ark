@@ -1,0 +1,20 @@
+//
+// stdio.aly
+// This file contains the Alloy standard IO library.
+// Right now, most of it is a wrapper around the C stdio library.
+//
+// Some functions are not implemented, even though they could be,
+// because it is best to wait to see if they could be implemented
+// in a better way in Alloy.
+//
+
+//
+// Wrapper functions
+//
+
+fn getchar(): int;
+fn remove(filename: str): int;
+fn rename(oldFilename: str, newFilename: str): int;
+fn putchar(c: int): int;
+fn printf(format: str, _): int;
+fn perror(message: str);
