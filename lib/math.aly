@@ -3,6 +3,8 @@
 // Wrapper around the C math.h library.
 //
 
+!linker_flag "m"
+
 //PI: f64 = 3.14159265358979323846;
 
 //
@@ -52,7 +54,7 @@ fn max(x: f64, y: f64): f64 {
 	return y;
 }
 
-fn min(x: f64, y: f64) {
+fn min(x: f64, y: f64): f64 {
 	if x < y {
 		return x;
 	}
@@ -60,5 +62,5 @@ fn min(x: f64, y: f64) {
 }
 
 fn log2(x: f64): f64 {
-	return log(f) / log(2);
+	return log(x) / log(2);
 }
