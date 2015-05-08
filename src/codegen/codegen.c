@@ -296,11 +296,13 @@ void emitVariableDecl(CodeGenerator *self, VariableDecl *decl) {
 	if (!decl->mutable) {
 		emitCode(self, "const ");
 	}
+	
 	emitType(self, decl->type);
 	emitCode(self, " %s", decl->name);
 	if (isArray) {
 		emitCode(self, "[]");
 	}
+
 	if (decl->assigned) {
 		if (isHeaderVariable) {
 			emitCode(self, ";" CC_NEWLINE);
@@ -308,6 +310,9 @@ void emitVariableDecl(CodeGenerator *self, VariableDecl *decl) {
 			emitCode(self, "const ");
 			emitType(self, decl->type);
 			emitCode(self, " %s", decl->name);
+			if (isArray) {
+				emitCode(self, "[]");
+			}
 		}
 		emitCode(self, " = ");
 		emitExpression(self, decl->expr);
