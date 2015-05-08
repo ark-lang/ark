@@ -313,6 +313,9 @@ void emitVariableDecl(CodeGenerator *self, VariableDecl *decl) {
 		emitExpression(self, decl->expr);
 	}
 	emitCode(self, ";" CC_NEWLINE);
+	if (isHeaderVariable) {
+		self->writeState = WRITE_HEADER_STATE;
+	}
 }
 
 void emitWhileForLoop(CodeGenerator *self, ForStat *stmt) {
