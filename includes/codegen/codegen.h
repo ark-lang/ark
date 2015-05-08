@@ -30,7 +30,11 @@
 #define CLOSE_BRACE "}"
 #define CONST_KEYWORD "const"
 #define ASTERISKS "*"
-#define NEWLINE "\n"
+#ifdef WINDOWS
+	#define NEWLINE "\r\n"
+#else
+	#define NEWLINE "\n"
+#endif
 #define TAB "\t"
 #define EQUAL_SYM "="
 #define SEMICOLON ";"
@@ -44,7 +48,7 @@
 #define COMPACT_CODE_GEN false
 
 #if COMPACT_CODE_GEN == false
-	#define CC_NEWLINE "\n"
+	#define CC_NEWLINE NEWLINE
 #else
 	#define CC_NEWLINE " "
 #endif
