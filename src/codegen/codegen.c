@@ -286,7 +286,13 @@ void emitVariableDecl(CodeGenerator *self, VariableDecl *decl) {
 	// hack
 	bool isArray = decl->type->type == TYPE_LIT_NODE 
 					&& decl->type->typeLit->type == ARRAY_TYPE_NODE;
+	
+	// kinda hacky, but it works
+	bool isHeaderVariable = self->writeState == WRITE_HEADER_STATE;
 
+	if (isHeaderVariable) {
+		emitCode(self, "extern ");
+	}
 	if (!decl->mutable) {
 		emitCode(self, "const ");
 	}
@@ -296,10 +302,20 @@ void emitVariableDecl(CodeGenerator *self, VariableDecl *decl) {
 		emitCode(self, "[]");
 	}
 	if (decl->assigned) {
+		if (isHeaderVariable) {
+			emitCode(self, ";" CC_NEWLINE);
+			self->writeState = WRITE_SOURCE_STATE;
+			emitCode(self, "const ");
+			emitType(self, decl->type);
+			emitCode(self, " %s", decl->name);
+		}
 		emitCode(self, " = ");
 		emitExpression(self, decl->expr);
 	}
 	emitCode(self, ";" CC_NEWLINE);
+	if (isHeaderVariable) {
+		self->writeState = WRITE_HEADER_STATE;
+	}
 }
 
 void emitWhileForLoop(CodeGenerator *self, ForStat *stmt) {
