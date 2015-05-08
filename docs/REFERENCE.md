@@ -381,7 +381,17 @@ Note that `x` is not defined in the for loop, but must be defined outside of the
 	}
 
 ## Option Types
-todo
+Option types represent an optional value, they can either be `Some` or `None`, i.e. they can either have
+a value, or not have a value -- they are often paired with `match`.
+An option type is denoted with an open angular bracket, the type that is optional, and a closing angle
+bracket.
+
+	fn example(a: <int>) {
+		match a {
+			Some -> printf("wow!\n");
+			None -> printf("Damn\n");
+		}
+	}
 
 ## Enums
 An enumeration is denoted with the `enum` keyword, followed by a name, and a block. The block contains
