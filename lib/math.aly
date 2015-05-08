@@ -8,7 +8,7 @@
 PI: f64 = 3.14159265358979323846;
 
 //
-// Wraper functions
+// Wrapper functions
 //
 
 fn acos(x: f64): f64;
@@ -22,7 +22,7 @@ fn sinh(x: f64): f64;
 fn tanh(x: f64): f64;
 fn exp(x: f64): f64;
 fn frexp(x: f64, exponent: ^int): f64;
-//fn ldexp(x: f64, exponent: f64): f64; // TODO find out why this doesn't work properly
+fn ldexp(x: f64, exponent: int): f64;
 fn log(x: f64): f64;
 fn log10(x: f64): f64;
 fn modf(x: f64, integer: ^int): f64;
