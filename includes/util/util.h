@@ -17,8 +17,12 @@
 #define ALLOYC_VERSION "0.0.7"
 #define ALLOY_UNUSED_OBJ(x) (void)(x)
 
+#if defined(_WIN32) || defined(__WIN32__) || defined (WIN32)
+	#define WINDOWS
+#endif
+
 /** windows doesn't like coloured text */
-#ifdef _WIN32
+#ifdef WINDOWS
 	#define GET_RED_TEXT(x) (x)
 	#define GET_ORANGE_TEXT(x) (x)
 #else
