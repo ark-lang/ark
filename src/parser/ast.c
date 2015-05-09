@@ -171,7 +171,12 @@ FunctionSignature *createFunctionSignature(char *name, Parameters *params,
 }
 
 FunctionDecl *createFunctionDecl() {
-	return safeMalloc(sizeof(FunctionDecl));
+	FunctionDecl *func = safeMalloc(sizeof(FunctionDecl));
+	func->signature = NULL;
+	func->body = NULL;
+	func->numOfRequiredArgs = 0;
+	func->prototype = false;
+	return func;
 }
 
 VariableDecl *createVariableDecl(Type *type, char *name, bool mutable,
