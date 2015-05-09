@@ -29,7 +29,6 @@ Parser *createParser() {
 	hashmap_put(self->binopPrecedence, "--", createPrecedence(3));
 	hashmap_put(self->binopPrecedence, "!", createPrecedence(3));
 	hashmap_put(self->binopPrecedence, "~", createPrecedence(3));
-	hashmap_put(self->binopPrecedence, "&", createPrecedence(3));
 
 	hashmap_put(self->binopPrecedence, ".", createPrecedence(4));
 
@@ -62,7 +61,14 @@ Parser *createParser() {
 	return self;
 }
 
+int destroyHashmapItem(any_t __attribute__((unused)) passedData, any_t item) {
+	destroyPrecedence(item);
+	return MAP_OK;
+}
+
 void destroyParser(Parser *self) {
+	hashmap_iterate(self->binopPrecedence, destroyHashmapItem, NULL);
+	hashmap_free(self->binopPrecedence);
 	free(self);
 	verboseModeMessage("Destroyed self");
 }
@@ -1571,4 +1577,10 @@ void parseTokenStream(Parser *self) {
 			pushBackItem(self->parseTree, stmt);
 		}
 	}
+}
+
+void destroyParseTree(Vector *self) {
+	for (int i = 0; i < self->size; i++)
+		destroyStatement(getVectorItem(self, i));
+	destroyVector(self);
 }

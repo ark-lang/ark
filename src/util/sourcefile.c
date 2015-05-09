@@ -6,6 +6,8 @@ SourceFile *createSourceFile(sds fileName) {
 	sourceFile->headerFile = createHeaderFile(fileName);
 	sourceFile->name = getFileName(sourceFile->fileName);
 	sourceFile->alloyFileContents = readFile(fileName);
+	sourceFile->tokens = NULL;
+	sourceFile->ast = NULL;
 
 	if (!sourceFile->alloyFileContents) {
 		errorMessage("Failed to read file %s", sourceFile->fileName);
@@ -50,6 +52,8 @@ void destroySourceFile(SourceFile *sourceFile) {
 	destroyHeaderFile(sourceFile->headerFile);
 
 	verboseModeMessage("Destroyed Source File `%s`", sourceFile->name);
+	if (sourceFile->tokens) destroyVector(sourceFile->tokens); // TODO destroy elements in tokens
+	if (sourceFile->ast) destroyParseTree(sourceFile->ast);
 	sdsfree(sourceFile->fileName);
 	free(sourceFile->name);
 	sdsfree(sourceFile->generatedSourceName);
