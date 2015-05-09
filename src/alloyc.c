@@ -61,6 +61,10 @@ AlloyCompiler *createAlloyCompiler(int argc, char** argv) {
 	self->parser = NULL;
 	self->generator = NULL;
 	self->sourceFiles = createVector(VECTOR_LINEAR);
+	
+	char *ccEnv = getenv("CC");
+	if (ccEnv != NULL && strcmp(ccEnv, ""))
+		COMPILER = ccEnv;
 
 	// i = 1, ignores first argument
 	for (int i = 1; i < argc; i++) {
