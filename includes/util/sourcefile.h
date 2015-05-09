@@ -6,6 +6,7 @@
 #include "vector.h"
 #include "headerfile.h"
 #include "util.h"
+#include "parser.h"
 
 /**
  * SourceFile properties
