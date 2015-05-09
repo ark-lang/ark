@@ -221,7 +221,7 @@ function we defined, you need to have an instance of the structure. Functions ca
 via the dot operator:
 
 	fn main(): int {
-		Person p;
+		p: Person;
 		p.say();
 	}
 
