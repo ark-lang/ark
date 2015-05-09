@@ -923,13 +923,50 @@ Statement *parseStatement(Parser *self) {
 Block *parseBlock(Parser *self) {
 	if (checkTokenTypeAndContent(self, OPERATOR, SINGLE_STATEMENT_OPERATOR, 0)) {
 		consumeToken(self);
+		
+		if (checkTokenTypeAndContent(self, IDENTIFIER, RETURN_KEYWORD, 0)) {
+			parserError("Expected expression, found: %s", peekAtTokenStream(self, 0)->content);
+			return false;
+		}
 
 		Block *block = createBlock();
 		if (block) {
-			Statement *stat = parseStatement(self);
-			if (stat) {
-				pushBackItem(block->stmtList->stmts, stat);
+			// Here, we parse the expression then create a return statement to wrap around it.
+			// Although, there has got to be a better way of wrapping the expression in a return statement.
+			Expression *expr = parseExpression(self);
+			if (!expr)
+				return false;
+			
+			ReturnStat *ret = createReturnStat(expr);
+			if (!ret)
+				return false;
+			
+			LeaveStat *leave = createLeaveStat();
+			if (!leave)
+				return false;
+			leave->retStmt = ret;
+			leave->type = RETURN_STAT_NODE;
+			
+			UnstructuredStatement *unstrucStmt = createUnstructuredStatement();
+			if (!unstrucStmt)
+				return false;
+			unstrucStmt->leave = leave;
+			unstrucStmt->type = LEAVE_STAT_NODE;
+			
+			Statement *stmt = createStatement();
+			if (!stmt)
+				return false;
+			stmt->unstructured = unstrucStmt;
+			stmt->type = UNSTRUCTURED_STATEMENT_NODE;
+			pushBackItem(block->stmtList->stmts, stmt);
+			
+			if (checkTokenTypeAndContent(self, SEPARATOR, ";", 0)) {
+				consumeToken(self);
 			}
+			else {
+				parserError("Expected semi-colon at the end of expression, found: %s", peekAtTokenStream(self, 0)->content);
+			}
+			
 			block->singleStatementBlock = true;
 			return block;
 		}
