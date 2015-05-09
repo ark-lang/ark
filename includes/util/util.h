@@ -133,4 +133,11 @@ const char *getFilenameExtension(const char *filename);
  */
 void *safeMalloc(size_t size);
 
+/**
+ * Safe calloc, dies if allocation fails
+ * @param  size size of space to allocate
+ * @return pointer to allocated data
+ */
+void *safeCalloc(size_t size);
+
 #endif // __BOOL_H
