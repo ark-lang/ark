@@ -167,3 +167,9 @@ void *safeMalloc(size_t size) {
 	assert(memoryChunk);
 	return memoryChunk;
 }
+
+void *safeCalloc(size_t size) {
+	void *memoryChunk = calloc(size, 1);
+	assert(memoryChunk);
+	return memoryChunk;
+}
