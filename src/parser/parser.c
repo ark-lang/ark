@@ -961,11 +961,38 @@ Block *parseBlock(Parser *self) {
 	return false;
 }
 
+Statement *wrapExpressionInReturnStat(Expression *expr) {
+	if (!expr)
+		return false;
+	
+	ReturnStat *ret = createReturnStat(expr);
+	if (!ret)
+		return false;
+	
+	LeaveStat *leave = createLeaveStat();
+	if (!leave)
+		return false;
+	leave->retStmt = ret;
+	leave->type = RETURN_STAT_NODE;
+	
+	UnstructuredStatement *unstrucStmt = createUnstructuredStatement();
+	if (!unstrucStmt)
+		return false;
+	unstrucStmt->leave = leave;
+	unstrucStmt->type = LEAVE_STAT_NODE;
+	
+	Statement *stmt = createStatement();
+	if (!stmt)
+		return false;
+	stmt->unstructured = unstrucStmt;
+	stmt->type = UNSTRUCTURED_STATEMENT_NODE;
+	return stmt;
+}
+
 FunctionDecl *parseFunctionDecl(Parser *self) {
 	FunctionSignature *signature = parseFunctionSignature(self);
 	if (signature) {
-		if (checkTokenTypeAndContent(self, SEPARATOR, "{", 0)
-			|| checkTokenTypeAndContent(self, OPERATOR, SINGLE_STATEMENT_OPERATOR, 0)) {
+		if (checkTokenTypeAndContent(self, SEPARATOR, "{", 0)) {
 			Block *block = parseBlock(self);
 			if (block) {
 				FunctionDecl *decl = createFunctionDecl();
@@ -974,7 +1001,38 @@ FunctionDecl *parseFunctionDecl(Parser *self) {
 				decl->prototype = false;
 				return decl;
 			}
-		} 
+		}
+		else if (checkTokenTypeAndContent(self, OPERATOR, SINGLE_STATEMENT_OPERATOR, 0)) {
+			consumeToken(self);
+			
+			if (checkTokenTypeAndContent(self, IDENTIFIER, RETURN_KEYWORD, 0)) {
+				parserError("Expected expression, found: %s", peekAtTokenStream(self, 0)->content);
+				return false;
+			}
+		
+			Block *block = createBlock();
+			if (!block)
+				return false;
+			
+			Expression *expr = parseExpression(self);
+			if (!expr)
+				return false;
+			
+			pushBackItem(block->stmtList->stmts, wrapExpressionInReturnStat(expr));
+			
+			if (checkTokenTypeAndContent(self, SEPARATOR, ";", 0)) {
+				consumeToken(self);
+			}
+			else {
+				parserError("Expected semi-colon at the end of expression, found: %s", peekAtTokenStream(self, 0)->content);
+			}
+			
+			FunctionDecl *decl = createFunctionDecl();
+			decl->signature = signature;
+			decl->body = block;
+			decl->prototype = false;
+			return decl;
+		}
 		else if (checkTokenTypeAndContent(self, SEPARATOR, ";", 0)) {
 			consumeToken(self);
 
