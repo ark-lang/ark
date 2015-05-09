@@ -386,6 +386,11 @@ Expression *parsePrimaryExpression(Parser *parser);
  */
 Call *parseCall(Parser *parser);
 
+/**
+ * This takes an Expression, then puts it in a ReturnStat and wraps that in a Statement.
+ */
+Statement *wrapExpressionInReturnStat(Expression *expr);
+
 /** UTILITIES */
 
 /**
