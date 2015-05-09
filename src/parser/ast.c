@@ -5,7 +5,7 @@
 // struct you are returning, (ie. self->point = NULL),
 // use safeCalloc() to allocate memory for it.
 // This prevents possible unsafe memory access,
-// and shits Valgrind up about uninitialised values.
+// and shuts Valgrind up about uninitialised values.
 
 UseMacro *createUseMacro() {
 	UseMacro *use = safeMalloc(sizeof(*use));
