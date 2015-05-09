@@ -143,6 +143,7 @@ void destroyAlloyCompiler(AlloyCompiler *self) {
 		if (self->lexer) destroyLexer(self->lexer);
 		if (self->parser) destroyParser(self->parser);
 		if (self->generator) destroyCodeGenerator(self->generator);
+		if (self->semantic) destroySemanticAnalyzer(self->semantic);
 		destroyVector(self->sourceFiles);
 		free(self);
 		verboseModeMessage("Destroyed Alloy Compiler");
