@@ -400,9 +400,13 @@ static inline Precedence *createPrecedence(int prec) {
 	return result;
 }
 
+/*
+ * Function passed to hashmap_iterate() to destroy data.
+ */
+int destroyHashmapItem(any_t __attribute__((unused)) passedData, any_t item);
+
 /**
- * Destroys the given precedence, however this is handled
- * by the hashmap anyway..
+ * Destroys the given precedence
  */
 static inline void destroyPrecedence(Precedence *prec) {
 	free(prec);

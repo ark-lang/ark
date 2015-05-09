@@ -62,7 +62,14 @@ Parser *createParser() {
 	return self;
 }
 
+int destroyHashmapItem(any_t __attribute__((unused)) passedData, any_t item) {
+	destroyPrecedence(item);
+	return MAP_OK;
+}
+
 void destroyParser(Parser *self) {
+	hashmap_iterate(self->binopPrecedence, destroyHashmapItem, NULL);
+	hashmap_free(self->binopPrecedence);
 	free(self);
 	verboseModeMessage("Destroyed self");
 }
