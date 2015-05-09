@@ -1,5 +1,12 @@
 #include "ast.h"
 
+// Note for create functions:
+// If you do not initialise the member pointers of the
+// struct you are returning, (ie. self->point = NULL),
+// use safeCalloc() to allocate memory for it.
+// This prevents possible unsafe memory access,
+// and shits Valgrind up about uninitialised values.
+
 UseMacro *createUseMacro() {
 	UseMacro *use = safeMalloc(sizeof(*use));
 	use->files = createVector(VECTOR_EXPONENTIAL);
@@ -40,7 +47,7 @@ Literal *createLiteral(char *value, int type) {
 }
 
 TypeLit *createTypeLit() {
-	return safeMalloc(sizeof(TypeLit));
+	return safeCalloc(sizeof(TypeLit));
 }
 
 UnaryExpr *createUnaryExpr() {
@@ -87,11 +94,11 @@ Call *createCall(Vector *callee) {
 }
 
 Expression *createExpression() {
-	return safeMalloc(sizeof(Expression));
+	return safeCalloc(sizeof(Expression));
 }
 
 BinaryExpr *createBinaryExpr() {
-	return safeMalloc(sizeof(BinaryExpr));
+	return safeCalloc(sizeof(BinaryExpr));
 }
 
 TypeName *createTypeName(char *name) {
@@ -190,7 +197,7 @@ VariableDecl *createVariableDecl(Type *type, char *name, bool mutable,
 }
 
 Declaration *createDeclaration() {
-	return safeMalloc(sizeof(Declaration));
+	return safeCalloc(sizeof(Declaration));
 }
 
 IncDecStat *createIncDecStat(Expression *expr, int amount) {
@@ -207,15 +214,15 @@ ReturnStat *createReturnStat(Expression *expr) {
 }
 
 BreakStat *createBreakStat() {
-	return safeMalloc(sizeof(BreakStat));
+	return safeCalloc(sizeof(BreakStat));
 }
 
 ContinueStat *createContinueStat() {
-	return safeMalloc(sizeof(ContinueStat));
+	return safeCalloc(sizeof(ContinueStat));
 }
 
 LeaveStat *createLeaveStat() {
-	return safeMalloc(sizeof(LeaveStat));
+	return safeCalloc(sizeof(LeaveStat));
 }
 
 Assignment *createAssignment(char *iden, Expression *rhand) {
@@ -226,11 +233,11 @@ Assignment *createAssignment(char *iden, Expression *rhand) {
 }
 
 UnstructuredStatement *createUnstructuredStatement() {
-	return safeMalloc(sizeof(UnstructuredStatement));
+	return safeCalloc(sizeof(UnstructuredStatement));
 }
 
 Macro *createMacro() {
-	return safeMalloc(sizeof(Macro));
+	return safeCalloc(sizeof(Macro));
 }
 
 PointerFree *createPointerFree(char *name) {
@@ -240,11 +247,11 @@ PointerFree *createPointerFree(char *name) {
 }
 
 ElseStat *createElseStat() {
-	return safeMalloc(sizeof(ElseStat));
+	return safeCalloc(sizeof(ElseStat));
 }
 
 ElseIfStat *createElseIfStat() {
-	return safeMalloc(sizeof(ElseIfStat));
+	return safeCalloc(sizeof(ElseIfStat));
 }
 
 IfStat *createIfStat() {
@@ -254,7 +261,7 @@ IfStat *createIfStat() {
 }
 
 MatchClause *createMatchClause() {
-	return safeMalloc(sizeof(MatchClause));
+	return safeCalloc(sizeof(MatchClause));
 }
 
 MatchStat *createMatchStat(Expression *expr) {
@@ -265,19 +272,19 @@ MatchStat *createMatchStat(Expression *expr) {
 }
 
 ForStat *createForStat() {
-	return safeMalloc(sizeof(ForStat));
+	return safeCalloc(sizeof(ForStat));
 }
 
 StructuredStatement *createStructuredStatement() {
-	return safeMalloc(sizeof(StructuredStatement));
+	return safeCalloc(sizeof(StructuredStatement));
 }
 
 Statement *createStatement() {
-	return safeMalloc(sizeof(Statement));
+	return safeCalloc(sizeof(Statement));
 }
 
 Type *createType() {
-	return safeMalloc(sizeof(Type));
+	return safeCalloc(sizeof(Type));
 }
 
 void cleanupAST(Vector *nodes) {
