@@ -29,7 +29,6 @@ Parser *createParser() {
 	hashmap_put(self->binopPrecedence, "--", createPrecedence(3));
 	hashmap_put(self->binopPrecedence, "!", createPrecedence(3));
 	hashmap_put(self->binopPrecedence, "~", createPrecedence(3));
-	hashmap_put(self->binopPrecedence, "&", createPrecedence(3));
 
 	hashmap_put(self->binopPrecedence, ".", createPrecedence(4));
 
