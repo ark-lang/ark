@@ -1578,3 +1578,9 @@ void parseTokenStream(Parser *self) {
 		}
 	}
 }
+
+void destroyParseTree(Vector *self) {
+	for (int i = 0; i < self->size; i++)
+		destroyStatement(getVectorItem(self, i));
+	destroyVector(self);
+}

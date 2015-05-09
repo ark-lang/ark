@@ -125,6 +125,12 @@ Parser *createParser();
  */
 void destroyParser(Parser *parser);
 
+/**
+ * Destroys a parse tree
+ * @param  vector containing Statement structs
+ */
+void destroyParseTree(Vector *self);
+
 /** AST */
 
 /**
