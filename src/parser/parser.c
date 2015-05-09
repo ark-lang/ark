@@ -928,7 +928,6 @@ Block *parseBlock(Parser *self) {
 		if (block) {
 			Statement *stat = parseStatement(self);
 			if (stat) {
-				Statement *stat = parseStatement(self);
 				pushBackItem(block->stmtList->stmts, stat);
 			}
 			block->singleStatementBlock = true;
