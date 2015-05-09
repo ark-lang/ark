@@ -328,7 +328,7 @@ void destroySemanticAnalyzer(SemanticAnalyzer *self) {
 	for (int i = 0; i < self->scopes->stackPointer; i++) {
 		popScope(self);
 	}
-	hashmap_free(self->dataTypes);
+	//hashmap_free(self->dataTypes); // This is never initialised?
 	destroyStack(self->scopes);
 
 	free(self);
