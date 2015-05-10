@@ -7,6 +7,62 @@
 // This prevents possible unsafe memory access,
 // and shuts Valgrind up about uninitialised values.
 
+// Useful for debugging
+char *getNodeTypeName(NodeType type) {
+	switch (type) {
+		case IDENTIFIER_LIST_NODE: return "IDENTIFIER_LIST_NODE";
+		case IDENTIFIER_NODE: return "IDENTIFIER_NODE";
+		case LITERAL_NODE: return "BINARY_EXPR_NODE";
+		case BINARY_EXPR_NODE: return "BINARY_EXPR_NODE";
+		case PRIMARY_EXPR_NODE: return "PRIMARY_EXPR_NODE";
+		case EXPR_NODE: return "EXPR_NODE";
+		case TYPE_NAME_NODE: return "TYPE_NAME_NODE";
+		case TYPE_LIT_NODE: return "TYPE_LIT_NODE";
+		case PAREN_EXPR_NODE: return "PAREN_EXPR_NODE";
+		case ARRAY_TYPE_NODE: return "ARRAY_TYPE_NODE";
+		case POINTER_TYPE_NODE: return "POINTER_TYPE_NODE";
+		case FIELD_DECL_NODE: return "FIELD_DECL_NODE";
+		case UNARY_EXPR_NODE: return "UNARY_EXPR_NODE";
+		case FIELD_DECL_LIST_NODE: return "FIELD_DECL_LIST_NODE";
+		case STRUCT_DECL_NODE: return "STRUCT_DECL_NODE";
+		case STATEMENT_LIST_NODE: return "STATEMENT_LIST_NODE";
+		case BLOCK_NODE: return "BLOCK_NODE";
+		case PARAMETER_SECTION_NODE: return "PARAMETER_SECTION_NODE";
+		case PARAMETERS_NODE: return "PARAMETERS_NODE";
+		case IMPL_NODE: return "IMPL_NODE";
+		case ENUM_DECL_NODE: return "ENUM_DECL_NODE";
+		case FUNCTION_SIGNATURE_NODE: return "FUNCTION_SIGNATURE_NODE";
+		case FUNCTION_DECL_NODE: return "FUNCTION_DECL_NODE";
+		case VARIABLE_DECL_NODE: return "VARIABLE_DECL_NODE";
+		case FUNCTION_CALL_NODE: return "FUNCTION_CALL_NODE";
+		case DECLARATION_NODE: return "DECLARATION_NODE";
+		case INC_DEC_STAT_NODE: return "INC_DEC_STAT_NODE";
+		case RETURN_STAT_NODE: return "RETURN_STAT_NODE";
+		case BREAK_STAT_NODE: return "BREAK_STAT_NODE";
+		case CONTINUE_STAT_NODE: return "CONTINUE_STAT_NODE";
+		case LEAVE_STAT_NODE: return "LEAVE_STAT_NODE";
+		case ASSIGNMENT_NODE: return "ASSIGNMENT_NODE";
+		case UNSTRUCTURED_STATEMENT_NODE: return "UNSTRUCTURED_STATEMENT_NODE";
+		case ELSE_STAT_NODE: return "ELSE_STAT_NODE";
+		case IF_STAT_NODE: return "IF_STAT_NODE";
+		case MATCH_CLAUSE_STAT: return "MATCH_CLAUSE_STAT";
+		case MATCH_STAT_NODE: return "MATCH_STAT_NODE";
+		case FOR_STAT_NODE: return "FOR_STAT_NODE";
+		case STRUCTURED_STATEMENT_NODE: return "STRUCTURED_STATEMENT_NODE";
+		case STATEMENT_NODE: return "STATEMENT_NODE";
+		case TYPE_NODE: return "TYPE_NODE";
+		case POINTER_FREE_NODE: return "POINTER_FREE_NODE";
+		case TUPLE_TYPE_NODE: return "TUPLE_TYPE_NODE";
+		case TUPLE_EXPR_NODE: return "TUPLE_EXPR_NODE";
+		case OPTION_TYPE_NODE: return "OPTION_TYPE_NODE";
+		case MACRO_NODE: return "MACRO_NODE";
+		case USE_MACRO_NODE: return "USE_MACRO_NODE";
+		case LINKER_FLAG_MACRO_NODE: return "LINKER_FLAG_MACRO_NODE";
+		case EXPR_STAT_NODE: return "EXPR_STAT_NODE";
+		case ARRAY_INITIALIZER_NODE: return "ARRAY_INITIALIZER_NODE";
+	}
+}
+
 UseMacro *createUseMacro() {
 	UseMacro *use = safeMalloc(sizeof(*use));
 	use->files = createVector(VECTOR_EXPONENTIAL);

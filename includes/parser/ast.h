@@ -476,6 +476,8 @@ typedef struct {
 	int type;
 } Statement;
 
+char *getNodeTypeName(NodeType type);
+
 Node *createNode(void *data, NodeType type);
 
 Impl *createImpl(char *name, char *as);
