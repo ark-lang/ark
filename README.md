@@ -7,7 +7,8 @@ when I can; however I'm only 16 so I have a lot of other things that I need to a
 <img src="misc/example.gif" width="312px" height="312px" />
 </p>
 <p align="center">
-Here's a 3d cube being rendered using SDL and OpenGL in Alloy. 
+Here's a 3d cube being rendered using SDL and OpenGL in Alloy. You can
+check out the source code for this [here](https://www.github.com/felixangell/space-invaders)
 </p>
 
 ## Disclaimer?
