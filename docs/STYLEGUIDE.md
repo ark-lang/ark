@@ -93,17 +93,39 @@ Braces should be on the same line:
 
 ## Naming
 
-	|----------------------------------------------|
-	| Item					|	Convention		   |
-	|-----------------------|----------------------|
-	| Types					|	camelCase		   |
-	| Functions 			|	snake_case         |
-	| Methods 				|	snake_case         |
-	| Local Variables		|	snake_case         |
-	| Global Variables		|	snake_case         |
-	| Static Variables		|	UPPER_SNAKE_CASE   |
-	| Constant Variables	|	UPPER_SNAKE_CASE   |
-	|----------------------------------------------|
+	Function/Method Names: CamelCase
+	--------------------------------
+	fn fooBar(): void {
+
+	}
+
+	Local/Global Variables: snake_case
+	--------------------------------
+	some_global_var: int = 5;
+
+	fn main(): int {
+		some_local_var: int = 10;
+	}
+
+	Constant Variables: UPPER_SNAKE_CASE
+	--------------------------------
+	GL_ARRAY_BUFFER: i32 = 34962;
+
+	Structures/Implementations: PascalCase
+	--------------------------------
+	struct MyStruct {
+		bar: int = 5;
+	};
+
+	impl MyStruct {
+		fn foo() {
+			...
+		}
+	};
+
+	Macros: snake_case
+	--------------------------------
+	!linker_flag "m"
 
 ### Avoid redundant prefixes
 
