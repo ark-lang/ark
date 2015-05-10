@@ -19,7 +19,6 @@ fn exit(status: int);
 fn getenv(name: str): str;
 fn system(command: str): int;
 
-
 //
 // Native functions
 //

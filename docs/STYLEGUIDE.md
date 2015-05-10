@@ -33,6 +33,17 @@ with the last parameter.
 		...
 	}
 
+### Single Line Functions
+If a function has only one statement, prefer the single-statement operator:
+
+	// Good
+	fn add(a: int, b: int): int -> a + b;
+
+	// Eh
+	fn add(a: int, b: int): int {
+		return a + b;
+	}
+
 ### Alignment
 Code should not use extra whitespace to provide alignment:
 

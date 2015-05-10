@@ -12,25 +12,45 @@ PI: f64 = 3.14159265358979323846;
 //
 
 fn acos(x: f64): f64;
+
 fn asin(x: f64): f64;
+
 fn atan(x: f64): f64;
+
 fn atan2(y: f64, x: f64): f64;
+
 fn cos(x: f64): f64;
+
 fn cosh(x: f64): f64;
+
 fn sin(x: f64): f64;
+
 fn sinh(x: f64): f64;
+
 fn tanh(x: f64): f64;
+
 fn exp(x: f64): f64;
+
 fn frexp(x: f64, exponent: ^int): f64;
+
 fn ldexp(x: f64, exponent: int): f64;
+
 fn log(x: f64): f64;
+
 fn log10(x: f64): f64;
+
 fn modf(x: f64, integer: ^int): f64;
+
 fn pow(x: f64, y: f64): f64;
+
 fn sqrt(x: f64): f64;
+
 fn ceil(x: f64): f64;
+
 fn fabs(x: f64): f64;
+
 fn floor(x: f64): f64;
+
 fn fmod(x: f64, y: f64): f64;
 
 //
@@ -42,6 +62,8 @@ fn fmod(x: f64, y: f64): f64;
 fn degToRad(deg: f64): f64 -> deg * 2 * PI / 360.0;
 
 fn radToDeg(rad: f64): f64 -> rad / 2 / PI * 360.0;
+
+fn log2(x: f64): f64 -> log(x) / log(2);
 
 fn max(x: f64, y: f64): f64 {
 	if x > y {
@@ -57,4 +79,3 @@ fn min(x: f64, y: f64): f64 {
 	return y;
 }
 
-fn log2(x: f64): f64 -> log(x) / log(2);
