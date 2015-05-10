@@ -919,6 +919,8 @@ Statement *parseStatement(Parser *self) {
 
 	UnstructuredStatement *unstrucStmt = parseUnstructuredStatement(self);
 	if (unstrucStmt) {
+		if (unstrucStmt->type == EXPR_STAT_NODE)
+			parserError("Statement with no effect"); // TODO print out the expression
 		Statement *stmt = createStatement();
 		stmt->unstructured = unstrucStmt;
 		stmt->type = UNSTRUCTURED_STATEMENT_NODE;
