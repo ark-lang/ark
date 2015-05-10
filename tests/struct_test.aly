@@ -7,7 +7,6 @@ struct Stuff {
 fn main(): int {
 	mut stuff: Stuff;
 	stuff.x = 5;
-	0qa834unc9
 	
 	printf("stuff.x is %d\n", stuff.x);
 	
