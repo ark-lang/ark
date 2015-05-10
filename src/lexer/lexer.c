@@ -219,7 +219,7 @@ void recognizeCharacterToken(Lexer *self) {
 		consumeCharacter(self); // consume character		
 	}
 	else {
-		printf("error: empty character constant\n");
+		errorMessageWithPosition(self->lineNumber, self->charNumber, "empty character constant\n");
 		return;
 	}
 
