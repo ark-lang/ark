@@ -20,6 +20,7 @@ void destroyScope(Scope *self) {
 	hashmap_free(self->funcSymTable);
 	hashmap_free(self->varSymTable);
 	hashmap_free(self->structSymTable);
+	hashmap_free(self->paramSymTable);
 	free(self);
 }
 
@@ -171,7 +172,6 @@ void checkMainExists(SemanticAnalyzer *self) {
 	FunctionDecl *mainDecl = checkFunctionExists(self, MAIN_FUNC);
 	if (!mainDecl) {
 		semanticError("Undefined reference to `main`");
-		self->failed = true;
 	}
 }
 
