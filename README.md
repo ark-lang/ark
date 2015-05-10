@@ -11,9 +11,17 @@ Here's a 3d cube being rendered using SDL and OpenGL in Alloy. You can
 check out the source code for this [here](https://www.github.com/felixangell/space-invaders)
 </p>
 
+## Resources
+
+* [Reference](/docs/REFERENCE.md)
+* [Style Guide](/docs/STYLEGUIDE.md)
+* [Tests](/tests/)
+* [Libraries](/lib/)
+* [Misc](/misc/)
+
 ## Disclaimer?
 Alloy is a somewhat experimental language, this means it can and probably will change at any point, be it a small change, or a complete re-write.
- 
+
 ## Building
 If you want to try out Alloy yourself, clone the repository, compile it, and add `bin/alloyc` to your path. You can
 also run the test script (you'll need python) `test.py` to see if the tests work, though we can't guarantee they
