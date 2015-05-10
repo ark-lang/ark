@@ -93,26 +93,26 @@ Braces should be on the same line:
 
 ## Naming
 
-	Function/Method Names: CamelCase
-	--------------------------------
-	fn fooBar(): void {
+### Function/Method Names: CamelCase
 
+	fn fooBar(): void {
+		...
 	}
 
-	Local/Global Variables: snake_case
-	--------------------------------
+### Local/Global Variables: snake_case
+
 	some_global_var: int = 5;
 
 	fn main(): int {
 		some_local_var: int = 10;
 	}
 
-	Constant Variables: UPPER_SNAKE_CASE
-	--------------------------------
+### Constant Variables: UPPER_SNAKE_CASE
+
 	GL_ARRAY_BUFFER: i32 = 34962;
 
-	Structures/Implementations: PascalCase
-	--------------------------------
+### Structures/Implementations: PascalCase
+
 	struct MyStruct {
 		bar: int = 5;
 	};
@@ -123,8 +123,8 @@ Braces should be on the same line:
 		}
 	};
 
-	Macros: snake_case
-	--------------------------------
+### Macros: snake_case
+
 	!linker_flag "m"
 
 ### Avoid redundant prefixes
