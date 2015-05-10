@@ -573,6 +573,7 @@ void destroyUnstructuredStatement(UnstructuredStatement *stmt) {
 		case LEAVE_STAT_NODE: destroyLeaveStat(stmt->leave); break;
 		case FUNCTION_CALL_NODE: destroyCall(stmt->call); break;
 		case IMPL_NODE: destroyImpl(stmt->impl); break;
+		case EXPR_STAT_NODE: destroyExpression(stmt->expr); break;
 		default:
 			errorMessage("unstructured statement isn't being destroyed!?");
 			break;
