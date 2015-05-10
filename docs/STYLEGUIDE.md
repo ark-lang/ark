@@ -9,20 +9,20 @@ at any point, this will cover a more abstract view of the language and it wont
 cover every tiny detail.
 
 ## Whitespace
-* Use spaces around binary operators:
+Use spaces around binary operators:
 
 	fn bar(a: int, b: int): int {
 		return a + b;
 	}
 
-* Spaces after colons and commas:
+Spaces after colons and commas:
 
 	struct Cat { a: int, b: int }
 
 	fn bar(a: Cat);
 
 ### Line Wrapping
-* Functions with multiple lines in the signatures should have all the parameters
+Functions with multiple lines in the signatures should have all the parameters
 aligned with the first, the return type should be on a separate line, aligned
 with the last parameter.
 
