@@ -1,8 +1,0 @@
-!use "math"
-!use "stdio"
-
-fn main(): int {
-	swag: f64 = ldexp(12.0, 5);
-	printf("%f\n", swag);
-	return 0;
-}
