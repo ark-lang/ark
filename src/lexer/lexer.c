@@ -46,7 +46,7 @@ void startLexingFiles(Lexer *self, Vector *sourceFiles) {
 
 void consumeCharacter(Lexer *self) {
 	if (self->pos > (int) self->inputLength) {
-		errorMessage("reached end of input, pos(%d) ... len(%d)", self->pos, self->inputLength);
+		errorMessage("Reached end of input, pos(%d) ... len(%d)", self->pos, self->inputLength);
 		return;
 	}
 	// stop consuming if we hit the end of the file
@@ -81,7 +81,7 @@ void skipLayoutAndComments(Lexer *self) {
 			consumeCharacter(self);
 
 			if (isEndOfInput(self->currentChar)) {
-				errorMessage("unterminated block comment");
+				errorMessage("Unterminated block comment");
 				return;
 			}
 
@@ -120,7 +120,7 @@ void expectCharacter(Lexer *self, char c) {
 		consumeCharacter(self);
 	}
 	else {
-		printf("expected `%c` but found `%c`\n", c, self->currentChar);
+		printf("Expected `%c` but found `%c`\n", c, self->currentChar);
 		return;
 	}
 }
@@ -219,7 +219,7 @@ void recognizeCharacterToken(Lexer *self) {
 		consumeCharacter(self); // consume character		
 	}
 	else {
-		printf("error: empty character constant\n");
+		errorMessageWithPosition(self->lineNumber, self->charNumber, "Empty character constant\n");
 		return;
 	}
 
