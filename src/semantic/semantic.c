@@ -126,7 +126,11 @@ void analyzeFunctionCall(SemanticAnalyzer *self, Call *call) {
 }
 
 void analyzeBinaryExpr(SemanticAnalyzer *self, BinaryExpr *expr) {
-	// probably some more shit we can do here, it'll do for now though
+	// assignment (probably)
+	if (!strcmp(expr->binaryOp, "=")) {
+		printf("its an assignment!\n");
+	}
+
 	analyzeExpression(self, expr->lhand);
 	analyzeExpression(self, expr->rhand);
 }
@@ -135,11 +139,29 @@ void analyzeUnaryExpr(SemanticAnalyzer *self, UnaryExpr *expr) {
 	analyzeExpression(self, expr->lhand);
 }
 
+void analyzeTypeNode(SemanticAnalyzer *self, Type *type) {
+ 	// TODO
+	switch (type->type) {
+		case TYPE_LIT_NODE: break;
+		case TYPE_NAME_NODE: break;
+	}
+}
+
+void analyzeLiteralNode(SemanticAnalyzer *self, Literal *lit) {
+	printf("literal value %s\n", lit->value);
+}
+
 void analyzeExpression(SemanticAnalyzer *self, Expression *expr) {
 	switch (expr->exprType) {
 		case BINARY_EXPR_NODE: analyzeBinaryExpr(self, expr->binary); break;
 		case UNARY_EXPR_NODE: analyzeUnaryExpr(self, expr->unary); break;
 		case FUNCTION_CALL_NODE: analyzeFunctionCall(self, expr->call); break;
+		case TYPE_NODE: analyzeTypeNode(self, expr->type); break;
+		case LITERAL_NODE: analyzeLiteralNode(self, expr->lit); break;
+		case LEAVE_STAT_NODE: break; // TODO
+		default:
+			errorMessage("Unkown node in expression: %s (%d)", getNodeTypeName(expr->exprType), expr->exprType);
+			break;
 	}
 }
 
@@ -148,6 +170,11 @@ void analyzeUnstructuredStatement(SemanticAnalyzer *self, UnstructuredStatement 
 		case DECLARATION_NODE: analyzeDeclaration(self, unstructured->decl); break;
 		case FUNCTION_CALL_NODE: analyzeFunctionCall(self, unstructured->call); break;
 		case ASSIGNMENT_NODE: analyzeAssignment(self, unstructured->assignment); break;
+		case EXPR_STAT_NODE: analyzeExpression(self, unstructured->expr); break;
+		case LEAVE_STAT_NODE: break; // TODO
+		default:
+			errorMessage("Unkown node in expression: %s", getNodeTypeName(unstructured->type));
+			break;
 	}
 }
 
