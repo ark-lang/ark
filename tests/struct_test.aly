@@ -1,0 +1,19 @@
+fn printf(format: str, _): int;
+
+struct Stuff {
+	mut x: int
+}
+
+fn main(): int {
+	mut stuff: Stuff;
+	stuff.x = 5;
+	0qa834unc9
+	
+	printf("stuff.x is %d\n", stuff.x);
+	
+	if stuff.x != 5 {
+		return 1;
+	}
+	
+	return 0;
+}
