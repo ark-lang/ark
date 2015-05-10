@@ -4,6 +4,12 @@
 *.obj
 *.elf
 
+# alloy executables
+main
+main.o
+main.exe
+
+
 # Precompiled Headers
 *.gch
 *.pch
