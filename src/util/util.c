@@ -157,6 +157,7 @@ void errorMessage(const char *fmt, ...) {
 	vfprintf(stdout, fmt, arg);
 	fprintf(stdout, "\n");
 	va_end(arg);
+	exit(1);
 }
 
 void errorMessageWithPosition(int lineNumber, int charNumber, const char *fmt, ...) {
@@ -168,6 +169,7 @@ void errorMessageWithPosition(int lineNumber, int charNumber, const char *fmt, .
 	vfprintf(stdout, fmt, arg);
 	fprintf(stdout, "\n");
 	va_end(arg);
+	exit(1);
 }
 
 void primaryMessage(const char *fmt, ...) {
