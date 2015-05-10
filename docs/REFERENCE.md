@@ -190,6 +190,29 @@ The struct initializer is a statement, therefore it must be terminated with a se
 the values in the struct initializer do not have to be in order, but we suggest you do to keep things
 consistent.
 
+### Default structure values
+You can also have a structure that has default values if there are no
+initial values given:
+
+	struct Cat {
+		name: str = "Terry";
+		age: int = 0;
+	}
+
+This means that when you make an instance of the structure, but do not
+give a value for the name -- or any other member in the structure -- it
+will fallback to the default value specified on the structures declaration.
+
+	cat: ^Cat = {
+		age: 12
+	};
+
+	printf("%s is %d years old\n", cat.name, cat.age);
+
+Will give us:
+
+	Terry is 12 years old
+
 ## Implementations & Methods
 An `impl` is an implementation of the given `struct`, or structure. An implementation contains methods
 that 'belong' to the structure, i.e you can call these methods through the given structure and the methods
@@ -386,11 +409,36 @@ a value, or not have a value -- they are often paired with `match`.
 An option type is denoted with an open angular bracket, the type that is optional, and a closing angle
 bracket.
 
-	fn example(a: <int>) {
+	fn example(a: ?int) {
 		match a {
 			Some -> printf("wow!\n");
 			None -> printf("Damn\n");
 		}
+	}
+
+Here's an example with an Option type as a function return type. These are especially useful for
+cleanly checking for errors in your code. Note that the example below is semi-pseudo code, i.e.
+the functions that it calls do not exist, since we haven't written any file IO libraries for Alloy
+yet.
+
+	fn read_file(name: str): ?str {
+		read = non_existent_file_reading_function(str, ...);
+		if read {
+			return Some(read.contents);
+		}
+		return None;
+	}
+
+	fn main() {
+		file_name: str = "vident_top_ten_favorite_bread_types.md";
+		file_contents: str = read_file(file_name, ...);
+		
+		match file_contents {
+			Some -> printf("file %s contains:\n %s", file_name, file_contents)
+			None -> printf("failed to read file!");
+		}
+
+		return 0;
 	}
 
 ## Enums
@@ -414,9 +462,42 @@ and finally the enum item.
 	}
 
 ## Arrays
+An array is a collection of data that is the same type. They are defined as follows:
+
+	mut name_of_array: [size]type;
+
+Note that the size of the array is a must if you are not statically initializing the
+array. For instance, an array of points would be defined as follows:
+
+	mut points: [5]int; // can hold up to 5 points.
+
+You can then set the values of the array by specifying the name of the array to modify,
+an opening square bracket, the index of the array that you are changing, and a closing
+bracket:
+
+	// set the first value in the array to be 10.
+	points[0] = 10;
+
+To retrieve a value in an array, you do the same syntax, but you do not assign a value. For
+instance, I could store the value in another variable like so:
+
+	x: int = points[0]; // is now 10
+
+### Statically Initializing an array
+If you already know what data needs to be stored in the array, you can simply initialize
+the array on its declaration:
+
+	some_array: []int = [
+		0, 1, 2, 3, 4
+	];
+
+Note that I did not specify a size in the block this time, and that there is also a semi-colon `;`
+at the end of the initializing block, this is because it's still a statement.
 
 ## Generics
-we're still thinking about this...
+we're still thinking about this... want to suggest an idea/have your say? Post an issue, or comment
+on an existing one (relevant to the topic) [here](https://github.com/felixangell/alloy/issues).
 
 ## Macro System
-we're still thinking about this...
+we're still thinking about this... want to suggest an idea/have your say? Post an issue, or comment
+on an existing one (relevant to the topic) [here](https://github.com/felixangell/alloy/issues).
