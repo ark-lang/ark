@@ -1,15 +1,4 @@
 # [Alloy](http://alloy-lang.org) [![BuildStatus](https://travis-ci.org/felixangell/alloy.svg?branch=master)](https://travis-ci.org/felixangell/alloy)
-Alloy is a work in progress programming language, read the [reference](docs/REFERENCE.md) to find out more about the plans, syntax, etc. 
-Please note that the language is constantly being changed, so the Reference may be out-dated. Alloy is a side-project of mine, I work on it
-when I can; however I'm only 16 so I have a lot of other things that I need to attend (college, work, social life, etc...).
-
-<p align="center">
-<img src="misc/example.gif" width="312px" height="312px" />
-</p>
-<p align="center">
-Here's a 3d cube being rendered using SDL and OpenGL in Alloy. You can
-check out the source code for this <a href="https://www.github.com/felixangell/space-invaders">here</a>
-</p>
 
 ## Resources
 
@@ -18,6 +7,14 @@ check out the source code for this <a href="https://www.github.com/felixangell/s
 * [Tests](/tests/)
 * [Libraries](/lib/)
 * [Misc](/misc/)
+
+<p align="center">
+<img src="misc/example.gif" width="312px" height="312px" />
+</p>
+<p align="center">
+Here's a 3d cube being rendered using SDL and OpenGL in Alloy. You can
+check out the source code for this <a href="https://www.github.com/felixangell/space-invaders">here</a>
+</p>
 
 ## Disclaimer?
 Alloy is a somewhat experimental language, this means it can and probably will change at any point, be it a small change, or a complete re-write.
