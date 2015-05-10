@@ -8,6 +8,7 @@
 * [Libraries](/lib/)
 * [Misc](/misc/)
 
+## Example
 <p align="center">
 <img src="misc/example.gif" width="312px" height="312px" />
 </p>
