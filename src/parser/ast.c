@@ -576,7 +576,6 @@ void destroyUnstructuredStatement(UnstructuredStatement *stmt) {
 		case EXPR_STAT_NODE: destroyExpression(stmt->expr); break;
 		default:
 			errorMessage("unstructured statement isn't being destroyed!?");
-	printf("%d\n", stmt->type);
 			break;
 	}
 	free(stmt);
