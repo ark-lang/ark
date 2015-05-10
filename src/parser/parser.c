@@ -1,7 +1,9 @@
 #include "parser.h"
 
-#define parserError(...) self->failed = true; \
-						 errorMessage(__VA_ARGS__)
+#define parserError(...) self->failed = true, \
+						 errorMessageWithPosition(peekAtTokenStream(self, 0)->lineNumber,\
+						         peekAtTokenStream(self, 0)->charNumber,\
+						         __VA_ARGS__)
 
 #define PRINT_CURR_TOK() printf("current token: %s\n", peekAtTokenStream(self, 0)->content);
 
