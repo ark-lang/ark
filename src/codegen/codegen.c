@@ -591,7 +591,10 @@ void startCodeGeneration(CodeGenerator *self) {
 	verboseModeMessage("running cl args: `%s`", buildCommand);
 
 	// do the command we just created
-	system(buildCommand);
+	int result = system(buildCommand);
+	if (result != 0)
+		exit(2);
+	
 	sdsfree(self->linkerFlags);
 	sdsfree(buildCommand); // deallocate dat shit baby
 }
