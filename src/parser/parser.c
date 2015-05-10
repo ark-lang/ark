@@ -177,19 +177,19 @@ Type *parseType(Parser *self) {
 FieldDecl *parseFieldDecl(Parser *self) {
 	bool mutable = false;
 
+	if (checkTokenTypeAndContent(self, IDENTIFIER, MUT_KEYWORD, 0)) {
+		consumeToken(self);
+		mutable = true;
+	}
+
 	if (checkTokenType(self, IDENTIFIER, 0)) {
 		char *name = consumeToken(self)->content;
-
+		
 		if (checkTokenTypeAndContent(self, OPERATOR, ":", 0)) {
 			consumeToken(self);
 		}
 		else {
 			parserError("Expected colon in field declaration, found: %s", peekAtTokenStream(self, 0)->content);
-		}
-
-		if (checkTokenTypeAndContent(self, IDENTIFIER, MUT_KEYWORD, 0)) {
-			consumeToken(self);
-			mutable = true;
 		}
 
 		Type *type = parseType(self);
