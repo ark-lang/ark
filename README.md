@@ -13,6 +13,25 @@ Here's a 3d cube being rendered using SDL and OpenGL in Alloy.
 ## Disclaimer?
 Alloy is a somewhat experimental language, this means it can and probably will change at any point, be it a small change, or a complete re-write.
  
+## Building
+If you want to try out Alloy yourself, clone the repository, compile it, and add `bin/alloyc` to your path. You can
+also run the test script (you'll need python) `test.py` to see if the tests work, though we can't guarantee they
+will all run successfully if you're building the nightly.
+
+### Requirements:
+You will need:
+
+* GNU Make
+* Clang/GCC (we're not sure about other compilers support)
+* Python 2.x or above (optional, for the tests)
+
+### Commands
+
+	$ git clone http://www.github.com/felixangell/alloy
+	$ cd alloy
+	$ make
+	$ ./test.py  # optionally run tests, you need python!
+
 ## Status
 Alloy is still constantly being worked on. At the moment it compiles,
 however some aspects of the language are unimplemented or broken.
