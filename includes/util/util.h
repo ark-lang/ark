@@ -93,6 +93,16 @@ void verboseModeMessage(const char *fmt, ...);
 void warningMessage(const char *fmt, ...);
 
 /**
+ * Emits a warning message to the console
+ * The warning message contains a line and character number.
+ * @param lineNumber    the line number to print
+ * @param charNumber    the character number to print
+ * @param msg           the message to print
+ * @param ... 			extra arguments
+ */
+void warningMessageWithPosition(int lineNumber, int charNumber, const char *fmt, ...);
+
+/**
  * Emits a message when in verbose mode
  * @param msg           the message to print
  * @param ...			extra arguments
@@ -105,6 +115,16 @@ void verboseModeMessage(const char *fmt, ...);
  * @param ... 			extra arguments
  */
 void errorMessage(const char *fmt, ...);
+
+/**
+ * Emits an error message to the console, will also exit
+ * The error message contains a line and character number.
+ * @param lineNumber    the line number to print
+ * @param charNumber    the character number to print
+ * @param msg           the message to print
+ * @param ... 			extra arguments
+ */
+void errorMessageWithPosition(int lineNumber, int charNumber, const char *fmt, ...);
 
 /**
  * Emits a primary message to the console
