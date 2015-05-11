@@ -228,7 +228,7 @@ void recognizeStringToken(Lexer *self) {
 void recognizeCharacterToken(Lexer *self) {
 	expectCharacter(self, '\'');
 
-	if (isLetterOrDigit(self->currentChar)) {
+	if (isLetterOrDigit(self->currentChar) || isOperator(self->currentChar) || isSeparator(self->currentChar)) {
 		consumeCharacter(self); // consume character		
 	}
 	else {
