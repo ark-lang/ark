@@ -228,12 +228,11 @@ void recognizeStringToken(Lexer *self) {
 void recognizeCharacterToken(Lexer *self) {
 	expectCharacter(self, '\'');
 
-	if (isLetterOrDigit(self->currentChar) || isOperator(self->currentChar) || isSeparator(self->currentChar)) {
-		consumeCharacter(self); // consume character		
-	}
-	else {
-		errorMessageWithPosition(self->lineNumber, self->charNumber, "Empty character constant\n");
-		return;
+	// FIXME
+	// for now we just eat everything
+	// inside of our single quotes.
+	while (self->currentChar != '\'') {
+		consumeCharacter(self);
 	}
 
 	expectCharacter(self, '\'');

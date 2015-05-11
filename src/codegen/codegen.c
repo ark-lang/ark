@@ -368,6 +368,27 @@ void emitMatchStat(CodeGenerator *self, MatchStat *match) {
 	emitCode(self, "}" CC_NEWLINE);
 }
 
+char *getLoopIndex(CodeGenerator *self, Expression *expr) {
+	switch (expr->exprType) {
+		case BINARY_EXPR_NODE: {
+			if (expr->binary->lhand) {
+				char *name = getLoopIndex(self, expr->binary->lhand);
+				return name;
+			}
+			else {
+				printf("todo some erro\n");
+			}
+			break;
+		}
+		case TYPE_NODE: {
+			switch (expr->type->type) {
+				case TYPE_NAME_NODE: return expr->type->typeName->name;
+			}
+			break;
+		}
+	}
+}
+
 void emitIndexForLoop(CodeGenerator *self, ForStat *stmt) {
 	/**
 	 * We assume that the index for the loop
@@ -382,21 +403,20 @@ void emitIndexForLoop(CodeGenerator *self, ForStat *stmt) {
 	
 
 	// FIXME, this should be better?
-	char *iden = stmt->index->binary->lhand->type->typeName->name;
+	if (stmt->index->binary->lhand) {
+		char *iden = getLoopIndex(self, stmt->index->binary->lhand);
 
-	emitCode(self, "for (%s;", iden);
+		emitCode(self, "for (;", iden);
 
-	// emit index
-	emitExpression(self, stmt->index);
-	emitCode(self, "; ");
-	// then step, but we do x + 1, so we need to prefix
-	// x = EXPR??
-	emitCode(self, "%s = ", iden);
-	emitExpression(self, stmt->step);
+		// emit index
+		emitExpression(self, stmt->index);
+		emitCode(self, "; ");
+		emitExpression(self, stmt->step);
 
-	emitCode(self, ") {" CC_NEWLINE);
-	emitBlock(self, stmt->body);
-	emitCode(self, "}" CC_NEWLINE);
+		emitCode(self, ") {" CC_NEWLINE);
+		emitBlock(self, stmt->body);
+		emitCode(self, "}" CC_NEWLINE);
+	}
 }
 
 void emitForStat(CodeGenerator *self, ForStat *stmt) {
