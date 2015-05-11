@@ -66,7 +66,7 @@ void analyzeVariableDeclaration(SemanticAnalyzer *self, VariableDecl *decl) {
 	// doesnt exist
 	if (!mapDecl) {
 		if (decl->inferred) {
-			errorMessage("todo: type inference lol");
+			VariableType type = deduceTypeFromExpression(self, decl->expr);
 		}
 		pushVariableDeclaration(self, decl);
 	}
@@ -158,7 +158,6 @@ void analyzeExpression(SemanticAnalyzer *self, Expression *expr) {
 		case FUNCTION_CALL_NODE: analyzeFunctionCall(self, expr->call); break;
 		case TYPE_NODE: analyzeTypeNode(self, expr->type); break;
 		case LITERAL_NODE: analyzeLiteralNode(self, expr->lit); break;
-		case LEAVE_STAT_NODE: break; // TODO
 		default:
 			errorMessage("Unkown node in expression: %s (%d)", getNodeTypeName(expr->exprType), expr->exprType);
 			break;

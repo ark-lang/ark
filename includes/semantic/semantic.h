@@ -59,16 +59,16 @@ typedef struct {
 	map_t structSymTable;
 } Scope;
 
-// this is stupid, little
-// trick so we can store
-// a type on the heap for our
-// hashmap
-typedef struct {
-	VariableType type;
-} VariableTypeHeap;
-
+/*
+ * Create a new Scope
+ */
 Scope *createScope();
 
+/**
+ * Destroys the given Scope, frees up
+ * everything defined in the scope, e.g
+ * variables, functions, etc.
+ */
 void destroyScope(Scope *scope);
 
 /**
@@ -90,36 +90,6 @@ void analyzeBlock(SemanticAnalyzer *self, Block *block);
  * @param decl the function decl node to analyze
  */
 void analyzeFunctionDeclaration(SemanticAnalyzer *self, FunctionDecl *decl);
-
-/**
- * Merges two variable types together
- * @param  a first type to merge
- * @param  b second type to merge
- * @return   a and b merged
- */
-VariableType mergeTypes(VariableType a, VariableType b);
-
-/**
- * Converts a literal to a variable type
- * @param  literal the literal to convert
- * @return         the variable type
- */
-VariableType literalToType(Literal *literal);
-
-/**
- * Deduce a type from the given expression
- * @param  self the semantic analyzer instance
- * @param  expr the expr to deduce
- * @return      the deduced type
- */
-VariableType deduceType(SemanticAnalyzer *self, Expression *expr);
-
-/**
- * Creates a type to be inserted into the AST post-deduction
- * @param  type the type to convert
- * @return      the type instance created
- */
-TypeName *createTypeDeduction(VariableType type);
 
 /**
  * Analyze a variable declaration
@@ -282,6 +252,18 @@ void pushScope(SemanticAnalyzer *self);
  * @param self the semantic analyzer instance
  */
 void popScope(SemanticAnalyzer *self);
+
+/// TYPE CHECKING
+
+VariableType deduceTypeFromFunctionCall(SemanticAnalyzer *self, Call *call);
+
+VariableType deduceTypeFromLiteral(SemanticAnalyzer *self, Literal *lit);
+
+VariableType deduceTypeFromBinaryExpr(SemanticAnalyzer *self, BinaryExpr *expr);
+
+VariableType deduceTypeFromUnaryExpr(SemanticAnalyzer *self, UnaryExpr *expr);
+
+VariableType deduceTypeFromExpression(SemanticAnalyzer *self, Expression *expr);
 
 /**
  * Destroy the semantic analyzer instance
