@@ -163,13 +163,13 @@ in memory:
 	
 	}
 	
-A structure contains variable definitions terminated by a semi-colon. For example, we can write
+A structure contains variable definitions separated by commas. Trailing commas are allowed. For example, we can write
 a structure to define a Cat's properties like so:
 
 	struct cat {
-		name: str;
-		age: int;
-		weight: float;
+		name: str,
+		age: int,
+		weight: float
 	}
 	
 While structures are more complex types, they are defined just as any ordinary type such as an integer
@@ -195,8 +195,8 @@ You can also have a structure that has default values if there are no
 initial values given:
 
 	struct Cat {
-		name: str = "Terry";
-		age: int = 0;
+		name: str = "Terry",
+		age: int = 0
 	}
 
 This means that when you make an instance of the structure, but do not
@@ -219,9 +219,9 @@ that 'belong' to the structure, i.e you can call these methods through the given
 can manipulate their owners data. First we must have a struct that will be the owner of these methods:
 
 	struct Person {
-		name: str;
-		age: int;
-		gender: Gender;
+		name: str,
+		age: int,
+		gender: Gender
 	}
 
 We can then define various methods for this structure. To do so, they must be wrapped in an `impl`. The `impl`
