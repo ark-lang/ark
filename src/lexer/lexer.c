@@ -71,6 +71,19 @@ void skipLayoutAndComments(Lexer *self) {
 		consumeCharacter(self);
 	}
 
+	while (self->currentChar == '#') {
+		consumeCharacter(self);
+
+		while (!isCommentCloser(self->currentChar)) {
+			if (isEndOfInput(self->currentChar)) return;
+			consumeCharacter(self);
+		}
+		
+		while (isLayout(self->currentChar)) {
+			consumeCharacter(self);
+		}
+	}
+
 	// consume a block comment and its contents
 	if (self->currentChar == '/' && peekAhead(self, 1) == '*') {
 		// consume new comment symbols
