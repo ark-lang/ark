@@ -1,0 +1,10 @@
+# A testing file for comments
+
+# Binding for c printf function
+fn printf(msg: str, _): int;
+
+# Main entry point of the program
+fn main(): int {
+	printf("this is a test\n");
+	return 0;
+}
