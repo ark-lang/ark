@@ -9,13 +9,5 @@ script: make
 notifications:
   email: false
 
-deploy:
-  provider: releases
-  skip_cleanup: true
-  api_key:
-    secure: GN+DA/sFpSo5wEAOI/DWintVrMgPZ6F4t1FlZqHEjxp/qU6rpuYtvcs56TahgSbPWuo2CHw4q/fQkElJDTysqrZG3H8AkdiRu/7bvJNyvJsbPjArKW8pOw531Y6fvjsuxSLoKZoFtmbE93HLJQvoBiaxo6pGOmR+lA39XnSHfgQ=
-  file: alloyc-linux
-  on:
-    tags: true
-    all_branches: true
-    repo: alloy-lang/alloy
+after-success:
+  - ./test.py
