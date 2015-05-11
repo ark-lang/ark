@@ -221,10 +221,11 @@ FieldDeclList *parseFieldDeclList(Parser *self) {
 			if (decl) {
 				pushBackItem(list->members, decl);
 				if (checkTokenTypeAndContent(self, SEPARATOR, ",", 0)) {
-					if (checkTokenTypeAndContent(self, SEPARATOR, "}", 1)) {
-						parserError("Trailing comma in field declaration, found: %s", peekAtTokenStream(self, 0)->content);
-					}
 					consumeToken(self);
+					if (checkTokenTypeAndContent(self, SEPARATOR, "}", 1)) {
+						consumeToken(self);
+						break;
+					}
 				}
 				else if (!checkTokenTypeAndContent(self, SEPARATOR, "}", 0)) {
 					parserError("Expected comma after field declaration, found: %s", peekAtTokenStream(self, 0)->content);
