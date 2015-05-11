@@ -31,7 +31,29 @@ SemanticAnalyzer *createSemanticAnalyzer(Vector *sourceFiles) {
 	self->currentSourceFile = NULL;
 	self->currentNode = 0;
 	self->scopes = createStack();
+	self->dataTypes = hashmap_new();
 	self->failed = false;
+
+	hashmap_put(self->dataTypes, "i8", createVarType(INTEGER_VAR_TYPE));
+	hashmap_put(self->dataTypes, "i16", createVarType(INTEGER_VAR_TYPE));
+	hashmap_put(self->dataTypes, "i32", createVarType(INTEGER_VAR_TYPE));
+	hashmap_put(self->dataTypes, "i64", createVarType(INTEGER_VAR_TYPE));
+	
+	hashmap_put(self->dataTypes, "u8", createVarType(INTEGER_VAR_TYPE));
+	hashmap_put(self->dataTypes, "u16", createVarType(INTEGER_VAR_TYPE));
+	hashmap_put(self->dataTypes, "u32", createVarType(INTEGER_VAR_TYPE));
+	hashmap_put(self->dataTypes, "u64", createVarType(INTEGER_VAR_TYPE));
+
+	hashmap_put(self->dataTypes, "f32", createVarType(INTEGER_VAR_TYPE));
+	hashmap_put(self->dataTypes, "f64", createVarType(INTEGER_VAR_TYPE));
+	
+	hashmap_put(self->dataTypes, "int", createVarType(INTEGER_VAR_TYPE));
+	hashmap_put(self->dataTypes, "char", createVarType(INTEGER_VAR_TYPE));
+	hashmap_put(self->dataTypes, "str", createVarType(INTEGER_VAR_TYPE));
+	hashmap_put(self->dataTypes, "bool", createVarType(INTEGER_VAR_TYPE));
+	hashmap_put(self->dataTypes, "float", createVarType(INTEGER_VAR_TYPE));
+	hashmap_put(self->dataTypes, "double", createVarType(INTEGER_VAR_TYPE));
+
 	return self;
 }
 
@@ -354,7 +376,7 @@ void destroySemanticAnalyzer(SemanticAnalyzer *self) {
 	for (int i = 0; i < self->scopes->stackPointer; i++) {
 		popScope(self);
 	}
-	//hashmap_free(self->dataTypes); // This is never initialised?
+	hashmap_free(self->dataTypes);
 	destroyStack(self->scopes);
 
 	free(self);
