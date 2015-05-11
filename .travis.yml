@@ -4,10 +4,7 @@ compiler:
   - gcc
   - clang
 
-script: make
+script: make && ./test.py
 
 notifications:
   email: false
-
-after-success:
-  - ./test.py
