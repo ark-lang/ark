@@ -30,3 +30,6 @@ Notes, todo stuff etc...
   * [ ] Arrays Type Inference
   * [ ] Structure type inference
   * [ ] `f` and `d` suffix for float/double inference
+- [ ] UTF-8 string library
+- [ ] Documentation format/parser/generator
+- [ ] Module/namespace system
