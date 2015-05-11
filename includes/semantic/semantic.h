@@ -60,6 +60,13 @@ typedef struct {
 } Scope;
 
 /*
+ * Heap allocation hacky stuff
+ */
+typedef struct {
+	int type;
+} VarType; 
+
+/*
  * Create a new Scope
  */
 Scope *createScope();
@@ -255,13 +262,13 @@ void popScope(SemanticAnalyzer *self);
 
 /// TYPE CHECKING
 
-VariableType deduceTypeFromFunctionCall(SemanticAnalyzer *self, Call *call);
+VarType *deduceTypeFromFunctionCall(SemanticAnalyzer *self, Call *call);
 
-VariableType deduceTypeFromLiteral(SemanticAnalyzer *self, Literal *lit);
+VarType *deduceTypeFromLiteral(SemanticAnalyzer *self, Literal *lit);
 
-VariableType deduceTypeFromBinaryExpr(SemanticAnalyzer *self, BinaryExpr *expr);
+VarType *deduceTypeFromBinaryExpr(SemanticAnalyzer *self, BinaryExpr *expr);
 
-VariableType deduceTypeFromUnaryExpr(SemanticAnalyzer *self, UnaryExpr *expr);
+VarType *deduceTypeFromUnaryExpr(SemanticAnalyzer *self, UnaryExpr *expr);
 
 VariableType deduceTypeFromExpression(SemanticAnalyzer *self, Expression *expr);
 
