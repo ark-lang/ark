@@ -31,6 +31,7 @@ typedef struct {
 	/** the source files to semantically analyze */
 	Vector *sourceFiles;
 
+	/** data types for type inference */
 	map_t dataTypes;
 
 	/** the current node in the ast */
@@ -77,6 +78,10 @@ Scope *createScope();
  * variables, functions, etc.
  */
 void destroyScope(Scope *scope);
+
+VarType *createVarType(int type);
+
+void destroyVarType(VarType *type);
 
 /**
  * Create instance of semantic analyzer
