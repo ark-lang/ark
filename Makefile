@@ -21,6 +21,7 @@ all: ${SOURCES}
 	@mkdir -p bin/
 	$(CC) $(CFLAGS) $(INCLUDES) ${SOURCES} -o bin/alloyc
 
+
 clean:
 	@rm -f *.o	
 	@rm -rf bin/
