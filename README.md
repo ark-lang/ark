@@ -37,6 +37,11 @@ You will need:
 	$ git clone http://www.github.com/felixangell/alloy
 	$ cd alloy
 	$ make
+
+### Testing
+Please note if you want to test Alloy, you **must** have it in
+your path!
+
 	$ ./test.py  # optionally run tests, you need python!
 
 ## Status
