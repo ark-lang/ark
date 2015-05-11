@@ -1,6 +1,6 @@
 #include "semantic.h"
 
-VarType *createVariableType(int type) {
+VarType *createVarType(int type) {
 	VarType *var = safeMalloc(sizeof(*var));
 	var->type = type;
 	return var;
