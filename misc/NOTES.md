@@ -3,7 +3,7 @@ Notes, todo stuff etc...
 
 ## TODO
 - [x] Sort out parsing for Array and Pointer Types
-- [ ] Member access
+- [x] Member access
 - [x] Assignment as an expression
 - [x] Arrays
 - [x] Array static initializers
@@ -13,7 +13,6 @@ Notes, todo stuff etc...
 - [ ] Code generation for match statements
 - [ ] Else If/Else Statements
 - [ ] Access specifiers, i.e public/private
-- [ ] Inline functions, code gen to inline, or do it "literally" in the compiler
 - [ ] Deduce whether to generate `.` or `->`
 - [ ] Fix arrays decaying
 - [x] Static initialization for structures and arrays
@@ -29,7 +28,6 @@ Notes, todo stuff etc...
 - [ ] Fix hacky type inference
   * [ ] Arrays Type Inference
   * [ ] Structure type inference
-  * [ ] `f` and `d` suffix for float/double inference
 - [ ] UTF-8 string library
 - [ ] Documentation format/parser/generator
 - [ ] Module/namespace system

@@ -25,6 +25,14 @@ with an asterisks, followed by a forward slash. For instance:
 	/*
 		vident pls give me some bread
 	 */
+
+Documenting comments are written with a pound symbol '#', these should be used for
+documenting functions, structures, enumerations, etc.
+
+	# Does some stuff then it exits the program
+	fn main(): int {
+
+	}
 	
 Comments cannot be nested.
 
