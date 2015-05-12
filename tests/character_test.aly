@@ -3,13 +3,16 @@ fn main(): int {
 		return 1;
 	}
 	if '+' != 43 {
-		return 1;
+		return 2;
 	}
 	if '\n' != 10 {
-		return 1;
+		return 3;
 	}
-	if '/' != 45 {
-		return 1;
+	if '/' != 47 {
+		return 4;
+	}
+	if '\'' != 39 {
+		return 5;
 	}
 	
 	return 0;
