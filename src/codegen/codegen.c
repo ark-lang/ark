@@ -64,7 +64,13 @@ void consumeAstNodeBy(CodeGenerator *self, int amount) {
 }
 
 void emitLiteral(CodeGenerator *self, Literal *lit) {
-	emitCode(self, "%s", lit->value);
+	switch (lit->type) {
+		case CHAR_LITERAL_NODE:
+			emitCode(self, "%d", lit->charLit->value);
+			break;
+		default:
+			emitCode(self, "%s", lit->otherLit->value);
+	}
 }
 
 void emitBinaryExpr(CodeGenerator *self, BinaryExpr *expr) {
