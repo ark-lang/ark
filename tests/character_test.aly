@@ -1,11 +1,16 @@
-y: i8 = 'a';
-z: i8 = '+';
-x: i8 = '-';
-b: i8 = '/';
-c: i8 = '*';
-a: i8 = 'a';
-
 fn main(): int {
-
+	if 'a' != 97 {
+		return 1;
+	}
+	if '+' != 43 {
+		return 1;
+	}
+	if '\n' != 10 {
+		return 1;
+	}
+	if '/' != 45 {
+		return 1;
+	}
+	
 	return 0;
 }

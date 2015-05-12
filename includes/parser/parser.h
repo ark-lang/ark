@@ -134,6 +134,18 @@ void destroyParseTree(Vector *self);
 /** AST */
 
 /**
+ * Parses a string for one escaped character.
+ * @param pointer to start of the escape in the string
+ */
+int parseEscapedCharacter(char *str);
+
+/**
+ * Parses a character literal.
+ * @param  parser the parser instance
+ */
+CharLit *parseCharLit(Parser *self);
+
+/**
  * Parses a literal, e.g String, Character, Number literals.
  * @param  parser the parser instance
  */
