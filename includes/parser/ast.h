@@ -36,7 +36,7 @@ typedef enum {
 	STRUCTURED_STATEMENT_NODE, STATEMENT_NODE, TYPE_NODE, POINTER_FREE_NODE, TUPLE_TYPE_NODE,
 	TUPLE_EXPR_NODE, OPTION_TYPE_NODE, 
 	MACRO_NODE, USE_MACRO_NODE, LINKER_FLAG_MACRO_NODE, EXPR_STAT_NODE, ARRAY_INITIALIZER_NODE,
-	NUM_OF_NODES
+	CHAR_LITERAL_NODE, OTHER_LITERAL_NODE, NUM_OF_NODES
 } NodeType;
 
 extern const char *NODE_NAME[];
@@ -62,10 +62,25 @@ typedef struct {
 } IdentifierList;
 
 /**
- * A node representing a literal.
+ * A node representing a char literal.
+ */
+typedef struct {
+	int value;
+} CharLit;
+
+/**
+ * A temporary node representing a non-char literal.
  */
 typedef struct {
 	char *value;
+} OtherLit;
+
+/**
+ * A node representing a literal.
+ */
+typedef struct {
+	CharLit *charLit;
+	OtherLit *otherLit;
 	int type;
 } Literal;
 
@@ -493,7 +508,11 @@ LinkerFlagMacro *createLinkerFlagMacro(char *flag);
 
 IdentifierList *createIdentifierList();
 
-Literal *createLiteral(char *value, int type);
+Literal *createLiteral();
+
+OtherLit *createOtherLit(char *value);
+
+CharLit *createCharLit(int value);
 
 TypeLit *createTypeLit();
 
@@ -594,6 +613,10 @@ void destroyLinkerFlagMacro(LinkerFlagMacro *linker);
 void destroyIdentifierList(IdentifierList *list);
 
 void destroyLiteral(Literal *lit);
+
+void destroyCharLit(CharLit *lit);
+
+void destroyOtherLit(OtherLit *lit);
 
 void destroyUnaryExpr(UnaryExpr *rhand);
 

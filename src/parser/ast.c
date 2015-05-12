@@ -64,10 +64,20 @@ IdentifierList *createIdentifierList() {
 	return iden;
 }
 
-Literal *createLiteral(char *value, int type) {
+Literal *createLiteral() {
 	Literal *lit = safeMalloc(sizeof(*lit));
+	return lit;
+}
+
+OtherLit *createOtherLit(char *value) {
+	OtherLit *lit = safeMalloc(sizeof(*lit));
 	lit->value = value;
-	lit->type = type;
+	return lit;
+}
+
+CharLit *createCharLit(int value) {
+	CharLit *lit = safeMalloc(sizeof(*lit));
+	lit->value = value;
 	return lit;
 }
 
@@ -388,6 +398,18 @@ void destroyImpl(Impl *impl) {
 }
 
 void destroyLiteral(Literal *lit) {
+	if (!lit) return;
+	destroyCharLit(lit->charLit);
+	destroyOtherLit(lit->otherLit);
+	free(lit);
+}
+
+void destroyCharLit(CharLit *lit) {
+	if (!lit) return;
+	free(lit);
+}
+
+void destroyOtherLit(OtherLit *lit) {
 	if (!lit) return;
 	free(lit);
 }
