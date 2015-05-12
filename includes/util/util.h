@@ -95,12 +95,13 @@ void warningMessage(const char *fmt, ...);
 /**
  * Emits a warning message to the console
  * The warning message contains a line and character number.
+ * @param fileName      the filename to print (can be NULL)
  * @param lineNumber    the line number to print
  * @param charNumber    the character number to print
  * @param msg           the message to print
  * @param ... 			extra arguments
  */
-void warningMessageWithPosition(int lineNumber, int charNumber, const char *fmt, ...);
+void warningMessageWithPosition(char *fileName, int lineNumber, int charNumber, const char *fmt, ...);
 
 /**
  * Emits a message when in verbose mode
@@ -119,12 +120,13 @@ void errorMessage(const char *fmt, ...);
 /**
  * Emits an error message to the console, will also exit
  * The error message contains a line and character number.
+ * @param fileName      the filename to print (can be NULL)
  * @param lineNumber    the line number to print
  * @param charNumber    the character number to print
  * @param msg           the message to print
  * @param ... 			extra arguments
  */
-void errorMessageWithPosition(int lineNumber, int charNumber, const char *fmt, ...);
+void errorMessageWithPosition(char *fileName, int lineNumber, int charNumber, const char *fmt, ...);
 
 /**
  * Emits a primary message to the console
