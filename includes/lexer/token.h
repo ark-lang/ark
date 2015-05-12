@@ -40,6 +40,7 @@ typedef struct {
 	sds content;
 	int lineNumber;
 	int charNumber;
+	sds fileName;
 } Token;
 
 /**
@@ -48,7 +49,7 @@ typedef struct {
  * @param lineNumber the line number of the token
  * @param charNumber the character number
  */
-Token *createToken(int lineNumber, int charNumber);
+Token *createToken(int lineNumber, int charNumber, sds fileName);
 
 /**
  * Retrieve the token name of the given token
