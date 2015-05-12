@@ -227,11 +227,11 @@ void recognizeStringToken(Lexer *self) {
 
 void recognizeCharacterToken(Lexer *self) {
 	expectCharacter(self, '\'');
-
-	// FIXME
-	// for now we just eat everything
-	// inside of our single quotes.
-	while (self->currentChar != '\'') {
+	
+	if (self->currentChar == '\'')
+		errorMessageWithPosition(self->lineNumber, self->charNumber, "Empty character constant");
+	
+	while (!(self->currentChar == '\'' && peekAhead(self, -1) != '\\')) {
 		consumeCharacter(self);
 	}
 
