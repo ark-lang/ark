@@ -138,12 +138,15 @@ void warningMessage(const char *fmt, ...) {
 	va_end(arg);
 }
 
-void warningMessageWithPosition(int lineNumber, int charNumber, const char *fmt, ...) {
+void warningMessageWithPosition(char *fileName, int lineNumber, int charNumber, const char *fmt, ...) {
 	va_list arg;
 	va_start(arg, fmt);
 	char *temp = GET_ORANGE_TEXT("warning: ");
 	fprintf(stdout, "%s", temp);
-	fprintf(stdout, "[%d:%d] ", lineNumber, charNumber);
+	if (fileName != NULL)
+		fprintf(stdout, "[%s:%d:%d] ", fileName, lineNumber, charNumber);
+	else
+		fprintf(stdout, "[%d:%d] ", lineNumber, charNumber);
 	vfprintf(stdout, fmt, arg);
 	fprintf(stdout, "\n");
 	va_end(arg);
@@ -160,12 +163,15 @@ void errorMessage(const char *fmt, ...) {
 	exit(1);
 }
 
-void errorMessageWithPosition(int lineNumber, int charNumber, const char *fmt, ...) {
+void errorMessageWithPosition(char *fileName, int lineNumber, int charNumber, const char *fmt, ...) {
 	va_list arg;
 	va_start(arg, fmt);
 	char *temp = GET_RED_TEXT("error: ");
 	fprintf(stdout, "%s", temp);
-	fprintf(stdout, "[%d:%d] ", lineNumber, charNumber);
+	if (fileName != NULL)
+		fprintf(stdout, "[%s:%d:%d] ", fileName, lineNumber, charNumber);
+	else
+		fprintf(stdout, "[%d:%d] ", lineNumber, charNumber);
 	vfprintf(stdout, fmt, arg);
 	fprintf(stdout, "\n");
 	va_end(arg);

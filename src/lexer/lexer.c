@@ -10,6 +10,7 @@ Lexer *createLexer() {
 	self->lineNumber = 1;
 	self->charNumber = 1;
 	self->failed = false;
+	self->fileName = NULL;
 	return self;
 }
 
@@ -31,6 +32,7 @@ void startLexingFiles(Lexer *self, Vector *sourceFiles) {
 		self->currentChar = self->input[self->pos];
 		self->tokenStream = createVector(VECTOR_EXPONENTIAL);
 		self->running = true;
+		self->fileName = sourceFile->fileName;
 
 		// get all the tokens
 		while (self->running) {
@@ -229,7 +231,7 @@ void recognizeCharacterToken(Lexer *self) {
 	expectCharacter(self, '\'');
 	
 	if (self->currentChar == '\'')
-		errorMessageWithPosition(self->lineNumber, self->charNumber, "Empty character constant");
+		errorMessageWithPosition(self->fileName, self->lineNumber, self->charNumber, "Empty character constant");
 	
 	while (!(self->currentChar == '\'' && peekAhead(self, -1) != '\\')) {
 		consumeCharacter(self);
@@ -274,7 +276,7 @@ void recognizeErroneousToken(Lexer *self) {
 
 /** pushes a token with no content */
 void pushToken(Lexer *self, int type) {
-	Token *tok = createToken(self->lineNumber, self->charNumber);
+	Token *tok = createToken(self->lineNumber, self->charNumber, self->fileName);
 	tok->type = type;
 	tok->content = extractToken(self, self->startPos, self->pos - self->startPos);
 	pushBackItem(self->tokenStream, tok);
@@ -282,7 +284,7 @@ void pushToken(Lexer *self, int type) {
 
 /** pushes a token with content */
 void pushInitializedToken(Lexer *self, int type, char *content) {
-	Token *tok = createToken(self->lineNumber, self->charNumber);
+	Token *tok = createToken(self->lineNumber, self->charNumber, self->fileName);
 	tok->type = type;
 	tok->content = content;
 	pushBackItem(self->tokenStream, tok);
