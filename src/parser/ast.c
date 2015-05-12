@@ -22,7 +22,8 @@ const char *NODE_NAME[] = {
 	"ELSE_STAT_NODE", "IF_STAT_NODE", "MATCH_CLAUSE_STAT", "MATCH_STAT_NODE", "FOR_STAT_NODE",
 	"STRUCTURED_STATEMENT_NODE", "STATEMENT_NODE", "TYPE_NODE", "POINTER_FREE_NODE", "TUPLE_TYPE_NODE",
 	"TUPLE_EXPR_NODE", "OPTION_TYPE_NODE", 
-	"MACRO_NODE", "USE_MACRO_NODE", "LINKER_FLAG_MACRO_NODE", "EXPR_STAT_NODE", "ARRAY_INITIALIZER_NODE"
+	"MACRO_NODE", "USE_MACRO_NODE", "LINKER_FLAG_MACRO_NODE", "EXPR_STAT_NODE", "ARRAY_INITIALIZER_NODE",
+	"CHAR_LITERAL_NODE", "OTHER_LITERAL_NODE"
 };
 
 // Useful for debugging
@@ -64,10 +65,20 @@ IdentifierList *createIdentifierList() {
 	return iden;
 }
 
-Literal *createLiteral(char *value, int type) {
+Literal *createLiteral() {
 	Literal *lit = safeMalloc(sizeof(*lit));
+	return lit;
+}
+
+OtherLit *createOtherLit(char *value) {
+	OtherLit *lit = safeMalloc(sizeof(*lit));
 	lit->value = value;
-	lit->type = type;
+	return lit;
+}
+
+CharLit *createCharLit(int value) {
+	CharLit *lit = safeMalloc(sizeof(*lit));
+	lit->value = value;
 	return lit;
 }
 
@@ -388,6 +399,18 @@ void destroyImpl(Impl *impl) {
 }
 
 void destroyLiteral(Literal *lit) {
+	if (!lit) return;
+	destroyCharLit(lit->charLit);
+	destroyOtherLit(lit->otherLit);
+	free(lit);
+}
+
+void destroyCharLit(CharLit *lit) {
+	if (!lit) return;
+	free(lit);
+}
+
+void destroyOtherLit(OtherLit *lit) {
 	if (!lit) return;
 	free(lit);
 }
