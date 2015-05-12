@@ -2,9 +2,9 @@ fn printf(format: str, _): int;
 fn getchar(): char;
 
 fn main(): int {
-    mut x: char = getchar();
-    for x != 0 && x != -1, x = getchar() {
-        printf("%c", x);
-    }
-    return 0;
+	mut x: int = 0;
+	
+	for x < 5, x = x + 1 {
+		printf("%d\n", x);
+	}
 }
