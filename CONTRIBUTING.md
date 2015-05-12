@@ -2,7 +2,8 @@
 We'd love your contributions to make Alloy a better programming language.
 
 ## Code Style
-Alloy has a fairly strict code-style to keep things consistent:
+Alloy has a fairly strict code-style to keep things consistent (note that
+this is for C code! If you're looking for the Alloy style guides, check out [this](/docs/STYLEGUIDE.md):
 
 * Indent with four spaces, no tabs! (Your IDE's/Editors should do this anyway)
 * Provide spaces around operators for readability, i.e. (1 + 1), over (1+1)

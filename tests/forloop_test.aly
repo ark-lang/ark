@@ -7,4 +7,13 @@ fn main(): int {
 	for x < 5, x = x + 1 {
 		printf("%d\n", x);
 	}
+
+	mut c: char = getchar();
+	for c != -1, c = getchar() {
+		printf("%c", c);
+		if c == '!' {
+			printf("\n");
+			return 0;
+		}
+	}
 }

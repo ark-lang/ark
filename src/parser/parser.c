@@ -737,14 +737,20 @@ ReturnStat *parseReturnStat(Parser *self) {
 	if (checkTokenTypeAndContent(self, IDENTIFIER, RETURN_KEYWORD, 0)) {
 		consumeToken(self);
 
-		Expression *expr = parseExpression(self);
 		if (checkTokenTypeAndContent(self, SEPARATOR, ";", 0)) {
 			consumeToken(self);
+			return createReturnStat(NULL);
 		}
 		else {
-			parserError("Expected semi-colon at end of return statement, found: %s", peekAtTokenStream(self, 0)->content);
+			Expression *expr = parseExpression(self);
+			if (expr && checkTokenTypeAndContent(self, SEPARATOR, ";", 0)) {
+				consumeToken(self);
+				return createReturnStat(expr);
+			}
+			else {
+				parserError("Expected semi-colon at end of return statement, found: %s", peekAtTokenStream(self, 0)->content);
+			}
 		}
-		return createReturnStat(expr);
 	}
 	return false;
 }
