@@ -77,12 +77,83 @@ void destroyParser(Parser *self) {
 
 /** PARSING STUFF */
 
-Literal *parseLiteral(Parser *self) {
-	int type = getLiteralType(peekAtTokenStream(self, 0));
-	if (type != ERRORNEOUS) {
-		return createLiteral(consumeToken(self)->content, type);
-	}
+int parseEscapedCharacter(char *str, int *len) {
+	int val = -1;
+	
+	// this is super messy, it will be done with const arrays eventually
+	if (!strncmp(str, "\\n", 2))
+		val = '\n';
+	else if (!strncmp(str, "\\0", 2))
+		val = '\0';
+	else if (!strncmp(str, "\\r", 2))
+		val = '\r';
+	else if (!strncmp(str, "\\\\", 2))
+		val = '\\';
+	else if (!strncmp(str, "\\'", 2))
+		val = '\'';
+	else if (!strncmp(str, "\\a", 2))
+		val = '\a';
+	else if (!strncmp(str, "\\b", 2))
+		val = '\b';
+	else if (!strncmp(str, "\\f", 2))
+		val = '\f';
+	else if (!strncmp(str, "\\t", 2))
+		val = '\t';
+	else if (!strncmp(str, "\\v", 2))
+		val = '\v';
+	else if (!strncmp(str, "\\\'", 2))
+		val = '\"';
+	else if (!strncmp(str, "\\\"", 2))
+		val = '\?';
+	
+	if (len != NULL)
+		*len = 2;
+	
+	// TODO parse octal/hex escapes
+	
+	return val;
+}
+
+// TODO make UTF-8 compatible
+CharLit *parseCharLit(Parser *self) {
+	if (getLiteralType(peekAtTokenStream(self, 0)) != LITERAL_CHAR)
+		return false;
+	
+	char *str = consumeToken(self)->content;
+	
+	// convert the char from textual representation into an int
+	
+	if (strlen(str) == 3)
+		return createCharLit(*(str + 1));
+	
+	int val = parseEscapedCharacter(str + 1, NULL);
+	if (val != -1)
+		return createCharLit(val);
+	
+	parserError("Malformed character constant: `%s`", str);
 	return false;
+}
+
+Literal *parseLiteral(Parser *self) {
+	if (getLiteralType(peekAtTokenStream(self, 0)) == ERRORNEOUS) {
+		return false;
+		//return createLiteral(consumeToken(self)->content, type);
+	}
+	
+	Literal *literal = createLiteral(); 
+	
+	CharLit *charLit = parseCharLit(self);
+	if (charLit) {
+		literal->charLit = charLit;
+		literal->type = CHAR_LITERAL_NODE;
+		return literal;
+	}
+	
+	// TODO create individual types for other literals, eg. string, integer, floating
+	literal->type = OTHER_LITERAL_NODE;
+	literal->otherLit = createOtherLit(consumeToken(self)->content);
+	
+	return literal;
 }
 
 UseMacro *parseUseMacro(Parser *self) {
