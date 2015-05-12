@@ -574,7 +574,6 @@ void startCodeGeneration(CodeGenerator *self) {
 
 		generateMacros(self);
 
-		//emitCode(self, BOILERPLATE);
 		emitCode(self, "#include \"%s\"\n", boilerplate->generatedHeaderName);
 
 		// compile code
