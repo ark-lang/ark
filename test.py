@@ -40,7 +40,7 @@ for name in os.listdir("tests"):
 		if show_output:
 			compile_result = subprocess.call(["alloyc", "tests/" + name, "-o", "tests/" + output_file])
 		else:
-			FNULL = open(os.devnull, 'w')z
+			FNULL = open(os.devnull, 'w')
 			compile_result = subprocess.call(["alloyc", "tests/" + name, "-o", "tests/" + output_file], stdout=FNULL, stderr=subprocess.STDOUT)
 
 		if compile_result != 0:
