@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 # Simple test script
 # Goes through all files in the test/ directory
 # and runs all of the files matching this: *_test.aly
