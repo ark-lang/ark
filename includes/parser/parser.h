@@ -136,8 +136,9 @@ void destroyParseTree(Vector *self);
 /**
  * Parses a string for one escaped character.
  * @param pointer to start of the escape in the string
+ * @param len     if not NULL, the length of the escape is placed here
  */
-int parseEscapedCharacter(char *str);
+int parseEscapedCharacter(char *str, int *len);
 
 /**
  * Parses a character literal.

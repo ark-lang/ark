@@ -77,7 +77,7 @@ void destroyParser(Parser *self) {
 
 /** PARSING STUFF */
 
-int parseEscapedCharacter(char *str) {
+int parseEscapedCharacter(char *str, int *len) {
 	int val = -1;
 	
 	// this is super messy, it will be done with const arrays eventually
@@ -106,6 +106,9 @@ int parseEscapedCharacter(char *str) {
 	else if (!strncmp(str, "\\\"", 2))
 		val = '\?';
 	
+	if (len != NULL)
+		*len = 2;
+	
 	// TODO parse octal/hex escapes
 	
 	return val;
@@ -123,7 +126,7 @@ CharLit *parseCharLit(Parser *self) {
 	if (strlen(str) == 3)
 		return createCharLit(*(str + 1));
 	
-	int val = parseEscapedCharacter(str + 1);
+	int val = parseEscapedCharacter(str + 1, NULL);
 	if (val != -1)
 		return createCharLit(val);
 	
