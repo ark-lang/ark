@@ -9,28 +9,30 @@
 
 **/
 
+// anonymous enumeration?
+// shall we still support this
 enum _ {
     ADD,
     SUB,
     MUL,
-    DIV,
+    DIV, // trailing commas?
 }
 
 struct VirtualMachine {
-    instruction_num: int;
-    first_register: int;
-    second_register: int;
-    third_register: int;
-    imm_value: int; 
-    running: bool;
-    pc: int;
-    registers: [4]int;
+    instruction_num: int,
+    first_register: int,
+    second_register: int,
+    third_register: int,
+    imm_value: int,
+    running: bool,
+    pc: int,
+    registers: [4]int, // trailing comma again
 }
 
 impl VirtualMachine {
     fn fetch(prog: []int): int {
-        vm.pc = vm.pc + 1;
-        return prog[vm.pc];
+        vm.pc = vm.pc + 1; // increment operators
+        return prog[vm.pc]; // array access
     }
 
     fn goto() {
@@ -71,7 +73,7 @@ impl VirtualMachine {
 
     fn arithmetic(typ: int) {
         match typ {
-            ADD {
+            ADD { // syntax is weird
                 vm.registers[vm.first_register] = vm.registers[vm.second_register] + vm.registers[vm.third_register];
             };
             SUB {
@@ -103,7 +105,7 @@ fn main(): int {
         third_register = 0,
         imm_value = 0,
         running = true,
-        registers = [ 0, 0, 0, 0 ],
+        registers = [ 0, 0, 0, 0 ], // trailing comma 
     };
 
     prog: []int = [
@@ -113,7 +115,7 @@ fn main(): int {
         0x7001,
         0x2201,
         0x7002,
-        0x0000,
+        0x0000, // trailing comma 
     ];
 
     vm.start(prog);
