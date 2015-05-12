@@ -11,11 +11,13 @@
  * types.
  */
 const char *BOILERPLATE =
+"#ifndef __ALLOYC_BOILERPLATE_H\n"
+"#define __ALLOYC_BOILERPLATE_H\n"
 "#include <stdbool.h>\n"
 "#include <stddef.h>\n"
 "#include <stdarg.h>\n"
 "#include <stdint.h>\n"
-"\n"
+CC_NEWLINE
 "typedef char *str;" CC_NEWLINE
 "typedef size_t usize;" CC_NEWLINE
 "typedef uint8_t u8;" CC_NEWLINE
@@ -28,7 +30,9 @@ const char *BOILERPLATE =
 "typedef int64_t i64;" CC_NEWLINE
 "typedef float f32;" CC_NEWLINE
 "typedef double f64;" CC_NEWLINE
-"typedef unsigned int uint;" CC_NEWLINE
+"typedef unsigned int uint;\n"
+CC_NEWLINE
+"#endif\n"
 ;
 
 CodeGenerator *createCodeGenerator(Vector *sourceFiles) {
@@ -546,6 +550,11 @@ void traverseAST(CodeGenerator *self) {
 }
 
 void startCodeGeneration(CodeGenerator *self) {
+	HeaderFile *boilerplate = createHeaderFile("_alloyc_boilerplate");
+	writeHeaderFile(boilerplate);
+	fprintf(boilerplate->outputFile, "%s", BOILERPLATE);
+	closeHeaderFile(boilerplate);
+	
 	for (int i = 0; i < self->sourceFiles->size; i++) {
 		SourceFile *sf = getVectorItem(self->sourceFiles, i);
 		self->currentNode = 0;
@@ -565,7 +574,7 @@ void startCodeGeneration(CodeGenerator *self) {
 
 		generateMacros(self);
 
-		emitCode(self, BOILERPLATE);
+		emitCode(self, "#include \"%s\"\n", boilerplate->generatedHeaderName);
 
 		// compile code
 		traverseAST(self);
@@ -624,6 +633,8 @@ void startCodeGeneration(CodeGenerator *self) {
 	
 	sdsfree(self->linkerFlags);
 	sdsfree(buildCommand); // deallocate dat shit baby
+	
+	destroyHeaderFile(boilerplate);
 }
 
 void destroyCodeGenerator(CodeGenerator *self) {
