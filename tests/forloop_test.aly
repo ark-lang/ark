@@ -2,9 +2,7 @@ fn printf(format: str, _): int;
 fn getchar(): char;
 
 fn main(): int {
-    // just set it to 1 so it doesn't
-    // ignore the for loop completely.
-    mut x: char = 1;
+    mut x: char = getchar();
     for x != 0 && x != -1, x = getchar() {
         printf("%c", x);
     }
