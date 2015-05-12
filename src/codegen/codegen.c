@@ -14,17 +14,18 @@ const char *BOILERPLATE =
 "#include <stdbool.h>\n"
 "#include <stddef.h>\n"
 "#include <stdarg.h>\n"
+"#include <stdint.h>\n"
 "\n"
 "typedef char *str;" CC_NEWLINE
 "typedef size_t usize;" CC_NEWLINE
-"typedef unsigned char u8;" CC_NEWLINE
-"typedef unsigned short u16;" CC_NEWLINE
-"typedef unsigned int u32;" CC_NEWLINE
-"typedef unsigned long long u64;" CC_NEWLINE
-"typedef char i8;" CC_NEWLINE
-"typedef short i16;" CC_NEWLINE
-"typedef int i32;" CC_NEWLINE
-"typedef long long i64;" CC_NEWLINE
+"typedef uint8_t u8;" CC_NEWLINE
+"typedef uint16_t u16;" CC_NEWLINE
+"typedef uint32_t u32;" CC_NEWLINE
+"typedef uint64_t u64;" CC_NEWLINE
+"typedef int8_t i8;" CC_NEWLINE
+"typedef int16_t i16;" CC_NEWLINE
+"typedef int32_t i32;" CC_NEWLINE
+"typedef int64_t i64;" CC_NEWLINE
 "typedef float f32;" CC_NEWLINE
 "typedef double f64;" CC_NEWLINE
 "typedef unsigned int uint;" CC_NEWLINE
