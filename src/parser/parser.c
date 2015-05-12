@@ -1,7 +1,9 @@
 #include "parser.h"
 
 #define parserError(...) self->failed = true, \
-						 errorMessageWithPosition(peekAtTokenStream(self, 0)->lineNumber,\
+						 errorMessageWithPosition(\
+						         peekAtTokenStream(self, 0)->fileName,\
+						         peekAtTokenStream(self, 0)->lineNumber,\
 						         peekAtTokenStream(self, 0)->charNumber,\
 						         __VA_ARGS__)
 

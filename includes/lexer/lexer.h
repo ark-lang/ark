@@ -32,6 +32,7 @@ typedef struct {
 	bool failed;			// if lexing failed
 	sds buffer;				// temporary token
 	Vector *tokenStream;	// where the tokens are stored
+	sds fileName;
 } Lexer;
 
 /**

@@ -1,11 +1,12 @@
 #include "token.h"
 
-Token *createToken(int lineNumber, int charNumber) {
+Token *createToken(int lineNumber, int charNumber, sds fileName) {
 	Token *tok = safeMalloc(sizeof(*tok));
 	tok->type = UNKNOWN;
 	tok->content = NULL;
 	tok->lineNumber = lineNumber;
 	tok->charNumber = charNumber;
+	tok->fileName = fileName;
 	return tok;
 }
 
