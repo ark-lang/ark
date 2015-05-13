@@ -169,13 +169,14 @@ IntLit *parseIntLit(Parser *self) {
 	}
 	else { // base 10 literal
 		for (int i = 0; str[i]; i++) {
+			if (str[i] == '_') continue; // ignore digit underscores
 			value *= 10;
 			value += str[i] - '0';
 		}
 	}
-	
+
 	consumeToken(self);
-	
+
 	return createIntLit(value);
 }
 
