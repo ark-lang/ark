@@ -145,6 +145,18 @@ int parseEscapedCharacter(char *str, int *len);
 CharLit *parseCharLit(Parser *self);
 
 /**
+ * Parses an integer literal.
+ * @param  parser the parser instance
+ */
+IntLit *parseIntLit(Parser *self);
+
+/**
+ * Parses a floating-point number literal.
+ * @param  parser the parser instance
+ */
+FloatLit *parseFloatLit(Parser *self);
+
+/**
  * Parses a literal, e.g String, Character, Number literals.
  * @param  parser the parser instance
  */

@@ -142,10 +142,9 @@ IntLit *parseIntLit(Parser *self) {
 	
 	char *str = peekAtTokenStream(self, 0)->content;
 	
-	for (int i = 0; str[i]; i++) {
+	for (int i = 0; str[i]; i++)
 		if (str[i] == '.')
 			return false; // it's a floating point
-	}
 	
 	uint64_t value = 0;
 	
@@ -180,6 +179,23 @@ IntLit *parseIntLit(Parser *self) {
 	return createIntLit(value);
 }
 
+FloatLit *parseFloatLit(Parser *self) {
+	if (getLiteralType(peekAtTokenStream(self, 0)) != LITERAL_NUMBER)
+		return false;
+	
+	char *str = peekAtTokenStream(self, 0)->content;
+	
+	bool isFloat = false;
+	for (int i = 0; str[i]; i++)
+		if (str[i] == '.')
+			isFloat = true;
+	
+	if (!isFloat)
+		return false;
+	
+	return createFloatLit(atof(consumeToken(self)->content));
+}
+
 Literal *parseLiteral(Parser *self) {
 	if (getLiteralType(peekAtTokenStream(self, 0)) == LITERAL_ERRORED) {
 		return false;
@@ -201,11 +217,18 @@ Literal *parseLiteral(Parser *self) {
 		return literal;
 	}
 	
-	// TODO create individual types for other literals, eg. string, floating
-	literal->type = OTHER_LITERAL_NODE;
-	literal->otherLit = createOtherLit(consumeToken(self)->content);
+	FloatLit *floatLit = parseFloatLit(self);
+	if (floatLit) {
+		literal->floatLit = floatLit;
+		literal->type = FLOAT_LITERAL_NODE;
+		return literal;
+	}
 	
+	literal->type = STRING_LITERAL_NODE;
+	literal->stringLit = createStringLit(consumeToken(self)->content);
 	return literal;
+	
+	return false;
 }
 
 UseMacro *parseUseMacro(Parser *self) {
