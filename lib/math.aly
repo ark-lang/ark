@@ -3,7 +3,7 @@
 // Wrapper around the C math.h library.
 //
 
-!linker_flag "m"
+!compiler_flag "-lm"
 
 PI: f64 = 3.14159265358979323846;
 
