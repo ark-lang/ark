@@ -21,7 +21,6 @@ void emitLinkerFlagMacro(CodeGenerator *self, LinkerFlagMacro *linker) {
 	memcpy(temp, &linker->flag[1], len - 2);
 	temp[len - 2] = '\0';
 
-	self->linkerFlags = sdscat(self->linkerFlags, " -l");
 	self->linkerFlags = sdscat(self->linkerFlags, temp);
 	self->linkerFlags = sdscat(self->linkerFlags, " ");
 }

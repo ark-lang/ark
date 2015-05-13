@@ -45,7 +45,7 @@
 #define CONTINUE_KEYWORD			"continue"
 #define RETURN_KEYWORD				"return"
 #define BREAK_KEYWORD				"break"
-#define LINKER_FLAG_KEYWORD			"linker_flag"
+#define LINKER_FLAG_KEYWORD			"compiler_flag"
 #define IMPL_KEYWORD				"impl"
 #define IMPL_AS_KEYWORD				"as"
 #define ELSE_KEYWORD 				"else"
