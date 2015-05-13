@@ -76,8 +76,11 @@ void emitLiteral(CodeGenerator *self, Literal *lit) {
 		case INT_LITERAL_NODE:
 			emitCode(self, "%d", lit->intLit->value);
 			break;
-		default:
-			emitCode(self, "%s", lit->otherLit->value);
+		case FLOAT_LITERAL_NODE:
+			emitCode(self, "%lf", lit->floatLit->value);
+			break;
+		case STRING_LITERAL_NODE:
+			emitCode(self, "%s", lit->stringLit->value);
 	}
 }
 
