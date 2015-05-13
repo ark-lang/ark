@@ -23,7 +23,7 @@ const char *NODE_NAME[] = {
 	"STRUCTURED_STATEMENT_NODE", "STATEMENT_NODE", "TYPE_NODE", "POINTER_FREE_NODE", "TUPLE_TYPE_NODE",
 	"TUPLE_EXPR_NODE", "OPTION_TYPE_NODE", 
 	"MACRO_NODE", "USE_MACRO_NODE", "LINKER_FLAG_MACRO_NODE", "EXPR_STAT_NODE", "ARRAY_INITIALIZER_NODE",
-	"CHAR_LITERAL_NODE", "OTHER_LITERAL_NODE"
+	"CHAR_LITERAL_NODE", "STRING_LITERAL_NODE", "INT_LITERAL_NODE", "FLOAT_LITERAL_NODE"
 };
 
 // Useful for debugging
@@ -70,8 +70,8 @@ Literal *createLiteral() {
 	return lit;
 }
 
-OtherLit *createOtherLit(char *value) {
-	OtherLit *lit = safeMalloc(sizeof(*lit));
+StringLit *createStringLit(char *value) {
+	StringLit *lit = safeMalloc(sizeof(*lit));
 	lit->value = value;
 	return lit;
 }
@@ -84,6 +84,12 @@ CharLit *createCharLit(int value) {
 
 IntLit *createIntLit(uint64_t value) {
 	IntLit *lit = safeMalloc(sizeof(*lit));
+	lit->value = value;
+	return lit;
+}
+
+FloatLit *createFloatLit(double value) {
+	FloatLit *lit = safeMalloc(sizeof(*lit));
 	lit->value = value;
 	return lit;
 }
@@ -407,8 +413,9 @@ void destroyImpl(Impl *impl) {
 void destroyLiteral(Literal *lit) {
 	if (!lit) return;
 	destroyCharLit(lit->charLit);
-	destroyOtherLit(lit->otherLit);
+	destroyStringLit(lit->stringLit);
 	destroyIntLit(lit->intLit);
+	destroyFloatLit(lit->floatLit);
 	free(lit);
 }
 
@@ -422,7 +429,12 @@ void destroyIntLit(IntLit *lit) {
 	free(lit);
 }
 
-void destroyOtherLit(OtherLit *lit) {
+void destroyFloatLit(FloatLit *lit) {
+	if (!lit) return;
+	free(lit);
+}
+
+void destroyStringLit(StringLit *lit) {
 	if (!lit) return;
 	free(lit);
 }

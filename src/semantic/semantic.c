@@ -175,7 +175,7 @@ void analyzeLiteralNode(SemanticAnalyzer *self, Literal *lit) {
 			printf("char literal value: %d\n", lit->charLit->value);
 			break;
 		default:
-			printf("other literal value: %s\n", lit->otherLit->value);
+			printf("other literal value: %s\n", lit->stringLit->value);
 	}
 }
 
