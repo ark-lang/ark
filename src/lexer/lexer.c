@@ -304,12 +304,12 @@ void getNextToken(Lexer *self) {
 		self->running = false;	// stop lexing
 		return;
 	}
-	if (isDigit(self->currentChar) || self->currentChar == '.') {
+	else if (self->currentChar == '0' && (peekAhead(self, 1) == 'x' || peekAhead(self, 1) == 'X')) {
+		recognizeHexToken(self);
+	}
+	else if (isDigit(self->currentChar) || self->currentChar == '.') {
 		// number
 		recognizeNumberToken(self);
-	}
-	else if (self->currentChar == '0' && (peekAhead(self, 0) == 'x' || peekAhead(self, 0) == 'X')) {
-		recognizeHexToken(self);
 	}
 	else if (isLetterOrDigit(self->currentChar) || self->currentChar == '_') {
 		// ident
