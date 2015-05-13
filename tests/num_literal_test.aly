@@ -13,6 +13,9 @@ fn main(): int {
 	if 0b11101010001 != 1873 {
 		return 4;
 	}
+	if 3.14 / 10 != 0.314f {
+		return 5;
+	}
 	
 	return 0;
 }
