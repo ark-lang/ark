@@ -256,6 +256,22 @@ static inline bool isHexChar(char ch) {
 }
 
 /**
+ * @return if the character given is a binary number,
+ * i.e 01
+ */
+static inline bool isBinChar(char ch) {
+	return ch == '0' || ch == '1';
+}
+
+/**
+ * @return if the character given is an octal number,
+ * i.e 01
+ */
+static inline bool isOctChar(char ch) {
+	return ch >= '0' && ch <= '7';
+}
+
+/**
  * @return if the character given is a letter or digit a-z, A-Z, 0-9
  * @param ch the character to check
  */
