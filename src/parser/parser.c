@@ -136,10 +136,53 @@ CharLit *parseCharLit(Parser *self) {
 	return false;
 }
 
-Literal *parseLiteral(Parser *self) {
-	if (getLiteralType(peekAtTokenStream(self, 0)) == ERRORNEOUS) {
+IntLit *parseIntLit(Parser *self) {
+	if (getLiteralType(peekAtTokenStream(self, 0)) != LITERAL_NUMBER)
 		return false;
-		//return createLiteral(consumeToken(self)->content, type);
+	
+	char *str = peekAtTokenStream(self, 0)->content;
+	
+	for (int i = 0; str[i]; i++) {
+		if (str[i] == '.')
+			return false; // it's a floating point
+	}
+	
+	uint64_t value = 0;
+	
+	if (str[1] == 'b') { // binary literal
+		for (int i = 2; str[i]; i++) {
+			value *= 2;
+			value += str[i] - '0';
+		}
+		// TODO warn on overflow
+	}
+	else if (str[1] == 'x' || str[1] == 'X') { // hex literal
+		for (int i = 2; str[i]; i++) {
+			value *= 16;
+			value += hexCharToInt(str[i]);
+		}
+	}
+	else if (str[1] == 'o') { // octal literal
+		for (int i = 2; str[i]; i++) {
+			value *= 8;
+			value += str[i] - '0';
+		}
+	}
+	else { // base 10 literal
+		for (int i = 0; str[i]; i++) {
+			value *= 10;
+			value += str[i] - '0';
+		}
+	}
+	
+	consumeToken(self);
+	
+	return createIntLit(value);
+}
+
+Literal *parseLiteral(Parser *self) {
+	if (getLiteralType(peekAtTokenStream(self, 0)) == LITERAL_ERRORED) {
+		return false;
 	}
 	
 	Literal *literal = createLiteral(); 
@@ -151,7 +194,14 @@ Literal *parseLiteral(Parser *self) {
 		return literal;
 	}
 	
-	// TODO create individual types for other literals, eg. string, integer, floating
+	IntLit *intLit = parseIntLit(self);
+	if (intLit) {
+		literal->intLit = intLit;
+		literal->type = INT_LITERAL_NODE;
+		return literal;
+	}
+	
+	// TODO create individual types for other literals, eg. string, floating
 	literal->type = OTHER_LITERAL_NODE;
 	literal->otherLit = createOtherLit(consumeToken(self)->content);
 	
@@ -1614,12 +1664,8 @@ int getLiteralType(Token *tok) {
 	switch (tok->type) {
 	case CHARACTER:
 		return LITERAL_CHAR;
-	case HEX:
-		return LITERAL_HEX_NUMBER;
-	case DECIMAL:
-		return LITERAL_DECIMAL_NUMBER;
-	case WHOLE_NUMBER:
-		return LITERAL_WHOLE_NUMBER;
+	case NUMBER:
+		return LITERAL_NUMBER;
 	case STRING:
 		return LITERAL_STRING;
 	default:
@@ -1678,10 +1724,8 @@ Token *peekAtTokenStream(Parser *self, int ahead) {
 bool isLiteral(Parser *self, int ahead) {
 	Token *tok = peekAtTokenStream(self, ahead);
 	return tok->type == STRING 
-			|| tok->type == WHOLE_NUMBER 
-			|| tok->type == CHARACTER
-			|| tok->type == DECIMAL
-			|| tok->type == HEX;
+			|| tok->type == NUMBER 
+			|| tok->type == CHARACTER;
 }
 
 /** DRIVER */
