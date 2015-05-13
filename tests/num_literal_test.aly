@@ -16,6 +16,12 @@ fn main(): int {
 	if 3.14 / 10 != 0.314f {
 		return 5;
 	}
+	if 123_45_678910 != 12345678910 {
+		return 6;
+	}
+	if 0_0_0_1 != 1 {
+		return 7;
+	}
 	
 	return 0;
 }

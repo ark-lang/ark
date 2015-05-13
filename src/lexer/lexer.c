@@ -164,6 +164,10 @@ void recognizeIdentifierToken(Lexer *self) {
 void recognizeNumberToken(Lexer *self) {
 	consumeCharacter(self);
 
+	if (self->currentChar == '_') { // ignore digit underscores
+		consumeCharacter(self);
+	}
+
 	if (self->currentChar == '.') {
 		consumeCharacter(self); // consume dot
 		
@@ -220,9 +224,12 @@ void recognizeNumberToken(Lexer *self) {
 				}
 				isDecimal = true;
 			}
+			else if (peekAhead(self, 1) == '_') { // ignore digit underscores
+				consumeCharacter(self);
+			}
 			consumeCharacter(self);
 		}
-		
+
 		pushToken(self, NUMBER);
 	}
 }
