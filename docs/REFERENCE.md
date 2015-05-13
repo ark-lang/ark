@@ -101,7 +101,7 @@ Octal literal:
 
 	0o2322
 
-Floating-point literal:
+Floating-point literal (Note that there is no `f` or `d` suffix. For a numerical literal to be floating point, just make sure it has a `.`):
 
 	12.34
 
