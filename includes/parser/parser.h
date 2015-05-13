@@ -64,9 +64,7 @@ static const char *unaryOp[] = { "+", "-", "!", "^", "<", ">", "*", "&" };
  * Various types of Literals, mostly for lookups
  */
 typedef enum {
-	LITERAL_WHOLE_NUMBER,
-	LITERAL_DECIMAL_NUMBER,
-	LITERAL_HEX_NUMBER,
+	LITERAL_NUMBER,
 	LITERAL_STRING,
 	LITERAL_CHAR,
 	LITERAL_ERRORED
@@ -555,6 +553,17 @@ static inline bool isUnaryOp(char *val) {
  */
 static inline bool isBinaryOp(char *val) {
 	return isLogOp(val) || isRelOp(val) || isAddOp(val) || isMulOp(val);
+}
+
+static inline int hexCharToInt(char hex) {
+	if (hex >= '0' && hex <= '9')
+		return hex - '0';
+	else if (hex >= 'A' && hex <= 'F')
+		return hex - 'A' + 10;
+	else if (hex >= 'a' && hex <= 'f')
+		return hex - 'a' + 10;
+	else
+		return -1;
 }
 
 /** DRIVERS */

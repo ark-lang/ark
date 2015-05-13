@@ -82,6 +82,12 @@ CharLit *createCharLit(int value) {
 	return lit;
 }
 
+IntLit *createIntLit(uint64_t value) {
+	IntLit *lit = safeMalloc(sizeof(*lit));
+	lit->value = value;
+	return lit;
+}
+
 TypeLit *createTypeLit() {
 	return safeCalloc(sizeof(TypeLit));
 }
@@ -402,10 +408,16 @@ void destroyLiteral(Literal *lit) {
 	if (!lit) return;
 	destroyCharLit(lit->charLit);
 	destroyOtherLit(lit->otherLit);
+	destroyIntLit(lit->intLit);
 	free(lit);
 }
 
 void destroyCharLit(CharLit *lit) {
+	if (!lit) return;
+	free(lit);
+}
+
+void destroyIntLit(IntLit *lit) {
 	if (!lit) return;
 	free(lit);
 }

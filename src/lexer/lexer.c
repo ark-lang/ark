@@ -161,20 +161,6 @@ void recognizeIdentifierToken(Lexer *self) {
 	pushToken(self, IDENTIFIER);
 }
 
-void recognizeHexToken(Lexer *self) {
-	consumeCharacter(self);
-
-	if (self->currentChar == 'x' || self->currentChar == 'X') {
-		consumeCharacter(self);
-
-		while (isHexChar(self->currentChar)) {
-			consumeCharacter(self);
-		}
-	}
-
-	pushToken(self, HEX);
-}
-
 void recognizeNumberToken(Lexer *self) {
 	consumeCharacter(self);
 
@@ -189,7 +175,34 @@ void recognizeNumberToken(Lexer *self) {
 			consumeCharacter(self);
 		}
 
-		pushToken(self, DECIMAL);
+		pushToken(self, NUMBER);
+	}
+	else if (self->currentChar == 'x' || self->currentChar == 'X') {
+		consumeCharacter(self);
+
+		while (isHexChar(self->currentChar)) {
+			consumeCharacter(self);
+		}
+		
+		pushToken(self, NUMBER);
+	}
+	else if (self->currentChar == 'b') {
+		consumeCharacter(self);
+
+		while (isBinChar(self->currentChar)) {
+			consumeCharacter(self);
+		}
+		
+		pushToken(self, NUMBER);
+	}
+	else if (self->currentChar == 'o') {
+		consumeCharacter(self);
+
+		while (isOctChar(self->currentChar)) {
+			consumeCharacter(self);
+		}
+		
+		pushToken(self, NUMBER);
 	}
 	else {
 		// it'll do 
@@ -210,7 +223,7 @@ void recognizeNumberToken(Lexer *self) {
 			consumeCharacter(self);
 		}
 		
-		pushToken(self, isDecimal ? DECIMAL : WHOLE_NUMBER);
+		pushToken(self, NUMBER);
 	}
 }
 
@@ -303,9 +316,6 @@ void getNextToken(Lexer *self) {
 		recognizeEndOfInputToken(self);
 		self->running = false;	// stop lexing
 		return;
-	}
-	else if (self->currentChar == '0' && (peekAhead(self, 1) == 'x' || peekAhead(self, 1) == 'X')) {
-		recognizeHexToken(self);
 	}
 	else if (isDigit(self->currentChar) || self->currentChar == '.') {
 		// number

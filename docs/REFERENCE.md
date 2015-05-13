@@ -84,6 +84,27 @@ And declared as follows:
 
 	name: type = some_val;
 
+## Literals
+Integer literal:
+
+	1234
+
+Binary literal:
+
+	0b10011010010
+
+Hex literal:
+
+	0x4d2
+
+Octal literal:
+
+	0o2322
+
+Floating-point literal:
+
+	12.34
+
 ### Type Inference
 The syntax for type inference is nearly identical to a typical variable declaration, all
 you have to do is omit the type, for instance:
