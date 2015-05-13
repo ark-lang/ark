@@ -1,0 +1,18 @@
+fn printf(format: str, _): int;
+
+fn main(): int {
+	if 0xFF351DA != 267604442 {
+		return 1;
+	}
+	if 0o1364536 != 387422 {
+		return 2;
+	}
+	if 1234 != 1234 {
+		return 3; // something is seriously wrong
+	}
+	if 0b11101010001 != 1873 {
+		return 4;
+	}
+	
+	return 0;
+}
