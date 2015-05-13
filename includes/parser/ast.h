@@ -11,6 +11,7 @@
  * is in the language, including macros.
  */
 
+#include <stdint.h>
 #include "util.h"
 #include "vector.h"
 
@@ -36,7 +37,7 @@ typedef enum {
 	STRUCTURED_STATEMENT_NODE, STATEMENT_NODE, TYPE_NODE, POINTER_FREE_NODE, TUPLE_TYPE_NODE,
 	TUPLE_EXPR_NODE, OPTION_TYPE_NODE, 
 	MACRO_NODE, USE_MACRO_NODE, LINKER_FLAG_MACRO_NODE, EXPR_STAT_NODE, ARRAY_INITIALIZER_NODE,
-	CHAR_LITERAL_NODE, OTHER_LITERAL_NODE, NUM_OF_NODES
+	CHAR_LITERAL_NODE, OTHER_LITERAL_NODE, INT_LITERAL_NODE, NUM_OF_NODES
 } NodeType;
 
 extern const char *NODE_NAME[];
@@ -69,6 +70,13 @@ typedef struct {
 } CharLit;
 
 /**
+ * A node representing an whole number literal.
+ */
+typedef struct {
+	uint64_t value;
+} IntLit;
+
+/**
  * A temporary node representing a non-char literal.
  */
 typedef struct {
@@ -81,6 +89,10 @@ typedef struct {
 typedef struct {
 	CharLit *charLit;
 	OtherLit *otherLit;
+	IntLit *intLit;
+	// TODO
+	// FloatingLit
+	// StringLit
 	int type;
 } Literal;
 
@@ -514,6 +526,8 @@ OtherLit *createOtherLit(char *value);
 
 CharLit *createCharLit(int value);
 
+IntLit *createIntLit(uint64_t value);
+
 TypeLit *createTypeLit();
 
 UnaryExpr *createUnaryExpr();
@@ -615,6 +629,8 @@ void destroyIdentifierList(IdentifierList *list);
 void destroyLiteral(Literal *lit);
 
 void destroyCharLit(CharLit *lit);
+
+void destroyIntLit(IntLit *lit);
 
 void destroyOtherLit(OtherLit *lit);
 
