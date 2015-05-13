@@ -1,20 +1,19 @@
-#Object Files
+# Object files
 *.o
 *.ko
 *.obj
 *.elf
 
-# alloy executables
+# Alloy executables
 main
 main.o
 main.exe
 
-
-# Precompiled Headers
+# Precompiled headers
 *.gch
 *.pch
 
-# emacs
+# Emacs
 \#*\#
 
 # Libraries
@@ -27,19 +26,20 @@ main.exe
 _gen_*.c
 _gen_*.h
 main			# default build name
+tests/*.test
 
-# Shared Objects
+# Shared objects
 *.dll
 *.so
 *.so.*
 *.dylib
 
-# eclipse shit
+# Eclipse
 .settings
 .cproject
 .project
 
-# floo stuff
+# Floo
 .floo
 .flooignore
 
@@ -60,3 +60,4 @@ builds/
 *.swo
 *.dSYM
 *sublime-*
+*.stackdump
