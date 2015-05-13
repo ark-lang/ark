@@ -30,7 +30,7 @@ You will need:
 
 * GNU Make
 * Clang/GCC (we're not sure about other compilers support)
-* Python 2.x or above (optional, for the tests)
+* Python 2.4 or above (optional, for the tests)
 
 ### Commands
 
@@ -39,10 +39,14 @@ You will need:
 	$ make
 
 ### Testing
-Please note if you want to test Alloy, you **must** have it in
-your path!
+Note that python is required.
+If alloyc is in your `$PATH`:
 
-	$ ./test.py  # optionally run tests, you need python!
+	$ ./test.py
+
+If alloyc is not in your `$PATH`:
+
+	$ PATH=$PATH:"./bin/" ./test.py
 
 ## Status
 Alloy is still constantly being worked on. At the moment it compiles,
