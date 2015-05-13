@@ -101,7 +101,7 @@ Octal literal:
 
 	0o2322
 
-Floating-point literal (Note that there is no `f` or `d` suffix. For a numerical literal to be floating point, just make sure it has a `.`):
+Floating-point literals contain a period. If a literal lacks a period, or you want to specify the precision, use the `f` suffix for 32 bits (`f32`) or the `d` suffix for 64 bits (`f64`):
 
 	12.34
 
