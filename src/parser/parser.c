@@ -1347,15 +1347,27 @@ Expression *parseExpression(Parser *self) {
 
 
 ArrayType *parseArrayType(Parser *self) {
-	if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, "[", 0) 
-		&& checkTokenTypeAndContent(self, TOKEN_SEPARATOR, "]", 1)) {
+	if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, "[", 0)) {
 		consumeToken(self); // eat the [
-		consumeToken(self); // eat the ]
+
+		Expression *expr = NULL; // hacky
+		if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, "]", 0)) {
+			consumeToken(self);
+		}
+		else {
+			expr = parseExpression(self);
+			if (!expr) {
+				errorMessage("Array type expected closing square bracket or expression");					
+				return false;
+			}
+		}
 
 		// parse the type
 		Type *type = parseType(self);
 		if (type) {
-			return createArrayType(type);
+			ArrayType *type = createArrayType(type);
+			type->expr = expr;
+			return type;
 		}
 	}
 
