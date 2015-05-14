@@ -117,6 +117,7 @@ int parseEscapedCharacter(char *str, int *len) {
 }
 
 // TODO make UTF-8 compatible
+// TODO finish alloy ayy lmao
 CharLit *parseCharLit(Parser *self) {
 	if (getLiteralType(peekAtTokenStream(self, 0)) != LITERAL_CHAR)
 		return false;

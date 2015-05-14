@@ -83,12 +83,37 @@ void analyzeFunctionDeclaration(SemanticAnalyzer *self, FunctionDecl *decl) {
 	}
 }
 
+Type *varTypeToType(VariableType type) {
+	Type *result = createType();
+	result->type = TYPE_NAME_NODE;
+
+	switch (type) {
+		case INTEGER_VAR_TYPE:
+			result->typeName = createTypeName("int");
+			break;
+		case DOUBLE_VAR_TYPE:
+			result->typeName = createTypeName("double");
+			break;
+		case STRING_VAR_TYPE:
+			result->typeName = createTypeName("str");
+			break;
+		// TODO eventually runes or whatever when we do utf8???
+		case CHAR_VAR_TYPE:
+			result->typeName = createTypeName("i8");
+			break;
+		default: return NULL; // TODO error
+	}
+
+	return result;
+}
+
 void analyzeVariableDeclaration(SemanticAnalyzer *self, VariableDecl *decl) {
 	VariableDecl *mapDecl = checkVariableExists(self, decl->name);
 	// doesnt exist
 	if (!mapDecl) {
 		if (decl->inferred) {
 			VariableType type = deduceTypeFromExpression(self, decl->expr);
+			decl->type = varTypeToType(type);
 		}
 		pushVariableDeclaration(self, decl);
 	}
@@ -151,6 +176,7 @@ void analyzeBinaryExpr(SemanticAnalyzer *self, BinaryExpr *expr) {
 	// assignment (probably)
 	if (!strcmp(expr->binaryOp, "=")) {
 		printf("its an assignment!\n");
+		// TODO lol
 	}
 
 	analyzeExpression(self, expr->lhand);
