@@ -233,30 +233,30 @@ Literal *parseLiteral(Parser *self) {
 }
 
 UseMacro *parseUseMacro(Parser *self) {
-	if (checkTokenTypeAndContent(self, OPERATOR, "!", 0)
-		&& checkTokenTypeAndContent(self, IDENTIFIER, USE_KEYWORD, 1)) {
+	if (checkTokenTypeAndContent(self, TOKEN_OPERATOR, "!", 0)
+		&& checkTokenTypeAndContent(self, TOKEN_IDENTIFIER, USE_KEYWORD, 1)) {
 		consumeToken(self);
 		consumeToken(self);
 
 		UseMacro *use = createUseMacro();
 
-		if (checkTokenType(self, STRING, 0)) {
+		if (checkTokenType(self, TOKEN_STRING, 0)) {
 			char *fileName = consumeToken(self)->content;
 			pushBackItem(use->files, fileName);
 			return use;
 		}
-		else if (checkTokenTypeAndContent(self, SEPARATOR, "{", 0)) {
+		else if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, "{", 0)) {
 			consumeToken(self);
 
 			while (true) {
-				if (checkTokenTypeAndContent(self, SEPARATOR, "}", 0)) {
+				if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, "}", 0)) {
 					consumeToken(self);
 					break;
 				}
 
-				if (checkTokenType(self, STRING, 0)) {
+				if (checkTokenType(self, TOKEN_STRING, 0)) {
 					char *fileName = consumeToken(self)->content;
-					if (checkTokenTypeAndContent(self, SEPARATOR, ",", 0)) {
+					if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, ",", 0)) {
 						consumeToken(self);
 					}
 					pushBackItem(use->files, fileName);
@@ -270,12 +270,12 @@ UseMacro *parseUseMacro(Parser *self) {
 }
 
 LinkerFlagMacro *parseLinkerFlagMacro(Parser *self) {
-	if (checkTokenTypeAndContent(self, OPERATOR, "!", 0)
-		&& checkTokenTypeAndContent(self, IDENTIFIER, LINKER_FLAG_KEYWORD, 1)) {
+	if (checkTokenTypeAndContent(self, TOKEN_OPERATOR, "!", 0)
+		&& checkTokenTypeAndContent(self, TOKEN_IDENTIFIER, LINKER_FLAG_KEYWORD, 1)) {
 		consumeToken(self);
 		consumeToken(self);
 
-		if (checkTokenType(self, STRING, 0)) {
+		if (checkTokenType(self, TOKEN_STRING, 0)) {
 			char *flag = consumeToken(self)->content;
 			return createLinkerFlagMacro(flag);
 		}
@@ -287,13 +287,13 @@ IdentifierList *parseIdentifierList(Parser *self) {
 	IdentifierList *idenList = createIdentifierList();
 
 	while (true) {
-		if (checkTokenType(self, IDENTIFIER, 0)) {
+		if (checkTokenType(self, TOKEN_IDENTIFIER, 0)) {
 			pushBackItem(idenList->values, consumeToken(self)->content);
-			if (checkTokenTypeAndContent(self, SEPARATOR, ",", 0)) {
+			if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, ",", 0)) {
 				consumeToken(self);
 			}
 		}
-		if (!checkTokenTypeAndContent(self, SEPARATOR, ",", 0)) {
+		if (!checkTokenTypeAndContent(self, TOKEN_SEPARATOR, ",", 0)) {
 			break;
 		}
 	}
@@ -324,15 +324,15 @@ Type *parseType(Parser *self) {
 FieldDecl *parseFieldDecl(Parser *self) {
 	bool mutable = false;
 
-	if (checkTokenTypeAndContent(self, IDENTIFIER, MUT_KEYWORD, 0)) {
+	if (checkTokenTypeAndContent(self, TOKEN_IDENTIFIER, MUT_KEYWORD, 0)) {
 		consumeToken(self);
 		mutable = true;
 	}
 
-	if (checkTokenType(self, IDENTIFIER, 0)) {
+	if (checkTokenType(self, TOKEN_IDENTIFIER, 0)) {
 		char *name = consumeToken(self)->content;
 		
-		if (checkTokenTypeAndContent(self, OPERATOR, ":", 0)) {
+		if (checkTokenTypeAndContent(self, TOKEN_OPERATOR, ":", 0)) {
 			consumeToken(self);
 		}
 		else {
@@ -354,12 +354,12 @@ FieldDecl *parseFieldDecl(Parser *self) {
 }
 
 FieldDeclList *parseFieldDeclList(Parser *self) {
-	if (checkTokenTypeAndContent(self, SEPARATOR, "{", 0)) {
+	if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, "{", 0)) {
 		consumeToken(self);
 
 		FieldDeclList *list = createFieldDeclList();
 		while (true) {
-			if (checkTokenTypeAndContent(self, SEPARATOR, "}", 0)) {
+			if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, "}", 0)) {
 				consumeToken(self);
 				break;
 			}
@@ -367,14 +367,14 @@ FieldDeclList *parseFieldDeclList(Parser *self) {
 			FieldDecl *decl = parseFieldDecl(self);
 			if (decl) {
 				pushBackItem(list->members, decl);
-				if (checkTokenTypeAndContent(self, SEPARATOR, ",", 0)) {
+				if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, ",", 0)) {
 					consumeToken(self);
-					if (checkTokenTypeAndContent(self, SEPARATOR, "}", 1)) {
+					if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, "}", 1)) {
 						consumeToken(self);
 						break;
 					}
 				}
-				else if (!checkTokenTypeAndContent(self, SEPARATOR, "}", 0)) {
+				else if (!checkTokenTypeAndContent(self, TOKEN_SEPARATOR, "}", 0)) {
 					parserError("Expected comma after field declaration, found: %s", peekAtTokenStream(self, 0)->content);
 				}
 			}
@@ -385,13 +385,13 @@ FieldDeclList *parseFieldDeclList(Parser *self) {
 }
 
 StructDecl *parseStructDecl(Parser *self) {
-	if (checkTokenTypeAndContent(self, IDENTIFIER, STRUCT_KEYWORD, 0)) {
+	if (checkTokenTypeAndContent(self, TOKEN_IDENTIFIER, STRUCT_KEYWORD, 0)) {
 		consumeToken(self);
 
-		if (checkTokenType(self, IDENTIFIER, 0)) {
+		if (checkTokenType(self, TOKEN_IDENTIFIER, 0)) {
 			char *structName = consumeToken(self)->content;
 
-			if (checkTokenTypeAndContent(self, SEPARATOR, "{", 0)) {
+			if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, "{", 0)) {
 				FieldDeclList *list = parseFieldDeclList(self);
 				if (list) {
 					StructDecl *decl = createStructDecl(structName);
@@ -408,7 +408,7 @@ StructDecl *parseStructDecl(Parser *self) {
 }
 
 ParameterSection *parseParameterSection(Parser *self) {
-	if (checkTokenTypeAndContent(self, IDENTIFIER, "_", 0)) {
+	if (checkTokenTypeAndContent(self, TOKEN_IDENTIFIER, "_", 0)) {
 		consumeToken(self);
 		ParameterSection *param = createParameterSection(false, true);
 		param->name = "_";
@@ -416,15 +416,15 @@ ParameterSection *parseParameterSection(Parser *self) {
 	}
 	else {
 		bool mutable = false;
-		if (checkTokenTypeAndContent(self, IDENTIFIER, MUT_KEYWORD, 0)) {
+		if (checkTokenTypeAndContent(self, TOKEN_IDENTIFIER, MUT_KEYWORD, 0)) {
 			consumeToken(self);
 			mutable = true;
 		}
 
-		if (checkTokenType(self, IDENTIFIER, 0)) {
+		if (checkTokenType(self, TOKEN_IDENTIFIER, 0)) {
 			char *name = consumeToken(self)->content;
 			
-			if (checkTokenTypeAndContent(self, OPERATOR, ":", 0)) {
+			if (checkTokenTypeAndContent(self, TOKEN_OPERATOR, ":", 0)) {
 				consumeToken(self);
 			}
 			else {
@@ -445,13 +445,13 @@ ParameterSection *parseParameterSection(Parser *self) {
 }
 
 Parameters *parseParameters(Parser *self) {
-	if (checkTokenTypeAndContent(self, SEPARATOR, "(", 0)) {
+	if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, "(", 0)) {
 		consumeToken(self);
 
 		Parameters *params = createParameters();
 
 		while (true) {
-			if (checkTokenTypeAndContent(self, SEPARATOR, ")", 0)) {
+			if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, ")", 0)) {
 				consumeToken(self);
 				break;
 			}
@@ -468,8 +468,8 @@ Parameters *parseParameters(Parser *self) {
 					pushBackItem(params->paramList, paramSection);
 				}
 
-				if (checkTokenTypeAndContent(self, SEPARATOR, ",", 0)) {
-					if (checkTokenTypeAndContent(self, SEPARATOR, ")", 1)) {
+				if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, ",", 0)) {
+					if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, ")", 1)) {
 						parserError("Trailing comma in parameter list, found: %s", peekAtTokenStream(self, 0)->content);
 					}
 					consumeToken(self);
@@ -486,20 +486,20 @@ Parameters *parseParameters(Parser *self) {
 }
 
 FunctionSignature *parseFunctionSignature(Parser *self) {
-	if (checkTokenTypeAndContent(self, IDENTIFIER, FUNCTION_KEYWORD, 0)) {
+	if (checkTokenTypeAndContent(self, TOKEN_IDENTIFIER, FUNCTION_KEYWORD, 0)) {
 		consumeToken(self);
 
-		if (checkTokenType(self, IDENTIFIER, 0)) {
+		if (checkTokenType(self, TOKEN_IDENTIFIER, 0)) {
 			char *functionName = consumeToken(self)->content;
 
-			if (checkTokenTypeAndContent(self, SEPARATOR, "(", 0)) {
+			if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, "(", 0)) {
 				Parameters *params = parseParameters(self);
 				if (params) {
-					if (checkTokenTypeAndContent(self, OPERATOR, ":", 0)) {
+					if (checkTokenTypeAndContent(self, TOKEN_OPERATOR, ":", 0)) {
 						consumeToken(self);
 
 						bool mutable = false;
-						if (checkTokenTypeAndContent(self, IDENTIFIER, MUT_KEYWORD, 0)) {
+						if (checkTokenTypeAndContent(self, TOKEN_IDENTIFIER, MUT_KEYWORD, 0)) {
 							consumeToken(self);
 							mutable = true;
 						}
@@ -513,8 +513,8 @@ FunctionSignature *parseFunctionSignature(Parser *self) {
 							parserError("Expected function return type in `%s`, found: %s", functionName, peekAtTokenStream(self, 0)->content);
 						}
 					} 
-					else if (checkTokenTypeAndContent(self, SEPARATOR, "{", 0)
-						|| checkTokenTypeAndContent(self, SEPARATOR, ";", 0)) {
+					else if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, "{", 0)
+						|| checkTokenTypeAndContent(self, TOKEN_SEPARATOR, ";", 0)) {
 						// just assume it's void.
 						Type *type = createType();
 						type->typeName = createTypeName(VOID_KEYWORD);
@@ -537,11 +537,11 @@ EnumItem *parseEnumItem(Parser *self) {
 	// a = expr,
 	// b,
 	
-	if (checkTokenType(self, IDENTIFIER, 0)) {
+	if (checkTokenType(self, TOKEN_IDENTIFIER, 0)) {
 		char *itemName = consumeToken(self)->content;
 
 		EnumItem *item = createEnumItem(itemName);
-		if (checkTokenTypeAndContent(self, OPERATOR, "=", 0)) {
+		if (checkTokenTypeAndContent(self, TOKEN_OPERATOR, "=", 0)) {
 			consumeToken(self);
 
 			Expression *expr = parseExpression(self);
@@ -559,18 +559,18 @@ EnumItem *parseEnumItem(Parser *self) {
 }
 
 EnumDecl *parseEnumDecl(Parser *self) {
-	if (checkTokenTypeAndContent(self, IDENTIFIER, ENUM_KEYWORD, 0)) {
+	if (checkTokenTypeAndContent(self, TOKEN_IDENTIFIER, ENUM_KEYWORD, 0)) {
 		consumeToken(self);
 
-		if (checkTokenType(self, IDENTIFIER, 0)) {
+		if (checkTokenType(self, TOKEN_IDENTIFIER, 0)) {
 			char *enumName = consumeToken(self)->content;
 
-			if (checkTokenTypeAndContent(self, SEPARATOR, "{", 0)) {
+			if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, "{", 0)) {
 				consumeToken(self);
 
 				EnumDecl *enumDecl = createEnumDecl(enumName);
 				while (true) {
-					if (checkTokenTypeAndContent(self, SEPARATOR, "}", 0)) {
+					if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, "}", 0)) {
 						consumeToken(self);
 						break;
 					}
@@ -578,8 +578,8 @@ EnumDecl *parseEnumDecl(Parser *self) {
 					EnumItem *item = parseEnumItem(self);
 					if (item) {
 						pushBackItem(enumDecl->items, item);
-						if (checkTokenTypeAndContent(self, SEPARATOR, ",", 0)) {
-							if (checkTokenTypeAndContent(self, SEPARATOR, "}", 1)) {
+						if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, ",", 0)) {
+							if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, "}", 1)) {
 								parserError("Trailing comma in enumerator `%s`, found: %s", enumName, peekAtTokenStream(self, 0)->content);
 							}
 							consumeToken(self);
@@ -599,10 +599,10 @@ EnumDecl *parseEnumDecl(Parser *self) {
 }
 
 ElseStat *parseElseStat(Parser *self) {
-	if (checkTokenTypeAndContent(self, IDENTIFIER, ELSE_KEYWORD, 0)) {
+	if (checkTokenTypeAndContent(self, TOKEN_IDENTIFIER, ELSE_KEYWORD, 0)) {
 		consumeToken(self);
 
-		if (checkTokenTypeAndContent(self, SEPARATOR, "{", 0)) {
+		if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, "{", 0)) {
 			Block *block = parseBlock(self);
 			if (block) {
 				ElseStat *elseStat = createElseStat();
@@ -618,13 +618,13 @@ ElseStat *parseElseStat(Parser *self) {
 }
 
 ElseIfStat *parseElseIfStat(Parser *self) {
-	if (checkTokenTypeAndContent(self, IDENTIFIER, ELSE_KEYWORD, 0)) {
+	if (checkTokenTypeAndContent(self, TOKEN_IDENTIFIER, ELSE_KEYWORD, 0)) {
 		consumeToken(self);
 
-		if (checkTokenTypeAndContent(self, IDENTIFIER, IF_KEYWORD, 0)) {
+		if (checkTokenTypeAndContent(self, TOKEN_IDENTIFIER, IF_KEYWORD, 0)) {
 			consumeToken(self);
 
-			if (checkTokenTypeAndContent(self, SEPARATOR, "{", 0)) {
+			if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, "{", 0)) {
 				Block *block = parseBlock(self);
 				if (block) {
 					ElseIfStat *elif = createElseIfStat(self);
@@ -639,21 +639,21 @@ ElseIfStat *parseElseIfStat(Parser *self) {
 }
 
 IfStat *parseIfStat(Parser *self) {
-	if (checkTokenTypeAndContent(self, IDENTIFIER, IF_KEYWORD, 0)) {
+	if (checkTokenTypeAndContent(self, TOKEN_IDENTIFIER, IF_KEYWORD, 0)) {
 		consumeToken(self);
 
 		Expression *expr = parseExpression(self);
 		if (expr) {
-			if (checkTokenTypeAndContent(self, SEPARATOR, "{", 0)) {
+			if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, "{", 0)) {
 				Block *block = parseBlock(self);
 				if (block) {
 					IfStat *ifStmt = createIfStat();
-					if (checkTokenTypeAndContent(self, IDENTIFIER, ELSE_KEYWORD, 0)
-						&& checkTokenTypeAndContent(self, SEPARATOR, "{", 1)) {
+					if (checkTokenTypeAndContent(self, TOKEN_IDENTIFIER, ELSE_KEYWORD, 0)
+						&& checkTokenTypeAndContent(self, TOKEN_SEPARATOR, "{", 1)) {
 						ifStmt->elseStmt = parseElseStat(self);
 					}
-					else if (checkTokenTypeAndContent(self, IDENTIFIER, ELSE_KEYWORD, 0)
-						&& checkTokenTypeAndContent(self, IDENTIFIER, IF_KEYWORD, 1)) {
+					else if (checkTokenTypeAndContent(self, TOKEN_IDENTIFIER, ELSE_KEYWORD, 0)
+						&& checkTokenTypeAndContent(self, TOKEN_IDENTIFIER, IF_KEYWORD, 1)) {
 
 					}
 					ifStmt->expr = expr;
@@ -670,11 +670,11 @@ IfStat *parseIfStat(Parser *self) {
 }
 
 ForStat *parseForStat(Parser *self) {
-	if (checkTokenTypeAndContent(self, IDENTIFIER, FOR_KEYWORD, 0)) {
+	if (checkTokenTypeAndContent(self, TOKEN_IDENTIFIER, FOR_KEYWORD, 0)) {
 		consumeToken(self);
 
 		// infinite loop
-		if (checkTokenTypeAndContent(self, SEPARATOR, "{", 0)) {
+		if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, "{", 0)) {
 			Block *block = parseBlock(self);
 			if (block) {
 				ForStat *stmt = createForStat();
@@ -690,7 +690,7 @@ ForStat *parseForStat(Parser *self) {
 		Expression *index = parseExpression(self);
 		if (index) {
 			// expr {
-			if (checkTokenTypeAndContent(self, SEPARATOR, "{", 0)) {
+			if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, "{", 0)) {
 				Block *block = parseBlock(self);
 				if (block) {
 					ForStat *stmt = createForStat();
@@ -704,7 +704,7 @@ ForStat *parseForStat(Parser *self) {
 				}
 			}
 			// expr, expr
-			else if (checkTokenTypeAndContent(self, SEPARATOR, ",", 0)) {
+			else if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, ",", 0)) {
 				consumeToken(self);
 
 				Expression *step = parseExpression(self);
@@ -747,7 +747,7 @@ MatchClause *parseMatchClause(Parser *self) {
 }
 
 MatchStat *parseMatchStat(Parser *self) {
-    if (checkTokenTypeAndContent(self, IDENTIFIER, MATCH_KEYWORD, 0)) {
+    if (checkTokenTypeAndContent(self, TOKEN_IDENTIFIER, MATCH_KEYWORD, 0)) {
         consumeToken(self);
         
         Expression *expr = parseExpression(self);
@@ -758,11 +758,11 @@ MatchStat *parseMatchStat(Parser *self) {
 	        	return false;
 	        }
 
-        	if (checkTokenTypeAndContent(self, SEPARATOR, "{", 0)) {
+        	if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, "{", 0)) {
 	            consumeToken(self);
 	            
 	            while (true) {
-		        	if (checkTokenTypeAndContent(self, SEPARATOR, "}", 0)) {
+		        	if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, "}", 0)) {
 		            	consumeToken(self);
 		            	break;
 		            }
@@ -782,9 +782,9 @@ MatchStat *parseMatchStat(Parser *self) {
 }
 
 ContinueStat *parseContinueStat(Parser *self) {
-	if (checkTokenTypeAndContent(self, IDENTIFIER, CONTINUE_KEYWORD, 0)) {
+	if (checkTokenTypeAndContent(self, TOKEN_IDENTIFIER, CONTINUE_KEYWORD, 0)) {
 		consumeToken(self);
-		if (checkTokenTypeAndContent(self, SEPARATOR, ";", 0)) {
+		if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, ";", 0)) {
 			consumeToken(self);
 		}
 		else {
@@ -796,9 +796,9 @@ ContinueStat *parseContinueStat(Parser *self) {
 }
 
 BreakStat *parseBreakStat(Parser *self) {
-	if (checkTokenTypeAndContent(self, IDENTIFIER, BREAK_KEYWORD, 0)) {
+	if (checkTokenTypeAndContent(self, TOKEN_IDENTIFIER, BREAK_KEYWORD, 0)) {
 		consumeToken(self);
-		if (checkTokenTypeAndContent(self, SEPARATOR, ";", 0)) {
+		if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, ";", 0)) {
 			consumeToken(self);
 		}
 		else {
@@ -810,16 +810,16 @@ BreakStat *parseBreakStat(Parser *self) {
 }
 
 ReturnStat *parseReturnStat(Parser *self) {
-	if (checkTokenTypeAndContent(self, IDENTIFIER, RETURN_KEYWORD, 0)) {
+	if (checkTokenTypeAndContent(self, TOKEN_IDENTIFIER, RETURN_KEYWORD, 0)) {
 		consumeToken(self);
 
-		if (checkTokenTypeAndContent(self, SEPARATOR, ";", 0)) {
+		if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, ";", 0)) {
 			consumeToken(self);
 			return createReturnStat(NULL);
 		}
 		else {
 			Expression *expr = parseExpression(self);
-			if (expr && checkTokenTypeAndContent(self, SEPARATOR, ";", 0)) {
+			if (expr && checkTokenTypeAndContent(self, TOKEN_SEPARATOR, ";", 0)) {
 				consumeToken(self);
 				return createReturnStat(expr);
 			}
@@ -863,13 +863,13 @@ LeaveStat *parseLeaveStat(Parser *self) {
 IncDecStat *parseIncDecStat(Parser *self) {
 	Expression *expr = parseExpression(self);
 	if (expr) {
-		if (checkTokenTypeAndContent(self, OPERATOR, "+", 0)
-				&& checkTokenTypeAndContent(self, OPERATOR, "+", 1)) {
+		if (checkTokenTypeAndContent(self, TOKEN_OPERATOR, "+", 0)
+				&& checkTokenTypeAndContent(self, TOKEN_OPERATOR, "+", 1)) {
 			consumeToken(self);
 			consumeToken(self);
 			return createIncDecStat(expr, 1);
-		} else if (checkTokenTypeAndContent(self, OPERATOR, "-", 0)
-				&& checkTokenTypeAndContent(self, OPERATOR, "-", 1)) {
+		} else if (checkTokenTypeAndContent(self, TOKEN_OPERATOR, "-", 0)
+				&& checkTokenTypeAndContent(self, TOKEN_OPERATOR, "-", 1)) {
 			consumeToken(self);
 			consumeToken(self);
 			return createIncDecStat(expr, -1);
@@ -879,13 +879,13 @@ IncDecStat *parseIncDecStat(Parser *self) {
 }
 
 Vector *parseImplBlock(Parser *self, char *name, char *as) {
-	if (checkTokenTypeAndContent(self, SEPARATOR, "{", 0)) {
+	if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, "{", 0)) {
 		consumeToken(self);
 
 		Vector *v = createVector(VECTOR_EXPONENTIAL);
 
 		while (true) {
-			if (checkTokenTypeAndContent(self, SEPARATOR, "}", 0)) {
+			if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, "}", 0)) {
 				consumeToken(self);
 				break;
 			}
@@ -905,11 +905,11 @@ Vector *parseImplBlock(Parser *self, char *name, char *as) {
 }
 
 Impl *parseImpl(Parser *self) {
-	if (checkTokenTypeAndContent(self, IDENTIFIER, IMPL_KEYWORD, 0)) {
+	if (checkTokenTypeAndContent(self, TOKEN_IDENTIFIER, IMPL_KEYWORD, 0)) {
 		consumeToken(self);
 
 		char *name = NULL;
-		if (checkTokenType(self, IDENTIFIER, 0)) {
+		if (checkTokenType(self, TOKEN_IDENTIFIER, 0)) {
 			name = consumeToken(self)->content;
 		}
 		else {
@@ -917,8 +917,8 @@ Impl *parseImpl(Parser *self) {
 		}
 
 		char *as = NULL;
-		if (checkTokenTypeAndContent(self, IDENTIFIER, IMPL_AS_KEYWORD, 0)) {
-			if (checkTokenType(self, IDENTIFIER, 1)) {
+		if (checkTokenTypeAndContent(self, TOKEN_IDENTIFIER, IMPL_AS_KEYWORD, 0)) {
+			if (checkTokenType(self, TOKEN_IDENTIFIER, 1)) {
 				consumeToken(self);
 				as = consumeToken(self)->content;
 			}
@@ -996,7 +996,7 @@ UnstructuredStatement *parseUnstructuredStatement(Parser *self) {
 		UnstructuredStatement *stmt = createUnstructuredStatement();
 		stmt->call = call;
 		stmt->type = FUNCTION_CALL_NODE;
-		if (checkTokenTypeAndContent(self, SEPARATOR, ";", 0)) {
+		if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, ";", 0)) {
 			consumeToken(self);
 		}
 		else {
@@ -1016,7 +1016,7 @@ UnstructuredStatement *parseUnstructuredStatement(Parser *self) {
 	Expression *expr = parseExpression(self);
 	if (expr) {
 		UnstructuredStatement *stmt = createUnstructuredStatement();
-		if (checkTokenTypeAndContent(self, SEPARATOR, ";", 0)) {
+		if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, ";", 0)) {
 			consumeToken(self);
 		}
 		else {
@@ -1031,7 +1031,7 @@ UnstructuredStatement *parseUnstructuredStatement(Parser *self) {
 }
 
 Macro *parseMacro(Parser *self) {
-	if (!checkTokenTypeAndContent(self, OPERATOR, "!", 0)) {
+	if (!checkTokenTypeAndContent(self, TOKEN_OPERATOR, "!", 0)) {
 		return false;
 	}	
 
@@ -1083,7 +1083,7 @@ Statement *parseStatement(Parser *self) {
 }
 
 Block *parseBlock(Parser *self) {
-	if (checkTokenTypeAndContent(self, OPERATOR, SINGLE_STATEMENT_OPERATOR, 0)) {
+	if (checkTokenTypeAndContent(self, TOKEN_OPERATOR, SINGLE_STATEMENT_OPERATOR, 0)) {
 		consumeToken(self);
 
 		Block *block = createBlock();
@@ -1096,12 +1096,12 @@ Block *parseBlock(Parser *self) {
 			return block;
 		}
 	}
-	else if (checkTokenTypeAndContent(self, SEPARATOR, "{", 0)) {
+	else if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, "{", 0)) {
 		consumeToken(self);
 
 		Block *block = createBlock();
 		while (true) {
-			if (checkTokenTypeAndContent(self, SEPARATOR, "}", 0)) {
+			if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, "}", 0)) {
 				consumeToken(self);
 				break;
 			}
@@ -1148,7 +1148,7 @@ Statement *wrapExpressionInReturnStat(Expression *expr) {
 FunctionDecl *parseFunctionDecl(Parser *self) {
 	FunctionSignature *signature = parseFunctionSignature(self);
 	if (signature) {
-		if (checkTokenTypeAndContent(self, SEPARATOR, "{", 0)) {
+		if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, "{", 0)) {
 			Block *block = parseBlock(self);
 			if (block) {
 				FunctionDecl *decl = createFunctionDecl();
@@ -1158,10 +1158,10 @@ FunctionDecl *parseFunctionDecl(Parser *self) {
 				return decl;
 			}
 		}
-		else if (checkTokenTypeAndContent(self, OPERATOR, SINGLE_STATEMENT_OPERATOR, 0)) {
+		else if (checkTokenTypeAndContent(self, TOKEN_OPERATOR, SINGLE_STATEMENT_OPERATOR, 0)) {
 			consumeToken(self);
 			
-			if (checkTokenTypeAndContent(self, IDENTIFIER, RETURN_KEYWORD, 0)) {
+			if (checkTokenTypeAndContent(self, TOKEN_IDENTIFIER, RETURN_KEYWORD, 0)) {
 				parserError("Expected expression, found: %s", peekAtTokenStream(self, 0)->content);
 				return false;
 			}
@@ -1176,7 +1176,7 @@ FunctionDecl *parseFunctionDecl(Parser *self) {
 			
 			pushBackItem(block->stmtList->stmts, wrapExpressionInReturnStat(expr));
 			
-			if (checkTokenTypeAndContent(self, SEPARATOR, ";", 0)) {
+			if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, ";", 0)) {
 				consumeToken(self);
 			}
 			else {
@@ -1189,7 +1189,7 @@ FunctionDecl *parseFunctionDecl(Parser *self) {
 			decl->prototype = false;
 			return decl;
 		}
-		else if (checkTokenTypeAndContent(self, SEPARATOR, ";", 0)) {
+		else if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, ";", 0)) {
 			consumeToken(self);
 
 			FunctionDecl *decl = createFunctionDecl();
@@ -1207,20 +1207,20 @@ FunctionDecl *parseFunctionDecl(Parser *self) {
 
 VariableDecl *parseVariableDecl(Parser *self) {
 	bool mutable = false;
-	if (checkTokenTypeAndContent(self, IDENTIFIER, MUT_KEYWORD, 0)) {
+	if (checkTokenTypeAndContent(self, TOKEN_IDENTIFIER, MUT_KEYWORD, 0)) {
 		consumeToken(self);
 		mutable = true;
 	}
 
-	if (checkTokenType(self, IDENTIFIER, 0)
-		&& checkTokenTypeAndContent(self, OPERATOR, ":", 1)) {
+	if (checkTokenType(self, TOKEN_IDENTIFIER, 0)
+		&& checkTokenTypeAndContent(self, TOKEN_OPERATOR, ":", 1)) {
 		char *var_name = consumeToken(self)->content;
 		Expression *rhand = NULL;
 
-		if (checkTokenTypeAndContent(self, OPERATOR, ":", 0)) {
+		if (checkTokenTypeAndContent(self, TOKEN_OPERATOR, ":", 0)) {
 			// check for type inference
 			bool inferred = false;
-			if (checkTokenTypeAndContent(self, OPERATOR, "=", 1)) {
+			if (checkTokenTypeAndContent(self, TOKEN_OPERATOR, "=", 1)) {
 				inferred = true;
 			}
 
@@ -1236,12 +1236,12 @@ VariableDecl *parseVariableDecl(Parser *self) {
 			}
 
 			// var decl
-			if (checkTokenTypeAndContent(self, OPERATOR, "=", 0)) {
+			if (checkTokenTypeAndContent(self, TOKEN_OPERATOR, "=", 0)) {
 				consumeToken(self);
 
 				rhand = parseExpression(self);
 				if (rhand) {
-					if (checkTokenTypeAndContent(self, SEPARATOR, ";", 0)) {
+					if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, ";", 0)) {
 						consumeToken(self);
 					}
 					else {
@@ -1254,7 +1254,7 @@ VariableDecl *parseVariableDecl(Parser *self) {
 				}
 			}
 			// var definition
-			else if (checkTokenTypeAndContent(self, SEPARATOR, ";", 0)) {
+			else if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, ";", 0)) {
 				consumeToken(self); // eat the semi colon!
 
 				VariableDecl *decl = createVariableDecl(type, var_name, mutable, rhand);
@@ -1327,7 +1327,7 @@ int getTokenPrecedence(Parser *self) {
 }
 
 TypeName *parseTypeName(Parser *self) {
-	if (checkTokenType(self, IDENTIFIER, 0)) {
+	if (checkTokenType(self, TOKEN_IDENTIFIER, 0)) {
 		return createTypeName(consumeToken(self)->content);
 	}
 	return false;
@@ -1346,8 +1346,8 @@ Expression *parseExpression(Parser *self) {
 
 
 ArrayType *parseArrayType(Parser *self) {
-	if (checkTokenTypeAndContent(self, SEPARATOR, "[", 0) 
-		&& checkTokenTypeAndContent(self, SEPARATOR, "]", 1)) {
+	if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, "[", 0) 
+		&& checkTokenTypeAndContent(self, TOKEN_SEPARATOR, "]", 1)) {
 		consumeToken(self); // eat the [
 		consumeToken(self); // eat the ]
 
@@ -1362,7 +1362,7 @@ ArrayType *parseArrayType(Parser *self) {
 }
 
 PointerType *parsePointerType(Parser *self) {
-	if (checkTokenTypeAndContent(self, OPERATOR, "^", 0)) {
+	if (checkTokenTypeAndContent(self, TOKEN_OPERATOR, "^", 0)) {
 		consumeToken(self);
 		Type *type = parseType(self);
 		if (type) {
@@ -1373,13 +1373,13 @@ PointerType *parsePointerType(Parser *self) {
 }
 
 TupleType *parseTupleType(Parser *self) {
-	if (checkTokenTypeAndContent(self, SEPARATOR, "(", 0)) {
+	if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, "(", 0)) {
 		consumeToken(self);
 
 		TupleType *tuple = createTupleType();
 
 		while (true) {
-			if (checkTokenTypeAndContent(self, SEPARATOR, ")", 0)) {
+			if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, ")", 0)) {
 				consumeToken(self);
 				break;
 			}
@@ -1387,7 +1387,7 @@ TupleType *parseTupleType(Parser *self) {
 			Type *type = parseType(self);
 			if (type) {
 				pushBackItem(tuple->types, type);
-				if (checkTokenTypeAndContent(self, SEPARATOR, ",", 0)) {
+				if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, ",", 0)) {
 					consumeToken(self);
 				}
 			}
@@ -1399,12 +1399,12 @@ TupleType *parseTupleType(Parser *self) {
 }
 
 OptionType *parseOptionType(Parser *self) {
-	if (checkTokenTypeAndContent(self, OPERATOR, "<", 0)) {
+	if (checkTokenTypeAndContent(self, TOKEN_OPERATOR, "<", 0)) {
 		consumeToken(self);
 
 		Type *type = parseType(self);
 		if (type) {
-			if (checkTokenTypeAndContent(self, OPERATOR, ">", 0)) {
+			if (checkTokenTypeAndContent(self, TOKEN_OPERATOR, ">", 0)) {
 				consumeToken(self);
 			}
 			return createOptionType(type);
@@ -1505,13 +1505,13 @@ Expression *parseBinaryOperator(Parser *self, int precedence, Expression *lhand)
 }
 
 ArrayInitializer *parseArrayInitializer(Parser *self) {
-	if (checkTokenTypeAndContent(self, SEPARATOR, "[", 0)) {
+	if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, "[", 0)) {
 		consumeToken(self);
 
 		ArrayInitializer *arr = createArrayInitializer();
 
 		while (true) {
-			if (checkTokenTypeAndContent(self, SEPARATOR, "]", 0)) {
+			if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, "]", 0)) {
 				consumeToken(self);
 				break;
 			}
@@ -1519,7 +1519,7 @@ ArrayInitializer *parseArrayInitializer(Parser *self) {
 			Expression *expr = parseExpression(self);
 			if (expr) {
 				pushBackItem(arr->values, expr);
-				if (checkTokenTypeAndContent(self, SEPARATOR, ",", 0)) {
+				if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, ",", 0)) {
 					consumeToken(self);
 				}
 			}
@@ -1532,13 +1532,13 @@ ArrayInitializer *parseArrayInitializer(Parser *self) {
 }
 
 TupleExpr *parseTupleExpr(Parser *self) {
-	if (checkTokenTypeAndContent(self, SEPARATOR, "(", 0)) {
+	if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, "(", 0)) {
 		consumeToken(self);
 
 		TupleExpr *tuple = createTupleExpr();
 
 		while (true) {
-			if (checkTokenTypeAndContent(self, SEPARATOR, ")", 0)) {
+			if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, ")", 0)) {
 				consumeToken(self);
 				break;
 			}
@@ -1546,7 +1546,7 @@ TupleExpr *parseTupleExpr(Parser *self) {
 			Expression *expr = parseExpression(self);
 			if (expr) {
 				pushBackItem(tuple->values, expr);
-				if (checkTokenTypeAndContent(self, SEPARATOR, ",", 0)) {
+				if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, ",", 0)) {
 					consumeToken(self);
 				}
 			}
@@ -1559,7 +1559,7 @@ TupleExpr *parseTupleExpr(Parser *self) {
 }
 
 Expression *parsePrimaryExpression(Parser *self) {
-	if (checkTokenType(self, IDENTIFIER, 0) && (checkTokenTypeAndContent(self, SEPARATOR, "(", 1))) {
+	if (checkTokenType(self, TOKEN_IDENTIFIER, 0) && (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, "(", 1))) {
 		Call *call = parseCall(self);
 		if (call) {
 			Expression *expr = createExpression();
@@ -1569,7 +1569,7 @@ Expression *parsePrimaryExpression(Parser *self) {
 		}
 	}
 
-	if (checkTokenTypeAndContent(self, SEPARATOR, "(", 0)) {
+	if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, "(", 0)) {
 		TupleExpr *tuple = parseTupleExpr(self);
 		if (tuple) {
 			Expression *expr = createExpression();
@@ -1580,7 +1580,7 @@ Expression *parsePrimaryExpression(Parser *self) {
 	}
 
 	// array initializer.
-	if (checkTokenTypeAndContent(self, SEPARATOR, "[", 0)) {
+	if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, "[", 0)) {
 		ArrayInitializer *arr = parseArrayInitializer(self);
 		if (arr) {
 			Expression *expr = createExpression();
@@ -1590,14 +1590,14 @@ Expression *parsePrimaryExpression(Parser *self) {
 		}
 	}
 
-	if (checkTokenType(self, IDENTIFIER, 0) 
-		&& checkTokenTypeAndContent(self, SEPARATOR, ".", 1)) {
+	if (checkTokenType(self, TOKEN_IDENTIFIER, 0) 
+		&& checkTokenTypeAndContent(self, TOKEN_SEPARATOR, ".", 1)) {
 		Vector *members = createVector(VECTOR_EXPONENTIAL);
 		while (true) {
-			if (checkTokenType(self, IDENTIFIER, 0)) {
+			if (checkTokenType(self, TOKEN_IDENTIFIER, 0)) {
 				char *iden = consumeToken(self)->content;
 				pushBackItem(members, iden);
-				if (checkTokenTypeAndContent(self, SEPARATOR, ".", 0)) {
+				if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, ".", 0)) {
 					consumeToken(self);
 				}
 				else {
@@ -1635,31 +1635,31 @@ Expression *parsePrimaryExpression(Parser *self) {
 }
 
 Call *parseCall(Parser *self) {
-	if (checkTokenType(self, IDENTIFIER, 0) && 
-		(checkTokenTypeAndContent(self, SEPARATOR, "(", 1) || checkTokenTypeAndContent(self, SEPARATOR, ".", 1))) {
+	if (checkTokenType(self, TOKEN_IDENTIFIER, 0) && 
+		(checkTokenTypeAndContent(self, TOKEN_SEPARATOR, "(", 1) || checkTokenTypeAndContent(self, TOKEN_SEPARATOR, ".", 1))) {
 
 		Vector *idens = NULL;
-		if (checkTokenType(self, IDENTIFIER, 0)) {
+		if (checkTokenType(self, TOKEN_IDENTIFIER, 0)) {
 			idens = createVector(VECTOR_LINEAR);
 			while(true) {
-				if (checkTokenType(self, IDENTIFIER, 0)) {
+				if (checkTokenType(self, TOKEN_IDENTIFIER, 0)) {
 					pushBackItem(idens, consumeToken(self)->content);
 				}
-				if (checkTokenTypeAndContent(self, SEPARATOR, ".", 0)) {
+				if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, ".", 0)) {
 					consumeToken(self);
 				}
-				if (!checkTokenType(self, IDENTIFIER, 0) || !checkTokenTypeAndContent(self, SEPARATOR, "(", 0)) {
+				if (!checkTokenType(self, TOKEN_IDENTIFIER, 0) || !checkTokenTypeAndContent(self, TOKEN_SEPARATOR, "(", 0)) {
 					break;
 				}
 			}
 		}
 
-		if (checkTokenTypeAndContent(self, SEPARATOR, "(", 0)) {
+		if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, "(", 0)) {
 			consumeToken(self);
 
 			Call *call = createCall(idens);
 			while (true) {
-				if (checkTokenTypeAndContent(self, SEPARATOR, ")", 0)) {
+				if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, ")", 0)) {
 					consumeToken(self);
 					break;
 				}
@@ -1667,8 +1667,8 @@ Call *parseCall(Parser *self) {
 				Expression *expr = parseExpression(self);
 				if (expr) {
 					pushBackItem(call->arguments, expr);
-					if (checkTokenTypeAndContent(self, SEPARATOR, ",", 0)) {
-						if (checkTokenTypeAndContent(self, SEPARATOR, ")", 1)) {
+					if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, ",", 0)) {
+						if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, ")", 1)) {
 							parserError("Trailing comma in function call `%s`", getVectorItem(call->callee, 0));
 						}
 						consumeToken(self);
@@ -1686,11 +1686,11 @@ Call *parseCall(Parser *self) {
 
 int getLiteralType(Token *tok) {
 	switch (tok->type) {
-	case CHARACTER:
+	case TOKEN_CHARACTER:
 		return LITERAL_CHAR;
-	case NUMBER:
+	case TOKEN_NUMBER:
 		return LITERAL_NUMBER;
-	case STRING:
+	case TOKEN_STRING:
 		return LITERAL_STRING;
 	default:
 		errorMessage("Unknown literal `%s`", tok->content);
@@ -1702,7 +1702,7 @@ Token *consumeToken(Parser *self) {
 	Token *tok = getVectorItem(self->tokenStream, self->tokenIndex++);
 	verboseModeMessage("consumed token: %s, current token is %s", tok->content,
 			peekAtTokenStream(self, 0)->content);
-	if (tok->type == END_OF_FILE) {
+	if (tok->type == TOKEN_END_OF_FILE) {
 		self->parsing = false;
 	}
 	return tok;
@@ -1747,9 +1747,9 @@ Token *peekAtTokenStream(Parser *self, int ahead) {
 
 bool isLiteral(Parser *self, int ahead) {
 	Token *tok = peekAtTokenStream(self, ahead);
-	return tok->type == STRING 
-			|| tok->type == NUMBER 
-			|| tok->type == CHARACTER;
+	return tok->type == TOKEN_STRING 
+			|| tok->type == TOKEN_NUMBER 
+			|| tok->type == TOKEN_CHARACTER;
 }
 
 /** DRIVER */
@@ -1779,7 +1779,7 @@ bool isValidBinaryOp(char *tok) {
 }
 
 void parseTokenStream(Parser *self) {
-	while (!checkTokenType(self, END_OF_FILE, 0)) {
+	while (!checkTokenType(self, TOKEN_END_OF_FILE, 0)) {
 		Statement *stmt = parseStatement(self);
 		if (stmt) {
 			pushBackItem(self->parseTree, stmt);
