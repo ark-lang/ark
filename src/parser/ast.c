@@ -309,8 +309,10 @@ ElseIfStat *createElseIfStat() {
 }
 
 IfStat *createIfStat() {
-	IfStat *ifStmt = safeMalloc(sizeof(*ifStmt));
-	ifStmt->elseIfStmts = createVector(VECTOR_EXPONENTIAL);
+	IfStat *ifStmt = safeCalloc(sizeof(IfStat));
+	ifStmt->elseIfStmts = NULL;
+	ifStmt->elseStmt = NULL;
+
 	return ifStmt;
 }
 
@@ -684,7 +686,7 @@ void destroyPointerFree(PointerFree *pntr) {
 void destroyElseIfStat(ElseIfStat *stmt) {
 	if (!stmt) return;
 	destroyBlock(stmt->body);
-	destroyExpression(stmt->condition);
+	destroyExpression(stmt->expr);
 	free(stmt);
 }
 
@@ -697,13 +699,21 @@ void destroyElseStat(ElseStat *stmt) {
 void destroyIfStat(IfStat *stmt) {
 	if (!stmt) return;
 	destroyBlock(stmt->body);
-	destroyElseStat(stmt->elseStmt);
 	destroyExpression(stmt->expr);
-	for (int i = 0; i < stmt->elseIfStmts->size; i++) {
-		ElseIfStat *elseIfStat = getVectorItem(stmt->elseIfStmts, i);
-		destroyElseIfStat(elseIfStat);
+
+	if (stmt->elseStmt != NULL) {
+		destroyElseStat(stmt->elseStmt);
 	}
-	destroyVector(stmt->elseIfStmts);
+
+	if (stmt->elseIfStmts != NULL) {
+		for (int i = 0; i < stmt->elseIfStmts->size; i++) {
+			ElseIfStat *elseIfStat = getVectorItem(stmt->elseIfStmts, i);
+			destroyElseIfStat(elseIfStat);
+		}
+
+		destroyVector(stmt->elseIfStmts);
+	}
+
 	free(stmt);
 }
 
