@@ -216,7 +216,7 @@ Literal *parseLiteral(Parser *self) {
 	if (intLit) {
 		literal->intLit = intLit;
 		literal->type = INT_LITERAL_NODE;
-		return literal;
+		return literal;	
 	}
 	
 	FloatLit *floatLit = parseFloatLit(self);
