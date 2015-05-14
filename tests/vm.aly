@@ -3,6 +3,9 @@ fn printf(fmt: str, _);
 mut running: bool = true;
 mut ip: int = 0;
 mut sp: int = 0;
+
+// this is a hack since we can't do mut stack: [some_size]int;
+// so I just manually allocated enough space for 8 values.
 mut stack: []int = [ 0, 0, 0, 0, 0, 0, 0, 0 ];
 
 enum Instructions {
