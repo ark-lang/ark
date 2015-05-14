@@ -1539,9 +1539,11 @@ ArrayIndex *parseArrayIndex(Parser *self) {
 		Expression *expr = parsePrimaryExpression(self);
 		ArrayIndex *index = createArrayIndex(expr);
 
-		consumeToken(self);
+		if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, "]", 0)) {
+			consumeToken(self);
 
-		return index;
+			return index;
+		}
 	}
 
 	return false;
