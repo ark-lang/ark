@@ -1,0 +1,59 @@
+fn printf(fmt: str, _);
+
+mut running: bool = true;
+mut ip: int = 0;
+mut sp: int = 0;
+mut stack: []int = [ 0, 0, 0, 0, 0, 0, 0, 0 ];
+
+enum Instructions {
+    PSH,
+    ADD,
+    POP,
+    HLT
+}
+
+program: []int = [
+    PSH, 5,
+    PSH, 5,
+    ADD,
+    POP,
+    HLT
+];
+
+fn fetch(): int {
+    return program[ip];
+}
+
+fn eval(instr: int)ß {
+    if instr == HLT {
+        running = false;
+        printf("finished\n");
+    }
+    if instr == PSH {
+        sp = sp + 1;
+        ip = ip + 1;
+        stack[sp] = program[ip];
+    }
+    if instr == POP {
+        val_popped: int = stack[sp];
+        sp = sp - 1;
+        printf("popped %d\n", val_popped);
+    }
+    if instr == ADD {
+        a: int = stack[sp];
+        sp = sp - 1;
+        b: int = stack[sp];
+        sp = sp - 1;
+        result: int = b + a;
+        sp = sp + 1;
+        stack[sp] = result;
+    }
+}
+
+fn main(): int {
+    for running {
+        eval(fetch());
+        ip = ip + 1;
+    }
+    return 0;
+}
