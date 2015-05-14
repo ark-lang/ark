@@ -456,7 +456,7 @@ typedef struct {
  * Else If Block
  */
 typedef struct {
-	Expression *condition;
+	Expression *expr;
 	Block *body;
 } ElseIfStat;
 
