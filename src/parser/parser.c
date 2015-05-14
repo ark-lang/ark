@@ -1536,7 +1536,7 @@ ArrayIndex *parseArrayIndex(Parser *self) {
 	if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, "[", 0)) {
 		consumeToken(self);
 
-		Expression *expr = parsePrimaryExpression(self);
+		Expression *expr = parseExpression(self);
 		ArrayIndex *index = createArrayIndex(expr);
 
 		if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, "]", 0)) {
