@@ -1532,6 +1532,23 @@ ArrayInitializer *parseArrayInitializer(Parser *self) {
 	return false;
 }
 
+ArrayIndex *parseArrayIndex(Parser *self) {
+	if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, "[", 0)) {
+		consumeToken(self);
+
+		Expression *expr = parseExpression(self);
+		ArrayIndex *index = createArrayIndex(expr);
+
+		if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, "]", 0)) {
+			consumeToken(self);
+
+			return index;
+		}
+	}
+
+	return false;
+}
+
 TupleExpr *parseTupleExpr(Parser *self) {
 	if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, "(", 0)) {
 		consumeToken(self);
@@ -1621,6 +1638,14 @@ Expression *parsePrimaryExpression(Parser *self) {
 		Expression *expr = createExpression();
 		expr->type = type;
 		expr->exprType = TYPE_NODE;
+
+		// array index access
+		ArrayIndex *index = parseArrayIndex(self);
+		if (index) {
+			expr->exprType = ARRAY_INDEX_NODE;
+			expr->arrayIndex = index;
+		}
+
 		return expr;
 	}
 
