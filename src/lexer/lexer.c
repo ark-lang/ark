@@ -255,11 +255,16 @@ void recognizeStringToken(Lexer *self) {
 void recognizeCharacterToken(Lexer *self) {
 	expectCharacter(self, '\'');
 	
+	int errpos = self->charNumber;
+	int errline = self->lineNumber;
 	if (self->currentChar == '\'')
 		errorMessageWithPosition(self->fileName, self->lineNumber, self->charNumber, "Empty character constant");
 	
 	while (!(self->currentChar == '\'' && peekAhead(self, -1) != '\\')) {
 		consumeCharacter(self);
+		if (isEndOfInput(self->currentChar)) {
+			errorMessage("Unterminated char at line(%d) ... pos(%d)", errline, errpos);
+		}
 	}
 
 	expectCharacter(self, '\'');
