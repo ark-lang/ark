@@ -126,6 +126,10 @@ void emitExpression(CodeGenerator *self, Expression *expr) {
 		case UNARY_EXPR_NODE: emitUnaryExpr(self, expr->unary); break;
 		case FUNCTION_CALL_NODE: emitFunctionCall(self, expr->call); break;
 		case ARRAY_INITIALIZER_NODE: emitArrayInitializer(self, expr->arrayInitializer); break;
+		case ARRAY_INDEX_NODE: {
+			emitType(self, expr->type);
+			emitArrayIndex(self, expr->arrayIndex);
+		} break;
 		default:
 			printf("Unknown node in expression %d\n", expr->exprType);
 			break;
@@ -144,6 +148,10 @@ void emitTypeLit(CodeGenerator *self, TypeLit *lit) {
 			break;
 		}
 	}
+}
+
+void emitArrayIndex(CodeGenerator *self, ArrayIndex *index) {
+	emitCode(self, "[%d]", index->index);
 }
 
 void emitType(CodeGenerator *self, Type *type) {

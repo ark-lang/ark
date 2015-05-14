@@ -22,7 +22,7 @@ const char *NODE_NAME[] = {
 	"ELSE_STAT_NODE", "IF_STAT_NODE", "MATCH_CLAUSE_STAT", "MATCH_STAT_NODE", "FOR_STAT_NODE",
 	"STRUCTURED_STATEMENT_NODE", "STATEMENT_NODE", "TYPE_NODE", "POINTER_FREE_NODE", "TUPLE_TYPE_NODE",
 	"TUPLE_EXPR_NODE", "OPTION_TYPE_NODE", 
-	"MACRO_NODE", "USE_MACRO_NODE", "LINKER_FLAG_MACRO_NODE", "EXPR_STAT_NODE", "ARRAY_INITIALIZER_NODE",
+	"MACRO_NODE", "USE_MACRO_NODE", "LINKER_FLAG_MACRO_NODE", "EXPR_STAT_NODE", "ARRAY_INITIALIZER_NODE", "ARRAY_INDEX_NODE",
 	"CHAR_LITERAL_NODE", "STRING_LITERAL_NODE", "INT_LITERAL_NODE", "FLOAT_LITERAL_NODE"
 };
 
@@ -43,6 +43,12 @@ ArrayInitializer *createArrayInitializer() {
 	ArrayInitializer *arr = safeMalloc(sizeof(*arr));
 	arr->values = createVector(VECTOR_EXPONENTIAL);
 	return arr;
+}
+
+ArrayIndex *createArrayIndex(int index) {
+	ArrayIndex *ind = safeMalloc(sizeof(*ind));
+	ind->index = index;
+	return ind;
 }
 
 LinkerFlagMacro *createLinkerFlagMacro(char *flag) {
@@ -392,6 +398,10 @@ void destroyArrayInitializer(ArrayInitializer *array) {
 	}
 	destroyVector(array->values);
 	free(array);
+}
+
+void destroyArrayIndex(ArrayIndex *index) {
+	free(index);
 }
 
 void destroyLinkerFlagMacro(LinkerFlagMacro *linker) {

@@ -36,7 +36,7 @@ typedef enum {
 	ELSE_STAT_NODE, IF_STAT_NODE, MATCH_CLAUSE_STAT, MATCH_STAT_NODE, FOR_STAT_NODE,
 	STRUCTURED_STATEMENT_NODE, STATEMENT_NODE, TYPE_NODE, POINTER_FREE_NODE, TUPLE_TYPE_NODE,
 	TUPLE_EXPR_NODE, OPTION_TYPE_NODE, 
-	MACRO_NODE, USE_MACRO_NODE, LINKER_FLAG_MACRO_NODE, EXPR_STAT_NODE, ARRAY_INITIALIZER_NODE,
+	MACRO_NODE, USE_MACRO_NODE, LINKER_FLAG_MACRO_NODE, EXPR_STAT_NODE, ARRAY_INITIALIZER_NODE, ARRAY_INDEX_NODE,
 	CHAR_LITERAL_NODE, STRING_LITERAL_NODE, INT_LITERAL_NODE, FLOAT_LITERAL_NODE, NUM_OF_NODES
 } NodeType;
 
@@ -108,6 +108,13 @@ typedef struct {
 typedef struct {
 	Vector *values;
 } ArrayInitializer;
+
+/**
+ * A node representing an array index.
+ */
+typedef struct {
+	int index;
+} ArrayIndex;
 
 /**
  * A name of a type.
@@ -239,6 +246,7 @@ struct s_Expression {
 	BinaryExpr *binary;
 	UnaryExpr *unary;
 	ArrayInitializer *arrayInitializer;
+	ArrayIndex *arrayIndex;
 	TupleExpr *tupleExpr;
 	int exprType;
 };
@@ -521,6 +529,8 @@ UseMacro *createUseMacro();
 
 ArrayInitializer *createArrayInitializer();
 
+ArrayIndex *createArrayIndex(int index);
+
 LinkerFlagMacro *createLinkerFlagMacro(char *flag);
 
 IdentifierList *createIdentifierList();
@@ -628,6 +638,8 @@ void destroyImpl(Impl *impl);
 void destroyUseMacro(UseMacro *use);
 
 void destroyArrayInitializer(ArrayInitializer *array);
+
+void destroyArrayIndex(ArrayIndex *index);
 
 void destroyLinkerFlagMacro(LinkerFlagMacro *linker);
 
