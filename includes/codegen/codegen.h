@@ -161,6 +161,13 @@ void emitTypeLit(CodeGenerator *self, TypeLit *lit);
 void emitFunctionCall(CodeGenerator *self, Call *call);
 
 /**
+ * Emits an array index
+ * @param self the code gen instance
+ * @param arrayIndex the array index
+ */
+void emitArrayIndex(CodeGenerator *self, ArrayIndex *arrayIndex);
+
+/**
  * Emits a type of any kind
  * @param self the code gen instance
  * @param type the type to emit
