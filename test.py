@@ -46,7 +46,7 @@ for name in os.listdir("tests"):
 		if compile_result != 0:
 			if show_output: 
 				print(red(bold("Compilation failed:")) + " returned with " + str(compile_result))
-			exit()
+			exit(1)
 		
 		if show_output: 
 			print(bold("Running ") + name + "...")
@@ -60,7 +60,7 @@ for name in os.listdir("tests"):
 				
 		except FileNotFoundError:
 			print(red(bold("File not found: " + output_file)))
-			exit()
+			exit(1)
 		
 		os.remove("tests/" + output_file)
 		if run_result != 0:

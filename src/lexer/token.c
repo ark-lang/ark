@@ -2,7 +2,7 @@
 
 Token *createToken(int lineNumber, int charNumber, sds fileName) {
 	Token *tok = safeMalloc(sizeof(*tok));
-	tok->type = UNKNOWN;
+	tok->type = TOKEN_UNKNOWN;
 	tok->content = NULL;
 	tok->lineNumber = lineNumber;
 	tok->charNumber = charNumber;
