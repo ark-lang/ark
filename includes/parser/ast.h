@@ -113,7 +113,7 @@ typedef struct {
  * A node representing an array index.
  */
 typedef struct {
-	int index;
+	Expression *index;
 } ArrayIndex;
 
 /**
@@ -529,7 +529,7 @@ UseMacro *createUseMacro();
 
 ArrayInitializer *createArrayInitializer();
 
-ArrayIndex *createArrayIndex(int index);
+ArrayIndex *createArrayIndex(Expression *expr);
 
 LinkerFlagMacro *createLinkerFlagMacro(char *flag);
 
@@ -639,7 +639,7 @@ void destroyUseMacro(UseMacro *use);
 
 void destroyArrayInitializer(ArrayInitializer *array);
 
-void destroyArrayIndex(ArrayIndex *index);
+void destroyArrayIndex(ArrayIndex *arrayIndex);
 
 void destroyLinkerFlagMacro(LinkerFlagMacro *linker);
 
