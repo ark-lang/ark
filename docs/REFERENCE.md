@@ -89,6 +89,10 @@ Integer literal:
 
 	1234
 
+You can use underscores in integer literals to improve readability:
+
+	1_234
+
 Binary literal:
 
 	0b10011010010
