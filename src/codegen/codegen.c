@@ -159,7 +159,7 @@ void emitArrayIndex(CodeGenerator *self, ArrayIndex *arrayIndex) {
 void emitType(CodeGenerator *self, Type *type) {
 	switch (type->type) {
 		case TYPE_NAME_NODE: 
-			emitCode(self, "%s", type->typeName->name);
+			emitCode(self, "%s", type->typeName->name);				
 			break;
 		case TYPE_LIT_NODE:
 			emitTypeLit(self, type->typeLit);
@@ -310,7 +310,9 @@ void emitVariableDecl(CodeGenerator *self, VariableDecl *decl) {
 	emitType(self, decl->type);
 	emitCode(self, " %s", decl->name);
 	if (isArray) {
-		emitCode(self, "[]");
+		emitCode(self, "[");
+		if (decl->type->typeLit->arrayType->expr) emitExpression(self, decl->type->typeLit->arrayType->expr);
+		emitCode(self, "]");
 	}
 
 	if (decl->assigned) {
@@ -323,7 +325,9 @@ void emitVariableDecl(CodeGenerator *self, VariableDecl *decl) {
 			emitType(self, decl->type);
 			emitCode(self, " %s", decl->name);
 			if (isArray) {
-				emitCode(self, "[]");
+				emitCode(self, "[");
+				if (decl->type->typeLit->arrayType->expr) emitExpression(self, decl->type->typeLit->arrayType->expr);
+				emitCode(self, "]");
 			}
 		}
 		emitCode(self, " = ");
