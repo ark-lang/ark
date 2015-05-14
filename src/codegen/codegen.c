@@ -382,8 +382,11 @@ void emitInfiniteForLoop(CodeGenerator *self, ForStat *stmt) {
 }
 
 void emitMatchClause(CodeGenerator *self, MatchClause *clause) {
-	ALLOY_UNUSED_OBJ(self);
-	ALLOY_UNUSED_OBJ(clause);	
+	emitCode(self, "case ");
+	emitExpression(self, clause->expr);
+	emitCode(self, ": {" CC_NEWLINE);
+	emitBlock(self, clause->body);
+	emitCode(self, "} break;" CC_NEWLINE);
 }
 
 void emitMatchStat(CodeGenerator *self, MatchStat *match) {
@@ -545,6 +548,7 @@ void emitStructuredStat(CodeGenerator *self, StructuredStatement *stmt) {
 	switch (stmt->type) {
 		case FOR_STAT_NODE: emitForStat(self, stmt->forStmt); break;
 		case IF_STAT_NODE: emitIfStat(self, stmt->ifStmt); break;
+		case MATCH_STAT_NODE: emitMatchStat(self, stmt->matchStmt); break;
 		default:
 			printf("unknown node type found in structured statement %s\n", NODE_NAME[stmt->type]);
 			break;
