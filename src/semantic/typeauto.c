@@ -24,8 +24,14 @@ VarType *deduceTypeFromLiteral(SemanticAnalyzer *self, Literal *lit) {
 }
 
 VarType *deduceTypeFromBinaryExpr(SemanticAnalyzer *self, BinaryExpr *expr) {
-	printf("binary\n");
-
+	VariableType lhandType = deduceTypeFromExpression(self, expr->lhand);
+	VariableType rhandType = deduceTypeFromExpression(self, expr->rhand);
+	
+	if (lhandType == rhandType) {
+		return createVarType(lhandType);
+	}
+	errorMessage("Incompatible types, todo better error message here");
+	return NULL;
 }
 
 VarType *deduceTypeFromUnaryExpr(SemanticAnalyzer *self, UnaryExpr *expr) {
