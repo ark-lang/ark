@@ -18,6 +18,13 @@ VarType *deduceTypeFromFunctionCall(SemanticAnalyzer *self, Call *call) {
 	printf("func call\n");
 }
 
+VarType *deduceTypeFromTypeVal(SemanticAnalyzer *self, char *typeVal) {
+	// int for now...
+	if (!strcmp(typeVal, "int")) {
+		return createVarType(INTEGER_VAR_TYPE);
+	}
+}
+
 VarType *deduceTypeFromLiteral(SemanticAnalyzer *self, Literal *lit) {
 	switch (lit->type) {
 		case CHAR_LITERAL_NODE: return createVarType(CHAR_VAR_TYPE);
@@ -38,8 +45,27 @@ VarType *deduceTypeFromBinaryExpr(SemanticAnalyzer *self, BinaryExpr *expr) {
 	return NULL;
 }
 
+VarType *deduceTypeFromType(SemanticAnalyzer *self, Type *type) {
+	switch (type->type) {
+		case TYPE_LIT_NODE:
+			break;
+		case TYPE_NAME_NODE: return deduceTypeFromTypeVal(self, type->typeName->name);
+	}
+}
+
 VarType *deduceTypeFromUnaryExpr(SemanticAnalyzer *self, UnaryExpr *expr) {
 	printf("its a unary\n");
+}
+
+VarType *deduceTypeFromTypeNode(SemanticAnalyzer *self, TypeName *type) {
+	printf("type name is %s\n", type->name);
+	VariableDecl *decl = checkVariableExists(self, type->name);
+	if (decl) {
+		return deduceTypeFromType(self, decl->type);
+	}
+	else {
+		errorMessage("Type does not exist in the current/global scope: %s", type->name);
+	}
 }
 
 VariableType deduceTypeFromExpression(SemanticAnalyzer *self, Expression *expr) {
@@ -50,6 +76,7 @@ VariableType deduceTypeFromExpression(SemanticAnalyzer *self, Expression *expr) 
 		case UNARY_EXPR_NODE: pushBackItem(vec, deduceTypeFromUnaryExpr(self, expr->unary)); break;
 		case FUNCTION_CALL_NODE: pushBackItem(vec, deduceTypeFromFunctionCall(self, expr->call)); break;
 		case LITERAL_NODE: pushBackItem(vec, deduceTypeFromLiteral(self, expr->lit)); break;
+		case TYPE_NODE: pushBackItem(vec, deduceTypeFromTypeNode(self, expr->type->typeName)); break;
 		default:
 			errorMessage("Could not deduce type: %s", getNodeTypeName(expr->exprType));
 			break;
