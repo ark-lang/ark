@@ -4,7 +4,7 @@ compiler:
   - gcc
   - clang
 
-script: make && PATH=$PATH:"./bin/" ./test.py
+script: make && PATH=$PATH:"./bin/" ./test.py -o
 
 notifications:
   email: false
