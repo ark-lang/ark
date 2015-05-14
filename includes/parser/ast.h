@@ -184,6 +184,7 @@ typedef struct {
  */
 typedef struct {
 	Type *type;
+	Expression *expr;
 } ArrayType;
 
 /**
