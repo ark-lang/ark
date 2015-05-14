@@ -10,7 +10,7 @@ Notes, todo stuff etc...
 - [x] Tuple parsing
 - [x] Option Type parsing
 - [ ] Pointer syntax, or just malloc/free
-- [ ] Code generation for match statements
+- [x] Code generation for match statements
 - [ ] Else If/Else Statements
 - [ ] Access specifiers, i.e public/private
 - [ ] Deduce whether to generate `.` or `->`
