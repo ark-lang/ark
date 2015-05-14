@@ -165,7 +165,7 @@ void emitFunctionCall(CodeGenerator *self, Call *call);
  * @param self the code gen instance
  * @param arrayIndex the array index
  */
-void emitArrayIndex(CodeGenerator *self, ArrayIndex *index);
+void emitArrayIndex(CodeGenerator *self, ArrayIndex *arrayIndex);
 
 /**
  * Emits a type of any kind

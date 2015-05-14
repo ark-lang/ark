@@ -150,8 +150,10 @@ void emitTypeLit(CodeGenerator *self, TypeLit *lit) {
 	}
 }
 
-void emitArrayIndex(CodeGenerator *self, ArrayIndex *index) {
-	emitCode(self, "[%d]", index->index);
+void emitArrayIndex(CodeGenerator *self, ArrayIndex *arrayIndex) {
+	emitCode(self, "[");
+	emitCode(self, "%d", arrayIndex->index);
+	emitCode(self, "]");
 }
 
 void emitType(CodeGenerator *self, Type *type) {
