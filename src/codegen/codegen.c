@@ -152,7 +152,7 @@ void emitTypeLit(CodeGenerator *self, TypeLit *lit) {
 
 void emitArrayIndex(CodeGenerator *self, ArrayIndex *arrayIndex) {
 	emitCode(self, "[");
-	emitCode(self, "%d", arrayIndex->index);
+	emitExpression(self, arrayIndex->index);
 	emitCode(self, "]");
 }
 

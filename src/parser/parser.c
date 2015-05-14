@@ -1533,9 +1533,12 @@ ArrayInitializer *parseArrayInitializer(Parser *self) {
 }
 
 ArrayIndex *parseArrayIndex(Parser *self) {
-	if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, "[", 0) && checkTokenType(self, TOKEN_NUMBER, 1) && checkTokenTypeAndContent(self, TOKEN_SEPARATOR, "]", 2)) {
+	if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, "[", 0)) {
 		consumeToken(self);
-		ArrayIndex *index = createArrayIndex(atoi(consumeToken(self)->content));
+
+		Expression *expr = parsePrimaryExpression(self);
+		ArrayIndex *index = createArrayIndex(expr);
+
 		consumeToken(self);
 
 		return index;
