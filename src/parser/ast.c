@@ -309,11 +309,7 @@ ElseIfStat *createElseIfStat() {
 }
 
 IfStat *createIfStat() {
-	IfStat *ifStmt = safeCalloc(sizeof(IfStat));
-	ifStmt->elseIfStmts = NULL;
-	ifStmt->elseStmt = NULL;
-
-	return ifStmt;
+	return safeCalloc(sizeof(IfStat));
 }
 
 MatchClause *createMatchClause() {
