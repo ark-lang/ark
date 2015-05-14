@@ -1,5 +1,9 @@
 #include "semantic.h"
 
+static const char *TYPE_NAME[] = {
+	"int", "double", "str", "char"
+};
+
 VarType *createVarType(int type) {
 	VarType *var = safeMalloc(sizeof(*var));
 	var->type = type;
@@ -30,7 +34,7 @@ VarType *deduceTypeFromBinaryExpr(SemanticAnalyzer *self, BinaryExpr *expr) {
 	if (lhandType == rhandType) {
 		return createVarType(lhandType);
 	}
-	errorMessage("Incompatible types, todo better error message here");
+	errorMessage("incompatible types %s and %s in binary expression <expression here?>", TYPE_NAME[lhandType], TYPE_NAME[rhandType]);
 	return NULL;
 }
 
@@ -65,4 +69,6 @@ VariableType deduceTypeFromExpression(SemanticAnalyzer *self, Expression *expr) 
 			errorMessage("Types are not consistent, found: %d // <--- TODO LOOKUP FOR THIS??", i);
 		}
 	}
+
+	return initialType;
 }
