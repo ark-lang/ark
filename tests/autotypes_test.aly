@@ -1,0 +1,13 @@
+fn printf(format: str, _): int;
+
+fn main(): int {
+    y := 5;
+
+    if y != 5 {
+        return 1;
+    }
+
+    printf("y is %d\n", y);
+
+    return 0;
+}

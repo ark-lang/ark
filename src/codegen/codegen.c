@@ -283,7 +283,8 @@ void emitFunctionDecl(CodeGenerator *self, FunctionDecl *decl) {
 
 void emitVariableDecl(CodeGenerator *self, VariableDecl *decl) {
 	// hack
-	bool isArray = decl->type->type == TYPE_LIT_NODE 
+	bool isArray = decl->type
+					&& decl->type->type == TYPE_LIT_NODE 
 					&& decl->type->typeLit->type == ARRAY_TYPE_NODE;
 	
 	// kinda hacky, but it works

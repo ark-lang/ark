@@ -11,19 +11,25 @@ void destroyVarType(VarType *type) {
 }
 
 VarType *deduceTypeFromFunctionCall(SemanticAnalyzer *self, Call *call) {
-
+	printf("func call\n");
 }
 
 VarType *deduceTypeFromLiteral(SemanticAnalyzer *self, Literal *lit) {
-
+	switch (lit->type) {
+		case CHAR_LITERAL_NODE: return createVarType(CHAR_VAR_TYPE);
+		case STRING_LITERAL_NODE: return createVarType(STRING_VAR_TYPE);
+		case INT_LITERAL_NODE: return createVarType(INTEGER_VAR_TYPE);
+		case FLOAT_LITERAL_NODE: return createVarType(DOUBLE_VAR_TYPE);
+	}
 }
 
 VarType *deduceTypeFromBinaryExpr(SemanticAnalyzer *self, BinaryExpr *expr) {
+	printf("binary\n");
 
 }
 
 VarType *deduceTypeFromUnaryExpr(SemanticAnalyzer *self, UnaryExpr *expr) {
-
+	printf("its a unary\n");
 }
 
 VariableType deduceTypeFromExpression(SemanticAnalyzer *self, Expression *expr) {
@@ -50,7 +56,7 @@ VariableType deduceTypeFromExpression(SemanticAnalyzer *self, Expression *expr) 
 	for (int i = 1; i < vec->size; i++) {
 		// compare types against the first type
 		if (((VarType*) getVectorItem(vec, i))->type != initialType) {
-			errorMessage("Types are not consistent, found: %d //TODO LOOKUP FOR THIS", i);
+			errorMessage("Types are not consistent, found: %d // <--- TODO LOOKUP FOR THIS??", i);
 		}
 	}
 }
