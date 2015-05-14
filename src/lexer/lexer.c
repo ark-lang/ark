@@ -237,9 +237,14 @@ void recognizeNumberToken(Lexer *self) {
 void recognizeStringToken(Lexer *self) {
 	expectCharacter(self, '"');
 
+	int errpos = self->charNumber;
+	int errline = self->lineNumber;
 	// just consume everthing
 	while (!isString(self->currentChar)) {
 		consumeCharacter(self);
+		if (isEndOfInput(self->currentChar)) {
+			errorMessage("Unterminated String at line(%d) ... pos(%d)", errline, errpos);
+		}
 	}
 
 	expectCharacter(self, '"');
