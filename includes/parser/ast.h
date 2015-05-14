@@ -37,7 +37,7 @@ typedef enum {
 	STRUCTURED_STATEMENT_NODE, STATEMENT_NODE, TYPE_NODE, POINTER_FREE_NODE, TUPLE_TYPE_NODE,
 	TUPLE_EXPR_NODE, OPTION_TYPE_NODE, 
 	MACRO_NODE, USE_MACRO_NODE, LINKER_FLAG_MACRO_NODE, EXPR_STAT_NODE, ARRAY_INITIALIZER_NODE,
-	CHAR_LITERAL_NODE, OTHER_LITERAL_NODE, INT_LITERAL_NODE, NUM_OF_NODES
+	CHAR_LITERAL_NODE, STRING_LITERAL_NODE, INT_LITERAL_NODE, FLOAT_LITERAL_NODE, NUM_OF_NODES
 } NodeType;
 
 extern const char *NODE_NAME[];
@@ -77,22 +77,27 @@ typedef struct {
 } IntLit;
 
 /**
+ * A node repsesenting a floating-point number literal.
+ */
+typedef struct {
+	double value;
+} FloatLit;
+
+/**
  * A temporary node representing a non-char literal.
  */
 typedef struct {
 	char *value;
-} OtherLit;
+} StringLit;
 
 /**
  * A node representing a literal.
  */
 typedef struct {
 	CharLit *charLit;
-	OtherLit *otherLit;
+	StringLit *stringLit;
 	IntLit *intLit;
-	// TODO
-	// FloatingLit
-	// StringLit
+	FloatLit *floatLit;
 	int type;
 } Literal;
 
@@ -522,11 +527,13 @@ IdentifierList *createIdentifierList();
 
 Literal *createLiteral();
 
-OtherLit *createOtherLit(char *value);
+StringLit *createStringLit(char *value);
 
 CharLit *createCharLit(int value);
 
 IntLit *createIntLit(uint64_t value);
+
+FloatLit *createFloatLit(double value);
 
 TypeLit *createTypeLit();
 
@@ -632,7 +639,9 @@ void destroyCharLit(CharLit *lit);
 
 void destroyIntLit(IntLit *lit);
 
-void destroyOtherLit(OtherLit *lit);
+void destroyFloatLit(FloatLit *lit);
+
+void destroyStringLit(StringLit *lit);
 
 void destroyUnaryExpr(UnaryExpr *rhand);
 

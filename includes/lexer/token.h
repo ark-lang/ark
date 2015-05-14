@@ -15,15 +15,15 @@
  * Different types of token
  */
 typedef enum {
-	IDENTIFIER,         // A | a ... z | Z | 0 ... 9 | _
-	OPERATOR,           // todo
-	SEPARATOR,          // todo
-	NUMBER,             // generic number (integer, floating, hex, bin, octal)
-	ERRORNEOUS,         // error'd token
-	STRING,
-	CHARACTER,
-	UNKNOWN,            // we dont know it durr
-	END_OF_FILE,        // EOF
+	TOKEN_IDENTIFIER,         // A | a ... z | Z | 0 ... 9 | _
+	TOKEN_OPERATOR,           // todo
+	TOKEN_SEPARATOR,          // todo
+	TOKEN_NUMBER,             // generic number (integer, floating, hex, bin, octal)
+	TOKEN_ERRORNEOUS,         // error'd token
+	TOKEN_STRING,
+	TOKEN_CHARACTER,
+	TOKEN_UNKNOWN,            // we dont know it durr
+	TOKEN_END_OF_FILE,        // EOF
 } TokenType;
 
 /**
