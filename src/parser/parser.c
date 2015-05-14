@@ -655,15 +655,13 @@ IfStat *parseIfStat(Parser *self) {
 				IfStat *ifStmt = createIfStat();
 				ifStmt->body = block;
 				ifStmt->expr = expr;
+				ifStmt->elseStmt = NULL;
+				ifStmt->elseIfStmts = createVector(VECTOR_EXPONENTIAL);
 
 				while (true) {
 					ElseIfStat *elseIfStmt = parseElseIfStat(self);
 					if (!elseIfStmt) {
 						break;
-					}
-
-					if (ifStmt->elseIfStmts == NULL) {
-						ifStmt->elseIfStmts = createVector(VECTOR_EXPONENTIAL);
 					}
 
 					pushBackItem(ifStmt->elseIfStmts, elseIfStmt);
