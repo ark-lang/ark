@@ -974,11 +974,11 @@ UnstructuredStatement *parseUnstructuredStatement(Parser *self) {
 		stmt->type = FUNCTION_CALL_NODE;
 		if (checkTokenTypeAndContent(self, SEPARATOR, ";", 0)) {
 			consumeToken(self);
+			return stmt;
 		}
 		else {
 			parserError("Function call expects a semi-colon, found: %s", peekAtTokenStream(self, 0)->content);
 		}
-		return stmt;
 	}
 
 	Declaration *decl = parseDeclaration(self);
@@ -994,13 +994,13 @@ UnstructuredStatement *parseUnstructuredStatement(Parser *self) {
 		UnstructuredStatement *stmt = createUnstructuredStatement();
 		if (checkTokenTypeAndContent(self, SEPARATOR, ";", 0)) {
 			consumeToken(self);
+			stmt->expr = expr;
+			stmt->type = EXPR_STAT_NODE;
+			return stmt;
 		}
 		else {
 			parserError("Expected semi-colon at the end of expression, found %s", peekAtTokenStream(self, 0)->content);
 		}
-		stmt->expr = expr;
-		stmt->type = EXPR_STAT_NODE;
-		return stmt;
 	}
 
 	return false;
