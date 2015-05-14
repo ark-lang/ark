@@ -1,4 +1,4 @@
-#include "parser.h"
+#include <parser.h>
 
 #define parserError(...) self->failed = true, \
 						errorMessageWithPosition(\
@@ -605,34 +605,38 @@ ElseStat *parseElseStat(Parser *self) {
 
 		if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, "{", 0)) {
 			Block *block = parseBlock(self);
-			if (block) {
-				ElseStat *elseStat = createElseStat();
-				elseStat->body = block;
-				return elseStat;
-			}
-			else {
-				parserError("Failed to parse block");
-			}
+
+			ElseStat *elseStmt = createElseStat();
+			elseStmt->body = block;
+
+			return elseStmt;
+		}
+		else {
+			parserError("Else statement expected a block, found: %s", peekAtTokenStream(self, 0)->content);
 		}
 	}
+
 	return false;
 }
 
 ElseIfStat *parseElseIfStat(Parser *self) {
-	if (checkTokenTypeAndContent(self, TOKEN_IDENTIFIER, ELSE_KEYWORD, 0)) {
+	if (checkTokenTypeAndContent(self, TOKEN_IDENTIFIER, ELSE_KEYWORD, 0) && checkTokenTypeAndContent(self, TOKEN_IDENTIFIER, IF_KEYWORD, 1)) {
+		consumeToken(self);
 		consumeToken(self);
 
-		if (checkTokenTypeAndContent(self, TOKEN_IDENTIFIER, IF_KEYWORD, 0)) {
-			consumeToken(self);
+		Expression *expr = parseExpression(self);
 
-			if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, "{", 0)) {
-				Block *block = parseBlock(self);
-				if (block) {
-					ElseIfStat *elif = createElseIfStat(self);
+		if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, "{", 0)) {
+			Block *block = parseBlock(self);
 
-					return elif;
-				}
-			}
+			ElseIfStat *elseIfStmt = createElseIfStat(self);
+			elseIfStmt->body = block;
+			elseIfStmt->expr = expr;
+
+			return elseIfStmt;
+		}
+		else {
+			parserError("Else if statement expected a block, found: %s", peekAtTokenStream(self, 0)->content);
 		}
 	}
 
@@ -647,26 +651,35 @@ IfStat *parseIfStat(Parser *self) {
 		if (expr) {
 			if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, "{", 0)) {
 				Block *block = parseBlock(self);
-				if (block) {
-					IfStat *ifStmt = createIfStat();
-					if (checkTokenTypeAndContent(self, TOKEN_IDENTIFIER, ELSE_KEYWORD, 0)
-						&& checkTokenTypeAndContent(self, TOKEN_SEPARATOR, "{", 1)) {
-						ifStmt->elseStmt = parseElseStat(self);
-					}
-					else if (checkTokenTypeAndContent(self, TOKEN_IDENTIFIER, ELSE_KEYWORD, 0)
-						&& checkTokenTypeAndContent(self, TOKEN_IDENTIFIER, IF_KEYWORD, 1)) {
 
+				IfStat *ifStmt = createIfStat();
+				ifStmt->body = block;
+				ifStmt->expr = expr;
+				ifStmt->elseStmt = NULL;
+				ifStmt->elseIfStmts = createVector(VECTOR_EXPONENTIAL);
+
+				while (true) {
+					ElseIfStat *elseIfStmt = parseElseIfStat(self);
+					if (!elseIfStmt) {
+						break;
 					}
-					ifStmt->expr = expr;
-					ifStmt->body = block;
-					return ifStmt;
+
+					pushBackItem(ifStmt->elseIfStmts, elseIfStmt);
 				}
+
+				ElseStat *elseStmt = parseElseStat(self);
+				if (elseStmt) {
+					ifStmt->elseStmt = elseStmt;
+				}
+
+				return ifStmt;
 			}
 			else {
-				parserError("If Statement expected a block, found: %s", peekAtTokenStream(self, 0)->content);
+				parserError("If statement expected a block, found: %s", peekAtTokenStream(self, 0)->content);
 			}
 		}
 	}
+
 	return false;
 }
 
