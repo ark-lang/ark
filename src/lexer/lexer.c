@@ -142,7 +142,7 @@ void expectCharacter(Lexer *self, char c) {
 
 void recognizeEndOfInputToken(Lexer *self) {
 	consumeCharacter(self);
-	pushInitializedToken(self, END_OF_FILE, "<END_OF_FILE>");
+	pushInitializedToken(self, TOKEN_END_OF_FILE, "<TOKEN_END_OF_FILE>");
 }
 
 void recognizeIdentifierToken(Lexer *self) {
@@ -158,7 +158,7 @@ void recognizeIdentifierToken(Lexer *self) {
 		}
 	}
 
-	pushToken(self, IDENTIFIER);
+	pushToken(self, TOKEN_IDENTIFIER);
 }
 
 void recognizeNumberToken(Lexer *self) {
@@ -175,7 +175,7 @@ void recognizeNumberToken(Lexer *self) {
 			consumeCharacter(self);
 		}
 
-		pushToken(self, NUMBER);
+		pushToken(self, TOKEN_NUMBER);
 	}
 	else if (self->currentChar == 'x' || self->currentChar == 'X') {
 		consumeCharacter(self);
@@ -184,7 +184,7 @@ void recognizeNumberToken(Lexer *self) {
 			consumeCharacter(self);
 		}
 		
-		pushToken(self, NUMBER);
+		pushToken(self, TOKEN_NUMBER);
 	}
 	else if (self->currentChar == 'b') {
 		consumeCharacter(self);
@@ -193,7 +193,7 @@ void recognizeNumberToken(Lexer *self) {
 			consumeCharacter(self);
 		}
 		
-		pushToken(self, NUMBER);
+		pushToken(self, TOKEN_NUMBER);
 	}
 	else if (self->currentChar == 'o') {
 		consumeCharacter(self);
@@ -202,7 +202,7 @@ void recognizeNumberToken(Lexer *self) {
 			consumeCharacter(self);
 		}
 		
-		pushToken(self, NUMBER);
+		pushToken(self, TOKEN_NUMBER);
 	}
 	else {
 		// it'll do 
@@ -223,7 +223,7 @@ void recognizeNumberToken(Lexer *self) {
 			consumeCharacter(self);
 		}
 		
-		pushToken(self, NUMBER);
+		pushToken(self, TOKEN_NUMBER);
 	}
 }
 
@@ -237,7 +237,7 @@ void recognizeStringToken(Lexer *self) {
 
 	expectCharacter(self, '"');
 
-	pushToken(self, STRING);
+	pushToken(self, TOKEN_STRING);
 }
 
 void recognizeCharacterToken(Lexer *self) {
@@ -252,7 +252,7 @@ void recognizeCharacterToken(Lexer *self) {
 
 	expectCharacter(self, '\'');
 
-	pushToken(self, CHARACTER);
+	pushToken(self, TOKEN_CHARACTER);
 }
 
 void recognizeOperatorToken(Lexer *self) {
@@ -270,7 +270,7 @@ void recognizeOperatorToken(Lexer *self) {
 		}
 	}
 
-	pushToken(self, OPERATOR);
+	pushToken(self, TOKEN_OPERATOR);
 }
 
 void recognizeEndOfLineToken(Lexer *self) {
@@ -279,12 +279,12 @@ void recognizeEndOfLineToken(Lexer *self) {
 
 void recognizeSeparatorToken(Lexer *self) {
 	consumeCharacter(self);
-	pushToken(self, SEPARATOR);
+	pushToken(self, TOKEN_SEPARATOR);
 }
 
 void recognizeErroneousToken(Lexer *self) {
 	consumeCharacter(self);
-	pushToken(self, ERRORNEOUS);
+	pushToken(self, TOKEN_ERRORNEOUS);
 }
 
 /** pushes a token with no content */
@@ -355,7 +355,7 @@ void destroyLexer(Lexer *self) {
 		for (int i = 0; i < self->tokenStream->size; i++) {
 			Token *tok = getVectorItem(self->tokenStream, i);
 			// eof's content isnt malloc'd so free would give us some errors
-			if (tok->type != END_OF_FILE) {
+			if (tok->type != TOKEN_END_OF_FILE) {
 				verboseModeMessage("Freed `%s` token", tok->content);
 				sdsfree(tok->content);
 			}
