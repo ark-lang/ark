@@ -243,7 +243,7 @@ void recognizeStringToken(Lexer *self) {
 	while (!isString(self->currentChar)) {
 		consumeCharacter(self);
 		if (isEndOfInput(self->currentChar)) {
-			errorMessage("Unterminated String at line(%d) ... pos(%d)", errline, errpos);
+			errorMessageWithPosition(self->fileName, errline, errpos, "Unterminated string literal");
 		}
 	}
 
@@ -258,12 +258,12 @@ void recognizeCharacterToken(Lexer *self) {
 	int errpos = self->charNumber;
 	int errline = self->lineNumber;
 	if (self->currentChar == '\'')
-		errorMessageWithPosition(self->fileName, self->lineNumber, self->charNumber, "Empty character constant");
+		errorMessageWithPosition(self->fileName, self->lineNumber, self->charNumber, "Empty character literal");
 	
 	while (!(self->currentChar == '\'' && peekAhead(self, -1) != '\\')) {
 		consumeCharacter(self);
 		if (isEndOfInput(self->currentChar)) {
-			errorMessage("Unterminated char at line(%d) ... pos(%d)", errline, errpos);
+			errorMessageWithPosition(self->fileName, errline, errpos, "Unterminated character literal");
 		}
 	}
 
