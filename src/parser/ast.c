@@ -45,9 +45,9 @@ ArrayInitializer *createArrayInitializer() {
 	return arr;
 }
 
-ArrayIndex *createArrayIndex(int index) {
+ArrayIndex *createArrayIndex(Expression *expr) {
 	ArrayIndex *ind = safeMalloc(sizeof(*ind));
-	ind->index = index;
+	ind->index = expr;
 	return ind;
 }
 
@@ -353,6 +353,7 @@ void cleanupAST(Vector *nodes) {
 			case EXPR_NODE: destroyExpression(node->data); break;
 			case TYPE_NAME_NODE: destroyTypeName(node->data); break;
 			case ARRAY_TYPE_NODE: destroyArrayType(node->data); break;
+			case ARRAY_INDEX_NODE: destroyArrayIndex(node->data); break;
 			case POINTER_TYPE_NODE: destroyPointerType(node->data); break;
 			case FIELD_DECL_NODE: destroyFieldDecl(node->data); break;
 			case FIELD_DECL_LIST_NODE: destroyFieldDeclList(node->data); break;
@@ -400,8 +401,9 @@ void destroyArrayInitializer(ArrayInitializer *array) {
 	free(array);
 }
 
-void destroyArrayIndex(ArrayIndex *index) {
-	free(index);
+void destroyArrayIndex(ArrayIndex *arrayIndex) {
+	free(arrayIndex->index);
+	free(arrayIndex);
 }
 
 void destroyLinkerFlagMacro(LinkerFlagMacro *linker) {
