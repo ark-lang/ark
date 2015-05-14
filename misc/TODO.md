@@ -11,7 +11,7 @@ Notes, todo stuff etc...
 - [x] Option Type parsing
 - [ ] Pointer syntax, or just malloc/free
 - [x] Code generation for match statements
-- [ ] Else If/Else Statements
+- [x] Else If/Else Statements
 - [ ] Access specifiers, i.e public/private
 - [ ] Deduce whether to generate `.` or `->`
 - [ ] Fix arrays decaying

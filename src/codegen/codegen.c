@@ -526,12 +526,40 @@ void emitUnstructuredStat(CodeGenerator *self, UnstructuredStatement *stmt) {
 	}
 }
 
+void emitElseIfStat(CodeGenerator *self, ElseIfStat *elseifs) {
+	emitCode(self, " else if (");
+	emitExpression(self, elseifs->expr);
+	emitCode(self, ") {" CC_NEWLINE);
+	emitBlock(self, elseifs->body);
+	emitCode(self, "}");
+}
+
+void emitElseStat(CodeGenerator *self, ElseStat *elses) {
+	emitCode(self, " else {" CC_NEWLINE);
+	emitBlock(self, elses->body);
+	emitCode(self, "}" CC_NEWLINE);
+}
+
 void emitIfStat(CodeGenerator *self, IfStat *ifs) {
 	emitCode(self, "if (");
 	emitExpression(self, ifs->expr);
 	emitCode(self, ") {" CC_NEWLINE);
 	emitBlock(self, ifs->body);
-	emitCode(self, "}" CC_NEWLINE);
+	emitCode(self, "}");
+
+	if (ifs->elseIfStmts == NULL && ifs->elseStmt == NULL) {
+		emitCode(self, CC_NEWLINE);
+	}
+
+	if (ifs->elseIfStmts != NULL) {
+		for (int i = 0; i < ifs->elseIfStmts->size; i++) {
+			emitElseIfStat(self, getVectorItem(ifs->elseIfStmts, i));
+		}
+	}
+
+	if (ifs->elseStmt != NULL) {
+		emitElseStat(self, ifs->elseStmt);
+	}
 }
 
 void emitStatement(CodeGenerator *self, Statement *stmt) {
