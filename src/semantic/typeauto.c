@@ -16,6 +16,7 @@ void destroyVarType(VarType *type) {
 
 VarType *deduceTypeFromFunctionCall(SemanticAnalyzer *self, Call *call) {
 	printf("func call\n");
+	return NULL;
 }
 
 VarType *deduceTypeFromTypeVal(SemanticAnalyzer *self, char *typeVal) {
@@ -23,6 +24,7 @@ VarType *deduceTypeFromTypeVal(SemanticAnalyzer *self, char *typeVal) {
 	if (!strcmp(typeVal, "int")) {
 		return createVarType(INTEGER_VAR_TYPE);
 	}
+	return NULL;
 }
 
 VarType *deduceTypeFromLiteral(SemanticAnalyzer *self, Literal *lit) {
@@ -32,12 +34,13 @@ VarType *deduceTypeFromLiteral(SemanticAnalyzer *self, Literal *lit) {
 		case INT_LITERAL_NODE: return createVarType(INTEGER_VAR_TYPE);
 		case FLOAT_LITERAL_NODE: return createVarType(DOUBLE_VAR_TYPE);
 	}
+	return NULL;
 }
 
 VarType *deduceTypeFromBinaryExpr(SemanticAnalyzer *self, BinaryExpr *expr) {
 	VariableType lhandType = deduceTypeFromExpression(self, expr->lhand);
 	VariableType rhandType = deduceTypeFromExpression(self, expr->rhand);
-	
+
 	if (lhandType == rhandType) {
 		return createVarType(lhandType);
 	}
@@ -51,10 +54,12 @@ VarType *deduceTypeFromType(SemanticAnalyzer *self, Type *type) {
 			break;
 		case TYPE_NAME_NODE: return deduceTypeFromTypeVal(self, type->typeName->name);
 	}
+	return NULL;
 }
 
 VarType *deduceTypeFromUnaryExpr(SemanticAnalyzer *self, UnaryExpr *expr) {
 	printf("its a unary\n");
+	return NULL;
 }
 
 VarType *deduceTypeFromTypeNode(SemanticAnalyzer *self, TypeName *type) {
@@ -65,6 +70,7 @@ VarType *deduceTypeFromTypeNode(SemanticAnalyzer *self, TypeName *type) {
 	}
 	else {
 		errorMessage("Type does not exist in the current/global scope: %s", type->name);
+		return NULL;
 	}
 }
 
