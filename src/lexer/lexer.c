@@ -229,7 +229,6 @@ void recognizeNumberToken(Lexer *self) {
 			}
 			consumeCharacter(self);
 		}
-
 		pushToken(self, TOKEN_NUMBER);
 	}
 }
