@@ -1329,7 +1329,7 @@ int getTokenPrecedence(Parser *self) {
 
 	Precedence *prec = NULL;
 	if (hashmap_get(self->binopPrecedence, tok->content, (void**) &prec) == MAP_MISSING) {
-		verboseModeMessage("Precedence doesnt exist for %s\n", tok->content);
+		verboseModeMessage("Precedence doesn't exist for %s", tok->content);
 		return -1;
 	}
 
@@ -1442,7 +1442,7 @@ OptionType *parseOptionType(Parser *self) {
 			return createOptionType(type);
 		}
 
-		errorMessage("todo option type");
+		printf("todo option type");
 		return false;
 	}
 
@@ -1740,7 +1740,7 @@ int getLiteralType(Token *tok) {
 
 Token *consumeToken(Parser *self) {
 	Token *tok = getVectorItem(self->tokenStream, self->tokenIndex++);
-	verboseModeMessage("consumed token: %s, current token is %s", tok->content,
+	verboseModeMessage("Consumed token: %s, current token is %s", tok->content,
 			peekAtTokenStream(self, 0)->content);
 	if (tok->type == TOKEN_END_OF_FILE) {
 		self->parsing = false;
