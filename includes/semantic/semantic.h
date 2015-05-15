@@ -59,7 +59,7 @@ typedef struct {
 	map_t paramSymTable;
 	map_t structSymTable;
 	map_t implSymTable;
-	map_t implFuncTable;
+	map_t implFuncSymTable;
 } Scope;
 
 /*
