@@ -21,8 +21,10 @@ VarType *deduceTypeFromFunctionCall(SemanticAnalyzer *self, Call *call) {
 
 VarType *deduceTypeFromTypeVal(SemanticAnalyzer *self, char *typeVal) {
 	// int for now...
-	if (!strcmp(typeVal, "int")) {
-		return createVarType(INTEGER_VAR_TYPE);
+	for (int i = 0; i < ARR_LEN(TYPE_NAME); i++) {
+		if (!strcmp(typeVal, TYPE_NAME[i])) {
+			return createVarType(i);
+		}
 	}
 	return NULL;
 }
