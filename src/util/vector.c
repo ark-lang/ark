@@ -31,7 +31,7 @@ void pushBackItem(Vector *vec, VectorItem item) {
 
 VectorItem getVectorItem(Vector *vec, int index) {
 	if (index > vec->size) {
-		verboseModeMessage("Index out of vector bounds, index: %d, size: %d\n", index, vec->size);
+		verboseModeMessage("Index out of vector bounds, index: %d, size: %d", index, vec->size);
 		return false;
 	}
 	return vec->items[index];
