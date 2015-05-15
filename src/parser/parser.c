@@ -918,7 +918,7 @@ Vector *parseImplBlock(Parser *self, char *name, char *as) {
 	return false;
 }
 
-Impl *parseImpl(Parser *self) {
+ImplDecl *parseImplDecl(Parser *self) {
 	if (checkTokenTypeAndContent(self, TOKEN_IDENTIFIER, IMPL_KEYWORD, 0)) {
 		consumeToken(self);
 
@@ -943,7 +943,7 @@ Impl *parseImpl(Parser *self) {
 
 		Vector *implBlock = parseImplBlock(self, name, as);
 		if (implBlock) {
-			Impl *impl = createImpl(name, as);
+			ImplDecl *impl = createImplDecl(name, as);
 			impl->funcs = implBlock;
 			return impl;
 		}
@@ -989,14 +989,6 @@ StructuredStatement *parseStructuredStatement(Parser *self) {
 }
 
 UnstructuredStatement *parseUnstructuredStatement(Parser *self) {
-	Impl *impl = parseImpl(self);
-	if (impl) {
-		UnstructuredStatement *stmt = createUnstructuredStatement();
-		stmt->impl = impl;
-		stmt->type = IMPL_NODE;
-		return stmt;
-	}
-
 	LeaveStat *leave = parseLeaveStat(self);
 	if (leave) {
 		UnstructuredStatement *stmt = createUnstructuredStatement();
@@ -1318,6 +1310,14 @@ Declaration *parseDeclaration(Parser *self) {
 		return decl;
 	}
 
+	ImplDecl *implDecl = parseImplDecl(self);
+	if (implDecl) {
+		Declaration *decl = createDeclaration();
+		decl->implDecl = implDecl;
+		decl->type = IMPL_DECL_NODE;
+		return decl;
+	}
+
 	return false;
 }
 
@@ -1636,23 +1636,6 @@ Expression *parsePrimaryExpression(Parser *self) {
 			expr->arrayInitializer = arr;
 			expr->exprType = ARRAY_INITIALIZER_NODE;
 			return expr;
-		}
-	}
-
-	if (checkTokenType(self, TOKEN_IDENTIFIER, 0) 
-		&& checkTokenTypeAndContent(self, TOKEN_SEPARATOR, ".", 1)) {
-		Vector *members = createVector(VECTOR_EXPONENTIAL);
-		while (true) {
-			if (checkTokenType(self, TOKEN_IDENTIFIER, 0)) {
-				char *iden = consumeToken(self)->content;
-				pushBackItem(members, iden);
-				if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, ".", 0)) {
-					consumeToken(self);
-				}
-				else {
-					break;
-				}
-			}
 		}
 	}
 
