@@ -112,7 +112,7 @@ char *readFile(const char *fileName) {
 
 			size_t fileLength = fread(contents, sizeof(char), fileSize, file);
 			if (!fileLength) {
-				verboseModeMessage("\"%s\" is empty\n", fileName);
+				verboseModeMessage("\"%s\" is empty", fileName);
 			}
 
 			contents[fileLength] = '\0';
