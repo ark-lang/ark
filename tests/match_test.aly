@@ -11,6 +11,9 @@ fn main(): int {
 		3 {
 			return 3;
 		}
+		4 || 5 {
+			return 4;
+		}
 	}
 	
 	return 1;
