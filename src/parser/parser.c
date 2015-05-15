@@ -1434,14 +1434,11 @@ TupleType *parseTupleType(Parser *self) {
 }
 
 OptionType *parseOptionType(Parser *self) {
-	if (checkTokenTypeAndContent(self, TOKEN_OPERATOR, "<", 0)) {
+	if (checkTokenTypeAndContent(self, TOKEN_OPERATOR, "?", 0)) {
 		consumeToken(self);
 
 		Type *type = parseType(self);
 		if (type) {
-			if (checkTokenTypeAndContent(self, TOKEN_OPERATOR, ">", 0)) {
-				consumeToken(self);
-			}
 			return createOptionType(type);
 		}
 
