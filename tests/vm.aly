@@ -1,9 +1,9 @@
 fn printf(fmt: str, _);
 
 struct VM {
-    mut running: bool = true;
-    mut ip: int = 0;
-    mut sp: int = 0;
+    mut running: bool;
+    mut ip: int;
+    mut sp: int;
     mut stack: [256]int;
 }
 
@@ -56,6 +56,10 @@ impl VM {
     }
 
     fn start(): void {
+        self.running = true;
+        self.ip = 0;
+        self.sp = 0;
+        
         for self.running {
             self.eval(self.fetch());
             self.ip = self.ip + 1;
