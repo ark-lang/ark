@@ -24,7 +24,10 @@ typedef enum {
 	TOKEN_CHARACTER,
 	TOKEN_UNKNOWN,            // we dont know it durr
 	TOKEN_END_OF_FILE,        // EOF
+	NUM_TOKEN_TYPES,
 } TokenType;
+
+extern const char *TOKEN_TYPE_NAME[];
 
 /**
  * Token properties:
@@ -66,5 +69,10 @@ char* getTokenContext(Vector *stream, Token *tok);
  * Destroy the token and its resources
  */
 void destroyToken(Token *token);
+
+/**
+ * Get the name for a token type
+ */
+char *getTokenTypeName(TokenType type);
 
 #endif // __TOKEN_H
