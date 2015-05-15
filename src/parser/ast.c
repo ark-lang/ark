@@ -29,7 +29,7 @@ const char *NODE_NAME[] = {
 // Useful for debugging
 const char *getNodeTypeName(NodeType type) {
 	if (type > NUM_OF_NODES - 1)
-		errorMessage("Tried to get the name of a non-existant NodeType: %d", type);
+		errorMessage("Tried to get the name of a non-existent node type: %d", type);
 	return NODE_NAME[type];
 }
 
@@ -383,7 +383,7 @@ void cleanupAST(Vector *nodes) {
 			case STATEMENT_NODE: destroyStatement(node->data); break;
 			case TYPE_NODE: destroyType(node->data); break;
 			default: 
-				printf("un-recognized node %d\n", node->type); 
+				errorMessage("Unrecognized node %d", node->type);
 				break;
 		}
 	}
@@ -658,7 +658,7 @@ void destroyUnstructuredStatement(UnstructuredStatement *stmt) {
 		case FUNCTION_CALL_NODE: destroyCall(stmt->call); break;
 		case EXPR_STAT_NODE: destroyExpression(stmt->expr); break;
 		default:
-			errorMessage("unstructured statement isn't being destroyed!?");
+			errorMessage("Unstructured statement isn't being destroyed");
 			break;
 	}
 	free(stmt);
@@ -670,7 +670,7 @@ void destroyMacro(Macro *macro) {
 		case USE_MACRO_NODE: destroyUseMacro(macro->use); break;
 		case LINKER_FLAG_MACRO_NODE: destroyLinkerFlagMacro(macro->linker); break;
 		default:
-			errorMessage("macro not being destroyed?");
+			errorMessage("Macro not being destroyed");
 			break;
 	}
 	free(macro);

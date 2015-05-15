@@ -28,7 +28,7 @@ void closeHeaderFile(HeaderFile *headerFile) {
 void destroyHeaderFile(HeaderFile *headerFile) {
 	if (!OUTPUT_C) remove(headerFile->generatedHeaderName);
 
-	verboseModeMessage("Destroyed Header File `%s`", headerFile->name);
+	verboseModeMessage("Destroyed header file `%s`", headerFile->name);
 	sdsfree(headerFile->generatedHeaderName);
 	free(headerFile->name);
 	free(headerFile);
