@@ -344,6 +344,12 @@ FieldDecl *parseFieldDecl(Parser *self) {
 		if (type) {
 			FieldDecl *decl = createFieldDecl(type, mutable);
 			decl->name = name;
+
+			if (checkTokenTypeAndContent(self, TOKEN_OPERATOR, "=", 0)) {
+				consumeToken(self);
+				decl->defaultValue = parseExpression(self);
+			}
+
 			return decl;
 		}
 		else {

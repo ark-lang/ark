@@ -179,6 +179,7 @@ FieldDecl *createFieldDecl(Type *type, bool mutable) {
 	FieldDecl *field = safeMalloc(sizeof(*field));
 	field->type = type;
 	field->mutable = mutable;
+	field->defaultValue = NULL;
 	return field;
 }
 
@@ -249,6 +250,7 @@ VariableDecl *createVariableDecl(Type *type, char *name, bool mutable,
 	var->name = name;
 	var->mutable = mutable;
 	var->expr = expr;
+	var->structDecl = NULL;
 	return var;
 }
 

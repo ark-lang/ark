@@ -261,6 +261,7 @@ typedef struct {
 	Type *type;
 	char *name;
 	bool mutable;
+	Expression *defaultValue;
 } FieldDecl;
 
 /**
@@ -366,6 +367,9 @@ typedef struct {
 	// the decl type
 	Type *type;
 	
+	// the struct that this variable uses
+	StructDecl *structDecl;
+
 	// the decl name
 	char *name;
 	
