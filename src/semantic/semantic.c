@@ -271,9 +271,34 @@ void analyzeUnstructuredStatement(SemanticAnalyzer *self, UnstructuredStatement 
 }
 
 void analyzeStructuredStatement(SemanticAnalyzer *self, StructuredStatement *structured) {
-	ALLOY_UNUSED_OBJ(self);
-	ALLOY_UNUSED_OBJ(structured);
-	// TODO:
+	switch (structured->type) {
+		case IF_STAT_NODE: analyzeIfStatement(self, structured->ifStmt); break;
+	}
+	// TODO eventually display an errorMessage here if all the structured stmts are implemented
+}
+
+void analyzeIfStatement(SemanticAnalyzer *self, IfStat *ifStmt) {
+	analyzeExpression(self, ifStmt->expr);
+	analyzeBlock(self, ifStmt->body);
+
+	if (ifStmt->elseIfStmts != NULL) {
+		for (int i = 0; i < ifStmt->elseIfStmts->size; ++i) {
+			analyzeElseIfStatement(self, getVectorItem(ifStmt->elseIfStmts, i));
+		}
+	}
+
+	if (ifStmt->elseStmt != NULL) {
+		analyzeElseStatement(self, ifStmt->elseStmt);
+	}
+}
+
+void analyzeElseIfStatement(SemanticAnalyzer *self, ElseIfStat *elseIfStmt) {
+	analyzeExpression(self, elseIfStmt->expr);
+	analyzeBlock(self, elseIfStmt->body);
+}
+
+void analyzeElseStatement(SemanticAnalyzer *self, ElseStat *elseStmt) {
+	analyzeBlock(self, elseStmt->body);
 }
 
 void analyzeStatement(SemanticAnalyzer *self, Statement *stmt) {
