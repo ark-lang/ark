@@ -176,6 +176,27 @@ void analyzeUnstructuredStatement(SemanticAnalyzer *self, UnstructuredStatement 
 void analyzeStructuredStatement(SemanticAnalyzer *self, StructuredStatement *structured);
 
 /**
+ * Analyze an if statement
+ * @param self	 the semantic analyzer instance
+ * @param ifStmt the if statement
+ */
+void analyzeIfStatement(SemanticAnalyzer *self, IfStat *ifStmt);
+
+/**
+ * Analyze an else if statement
+ * @param self		 the semantic analyzer instance
+ * @param elseIfStmt the else if statement
+ */
+void analyzeElseIfStatement(SemanticAnalyzer *self, ElseIfStat *elseIfStmt);
+
+/**
+ * Analyze an else statement
+ * @param self	   the semantic analyzer instance
+ * @param elseStmt the else statement
+ */
+void analyzeElseStatement(SemanticAnalyzer *self, ElseStat *elseStmt);
+
+/**
  * Analyze a top level statement
  * @param self the semantic analyzer instance
  * @param stmt the top level statement node
