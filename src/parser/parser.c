@@ -117,7 +117,6 @@ int parseEscapedCharacter(char *str, int *len) {
 }
 
 // TODO make UTF-8 compatible
-// TODO finish alloy ayy lmao
 CharLit *parseCharLit(Parser *self) {
 	if (getLiteralType(peekAtTokenStream(self, 0)) != LITERAL_CHAR)
 		return false;
@@ -347,7 +346,11 @@ FieldDecl *parseFieldDecl(Parser *self) {
 
 			if (checkTokenTypeAndContent(self, TOKEN_OPERATOR, "=", 0)) {
 				consumeToken(self);
-				decl->defaultValue = parseExpression(self);
+
+				Expression *expr = parseExpression(self);
+				if (expr) {
+					decl->defaultValue = expr;
+				}
 			}
 
 			return decl;
@@ -1236,7 +1239,7 @@ VariableDecl *parseVariableDecl(Parser *self) {
 				inferred = true;
 			}
 
-			// consume dat colon bby
+			// consume the colon
 			consumeToken(self);
 			
 			Type *type = NULL;
