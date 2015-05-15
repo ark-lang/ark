@@ -1,7 +1,8 @@
 fn printf(format: str, _): int;
 
 struct Stuff {
-	mut x: int
+	mut x: int,
+	mut y: int = 10
 }
 
 fn main(): int {
@@ -12,6 +13,9 @@ fn main(): int {
 	
 	if stuff.x != 5 {
 		return 1;
+	}
+	if stuff.y != 10 {
+		return 2;
 	}
 	
 	return 0;
