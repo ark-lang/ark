@@ -39,31 +39,33 @@ Comments cannot be nested.
 ## Primitive Types
 Alloy provides various primitive types:
 
-	int         at least 16 bits in size
-	float       IEEE 754 single-precision binary floating-point
-	double      IEEE 754 double-precision binary floating-point
-	bool        unsigned 8 bits
-	uint        an unsigned integer at least 16 bits in size
-	rune        signed 32 bits, used for holding a UTF-8 character // TODO
+|Type|Description|
+|----|-----------|
+|int|at least 16 bits in size|
+|float|IEEE 754 single-precision binary floating-point|
+|double|IEEE 754 double-precision binary floating-point|
+|bool|unsigned 8 bits|
+|uint|an unsigned integer at least 16 bits in size|
+|rune|signed 32 bits, used for holding a UTF-8 character (TODO)|
 	
 ## Precision Types
 The precision types are there for when you want a data type to be a specific
 size. If you're writing portable code, we suggest that you use the primitive
 types, however the precision types are available for when you need them.
-Note that the C `char` type corresponds to the `i8` type.
-	
-	f32         IEEE 754 single-precision binary floating-point
-	f64         IEEE 754 double-precision binary floating-point
-	
-	i8          signed 8 bits
-	i16         signed 16 bits
-	i32         signed 32 bits
-	i64         signed 64 bits
-	
-	u8          unsigned 8 bits
-	u16         unsigned 16 bits
-	u32         unsigned 32 bits
-	u64         unsigned 64 bits
+Note: the C `char` type corresponds to the `i8` type.
+
+|Type|Description|
+|----|-----------|
+|f32|IEEE 754 single-precision binary floating-point|
+|f64|IEEE 754 double-precision binary floating-point|
+|i8|signed 8 bits|
+|i16|signed 16 bits|
+|i32|signed 32 bits|
+|i64|signed 64 bits|
+|u8|unsigned 8 bits|
+|u16|unsigned 16 bits|
+|u32|unsigned 32 bits|
+|u64|unsigned 64 bits|
 
 ## Other
 Other types that don't quite fit a category.
@@ -529,9 +531,9 @@ Note that I did not specify a size in the block this time, and that there is als
 at the end of the initializing block, this is because it's still a statement.
 
 ## Generics
-we're still thinking about this... want to suggest an idea/have your say? Post an issue, or comment
+We're still thinking about this, want to suggest an idea/have your say? Post an issue, or comment
 on an existing one (relevant to the topic) [here](https://github.com/felixangell/alloy/issues).
 
 ## Macro System
-we're still thinking about this... want to suggest an idea/have your say? Post an issue, or comment
+We're still thinking about this, want to suggest an idea/have your say? Post an issue, or comment
 on an existing one (relevant to the topic) [here](https://github.com/felixangell/alloy/issues).
