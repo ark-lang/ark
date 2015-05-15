@@ -11,13 +11,13 @@
 #include "semantic.h"
 #include "C/codegen.h"
 
-#define DEBUG_MODE_ARG 		"-d"
-#define HELP_ARG			"-h"
-#define VERBOSE_ARG			"-v"
-#define OUTPUT_ARG			"-o"
-#define OUTPUT_C_ARG		"-c"
-#define COMPILER_ARG		"--compiler"
-#define VERSION_ARG 		"--version"
+#define DEBUG_MODE_ARG "-d"
+#define HELP_ARG       "-h"
+#define VERBOSE_ARG    "-v"
+#define OUTPUT_ARG     "-o"
+#define OUTPUT_C_ARG   "-c"
+#define COMPILER_ARG   "--compiler"
+#define VERSION_ARG    "--version"
 
 /**
  * For handling command line
