@@ -10,8 +10,14 @@ fn main(): int {
     d := 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 2;
     printf("d is %d\n", d);
 
-    b : = y + z;
+    b := y + z;
     printf("y + z = %d\n", b);
+
+    terry := "Terry is the name, leet coding is the game";
+    printf("%s\n", terry);
+
+    tree := 2.0f;
+    printf("%f\n", tree);
 
     return 0;
 }
