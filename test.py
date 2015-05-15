@@ -64,7 +64,10 @@ for name in os.listdir("tests"):
 		if compile_result != 0:
 			if show_output: 
 				print(red(bold("Compilation failed:")) + " returned with " + str(compile_result))
-			exit(1)
+			files_tested.append(TestFile(output_file, True))
+			num_of_files_failed += 1
+			if show_output: print("")
+			continue
 		
 		if show_output: 
 			print(bold("Running ") + name + "...")
@@ -75,12 +78,11 @@ for name in os.listdir("tests"):
 			else:
 				FNULL = open(os.devnull, 'w')
 				run_result = subprocess.call(["./tests/" + output_file], stdout=FNULL, stderr=subprocess.STDOUT)
-				
+			
+			os.remove("tests/" + output_file)
 		except FileNotFoundError:
 			print(red(bold("File not found: " + output_file)))
-			exit(1)
 		
-		os.remove("tests/" + output_file)
 		if run_result != 0:
 			if show_output: print(red(bold("Running failed:")) + " returned with " + str(run_result))
 			files_tested.append(TestFile(output_file, True))
@@ -88,13 +90,17 @@ for name in os.listdir("tests"):
 		else:
 			files_tested.append(TestFile(output_file, False))
 			num_of_files_passed += 1
+			
+		if show_output: print("")
 
 # print results
 total_num_of_files = num_of_files_passed + num_of_files_failed
-print(bold("Results (" + str(num_of_files_passed) + "/" + str(total_num_of_files) + ") files passed: ")) # some margin
+print(bold("Results: " + str(num_of_files_passed) + "/" + str(total_num_of_files) + " files passed")) # some margin
 
 for file in files_tested:
 	if file.failed:
 		print(red(bold("    [-] " + file.name)))
 	else:
 		print(green(bold("    [+] " + file.name)))
+
+exit(num_of_files_failed)
