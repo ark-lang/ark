@@ -87,6 +87,10 @@ void analyzeFunctionDeclaration(SemanticAnalyzer *self, FunctionDecl *decl) {
 	}
 }
 
+void analyzeStructDeclaration(SemanticAnalyzer *self, StructDecl *decl) {
+	pushStructDeclaration(self, decl);
+}
+
 Type *varTypeToType(VariableType type) {
 	Type *result = createType();
 	result->type = TYPE_NAME_NODE;
@@ -113,12 +117,20 @@ Type *varTypeToType(VariableType type) {
 
 void analyzeVariableDeclaration(SemanticAnalyzer *self, VariableDecl *decl) {
 	VariableDecl *mapDecl = checkVariableExists(self, decl->name);
-	// doesnt exist
+	// doesn't exist
 	if (!mapDecl) {
 		if (decl->inferred) {
 			VariableType type = deduceTypeFromExpression(self, decl->expr);
 			decl->type = varTypeToType(type);
 		}
+		else {
+			// If we are initializing with a struct set the struct type
+			StructDecl *structDecl = checkStructExists(self, decl->type->typeName->name);
+			if (structDecl) {
+				decl->structDecl = structDecl;
+			}
+		}
+
 		pushVariableDeclaration(self, decl);
 	}
 	// does exist, oh shit
@@ -163,6 +175,7 @@ void analyzeDeclaration(SemanticAnalyzer *self, Declaration *decl) {
 		case FUNCTION_DECL_NODE: analyzeFunctionDeclaration(self, decl->funcDecl); break;
 		case VARIABLE_DECL_NODE: analyzeVariableDeclaration(self, decl->varDecl); break;
 		case IMPL_DECL_NODE: analyzeImplDeclaration(self, decl->implDecl); break;
+		case STRUCT_DECL_NODE: analyzeStructDeclaration(self, decl->structDecl); break;
 	}
 }
 
@@ -330,13 +343,13 @@ void startSemanticAnalysis(SemanticAnalyzer *self) {
 	popScope(self);
 }
 
-StructDecl *checkStructureExists(SemanticAnalyzer *self, char *structName) {
-	StructDecl *decl = checkLocalStructureExists(self, structName);
+StructDecl *checkStructExists(SemanticAnalyzer *self, char *structName) {
+	StructDecl *decl = checkLocalStructExists(self, structName);
 	if (decl) {
 		return decl;
 	}
 
-	decl = checkGlobalStructureExists(self, structName);
+	decl = checkGlobalStructExists(self, structName);
 	if (decl) {
 		return decl;
 	}
@@ -358,7 +371,7 @@ VariableDecl *checkVariableExists(SemanticAnalyzer *self, char *varName) {
 	return false;
 }
 
-StructDecl *checkLocalStructureExists(SemanticAnalyzer *self, char *structName) {
+StructDecl *checkLocalStructExists(SemanticAnalyzer *self, char *structName) {
 	StructDecl *structure = NULL;
 	Scope *scope = getStackItem(self->scopes, self->scopes->stackPointer);
 	if (hashmap_get(scope->structSymTable, structName, (void**) &structure) == MAP_OK) {
@@ -376,7 +389,7 @@ VariableDecl *checkLocalVariableExists(SemanticAnalyzer *self, char *varName) {
 	return false;
 }
 
-StructDecl *checkGlobalStructureExists(SemanticAnalyzer *self, char *structName) {
+StructDecl *checkGlobalStructExists(SemanticAnalyzer *self, char *structName) {
 	StructDecl *structure = NULL;
 	Scope *scope = getStackItem(self->scopes, GLOBAL_SCOPE_INDEX);
 	if (hashmap_get(scope->structSymTable, structName, (void**) &structure) == MAP_OK) {
@@ -441,7 +454,7 @@ void pushVariableDeclaration(SemanticAnalyzer *self, VariableDecl *var) {
 	hashmap_put(scope->varSymTable, var->name, var);
 }
 
-void pushStructureDeclaration(SemanticAnalyzer *self, StructDecl *structure) {
+void pushStructDeclaration(SemanticAnalyzer *self, StructDecl *structure) {
 	Scope *scope = getStackItem(self->scopes, self->scopes->stackPointer);
 	if (checkLocalVariableExists(self, structure->name)) {
 		semanticError("Structure with the name `%s` already exists locally", structure->name);
