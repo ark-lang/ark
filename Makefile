@@ -27,3 +27,5 @@ clean:
 	@rm -rf bin/
 	@rm -f _gen_*	# remove any output code if it's there
 	@rm -rf *.dSYM/
+	@rm -rf tests/*.test
+	@rm -rf tests/*.dSYM/
