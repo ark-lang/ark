@@ -74,6 +74,7 @@ There are loads of ways you can help out:
 * Commenting on issues
 * Creating issues (proposals, bugs, etc)
 * Writing documentation
+* Writing tests and other projects in Alloy
 
 ## License
 Alloy is licensed under the [MIT License](/LICENSE.md).
