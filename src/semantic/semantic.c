@@ -233,13 +233,15 @@ void analyzeTypeNode(SemanticAnalyzer *self, Type *type) {
 }
 
 void analyzeLiteralNode(SemanticAnalyzer *self, Literal *lit) {
+	// TODO
+	/*
 	switch (lit->type) {
 		case CHAR_LITERAL_NODE:
 			printf("char literal value: %d\n", lit->charLit->value);
 			break;
 		default:
 			printf("other literal value: %s\n", lit->stringLit->value);
-	}
+	}*/
 }
 
 void analyzeExpression(SemanticAnalyzer *self, Expression *expr) {
