@@ -15,8 +15,8 @@ void help() {
 	printf("  -d\t\t\tLogs extra debug information\n");
 	printf("  -o <file>\t\tPlace the output into <file>\n");
 	printf("  -c <file>\t\tWill keep the output C code\n");
+	printf("  --compiler <name>\t\t\tSets the C compiler to <name> (default: CC)\n");
 	printf("  --version\t\t\tShows current version\n");
-	printf("  --compiler\t\t\tSets the C compiler (default=CC)\n");
 	printf("\n");
 }
 
