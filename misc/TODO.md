@@ -19,7 +19,7 @@ Notes, todo stuff etc...
 - [ ] Macro System
 - [ ] Forward declarations for struct/enum/etc..
 - [ ] Binary Literals
-- [ ] Generics
+- [ ] Generics (MAYBE)
 - [ ] Multi-dimensional arrays
 - [ ] Type checking
   * [ ] Validate expressions
