@@ -456,7 +456,7 @@ void pushVariableDeclaration(SemanticAnalyzer *self, VariableDecl *var) {
 
 void pushStructDeclaration(SemanticAnalyzer *self, StructDecl *structure) {
 	Scope *scope = getStackItem(self->scopes, self->scopes->stackPointer);
-	if (checkLocalVariableExists(self, structure->name)) {
+	if (checkLocalStructExists(self, structure->name)) {
 		semanticError("Structure with the name `%s` already exists locally", structure->name);
 		return;
 	}
@@ -465,7 +465,7 @@ void pushStructDeclaration(SemanticAnalyzer *self, StructDecl *structure) {
 
 void pushFunctionDeclaration(SemanticAnalyzer *self, FunctionDecl *func) {
 	Scope *scope = getStackItem(self->scopes, GLOBAL_SCOPE_INDEX);
-	if (checkLocalVariableExists(self, func->signature->name)) {
+	if (checkLocalFunctionExists(self, func->signature->name)) {
 		semanticError("Function with the name `%s` has already been defined", func->signature->name);
 		return;
 	}
