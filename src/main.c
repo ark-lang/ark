@@ -3,8 +3,6 @@
 #include "alloyc.h"
 
 int main(int argc, char** argv) {
-
-	// alloy compiler stuff
 	AlloyCompiler *alloyc = createAlloyCompiler(argc, argv);
 	if (alloyc) {
 		// start the timer
