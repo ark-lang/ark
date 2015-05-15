@@ -1,10 +1,10 @@
 fn printf(fmt: str, _);
 
 struct VM {
-    mut running: bool;
-    mut ip: int;
-    mut sp: int;
-    mut stack: [256]int;
+    mut running: bool,
+    mut ip: int,
+    mut sp: int,
+    mut stack: [256]int
 }
 
 enum Instructions {
