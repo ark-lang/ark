@@ -310,7 +310,7 @@ Vector *parseImplBlock(Parser *parser, char *name, char *as);
  * @param  parser the parser instance
  * @return        the impl node we parsed
  */
-Impl *parseImpl(Parser *parser);
+ImplDecl *parseImplDecl(Parser *parser);
 
 /**
  * Parses an assignment node, this should be handled
