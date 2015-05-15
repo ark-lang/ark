@@ -69,7 +69,7 @@ The grammar pretty much maps straight onto the parsers source.
 		| Call;
 		
 	Call = PrimaryExpr "(" [ ExpressionList ] ")";
-	
+
 	Statement = ( StructuredStat | UnstructuredStat );
 	StructuredStat = Block | IfStat | MatchStat | ForStat;
 	UnstructuredStat = Declaration | Impl | LeaveStat | IncDecStat | Assignment.
