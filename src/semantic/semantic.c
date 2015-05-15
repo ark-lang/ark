@@ -14,7 +14,7 @@ Scope *createScope() {
 	self->varSymTable = hashmap_new();
 	self->structSymTable = hashmap_new();
 	self->implSymTable = hashmap_new();
-	self->implFuncTable = hashmap_new();
+	self->implFuncSymTable = hashmap_new();
 	return self;
 }
 
@@ -24,6 +24,7 @@ void destroyScope(Scope *self) {
 	hashmap_free(self->structSymTable);
 	hashmap_free(self->paramSymTable);
 	hashmap_free(self->implSymTable);
+	hashmap_free(self->implFuncSymTable);
 	free(self);
 }
 
@@ -149,12 +150,11 @@ void analyzeImplDeclaration(SemanticAnalyzer *self, ImplDecl *impl) {
 
 	pushImplDeclaration(self, impl);
 
-	// add all the impl functions to the map
+	// add all the impl functions to the impl function sym table
 	Scope *scope = getStackItem(self->scopes, GLOBAL_SCOPE_INDEX);
 	for (int i = 0; i < impl->funcs->size; ++i) {
 		FunctionDecl *func = getVectorItem(impl->funcs, i);
-
-		hashmap_put(scope->implFuncTable, func->signature->name, func);
+		hashmap_put(scope->implFuncSymTable, func->signature->name, func);
 	}
 }
 
@@ -380,7 +380,7 @@ FunctionDecl *checkFunctionExists(SemanticAnalyzer *self, char *funcName) {
 	if (hashmap_get(scope->funcSymTable, funcName, (void**) &func) == MAP_OK) {
 		return func;
 	}
-	if (hashmap_get(scope->implFuncTable, funcName, (void**) &func) == MAP_OK) {
+	if (hashmap_get(scope->implFuncSymTable, funcName, (void**) &func) == MAP_OK) {
 		return func;
 	}
 	return false;
@@ -458,6 +458,8 @@ void popScope(SemanticAnalyzer *self) {
 	hashmap_free(scope->paramSymTable);
 	hashmap_free(scope->varSymTable);
 	hashmap_free(scope->structSymTable);
+	hashmap_free(scope->implFuncSymTable);
+	hashmap_free(scope->implSymTable);
 	free(scope);
 }
 
