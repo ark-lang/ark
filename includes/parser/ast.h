@@ -29,7 +29,7 @@ typedef enum {
 	PRIMARY_EXPR_NODE, EXPR_NODE, TYPE_NAME_NODE, TYPE_LIT_NODE, PAREN_EXPR_NODE,
 	ARRAY_TYPE_NODE, POINTER_TYPE_NODE, FIELD_DECL_NODE, UNARY_EXPR_NODE,
 	FIELD_DECL_LIST_NODE, STRUCT_DECL_NODE, STATEMENT_LIST_NODE,
-	BLOCK_NODE, PARAMETER_SECTION_NODE, PARAMETERS_NODE, IMPL_NODE, ENUM_DECL_NODE,
+	BLOCK_NODE, PARAMETER_SECTION_NODE, PARAMETERS_NODE, IMPL_DECL_NODE, ENUM_DECL_NODE,
 	FUNCTION_SIGNATURE_NODE, FUNCTION_DECL_NODE, VARIABLE_DECL_NODE, FUNCTION_CALL_NODE,
 	DECLARATION_NODE, INC_DEC_STAT_NODE, RETURN_STAT_NODE, BREAK_STAT_NODE,
 	CONTINUE_STAT_NODE, LEAVE_STAT_NODE, ASSIGNMENT_NODE, UNSTRUCTURED_STATEMENT_NODE,
@@ -154,7 +154,7 @@ typedef struct {
 
 	// functions
 	Vector *funcs;
-} Impl;
+} ImplDecl;
 
 typedef struct {
 	char *name;
@@ -234,6 +234,7 @@ typedef struct {
 	Expression *lhand;
 	char *binaryOp;
 	Expression *rhand;
+	Type *referencingStructType;
 } BinaryExpr;
 
 /**
@@ -379,6 +380,7 @@ typedef struct {
 typedef struct {
 	FunctionDecl *funcDecl;
 	StructDecl *structDecl;
+	ImplDecl *implDecl;
 	VariableDecl *varDecl;
 	EnumDecl *enumDecl;
 	int type;
@@ -439,7 +441,6 @@ typedef struct {
 	IncDecStat *incDec;
 	Assignment *assignment;
 	Call *call;
-	Impl *impl;
 	PointerFree *pointerFree;
 	Expression *expr;
 	int type;
@@ -524,7 +525,7 @@ const char *getNodeTypeName(NodeType type);
 
 Node *createNode(void *data, NodeType type);
 
-Impl *createImpl(char *name, char *as);
+ImplDecl *createImplDecl(char *name, char *as);
 
 UseMacro *createUseMacro();
 
@@ -634,7 +635,7 @@ void cleanupAST(Vector *nodes);
 
 void destroyNode(Node *node);
 
-void destroyImpl(Impl *impl);
+void destroyImplDecl(ImplDecl *impl);
 
 void destroyUseMacro(UseMacro *use);
 
