@@ -134,15 +134,15 @@ void startAlloyCompiler(AlloyCompiler *self) {
 	}
 
 	// compilation stage
-	self->generator = createCodeGenerator(self->sourceFiles);
-	startCodeGeneration(self->generator);
+	self->generator = createCCodeGenerator(self->sourceFiles);
+	startCCodeGeneration(self->generator);
 }
 
 void destroyAlloyCompiler(AlloyCompiler *self) {
 	if (self) {
 		if (self->lexer) destroyLexer(self->lexer);
 		if (self->parser) destroyParser(self->parser);
-		if (self->generator) destroyCodeGenerator(self->generator);
+		if (self->generator) destroyCCodeGenerator(self->generator);
 		if (self->semantic) destroySemanticAnalyzer(self->semantic);
 		destroyVector(self->sourceFiles);
 		free(self);
