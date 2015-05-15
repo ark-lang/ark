@@ -1,5 +1,5 @@
-#include "codegen.h"
-#include "private.h"
+#include "C/codegen.h"
+#include "C/private.h"
 
 // Declarations
 
