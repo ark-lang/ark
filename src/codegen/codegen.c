@@ -390,7 +390,10 @@ void emitMatchClause(CodeGenerator *self, MatchClause *clause) {
 	emitExpression(self, clause->expr);
 	emitCode(self, ": {" CC_NEWLINE);
 	emitBlock(self, clause->body);
-	emitCode(self, "} break;" CC_NEWLINE);
+
+	// TODO replace this in case someone returns
+	emitCode(self, "break", CC_NEWLINE);
+	emitCode(self, "};" CC_NEWLINE);
 }
 
 void emitMatchStat(CodeGenerator *self, MatchStat *match) {
