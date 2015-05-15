@@ -153,7 +153,7 @@ Expression *createExpression() {
 
 BinaryExpr *createBinaryExpr() {
 	BinaryExpr *expr = safeCalloc(sizeof(*expr));
-	expr->referencingStructType = NULL;
+	expr->structType = NULL;
 	return expr;
 }
 
