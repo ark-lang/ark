@@ -25,7 +25,7 @@ typedef struct {
 	/** The current AST being analyzed */
 	Vector *abstractSyntaxTree;
 
-	/**  */
+	/** The current source file */
 	SourceFile *currentSourceFile;
 
 	/** the source files to semantically analyze */
@@ -58,6 +58,8 @@ typedef struct {
 	map_t varSymTable;
 	map_t paramSymTable;
 	map_t structSymTable;
+	map_t implSymTable;
+	map_t implFuncSymTable;
 } Scope;
 
 /*
@@ -123,6 +125,13 @@ void analyzeAssignment(SemanticAnalyzer *self, Assignment *assign);
  * @param decl the parent decl node to analyze
  */
 void analyzeDeclaration(SemanticAnalyzer *self, Declaration *decl);
+
+/**
+ * Analyze an impl declaration
+ * @param self the semantic analyzer instance
+ * @param impl the impl declaration
+ */
+void analyzeImplDeclaration(SemanticAnalyzer *self, ImplDecl *impl);
 
 /**
  * Analyze a function call
@@ -245,6 +254,8 @@ FunctionDecl *checkFunctionExists(SemanticAnalyzer *self, char *funcName);
 
 ParameterSection *checkLocalParameterExists(SemanticAnalyzer *self, char *paramName);
 
+ImplDecl *checkImplExists(SemanticAnalyzer *self, char *implName);
+
 void pushParameterSection(SemanticAnalyzer *self, ParameterSection *param);
 
 void pushVariableDeclaration(SemanticAnalyzer *self, VariableDecl *var);
@@ -252,6 +263,8 @@ void pushVariableDeclaration(SemanticAnalyzer *self, VariableDecl *var);
 void pushStructureDeclaration(SemanticAnalyzer *self, StructDecl *structure);
 
 void pushFunctionDeclaration(SemanticAnalyzer *self, FunctionDecl *func);
+
+void pushImplDeclaration(SemanticAnalyzer *self, ImplDecl *impl);
 
 /**
  * Push a new scope to the scope stack
