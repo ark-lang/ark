@@ -42,19 +42,19 @@ static void parse_argument(CommandLineArgument *arg) {
 	}
 	else if (!strcmp(arg->argument, OUTPUT_ARG)) {
 		if (!arg->nextArgument) {
-			errorMessage("missing filename after '" OUTPUT_ARG "'");
+			errorMessage("Missing filename after '" OUTPUT_ARG "'");
 		}
 		OUTPUT_EXECUTABLE_NAME = arg->nextArgument;
 	}
 	else {
-		errorMessage("unrecognized command line option '%s'\n", arg->argument);
+		errorMessage("Unrecognized command line option '%s'", arg->argument);
 	}
 }
 
 AlloyCompiler *createAlloyCompiler(int argc, char** argv) {
 	// not enough arguments just throw an error
 	if (argc <= 1) {
-		errorMessage("no input files");
+		errorMessage("No input files");
 		return NULL;
 	}
 
@@ -99,7 +99,7 @@ AlloyCompiler *createAlloyCompiler(int argc, char** argv) {
 			pushBackItem(self->sourceFiles, file);
 		}
 		else {
-			errorMessage("argument not recognized: %s\n", argv[i]);
+			errorMessage("Argument not recognized: %s", argv[i]);
 		}
 	}
 
