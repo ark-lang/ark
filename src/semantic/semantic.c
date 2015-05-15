@@ -13,6 +13,7 @@ Scope *createScope() {
 	self->paramSymTable = hashmap_new();
 	self->varSymTable = hashmap_new();
 	self->structSymTable = hashmap_new();
+	self->implSymTable = hashmap_new();
 	return self;
 }
 
@@ -139,10 +140,19 @@ void analyzeAssignment(SemanticAnalyzer *self, Assignment *assign) {
 	}
 }
 
+void analyzeImplDeclaration(SemanticAnalyzer *self, ImplDecl *impl) {
+	if (self->scopes->stackPointer != GLOBAL_SCOPE_INDEX) {
+		semanticError("Impl declaration for `%s` is illegal", impl->name);
+	}
+
+	pushImplDeclaration(self, impl);
+}
+
 void analyzeDeclaration(SemanticAnalyzer *self, Declaration *decl) {
 	switch (decl->type) {
 		case FUNCTION_DECL_NODE: analyzeFunctionDeclaration(self, decl->funcDecl); break;
 		case VARIABLE_DECL_NODE: analyzeVariableDeclaration(self, decl->varDecl); break;
+		case IMPL_DECL_NODE: analyzeImplDeclaration(self, decl->implDecl); break;
 	}
 }
 
@@ -151,8 +161,7 @@ void analyzeFunctionCall(SemanticAnalyzer *self, Call *call) {
 
 	FunctionDecl *decl = checkFunctionExists(self, callee);	
 	if (!decl) {
-		// TODO fix this
-		//semanticError("Attempting to call undefined function `%s`", callee);
+		semanticError("Attempting to call undefined function `%s`", callee);
 	}
 	// it exists, check arguments match in length
 	else {
@@ -373,6 +382,15 @@ ParameterSection *checkLocalParameterExists(SemanticAnalyzer *self, char *paramN
 	return false;
 }
 
+ImplDecl *checkImplExists(SemanticAnalyzer *self, char *implName) {
+	ImplDecl *impl = NULL;
+	Scope *scope = getStackItem(self->scopes, self->scopes->stackPointer);
+	if (hashmap_get(scope->implSymTable, implName, (void**) &impl) == MAP_OK) {
+		return impl;
+	}
+	return false;
+}
+
 void pushParameterSection(SemanticAnalyzer *self, ParameterSection *param) {
 	Scope *scope = getStackItem(self->scopes, self->scopes->stackPointer);
 	if (self->scopes->stackPointer == GLOBAL_SCOPE_INDEX) return;
@@ -406,6 +424,15 @@ void pushFunctionDeclaration(SemanticAnalyzer *self, FunctionDecl *func) {
 		return;
 	}
 	hashmap_put(scope->funcSymTable, func->signature->name, func);
+}
+
+void pushImplDeclaration(SemanticAnalyzer *self, ImplDecl *impl) {
+	Scope *scope = getStackItem(self->scopes, GLOBAL_SCOPE_INDEX);
+	if (checkImplExists(self, impl->name)) {
+		semanticError("Impl with the name `%s` has already been defined", impl->name);
+		return;
+	}
+	hashmap_put(scope->implSymTable, impl->name, impl);
 }
 
 void pushScope(SemanticAnalyzer *self) {
