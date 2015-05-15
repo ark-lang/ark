@@ -39,30 +39,31 @@ Comments cannot be nested.
 ## Primitive Types
 Alloy provides various primitive types:
 
-	int			at least 16 bits in size
-	float		IEEE 754 single-precision binary floating-point
-	double		IEEE 754 double-precision binary floating-point
-	bool		unsigned 8 bits
-	char		signed 8 bits
-	uint 		an unsigned integer at least 16 bits in size
+	int         at least 16 bits in size
+	float       IEEE 754 single-precision binary floating-point
+	double      IEEE 754 double-precision binary floating-point
+	bool        unsigned 8 bits
+	uint        an unsigned integer at least 16 bits in size
+	rune        signed 32 bits, used for holding a UTF-8 character // TODO
 	
 ## Precision Types
 The precision types are there for when you want a data type to be a specific
 size. If you're writing portable code, we suggest that you use the primitive
 types, however the precision types are available for when you need them.
+Note that the C `char` type corresponds to the `i8` type.
 	
-	f32			IEEE 754 single-precision binary floating-point
-	f64			IEEE 754 double-precision binary floating-point
+	f32         IEEE 754 single-precision binary floating-point
+	f64         IEEE 754 double-precision binary floating-point
 	
-	i8			signed 8 bits
-	i16			signed 16 bits
-	i32			signed 32 bits
-	i64			signed 64 bits
+	i8          signed 8 bits
+	i16         signed 16 bits
+	i32         signed 32 bits
+	i64         signed 64 bits
 	
-	u8			unsigned 8 bits
-	u16			unsigned 16 bits
-	u32			unsigned 32 bits
-	u64			unsigned 64 bits
+	u8          unsigned 8 bits
+	u16         unsigned 16 bits
+	u32         unsigned 32 bits
+	u64         unsigned 64 bits
 
 ## Other
 Other types that don't quite fit a category.
@@ -147,11 +148,11 @@ You can however, specify the `mut` keyword, this will indicate to the compiler t
 to modify the variable later on in the code. For instance:
 
 	x: int = 5;
-	x = 10;			// ERROR: x is constant!
+	x = 10;         // ERROR: x is constant!
 	
 We can also error it like so:
 
-	x: int;			// ERROR: no value assigned for constant!
+	x: int;         // ERROR: no value assigned for constant!
 	
 Why? Because variables are treated as constants unless otherwise specified, therefore they must 
 have a value assigned on definition.
@@ -363,9 +364,9 @@ pointing to the address of `x`. So we have `y`, now if we try to print it out, y
 it just stores the address `x`. Now if we want to access the value at the address of x, we must dereference the pointer
 that points to it. This is again done with the caret (`^`), for example:
 
-	x: int = 5;		// 5
-	y: ^int = &x;	// 0xDEADBEEF		(somewhat arbitrary address)
-	z: int = ^y;	// 5				(get the value at our address 0xDEADBEEF)
+	x: int = 5;     // 5
+	y: ^int = &x;   // 0xDEADBEEF       (somewhat arbitrary address)
+	z: int = ^y;    // 5                (get the value at our address 0xDEADBEEF)
 
 We've introduced a new variable `z`, that stored the value at the address `y`.
 
