@@ -234,7 +234,7 @@ typedef struct {
 	Expression *lhand;
 	char *binaryOp;
 	Expression *rhand;
-	Type *referencingStructType;
+	Type *structType;
 } BinaryExpr;
 
 /**

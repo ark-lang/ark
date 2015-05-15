@@ -170,6 +170,11 @@ void analyzeFunctionCall(SemanticAnalyzer *self, Call *call) {
 				semanticError("Too few arguments to function `%s`", callee);
 			}
 		}
+
+		// Analyze every expression in a function call
+		for (int i = 0; i < call->arguments->size; ++i) {
+			analyzeExpression(self, getVectorItem(call->arguments, i));
+		}
 	}
 }
 
@@ -181,14 +186,14 @@ void analyzeBinaryExpr(SemanticAnalyzer *self, BinaryExpr *expr) {
 	}
 
 	/*
-	 * If we have an expr like X.Y() we need to
-	 * set the actual struct type of X so codegen can use it to
+	 * If we have an expression like X.Y() we need to
+	 * set the actual struct type of X so the code generator can use it to
 	 * emit the correct function name.
 	 */
 	if (expr->lhand->exprType == TYPE_NODE && expr->rhand->exprType == FUNCTION_CALL_NODE) {
 		VariableDecl *decl = checkVariableExists(self, expr->lhand->type->typeName->name);
 		if (decl) {
-			expr->referencingStructType = decl->type;
+			expr->structType = decl->type;
 		}
 	}
 
