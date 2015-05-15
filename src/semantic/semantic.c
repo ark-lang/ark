@@ -198,12 +198,6 @@ void analyzeFunctionCall(SemanticAnalyzer *self, Call *call) {
 }
 
 void analyzeBinaryExpr(SemanticAnalyzer *self, BinaryExpr *expr) {
-	// assignment (probably)
-	if (!strcmp(expr->binaryOp, "=")) {
-		printf("its an assignment!\n");
-		// TODO lol
-	}
-
 	/*
 	 * If we have an expression like X.Y() we need to
 	 * set the actual struct type of X so the code generator can use it to
