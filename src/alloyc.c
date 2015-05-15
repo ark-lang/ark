@@ -112,6 +112,7 @@ void startAlloyCompiler(AlloyCompiler *self) {
 	}
 
 	// lex file
+	verboseModeMessage("Started lexing");
 	self->lexer = createLexer(self->sourceFiles);
 	startLexingFiles(self->lexer, self->sourceFiles);
 	if (self->lexer->failed) {
@@ -120,6 +121,7 @@ void startAlloyCompiler(AlloyCompiler *self) {
 	verboseModeMessage("Finished lexing");
 
 	// initialise parser after we tokenize
+	verboseModeMessage("Started parsing");
 	self->parser = createParser();
 	startParsingSourceFiles(self->parser, self->sourceFiles);
 	verboseModeMessage("Finished parsing");
