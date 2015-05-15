@@ -106,6 +106,13 @@ void analyzeBlock(SemanticAnalyzer *self, Block *block);
 void analyzeFunctionDeclaration(SemanticAnalyzer *self, FunctionDecl *decl);
 
 /**
+ * Analyze a struct decl
+ * @param self the semantic analyzer instance
+ * @param decl the struct decl
+ */
+void analyzeStructDeclaration(SemanticAnalyzer *self, StructDecl *decl);
+
+/**
  * Analyze a variable declaration
  * @param self the semantic analyzer instance
  * @param decl the variable decl node to analyze
@@ -223,7 +230,7 @@ void startSemanticAnalysis(SemanticAnalyzer *self);
  * @param  structName the structure name to lookup
  * @return            the structure if it exists
  */
-StructDecl *checkStructureExists(SemanticAnalyzer *self, char *structName);
+StructDecl *checkStructExists(SemanticAnalyzer *self, char *structName);
 
 /**
  * Check if a variable exists globally or locally
@@ -239,7 +246,7 @@ VariableDecl *checkVariableExists(SemanticAnalyzer *self, char *varName);
  * @param  structName the structure name to lookup
  * @return            the structure if it exists
  */
-StructDecl *checkLocalStructureExists(SemanticAnalyzer *self, char *structName);
+StructDecl *checkLocalStructExists(SemanticAnalyzer *self, char *structName);
 
 /**
  * Check if a variable exists locally
@@ -255,7 +262,7 @@ VariableDecl *checkLocalVariableExists(SemanticAnalyzer *self, char *varName);
  * @param  structName the structure name to lookup
  * @return            the structure if it exists
  */
-StructDecl *checkGlobalStructureExists(SemanticAnalyzer *self, char *structName);
+StructDecl *checkGlobalStructExists(SemanticAnalyzer *self, char *structName);
 
 /**
  * Check if a variable exists globally
@@ -281,7 +288,7 @@ void pushParameterSection(SemanticAnalyzer *self, ParameterSection *param);
 
 void pushVariableDeclaration(SemanticAnalyzer *self, VariableDecl *var);
 
-void pushStructureDeclaration(SemanticAnalyzer *self, StructDecl *structure);
+void pushStructDeclaration(SemanticAnalyzer *self, StructDecl *structure);
 
 void pushFunctionDeclaration(SemanticAnalyzer *self, FunctionDecl *func);
 

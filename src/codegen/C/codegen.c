@@ -80,6 +80,14 @@ static void emitType(CCodeGenerator *self, Type *type);
 static void emitParameters(CCodeGenerator *self, Parameters *params);
 
 /**
+ * This will emit a field in a field list.
+ *
+ * @param self the code gen instance
+ * @param decl the field decl
+ */
+static void emitFieldDecl(CCodeGenerator *self, FieldDecl *decl);
+
+/**
  * This will emit a field list, a field list
  * is the declarations inside of a structure, i.e
  * 	int x;
@@ -425,25 +433,28 @@ static void emitParameters(CCodeGenerator *self, Parameters *params) {
 	}
 }
 
+static void emitFieldDecl(CCodeGenerator *self, FieldDecl *decl) {
+	// hack
+	bool isArray = decl->type->type == TYPE_LIT_NODE
+				&& decl->type->typeLit->type == ARRAY_TYPE_NODE;
+
+	emitCode(self, "\t");
+	if (!decl->mutable) {
+		emitCode(self, "const ");
+	}
+	emitType(self, decl->type);
+	emitCode(self, " %s", decl->name);
+	if (isArray) {
+		emitCode(self, "[]");
+	}
+	emitCode(self, ";" CC_NEWLINE);
+}
+
 static void emitFieldList(CCodeGenerator *self, FieldDeclList *list) {
 	const int size = list->members->size;
 
 	for (int i = 0; i < size; i++) {
-		FieldDecl *decl = getVectorItem(list->members, i);
-		// hack
-		bool isArray = decl->type->type == TYPE_LIT_NODE 
-					&& decl->type->typeLit->type == ARRAY_TYPE_NODE;
-
-		emitCode(self, "\t");
-		if (!decl->mutable) {
-			emitCode(self, "const ");
-		}
-		emitType(self, decl->type);
-		emitCode(self, " %s", decl->name);
-		if (isArray) {
-			emitCode(self, "[]");
-		}
-		emitCode(self, ";" CC_NEWLINE);
+		emitFieldDecl(self, getVectorItem(list->members, i));
 	}
 }
 
@@ -563,9 +574,25 @@ static void emitVariableDecl(CCodeGenerator *self, VariableDecl *decl) {
 		emitCode(self, " = ");
 		emitExpression(self, decl->expr);
 	}
+
 	emitCode(self, ";" CC_NEWLINE);
 	if (isHeaderVariable) {
 		self->writeState = WRITE_HEADER_STATE;
+	}
+
+	if (decl->structDecl) {
+		// Emit struct initializers
+		for (int i = 0; i < decl->structDecl->fields->members->size; ++i) {
+			FieldDecl *fieldDecl = getVectorItem(decl->structDecl->fields->members, i);
+			if (fieldDecl->defaultValue) {
+				emitCode(self, "%s", decl->name);
+				emitCode(self, "%s", decl->pointer ? "->" : ".");
+				emitCode(self, "%s", fieldDecl->name);
+				emitCode(self, " = ");
+				emitExpression(self, fieldDecl->defaultValue);
+				emitCode(self, ";" CC_NEWLINE);
+			}
+		}
 	}
 }
 
