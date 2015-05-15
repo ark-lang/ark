@@ -34,7 +34,7 @@ typedef struct {
 typedef struct {
 	Lexer *lexer;
 	Parser *parser;
-	CodeGenerator *generator;
+	CCodeGenerator *generator;
 	SemanticAnalyzer *semantic;
 	Vector *sourceFiles;
 } AlloyCompiler;
