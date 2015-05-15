@@ -11,7 +11,7 @@ INCLUDES = -Iincludes/ \
 		   -Iincludes/semantic \
 
 SOURCES = $(wildcard src/*.c) \
-		  $(wildcard src/codegen/*.c) \
+		  $(wildcard src/codegen/*/*.c) \
 		  $(wildcard src/lexer/*.c) \
 		  $(wildcard src/parser/*.c) \
 		  $(wildcard src/util/*.c) \
