@@ -335,7 +335,7 @@ void getNextToken(Lexer *self) {
 		self->running = false;	// stop lexing
 		return;
 	}
-	else if (isDigit(self->currentChar) || self->currentChar == '.') {
+	else if (isDigit(self->currentChar)) || (self->currentChar == '.' && isDigit(peekAhead(self, 1))) {
 		// number
 		recognizeNumberToken(self);
 	}
