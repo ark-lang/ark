@@ -17,7 +17,7 @@ void pushBackItem(Vector *vec, VectorItem item) {
 			vec->maxSize = vec->type == VECTOR_LINEAR ? vec->maxSize + 1 : vec->maxSize * 2;
 			vec->items = realloc(vec->items, sizeof(*vec->items) * vec->maxSize);
 			if (!vec->items) {
-				verboseModeMessage("realloc: failed to allocate memory for vector contents");
+				verboseModeMessage("Failed to allocate memory for vector contents");
 				return;
 			}
 		}
@@ -31,7 +31,7 @@ void pushBackItem(Vector *vec, VectorItem item) {
 
 VectorItem getVectorItem(Vector *vec, int index) {
 	if (index > vec->size) {
-		verboseModeMessage("index out of vector bounds, index: %d, size: %d\n", index, vec->size);
+		verboseModeMessage("Index out of vector bounds, index: %d, size: %d", index, vec->size);
 		return false;
 	}
 	return vec->items[index];
@@ -40,5 +40,5 @@ VectorItem getVectorItem(Vector *vec, int index) {
 void destroyVector(Vector *vec) {
 	free(vec->items);
 	free(vec);
-	verboseModeMessage("Destroyed Vector");
+	verboseModeMessage("Destroyed vector");
 }

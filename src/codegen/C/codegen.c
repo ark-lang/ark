@@ -350,10 +350,6 @@ static void emitUnaryExpr(CCodeGenerator *self, UnaryExpr *expr) {
 }
 
 static void emitArrayInitializer(CCodeGenerator *self, ArrayInitializer *arr) {
-	if (arr == NULL || arr->values == NULL) {
-		printf("something is null, we're leaving..\n");
-		return;
-	}
 	emitCode(self, "{");
 	for (int i = 0; i < arr->values->size; i++) {
 		emitExpression(self, getVectorItem(arr->values, i));
@@ -377,7 +373,7 @@ static void emitExpression(CCodeGenerator *self, Expression *expr) {
 			emitArrayIndex(self, expr->arrayIndex);
 		} break;
 		default:
-			printf("Unknown node in expression %d\n", expr->exprType);
+			errorMessage("Unknown node in expression %d", expr->exprType);
 			break;
 	}
 }
@@ -653,7 +649,7 @@ char *getLoopIndex(CCodeGenerator *self, Expression *expr) {
 				return name;
 			}
 			else {
-				printf("todo some erro\n");
+				// TODO error here
 			}
 			break;
 		}
@@ -728,7 +724,7 @@ static void emitDeclaration(CCodeGenerator *self, Declaration *decl) {
 		case IMPL_DECL_NODE: emitImplDecl(self, decl->implDecl); break;
 		case ENUM_DECL_NODE: emitEnumDecl(self, decl->enumDecl); break;
 		default:
-			printf("unknown node in declaration %s\n", NODE_NAME[decl->type]);
+			errorMessage("Unknown node in declaration %s", NODE_NAME[decl->type]);
 			break;
 	}
 }
@@ -813,7 +809,7 @@ static void emitStatement(CCodeGenerator *self, Statement *stmt) {
 			emitStructuredStat(self, stmt->structured);
 			break;
 		default:
-			printf("unknown node type in block %s\n", NODE_NAME[stmt->type]);
+			errorMessage("Unknown node type in block %s", NODE_NAME[stmt->type]);
 			break;
 	}
 }
@@ -824,7 +820,7 @@ static void emitStructuredStat(CCodeGenerator *self, StructuredStatement *stmt) 
 		case IF_STAT_NODE: emitIfStat(self, stmt->ifStmt); break;
 		case MATCH_STAT_NODE: emitMatchStat(self, stmt->matchStmt); break;
 		default:
-			printf("unknown node type found in structured statement %s\n", NODE_NAME[stmt->type]);
+			errorMessage("Unknown node type found in structured statement %s", NODE_NAME[stmt->type]);
 			break;
 	}
 }
@@ -919,7 +915,7 @@ void startCCodeGeneration(CCodeGenerator *self) {
 	buildCommand = sdscat(buildCommand, self->linkerFlags);
 
 	// just for debug purposes
-	verboseModeMessage("running cl args: `%s`", buildCommand);
+	verboseModeMessage("Running cl args: `%s`", buildCommand);
 
 	// do the command we just created
 	int result = system(buildCommand);
@@ -936,7 +932,7 @@ void destroyCCodeGenerator(CCodeGenerator *self) {
 	for (int i = 0; i < self->sourceFiles->size; i++) {
 		SourceFile *sourceFile = getVectorItem(self->sourceFiles, i);
 		destroySourceFile(sourceFile);
-		verboseModeMessage("Destroyed source files on %d iteration.", i);
+		verboseModeMessage("Destroyed source files iteration %d", i);
 	}
 
 	free(self);

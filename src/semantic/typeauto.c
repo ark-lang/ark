@@ -44,7 +44,7 @@ VarType *deduceTypeFromBinaryExpr(SemanticAnalyzer *self, BinaryExpr *expr) {
 	if (lhandType == rhandType) {
 		return createVarType(lhandType);
 	}
-	errorMessage("incompatible types %s and %s in binary expression <expression here?>", TYPE_NAME[lhandType], TYPE_NAME[rhandType]);
+	errorMessage("Incompatible types %s and %s in binary expression <expression here?>", TYPE_NAME[lhandType], TYPE_NAME[rhandType]);
 	return NULL;
 }
 
