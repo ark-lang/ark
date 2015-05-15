@@ -8,13 +8,15 @@ char *COMPILER = "cc";
 char *ADDITIONAL_COMPILER_ARGS = "-g -Wall -std=c99 -fno-builtin";
 
 void help() {
-	printf("Alloy-Lang Argument List\n");
+	printf("Usage: alloyc [options] files...\n");
+	printf("Options:\n");
 	printf("  -h\t\t\tShows this help menu\n");
-	printf("  -ver\t\t\tShows current version\n");
 	printf("  -v\t\t\tVerbose compilation\n");
 	printf("  -d\t\t\tLogs extra debug information\n");
 	printf("  -o <file>\t\tPlace the output into <file>\n");
 	printf("  -c <file>\t\tWill keep the output C code\n");
+	printf("  --version\t\t\tShows current version\n");
+	printf("  --compiler\t\t\tChanges the compiler\n");
 	printf("\n");
 }
 
@@ -115,7 +117,7 @@ void startAlloyCompiler(AlloyCompiler *self) {
 	if (self->lexer->failed) {
 		return;
 	}
-	verboseModeMessage("Finished Lexing");
+	verboseModeMessage("Finished lexing");
 
 	// initialise parser after we tokenize
 	self->parser = createParser();
@@ -146,6 +148,6 @@ void destroyAlloyCompiler(AlloyCompiler *self) {
 		if (self->semantic) destroySemanticAnalyzer(self->semantic);
 		destroyVector(self->sourceFiles);
 		free(self);
-		verboseModeMessage("Destroyed Alloy Compiler");
+		verboseModeMessage("Destroyed compiler");
 	}
 }
