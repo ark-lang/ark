@@ -54,6 +54,12 @@
 #endif
 
 /**
+ * This is the format of generated impl functions.
+ * First one is the struct name, second one the function name.
+ */
+#define GENERATED_IMPL_FUNCTION_FORMAT "__%s_%s"
+
+/**
  * The two types of state that
  * we can be in, this makes it cleaner
  * than switching between files or writing

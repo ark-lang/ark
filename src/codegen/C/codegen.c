@@ -304,14 +304,9 @@ static void emitLiteral(CCodeGenerator *self, Literal *lit) {
 static void emitBinaryExpr(CCodeGenerator *self, BinaryExpr *expr) {
 	// for X.Y() calls we need to call the correct function
 	if (expr->structType != NULL) {
-		emitCode(self, "__%s_", expr->structType->typeName->name);
-
 		Call *call = expr->rhand->call;
-		for (int i = 0; i < call->callee->size; i++) {
-			char *value = getVectorItem(call->callee, i);
-			emitCode(self, "%s", value);
-		}
 
+		emitCode(self, GENERATED_IMPL_FUNCTION_FORMAT, expr->structType->typeName->name, getVectorItem(call->callee, 0));
 		emitCode(self, "(");
 
 		// emit the first "self" argument, by address
@@ -482,7 +477,7 @@ static void emitFunctionSignature(CCodeGenerator *self, FunctionSignature *signa
 	emitCode(self, " ");
 
 	if (signature->owner) {
-		emitCode(self, "__%s_%s", signature->owner, signature->name);
+		emitCode(self, GENERATED_IMPL_FUNCTION_FORMAT, signature->owner, signature->name);
 	} else {
 		emitCode(self, "%s", signature->name);
 	}
