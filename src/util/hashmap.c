@@ -373,7 +373,7 @@ void hashmap_free(map_t in) {
 	hashmap_map* m = (hashmap_map*) in;
 	free(m->data);
 	free(m);
-	verboseModeMessage("Destroyed Hashmap");
+	verboseModeMessage("Destroyed hashmap");
 }
 
 /* Return the length of the hashmap */

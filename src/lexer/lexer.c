@@ -21,7 +21,7 @@ void startLexingFiles(Lexer *self, Vector *sourceFiles) {
 		// reset everything
 		self->inputLength = strlen(sourceFile->alloyFileContents);
 		if (self->inputLength <= 0) {
-			errorMessage("File `%s` is empty.", sourceFile->name);
+			errorMessage("File `%s` is empty", sourceFile->name);
 			self->failed = true;
 			return;
 		}
@@ -135,7 +135,7 @@ void expectCharacter(Lexer *self, char c) {
 		consumeCharacter(self);
 	}
 	else {
-		printf("Expected `%c` but found `%c`\n", c, self->currentChar);
+		errorMessage("Expected `%c` but found `%c`", c, self->currentChar);
 		return;
 	}
 }
@@ -379,6 +379,6 @@ void destroyLexer(Lexer *self) {
 		}
 	}
 
-	verboseModeMessage("Destroyed Lexer.");
+	verboseModeMessage("Destroyed lexer");
 	free(self);
 }
