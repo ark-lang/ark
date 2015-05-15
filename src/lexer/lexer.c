@@ -308,6 +308,7 @@ void pushToken(Lexer *self, int type) {
 	Token *tok = createToken(self->lineNumber, self->charNumber, self->fileName);
 	tok->type = type;
 	tok->content = extractToken(self, self->startPos, self->pos - self->startPos);
+	verboseModeMessage("Lexed token: %-15s, type %s", tok->content, getTokenTypeName(tok->type));
 	pushBackItem(self->tokenStream, tok);
 }
 
@@ -316,6 +317,7 @@ void pushInitializedToken(Lexer *self, int type, char *content) {
 	Token *tok = createToken(self->lineNumber, self->charNumber, self->fileName);
 	tok->type = type;
 	tok->content = content;
+	verboseModeMessage("Lexed token: %-15s, type %s", tok->content, getTokenTypeName(tok->type));
 	pushBackItem(self->tokenStream, tok);
 }
 
