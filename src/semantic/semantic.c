@@ -407,6 +407,15 @@ VariableDecl *checkGlobalVariableExists(SemanticAnalyzer *self, char *varName) {
 	return false;
 }
 
+ImplDecl *checkGlobalImplExists(SemanticAnalyzer *self, char *implName) {
+	ImplDecl *impl = NULL;
+	Scope *scope = getStackItem(self->scopes, GLOBAL_SCOPE_INDEX);
+	if (hashmap_get(scope->implSymTable, implName, (void**) &impl) == MAP_OK) {
+		return impl;
+	}
+	return false;
+}
+
 FunctionDecl *checkFunctionExists(SemanticAnalyzer *self, char *funcName) {
 	FunctionDecl *func = NULL;
 	Scope *scope = getStackItem(self->scopes, GLOBAL_SCOPE_INDEX);
@@ -424,15 +433,6 @@ ParameterSection *checkLocalParameterExists(SemanticAnalyzer *self, char *paramN
 	Scope *scope = getStackItem(self->scopes, self->scopes->stackPointer);
 	if (hashmap_get(scope->paramSymTable, paramName, (void**) &param) == MAP_OK) {
 		return param;
-	}
-	return false;
-}
-
-ImplDecl *checkImplExists(SemanticAnalyzer *self, char *implName) {
-	ImplDecl *impl = NULL;
-	Scope *scope = getStackItem(self->scopes, self->scopes->stackPointer);
-	if (hashmap_get(scope->implSymTable, implName, (void**) &impl) == MAP_OK) {
-		return impl;
 	}
 	return false;
 }
@@ -474,7 +474,7 @@ void pushFunctionDeclaration(SemanticAnalyzer *self, FunctionDecl *func) {
 
 void pushImplDeclaration(SemanticAnalyzer *self, ImplDecl *impl) {
 	Scope *scope = getStackItem(self->scopes, GLOBAL_SCOPE_INDEX);
-	if (checkImplExists(self, impl->name)) {
+	if (checkGlobalImplExists(self, impl->name)) {
 		semanticError("Impl with the name `%s` has already been defined", impl->name);
 		return;
 	}
