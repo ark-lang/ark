@@ -101,6 +101,13 @@ static void emitFieldList(CCodeGenerator *self, FieldDeclList *list);
 static void emitStructDecl(CCodeGenerator *self, StructDecl *decl);
 
 /**
+ * This will emit a function signature
+ * @parem self the code gen instance
+ * @param signature the function signature
+ */
+static void emitFunctionSignature(CCodeGenerator *self, FunctionSignature *signature);
+
+/**
  * This will emit a function declaration
  * @param self the code gen instance
  * @param decl the function decl node to emit
@@ -295,9 +302,38 @@ static void emitLiteral(CCodeGenerator *self, Literal *lit) {
 }
 
 static void emitBinaryExpr(CCodeGenerator *self, BinaryExpr *expr) {
-	emitExpression(self, expr->lhand);
-	emitCode(self, "%s", expr->binaryOp);
-	emitExpression(self, expr->rhand);
+	// for X.Y() calls we need to call the correct function
+	if (expr->structType != NULL) {
+		emitCode(self, "__%s_", expr->structType->typeName->name);
+
+		Call *call = expr->rhand->call;
+		for (int i = 0; i < call->callee->size; i++) {
+			char *value = getVectorItem(call->callee, i);
+			emitCode(self, "%s", value);
+		}
+
+		emitCode(self, "(");
+
+		// emit the first "self" argument, by address
+		emitCode(self, "&%s", expr->lhand->type->typeName->name);
+		if (call->arguments->size > 0) {
+			emitCode(self, ", ");
+		}
+
+		for (int i = 0; i < call->arguments->size; i++) {
+			Expression *expr = getVectorItem(call->arguments, i);
+			emitExpression(self, expr);
+
+			if (call->arguments->size > 1 && i != call->arguments->size - 1) {
+				emitCode(self, ", ");
+			}
+		}
+		emitCode(self, ")");
+	} else {
+		emitExpression(self, expr->lhand);
+		emitCode(self, "%s", expr->binaryOp);
+		emitExpression(self, expr->rhand);
+	}
 }
 
 static void emitUnaryExpr(CCodeGenerator *self, UnaryExpr *expr) {
@@ -445,57 +481,50 @@ static void emitFunctionCall(CCodeGenerator *self, Call *call) {
 	emitCode(self, ")");
 }
 
-static void emitFunctionDecl(CCodeGenerator *self, FunctionDecl *decl) {
-	// prototype in header
-	self->writeState = WRITE_HEADER_STATE;
-	emitType(self, decl->signature->type);
-	emitCode(self, " %s(", decl->signature->name);
-	if (decl->signature->owner) {
-		if (decl->signature->ownerArg) {
+static void emitFunctionSignature(CCodeGenerator *self, FunctionSignature *signature) {
+	emitType(self, signature->type);
+	emitCode(self, " ");
+
+	if (signature->owner) {
+		emitCode(self, "__%s_%s", signature->owner, signature->name);
+	} else {
+		emitCode(self, "%s", signature->name);
+	}
+
+	emitCode(self, "(");
+	if (signature->owner) {
+		if (signature->ownerArg) {
 			// assumes its a pointer, probably not a good idea.
-			emitCode(self, "%s *%s", decl->signature->owner, decl->signature->ownerArg);
+			emitCode(self, "%s *%s", signature->owner, signature->ownerArg);
 		}
 		else {
-			emitCode(self, "%s *self", decl->signature->owner, decl->signature->ownerArg);
+			emitCode(self, "%s *self", signature->owner,signature->ownerArg);
 		}
 
-		// this will emit a comma if there are more than zero paramters.
-		if (decl->signature->parameters->paramList->size > 0) {
+		// this will emit a comma if there are more than zero parameters.
+		if (signature->parameters->paramList->size > 0) {
 			emitCode(self, ",");
 		}
 	}
-	emitParameters(self, decl->signature->parameters);
-	if (decl->signature->parameters->variadic) {
+	emitParameters(self, signature->parameters);
+	if (signature->parameters->variadic) {
 		emitCode(self, ", ...");
 	}
-	emitCode(self, ");" CC_NEWLINE);
+	emitCode(self, ")");
+}
+
+static void emitFunctionDecl(CCodeGenerator *self, FunctionDecl *decl) {
+	// prototype in header
+	self->writeState = WRITE_HEADER_STATE;
+
+	emitFunctionSignature(self, decl->signature);
+	emitCode(self, ";" CC_NEWLINE);
 
 	// write to the source!
-
 	self->writeState = WRITE_SOURCE_STATE;
 	if (decl->body && !decl->prototype) {
-		// definition
-		emitType(self, decl->signature->type);
-		emitCode(self, " %s(", decl->signature->name);
-		if (decl->signature->owner) {
-			if (decl->signature->ownerArg) {
-				// assumes its a pointer, probably not a good idea.
-				emitCode(self, "%s *%s", decl->signature->owner, decl->signature->ownerArg);
-			}
-			else {
-				emitCode(self, "%s *self", decl->signature->owner, decl->signature->ownerArg);
-			}
-
-			// this will emit a comma if there are more than zero paramters.
-			if (decl->signature->parameters->paramList->size > 0) {
-				emitCode(self, ",");
-			}
-		}
-		emitParameters(self, decl->signature->parameters);
-		if (decl->signature->parameters->variadic) {
-			emitCode(self, ", ...");
-		}
-		emitCode(self, ") {" CC_NEWLINE);
+		emitFunctionSignature(self, decl->signature);
+		emitCode(self, " {" CC_NEWLINE);
 		emitBlock(self, decl->body);
 		emitCode(self, "}" CC_NEWLINE);
 	}
@@ -575,7 +604,7 @@ static void emitBlock(CCodeGenerator *self, Block *block) {
 	}
 }
 
-static void emitImpl(CCodeGenerator *self, Impl *impl) {
+static void emitImplDecl(CCodeGenerator *self, ImplDecl *impl) {
 	for (int i = 0; i < impl->funcs->size; i++) {
 		FunctionDecl *func = getVectorItem(impl->funcs, i);
 		emitFunctionDecl(self, func);
@@ -693,6 +722,7 @@ static void emitDeclaration(CCodeGenerator *self, Declaration *decl) {
 		case FUNCTION_DECL_NODE: emitFunctionDecl(self, decl->funcDecl); break;
 		case STRUCT_DECL_NODE: emitStructDecl(self, decl->structDecl); break;
 		case VARIABLE_DECL_NODE: emitVariableDecl(self, decl->varDecl); break;
+		case IMPL_DECL_NODE: emitImplDecl(self, decl->implDecl); break;
 		case ENUM_DECL_NODE: emitEnumDecl(self, decl->enumDecl); break;
 		default:
 			printf("unknown node in declaration %s\n", NODE_NAME[decl->type]);
@@ -729,7 +759,6 @@ static void emitUnstructuredStat(CCodeGenerator *self, UnstructuredStatement *st
 			break;
 		case LEAVE_STAT_NODE: emitLeaveStat(self, stmt->leave); break;
 		case ASSIGNMENT_NODE: emitAssignment(self, stmt->assignment); break;
-		case IMPL_NODE: emitImpl(self, stmt->impl); break;
 		case POINTER_FREE_NODE: 
 			emitCode(self, "free(%s);" CC_NEWLINE, stmt->pointerFree->name);
 			break;
