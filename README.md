@@ -3,10 +3,11 @@
 ## Resources
 
 * [Reference](/docs/REFERENCE.md)
-* [Style Guide](/docs/STYLEGUIDE.md)
 * [Tests](/tests/)
 * [Libraries](/lib/)
 * [Misc](/misc/)
+* [Contributing](/CONTRIBUTING.md)
+* [Alloy Style Guide](/docs/STYLEGUIDE.md)
 
 ## Example
 <p align="center">
@@ -18,7 +19,9 @@ check out the source code for this <a href="https://www.github.com/felixangell/s
 </p>
 
 ## Disclaimer?
-Alloy is a somewhat experimental language, this means it can and probably will change at any point, be it a small change, or a complete re-write.
+Alloy is a somewhat experimental language, this means it can and probably will 
+change at any point, be it a small change, or a complete re-write. We consider
+this to be unlikely, but it's still something to consider.
 
 ## Building
 If you want to try out Alloy yourself, clone the repository, compile it, and add `bin/alloyc` to your path. You can
@@ -32,7 +35,7 @@ You will need:
 * Clang/GCC (we're not sure about other compilers support)
 * Python 2.4 or above (optional, for the tests)
 
-### Commands
+### Compiling
 
 	$ git clone http://www.github.com/felixangell/alloy
 	$ cd alloy
@@ -53,7 +56,8 @@ Alloy is still constantly being worked on. At the moment it compiles,
 however some aspects of the language are unimplemented or broken.
 
 ## Just show me what it looks like already
-Sure, you can either see a small virtual machine implemented in Alloy [here](tests/misc/virtualmachine.aly). Or you can just see a small Hello World example below:
+Sure, you can either see a small virtual machine implemented in Alloy [here](tests/vm.aly). 
+Or you can just see a small Hello World example below:
 
 ```rust
 // c binding for printf
@@ -66,15 +70,6 @@ fn main(): int {
     return 0;
 }
 ```
-
-## How can I help out with Alloy?
-There are loads of ways you can help out:
-
-* Sending PR's (features, bug fixes, etc)
-* Commenting on issues
-* Creating issues (proposals, bugs, etc)
-* Writing documentation
-* Writing tests and other projects in Alloy
 
 ## License
 Alloy is licensed under the [MIT License](/LICENSE.md).
