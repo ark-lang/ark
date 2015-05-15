@@ -15,7 +15,7 @@ const char *NODE_NAME[] = {
 	"PRIMARY_EXPR_NODE", "EXPR_NODE", "TYPE_NAME_NODE", "TYPE_LIT_NODE", "PAREN_EXPR_NODE",
 	"ARRAY_TYPE_NODE", "POINTER_TYPE_NODE", "FIELD_DECL_NODE", "UNARY_EXPR_NODE",
 	"FIELD_DECL_LIST_NODE", "STRUCT_DECL_NODE", "STATEMENT_LIST_NODE",
-	"BLOCK_NODE", "PARAMETER_SECTION_NODE", "PARAMETERS_NODE", "IMPL_NODE", "ENUM_DECL_NODE",
+	"BLOCK_NODE", "PARAMETER_SECTION_NODE", "PARAMETERS_NODE", "IMPL_DECL_NODE", "ENUM_DECL_NODE",
 	"FUNCTION_SIGNATURE_NODE", "FUNCTION_DECL_NODE", "VARIABLE_DECL_NODE", "FUNCTION_CALL_NODE",
 	"DECLARATION_NODE", "INC_DEC_STAT_NODE", "RETURN_STAT_NODE", "BREAK_STAT_NODE",
 	"CONTINUE_STAT_NODE", "LEAVE_STAT_NODE", "ASSIGNMENT_NODE", "UNSTRUCTURED_STATEMENT_NODE",
@@ -57,8 +57,8 @@ LinkerFlagMacro *createLinkerFlagMacro(char *flag) {
 	return linker;
 }
 
-Impl *createImpl(char *name, char *as) {
-	Impl *impl = safeMalloc(sizeof(*impl));
+ImplDecl *createImplDecl(char *name, char *as) {
+	ImplDecl *impl = safeMalloc(sizeof(*impl));
 	impl->name = name;
 	impl->as = as;
 	impl->funcs = createVector(VECTOR_EXPONENTIAL);
@@ -152,7 +152,9 @@ Expression *createExpression() {
 }
 
 BinaryExpr *createBinaryExpr() {
-	return safeCalloc(sizeof(BinaryExpr));
+	BinaryExpr *expr = safeCalloc(sizeof(*expr));
+	expr->structType = NULL;
+	return expr;
 }
 
 TypeName *createTypeName(char *name) {
@@ -360,7 +362,7 @@ void cleanupAST(Vector *nodes) {
 			case BLOCK_NODE: destroyBlock(node->data); break;
 			case PARAMETER_SECTION_NODE: destroyParameterSection(node->data); break;
 			case PARAMETERS_NODE: destroyParameters(node->data); break;
-			case IMPL_NODE: destroyImpl(node->data); break;
+			case IMPL_DECL_NODE: destroyImplDecl(node->data); break;
 			case FUNCTION_SIGNATURE_NODE: destroyFunctionSignature(node->data); break;
 			case FUNCTION_DECL_NODE: destroyFunctionDecl(node->data); break;
 			case VARIABLE_DECL_NODE: destroyVariableDecl(node->data); break;
@@ -414,7 +416,7 @@ void destroyIdentifierList(IdentifierList *list) {
 	free(list);
 }
 
-void destroyImpl(Impl *impl) {
+void destroyImplDecl(ImplDecl *impl) {
 	if (!impl) return;
 	destroyVector(impl->funcs);
 	free(impl);
@@ -654,7 +656,6 @@ void destroyUnstructuredStatement(UnstructuredStatement *stmt) {
 		case INC_DEC_STAT_NODE: destroyIncDecStat(stmt->incDec); break;
 		case LEAVE_STAT_NODE: destroyLeaveStat(stmt->leave); break;
 		case FUNCTION_CALL_NODE: destroyCall(stmt->call); break;
-		case IMPL_NODE: destroyImpl(stmt->impl); break;
 		case EXPR_STAT_NODE: destroyExpression(stmt->expr); break;
 		default:
 			errorMessage("unstructured statement isn't being destroyed!?");

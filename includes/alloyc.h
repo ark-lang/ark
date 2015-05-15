@@ -9,7 +9,7 @@
 #include "lexer.h"
 #include "parser.h"
 #include "semantic.h"
-#include "codegen.h"
+#include "C/codegen.h"
 
 #define VERSION_ARG 		"-ver"
 #define DEBUG_MODE_ARG 		"-d"
@@ -34,7 +34,7 @@ typedef struct {
 typedef struct {
 	Lexer *lexer;
 	Parser *parser;
-	CodeGenerator *generator;
+	CCodeGenerator *generator;
 	SemanticAnalyzer *semantic;
 	Vector *sourceFiles;
 } AlloyCompiler;

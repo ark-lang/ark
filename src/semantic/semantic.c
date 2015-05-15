@@ -13,6 +13,8 @@ Scope *createScope() {
 	self->paramSymTable = hashmap_new();
 	self->varSymTable = hashmap_new();
 	self->structSymTable = hashmap_new();
+	self->implSymTable = hashmap_new();
+	self->implFuncSymTable = hashmap_new();
 	return self;
 }
 
@@ -21,6 +23,8 @@ void destroyScope(Scope *self) {
 	hashmap_free(self->varSymTable);
 	hashmap_free(self->structSymTable);
 	hashmap_free(self->paramSymTable);
+	hashmap_free(self->implSymTable);
+	hashmap_free(self->implFuncSymTable);
 	free(self);
 }
 
@@ -139,10 +143,26 @@ void analyzeAssignment(SemanticAnalyzer *self, Assignment *assign) {
 	}
 }
 
+void analyzeImplDeclaration(SemanticAnalyzer *self, ImplDecl *impl) {
+	if (self->scopes->stackPointer != GLOBAL_SCOPE_INDEX) {
+		semanticError("Impl declaration for `%s` is illegal", impl->name);
+	}
+
+	pushImplDeclaration(self, impl);
+
+	// add all the impl functions to the impl function sym table
+	Scope *scope = getStackItem(self->scopes, GLOBAL_SCOPE_INDEX);
+	for (int i = 0; i < impl->funcs->size; ++i) {
+		FunctionDecl *func = getVectorItem(impl->funcs, i);
+		hashmap_put(scope->implFuncSymTable, func->signature->name, func);
+	}
+}
+
 void analyzeDeclaration(SemanticAnalyzer *self, Declaration *decl) {
 	switch (decl->type) {
 		case FUNCTION_DECL_NODE: analyzeFunctionDeclaration(self, decl->funcDecl); break;
 		case VARIABLE_DECL_NODE: analyzeVariableDeclaration(self, decl->varDecl); break;
+		case IMPL_DECL_NODE: analyzeImplDeclaration(self, decl->implDecl); break;
 	}
 }
 
@@ -169,6 +189,11 @@ void analyzeFunctionCall(SemanticAnalyzer *self, Call *call) {
 				semanticError("Too few arguments to function `%s`", callee);
 			}
 		}
+
+		// Analyze every expression in a function call
+		for (int i = 0; i < call->arguments->size; ++i) {
+			analyzeExpression(self, getVectorItem(call->arguments, i));
+		}
 	}
 }
 
@@ -177,6 +202,18 @@ void analyzeBinaryExpr(SemanticAnalyzer *self, BinaryExpr *expr) {
 	if (!strcmp(expr->binaryOp, "=")) {
 		printf("its an assignment!\n");
 		// TODO lol
+	}
+
+	/*
+	 * If we have an expression like X.Y() we need to
+	 * set the actual struct type of X so the code generator can use it to
+	 * emit the correct function name.
+	 */
+	if (expr->lhand->exprType == TYPE_NODE && expr->rhand->exprType == FUNCTION_CALL_NODE) {
+		VariableDecl *decl = checkVariableExists(self, expr->lhand->type->typeName->name);
+		if (decl) {
+			expr->structType = decl->type;
+		}
 	}
 
 	analyzeExpression(self, expr->lhand);
@@ -343,6 +380,9 @@ FunctionDecl *checkFunctionExists(SemanticAnalyzer *self, char *funcName) {
 	if (hashmap_get(scope->funcSymTable, funcName, (void**) &func) == MAP_OK) {
 		return func;
 	}
+	if (hashmap_get(scope->implFuncSymTable, funcName, (void**) &func) == MAP_OK) {
+		return func;
+	}
 	return false;
 }
 
@@ -351,6 +391,15 @@ ParameterSection *checkLocalParameterExists(SemanticAnalyzer *self, char *paramN
 	Scope *scope = getStackItem(self->scopes, self->scopes->stackPointer);
 	if (hashmap_get(scope->paramSymTable, paramName, (void**) &param) == MAP_OK) {
 		return param;
+	}
+	return false;
+}
+
+ImplDecl *checkImplExists(SemanticAnalyzer *self, char *implName) {
+	ImplDecl *impl = NULL;
+	Scope *scope = getStackItem(self->scopes, self->scopes->stackPointer);
+	if (hashmap_get(scope->implSymTable, implName, (void**) &impl) == MAP_OK) {
+		return impl;
 	}
 	return false;
 }
@@ -390,6 +439,15 @@ void pushFunctionDeclaration(SemanticAnalyzer *self, FunctionDecl *func) {
 	hashmap_put(scope->funcSymTable, func->signature->name, func);
 }
 
+void pushImplDeclaration(SemanticAnalyzer *self, ImplDecl *impl) {
+	Scope *scope = getStackItem(self->scopes, GLOBAL_SCOPE_INDEX);
+	if (checkImplExists(self, impl->name)) {
+		semanticError("Impl with the name `%s` has already been defined", impl->name);
+		return;
+	}
+	hashmap_put(scope->implSymTable, impl->name, impl);
+}
+
 void pushScope(SemanticAnalyzer *self) {
 	pushToStack(self->scopes, createScope());
 }
@@ -400,6 +458,8 @@ void popScope(SemanticAnalyzer *self) {
 	hashmap_free(scope->paramSymTable);
 	hashmap_free(scope->varSymTable);
 	hashmap_free(scope->structSymTable);
+	hashmap_free(scope->implFuncSymTable);
+	hashmap_free(scope->implSymTable);
 	free(scope);
 }
 
