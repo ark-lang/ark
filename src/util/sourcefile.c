@@ -51,7 +51,7 @@ void destroySourceFile(SourceFile *sourceFile) {
 
 	destroyHeaderFile(sourceFile->headerFile);
 
-	verboseModeMessage("Destroyed Source File `%s`", sourceFile->name);
+	verboseModeMessage("Destroyed source file `%s`", sourceFile->name);
 	if (sourceFile->tokens) destroyVector(sourceFile->tokens); // TODO destroy elements in tokens
 	if (sourceFile->ast) destroyParseTree(sourceFile->ast);
 	sdsfree(sourceFile->fileName);
