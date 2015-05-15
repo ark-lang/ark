@@ -273,6 +273,14 @@ StructDecl *checkGlobalStructExists(SemanticAnalyzer *self, char *structName);
 VariableDecl *checkGlobalVariableExists(SemanticAnalyzer *self, char *varName);
 
 /**
+ * Check if an impl exists globally
+ * @param  self    the semantic analyzer instance
+ * @param  varName the impl name to lookup
+ * @return         the impl if it exists
+ */
+ImplDecl *checkGlobalImplExists(SemanticAnalyzer *self, char *implName);
+
+/**
  * Check if a function exists globally
  * @param  self    the semantic analyzer instance
  * @param  varName the function name to lookup
@@ -281,8 +289,6 @@ VariableDecl *checkGlobalVariableExists(SemanticAnalyzer *self, char *varName);
 FunctionDecl *checkFunctionExists(SemanticAnalyzer *self, char *funcName);
 
 ParameterSection *checkLocalParameterExists(SemanticAnalyzer *self, char *paramName);
-
-ImplDecl *checkImplExists(SemanticAnalyzer *self, char *implName);
 
 void pushParameterSection(SemanticAnalyzer *self, ParameterSection *param);
 
