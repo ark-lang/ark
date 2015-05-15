@@ -151,7 +151,8 @@ void analyzeFunctionCall(SemanticAnalyzer *self, Call *call) {
 
 	FunctionDecl *decl = checkFunctionExists(self, callee);	
 	if (!decl) {
-		semanticError("Attempting to call undefined function `%s`", callee);
+		// TODO fix this
+		//semanticError("Attempting to call undefined function `%s`", callee);
 	}
 	// it exists, check arguments match in length
 	else {
@@ -177,6 +178,18 @@ void analyzeBinaryExpr(SemanticAnalyzer *self, BinaryExpr *expr) {
 	if (!strcmp(expr->binaryOp, "=")) {
 		printf("its an assignment!\n");
 		// TODO lol
+	}
+
+	/*
+	 * If we have an expr like X.Y() we need to
+	 * set the actual struct type of X so codegen can use it to
+	 * emit the correct function name.
+	 */
+	if (expr->lhand->exprType == TYPE_NODE && expr->rhand->exprType == FUNCTION_CALL_NODE) {
+		VariableDecl *decl = checkVariableExists(self, expr->lhand->type->typeName->name);
+		if (decl) {
+			expr->referencingStructType = decl->type;
+		}
 	}
 
 	analyzeExpression(self, expr->lhand);
