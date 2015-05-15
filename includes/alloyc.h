@@ -9,7 +9,7 @@
 #include "lexer.h"
 #include "parser.h"
 #include "semantic.h"
-#include "codegen.h"
+#include "C/codegen.h"
 
 #define VERSION_ARG 		"-ver"
 #define DEBUG_MODE_ARG 		"-d"
