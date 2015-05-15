@@ -16,7 +16,7 @@ void help() {
 	printf("  -o <file>\t\tPlace the output into <file>\n");
 	printf("  -c <file>\t\tWill keep the output C code\n");
 	printf("  --version\t\t\tShows current version\n");
-	printf("  --compiler\t\t\tChanges the compiler\n");
+	printf("  --compiler\t\t\tSets the C compiler (default=CC)\n");
 	printf("\n");
 }
 
