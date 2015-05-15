@@ -302,9 +302,9 @@ static void emitLiteral(CCodeGenerator *self, Literal *lit) {
 }
 
 static void emitBinaryExpr(CCodeGenerator *self, BinaryExpr *expr) {
-	// for stuff like X.Y() emit the function name
-	if (expr->referencingStructType != NULL) {
-		emitCode(self, "__%s_", expr->referencingStructType->typeName->name);
+	// for X.Y() calls we need to call the correct function
+	if (expr->structType != NULL) {
+		emitCode(self, "__%s_", expr->structType->typeName->name);
 
 		Call *call = expr->rhand->call;
 		for (int i = 0; i < call->callee->size; i++) {
@@ -314,7 +314,7 @@ static void emitBinaryExpr(CCodeGenerator *self, BinaryExpr *expr) {
 
 		emitCode(self, "(");
 
-		// emit the first "self" argument
+		// emit the first "self" argument, by address
 		emitCode(self, "&%s", expr->lhand->type->typeName->name);
 		if (call->arguments->size > 0) {
 			emitCode(self, ", ");
