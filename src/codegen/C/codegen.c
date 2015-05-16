@@ -471,9 +471,11 @@ static void emitStructDecl(CCodeGenerator *self, StructDecl *decl) {
 static void emitFunctionCall(CCodeGenerator *self, Call *call) {
 	if (call->typeCast) {
 		emitCode(self, "(");
+		emitCode(self, "(");
 		emitCode(self, "%s", call->typeCast);
 		emitCode(self, ") ");
 		emitExpression(self, getVectorItem(call->arguments, 0));
+		emitCode(self, ")");
 	} else {
 		for (int i = 0; i < call->callee->size; i++) {
 			char *value = getVectorItem(call->callee, i);
