@@ -169,7 +169,8 @@ void startAlloyCompiler(AlloyCompiler *self) {
 	if (LLVM_CODEGEN) {
 		self->generatorLLVM = createLLVMCodeGenerator(self->sourceFiles);
 		startLLVMCodeGeneration(self->generatorLLVM);
-	} else {
+	}
+	else {
 #endif
 		self->generator = createCCodeGenerator(self->sourceFiles);
 		startCCodeGeneration(self->generator);
