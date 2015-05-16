@@ -144,6 +144,7 @@ Call *createCall(Vector *callee) {
 	Call *call = safeMalloc(sizeof(*call));
 	call->arguments = createVector(VECTOR_EXPONENTIAL);
 	call->callee = callee;
+	call->typeCast = NULL;
 	return call;
 }
 

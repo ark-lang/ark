@@ -407,7 +407,7 @@ static void emitArrayIndex(CCodeGenerator *self, ArrayIndex *arrayIndex) {
 static void emitType(CCodeGenerator *self, Type *type) {
 	switch (type->type) {
 		case TYPE_NAME_NODE: 
-			emitCode(self, "%s", type->typeName->name);				
+			emitCode(self, "%s", type->typeName->name);
 			break;
 		case TYPE_LIT_NODE:
 			emitTypeLit(self, type->typeLit);
@@ -469,21 +469,30 @@ static void emitStructDecl(CCodeGenerator *self, StructDecl *decl) {
 }
 
 static void emitFunctionCall(CCodeGenerator *self, Call *call) {
-	for (int i = 0; i < call->callee->size; i++) {
-		char *value = getVectorItem(call->callee, i);
-		emitCode(self, "%s", value);
-	}
-
-	emitCode(self, "(");
-	for (int i = 0; i < call->arguments->size; i++) {
-		Expression *expr = getVectorItem(call->arguments, i);
-		emitExpression(self, expr);
-		
-		if (call->arguments->size > 1 && i != call->arguments->size - 1) {
-			emitCode(self, ", ");
+	if (call->typeCast) {
+		emitCode(self, "(");
+		emitCode(self, "(");
+		emitCode(self, "%s", call->typeCast);
+		emitCode(self, ") ");
+		emitExpression(self, getVectorItem(call->arguments, 0));
+		emitCode(self, ")");
+	} else {
+		for (int i = 0; i < call->callee->size; i++) {
+			char *value = getVectorItem(call->callee, i);
+			emitCode(self, "%s", value);
 		}
+
+		emitCode(self, "(");
+		for (int i = 0; i < call->arguments->size; i++) {
+			Expression *expr = getVectorItem(call->arguments, i);
+			emitExpression(self, expr);
+
+			if (call->arguments->size > 1 && i != call->arguments->size - 1) {
+				emitCode(self, ", ");
+			}
+		}
+		emitCode(self, ")");
 	}
-	emitCode(self, ")");
 }
 
 static void emitFunctionSignature(CCodeGenerator *self, FunctionSignature *signature) {
