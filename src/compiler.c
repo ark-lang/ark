@@ -1,4 +1,4 @@
-#include "alloyc.h"
+#include "compiler.h"
 
 bool DEBUG_MODE = false;	// default is no debug
 bool OUTPUT_C = false;		// default is no c output
@@ -27,7 +27,7 @@ void help() {
 }
 
 void version() {
-	printf("Alloy Compiler Version: %s\n", ALLOYC_VERSION);
+	printf("%s %s\n", COMPILER_NAME, COMPILER_VERSION);
 #ifdef ENABLE_LLVM
 	printf("LLVM backend: yes\n");
 #else
@@ -75,14 +75,14 @@ static void parse_argument(CommandLineArgument *arg) {
 	}
 }
 
-AlloyCompiler *createAlloyCompiler(int argc, char** argv) {
+Compiler *createCompiler(int argc, char** argv) {
 	// not enough arguments just throw an error
 	if (argc <= 1) {
 		errorMessage("No input files");
 		return NULL;
 	}
 
-	AlloyCompiler *self = safeMalloc(sizeof(*self));
+	Compiler *self = safeMalloc(sizeof(*self));
 	self->lexer = NULL;
 	self->parser = NULL;
 	self->generator = NULL;
@@ -133,7 +133,7 @@ AlloyCompiler *createAlloyCompiler(int argc, char** argv) {
 	return self;
 }
 
-void startAlloyCompiler(AlloyCompiler *self) {
+void startCompiler(Compiler *self) {
 	if (!self->sourceFiles || self->sourceFiles->size == 0) {
 		return;
 	}
@@ -179,7 +179,7 @@ void startAlloyCompiler(AlloyCompiler *self) {
 #endif
 }
 
-void destroyAlloyCompiler(AlloyCompiler *self) {
+void destroyCompiler(Compiler *self) {
 	if (self) {
 		if (self->lexer) destroyLexer(self->lexer);
 		if (self->parser) destroyParser(self->parser);

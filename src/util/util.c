@@ -1,6 +1,6 @@
 #include "util.h"
 
-char* alloyStrdup(const char* s) {
+char *customStrdup(const char *s) {
 	char* data = malloc(strlen(s) + 1);
 	if (data)
 		strcpy(data, s);
@@ -13,7 +13,6 @@ bool isASCII(char c) {
 }
 
 sds randString(size_t length) {
-
     static char charset[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_";
     sds randomString = sdsempty();
 
@@ -85,8 +84,8 @@ char *removeExtension(char *file) {
 
 char *getFileName(char *path) {
 	char *s = strrchr(path, '/');
-	if (!s) return removeExtension(alloyStrdup(path));
-	char *result = alloyStrdup(s + 1);
+	if (!s) return removeExtension(customStrdup(path));
+	char *result = customStrdup(s + 1);
 	char *resultWithoutExt = removeExtension(result);
 	return resultWithoutExt;
 }
