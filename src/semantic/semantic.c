@@ -182,6 +182,22 @@ void analyzeDeclaration(SemanticAnalyzer *self, Declaration *decl) {
 void analyzeFunctionCall(SemanticAnalyzer *self, Call *call) {
 	char *callee = getVectorItem(call->callee, 0);
 
+	// typecasting
+	Type *type = checkDataTypeExists(self, callee);
+	if (type) {
+		if (call->arguments->size > 1) {
+			semanticError("Typecast can only take 1 argument");
+		}
+		else if (call->arguments->size == 0) {
+			semanticError("Typecast needs at least 1 argument");
+		}
+		else {
+			// TODO use actual type instead of char if types in semantic are better
+			call->typeCast = callee;
+		}
+		return;
+	}
+
 	FunctionDecl *decl = checkFunctionExists(self, callee);	
 	if (!decl) {
 		semanticError("Attempting to call undefined function `%s`", callee);
@@ -433,6 +449,14 @@ ParameterSection *checkLocalParameterExists(SemanticAnalyzer *self, char *paramN
 	Scope *scope = getStackItem(self->scopes, self->scopes->stackPointer);
 	if (hashmap_get(scope->paramSymTable, paramName, (void**) &param) == MAP_OK) {
 		return param;
+	}
+	return false;
+}
+
+Type *checkDataTypeExists(SemanticAnalyzer *self, char *name) {
+	Type *type = NULL;
+	if (hashmap_get(self->dataTypes, name, (void**) &type) == MAP_OK) {
+		return type;
 	}
 	return false;
 }

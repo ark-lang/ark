@@ -219,6 +219,7 @@ struct s_Type {
 typedef struct {
 	Vector *callee;
 	Vector *arguments;
+	char *typeCast;
 } Call;
 
 /**
