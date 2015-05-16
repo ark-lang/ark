@@ -29,38 +29,38 @@ Parser *createParser() {
 	self->failed = false;
 	self->binopPrecedence = hashmap_new();
 
-	hashmap_put(self->binopPrecedence, "++", createPrecedence(3));
-	hashmap_put(self->binopPrecedence, "--", createPrecedence(3));
-	hashmap_put(self->binopPrecedence, "!", createPrecedence(3));
-	hashmap_put(self->binopPrecedence, "~", createPrecedence(3));
+	hashmap_put(self->binopPrecedence, "++", createPrecedence(11));
+	hashmap_put(self->binopPrecedence, "--", createPrecedence(11));
+	hashmap_put(self->binopPrecedence, "!", createPrecedence(11));
+	hashmap_put(self->binopPrecedence, "~", createPrecedence(11));
 
-	hashmap_put(self->binopPrecedence, ".", createPrecedence(4));
+	hashmap_put(self->binopPrecedence, ".", createPrecedence(10));
 
-	hashmap_put(self->binopPrecedence, "*", createPrecedence(5));
-	hashmap_put(self->binopPrecedence, "/", createPrecedence(5));
-	hashmap_put(self->binopPrecedence, "%", createPrecedence(5));
+	hashmap_put(self->binopPrecedence, "*", createPrecedence(9));
+	hashmap_put(self->binopPrecedence, "/", createPrecedence(9));
+	hashmap_put(self->binopPrecedence, "%", createPrecedence(9));
 
 
-	hashmap_put(self->binopPrecedence, "+", createPrecedence(6));
-	hashmap_put(self->binopPrecedence, "-", createPrecedence(6));
+	hashmap_put(self->binopPrecedence, "+", createPrecedence(8));
+	hashmap_put(self->binopPrecedence, "-", createPrecedence(8));
 
-	hashmap_put(self->binopPrecedence, ">", createPrecedence(8));
-	hashmap_put(self->binopPrecedence, "<", createPrecedence(8));
-	hashmap_put(self->binopPrecedence, ">=", createPrecedence(8));
-	hashmap_put(self->binopPrecedence, "<=", createPrecedence(8));
+	hashmap_put(self->binopPrecedence, ">", createPrecedence(7));
+	hashmap_put(self->binopPrecedence, "<", createPrecedence(7));
+	hashmap_put(self->binopPrecedence, ">=", createPrecedence(7));
+	hashmap_put(self->binopPrecedence, "<=", createPrecedence(7));
 
-	hashmap_put(self->binopPrecedence, "==", createPrecedence(9));
-	hashmap_put(self->binopPrecedence, "!=", createPrecedence(9));
+	hashmap_put(self->binopPrecedence, "==", createPrecedence(6));
+	hashmap_put(self->binopPrecedence, "!=", createPrecedence(6));
 
-	hashmap_put(self->binopPrecedence, "&", createPrecedence(10));
+	hashmap_put(self->binopPrecedence, "&", createPrecedence(5));
 
-	hashmap_put(self->binopPrecedence, "|", createPrecedence(11));
+	hashmap_put(self->binopPrecedence, "|", createPrecedence(4));
 
-	hashmap_put(self->binopPrecedence, "&&", createPrecedence(12));
+	hashmap_put(self->binopPrecedence, "&&", createPrecedence(3));
 
-	hashmap_put(self->binopPrecedence, "||", createPrecedence(13));
+	hashmap_put(self->binopPrecedence, "||", createPrecedence(2));
 
-	hashmap_put(self->binopPrecedence, "=", createPrecedence(15));
+	hashmap_put(self->binopPrecedence, "=", createPrecedence(1));
 
 	return self;
 }
