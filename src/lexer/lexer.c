@@ -19,13 +19,13 @@ void startLexingFiles(Lexer *self, Vector *sourceFiles) {
 		SourceFile *sourceFile = getVectorItem(sourceFiles, i);
 
 		// reset everything
-		self->inputLength = strlen(sourceFile->alloyFileContents);
+		self->inputLength = strlen(sourceFile->fileContents);
 		if (self->inputLength <= 0) {
 			errorMessage("File `%s` is empty", sourceFile->name);
 			self->failed = true;
 			return;
 		}
-		self->input = sourceFile->alloyFileContents;
+		self->input = sourceFile->fileContents;
 		self->pos = 0;
 		self->lineNumber = 1;
 		self->charNumber = 1;

@@ -1,23 +1,23 @@
 #include <stdio.h>
 
-#include "alloyc.h"
+#include "compiler.h"
 
 int main(int argc, char** argv) {
-	AlloyCompiler *alloyc = createAlloyCompiler(argc, argv);
-	if (alloyc) {
+	Compiler *compiler = createCompiler(argc, argv);
+	if (compiler) {
 		// start the timer
 		clock_t timer = clock();
-		startAlloyCompiler(alloyc);
-		destroyAlloyCompiler(alloyc);
+
+		startCompiler(compiler);
+		destroyCompiler(compiler);
 
 		// finished timer
-		timer = clock() - timer;	// calculate time taken
+		timer = clock() - timer;
 
 		// calculate seconds and milliseconds taken
 		double secondsTaken = ((double) timer) / CLOCKS_PER_SEC;
 		double msTaken = secondsTaken * 1000;
 
-		// write the message
 		primaryMessage("Finished in %.6f/s (%.0f/ms)", secondsTaken, msTaken);
 	}
 
