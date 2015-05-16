@@ -3,7 +3,9 @@
 bool DEBUG_MODE = false;	// default is no debug
 bool OUTPUT_C = false;		// default is no c output
 bool VERBOSE_MODE = false;
-bool LLVM_CODEGEN = false;
+#ifdef ENABLE_LLVM
+	bool LLVM_CODEGEN = false;
+#endif
 char *OUTPUT_EXECUTABLE_NAME = "main"; // default is main
 char *COMPILER = "cc";
 char *ADDITIONAL_COMPILER_ARGS = "-g -Wall -std=c99 -fno-builtin";
@@ -11,20 +13,31 @@ char *ADDITIONAL_COMPILER_ARGS = "-g -Wall -std=c99 -fno-builtin";
 void help() {
 	printf("Usage: alloyc [options] files...\n");
 	printf("Options:\n");
-	printf("  -h\t\t\tShows this help menu\n");
-	printf("  -v\t\t\tVerbose compilation\n");
-	printf("  -d\t\t\tLogs extra debug information\n");
-	printf("  -o <file>\t\tPlace the output into <file>\n");
-	printf("  -c <file>\t\tWill keep the output C code\n");
-	printf("  --compiler <name>\t\t\tSets the C compiler to <name> (default: CC)\n");
-	printf("  --version\t\t\tShows current version\n");
-	printf("  --llvm\t\t\tSets the codegen backend to LLVM (default: C)");
+	printf("  -h                  Shows this help menu\n");
+	printf("  -v                  Verbose compilation\n");
+	printf("  -d                  Logs extra debug information\n");
+	printf("  -o <file>           Place the output into <file>\n");
+	printf("  -c <file>           Will keep the output C code\n");
+	printf("  --compiler <name>   Sets the C compiler to <name> (default: CC)\n");
+	printf("  --version           Shows current version\n");
+#ifdef ENABLE_LLVM
+	printf("  --llvm              Sets the codegen backend to LLVM (default: C)\n");
+#endif
 	printf("\n");
+}
+
+void version() {
+	printf("Alloy Compiler Version: %s\n", ALLOYC_VERSION);
+#ifdef ENABLE_LLVM
+	printf("LLVM backend: yes\n");
+#else
+	printf("LLVM backend: no\n");
+#endif
 }
 
 static void parse_argument(CommandLineArgument *arg) {
 	if (!strcmp(arg->argument, VERSION_ARG)) {
-		printf("Alloy Compiler Version: %s\n", ALLOYC_VERSION);
+		version();
 	}
 	else if (!strcmp(arg->argument, DEBUG_MODE_ARG)) {
 		DEBUG_MODE = true;
@@ -51,9 +64,11 @@ static void parse_argument(CommandLineArgument *arg) {
 		}
 		OUTPUT_EXECUTABLE_NAME = arg->nextArgument;
 	}
+#ifdef ENABLE_LLVM
 	else if (!strcmp(arg->argument, LLVM_ARG)) {
 		LLVM_CODEGEN = true;
 	}
+#endif
 	else {
 		errorMessage("Unrecognized command line option '%s'", arg->argument);
 	}
@@ -70,7 +85,9 @@ AlloyCompiler *createAlloyCompiler(int argc, char** argv) {
 	self->lexer = NULL;
 	self->parser = NULL;
 	self->generator = NULL;
+#ifdef ENABLE_LLVM
 	self->generatorLLVM = NULL;
+#endif
 	self->sourceFiles = createVector(VECTOR_LINEAR);
 	
 	char *ccEnv = getenv("CC");
@@ -147,13 +164,17 @@ void startAlloyCompiler(AlloyCompiler *self) {
 	}
 
 	// compilation stage
+#ifdef ENABLE_LLVM
 	if (LLVM_CODEGEN) {
 		self->generatorLLVM = createLLVMCodeGenerator(self->sourceFiles);
 		startLLVMCodeGeneration(self->generatorLLVM);
 	} else {
+#endif
 		self->generator = createCCodeGenerator(self->sourceFiles);
 		startCCodeGeneration(self->generator);
+#ifdef ENABLE_LLVM
 	}
+#endif
 }
 
 void destroyAlloyCompiler(AlloyCompiler *self) {
@@ -161,7 +182,9 @@ void destroyAlloyCompiler(AlloyCompiler *self) {
 		if (self->lexer) destroyLexer(self->lexer);
 		if (self->parser) destroyParser(self->parser);
 		if (self->generator) destroyCCodeGenerator(self->generator);
+#ifdef ENABLE_LLVM
 		if (self->generatorLLVM) destroyLLVMCodeGenerator(self->generatorLLVM);
+#endif
 		if (self->semantic) destroySemanticAnalyzer(self->semantic);
 		destroyVector(self->sourceFiles);
 		free(self);
