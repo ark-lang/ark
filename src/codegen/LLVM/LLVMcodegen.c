@@ -54,6 +54,20 @@ static void consumeAstNodeBy(LLVMCodeGenerator *self, int amount) {
 	self->currentNode += amount;
 }
 
+static LLVMTypeRef getIntType() {
+	switch (sizeof(int)) {
+		case 2:
+			return LLVMInt16Type();
+		case 4:
+			return LLVMInt32Type();
+		case 8:
+			return LLVMInt64Type();
+		default:
+			genError("You have some wacky-sized int type!");
+			return NULL;
+	}
+}
+
 static LLVMTypeRef getLLVMType(DataType type) {
 	switch (type) {
 		case INT_64_TYPE:
@@ -79,12 +93,13 @@ static LLVMTypeRef getLLVMType(DataType type) {
 			return LLVMFloatType();
 			
 		case INT_TYPE:
-			return LLVMInt32Type(); // TODO
+			return getIntType();
 			
 		case BOOL_TYPE:
 			return LLVMInt1Type();
 			
 		case CHAR_TYPE:
+			genError("Char type unimplemented");
 			return NULL; // gonna get replaced
 			
 		case VOID_TYPE:
