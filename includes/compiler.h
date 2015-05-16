@@ -1,5 +1,5 @@
-#ifndef __ALLOY_LANG_H
-#define __ALLOY_LANG_H
+#ifndef __COMPILER_H
+#define __COMPILER_H
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -22,7 +22,7 @@
 #define COMPILER_ARG   "--compiler"
 #define VERSION_ARG    "--version"
 #ifdef ENABLE_LLVM
-	#define LLVM_ARG       "--llvm"
+	#define LLVM_ARG   "--llvm"
 #endif
 
 /**
@@ -35,7 +35,7 @@ typedef struct {
 } CommandLineArgument;
 
 /**
- * The core of alloyc
+ * The core of the compiler
  */
 typedef struct {
 	Lexer *lexer;
@@ -46,29 +46,26 @@ typedef struct {
 #endif
 	SemanticAnalyzer *semantic;
 	Vector *sourceFiles;
-} AlloyCompiler;
+} Compiler;
 
 /**
- * Creates a new alloyc instance
- * 
+ * Creates a new compiler instance
  * @argc number of arguments
  * @argv argument list
- * @return instance of alloyc
+ * @return instance of the compiler
  */
-AlloyCompiler *createAlloyCompiler(int argc, char** argv);
+Compiler *createCompiler(int argc, char** argv);
 
 /**
- * Start the alloyc stuff
- * 
- * @param alloyc instance to start
+ * Start the compiler
+ * @param compiler instance to start
  */
-void startAlloyCompiler(AlloyCompiler *self);
+void startCompiler(Compiler *self);
 
 /**
- * Destroy the given alloyc instance
- * 
- * @param alloyc instance to destroy
+ * Destroy the given compiler instance
+ * @param compiler instance to destroy
  */
-void destroyAlloyCompiler(AlloyCompiler *self);
+void destroyCompiler(Compiler *self);
 
-#endif // __ALLOY_LANG_H
+#endif // __COMPILER_H

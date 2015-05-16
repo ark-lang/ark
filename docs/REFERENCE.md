@@ -174,7 +174,7 @@ for instance:
 
 ### Mutability
 When a variable is mutable, it can be mutated or changed. When a variable is immutable,
-it cannot be changed. By default, alloy assumes that a variable you define is immutable.
+it cannot be changed. By default, Alloy assumes that a variable you define is immutable.
 You can however, specify the `mut` keyword, this will indicate to the compiler that you intend
 to modify the variable later on in the code. For instance:
 
