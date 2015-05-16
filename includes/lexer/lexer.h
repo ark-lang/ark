@@ -52,7 +52,7 @@ char* getLineNumberContext(Vector *stream, int lineNumber);
 Lexer *createLexer();
 
 /**
- * Start lexing the files we feed to the alloy compiler
+ * Start lexing the files we feed to the compiler
  *
  * @param lexer the lexer instance
  * @param sourceFiles the files to lex
