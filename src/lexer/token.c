@@ -34,8 +34,8 @@ void destroyToken(Token *token) {
 	free(token);
 }
 
-char *getTokenTypeName(TokenType type) {
-	if (type < 0 || type >= NUM_TOKEN_TYPES)
+const char *getTokenTypeName(TokenType type) {
+	if (type >= NUM_TOKEN_TYPES)
 		errorMessage("Tried to get the name of a non-existent token type: %d", type);
 		
 	return TOKEN_TYPE_NAME[type];
