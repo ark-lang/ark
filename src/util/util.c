@@ -39,7 +39,7 @@ sds toUppercase(sds str) {
 	sds result = sdsnewlen("", len);
 
 	for (size_t i = 0; i < len; i++) {
-		result[i] = toupper(str[i]);
+		result[i] = toupper((unsigned char) str[i]);
 	}
 
 	return result;
