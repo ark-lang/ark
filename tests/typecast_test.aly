@@ -1,0 +1,9 @@
+fn printf(fmt: str, _): int;
+
+fn main(): int {
+	if i8('a') != 97 {
+		return 1;
+	}
+
+    return 0;
+}

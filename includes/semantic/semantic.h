@@ -290,6 +290,13 @@ FunctionDecl *checkFunctionExists(SemanticAnalyzer *self, char *funcName);
 
 ParameterSection *checkLocalParameterExists(SemanticAnalyzer *self, char *paramName);
 
+/**
+ * Check if a datatype exists
+ * @param self the semantic analyzer instance
+ * @param name the datatype name
+ */
+Type *checkDataTypeExists(SemanticAnalyzer *self, char *name);
+
 void pushParameterSection(SemanticAnalyzer *self, ParameterSection *param);
 
 void pushVariableDeclaration(SemanticAnalyzer *self, VariableDecl *var);
