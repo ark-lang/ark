@@ -79,41 +79,56 @@ void destroyParser(Parser *self) {
 
 /** PARSING STUFF */
 
-int parseEscapedCharacter(char *str, int *len) {
-	int val = -1;
-	
-	// this is super messy, it will be done with const arrays eventually
-	if (!strncmp(str, "\\n", 2))
-		val = '\n';
-	else if (!strncmp(str, "\\0", 2))
-		val = '\0';
-	else if (!strncmp(str, "\\r", 2))
-		val = '\r';
-	else if (!strncmp(str, "\\\\", 2))
-		val = '\\';
-	else if (!strncmp(str, "\\'", 2))
-		val = '\'';
-	else if (!strncmp(str, "\\a", 2))
-		val = '\a';
-	else if (!strncmp(str, "\\b", 2))
-		val = '\b';
-	else if (!strncmp(str, "\\f", 2))
-		val = '\f';
-	else if (!strncmp(str, "\\t", 2))
-		val = '\t';
-	else if (!strncmp(str, "\\v", 2))
-		val = '\v';
-	else if (!strncmp(str, "\\\'", 2))
-		val = '\"';
-	else if (!strncmp(str, "\\\"", 2))
-		val = '\?';
-	
+const int ESCAPE_SEQ_LENGTH = 11;
+
+const char *ESCAPE_SEQ_NAME[] = {
+	"\\n", "\\0", "\\r", "\\\\", "\\'", "\\a", "\\b", "\\f", "\\t", "\\v", "\\\""
+};
+
+const char ESCAPE_SEQ_CHAR[] = {
+	'\n',  '\0',  '\r',  '\\',   '\'',  '\a',  '\b',  '\f',  '\t',  '\v',  '\"'
+};
+
+int parseEscapedCharacter(char *str, unsigned long *len) {
 	if (len != NULL)
-		*len = 2;
+		*len = 0;
 	
-	// TODO parse octal/hex escapes
+	if (str[0] != '\\')
+		return -1;
 	
-	return val;
+	for (int i = 0; i < ESCAPE_SEQ_LENGTH; i++) { // Standard escapes
+		if (!strncmp(str, ESCAPE_SEQ_NAME[i], 2)) {
+			if (len != NULL)
+				*len = 2;
+			return ESCAPE_SEQ_CHAR[i];
+		}
+	}
+	
+	if (str[1] == 'x' || str[1] == 'X') { // Hex escapes
+		int val = 0;
+		if (len != NULL)
+			*len = 2;
+		for (int i = 2; isHexChar(str[i]); i++) { // TODO check for overflow
+			val *= 16;
+			val += hexCharToInt(str[i]);
+			if (len != NULL)
+				(*len)++;
+		}
+		return val;
+	} else if (str[1] == 'o') { // Octal escapes
+		int val = 0;
+		if (len != NULL)
+			*len = 2;
+		for (int i = 2; isOctChar(str[i]); i++) {
+			val *= 8;
+			val += str[i] - '0';
+			if (len != NULL)
+				(*len)++;
+		}
+		return val;
+	}
+	
+	return -1;
 }
 
 // TODO make UTF-8 compatible
@@ -128,8 +143,9 @@ CharLit *parseCharLit(Parser *self) {
 	if (strlen(str) == 3)
 		return createCharLit(*(str + 1));
 	
-	int val = parseEscapedCharacter(str + 1, NULL);
-	if (val != -1)
+	unsigned long len;
+	int val = parseEscapedCharacter(str + 1, &len);
+	if (val != -1 && len == strlen(str) - 2)
 		return createCharLit(val);
 	
 	parserError("Malformed character constant: `%s`", str);
