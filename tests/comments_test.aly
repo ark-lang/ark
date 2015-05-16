@@ -1,6 +1,7 @@
 # A testing file for comments (this is a doc comment!)
 
 // This is a single-line comment!
+
 /* This is a multi-
    line comment! */
 
