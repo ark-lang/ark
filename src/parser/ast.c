@@ -28,7 +28,7 @@ const char *NODE_NAME[] = {
 
 // Useful for debugging
 const char *getNodeTypeName(NodeType type) {
-	if (type < 0 || type >= NUM_OF_NODES)
+	if (type >= NUM_OF_NODES)
 		errorMessage("Tried to get the name of a non-existent node type: %d", type);
 	return NODE_NAME[type];
 }
