@@ -13,9 +13,10 @@
 
 #include "sds.h"
 
-/** the current version of alloy */
-#define ALLOYC_VERSION "0.0.7"
-#define ALLOY_UNUSED_OBJ(x) (void)(x)
+/** the current version of the compiler */
+#define COMPILER_NAME          "Alloy"
+#define COMPILER_VERSION       "0.0.7"
+#define COMPILER_UNUSED_OBJ(x) (void)(x)
 
 #if defined(_WIN32) || defined(__WIN32__) || defined (WIN32)
 	#define WINDOWS
@@ -36,11 +37,11 @@
 /** flags */
 extern bool DEBUG_MODE;
 extern bool VERBOSE_MODE;
-extern char* OUTPUT_EXECUTABLE_NAME;
+extern char *OUTPUT_EXECUTABLE_NAME;
 extern bool OUTPUT_C;
-extern char* ADDITIONAL_COMPILER_ARGS;
-extern char* COMPILER;
-extern char* linkerFlags;
+extern char *ADDITIONAL_COMPILER_ARGS;
+extern char *COMPILER;
+extern char *linkerFlags;
 
 /**
  * Returns if the char is ASCII
@@ -50,26 +51,27 @@ extern char* linkerFlags;
 bool isASCII(char c);
 
 /**
- * Strdup so we can keep everything C11 compliant
+ * Custom strdup so we can keep everything C11 compliant
+ * @param s the char to dup
+ * @return  a new char instance
  */
-char* alloyStrdup(const char* s);
+char *customStrdup(const char *s);
 
 /**
  * Generates a random string of the given length
- *
  * @param length the length of the string
  */
 char *randString(size_t length);
 
 /**
  * Converts a string to uppercase
- *
  * @param str the string to convert to uppercase
  */
 char *toUppercase(char *str);
 
 /**
  * Removes the extension from the given file
+ * @param file the file to remove the extension from
  */
 char *removeExtension(char *file);
 
