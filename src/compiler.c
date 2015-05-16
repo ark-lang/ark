@@ -23,7 +23,6 @@ void help() {
 #ifdef ENABLE_LLVM
 	printf("  --llvm              Sets the codegen backend to LLVM (default: C)\n");
 #endif
-	printf("\n");
 }
 
 void version() {
