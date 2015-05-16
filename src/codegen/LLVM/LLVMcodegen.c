@@ -1,6 +1,6 @@
 #include "LLVM/LLVMcodegen.h"
 
-#define genError(...) errorMessage("LLVM codegen:" __VA_ARGS__)
+#define genError(...) errorMessage("LLVM codegen: " __VA_ARGS__)
 
 // Declarations
 
@@ -118,6 +118,12 @@ static LLVMTypeRef getLLVMType(DataType type) {
 }
 
 void startLLVMCodeGeneration(LLVMCodeGenerator *self) {
+	char *error = NULL;
+	LLVMVerifyModule(self->mod, LLVMAbortProcessAction, &error);
+	if (error != NULL)
+		genError(error);
+	LLVMDisposeMessage(error);
+	
 	/*HeaderFile *boilerplate = createHeaderFile("_alloyc_boilerplate");
 	writeHeaderFile(boilerplate);
 	fprintf(boilerplate->outputFile, "%s", BOILERPLATE);
