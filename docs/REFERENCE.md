@@ -88,6 +88,8 @@ And declared as follows:
 	name: type = some_val;
 
 ## Literals
+
+### Numeric Literals
 Integer literal:
 
 	1234
@@ -112,7 +114,34 @@ Floating-point literals contain a period. If a literal lacks a period, or you wa
 
 	12.34
 
-### Type Inference
+### Text Literals
+A string literal is enclosed with double-quotes:
+
+    "Hello!"
+
+A character literal is enclosed with single-quotes:
+
+    'a'
+
+The following escape sequences are available:
+
+|Sequence|Description|
+|--------|-----------|
+|\a|alarm/bell|
+|\b|backspace|
+|\f|formfeed|
+|\n|newline|
+|\r|carriage return|
+|\t|horizontal tab|
+|\v|vertical tab|
+|\\\\|backslash|
+|\'|single quotation mark|
+|\"|double quotation mark|
+|\?|question mark|
+|\oNNN|octal number|
+|\xNN|hex number|
+
+## Type Inference
 The syntax for type inference is nearly identical to a typical variable declaration, all
 you have to do is omit the type, for instance:
 
