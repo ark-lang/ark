@@ -23,7 +23,23 @@ LLVMCodeGenerator *createLLVMCodeGenerator(Vector *sourceFiles) {
 	self->abstractSyntaxTree = NULL;
 	self->currentNode = 0;
 	self->sourceFiles = sourceFiles;
+	
+	self->mod = LLVMModuleCreateWithName(LLVM_MODULE_NAME);
+	
 	return self;
+}
+
+void destroyLLVMCodeGenerator(LLVMCodeGenerator *self) {
+	for (int i = 0; i < self->sourceFiles->size; i++) {
+		SourceFile *sourceFile = getVectorItem(self->sourceFiles, i);
+		destroySourceFile(sourceFile);
+		verboseModeMessage("Destroyed source files iteration %d", i);
+	}
+	
+	LLVMDisposeModule(self->mod);
+
+	free(self);
+	verboseModeMessage("Destroyed compiler");
 }
 
 static void consumeAstNode(LLVMCodeGenerator *self) {
@@ -114,15 +130,4 @@ void startLLVMCodeGeneration(LLVMCodeGenerator *self) {
 	sdsfree(buildCommand); // deallocate dat shit baby
 	
 	destroyHeaderFile(boilerplate);*/
-}
-
-void destroyLLVMCodeGenerator(LLVMCodeGenerator *self) {
-	/*for (int i = 0; i < self->sourceFiles->size; i++) {
-		SourceFile *sourceFile = getVectorItem(self->sourceFiles, i);
-		destroySourceFile(sourceFile);
-		verboseModeMessage("Destroyed source files iteration %d", i);
-	}
-
-	free(self);
-	verboseModeMessage("Destroyed compiler");*/
 }
