@@ -41,6 +41,10 @@ You will need:
 	$ cd alloy
 	$ make
 
+To compile in support for the LLVM backend, pass ENABLE_LLVM=1 to `make`, like so:
+
+	$ make ENABLE_LLVM=1
+
 ### Testing
 Note that python is required.
 If alloyc is in your `$PATH`:
