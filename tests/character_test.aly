@@ -1,18 +1,27 @@
 fn main(): int {
-	if 'a' != 97 {
+	if '+' != 43 {
 		return 1;
 	}
-	if '+' != 43 {
+	if '\n' != 10 {
 		return 2;
 	}
-	if '\n' != 10 {
+	if '/' != 47 {
 		return 3;
 	}
-	if '/' != 47 {
+	if '\'' != 39 {
 		return 4;
 	}
-	if '\'' != 39 {
+	if '\x62' != 'b' {
 		return 5;
+	}
+	if 'a' != 97 {
+		return 6;
+	}
+	if '\x000000000006b' != 'k' {
+		return 7;
+	}
+	if '\o141' != '\x61' {
+		return 8;
 	}
 	
 	return 0;
