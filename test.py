@@ -3,7 +3,7 @@
 # Goes through all files in the test/ directory
 # and runs all of the files matching this: *_test.aly
 
-import os, subprocess, sys
+import os, subprocess, sys, re
 
 # Class representing our test file
 # has its name and whether it failed
@@ -47,51 +47,57 @@ def red(s):
 def green(s):
 	return "\x1B[32m" + s + "\x1B[00m"
 
-for name in os.listdir("tests"):
-	# test all of the files that end with _test.aly
-	if name.endswith("_test.aly"):
-		output_file = name + ".test"
-		
+def sort_nicely(l):
+	"""Sort the given list in the way that humans expect."""
+	convert = lambda text: int(text) if text.isdigit() else text
+	alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)', key)]
+	l.sort(key = alphanum_key)
+
+files = [x for x in os.listdir("tests") if x.endswith("_test.aly")]
+sort_nicely(files)
+for name in files:
+	output_file = name + ".test"
+	
+	if show_output: 
+		print(bold("Compiling ") + name + "...")
+	
+	if show_output:
+		compile_result = subprocess.call(["alloyc", "tests/" + name, "-o", "tests/" + output_file])
+	else:
+		FNULL = open(os.devnull, 'w')
+		compile_result = subprocess.call(["alloyc", "tests/" + name, "-o", "tests/" + output_file], stdout=FNULL, stderr=subprocess.STDOUT)
+
+	if compile_result != 0:
 		if show_output: 
-			print(bold("Compiling ") + name + "...")
-		
+			print(red(bold("Compilation failed:")) + " returned with " + str(compile_result))
+		files_tested.append(TestFile(output_file, True))
+		num_of_files_failed += 1
+		if show_output: print("")
+		continue
+	
+	if show_output: 
+		print(bold("Running ") + name + "...")
+	
+	try:
 		if show_output:
-			compile_result = subprocess.call(["alloyc", "tests/" + name, "-o", "tests/" + output_file])
+			run_result = subprocess.call(["./tests/" + output_file])
 		else:
 			FNULL = open(os.devnull, 'w')
-			compile_result = subprocess.call(["alloyc", "tests/" + name, "-o", "tests/" + output_file], stdout=FNULL, stderr=subprocess.STDOUT)
-
-		if compile_result != 0:
-			if show_output: 
-				print(red(bold("Compilation failed:")) + " returned with " + str(compile_result))
-			files_tested.append(TestFile(output_file, True))
-			num_of_files_failed += 1
-			if show_output: print("")
-			continue
+			run_result = subprocess.call(["./tests/" + output_file], stdout=FNULL, stderr=subprocess.STDOUT)
 		
-		if show_output: 
-			print(bold("Running ") + name + "...")
+		os.remove("tests/" + output_file)
+	except FileNotFoundError:
+		print(red(bold("File not found: " + output_file)))
+	
+	if run_result != 0:
+		if show_output: print(red(bold("Running failed:")) + " returned with " + str(run_result))
+		files_tested.append(TestFile(output_file, True))
+		num_of_files_failed += 1
+	else:
+		files_tested.append(TestFile(output_file, False))
+		num_of_files_passed += 1
 		
-		try:
-			if show_output:
-				run_result = subprocess.call(["./tests/" + output_file])
-			else:
-				FNULL = open(os.devnull, 'w')
-				run_result = subprocess.call(["./tests/" + output_file], stdout=FNULL, stderr=subprocess.STDOUT)
-			
-			os.remove("tests/" + output_file)
-		except FileNotFoundError:
-			print(red(bold("File not found: " + output_file)))
-		
-		if run_result != 0:
-			if show_output: print(red(bold("Running failed:")) + " returned with " + str(run_result))
-			files_tested.append(TestFile(output_file, True))
-			num_of_files_failed += 1
-		else:
-			files_tested.append(TestFile(output_file, False))
-			num_of_files_passed += 1
-			
-		if show_output: print("")
+	if show_output: print("")
 
 # print results
 total_num_of_files = num_of_files_passed + num_of_files_failed
