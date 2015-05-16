@@ -38,6 +38,7 @@ void version() {
 static void parse_argument(CommandLineArgument *arg) {
 	if (!strcmp(arg->argument, VERSION_ARG)) {
 		version();
+		exit(0);
 	}
 	else if (!strcmp(arg->argument, DEBUG_MODE_ARG)) {
 		DEBUG_MODE = true;
@@ -50,7 +51,7 @@ static void parse_argument(CommandLineArgument *arg) {
 	}
 	else if (!strcmp(arg->argument, HELP_ARG)) {
 		help();
-		return;
+		exit(0);
 	}
 	else if (!strcmp(arg->argument, COMPILER_ARG)) {
 		if (!arg->nextArgument) {
