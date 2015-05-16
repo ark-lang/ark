@@ -18,6 +18,11 @@ static void consumeAstNodeBy(LLVMCodeGenerator *self, int amount);
  */
 static void traverseAST(LLVMCodeGenerator *self);
 
+/**
+ * Gets the int type for the current system
+ */
+static LLVMTypeRef getIntType();
+
 static LLVMTypeRef getLLVMType(DataType type);
 
 // Definitions
@@ -63,6 +68,7 @@ static LLVMTypeRef getIntType() {
 		case 8:
 			return LLVMInt64Type();
 		default:
+			// either something fucked up, or we're in the future on 128 bit machines
 			genError("You have some wacky-sized int type!");
 			return NULL;
 	}
