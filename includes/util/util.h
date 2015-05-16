@@ -13,9 +13,10 @@
 
 #include "sds.h"
 
-/** the current version of the compiler */
+/** the name and version of the compiler */
 #define COMPILER_NAME          "Alloy"
 #define COMPILER_VERSION       "0.0.7"
+
 #define COMPILER_UNUSED_OBJ(x) (void)(x)
 
 #if defined(_WIN32) || defined(__WIN32__) || defined (WIN32)
