@@ -682,6 +682,8 @@ char *getLoopIndex(CCodeGenerator *self, Expression *expr) {
 			break;
 		}
 	}
+	errorMessage("Something went wrong in getLoopIndex");
+	return NULL;
 }
 
 static void emitIndexForLoop(CCodeGenerator *self, ForStat *stmt) {
