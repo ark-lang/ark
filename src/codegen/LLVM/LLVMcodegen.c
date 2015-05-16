@@ -1,5 +1,7 @@
 #include "LLVM/LLVMcodegen.h"
 
+#define genError(...) errorMessage("LLVM codegen:" __VA_ARGS__)
+
 // Declarations
 
 /**
@@ -15,6 +17,8 @@ static void consumeAstNodeBy(LLVMCodeGenerator *self, int amount);
  * @param self the code gen instance
  */
 static void traverseAST(LLVMCodeGenerator *self);
+
+static LLVMTypeRef getLLVMType(DataType type);
 
 // Definitions
 
@@ -48,6 +52,48 @@ static void consumeAstNode(LLVMCodeGenerator *self) {
 
 static void consumeAstNodeBy(LLVMCodeGenerator *self, int amount) {
 	self->currentNode += amount;
+}
+
+static LLVMTypeRef getLLVMType(DataType type) {
+	switch (type) {
+		case INT_64_TYPE:
+		case UINT_64_TYPE:
+			return LLVMInt64Type();
+			
+		case INT_32_TYPE:
+		case UINT_32_TYPE:
+			return LLVMInt32Type();
+			
+		case INT_16_TYPE:
+		case UINT_16_TYPE:
+			return LLVMInt16Type();
+			
+		case INT_8_TYPE:
+		case UINT_8_TYPE:
+			return LLVMInt8Type();
+			
+		case FLOAT_64_TYPE:
+			return LLVMDoubleType();
+			
+		case FLOAT_32_TYPE:
+			return LLVMFloatType();
+			
+		case INT_TYPE:
+			return LLVMInt32Type(); // TODO
+			
+		case BOOL_TYPE:
+			return LLVMInt1Type();
+			
+		case CHAR_TYPE:
+			return NULL; // gonna get replaced
+			
+		case VOID_TYPE:
+			return LLVMVoidType();
+			
+		case UNKNOWN_TYPE:
+			genError("Unknown type");
+			return NULL;
+	}
 }
 
 void startLLVMCodeGeneration(LLVMCodeGenerator *self) {
