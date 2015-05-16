@@ -1,4 +1,4 @@
-CFLAGS = -g -Wall -std=c99 -Wextra -pedantic
+CFLAGS = -g -Wall -std=c99 -Wextra -pedantic -Wno-unused-function -Wno-unused-parameter
 
 .PHONY: all clean
 
