@@ -68,7 +68,7 @@ sds extractToken(Lexer *self, int start, int length) {
 	return sdsnewlen(&self->input[start], length);
 }
 
-void skipLayoutAndComments(Lexer *self) {
+static bool skipLayoutAndCommentsOnce(Lexer *self) {
 	while (isLayout(self->currentChar)) {
 		consumeCharacter(self);
 	}
@@ -77,13 +77,15 @@ void skipLayoutAndComments(Lexer *self) {
 		consumeCharacter(self);
 
 		while (!isCommentCloser(self->currentChar)) {
-			if (isEndOfInput(self->currentChar)) return;
+			if (isEndOfInput(self->currentChar)) return false;
 			consumeCharacter(self);
 		}
 		
 		while (isLayout(self->currentChar)) {
 			consumeCharacter(self);
 		}
+		
+		return true;
 	}
 
 	// consume a block comment and its contents
@@ -97,7 +99,7 @@ void skipLayoutAndComments(Lexer *self) {
 
 			if (isEndOfInput(self->currentChar)) {
 				errorMessage("Unterminated block comment");
-				return;
+				return false;
 			}
 
 			if (self->currentChar == '*' && peekAhead(self, 1) == '/') {
@@ -112,6 +114,8 @@ void skipLayoutAndComments(Lexer *self) {
 				break;
 			}
 		}
+		
+		return true;
 	}
 
 	// consume a single line comment
@@ -120,14 +124,23 @@ void skipLayoutAndComments(Lexer *self) {
 		consumeCharacter(self);	// eat the /
 
 		while (!isCommentCloser(self->currentChar)) {
-			if (isEndOfInput(self->currentChar)) return;
+			if (isEndOfInput(self->currentChar)) return false;
 			consumeCharacter(self);
 		}
 		
 		while (isLayout(self->currentChar)) {
 			consumeCharacter(self);
 		}
+		
+		return true;
 	}
+	
+	return false;
+}
+
+void skipLayoutAndComments(Lexer *self) {
+	// keep going until all comments are skipped
+	while (skipLayoutAndCommentsOnce(self));
 }
 
 void expectCharacter(Lexer *self, char c) {
