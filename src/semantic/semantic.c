@@ -195,33 +195,33 @@ void analyzeFunctionCall(SemanticAnalyzer *self, Call *call) {
 			// TODO use actual type instead of char if types in semantic are better
 			call->typeCast = callee;
 		}
-		return;
 	}
-
-	FunctionDecl *decl = checkFunctionExists(self, callee);	
-	if (!decl) {
-		semanticError("Attempting to call undefined function `%s`", callee);
-	}
-	// it exists, check arguments match in length
 	else {
-		int argsNeeded = decl->signature->parameters->paramList->size;
-		int argsGot = call->arguments->size;
-		char *callee = getVectorItem(call->callee, 0); // FIXME
-
-		// only do this on non-variadic functions, otherwise
-		// it will fuck you over since variadic is variable amount of args
-		if (!decl->signature->parameters->variadic) {
-			if (argsGot > argsNeeded) {
-				semanticError("Too many arguments to function `%s`", callee);
-			}
-			else if (argsGot < argsNeeded) {
-				semanticError("Too few arguments to function `%s`", callee);
-			}
+		FunctionDecl *decl = checkFunctionExists(self, callee);
+		if (!decl) {
+			semanticError("Attempting to call undefined function `%s`", callee);
 		}
+		// it exists, check arguments match in length
+		else {
+			int argsNeeded = decl->signature->parameters->paramList->size;
+			int argsGot = call->arguments->size;
+			char *callee = getVectorItem(call->callee, 0); // FIXME
 
-		// Analyze every expression in a function call
-		for (int i = 0; i < call->arguments->size; ++i) {
-			analyzeExpression(self, getVectorItem(call->arguments, i));
+			// only do this on non-variadic functions, otherwise
+			// it will fuck you over since variadic is variable amount of args
+			if (!decl->signature->parameters->variadic) {
+				if (argsGot > argsNeeded) {
+					semanticError("Too many arguments to function `%s`", callee);
+				}
+				else if (argsGot < argsNeeded) {
+					semanticError("Too few arguments to function `%s`", callee);
+				}
+			}
+
+			// Analyze every expression in a function call
+			for (int i = 0; i < call->arguments->size; ++i) {
+				analyzeExpression(self, getVectorItem(call->arguments, i));
+			}
 		}
 	}
 }
