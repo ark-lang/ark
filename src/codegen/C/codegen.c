@@ -310,6 +310,7 @@ static void emitLiteral(CCodeGenerator *self, Literal *lit) {
 }
 
 static void emitBinaryExpr(CCodeGenerator *self, BinaryExpr *expr) {
+	emitCode(self, "(");
 	// for X.Y() calls we need to call the correct function
 	if (expr->structType != NULL) {
 		Call *call = expr->rhand->call;
@@ -337,6 +338,8 @@ static void emitBinaryExpr(CCodeGenerator *self, BinaryExpr *expr) {
 		emitCode(self, "%s", expr->binaryOp);
 		emitExpression(self, expr->rhand);
 	}
+	
+	emitCode(self, ")");
 }
 
 static void emitUnaryExpr(CCodeGenerator *self, UnaryExpr *expr) {
