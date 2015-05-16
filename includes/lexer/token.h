@@ -73,6 +73,6 @@ void destroyToken(Token *token);
 /**
  * Get the name for a token type
  */
-char *getTokenTypeName(TokenType type);
+const char *getTokenTypeName(TokenType type);
 
 #endif // __TOKEN_H
