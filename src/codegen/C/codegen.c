@@ -248,12 +248,12 @@ static void traverseAST(CCodeGenerator *self);
  * files?
  *
  * It includes a few vital header files that will eventually
- * be written in Alloy itself. Also a few aliases for certain
+ * be written in the language itself. Also a few aliases for certain
  * types.
  */
 const char *BOILERPLATE =
-"#ifndef __ALLOYC_BOILERPLATE_H\n"
-"#define __ALLOYC_BOILERPLATE_H\n"
+"#ifndef __BOILERPLATE_H\n"
+"#define __BOILERPLATE_H\n"
 "#include <stdbool.h>\n"
 "#include <stddef.h>\n"
 "#include <stdarg.h>\n"
@@ -880,7 +880,7 @@ static void traverseAST(CCodeGenerator *self) {
 }
 
 void startCCodeGeneration(CCodeGenerator *self) {
-	HeaderFile *boilerplate = createHeaderFile("_alloyc_boilerplate");
+	HeaderFile *boilerplate = createHeaderFile("_boilerplate");
 	writeHeaderFile(boilerplate);
 	fprintf(boilerplate->outputFile, "%s", BOILERPLATE);
 	closeHeaderFile(boilerplate);

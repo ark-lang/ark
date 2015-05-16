@@ -71,7 +71,7 @@ typedef enum {
 } LiteralType;
 
 /**
- * The data types that are supported by Alloy,
+ * The data types that are supported by the compiler,
  * again mostly for lookups.
  */
 typedef enum {

@@ -33,7 +33,7 @@ static void emitUseMacro(CCodeGenerator *self, UseMacro *use) {
 }
 
 static void emitLinkerFlagMacro(CCodeGenerator *self, LinkerFlagMacro *linker) {
-	ALLOY_UNUSED_OBJ(self);
+	COMPILER_UNUSED_OBJ(self);
 
 	size_t len = strlen(linker->flag);
 	char temp[len - 2];
