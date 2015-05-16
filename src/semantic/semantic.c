@@ -123,7 +123,7 @@ void analyzeVariableDeclaration(SemanticAnalyzer *self, VariableDecl *decl) {
 			VariableType type = deduceTypeFromExpression(self, decl->expr);
 			decl->type = varTypeToType(type);
 		}
-		else {
+		else if (decl->type->typeName) {
 			// If we are initializing with a struct set the struct type
 			StructDecl *structDecl = checkStructExists(self, decl->type->typeName->name);
 			if (structDecl) {
