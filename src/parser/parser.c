@@ -1396,9 +1396,9 @@ ArrayType *parseArrayType(Parser *self) {
 		// parse the type
 		Type *type = parseType(self);
 		if (type) {
-			ArrayType *type = createArrayType(type);
-			type->expr = expr;
-			return type;
+			ArrayType *atype = createArrayType(type);
+			atype->expr = expr;
+			return atype;
 		}
 	}
 
