@@ -5,11 +5,11 @@ SourceFile *createSourceFile(sds fileName) {
 	sourceFile->fileName = fileName;
 	sourceFile->headerFile = createHeaderFile(fileName);
 	sourceFile->name = getFileName(sourceFile->fileName);
-	sourceFile->alloyFileContents = readFile(fileName);
+	sourceFile->fileContents = readFile(fileName);
 	sourceFile->tokens = NULL;
 	sourceFile->ast = NULL;
 
-	if (!sourceFile->alloyFileContents) {
+	if (!sourceFile->fileContents) {
 		errorMessage("Failed to read file %s", sourceFile->fileName);
 		destroySourceFile(sourceFile);
 		return NULL;
@@ -57,6 +57,6 @@ void destroySourceFile(SourceFile *sourceFile) {
 	sdsfree(sourceFile->fileName);
 	free(sourceFile->name);
 	sdsfree(sourceFile->generatedSourceName);
-	free(sourceFile->alloyFileContents); 
+	free(sourceFile->fileContents); 
 	free(sourceFile);
 }
