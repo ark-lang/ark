@@ -210,8 +210,6 @@ void recognizeNumberToken(Lexer *self) {
 	}
 	else {
 		// it'll do 
-		bool isDecimal = false;
-
 		while (isDigit(self->currentChar)) {
 			if (peekAhead(self, 1) == '.') {
 				consumeCharacter(self);
@@ -222,7 +220,6 @@ void recognizeNumberToken(Lexer *self) {
 				if (self->currentChar == 'f' || self->currentChar == 'd') {
 					consumeCharacter(self);
 				}
-				isDecimal = true;
 			}
 			else if (peekAhead(self, 1) == '_') { // ignore digit underscores
 				consumeCharacter(self);
