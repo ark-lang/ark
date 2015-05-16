@@ -3,6 +3,7 @@
 bool DEBUG_MODE = false;	// default is no debug
 bool OUTPUT_C = false;		// default is no c output
 bool VERBOSE_MODE = false;
+bool LLVM_CODEGEN = false;
 char *OUTPUT_EXECUTABLE_NAME = "main"; // default is main
 char *COMPILER = "cc";
 char *ADDITIONAL_COMPILER_ARGS = "-g -Wall -std=c99 -fno-builtin";
@@ -17,6 +18,7 @@ void help() {
 	printf("  -c <file>\t\tWill keep the output C code\n");
 	printf("  --compiler <name>\t\t\tSets the C compiler to <name> (default: CC)\n");
 	printf("  --version\t\t\tShows current version\n");
+	printf("  --llvm\t\t\tSets the codegen backend to LLVM (default: C)");
 	printf("\n");
 }
 
@@ -38,6 +40,9 @@ static void parse_argument(CommandLineArgument *arg) {
 		return;
 	}
 	else if (!strcmp(arg->argument, COMPILER_ARG)) {
+		if (!arg->nextArgument) {
+			errorMessage("Missing compiler command after '" COMPILER_ARG "'");
+		}
 		COMPILER = arg->nextArgument;
 	}
 	else if (!strcmp(arg->argument, OUTPUT_ARG)) {
@@ -45,6 +50,9 @@ static void parse_argument(CommandLineArgument *arg) {
 			errorMessage("Missing filename after '" OUTPUT_ARG "'");
 		}
 		OUTPUT_EXECUTABLE_NAME = arg->nextArgument;
+	}
+	else if (!strcmp(arg->argument, LLVM_ARG)) {
+		LLVM_CODEGEN = true;
 	}
 	else {
 		errorMessage("Unrecognized command line option '%s'", arg->argument);
@@ -62,6 +70,7 @@ AlloyCompiler *createAlloyCompiler(int argc, char** argv) {
 	self->lexer = NULL;
 	self->parser = NULL;
 	self->generator = NULL;
+	self->generatorLLVM = NULL;
 	self->sourceFiles = createVector(VECTOR_LINEAR);
 	
 	char *ccEnv = getenv("CC");
@@ -138,8 +147,13 @@ void startAlloyCompiler(AlloyCompiler *self) {
 	}
 
 	// compilation stage
-	self->generator = createCCodeGenerator(self->sourceFiles);
-	startCCodeGeneration(self->generator);
+	if (LLVM_CODEGEN) {
+		self->generatorLLVM = createLLVMCodeGenerator(self->sourceFiles);
+		startLLVMCodeGeneration(self->generatorLLVM);
+	} else {
+		self->generator = createCCodeGenerator(self->sourceFiles);
+		startCCodeGeneration(self->generator);
+	}
 }
 
 void destroyAlloyCompiler(AlloyCompiler *self) {
@@ -147,6 +161,7 @@ void destroyAlloyCompiler(AlloyCompiler *self) {
 		if (self->lexer) destroyLexer(self->lexer);
 		if (self->parser) destroyParser(self->parser);
 		if (self->generator) destroyCCodeGenerator(self->generator);
+		if (self->generatorLLVM) destroyLLVMCodeGenerator(self->generatorLLVM);
 		if (self->semantic) destroySemanticAnalyzer(self->semantic);
 		destroyVector(self->sourceFiles);
 		free(self);
