@@ -47,7 +47,8 @@ sds sdsnewlen(const void *init, size_t initlen) {
 
 	if (init) {
 		sh = malloc(sizeof *sh + initlen + 1);
-	} else {
+	}
+	else {
 		sh = calloc(sizeof *sh + initlen + 1, 1);
 	}
 	if (sh == NULL)
@@ -421,11 +422,13 @@ void sdsrange(sds s, int start, int end) {
 	if (newlen != 0) {
 		if (start >= (signed) len) {
 			newlen = 0;
-		} else if (end >= (signed) len) {
+		}
+		else if (end >= (signed) len) {
 			end = len - 1;
 			newlen = (start > end) ? 0 : (end - start) + 1;
 		}
-	} else {
+	}
+	else {
 		start = 0;
 	}
 	if (start && newlen)
@@ -718,7 +721,8 @@ sds *sdssplitargs(const char *line, int *argc) {
 								+ hex_digit_to_int(*(p + 3));
 						current = sdscatlen(current, (char*) &byte, 1);
 						p += 3;
-					} else if (*p == '\\' && *(p + 1)) {
+					}
+					else if (*p == '\\' && *(p + 1)) {
 						char c;
 
 						p++;
@@ -743,35 +747,43 @@ sds *sdssplitargs(const char *line, int *argc) {
 							break;
 						}
 						current = sdscatlen(current, &c, 1);
-					} else if (*p == '"') {
+					}
+					else if (*p == '"') {
 						/* closing quote must be followed by a space or
 						 * nothing at all. */
 						if (*(p + 1) && !isspace((unsigned char) *(p + 1)))
 							goto err;
 						done = 1;
-					} else if (!*p) {
+					}
+					else if (!*p) {
 						/* unterminated quotes */
 						goto err;
-					} else {
+					}
+					else {
 						current = sdscatlen(current, p, 1);
 					}
-				} else if (insq) {
+				}
+				else if (insq) {
 					if (*p == '\\' && *(p + 1) == '\'') {
 						p++;
 						current = sdscatlen(current, "'", 1);
-					} else if (*p == '\'') {
+					}
+					else if (*p == '\'') {
 						/* closing quote must be followed by a space or
 						 * nothing at all. */
 						if (*(p + 1) && !isspace((unsigned char) *(p + 1)))
 							goto err;
 						done = 1;
-					} else if (!*p) {
+					}
+					else if (!*p) {
 						/* unterminated quotes */
 						goto err;
-					} else {
+					}
+					else {
 						current = sdscatlen(current, p, 1);
 					}
-				} else {
+				}
+				else {
 					switch (*p) {
 					case ' ':
 					case '\n':
@@ -799,7 +811,8 @@ sds *sdssplitargs(const char *line, int *argc) {
 			vector[*argc] = current;
 			(*argc)++;
 			current = NULL;
-		} else {
+		}
+		else {
 			/* Even on empty input string return something not NULL. */
 			if (vector == NULL)
 				vector = malloc(sizeof(void*));

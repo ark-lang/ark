@@ -333,7 +333,8 @@ static void emitBinaryExpr(CCodeGenerator *self, BinaryExpr *expr) {
 			}
 		}
 		emitCode(self, ")");
-	} else {
+	}
+	else {
 		emitExpression(self, expr->lhand);
 		emitCode(self, "%s", expr->binaryOp);
 		emitExpression(self, expr->rhand);
@@ -476,7 +477,8 @@ static void emitFunctionCall(CCodeGenerator *self, Call *call) {
 		emitCode(self, ") ");
 		emitExpression(self, getVectorItem(call->arguments, 0));
 		emitCode(self, ")");
-	} else {
+	}
+	else {
 		for (int i = 0; i < call->callee->size; i++) {
 			char *value = getVectorItem(call->callee, i);
 			emitCode(self, "%s", value);
@@ -501,7 +503,8 @@ static void emitFunctionSignature(CCodeGenerator *self, FunctionSignature *signa
 
 	if (signature->owner) {
 		emitCode(self, GENERATED_IMPL_FUNCTION_FORMAT, signature->owner, signature->name);
-	} else {
+	}
+	else {
 		emitCode(self, "%s", signature->name);
 	}
 

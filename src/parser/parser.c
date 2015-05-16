@@ -115,7 +115,8 @@ int parseEscapedCharacter(char *str, unsigned long *len) {
 				(*len)++;
 		}
 		return val;
-	} else if (str[1] == 'o') { // Octal escapes
+	}
+	else if (str[1] == 'o') { // Octal escapes
 		int val = 0;
 		if (len != NULL)
 			*len = 2;
@@ -907,7 +908,8 @@ IncDecStat *parseIncDecStat(Parser *self) {
 			consumeToken(self);
 			consumeToken(self);
 			return createIncDecStat(expr, 1);
-		} else if (checkTokenTypeAndContent(self, TOKEN_OPERATOR, "-", 0)
+		}
+		else if (checkTokenTypeAndContent(self, TOKEN_OPERATOR, "-", 0)
 				&& checkTokenTypeAndContent(self, TOKEN_OPERATOR, "-", 1)) {
 			consumeToken(self);
 			consumeToken(self);
