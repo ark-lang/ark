@@ -10,7 +10,9 @@
 #include "parser.h"
 #include "semantic.h"
 #include "C/codegen.h"
-#include "LLVM/codegen.h"
+#ifdef ENABLE_LLVM
+	#include "LLVM/LLVMcodegen.h"
+#endif
 
 #define DEBUG_MODE_ARG "-d"
 #define HELP_ARG       "-h"
@@ -19,7 +21,9 @@
 #define OUTPUT_C_ARG   "-c"
 #define COMPILER_ARG   "--compiler"
 #define VERSION_ARG    "--version"
-#define LLVM_ARG       "--llvm"
+#ifdef ENABLE_LLVM
+	#define LLVM_ARG       "--llvm"
+#endif
 
 /**
  * For handling command line
@@ -37,7 +41,9 @@ typedef struct {
 	Lexer *lexer;
 	Parser *parser;
 	CCodeGenerator *generator;
+#ifdef ENABLE_LLVM
 	LLVMCodeGenerator *generatorLLVM;
+#endif
 	SemanticAnalyzer *semantic;
 	Vector *sourceFiles;
 } AlloyCompiler;
