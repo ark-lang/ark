@@ -239,6 +239,8 @@ static void consumeAstNodeBy(CCodeGenerator *self, int amount);
  */
 static void traverseAST(CCodeGenerator *self);
 
+static void emitAlloc(CCodeGenerator *self, Alloc *alloc);
+
 // Definitions
 
 /**
@@ -258,6 +260,7 @@ const char *BOILERPLATE =
 "#include <stddef.h>\n"
 "#include <stdarg.h>\n"
 "#include <stdint.h>\n"
+"#include <stdlib.h>\n"
 CC_NEWLINE
 "typedef char *str;" CC_NEWLINE
 "typedef size_t usize;" CC_NEWLINE
@@ -367,6 +370,30 @@ static void emitArrayInitializer(CCodeGenerator *self, ArrayInitializer *arr) {
 	emitCode(self, "}");
 }
 
+static void emitAlloc(CCodeGenerator *self, Alloc *alloc) {
+	if (alloc->type != NULL) {
+		emitCode(self, "calloc(1, sizeof(");
+		emitType(self, alloc->type);
+		emitCode(self, "));" CC_NEWLINE);
+	}
+	else {
+		emitCode(self, "calloc(1, %d);" CC_NEWLINE, alloc->size);
+	}
+	
+	// Emit struct initializers TODO
+	/*for (int i = 0; i < decl->structDecl->fields->members->size; ++i) {
+		FieldDecl *fieldDecl = getVectorItem(decl->structDecl->fields->members, i);
+		if (fieldDecl->defaultValue) {
+			emitCode(self, "%s", decl->name);
+			emitCode(self, "%s", ".");
+			emitCode(self, "%s", fieldDecl->name);
+			emitCode(self, " = ");
+			emitExpression(self, fieldDecl->defaultValue);
+			emitCode(self, ";" CC_NEWLINE);
+		}
+	}*/
+}
+
 static void emitExpression(CCodeGenerator *self, Expression *expr) {
 	switch (expr->exprType) {
 		case TYPE_NODE: emitType(self, expr->type); break;
@@ -379,6 +406,7 @@ static void emitExpression(CCodeGenerator *self, Expression *expr) {
 			emitType(self, expr->type);
 			emitArrayIndex(self, expr->arrayIndex);
 		} break;
+		case ALLOC_NODE: emitAlloc(self, expr->alloc); break;
 		default:
 			errorMessage("Unknown node in expression %d", expr->exprType);
 			break;
@@ -595,13 +623,13 @@ static void emitVariableDecl(CCodeGenerator *self, VariableDecl *decl) {
 		self->writeState = WRITE_HEADER_STATE;
 	}
 
-	if (decl->structDecl) {
+	if (decl->structDecl && !decl->pointer) {
 		// Emit struct initializers
 		for (int i = 0; i < decl->structDecl->fields->members->size; ++i) {
 			FieldDecl *fieldDecl = getVectorItem(decl->structDecl->fields->members, i);
 			if (fieldDecl->defaultValue) {
 				emitCode(self, "%s", decl->name);
-				emitCode(self, "%s", decl->pointer ? "->" : ".");
+				emitCode(self, "%s", ".");
 				emitCode(self, "%s", fieldDecl->name);
 				emitCode(self, " = ");
 				emitExpression(self, fieldDecl->defaultValue);
@@ -784,6 +812,12 @@ static void emitLeaveStat(CCodeGenerator *self, LeaveStat *leave) {
 	}
 }
 
+static void emitFreeStat(CCodeGenerator *self, FreeStat *freeStat) {
+	emitCode(self, "free(");
+	emitType(self, freeStat->type);
+	emitCode(self, ");" CC_NEWLINE);
+}
+
 static void emitUnstructuredStat(CCodeGenerator *self, UnstructuredStatement *stmt) {
 	switch (stmt->type) {
 		case DECLARATION_NODE: emitDeclaration(self, stmt->decl); break;
@@ -797,9 +831,7 @@ static void emitUnstructuredStat(CCodeGenerator *self, UnstructuredStatement *st
 			break;
 		case LEAVE_STAT_NODE: emitLeaveStat(self, stmt->leave); break;
 		case ASSIGNMENT_NODE: emitAssignment(self, stmt->assignment); break;
-		case POINTER_FREE_NODE: 
-			emitCode(self, "free(%s);" CC_NEWLINE, stmt->pointerFree->name);
-			break;
+		case FREE_STAT_NODE: emitFreeStat(self, stmt->freeStat); break;
 	}
 }
 
