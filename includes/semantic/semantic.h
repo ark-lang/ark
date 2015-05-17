@@ -67,8 +67,8 @@ typedef struct {
  */
 typedef struct {
 	int type;
-	bool is_array;
-	int array_len;
+	bool isArray;
+	int arrayLen;
 } VarType; 
 
 /*
