@@ -1,0 +1,17 @@
+fn printf(fmt: str, _);
+
+struct Test {
+	hello: int,
+	world: int
+}
+
+fn main(): int {
+	// TODO improve this test..
+	x: int = sizeof Test;
+	
+	if x <= 0 {
+		return 1;
+	}
+	
+	return 0;
+}
