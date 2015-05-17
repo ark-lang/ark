@@ -121,7 +121,7 @@ LLVMValueRef genFunctionDecl(LLVMCodeGenerator *self, FunctionDecl *decl) {
 	LLVMBasicBlockRef block = LLVMAppendBasicBlock(prototype, "entry");
 	LLVMPositionBuilderAtEnd(self->builder, block);
 
-	LLVMValueRef body = genStatement(self, decl->body);
+	LLVMValueRef body = getIntType(); // genStatement(self, decl->body);
 	if (!body) {
 		LLVMDeleteFunction(prototype);
 		return false;
@@ -166,14 +166,16 @@ void startLLVMCodeGeneration(LLVMCodeGenerator *self) {
 		self->abstractSyntaxTree = self->currentSourceFile->ast;
 
 		traverseAST(self);
+
+		LLVMDumpModule(sf->module);
 	}
 }
 
 static LLVMTypeRef getIntType() {
 	switch (sizeof(int)) {
-		case 2: return LLVMInt16Type();
-		case 4: return LLVMInt32Type();
-		case 8: return LLVMInt64Type();
+		case 2: printf("16\n"); return LLVMInt16Type();
+		case 4: printf("32\n"); return LLVMInt32Type();
+		case 8: printf("64\n"); return LLVMInt64Type();
 		default:
 			// either something fucked up, or we're in the future on 128 bit machines
 			verboseModeMessage("You have some wacky-sized int type, switching to 16 bit for default!");
