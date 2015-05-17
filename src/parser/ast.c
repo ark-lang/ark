@@ -403,6 +403,7 @@ void destroyUseMacro(UseMacro *use) {
 }
 
 void destroyArrayInitializer(ArrayInitializer *array) {
+	if (!array) return;
 	for (int i = 0; i < array->values->size; i++) {
 		destroyExpression(getVectorItem(array->values, i));
 	}
@@ -522,6 +523,7 @@ void destroyExpression(Expression *expr) {
 	destroyUnaryExpr(expr->unary);
 	destroyAlloc(expr->alloc);
 	destroySizeOf(expr->sizeOf);
+	destroyArrayInitializer(expr->arrayInitializer);
 	free(expr);
 }
 
