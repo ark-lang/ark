@@ -35,6 +35,8 @@ typedef struct {
 	 */
 	SourceFile *currentSourceFile;
 
+	LLVMBuilderRef builder;
+
 	/**
 	 * Our index in the abstract syntax
 	 * tree
