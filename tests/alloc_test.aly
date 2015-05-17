@@ -1,0 +1,20 @@
+fn printf(fmt: str, _);
+
+struct Test {
+	mut val: int
+}
+
+fn main(): int {
+	mut test: ^Test = alloc Test;
+	free test;
+	
+	mut y: ^int = alloc int;
+	^y = 6;
+	printf("y is %d\n", ^y);
+	free y;
+	
+	mut a: ^i8 = alloc 1;
+	^a = 'h';
+	printf("%s\n", a);
+	free a;
+}
