@@ -24,7 +24,7 @@ const char *NODE_NAME[] = {
 	"TUPLE_EXPR_NODE", "OPTION_TYPE_NODE", 
 	"MACRO_NODE", "USE_MACRO_NODE", "LINKER_FLAG_MACRO_NODE", "EXPR_STAT_NODE", "ARRAY_INITIALIZER_NODE",
 	"ARRAY_INDEX_NODE", "CHAR_LITERAL_NODE", "STRING_LITERAL_NODE", "INT_LITERAL_NODE",
-	"FLOAT_LITERAL_NODE", "ALLOC_NODE", "FREE_STAT_NODE"
+	"FLOAT_LITERAL_NODE", "ALLOC_NODE", "SIZEOF_NODE", "FREE_STAT_NODE"
 };
 
 // Useful for debugging
@@ -304,6 +304,10 @@ Alloc *createAlloc() {
 	return safeCalloc(sizeof(Alloc));
 }
 
+SizeOf *createSizeOf() {
+	return safeCalloc(sizeof(SizeOf));
+}
+
 FreeStat *createFreeStat() {
 	return safeCalloc(sizeof(FreeStat));
 }
@@ -516,6 +520,7 @@ void destroyExpression(Expression *expr) {
 	destroyType(expr->type);
 	destroyUnaryExpr(expr->unary);
 	destroyAlloc(expr->alloc);
+	destroySizeOf(expr->sizeOf);
 	free(expr);
 }
 
@@ -688,6 +693,12 @@ void destroyAlloc(Alloc *alloc) {
 	if (!alloc) return;
 	destroyType(alloc->type);
 	free(alloc);
+}
+
+void destroySizeOf(SizeOf *sizeOf) {
+	if (!sizeOf) return;
+	destroyExpression(sizeOf->expr);
+	free(sizeOf);
 }
 
 void destroyFreeStat(FreeStat *freeStat) {
