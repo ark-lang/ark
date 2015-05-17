@@ -55,18 +55,26 @@ static void consumeAstNodeBy(LLVMCodeGenerator *self, int amount) {
 	self->currentNode += amount;
 }
 
+void startLLVMCodeGeneration(LLVMCodeGenerator *self) {
+	for (int i = 0; i < self->sourceFiles->size; i++) {
+		SourceFile *sf = getVectorItem(self->sourceFiles, i);
+		self->currentNode = 0;
+		self->currentSourceFile = sf;
+		self->abstractSyntaxTree = self->currentSourceFile->ast;
+
+		traverseAST(self);
+	}
+}
+
 static LLVMTypeRef getIntType() {
 	switch (sizeof(int)) {
-		case 2:
-			return LLVMInt16Type();
-		case 4:
-			return LLVMInt32Type();
-		case 8:
-			return LLVMInt64Type();
+		case 2: return LLVMInt16Type();
+		case 4: return LLVMInt32Type();
+		case 8: return LLVMInt64Type();
 		default:
 			// either something fucked up, or we're in the future on 128 bit machines
-			genError("You have some wacky-sized int type!");
-			return NULL;
+			verboseModeMessage("You have some wacky-sized int type, switching to 16 bit for default!");
+			return LLVMInt16Type();
 	}
 }
 
@@ -111,102 +119,4 @@ static LLVMTypeRef getLLVMType(DataType type) {
 			genError("Unknown type");
 			return NULL;
 	}
-}
-
-void startLLVMCodeGeneration(LLVMCodeGenerator *self) {
-	//
-	// Generate
-	//
-	
-	
-	//
-	// Verify and output
-	//
-	char *error = NULL;
-	LLVMVerifyModule(mod, LLVMAbortProcessAction, &error);
-	if (error != NULL)
-		genError(error);
-	LLVMDisposeMessage(error);
-	
-	
-	// old stuff
-	/*HeaderFile *boilerplate = createHeaderFile("_alloyc_boilerplate");
-	writeHeaderFile(boilerplate);
-	fprintf(boilerplate->outputFile, "%s", BOILERPLATE);
-	closeHeaderFile(boilerplate);
-	
-	for (int i = 0; i < self->sourceFiles->size; i++) {
-		SourceFile *sf = getVectorItem(self->sourceFiles, i);
-		self->currentNode = 0;
-		self->currentSourceFile = sf;
-		self->abstractSyntaxTree = self->currentSourceFile->ast;
-		
-		writeFiles(self->currentSourceFile);
-
-		self->writeState = WRITE_SOURCE_STATE;
-		// _gen_name.h is the typical name for the headers and c files that are generated
-		emitCode(self, "#include \"_gen_%s.h\"\n", self->currentSourceFile->name);
-
-		// write to header
-		self->writeState = WRITE_HEADER_STATE;
-		emitCode(self, "#ifndef __%s_H\n", self->currentSourceFile->name);
-		emitCode(self, "#define __%s_H\n\n", self->currentSourceFile->name);
-
-		generateMacrosC(self);
-
-		emitCode(self, "#include \"%s\"\n", boilerplate->generatedHeaderName);
-
-		// compile code
-		traverseAST(self);
-
-		// write to header
-		self->writeState = WRITE_HEADER_STATE;
-		emitCode(self, "\n");
-		emitCode(self, "#endif // __%s_H\n", self->currentSourceFile->name);
-
-		// close files
-		closeFiles(self->currentSourceFile);
-	}
-	
-	// empty command
-	sds buildCommand = sdsempty();
-
-	// what compiler to use
-	buildCommand = sdscat(buildCommand, COMPILER);
-	buildCommand = sdscat(buildCommand, " ");
-	
-	// additional compiler flags, i.e -g, -Wall etc
-	buildCommand = sdscat(buildCommand, ADDITIONAL_COMPILER_ARGS);
-
-	// output name
-	buildCommand = sdscat(buildCommand, " -o ");
-	buildCommand = sdscat(buildCommand, OUTPUT_EXECUTABLE_NAME);
-
-	// files to compile	
-	buildCommand = sdscat(buildCommand, " ");
-	// append the filename to the build string
-	for (int i = 0; i < self->sourceFiles->size; i++) {
-		SourceFile *sourceFile = getVectorItem(self->sourceFiles, i);
-		buildCommand = sdscat(buildCommand, sourceFile->generatedSourceName);
-
-		if (i != self->sourceFiles->size - 1) // stop whitespace at the end!
-			buildCommand = sdscat(buildCommand, " ");
-	}
-
-	// linker options
-	buildCommand = sdscat(buildCommand, " ");
-	buildCommand = sdscat(buildCommand, self->linkerFlags);
-
-	// just for debug purposes
-	verboseModeMessage("Running cl args: `%s`", buildCommand);
-
-	// do the command we just created
-	int result = system(buildCommand);
-	if (result != 0)
-		exit(2);
-	
-	sdsfree(self->linkerFlags);
-	sdsfree(buildCommand); // deallocate dat shit baby
-	
-	destroyHeaderFile(boilerplate);*/
 }
