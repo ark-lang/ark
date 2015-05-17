@@ -1,5 +1,5 @@
-#ifndef __BOOL_H
-#define __BOOL_H
+#ifndef __UTIL_H
+#define __UTIL_H
 
 #include <stdio.h>
 #include <stdarg.h>
@@ -165,4 +165,4 @@ void *safeMalloc(size_t size);
  */
 void *safeCalloc(size_t size);
 
-#endif // __BOOL_H
+#endif // __UTIL_H
