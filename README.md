@@ -5,7 +5,6 @@
 * [Reference](/docs/REFERENCE.md)
 * [Tests](/tests/)
 * [Libraries](/lib/)
-* [Misc](/misc/)
 * [Contributing](/CONTRIBUTING.md)
 * [Alloy Style Guide](/docs/STYLEGUIDE.md)
 
