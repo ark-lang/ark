@@ -561,8 +561,8 @@ at the end of the initializing block, this is because it's still a statement.
 
 ## Generics
 We're still thinking about this, want to suggest an idea/have your say? Post an issue, or comment
-on an existing one (relevant to the topic) [here](https://github.com/felixangell/alloy/issues).
+on an existing one (relevant to the topic) [here](https://github.com/alloy-lang/alloy/issues).
 
 ## Macro System
 We're still thinking about this, want to suggest an idea/have your say? Post an issue, or comment
-on an existing one (relevant to the topic) [here](https://github.com/felixangell/alloy/issues).
+on an existing one (relevant to the topic) [here](https://github.com/alloy-lang/alloy/issues).
