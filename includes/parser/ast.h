@@ -38,7 +38,7 @@ typedef enum {
 	TUPLE_EXPR_NODE, OPTION_TYPE_NODE, 
 	MACRO_NODE, USE_MACRO_NODE, LINKER_FLAG_MACRO_NODE, EXPR_STAT_NODE, ARRAY_INITIALIZER_NODE, ARRAY_INDEX_NODE,
 	CHAR_LITERAL_NODE, STRING_LITERAL_NODE, INT_LITERAL_NODE, FLOAT_LITERAL_NODE,
-	ALLOC_NODE, FREE_STAT_NODE, NUM_OF_NODES
+	ALLOC_NODE, SIZEOF_NODE, FREE_STAT_NODE, NUM_OF_NODES
 } NodeType;
 
 extern const char *NODE_NAME[];
@@ -64,12 +64,19 @@ typedef struct {
 } IdentifierList;
 
 /**
- * A node representing an alloc expression
+ * A node representing an alloc expression.
  */
 typedef struct {
 	Type *type; // if we're allocating by type
 	size_t size; // if we're allocating by set size
 } Alloc;
+
+/**
+ * A node representing an sizeof expression.
+ */
+typedef struct {
+	Expression *expr;
+} SizeOf;
 
 /**
  * A node representing a char literal.
@@ -265,6 +272,7 @@ struct s_Expression {
 	ArrayIndex *arrayIndex;
 	TupleExpr *tupleExpr;
 	Alloc *alloc;
+	SizeOf *sizeOf;
 	int exprType;
 };
 
@@ -628,6 +636,8 @@ Macro *createMacro();
 
 Alloc *createAlloc();
 
+SizeOf *createSizeOf();
+
 FreeStat *createFreeStat();
 
 ElseStat *createElseStat();
@@ -737,6 +747,8 @@ void destroyUnstructuredStatement(UnstructuredStatement *stmt);
 void destroyMacro(Macro *macro);
 
 void destroyAlloc(Alloc *alloc);
+
+void destroySizeOf(SizeOf *sizeOf);
 
 void destroyFreeStat(FreeStat *freeStat);
 

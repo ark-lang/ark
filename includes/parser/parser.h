@@ -51,6 +51,7 @@
 #define ELSE_KEYWORD                "else"
 #define ALLOC_KEYWORD               "alloc"
 #define FREE_KEYWORD                "free"
+#define SIZEOF_KEYWORD              "sizeof"
 
 /**
  * Various operators that are used in the parser, also used
@@ -182,6 +183,14 @@ Type *parseType(Parser *parser);
  */
 Alloc *parseAlloc(Parser *self);
 
+/**
+ * Parses an sizeof expression
+ */
+SizeOf *parseSizeOf(Parser *self);
+
+/**
+ * Parses an free statement
+ */
 FreeStat *parseFreeStat(Parser *self);
 
 /**

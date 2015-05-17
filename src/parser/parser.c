@@ -1269,7 +1269,26 @@ Alloc *parseAlloc(Parser *self) {
 		alloc->type = type;
 		return alloc;
 	}
+
     return false;
+}
+
+SizeOf *parseSizeOf(Parser *self) {
+	if (checkTokenTypeAndContent(self, TOKEN_IDENTIFIER, SIZEOF_KEYWORD, 0)) {
+		consumeToken(self);
+
+		Expression *expr = parseExpression(self);
+		if (expr) {
+			SizeOf *sizeOf = createSizeOf();
+			sizeOf->expr = expr;
+			return sizeOf;
+		}
+		else {
+			parserError("Invalid expression in sizeof keyword");
+		}
+	}
+
+	return false;
 }
 
 FreeStat *parseFreeStat(Parser *self) {
@@ -1700,6 +1719,14 @@ Expression *parsePrimaryExpression(Parser *self) {
 		return expr;
 	}
 	
+	SizeOf *sizeOf = parseSizeOf(self);
+	if (sizeOf) {
+		Expression *expr = createExpression();
+		expr->sizeOf = sizeOf;
+		expr->exprType = SIZEOF_NODE;
+		return expr;
+	}
+
 	if (checkTokenType(self, TOKEN_IDENTIFIER, 0) && (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, "(", 1))) {
 		Call *call = parseCall(self);
 		if (call) {
