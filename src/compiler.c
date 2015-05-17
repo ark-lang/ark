@@ -34,7 +34,7 @@ void version() {
 #endif
 }
 
-static void parse_argument(CommandLineArgument *arg) {
+static void parseArgument(CommandLineArgument *arg) {
 	if (!strcmp(arg->argument, VERSION_ARG)) {
 		version();
 		exit(0);
@@ -113,8 +113,7 @@ Compiler *createCompiler(int argc, char** argv) {
 				i++; // skips the argument
 			}
 
-			// parse the argument
-			parse_argument(&arg);
+			parseArgument(&arg);
 		}
 		else if (strstr(argv[i], ".aly")) {
 			SourceFile *file = createSourceFile(sdsnew(argv[i]));
