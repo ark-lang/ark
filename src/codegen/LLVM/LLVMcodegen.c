@@ -33,8 +33,6 @@ LLVMCodeGenerator *createLLVMCodeGenerator(Vector *sourceFiles) {
 	self->currentNode = 0;
 	self->sourceFiles = sourceFiles;
 	
-	self->mod = LLVMModuleCreateWithName(LLVM_MODULE_NAME);
-	
 	return self;
 }
 
@@ -44,8 +42,6 @@ void destroyLLVMCodeGenerator(LLVMCodeGenerator *self) {
 		destroySourceFile(sourceFile);
 		verboseModeMessage("Destroyed source files iteration %d", i);
 	}
-	
-	LLVMDisposeModule(self->mod);
 
 	free(self);
 	verboseModeMessage("Destroyed compiler");
@@ -118,12 +114,22 @@ static LLVMTypeRef getLLVMType(DataType type) {
 }
 
 void startLLVMCodeGeneration(LLVMCodeGenerator *self) {
+	//
+	// Generate
+	//
+	
+	
+	//
+	// Verify and output
+	//
 	char *error = NULL;
-	LLVMVerifyModule(self->mod, LLVMAbortProcessAction, &error);
+	LLVMVerifyModule(mod, LLVMAbortProcessAction, &error);
 	if (error != NULL)
 		genError(error);
 	LLVMDisposeMessage(error);
 	
+	
+	// old stuff
 	/*HeaderFile *boilerplate = createHeaderFile("_alloyc_boilerplate");
 	writeHeaderFile(boilerplate);
 	fprintf(boilerplate->outputFile, "%s", BOILERPLATE);

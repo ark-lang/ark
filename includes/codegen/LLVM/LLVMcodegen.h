@@ -16,8 +16,6 @@
 #include "vector.h"
 #include "hashmap.h"
 
-#define LLVM_MODULE_NAME "main_module"
-
 typedef struct {
 	/**
 	 * The current abstract syntax tree being
@@ -42,8 +40,6 @@ typedef struct {
 	 * tree
 	 */
 	int currentNode;
-	
-	LLVMModuleRef mod;
 } LLVMCodeGenerator;
 
 /**
