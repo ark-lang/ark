@@ -1,7 +1,7 @@
 CFLAGS = -g -Wall -std=c99 -Wextra -pedantic -Wno-unused-function -Wno-unused-parameter
 
 ifdef ENABLE_LLVM
-CFLAGS += `llvm-config --cflags` -DENABLE_LLVM
+CFLAGS += `llvm-config --cflags` -DENABLE_LLVM -w
 LDFLAGS = `llvm-config --cxxflags --ldflags --libs core analysis native bitwriter --system-libs`
 endif
 

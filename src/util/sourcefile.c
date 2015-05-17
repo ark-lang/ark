@@ -47,7 +47,9 @@ void closeSourceFile(SourceFile *sourceFile) {
 }
 
 void destroySourceFile(SourceFile *sourceFile) {
+	#ifndef ENABLE_LLVM
 	if (!OUTPUT_C) remove(sourceFile->generatedSourceName);
+	#endif
 
 	destroyHeaderFile(sourceFile->headerFile);
 
@@ -56,7 +58,9 @@ void destroySourceFile(SourceFile *sourceFile) {
 	if (sourceFile->ast) destroyParseTree(sourceFile->ast);
 	sdsfree(sourceFile->fileName);
 	free(sourceFile->name);
+	#ifndef ENABLE_LLVM
 	sdsfree(sourceFile->generatedSourceName);
+	#endif
 	free(sourceFile->fileContents); 
 	free(sourceFile);
 }
