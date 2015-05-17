@@ -476,6 +476,7 @@ void destroyOptionType(OptionType *type) {
 }
 
 void destroyTupleExpr(TupleExpr *tuple) {
+	if (!tuple) return;
 	for (int i = 0; i < tuple->values->size; i++) {
 		destroyExpression(getVectorItem(tuple->values, i));
 	}
@@ -524,6 +525,7 @@ void destroyExpression(Expression *expr) {
 	destroyAlloc(expr->alloc);
 	destroySizeOf(expr->sizeOf);
 	destroyArrayInitializer(expr->arrayInitializer);
+	destroyTupleExpr(expr->tupleExpr);
 	free(expr);
 }
 
