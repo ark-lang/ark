@@ -11,7 +11,7 @@
 
 ## Example
 <p align="center">
-<img src="misc/example.gif" width="312px" height="312px" />
+<img src="//www.alloy-lang.org/example.gif" width="312px" height="312px" />
 </p>
 <p align="center">
 Here's a 3d cube being rendered using SDL and OpenGL in Alloy. You can
