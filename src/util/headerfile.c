@@ -22,14 +22,19 @@ void writeHeaderFile(HeaderFile *headerFile) {
 }
 
 void closeHeaderFile(HeaderFile *headerFile) {
+	verboseModeMessage("Closing headerfile");
 	fclose(headerFile->outputFile);
 }
 
 void destroyHeaderFile(HeaderFile *headerFile) {
+	#ifndef ENABLE_LLVM
 	if (!OUTPUT_C) remove(headerFile->generatedHeaderName);
+	#endif
 
 	verboseModeMessage("Destroyed header file `%s`", headerFile->name);
+	#ifndef ENABLE_LLVM
 	sdsfree(headerFile->generatedHeaderName);
+	#endif
 	free(headerFile->name);
 	free(headerFile);
 }
