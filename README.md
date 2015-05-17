@@ -1,4 +1,4 @@
-# [Alloy](http://alloy-lang.org) [![BuildStatus](https://travis-ci.org/felixangell/alloy.svg?branch=master)](https://travis-ci.org/felixangell/alloy)
+# [Alloy](http://alloy-lang.org) [![BuildStatus](https://travis-ci.org/alloy-lang/alloy.svg?branch=master)](https://travis-ci.org/alloy-lang/alloy)
 
 ## Resources
 
@@ -15,7 +15,7 @@
 </p>
 <p align="center">
 Here's a 3d cube being rendered using SDL and OpenGL in Alloy. You can
-check out the source code for this <a href="https://www.github.com/felixangell/space-invaders">here</a>
+check out the source code for this <a href="https://www.github.com/alloy-lang/space-invaders">here</a>
 </p>
 
 ## Disclaimer?
@@ -37,7 +37,7 @@ You will need:
 
 ### Compiling
 
-	$ git clone http://www.github.com/felixangell/alloy
+	$ git clone http://www.github.com/alloy-lang/alloy
 	$ cd alloy
 	$ make
 
