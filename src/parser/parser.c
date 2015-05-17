@@ -1250,6 +1250,16 @@ Alloc *parseAlloc(Parser *self) {
 	if (checkTokenTypeAndContent(self, TOKEN_IDENTIFIER, ALLOC_KEYWORD, 0)) {
 		consumeToken(self);
 		
+		if (peekAtTokenStream(self, 0)->type == TOKEN_NUMBER) {
+			IntLit *intLit = parseIntLit(self);
+			if (intLit) {
+				Alloc *alloc = createAlloc();
+				alloc->size = intLit->value;
+				destroyIntLit(intLit);
+				return alloc;
+			}
+		}
+		
 		Type *type = parseType(self);
 		if (!type) {
 			parserError("Invalid type in alloc expression: `%s`", peekAtTokenStream(self, 0)->content);
