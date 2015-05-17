@@ -7,8 +7,8 @@ static const char *TYPE_NAME[] = {
 VarType *createVarType(int type) {
 	VarType *var = safeMalloc(sizeof(*var));
 	var->type = type;
-	var->is_array = false;
-	var->array_len = 0;
+	var->isArray = false;
+	var->arrayLen = 0;
 	return var;
 }
 
@@ -104,8 +104,8 @@ VarType *deduceTypeFromArrayInitializer(SemanticAnalyzer *self, ArrayInitializer
 	destroyVector(types);
 
 	VarType *result = createVarType(*firstType);
-	result->is_array = true;
-	result->array_len = arr->values->size;
+	result->isArray = true;
+	result->arrayLen = arr->values->size;
 	return result;
 }
 
