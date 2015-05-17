@@ -394,6 +394,14 @@ static void emitAlloc(CCodeGenerator *self, Alloc *alloc) {
 	}*/
 }
 
+static void emitSizeOf(CCodeGenerator *self, SizeOf *sizeOf) {
+	emitCode(self, "(");
+	emitCode(self, "sizeof(");
+	emitExpression(self, sizeOf->expr);
+	emitCode(self, ")");
+	emitCode(self, ")");
+}
+
 static void emitExpression(CCodeGenerator *self, Expression *expr) {
 	switch (expr->exprType) {
 		case TYPE_NODE: emitType(self, expr->type); break;
@@ -407,6 +415,7 @@ static void emitExpression(CCodeGenerator *self, Expression *expr) {
 			emitArrayIndex(self, expr->arrayIndex);
 		} break;
 		case ALLOC_NODE: emitAlloc(self, expr->alloc); break;
+		case SIZEOF_NODE: emitSizeOf(self, expr->sizeOf); break;
 		default:
 			errorMessage("Unknown node in expression %d", expr->exprType);
 			break;
