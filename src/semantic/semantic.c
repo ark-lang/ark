@@ -274,7 +274,7 @@ void analyzeExpression(SemanticAnalyzer *self, Expression *expr) {
 		case TYPE_NODE: analyzeTypeNode(self, expr->type); break;
 		case LITERAL_NODE: analyzeLiteralNode(self, expr->lit); break;
 		default:
-			errorMessage("Unkown node in expression: %s (%d)", getNodeTypeName(expr->exprType), expr->exprType);
+			errorMessage("Unknown node in expression: %s (%d)", getNodeTypeName(expr->exprType), expr->exprType);
 			break;
 	}
 }
@@ -286,8 +286,9 @@ void analyzeUnstructuredStatement(SemanticAnalyzer *self, UnstructuredStatement 
 		case ASSIGNMENT_NODE: analyzeAssignment(self, unstructured->assignment); break;
 		case EXPR_STAT_NODE: analyzeExpression(self, unstructured->expr); break;
 		case LEAVE_STAT_NODE: break; // TODO
+		case FREE_STAT_NODE: break; //TODO
 		default:
-			errorMessage("Unkown node in expression: %s", getNodeTypeName(unstructured->type));
+			errorMessage("Unknown node in unstructured statement: %s", getNodeTypeName(unstructured->type));
 			break;
 	}
 }
