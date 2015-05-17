@@ -13,7 +13,7 @@ fn main(): int {
 	printf("y is %d\n", ^y);
 	free y;
 	
-	mut a: ^i8 = alloc 1;
+	mut a: ^i8 = alloc 2;
 	^a = 'h';
 	printf("%s\n", a);
 	free a;
