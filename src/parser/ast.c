@@ -363,7 +363,6 @@ void cleanupAST(Vector *nodes) {
 			case EXPR_NODE: destroyExpression(node->data); break;
 			case TYPE_NAME_NODE: destroyTypeName(node->data); break;
 			case ARRAY_TYPE_NODE: destroyArrayType(node->data); break;
-			case ARRAY_INDEX_NODE: destroyArrayIndex(node->data); break;
 			case POINTER_TYPE_NODE: destroyPointerType(node->data); break;
 			case FIELD_DECL_NODE: destroyFieldDecl(node->data); break;
 			case FIELD_DECL_LIST_NODE: destroyFieldDeclList(node->data); break;
@@ -412,6 +411,7 @@ void destroyArrayInitializer(ArrayInitializer *array) {
 }
 
 void destroyArrayIndex(ArrayIndex *arrayIndex) {
+	if (!arrayIndex) return;
 	free(arrayIndex->index);
 	free(arrayIndex);
 }
@@ -517,6 +517,7 @@ void destroyExpression(Expression *expr) {
 	destroyBinaryExpression(expr->binary);
 	destroyCall(expr->call);
 	destroyLiteral(expr->lit);
+	destroyArrayIndex(expr->arrayIndex);
 	destroyType(expr->type);
 	destroyUnaryExpr(expr->unary);
 	destroyAlloc(expr->alloc);
