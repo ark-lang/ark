@@ -91,11 +91,11 @@ void analyzeStructDeclaration(SemanticAnalyzer *self, StructDecl *decl) {
 	pushStructDeclaration(self, decl);
 }
 
-Type *varTypeToType(VariableType type) {
+Type *varTypeToType(VarType *type) {
 	Type *result = createType();
 	result->type = TYPE_NAME_NODE;
 
-	switch (type) {
+	switch (type->type) {
 		case INTEGER_VAR_TYPE:
 			result->typeName = createTypeName("int");
 			break;
@@ -105,12 +105,16 @@ Type *varTypeToType(VariableType type) {
 		case STRING_VAR_TYPE:
 			result->typeName = createTypeName("str");
 			break;
-		// TODO eventually runes or whatever when we do utf8???
 		case CHAR_VAR_TYPE:
 			result->typeName = createTypeName("i8");
 			break;
-		default: return NULL; // TODO error
+		default: 
+			errorMessage("Could not deduce type for <TODO> lol");
+			return NULL; // TODO error
 	}
+
+	result->typeName->is_array = type->is_array;
+	result->typeName->array_len = type->array_len;
 
 	return result;
 }
@@ -120,7 +124,7 @@ void analyzeVariableDeclaration(SemanticAnalyzer *self, VariableDecl *decl) {
 	// doesn't exist
 	if (!mapDecl) {
 		if (decl->inferred) {
-			VariableType type = deduceTypeFromExpression(self, decl->expr);
+			VarType* type = deduceTypeFromExpression(self, decl->expr);
 			decl->type = varTypeToType(type);
 		}
 		else if (decl->type->typeName) {
@@ -258,11 +262,8 @@ void analyzeTypeNode(SemanticAnalyzer *self, Type *type) {
 void analyzeLiteralNode(SemanticAnalyzer *self, Literal *lit) {
 	// TODO
 	switch (lit->type) {
-		case CHAR_LITERAL_NODE:
-			printf("char literal value: %d\n", lit->charLit->value);
-			break;
-		default:
-			printf("other literal value, type %d\n", lit->type);
+		case CHAR_LITERAL_NODE: break;
+		case INT_LITERAL_NODE: break;
 	}
 }
 

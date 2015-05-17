@@ -620,6 +620,13 @@ static void emitVariableDecl(CCodeGenerator *self, VariableDecl *decl) {
 		emitCode(self, "]");
 	}
 
+	// HACK FOR INFERENCE
+	else if (decl->type->type == TYPE_NAME_NODE) {
+		if (decl->type->typeName->is_array) {
+			emitCode(self, "[%d]", decl->type->typeName->array_len);
+		}
+	}
+
 	if (decl->assigned) {
 		if (isHeaderVariable) {
 			emitCode(self, ";" CC_NEWLINE);
@@ -633,6 +640,13 @@ static void emitVariableDecl(CCodeGenerator *self, VariableDecl *decl) {
 				emitCode(self, "[");
 				if (decl->type->typeLit->arrayType->expr) emitExpression(self, decl->type->typeLit->arrayType->expr);
 				emitCode(self, "]");
+			}
+
+			// HACK FOR INFERENCE
+			else if (decl->type->type == TYPE_NAME_NODE) {
+				if (decl->type->typeName->is_array) {
+					emitCode(self, "[%d]", decl->type->typeName->array_len);
+				}
 			}
 		}
 		emitCode(self, " = ");
