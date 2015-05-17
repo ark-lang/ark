@@ -70,7 +70,7 @@ for name in files:
 	if compile_result != 0:
 		if show_output: 
 			print(red(bold("Compilation failed:")) + " returned with " + str(compile_result))
-		files_tested.append(TestFile(output_file, True))
+		files_tested.append(TestFile(name, True))
 		num_of_files_failed += 1
 		if show_output: print("")
 		continue
@@ -91,10 +91,10 @@ for name in files:
 	
 	if run_result != 0:
 		if show_output: print(red(bold("Running failed:")) + " returned with " + str(run_result))
-		files_tested.append(TestFile(output_file, True))
+		files_tested.append(TestFile(name, True))
 		num_of_files_failed += 1
 	else:
-		files_tested.append(TestFile(output_file, False))
+		files_tested.append(TestFile(name, False))
 		num_of_files_passed += 1
 		
 	if show_output: print("")
