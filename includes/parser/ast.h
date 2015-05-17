@@ -138,8 +138,8 @@ typedef struct {
 typedef struct {
 	char *name;
 	int type;
-	bool is_array;
-	int array_len;
+	bool isArray;
+	int arrayLen;
 } TypeName;
 
 /**

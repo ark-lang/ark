@@ -113,8 +113,8 @@ Type *varTypeToType(VarType *type) {
 			return NULL; // TODO error
 	}
 
-	result->typeName->is_array = type->is_array;
-	result->typeName->array_len = type->array_len;
+	result->typeName->isArray = type->isArray;
+	result->typeName->arrayLen = type->arrayLen;
 
 	return result;
 }

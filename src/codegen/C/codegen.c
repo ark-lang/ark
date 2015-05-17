@@ -622,8 +622,8 @@ static void emitVariableDecl(CCodeGenerator *self, VariableDecl *decl) {
 
 	// HACK FOR INFERENCE
 	else if (decl->type->type == TYPE_NAME_NODE) {
-		if (decl->type->typeName->is_array) {
-			emitCode(self, "[%d]", decl->type->typeName->array_len);
+		if (decl->type->typeName->isArray) {
+			emitCode(self, "[%d]", decl->type->typeName->arrayLen);
 		}
 	}
 
@@ -644,8 +644,8 @@ static void emitVariableDecl(CCodeGenerator *self, VariableDecl *decl) {
 
 			// HACK FOR INFERENCE
 			else if (decl->type->type == TYPE_NAME_NODE) {
-				if (decl->type->typeName->is_array) {
-					emitCode(self, "[%d]", decl->type->typeName->array_len);
+				if (decl->type->typeName->isArray) {
+					emitCode(self, "[%d]", decl->type->typeName->arrayLen);
 				}
 			}
 		}
