@@ -31,7 +31,7 @@ LLVMValueRef genStatement(LLVMCodeGenerator *self, Statement *stmt);
 
 LLVMValueRef genFunctionDecl(LLVMCodeGenerator *self, FunctionDecl *decl);
 
-void genDeclaration(LLVMCodeGenerator *self, Declaration *decl);
+LLVMValueRef genDeclaration(LLVMCodeGenerator *self, Declaration *decl);
 
 LLVMValueRef genUnstructuredStatementNode(LLVMCodeGenerator *self, UnstructuredStatement *stmt);
 
@@ -151,6 +151,9 @@ LLVMValueRef genStatement(LLVMCodeGenerator *self, Statement *stmt) {
 			return genUnstructuredStatementNode(self, stmt->unstructured);
 		case STRUCTURED_STATEMENT_NODE: 
 			return genStructuredStatementNode(self, stmt->structured);
+		default:
+			printf("cheeky nandos with me nan\n");
+			break;
 	}
 	return false;
 }
@@ -165,7 +168,7 @@ LLVMValueRef genFunctionDecl(LLVMCodeGenerator *self, FunctionDecl *decl) {
 	LLVMBasicBlockRef block = LLVMAppendBasicBlock(prototype, "entry");
 	LLVMPositionBuilderAtEnd(self->builder, block);
 
-	LLVMValueRef body = LLVMConstInt(getIntType(), 32, 0); // genStatement(self, decl->body);
+	LLVMValueRef body = genStatement(self, decl->body);
 	if (!body) {
 		genError("something fucked up here");
 		LLVMDeleteFunction(prototype);
@@ -182,20 +185,31 @@ LLVMValueRef genFunctionDecl(LLVMCodeGenerator *self, FunctionDecl *decl) {
 	return prototype;
 }
 
-void genDeclaration(LLVMCodeGenerator *self, Declaration *decl) {
+LLVMValueRef genDeclaration(LLVMCodeGenerator *self, Declaration *decl) {
 	switch (decl->type) {
-		case FUNCTION_DECL_NODE: genFunctionDecl(self, decl->funcDecl); break;
+		case FUNCTION_DECL_NODE: return genFunctionDecl(self, decl->funcDecl);
 	}
 }
 
 LLVMValueRef genUnstructuredStatementNode(LLVMCodeGenerator *self, UnstructuredStatement *stmt) {
 	switch (stmt->type) {
-		case DECLARATION_NODE: genDeclaration(self, stmt->decl); break;
-		case EXPR_STAT_NODE: LLVMPositionBuilderAtEnd(self->builder, genExpression(self, stmt->expr)); break;
+		case DECLARATION_NODE: printf("cheeky\n"); return genDeclaration(self, stmt->decl);
+		case EXPR_STAT_NODE: printf("nandos\n"); return genExpression(self, stmt->expr); 
+		default:
+			printf("omg!\n");
+			break;
 	}
+	return false;
 }
 
-LLVMValueRef genStructuredStatementNode(LLVMCodeGenerator *self, StructuredStatement *stmt) {}
+LLVMValueRef genStructuredStatementNode(LLVMCodeGenerator *self, StructuredStatement *stmt) {
+	switch (stmt->type) {
+		default:
+			printf("omg!\n");
+			break;
+	}
+	return false;
+}
 
 void traverseAST(LLVMCodeGenerator *self) {
 	for (int i = 0; i < self->abstractSyntaxTree->size; i++) {
