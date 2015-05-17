@@ -44,6 +44,8 @@ To compile in support for the LLVM backend, pass ENABLE_LLVM=1 to `make`, like s
 
 	$ make ENABLE_LLVM=1
 
+Note that the LLVM backend is currently very incomplete, and is only recommended for development purposes.
+
 ### Testing
 Note that python is required.
 If alloyc is in your `$PATH`:
