@@ -12,4 +12,9 @@ fn main(): int {
 	^y = 6;
 	printf("y is %d\n", ^y);
 	free y;
+	
+	mut a: ^i8 = alloc 1;
+	^a = 'h';
+	printf("%s\n", a);
+	free a;
 }
