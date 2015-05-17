@@ -20,10 +20,11 @@ const char *NODE_NAME[] = {
 	"DECLARATION_NODE", "INC_DEC_STAT_NODE", "RETURN_STAT_NODE", "BREAK_STAT_NODE",
 	"CONTINUE_STAT_NODE", "LEAVE_STAT_NODE", "ASSIGNMENT_NODE", "UNSTRUCTURED_STATEMENT_NODE",
 	"ELSE_STAT_NODE", "IF_STAT_NODE", "MATCH_CLAUSE_STAT", "MATCH_STAT_NODE", "FOR_STAT_NODE",
-	"STRUCTURED_STATEMENT_NODE", "STATEMENT_NODE", "TYPE_NODE", "POINTER_FREE_NODE", "TUPLE_TYPE_NODE",
+	"STRUCTURED_STATEMENT_NODE", "STATEMENT_NODE", "TYPE_NODE", "TUPLE_TYPE_NODE",
 	"TUPLE_EXPR_NODE", "OPTION_TYPE_NODE", 
-	"MACRO_NODE", "USE_MACRO_NODE", "LINKER_FLAG_MACRO_NODE", "EXPR_STAT_NODE", "ARRAY_INITIALIZER_NODE", "ARRAY_INDEX_NODE",
-	"CHAR_LITERAL_NODE", "STRING_LITERAL_NODE", "INT_LITERAL_NODE", "FLOAT_LITERAL_NODE"
+	"MACRO_NODE", "USE_MACRO_NODE", "LINKER_FLAG_MACRO_NODE", "EXPR_STAT_NODE", "ARRAY_INITIALIZER_NODE",
+	"ARRAY_INDEX_NODE", "CHAR_LITERAL_NODE", "STRING_LITERAL_NODE", "INT_LITERAL_NODE",
+	"FLOAT_LITERAL_NODE", "ALLOC_NODE", "FREE_STAT_NODE"
 };
 
 // Useful for debugging
@@ -299,10 +300,12 @@ Macro *createMacro() {
 	return safeCalloc(sizeof(Macro));
 }
 
-PointerFree *createPointerFree(char *name) {
-	PointerFree *pntr = safeMalloc(sizeof(*pntr));
-	pntr->name = name;
-	return pntr;
+Alloc *createAlloc() {
+	return safeCalloc(sizeof(Alloc));
+}
+
+FreeStat *createFreeStat() {
+	return safeCalloc(sizeof(FreeStat));
 }
 
 ElseStat *createElseStat() {
@@ -512,6 +515,7 @@ void destroyExpression(Expression *expr) {
 	destroyLiteral(expr->lit);
 	destroyType(expr->type);
 	destroyUnaryExpr(expr->unary);
+	destroyAlloc(expr->alloc);
 	free(expr);
 }
 
@@ -660,6 +664,7 @@ void destroyUnstructuredStatement(UnstructuredStatement *stmt) {
 		case LEAVE_STAT_NODE: destroyLeaveStat(stmt->leave); break;
 		case FUNCTION_CALL_NODE: destroyCall(stmt->call); break;
 		case EXPR_STAT_NODE: destroyExpression(stmt->expr); break;
+		case FREE_STAT_NODE: destroyFreeStat(stmt->freeStat); break;
 		default:
 			errorMessage("Unstructured statement isn't being destroyed");
 			break;
@@ -679,8 +684,16 @@ void destroyMacro(Macro *macro) {
 	free(macro);
 }
 
-void destroyPointerFree(PointerFree *pntr) {
-	free(pntr);
+void destroyAlloc(Alloc *alloc) {
+	if (!alloc) return;
+	destroyType(alloc->type);
+	free(alloc);
+}
+
+void destroyFreeStat(FreeStat *freeStat) {
+	if (!freeStat) return;
+	destroyType(freeStat->type);
+	free(freeStat);
 }
 
 void destroyElseIfStat(ElseIfStat *stmt) {
