@@ -898,6 +898,9 @@ static void emitIfStat(CCodeGenerator *self, IfStat *ifs) {
 	if (ifs->elseIfStmts != NULL) {
 		for (int i = 0; i < ifs->elseIfStmts->size; i++) {
 			emitElseIfStat(self, getVectorItem(ifs->elseIfStmts, i));
+			if (i == ifs->elseIfStmts->size - 1) {
+				emitCode(self, CC_NEWLINE);
+			}
 		}
 	}
 
