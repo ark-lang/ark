@@ -377,7 +377,7 @@ static void emitAlloc(CCodeGenerator *self, Alloc *alloc) {
 		emitCode(self, "));" CC_NEWLINE);
 	}
 	else {
-		emitCode(self, "malloc(1, %d);" CC_NEWLINE);
+		emitCode(self, "calloc(1, %d);" CC_NEWLINE, alloc->size);
 	}
 	
 	// Emit struct initializers TODO
