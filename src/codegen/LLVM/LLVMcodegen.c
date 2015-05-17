@@ -37,6 +37,10 @@ LLVMValueRef genUnstructuredStatementNode(LLVMCodeGenerator *self, UnstructuredS
 
 LLVMValueRef genStructuredStatementNode(LLVMCodeGenerator *self, StructuredStatement *stmt);
 
+LLVMValueRef genBinaryExpression(LLVMCodeGenerator *self, BinaryExpr *expr);
+
+LLVMValueRef genExpression(LLVMCodeGenerator *self, Expression *expr);
+
 // Definitions
 
 LLVMCodeGenerator *createLLVMCodeGenerator(Vector *sourceFiles) {
@@ -66,6 +70,45 @@ static void consumeAstNode(LLVMCodeGenerator *self) {
 
 static void consumeAstNodeBy(LLVMCodeGenerator *self, int amount) {
 	self->currentNode += amount;
+}
+
+LLVMValueRef genBinaryExpression(LLVMCodeGenerator *self, BinaryExpr *expr) {
+	LLVMValueRef lhs = genExpression(self, expr->lhand);
+	LLVMValueRef rhs = genExpression(self, expr->lhand);
+	if (!lhs || !rhs) {
+		genError("Invalid expression");
+		// TODO
+	}
+
+	if (!strcmp(expr->binaryOp, "+")) {
+		return LLVMBuildFAdd(self->builder, lhs, rhs, "add");
+	}
+	else if (!strcmp(expr->binaryOp, "-")) {
+		return LLVMBuildFSub(self->builder, lhs, rhs, "sub");
+	}
+	else if (!strcmp(expr->binaryOp, "*")) {
+		return LLVMBuildFMul(self->builder, lhs, rhs, "mul");
+	}
+	else if (!strcmp(expr->binaryOp, "/")) {
+		return LLVMBuildFDiv(self->builder, lhs, rhs, "div");
+	}
+}
+
+LLVMValueRef genExpression(LLVMCodeGenerator *self, Expression *expr) {
+	switch (expr->exprType) {
+		case TYPE_NODE: break;
+		case LITERAL_NODE: break;
+		case BINARY_EXPR_NODE: return genBinaryExpression(self, expr->binary);
+		case UNARY_EXPR_NODE: break;
+		case FUNCTION_CALL_NODE: break;
+		case ARRAY_INITIALIZER_NODE: break;
+		case ARRAY_INDEX_NODE: break;
+		case ALLOC_NODE: break;
+		case SIZEOF_NODE: break;
+		default:
+			errorMessage("Unknown node in expression %d", expr->exprType);
+			break;
+	}
 }
 
 LLVMValueRef genFunctionSignature(LLVMCodeGenerator *self, FunctionSignature *decl) {
@@ -148,7 +191,7 @@ void genDeclaration(LLVMCodeGenerator *self, Declaration *decl) {
 LLVMValueRef genUnstructuredStatementNode(LLVMCodeGenerator *self, UnstructuredStatement *stmt) {
 	switch (stmt->type) {
 		case DECLARATION_NODE: genDeclaration(self, stmt->decl); break;
-		case EXPR_STAT_NODE: printf("idk\n"); break;
+		case EXPR_STAT_NODE: LLVMPositionBuilderAtEnd(self->builder, genExpression(self, stmt->expr)); break;
 	}
 }
 
@@ -170,6 +213,12 @@ void startLLVMCodeGeneration(LLVMCodeGenerator *self) {
 		self->abstractSyntaxTree = self->currentSourceFile->ast;
 
 		traverseAST(self);
+
+		// just dump mods for now
+		LLVMDumpModule(sf->module);
+		// if (LLVMWriteBitcodeToFile(sf->module, "test.bc")) {
+		// 	genError("Failed to write bit-code");
+		// }
 	}
 }
 
