@@ -274,6 +274,7 @@ void analyzeExpression(SemanticAnalyzer *self, Expression *expr) {
 		case TYPE_NODE: analyzeTypeNode(self, expr->type); break;
 		case LITERAL_NODE: analyzeLiteralNode(self, expr->lit); break;
 		case SIZEOF_NODE: analyzeExpression(self, expr->sizeOf->expr); break;
+		case ARRAY_INDEX_NODE: analyzeExpression(self, expr->arrayIndex->index); break;
 		default:
 			errorMessage("Unknown node in expression: %s (%d)", getNodeTypeName(expr->exprType), expr->exprType);
 			break;
