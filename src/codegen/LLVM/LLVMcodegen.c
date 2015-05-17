@@ -25,6 +25,22 @@ static LLVMTypeRef getIntType();
 
 static LLVMTypeRef getLLVMType(DataType type);
 
+LLVMValueRef genFunctionSignature(LLVMCodeGenerator *self, FunctionSignature *decl);
+
+LLVMValueRef genStatement(LLVMCodeGenerator *self, Statement *stmt);
+
+LLVMValueRef genFunctionDecl(LLVMCodeGenerator *self, FunctionDecl *decl);
+
+void genDeclaration(LLVMCodeGenerator *self, Declaration *decl);
+
+LLVMValueRef genUnstructuredStatementNode(LLVMCodeGenerator *self, UnstructuredStatement *stmt);
+
+LLVMValueRef genStructuredStatementNode(LLVMCodeGenerator *self, StructuredStatement *stmt);
+
+LLVMValueRef genBinaryExpression(LLVMCodeGenerator *self, BinaryExpr *expr);
+
+LLVMValueRef genExpression(LLVMCodeGenerator *self, Expression *expr);
+
 // Definitions
 
 LLVMCodeGenerator *createLLVMCodeGenerator(Vector *sourceFiles) {
@@ -32,13 +48,14 @@ LLVMCodeGenerator *createLLVMCodeGenerator(Vector *sourceFiles) {
 	self->abstractSyntaxTree = NULL;
 	self->currentNode = 0;
 	self->sourceFiles = sourceFiles;
-	
+	self->builder = LLVMCreateBuilder();
 	return self;
 }
 
 void destroyLLVMCodeGenerator(LLVMCodeGenerator *self) {
 	for (int i = 0; i < self->sourceFiles->size; i++) {
 		SourceFile *sourceFile = getVectorItem(self->sourceFiles, i);
+		LLVMDisposeModule(sourceFile->module);
 		destroySourceFile(sourceFile);
 		verboseModeMessage("Destroyed source files iteration %d", i);
 	}
@@ -55,18 +72,165 @@ static void consumeAstNodeBy(LLVMCodeGenerator *self, int amount) {
 	self->currentNode += amount;
 }
 
+LLVMValueRef genBinaryExpression(LLVMCodeGenerator *self, BinaryExpr *expr) {
+	LLVMValueRef lhs = genExpression(self, expr->lhand);
+	LLVMValueRef rhs = genExpression(self, expr->lhand);
+	if (!lhs || !rhs) {
+		genError("Invalid expression");
+		// TODO
+	}
+
+	if (!strcmp(expr->binaryOp, "+")) {
+		return LLVMBuildFAdd(self->builder, lhs, rhs, "add");
+	}
+	else if (!strcmp(expr->binaryOp, "-")) {
+		return LLVMBuildFSub(self->builder, lhs, rhs, "sub");
+	}
+	else if (!strcmp(expr->binaryOp, "*")) {
+		return LLVMBuildFMul(self->builder, lhs, rhs, "mul");
+	}
+	else if (!strcmp(expr->binaryOp, "/")) {
+		return LLVMBuildFDiv(self->builder, lhs, rhs, "div");
+	}
+}
+
+LLVMValueRef genExpression(LLVMCodeGenerator *self, Expression *expr) {
+	switch (expr->exprType) {
+		case TYPE_NODE: break;
+		case LITERAL_NODE: break;
+		case BINARY_EXPR_NODE: return genBinaryExpression(self, expr->binary);
+		case UNARY_EXPR_NODE: break;
+		case FUNCTION_CALL_NODE: break;
+		case ARRAY_INITIALIZER_NODE: break;
+		case ARRAY_INDEX_NODE: break;
+		case ALLOC_NODE: break;
+		case SIZEOF_NODE: break;
+		default:
+			errorMessage("Unknown node in expression %d", expr->exprType);
+			break;
+	}
+}
+
+LLVMValueRef genFunctionSignature(LLVMCodeGenerator *self, FunctionSignature *decl) {
+	// store arguments from func signature
+	unsigned int argCount = decl->parameters->paramList->size;
+
+	// lookup func
+	LLVMValueRef func = LLVMGetNamedFunction(self->currentSourceFile->module, decl->name);
+	if (func) {
+		if (LLVMCountParams(func) != argCount) {
+			genError("Function exists with different function signature");
+			return false;
+		}
+	}
+	else {
+		// set llvm params
+		LLVMTypeRef *params = safeMalloc(sizeof(LLVMTypeRef) * argCount);
+		for (int i = 0; i < argCount; i++) {
+			ParameterSection *param = getVectorItem(decl->parameters->paramList, i);
+			if (param->type->type != TYPE_NAME_NODE) {
+				genError("Unsupported type :(");
+				return false;
+			}
+			int type = getTypeFromString(param->type->typeName->name);
+			params[i] = getLLVMType(type);
+		}
+
+		// create func prototype and add it to the module
+		int funcType = getTypeFromString(decl->type->typeName->name);
+		LLVMTypeRef funcTypeRef = LLVMFunctionType(getLLVMType(funcType), params, argCount, false);
+		func = LLVMAddFunction(self->currentSourceFile->module, decl->name, funcTypeRef);
+	}
+
+	return func;
+}
+
+LLVMValueRef genStatement(LLVMCodeGenerator *self, Statement *stmt) {
+	switch (stmt->type) {
+		case UNSTRUCTURED_STATEMENT_NODE: 
+			return genUnstructuredStatementNode(self, stmt->unstructured);
+		case STRUCTURED_STATEMENT_NODE: 
+			return genStructuredStatementNode(self, stmt->structured);
+	}
+	return false;
+}
+
+LLVMValueRef genFunctionDecl(LLVMCodeGenerator *self, FunctionDecl *decl) {
+	LLVMValueRef prototype = genFunctionSignature(self, decl->signature);
+	if (!prototype) {
+		genError("hmm");
+		return NULL;
+	}
+
+	LLVMBasicBlockRef block = LLVMAppendBasicBlock(prototype, "entry");
+	LLVMPositionBuilderAtEnd(self->builder, block);
+
+	LLVMValueRef body = LLVMConstInt(getIntType(), 32, 0); // genStatement(self, decl->body);
+	if (!body) {
+		genError("something fucked up here");
+		LLVMDeleteFunction(prototype);
+		return false;
+	}
+
+	LLVMBuildRet(self->builder, body);
+	if (LLVMVerifyFunction(prototype, LLVMPrintMessageAction)) {
+		genError("Invalid function");
+		LLVMDeleteFunction(prototype);
+		return false;
+	}
+
+	return prototype;
+}
+
+void genDeclaration(LLVMCodeGenerator *self, Declaration *decl) {
+	switch (decl->type) {
+		case FUNCTION_DECL_NODE: genFunctionDecl(self, decl->funcDecl); break;
+	}
+}
+
+LLVMValueRef genUnstructuredStatementNode(LLVMCodeGenerator *self, UnstructuredStatement *stmt) {
+	switch (stmt->type) {
+		case DECLARATION_NODE: genDeclaration(self, stmt->decl); break;
+		case EXPR_STAT_NODE: LLVMPositionBuilderAtEnd(self->builder, genExpression(self, stmt->expr)); break;
+	}
+}
+
+LLVMValueRef genStructuredStatementNode(LLVMCodeGenerator *self, StructuredStatement *stmt) {}
+
+void traverseAST(LLVMCodeGenerator *self) {
+	for (int i = 0; i < self->abstractSyntaxTree->size; i++) {
+		Statement *stmt = getVectorItem(self->abstractSyntaxTree, i);
+		genStatement(self, stmt);
+	}
+}
+
+void startLLVMCodeGeneration(LLVMCodeGenerator *self) {
+	for (int i = 0; i < self->sourceFiles->size; i++) {
+		SourceFile *sf = getVectorItem(self->sourceFiles, i);
+		sf->module = LLVMModuleCreateWithName(sf->name);
+		self->currentNode = 0;
+		self->currentSourceFile = sf;
+		self->abstractSyntaxTree = self->currentSourceFile->ast;
+
+		traverseAST(self);
+
+		// just dump mods for now
+		LLVMDumpModule(sf->module);
+		// if (LLVMWriteBitcodeToFile(sf->module, "test.bc")) {
+		// 	genError("Failed to write bit-code");
+		// }
+	}
+}
+
 static LLVMTypeRef getIntType() {
 	switch (sizeof(int)) {
-		case 2:
-			return LLVMInt16Type();
-		case 4:
-			return LLVMInt32Type();
-		case 8:
-			return LLVMInt64Type();
+		case 2: return LLVMInt16Type();
+		case 4: return LLVMInt32Type();
+		case 8: return LLVMInt64Type();
 		default:
 			// either something fucked up, or we're in the future on 128 bit machines
-			genError("You have some wacky-sized int type!");
-			return NULL;
+			verboseModeMessage("You have some wacky-sized int type, switching to 16 bit for default!");
+			return LLVMInt16Type();
 	}
 }
 
@@ -111,102 +275,4 @@ static LLVMTypeRef getLLVMType(DataType type) {
 			genError("Unknown type");
 			return NULL;
 	}
-}
-
-void startLLVMCodeGeneration(LLVMCodeGenerator *self) {
-	//
-	// Generate
-	//
-	
-	
-	//
-	// Verify and output
-	//
-	char *error = NULL;
-	LLVMVerifyModule(mod, LLVMAbortProcessAction, &error);
-	if (error != NULL)
-		genError(error);
-	LLVMDisposeMessage(error);
-	
-	
-	// old stuff
-	/*HeaderFile *boilerplate = createHeaderFile("_alloyc_boilerplate");
-	writeHeaderFile(boilerplate);
-	fprintf(boilerplate->outputFile, "%s", BOILERPLATE);
-	closeHeaderFile(boilerplate);
-	
-	for (int i = 0; i < self->sourceFiles->size; i++) {
-		SourceFile *sf = getVectorItem(self->sourceFiles, i);
-		self->currentNode = 0;
-		self->currentSourceFile = sf;
-		self->abstractSyntaxTree = self->currentSourceFile->ast;
-		
-		writeFiles(self->currentSourceFile);
-
-		self->writeState = WRITE_SOURCE_STATE;
-		// _gen_name.h is the typical name for the headers and c files that are generated
-		emitCode(self, "#include \"_gen_%s.h\"\n", self->currentSourceFile->name);
-
-		// write to header
-		self->writeState = WRITE_HEADER_STATE;
-		emitCode(self, "#ifndef __%s_H\n", self->currentSourceFile->name);
-		emitCode(self, "#define __%s_H\n\n", self->currentSourceFile->name);
-
-		generateMacrosC(self);
-
-		emitCode(self, "#include \"%s\"\n", boilerplate->generatedHeaderName);
-
-		// compile code
-		traverseAST(self);
-
-		// write to header
-		self->writeState = WRITE_HEADER_STATE;
-		emitCode(self, "\n");
-		emitCode(self, "#endif // __%s_H\n", self->currentSourceFile->name);
-
-		// close files
-		closeFiles(self->currentSourceFile);
-	}
-	
-	// empty command
-	sds buildCommand = sdsempty();
-
-	// what compiler to use
-	buildCommand = sdscat(buildCommand, COMPILER);
-	buildCommand = sdscat(buildCommand, " ");
-	
-	// additional compiler flags, i.e -g, -Wall etc
-	buildCommand = sdscat(buildCommand, ADDITIONAL_COMPILER_ARGS);
-
-	// output name
-	buildCommand = sdscat(buildCommand, " -o ");
-	buildCommand = sdscat(buildCommand, OUTPUT_EXECUTABLE_NAME);
-
-	// files to compile	
-	buildCommand = sdscat(buildCommand, " ");
-	// append the filename to the build string
-	for (int i = 0; i < self->sourceFiles->size; i++) {
-		SourceFile *sourceFile = getVectorItem(self->sourceFiles, i);
-		buildCommand = sdscat(buildCommand, sourceFile->generatedSourceName);
-
-		if (i != self->sourceFiles->size - 1) // stop whitespace at the end!
-			buildCommand = sdscat(buildCommand, " ");
-	}
-
-	// linker options
-	buildCommand = sdscat(buildCommand, " ");
-	buildCommand = sdscat(buildCommand, self->linkerFlags);
-
-	// just for debug purposes
-	verboseModeMessage("Running cl args: `%s`", buildCommand);
-
-	// do the command we just created
-	int result = system(buildCommand);
-	if (result != 0)
-		exit(2);
-	
-	sdsfree(self->linkerFlags);
-	sdsfree(buildCommand); // deallocate dat shit baby
-	
-	destroyHeaderFile(boilerplate);*/
 }
