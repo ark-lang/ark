@@ -63,10 +63,12 @@ typedef struct {
 } Scope;
 
 /*
- * Heap allocation hacky stuff
+ * Represents a variable type
  */
 typedef struct {
 	int type;
+	bool is_array;
+	int array_len;
 } VarType; 
 
 /*
@@ -307,6 +309,26 @@ void pushFunctionDeclaration(SemanticAnalyzer *self, FunctionDecl *func);
 
 void pushImplDeclaration(SemanticAnalyzer *self, ImplDecl *impl);
 
+VarType *createVarType(int type);
+
+void destroyVarType(VarType *type);
+
+VarType *deduceTypeFromFunctionCall(SemanticAnalyzer *self, Call *call);
+
+VarType *deduceTypeFromTypeVal(SemanticAnalyzer *self, char *typeVal);
+
+VarType *deduceTypeFromLiteral(SemanticAnalyzer *self, Literal *lit);
+
+VarType *deduceTypeFromBinaryExpr(SemanticAnalyzer *self, BinaryExpr *expr);
+
+VarType *deduceTypeFromType(SemanticAnalyzer *self, Type *type);
+
+VarType *deduceTypeFromUnaryExpr(SemanticAnalyzer *self, UnaryExpr *expr);
+
+VarType *deduceTypeFromTypeNode(SemanticAnalyzer *self, TypeName *type);
+
+VarType *deduceTypeFromExpression(SemanticAnalyzer *self, Expression *expr);
+
 /**
  * Push a new scope to the scope stack
  * @param self  the semantic analyzer instance
@@ -318,18 +340,6 @@ void pushScope(SemanticAnalyzer *self);
  * @param self the semantic analyzer instance
  */
 void popScope(SemanticAnalyzer *self);
-
-/// TYPE CHECKING
-
-VarType *deduceTypeFromFunctionCall(SemanticAnalyzer *self, Call *call);
-
-VarType *deduceTypeFromLiteral(SemanticAnalyzer *self, Literal *lit);
-
-VarType *deduceTypeFromBinaryExpr(SemanticAnalyzer *self, BinaryExpr *expr);
-
-VarType *deduceTypeFromUnaryExpr(SemanticAnalyzer *self, UnaryExpr *expr);
-
-VariableType deduceTypeFromExpression(SemanticAnalyzer *self, Expression *expr);
 
 /**
  * Destroy the semantic analyzer instance
