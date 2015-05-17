@@ -34,9 +34,9 @@ all: ${SOURCES}
 else
 all: ${SOURCES}
 	@mkdir -p bin/
-	${CC} ${CFLAGS} $(INCLUDES) ${SOURCES} -c ${SOURCES}
-	${CXX} *.o ${LDFLAGS} -o bin/alloyc 
-	-rm *.o
+	@${CC} ${CFLAGS} $(INCLUDES) ${SOURCES} -c ${SOURCES}
+	@${CXX} *.o ${LDFLAGS} -o bin/alloyc 
+	@-rm *.o
 endif
 
 clean:
