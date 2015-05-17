@@ -25,6 +25,18 @@ static LLVMTypeRef getIntType();
 
 static LLVMTypeRef getLLVMType(DataType type);
 
+LLVMValueRef genFunctionSignature(LLVMCodeGenerator *self, FunctionSignature *decl);
+
+LLVMValueRef genStatement(LLVMCodeGenerator *self, Statement *stmt);
+
+LLVMValueRef genFunctionDecl(LLVMCodeGenerator *self, FunctionDecl *decl);
+
+void genDeclaration(LLVMCodeGenerator *self, Declaration *decl);
+
+LLVMValueRef genUnstructuredStatementNode(LLVMCodeGenerator *self, UnstructuredStatement *stmt);
+
+LLVMValueRef genStructuredStatementNode(LLVMCodeGenerator *self, StructuredStatement *stmt);
+
 // Definitions
 
 LLVMCodeGenerator *createLLVMCodeGenerator(Vector *sourceFiles) {
@@ -32,13 +44,14 @@ LLVMCodeGenerator *createLLVMCodeGenerator(Vector *sourceFiles) {
 	self->abstractSyntaxTree = NULL;
 	self->currentNode = 0;
 	self->sourceFiles = sourceFiles;
-	
+	self->builder = LLVMCreateBuilder();
 	return self;
 }
 
 void destroyLLVMCodeGenerator(LLVMCodeGenerator *self) {
 	for (int i = 0; i < self->sourceFiles->size; i++) {
 		SourceFile *sourceFile = getVectorItem(self->sourceFiles, i);
+		LLVMDisposeModule(sourceFile->module);
 		destroySourceFile(sourceFile);
 		verboseModeMessage("Destroyed source files iteration %d", i);
 	}
@@ -55,9 +68,99 @@ static void consumeAstNodeBy(LLVMCodeGenerator *self, int amount) {
 	self->currentNode += amount;
 }
 
+LLVMValueRef genFunctionSignature(LLVMCodeGenerator *self, FunctionSignature *decl) {
+	// store arguments from func signature
+	unsigned int argCount = decl->parameters->paramList->size;
+
+	// lookup func
+	LLVMValueRef func = LLVMGetNamedFunction(self->currentSourceFile->module, decl->name);
+	if (func) {
+		if (LLVMCountParams(func) != argCount) {
+			genError("Function exists with different function signature");
+			return false;
+		}
+	}
+	else {
+		// set llvm params
+		LLVMTypeRef *params = safeMalloc(sizeof(LLVMTypeRef) * argCount);
+		for (int i = 0; i < argCount; i++) {
+			ParameterSection *param = getVectorItem(decl->parameters->paramList, i);
+			if (param->type->type != TYPE_NAME_NODE) {
+				genError("Unsupported type :(");
+				return false;
+			}
+			int type = getTypeFromString(param->type->typeName->name);
+			params[i] = getLLVMType(type);
+		}
+
+		// create func prototype and add it to the module
+		int funcType = getTypeFromString(decl->type->typeName->name);
+		LLVMTypeRef funcTypeRef = LLVMFunctionType(getLLVMType(funcType), params, argCount, false);
+		func = LLVMAddFunction(self->currentSourceFile->module, decl->name, funcTypeRef);
+	}
+
+	return func;
+}
+
+LLVMValueRef genStatement(LLVMCodeGenerator *self, Statement *stmt) {
+	switch (stmt->type) {
+		case UNSTRUCTURED_STATEMENT_NODE: 
+			return genUnstructuredStatementNode(self, stmt->unstructured);
+		case STRUCTURED_STATEMENT_NODE: 
+			return genStructuredStatementNode(self, stmt->structured);
+	}
+	return false;
+}
+
+LLVMValueRef genFunctionDecl(LLVMCodeGenerator *self, FunctionDecl *decl) {
+	LLVMValueRef prototype = genFunctionSignature(self, decl->signature);
+	if (!prototype) {
+		return NULL;
+	}
+
+	LLVMBasicBlockRef block = LLVMAppendBasicBlock(prototype, "entry");
+	LLVMPositionBuilderAtEnd(self->builder, block);
+
+	LLVMValueRef body = genStatement(self, decl->body);
+	if (!body) {
+		LLVMDeleteFunction(prototype);
+		return false;
+	}
+
+	LLVMBuildRet(self->builder, body);
+	if (LLVMVerifyFunction(prototype, LLVMPrintMessageAction)) {
+		genError("Invalid function");
+		LLVMDeleteFunction(prototype);
+		return false;
+	}
+}
+
+void genDeclaration(LLVMCodeGenerator *self, Declaration *decl) {
+	switch (decl->type) {
+		case FUNCTION_DECL_NODE: genFunctionDecl(self, decl->funcDecl); break;
+	}
+}
+
+LLVMValueRef genUnstructuredStatementNode(LLVMCodeGenerator *self, UnstructuredStatement *stmt) {
+	switch (stmt->type) {
+		case DECLARATION_NODE: genDeclaration(self, stmt->decl); break;
+		case EXPR_STAT_NODE: printf("idk\n"); break;
+	}
+}
+
+LLVMValueRef genStructuredStatementNode(LLVMCodeGenerator *self, StructuredStatement *stmt) {}
+
+void traverseAST(LLVMCodeGenerator *self) {
+	for (int i = 0; i < self->abstractSyntaxTree->size; i++) {
+		Statement *stmt = getVectorItem(self->abstractSyntaxTree, i);
+		genStatement(self, stmt);
+	}
+}
+
 void startLLVMCodeGeneration(LLVMCodeGenerator *self) {
 	for (int i = 0; i < self->sourceFiles->size; i++) {
 		SourceFile *sf = getVectorItem(self->sourceFiles, i);
+		sf->module = LLVMModuleCreateWithName(sf->name);
 		self->currentNode = 0;
 		self->currentSourceFile = sf;
 		self->abstractSyntaxTree = self->currentSourceFile->ast;
