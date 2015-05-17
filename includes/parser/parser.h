@@ -30,25 +30,27 @@
  * These are keywords that we use a lot in the parser code,
  * some of them need better names.
  */
-#define SET_KEYWORD					"set"
-#define VOID_KEYWORD				"void"
-#define STRUCT_KEYWORD 				"struct"
-#define USE_KEYWORD					"use"
-#define MUT_KEYWORD 				"mut"
-#define FUNCTION_KEYWORD 			"fn"
-#define SINGLE_STATEMENT_OPERATOR 	"->"
-#define IF_KEYWORD					"if"
-#define ELSE_KEYWORD				"else"
-#define FOR_KEYWORD					"for"
-#define ENUM_KEYWORD				"enum"
-#define MATCH_KEYWORD				"match"
-#define CONTINUE_KEYWORD			"continue"
-#define RETURN_KEYWORD				"return"
-#define BREAK_KEYWORD				"break"
-#define LINKER_FLAG_KEYWORD			"compiler_flag"
-#define IMPL_KEYWORD				"impl"
-#define IMPL_AS_KEYWORD				"as"
-#define ELSE_KEYWORD 				"else"
+#define SET_KEYWORD                 "set"
+#define VOID_KEYWORD                "void"
+#define STRUCT_KEYWORD              "struct"
+#define USE_KEYWORD                 "use"
+#define MUT_KEYWORD                 "mut"
+#define FUNCTION_KEYWORD            "fn"
+#define SINGLE_STATEMENT_OPERATOR   "->"
+#define IF_KEYWORD                  "if"
+#define ELSE_KEYWORD                "else"
+#define FOR_KEYWORD                 "for"
+#define ENUM_KEYWORD                "enum"
+#define MATCH_KEYWORD               "match"
+#define CONTINUE_KEYWORD            "continue"
+#define RETURN_KEYWORD              "return"
+#define BREAK_KEYWORD               "break"
+#define LINKER_FLAG_KEYWORD         "compiler_flag"
+#define IMPL_KEYWORD                "impl"
+#define IMPL_AS_KEYWORD             "as"
+#define ELSE_KEYWORD                "else"
+#define ALLOC_KEYWORD               "alloc"
+#define FREE_KEYWORD                "free"
 
 /**
  * Various operators that are used in the parser, also used
@@ -174,6 +176,13 @@ IdentifierList *parseIdentifierList(Parser *parser);
  * @param  parser the parser instance
  */
 Type *parseType(Parser *parser);
+
+/**
+ * Parses an alloc expression
+ */
+Alloc *parseAlloc(Parser *self);
+
+FreeStat *parseFreeStat(Parser *self);
 
 /**
  * Parses a Field Declaration, i.e a variable defined
