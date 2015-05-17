@@ -239,7 +239,19 @@ static void consumeAstNodeBy(CCodeGenerator *self, int amount);
  */
 static void traverseAST(CCodeGenerator *self);
 
+/*
+ * Emits an alloc expression
+ * @param self the codegen instance
+ * @param alloc the alloc expression
+ */
 static void emitAlloc(CCodeGenerator *self, Alloc *alloc);
+
+/*
+ * Emits a sizeof expression
+ * @param self the codegen instance
+ * @param sizeOf the sizeof expression
+ */
+static void emitSizeOf(CCodeGenerator *self, SizeOf *sizeOf);
 
 // Definitions
 
