@@ -1023,6 +1023,14 @@ UnstructuredStatement *parseUnstructuredStatement(Parser *self) {
 		stmt->type = LEAVE_STAT_NODE;
 		return stmt;
 	}
+	
+	FreeStat *freeStat = parseFreeStat(self);
+	if (freeStat) {
+		UnstructuredStatement *stmt = createUnstructuredStatement();
+		stmt->freeStat = freeStat;
+		stmt->type = FREE_STAT_NODE;
+		return stmt;
+	}
 
 	Call *call = parseCall(self);
 	if (call) {
@@ -1236,6 +1244,45 @@ FunctionDecl *parseFunctionDecl(Parser *self) {
 	}
 
 	return false;
+}
+
+Alloc *parseAlloc(Parser *self) {
+	if (checkTokenTypeAndContent(self, TOKEN_IDENTIFIER, ALLOC_KEYWORD, 0)) {
+		consumeToken(self);
+		
+		Type *type = parseType(self);
+		if (!type) {
+			parserError("Invalid type in alloc expression: `%s`", peekAtTokenStream(self, 0)->content);
+		}
+		
+		Alloc *alloc = createAlloc();
+		alloc->type = type;
+		return alloc;
+	}
+    return false;
+}
+
+FreeStat *parseFreeStat(Parser *self) {
+	if (checkTokenTypeAndContent(self, TOKEN_IDENTIFIER, FREE_KEYWORD, 0)) {
+		consumeToken(self);
+		
+		Type *type = parseType(self);
+		if (!type) {
+			parserError("Invalid variable in free statement: `%s`", peekAtTokenStream(self, 0)->content);
+		}
+		
+		if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, ";", 0)) {
+			consumeToken(self);
+		}
+		else {
+			parserError("Expected semi-colon at the end of free statement, found: %s", peekAtTokenStream(self, 0)->content);
+		}
+		
+		FreeStat *freeStat = createFreeStat();
+		freeStat->type = type;
+		return freeStat;
+	}
+    return false;
 }
 
 VariableDecl *parseVariableDecl(Parser *self) {
@@ -1635,6 +1682,14 @@ TupleExpr *parseTupleExpr(Parser *self) {
 }
 
 Expression *parsePrimaryExpression(Parser *self) {
+	Alloc *alloc = parseAlloc(self);
+	if (alloc) {
+		Expression *expr = createExpression();
+		expr->alloc = alloc;
+		expr->exprType = ALLOC_NODE;
+		return expr;
+	}
+	
 	if (checkTokenType(self, TOKEN_IDENTIFIER, 0) && (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, "(", 1))) {
 		Call *call = parseCall(self);
 		if (call) {

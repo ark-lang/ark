@@ -34,10 +34,11 @@ typedef enum {
 	DECLARATION_NODE, INC_DEC_STAT_NODE, RETURN_STAT_NODE, BREAK_STAT_NODE,
 	CONTINUE_STAT_NODE, LEAVE_STAT_NODE, ASSIGNMENT_NODE, UNSTRUCTURED_STATEMENT_NODE,
 	ELSE_STAT_NODE, IF_STAT_NODE, MATCH_CLAUSE_STAT, MATCH_STAT_NODE, FOR_STAT_NODE,
-	STRUCTURED_STATEMENT_NODE, STATEMENT_NODE, TYPE_NODE, POINTER_FREE_NODE, TUPLE_TYPE_NODE,
+	STRUCTURED_STATEMENT_NODE, STATEMENT_NODE, TYPE_NODE, TUPLE_TYPE_NODE,
 	TUPLE_EXPR_NODE, OPTION_TYPE_NODE, 
 	MACRO_NODE, USE_MACRO_NODE, LINKER_FLAG_MACRO_NODE, EXPR_STAT_NODE, ARRAY_INITIALIZER_NODE, ARRAY_INDEX_NODE,
-	CHAR_LITERAL_NODE, STRING_LITERAL_NODE, INT_LITERAL_NODE, FLOAT_LITERAL_NODE, NUM_OF_NODES
+	CHAR_LITERAL_NODE, STRING_LITERAL_NODE, INT_LITERAL_NODE, FLOAT_LITERAL_NODE,
+	ALLOC_NODE, FREE_STAT_NODE, NUM_OF_NODES
 } NodeType;
 
 extern const char *NODE_NAME[];
@@ -61,6 +62,14 @@ typedef struct {
 typedef struct {
 	Vector *values;
 } IdentifierList;
+
+/**
+ * A node representing an alloc expression
+ */
+typedef struct {
+	Type *type; // if we're allocating by type
+	size_t size; // if we're allocating by set size
+} Alloc;
 
 /**
  * A node representing a char literal.
@@ -238,6 +247,10 @@ typedef struct {
 	Type *structType;
 } BinaryExpr;
 
+typedef struct {
+	Type *type;
+} FreeStat;
+
 /**
  * Inheritance "emulation", an Expression Node is the parent
  * of all expressions.
@@ -251,6 +264,7 @@ struct s_Expression {
 	ArrayInitializer *arrayInitializer;
 	ArrayIndex *arrayIndex;
 	TupleExpr *tupleExpr;
+	Alloc *alloc;
 	int exprType;
 };
 
@@ -427,10 +441,6 @@ typedef struct {
 } LeaveStat;
 
 typedef struct {
-	char *name;
-} PointerFree;
-
-typedef struct {
 	UseMacro *use;
 	LinkerFlagMacro *linker;
 	int type;
@@ -446,8 +456,8 @@ typedef struct {
 	IncDecStat *incDec;
 	Assignment *assignment;
 	Call *call;
-	PointerFree *pointerFree;
 	Expression *expr;
+	FreeStat *freeStat;
 	int type;
 } UnstructuredStatement;
 
@@ -616,7 +626,9 @@ UnstructuredStatement *createUnstructuredStatement();
 
 Macro *createMacro();
 
-PointerFree *createPointerFree(char *name);
+Alloc *createAlloc();
+
+FreeStat *createFreeStat();
 
 ElseStat *createElseStat();
 
@@ -724,7 +736,9 @@ void destroyUnstructuredStatement(UnstructuredStatement *stmt);
 
 void destroyMacro(Macro *macro);
 
-void destroyPointerFree(PointerFree *pntr);
+void destroyAlloc(Alloc *alloc);
+
+void destroyFreeStat(FreeStat *freeStat);
 
 void destroyElseStat(ElseStat *stmt);
 
