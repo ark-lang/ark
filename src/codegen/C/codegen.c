@@ -959,13 +959,6 @@ void startCCodeGeneration(CCodeGenerator *self) {
 		closeFiles(self->currentSourceFile);
 	}
 
-	/**
-	 *
-	 * THIS IS MESSY PLS FIX FELIX!
-	 * 
-	 */
-
-	// empty command
 	sds buildCommand = sdsempty();
 
 	// what compiler to use
@@ -994,16 +987,15 @@ void startCCodeGeneration(CCodeGenerator *self) {
 	buildCommand = sdscat(buildCommand, " ");
 	buildCommand = sdscat(buildCommand, self->linkerFlags);
 
-	// just for debug purposes
 	verboseModeMessage("Running cl args: `%s`", buildCommand);
 
-	// do the command we just created
+	// execute the command we just created
 	int result = system(buildCommand);
 	if (result != 0)
 		exit(2);
 	
 	sdsfree(self->linkerFlags);
-	sdsfree(buildCommand); // deallocate dat shit baby
+	sdsfree(buildCommand);
 	
 	destroyHeaderFile(boilerplate);
 }
