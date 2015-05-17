@@ -13,5 +13,7 @@ fn main(): int {
 		return 1;
 	}
 	
+	printf("%d\n", sizeof i32);
+	
 	return 0;
 }
