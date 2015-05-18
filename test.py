@@ -107,8 +107,8 @@ print(bold("Results: " + str(num_of_files_passed) + "/" + str(total_num_of_files
 
 for file in files_tested:
 	if file.failed:
-		print(red(bold("    [-] " + file.name + " (failed with code " + str(file.result) + ")")))
+		print(red(bold("    [-](" + file.result + ")\t " + file.name)))
 	else:
-		print(green(bold("    [+] " + file.name)))
+		print(green(bold("    [+](1)\t " + file.name)))
 
 exit(num_of_files_failed)
