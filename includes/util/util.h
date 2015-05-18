@@ -43,7 +43,9 @@ extern bool OUTPUT_C;
 extern char *ADDITIONAL_COMPILER_ARGS;
 extern char *COMPILER;
 extern char *linkerFlags;
-extern bool LLVM_CODEGEN;
+#ifdef ENABLE_LLVM
+	extern bool LLVM_CODEGEN;
+#endif
 
 /**
  * Returns if the char is ASCII
