@@ -516,6 +516,12 @@ FunctionSignature *parseFunctionSignature(Parser *self) {
 	if (checkTokenTypeAndContent(self, TOKEN_IDENTIFIER, FUNCTION_KEYWORD, 0)) {
 		consumeToken(self);
 
+		bool externFunc = false;
+		if (checkTokenTypeAndContent(self, TOKEN_IDENTIFIER, EXTERN_KEYWORD, 0)) {
+			consumeToken(self);
+			externFunc = true;
+		}
+
 		if (checkTokenType(self, TOKEN_IDENTIFIER, 0)) {
 			char *functionName = consumeToken(self)->content;
 
@@ -534,6 +540,7 @@ FunctionSignature *parseFunctionSignature(Parser *self) {
 						Type *type = parseType(self);
 						if (type) {
 							FunctionSignature *sign = createFunctionSignature(functionName, params, mutable, type);
+							sign->isExtern = externFunc;
 							return sign;
 						}
 						else {
@@ -548,6 +555,7 @@ FunctionSignature *parseFunctionSignature(Parser *self) {
 						type->type = TYPE_NAME_NODE;
 
 						FunctionSignature *sign = createFunctionSignature(functionName, params, false, type);
+						sign->isExtern = externFunc;
 						return sign;
 					} 
 					else {
