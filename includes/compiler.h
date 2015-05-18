@@ -14,15 +14,16 @@
 	#include "LLVM/LLVMcodegen.h"
 #endif
 
-#define DEBUG_MODE_ARG "-d"
-#define HELP_ARG       "-h"
-#define VERBOSE_ARG    "-v"
-#define OUTPUT_ARG     "-o"
-#define OUTPUT_C_ARG   "-c"
-#define COMPILER_ARG   "--compiler"
-#define VERSION_ARG    "--version"
+#define DEBUG_MODE_ARG 		"-d"
+#define HELP_ARG       		"-h"
+#define VERBOSE_ARG    		"-v"
+#define OUTPUT_ARG     		"-o"
+#define OUTPUT_C_ARG   		"-c"
+#define COMPILER_ARG   		"--compiler"
+#define VERSION_ARG    		"--version"
+#define IGNORE_MAIN_ARG		"--no-main"
 #ifdef ENABLE_LLVM
-	#define LLVM_ARG   "--llvm"
+	#define LLVM_ARG   		"--llvm"
 #endif
 
 /**
