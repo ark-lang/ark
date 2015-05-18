@@ -4,7 +4,7 @@ bool DEBUG_MODE = false;	// default is no debug
 bool OUTPUT_C = false;		// default is no c output
 bool VERBOSE_MODE = false;
 #ifdef ENABLE_LLVM
-	bool LLVM_CODEGEN = false;
+	extern bool LLVM_CODEGEN = false;
 #endif
 char *OUTPUT_EXECUTABLE_NAME = "main"; // default is main
 char *COMPILER = "cc";
