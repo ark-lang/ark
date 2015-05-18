@@ -272,8 +272,9 @@ const char *BOILERPLATE =
 "#include <stddef.h>\n"
 "#include <stdarg.h>\n"
 "#include <stdint.h>\n"
-"#include <stdlib.h>\n"
 CC_NEWLINE
+"void *calloc(size_t nitems, size_t size);" CC_NEWLINE
+"void free(void *ptr);" CC_NEWLINE
 "typedef char *str;" CC_NEWLINE
 "typedef size_t usize;" CC_NEWLINE
 "typedef uint8_t u8;" CC_NEWLINE
