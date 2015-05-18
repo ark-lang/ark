@@ -47,9 +47,7 @@ void closeSourceFile(SourceFile *sourceFile) {
 }
 
 void destroySourceFile(SourceFile *sourceFile) {
-	#ifndef ENABLE_LLVM
 	if (!OUTPUT_C) remove(sourceFile->generatedSourceName);
-	#endif
 
 	destroyHeaderFile(sourceFile->headerFile);
 
