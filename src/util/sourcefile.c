@@ -47,7 +47,11 @@ void closeSourceFile(SourceFile *sourceFile) {
 }
 
 void destroySourceFile(SourceFile *sourceFile) {
+	#ifdef ENABLE_LLVM
+	if (!OUTPUT_C && !LLVM_CODEGEN) remove(sourceFile->generatedSourceName);
+	#else
 	if (!OUTPUT_C) remove(sourceFile->generatedSourceName);
+	#endif
 
 	destroyHeaderFile(sourceFile->headerFile);
 
