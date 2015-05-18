@@ -9,6 +9,7 @@ bool VERBOSE_MODE = false;
 char *OUTPUT_EXECUTABLE_NAME = "main"; // default is main
 char *COMPILER = "cc";
 char *ADDITIONAL_COMPILER_ARGS = "-g -Wall -std=c99 -fno-builtin -Wno-incompatible-pointer-types-discards-qualifiers";
+bool IGNORE_MAIN = false;
 
 void help() {
 	printf("Usage: alloyc [options] files...\n");
@@ -18,6 +19,7 @@ void help() {
 	printf("  -d                  Logs extra debug information\n");
 	printf("  -o <file>           Place the output into <file>\n");
 	printf("  -c <file>           Will keep the output C code\n");
+	printf("  --no-main			  Ignores main function\n");
 	printf("  --compiler <name>   Sets the C compiler to <name> (default: CC)\n");
 	printf("  --version           Shows current version\n");
 #ifdef ENABLE_LLVM
@@ -47,6 +49,9 @@ static void parseArgument(CommandLineArgument *arg) {
 	}
 	else if (!strcmp(arg->argument, VERBOSE_ARG)) {
 		VERBOSE_MODE = true;
+	}
+	else if (!strcmp(arg->argument, IGNORE_MAIN_ARG)) {
+		IGNORE_MAIN = true;
 	}
 	else if (!strcmp(arg->argument, HELP_ARG)) {
 		help();
