@@ -340,7 +340,7 @@ void analyzeStatement(SemanticAnalyzer *self, Statement *stmt) {
 
 void checkMainExists(SemanticAnalyzer *self) {
 	FunctionDecl *mainDecl = checkFunctionExists(self, MAIN_FUNC);
-	if (!mainDecl) {
+	if (!mainDecl && !IGNORE_MAIN) {
 		semanticError("Undefined reference to `main`");
 	}
 }
