@@ -29,7 +29,7 @@ endif
 ifndef ENABLE_LLVM
 all: ${SOURCES}
 	@mkdir -p bin/
-	$(CC) $(CFLAGS) $(INCLUDES) ${SOURCES} -o bin/alloyc
+	@$(CC) $(CFLAGS) $(INCLUDES) ${SOURCES} -o bin/alloyc
 
 else
 all: ${SOURCES}
