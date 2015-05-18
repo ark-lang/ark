@@ -7,6 +7,7 @@
 #include "headerfile.h"
 #include "util.h"
 #include "parser.h"
+#include "globals.h"
 
 #ifdef ENABLE_LLVM
 #include <llvm-c/ExecutionEngine.h>
