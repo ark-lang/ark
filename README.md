@@ -1,27 +1,5 @@
 # [Alloy](http://alloy-lang.org) [![BuildStatus](https://travis-ci.org/alloy-lang/alloy.svg?branch=master)](https://travis-ci.org/alloy-lang/alloy)
 
-    　　　　　　　　　,、 　,´i
-    　　 　 　 　 　　i. i 　i　i 　 /`i　　　　　　　　　　　　　iヽ .iヽ 　,､
-    　　　　　　　　　i. i　i　i.　/. /　　　　　　　　 　 　 　　i　i..i　i. i. i
-    　　　　　　　　　i　V.　し　./　　　　 　__　　　　 　 　　i　i.i　i. i. i
-    .　　　　　　 　　i. 　 　 　イ　　 　 　 だﾊ　　　 _,,,_ 　　i　i!　ﾚ　i
-    　　　　　　 　　i　 　 　 　 i　　　　_,弋㌍i'"ヽ_ﾊ㌔i　　i　　　 　!
-    .　 　　　　　 　 i　　　　　　ヽ._ ,,,,/　ゝイ ;; 　ヽ亦'　‐ "　　　　i
-    　　　　　　　 ／'　　　, --- ／;:/　　　 　 ,､　　X　‐‐--､　　 i
-    　　　　　　／　　　／　　／;:;:;;;i　　　　　　　　'` i 　　　 i.　　 i
-    .　　　　 ／　　 ／　　 ／:;;:;;:;:;i;;i　　　　　　　　　i　　　　i　　　i
-    　　　 ／　　 ／.　　／: : : ; :;:;:i;:;ヽ､ -'''''''=- ,,,,,__ヽ　. 　 i　　　i
-    　　／　　　/　　　/: : : : : : ;＞i;:;;:;:;:＼` ‐-女`＼　　 　 i.　 　 i
-    .　/　　 　 /　　　/: : : :＞'´ i'" ':;:;;:;:;;:;;:` -- '´ ヽ ＼.　　i　　　.i
-    ../　　 　∠...,,,__/___::iヽミミミi　:;: :;:;:;:;:: ;::'//ヽ_:_:_i＼ ＼_{ 　　　i
-    ｛　　　　　　　　　　￣ ヽミミヽ:;:: :;::;::;::;;//ミミi　　￣ ＼ ＼　 /
-    .　`　‐- ,,,,___　　　　　　i ミミミヽ: :;:; : /'ミミミi　 　 　　__＼ ＼
-    　　　　　　　　`┌ t、　.i ミミミミヽ,　/ ミミミ i'''''''""￣　 　 ＼` - 、
-    .　　　　　　　　　i : iミヽ_iミミミミミ/､/ミミミミi　　　　　　　　　　`ー'
-    　　　　　　　　　 i:/iミミミミミミミ/／.ミミミミi
-    　　　　　　　　　/　iミミミミミミ/　ヽ ミミミミi
-    　　　 　 　 　 　 　 i ミミミミ／　　　ヽ ミミミi
-
 ## Resources
 
 * [Reference](/docs/REFERENCE.md)
