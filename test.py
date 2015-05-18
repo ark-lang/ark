@@ -109,6 +109,6 @@ for file in files_tested:
 	if file.failed:
 		print(red(bold("    [-](" + file.result + ")\t " + file.name)))
 	else:
-		print(green(bold("    [+](1)\t " + file.name)))
+		print(green(bold("    [+](" + file.result + ")\t " + file.name)))
 
 exit(num_of_files_failed)
