@@ -8,7 +8,7 @@ bool VERBOSE_MODE = false;
 #endif
 char *OUTPUT_EXECUTABLE_NAME = "main"; // default is main
 char *COMPILER = "cc";
-char *ADDITIONAL_COMPILER_ARGS = "-g -Wall -std=c99 -fno-builtin";
+char *ADDITIONAL_COMPILER_ARGS = "-g -Wall -std=c99 -fno-builtin -Wno-incompatible-pointer-types-discards-qualifiers";
 
 void help() {
 	printf("Usage: alloyc [options] files...\n");
