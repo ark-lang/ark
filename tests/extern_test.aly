@@ -1,0 +1,7 @@
+fn extern test() {
+    // idk
+}
+
+fn main(): int {
+    return 0;
+}

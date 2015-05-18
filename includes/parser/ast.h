@@ -352,6 +352,7 @@ typedef struct {
 	char *ownerArg;
 	Parameters *parameters;
 	bool mutable;
+	bool isExtern;
 	Type *type;
 } FunctionSignature;
 
