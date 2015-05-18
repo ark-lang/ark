@@ -11,10 +11,12 @@ import os, subprocess, sys, re
 class TestFile:
 	name = "?"
 	failed = True
+	result = ""
 
-	def __init__(self, name, failed):
+	def __init__(self, name, failed, result):
 		self.name = name
 		self.failed = failed
+		self.result = result
 
 # all of the files tested go here
 files_tested = []
@@ -70,7 +72,7 @@ for name in files:
 	if compile_result != 0:
 		if show_output: 
 			print(red(bold("Compilation failed:")) + " returned with " + str(compile_result))
-		files_tested.append(TestFile(name, True))
+		files_tested.append(TestFile(name, True, str(compile_result)))
 		num_of_files_failed += 1
 		if show_output: print("")
 		continue
@@ -91,10 +93,10 @@ for name in files:
 	
 	if run_result != 0:
 		if show_output: print(red(bold("Running failed:")) + " returned with " + str(run_result))
-		files_tested.append(TestFile(name, True))
+		files_tested.append(TestFile(name, True, str(compile_result)))
 		num_of_files_failed += 1
 	else:
-		files_tested.append(TestFile(name, False))
+		files_tested.append(TestFile(name, False, str(compile_result)))
 		num_of_files_passed += 1
 		
 	if show_output: print("")
@@ -105,7 +107,7 @@ print(bold("Results: " + str(num_of_files_passed) + "/" + str(total_num_of_files
 
 for file in files_tested:
 	if file.failed:
-		print(red(bold("    [-] " + file.name)))
+		print(red(bold("    [-] " + file.name + " (failed with code " + str(file.result) + ")")))
 	else:
 		print(green(bold("    [+] " + file.name)))
 
