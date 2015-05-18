@@ -548,6 +548,10 @@ static void emitFunctionCall(CCodeGenerator *self, Call *call) {
 }
 
 static void emitFunctionSignature(CCodeGenerator *self, FunctionSignature *signature) {
+	if (signature->isExtern) {
+		emitCode(self, "extern ");
+	}
+
 	emitType(self, signature->type);
 	emitCode(self, " ");
 

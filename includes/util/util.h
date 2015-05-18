@@ -42,7 +42,8 @@ extern char *OUTPUT_EXECUTABLE_NAME;
 extern bool OUTPUT_C;
 extern char *ADDITIONAL_COMPILER_ARGS;
 extern char *COMPILER;
-extern char *linkerFlags;
+extern char *linkerFlags; // FIX THIS
+extern bool IGNORE_MAIN;
 
 /**
  * Returns if the char is ASCII
