@@ -1,0 +1,50 @@
+# Thought I would **attempt** to
+# implement a Go-like channel thing
+# this assumes you are on Mac, since Alloy
+# doesn't have have any way to determine
+# what OS you are on so I can write specific
+# code to make it portable. This is a TODO.
+
+!compiler_flag "-pthread"
+
+struct pthread_mutex_t {}
+struct pthread_cond_t {}
+
+struct Chan {
+    queue: ^Queue,
+}
+
+impl Chan {
+    func new() {
+
+    }
+
+    func isClosed(): bool {
+
+    }
+
+    func send() {
+
+    }
+
+    func receive() {
+
+    }
+
+    func size() {
+
+    }
+
+    func close(): bool {
+
+    }
+
+    func dispose() {
+
+    }
+}
+
+// for testing purposes
+func main(): int {
+    return 0;
+}
