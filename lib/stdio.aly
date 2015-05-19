@@ -12,9 +12,9 @@
 // Wrapper functions
 //
 
-fn getchar(): int;
-fn remove(filename: str): int;
-fn rename(oldFilename: str, newFilename: str): int;
-fn putchar(c: int): int;
-fn printf(format: str, _): int;
-fn perror(message: str);
+func getchar(): int;
+func remove(filename: str): int;
+func rename(oldFilename: str, newFilename: str): int;
+func putchar(c: int): int;
+func printf(format: str, _): int;
+func perror(message: str);

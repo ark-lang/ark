@@ -3,7 +3,7 @@
 	"fileinclusion"
 }
 
-fn main(): int {
+func main(): int {
 	x := printf("test\n");
 	printf("%d\n", x);
 }

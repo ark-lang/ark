@@ -56,6 +56,8 @@ If alloyc is not in your `$PATH`:
 
 	$ PATH=$PATH:"./bin/" ./test.py
 
+Pass the `--llvm` argument to test.py to use the LLVM backend instead of the C backend.
+
 ## Status
 Alloy is still constantly being worked on. At the moment it compiles,
 however some aspects of the language are unimplemented or broken.
@@ -68,9 +70,9 @@ Or you can just see a small Hello World example below:
 // c binding for printf
 // you have to do this for now, but soon
 // we'll have a standard library for this
-fn printf(format: str, _): int;
+func printf(format: str, _): int;
 
-fn main(): int {
+func main(): int {
     printf("Hello, World");
     return 0;
 }

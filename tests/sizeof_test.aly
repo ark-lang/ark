@@ -1,11 +1,11 @@
-fn printf(fmt: str, _);
+func printf(fmt: str, _);
 
 struct Test {
 	hello: int,
 	world: int
 }
 
-fn main(): int {
+func main(): int {
 	// TODO improve this test..
 	x: int = sizeof Test;
 	

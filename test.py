@@ -5,6 +5,18 @@
 
 import os, subprocess, sys, re
 
+# function for bolding a string
+def bold(s):
+	return "\033[1m" + s + "\033[0m"
+
+# function for making a string red
+def red(s):
+	return "\x1B[31m" + s + "\x1B[00m"
+
+# function for making a string green
+def green(s):
+	return "\x1B[32m" + s + "\x1B[00m"
+
 # Class representing our test file
 # has its name and whether it failed
 # or not
@@ -32,22 +44,21 @@ num_of_files_failed = 0
 # no output is shown?
 show_output = False
 
+FNULL = open(os.devnull, 'w')
+
+# arguments to pass to the compiler
+alloyc_args = []
+if "--llvm" in sys.argv:
+	llvm_support = subprocess.call(["alloyc", "--llvm", "--version"], stdout=FNULL, stderr=subprocess.STDOUT)
+	if llvm_support != 0:
+		print(bold(red("LLVM compiler backend not enabled")))
+		exit(-1);
+	alloyc_args.append("--llvm")
+
 # This is kind of hacky and not very scalable,
 # will show the output if they added -o as an arg
-if len(sys.argv) > 1 and str(sys.argv[1]) == "-o":
-	show_output = True
-
-# function for bolding a string
-def bold(s):
-	return "\033[1m" + s + "\033[0m"
-
-# function for making a string red
-def red(s):
-	return "\x1B[31m" + s + "\x1B[00m"
-
-# function for making a string green
-def green(s):
-	return "\x1B[32m" + s + "\x1B[00m"
+if "-o" in sys.argv or "--show-output" in sys.argv:
+	show_output = True;
 
 def sort_nicely(l):
 	"""Sort the given list in the way that humans expect."""
@@ -64,10 +75,9 @@ for name in files:
 		print(bold("Compiling ") + name + "...")
 	
 	if show_output:
-		compile_result = subprocess.call(["alloyc", "tests/" + name, "-o", "tests/" + output_file])
+		compile_result = subprocess.call(["alloyc", "tests/" + name, "-o", "tests/" + output_file] + alloyc_args)
 	else:
-		FNULL = open(os.devnull, 'w')
-		compile_result = subprocess.call(["alloyc", "tests/" + name, "-o", "tests/" + output_file], stdout=FNULL, stderr=subprocess.STDOUT)
+		compile_result = subprocess.call(["alloyc", "tests/" + name, "-o", "tests/" + output_file] + alloyc_args, stdout=FNULL, stderr=subprocess.STDOUT)
 
 	if compile_result != 0:
 		if show_output: 
@@ -84,7 +94,6 @@ for name in files:
 		if show_output:
 			run_result = subprocess.call(["./tests/" + output_file])
 		else:
-			FNULL = open(os.devnull, 'w')
 			run_result = subprocess.call(["./tests/" + output_file], stdout=FNULL, stderr=subprocess.STDOUT)
 		
 		os.remove("tests/" + output_file)
