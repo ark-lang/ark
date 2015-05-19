@@ -3,6 +3,6 @@ struct Cat {
 	cat_age: int
 }
 
-fn main(): int {
+func main(): int {
 
 }
