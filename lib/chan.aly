@@ -1,0 +1,13 @@
+# Thought I would **attempt** to
+# implement a Go-like channel thing
+# this assumes you are on Mac, since Alloy
+# doesn't have have any way to determine
+# what OS you are on so I can write specific
+# code to make it portable. This is a TODO.
+
+!compiler_flag "-lpthread"
+
+// for testing purposes
+fn main(): int {
+    return 0;
+}
