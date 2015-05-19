@@ -1,6 +1,8 @@
 #include "C/codegen.h"
 #include "C/private.h"
 
+#define genError(...) errorMessage("C codegen: " __VA_ARGS__)
+
 // Declarations
 
 /**
@@ -429,11 +431,16 @@ static void emitExpression(CCodeGenerator *self, Expression *expr) {
 		case ARRAY_INDEX_NODE: {
 			emitType(self, expr->type);
 			emitArrayIndex(self, expr->arrayIndex);
-		} break;
+			break;
+		} 
 		case ALLOC_NODE: emitAlloc(self, expr->alloc); break;
 		case SIZEOF_NODE: emitSizeOf(self, expr->sizeOf); break;
+		case TUPLE_EXPR_NODE: 
+			verboseModeMessage("tuples are unimplemented, go moan at Felix"); 
+			consumeAstNode(self);
+			break; // TODO
 		default:
-			errorMessage("Unknown node in expression %d", expr->exprType);
+			errorMessage("Unknown node in expression %s", getNodeTypeName(expr->exprType));
 			break;
 	}
 }
