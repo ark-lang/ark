@@ -30,7 +30,7 @@ Documenting comments are written with a pound symbol '#', these should be used f
 documenting functions, structures, enumerations, etc.
 
 	# Does some stuff then it exits the program
-	fn main(): int {
+	func main(): int {
 
 	}
 	
@@ -190,7 +190,7 @@ have a value assigned on definition.
 
 ## Functions
 A function defines a sequence of statements and an optional return value, along with a name,
-and a set of parameters. Functions are declared with the keyword `fn`. Followed by a name to
+and a set of parameters. Functions are declared with the keyword `func`. Followed by a name to
 identify the function, and then a list of parameters. Finally, an optional colon `:` followed by
 a return type, e.g. a struct, data type or `void`. Note that if you do not specify a colon and
 a return type, the function is assumed to be void by default.
@@ -201,16 +201,16 @@ An example of a function:
 
 	// if the function returns void,
 	// the return type is optional, thus
-	// fn add(x: int, y: int) { }
+	// func add(x: int, y: int) { }
 	// is perfectly valid.
-	fn add(x: int, y: int): void {
+	func add(x: int, y: int): void {
 		result = x + y;
 	}
 
 ### Function Return Types
 We can simplify this using a return type of `int`, for instance:
 
-	fn add(x: int, y: int): mut int {
+	func add(x: int, y: int): mut int {
 		return x + y;
 	}
 
@@ -218,7 +218,7 @@ We can simplify this using a return type of `int`, for instance:
 If you have a function that consists of a single statement, it's suggested that you use the
 `->` operator instead of an entire block. The `return` keyword is omitted.
 
-	fn add(a: int, b: int): int -> a + b;
+	func add(a: int, b: int): int -> a + b;
 
 ## Structures
 A structure is a complex data type that defines a list of variables all grouped under one name
@@ -299,7 +299,7 @@ or implementation, must declare what it is implementing. In this case `Person`.
 The functions for `Person` are declared inside of this `impl`:
 
 	impl Person {
-		fn say() {
+		func say() {
 			println("Hi my name is %s and I'm %d years of age.", self.name, self.age);
 		}
 	}
@@ -308,7 +308,7 @@ To access the structure that the we're implementing, you use the `self` keyword.
 function we defined, you need to have an instance of the structure. Functions can then be accessed
 via the dot operator:
 
-	fn main(): int {
+	func main(): int {
 		p: Person;
 		p.say();
 	}
@@ -318,7 +318,7 @@ A function prototype is similar to the syntax for a function declaration, howeve
 curly braces to start a new block, you end the statement with a semi-colon. For example, a function prototype
 for a function `add` that takes two parameters (both integers), and returns an integer would be as follows:
 
-	fn add(a: int, b: int): int;
+	func add(a: int, b: int): int;
 
 ### Calling C Functions
 You can use the function prototypes showcased above to call c functions. Say we wanted to use the `printf`
@@ -330,10 +330,10 @@ generally. Once you've created the prototype, it is called like any other functi
 Here's an example of printf in Alloy:
 
 	// main.aly
-	fn printf(format: str, _): int;
+	func printf(format: str, _): int;
 
 	// usage
-	fn main(): int {
+	func main(): int {
 		printf("this is a test\n");
 		return 0;
 	}
@@ -348,29 +348,29 @@ the `use` keyword followed by the filename to include (minus the `aly` extension
 We could write a really simple "math" library with some bindings to C's `<math.h>`:
 
 	// math.aly
-	fn acos(mut x: double): mut double;
-	fn asin(mut x: double): mut double;
-	fn atan(mut x: double): mut double;
-	fn atan2(mut y: double, mut x: double): mut double;
-	fn cos(mut x: double): mut double;
-	fn cosh(mut x: double): mut double;
-	fn sin(mut x: double): mut double;
-	fn sinh(mut x: double): mut double;
-	fn tanh(mut x: double): mut double;
-	fn exp(mut x: double): mut double;
-	fn log(mut x: double): mut double;
-	fn log10(mut x: double): mut double;
-	fn pow(mut x: double, mut y: double): mut double;
-	fn sqrt(mut x: double): mut double;
-	fn ceil(mut x: double): mut double;
-	fn floor(mut x: double): mut double;
+	func acos(mut x: double): mut double;
+	func asin(mut x: double): mut double;
+	func atan(mut x: double): mut double;
+	func atan2(mut y: double, mut x: double): mut double;
+	func cos(mut x: double): mut double;
+	func cosh(mut x: double): mut double;
+	func sin(mut x: double): mut double;
+	func sinh(mut x: double): mut double;
+	func tanh(mut x: double): mut double;
+	func exp(mut x: double): mut double;
+	func log(mut x: double): mut double;
+	func log10(mut x: double): mut double;
+	func pow(mut x: double, mut y: double): mut double;
+	func sqrt(mut x: double): mut double;
+	func ceil(mut x: double): mut double;
+	func floor(mut x: double): mut double;
 
 And we can use this library in a file:
 
 	// main.aly
 	!use "math" // note we don't use "math.aly", just "math"
 
-	fn main(): int {
+	func main(): int {
 		mut x: double = pow(5, 2);
 		printf("%f\n", x);
 		return 0;
@@ -474,7 +474,7 @@ a value, or not have a value -- they are often paired with `match`.
 An option type is denoted with an open angular bracket, the type that is optional, and a closing angle
 bracket.
 
-	fn example(a: ?int) {
+	func example(a: ?int) {
 		match a {
 			Some -> printf("wow!\n");
 			None -> printf("Damn\n");
@@ -486,7 +486,7 @@ cleanly checking for errors in your code. Note that the example below is semi-ps
 the functions that it calls do not exist, since we haven't written any file IO libraries for Alloy
 yet.
 
-	fn read_file(name: str): ?str {
+	func read_file(name: str): ?str {
 		read = non_existent_file_reading_function(str, ...);
 		if read {
 			return Some(read.contents);
@@ -494,7 +494,7 @@ yet.
 		return None;
 	}
 
-	fn main() {
+	func main() {
 		file_name: str = "vident_top_ten_favorite_bread_types.md";
 		file_contents: str = read_file(file_name, ...);
 		
@@ -520,7 +520,7 @@ must be terminated with a comma (excluding the final item in the enumerion). For
 To refer to the enum item, you need to specify the name of the enumeration, followed by two colons `::`,
 and finally the enum item.
 
-	fn main(): int {
+	func main(): int {
 		match x {
 			DogBreed::POODLE -> ...;
 		}
