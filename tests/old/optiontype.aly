@@ -1,7 +1,7 @@
-fn div(a: int, b: int): <int> {
+func div(a: int, b: int): <int> {
 	
 }
 
-fn main(): int {
+func main(): int {
 	return 0;
 }

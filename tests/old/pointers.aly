@@ -1,13 +1,13 @@
-fn add(x: ^int): ^int {
+func add(x: ^int): ^int {
 	mut d := 10;
 	return &d;
 }
 
-fn malloc(x: usize): ^void;
-fn free(x: ^void): void;
-fn printf(format: str, _): int;
+func malloc(x: usize): ^void;
+func free(x: ^void): void;
+func printf(format: str, _): int;
 
-fn main(): int {
+func main(): int {
 	x: ^int = malloc(8);
 	printf("%d\n", add(x));
 	free(x);
