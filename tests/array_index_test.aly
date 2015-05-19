@@ -1,6 +1,6 @@
-fn printf(fmt: str, _): int;
+func printf(fmt: str, _): int;
 
-fn main(): int {
+func main(): int {
 	y: int = 2;
 	x: []int = [1, 2, 3, 4, 5];
 	

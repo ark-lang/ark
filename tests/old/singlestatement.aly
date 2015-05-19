@@ -1,8 +1,8 @@
-fn printf(format: str, _): int;
+func printf(format: str, _): int;
 
-fn add(a: int, b: int): int -> a + b;
+func add(a: int, b: int): int -> a + b;
 
-fn main(): int {
+func main(): int {
 	result: int = add(5, 5);
 	printf("%d\n", result);
 }

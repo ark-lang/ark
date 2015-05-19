@@ -30,16 +30,16 @@ struct VirtualMachine {
 }
 
 impl VirtualMachine {
-    fn fetch(prog: []int): int {
+    func fetch(prog: []int): int {
         vm.pc = vm.pc + 1; // increment operators
         return prog[vm.pc]; // array access
     }
 
-    fn goto() {
+    func goto() {
         vm.pc = vm.imm_value;
     }
 
-    fn eval() {
+    func eval() {
         match vm.instruction_num {
             0 -> vm.stop();
             1 -> vm.set();
@@ -54,7 +54,7 @@ impl VirtualMachine {
         }
     }
 
-    fn decode(instruction: int) {
+    func decode(instruction: int) {
         vm.instruction_num = (instruction & 0xF000) >> 12;
         vm.first_register = (instruction & 0xF00) >> 8;
         vm.second_register = (instruction & 0xF0) >> 4;
@@ -62,16 +62,16 @@ impl VirtualMachine {
         vm.imm_value = instruction & 0xFF;
     }
 
-    fn set() {
+    func set() {
         temp: int = vm.registers[vm.first_register];
         vm.registers[vm.first_register] = vm.imm_value;
     }
 
-    fn stop() {
+    func stop() {
         vm.running = false;
     }
 
-    fn arithmetic(typ: int) {
+    func arithmetic(typ: int) {
         match typ {
             ADD { // syntax is weird
                 vm.registers[vm.first_register] = vm.registers[vm.second_register] + vm.registers[vm.third_register];
@@ -88,7 +88,7 @@ impl VirtualMachine {
         }
     }
 
-    fn start(prog: []int) {
+    func start(prog: []int) {
         for vm.running {
             instr: int = vm.fetch(prog);
             vm.decode(instr);
@@ -97,7 +97,7 @@ impl VirtualMachine {
     }
 }
 
-fn main(): int {
+func main(): int {
     vm: ^VirtualMachine = {
         instruction_num = 0,
         first_register = 0,
