@@ -1,0 +1,67 @@
+struct Queue {
+    size: int,
+    next: int,
+    capacity: int,
+    data: ^void,
+}
+
+impl Queue {
+    fn new(capacity: usize) {
+        self.size = 0;
+        self.next = 0;
+        self.capacity = capacity;
+        self.data = alloc ^void;
+    }
+
+    fn full() {
+        return self.size >= size.capacity;
+    }
+
+    fn dispose() {
+        // parsing error here
+        // perhaps it should be
+        // an expression, not a Type?
+        // free self.data;
+        // free self;
+    }
+
+    fn add(value: ^void): bool {
+        if (self.full()) {
+            return false;
+        }
+
+        currentPosition: int = self.next + self.size;
+        if currentPosition >= self.capacity {
+            currentPosition = currentPosition - self.capacity;
+        }
+        self.data[currentPosition] = value;
+        self.size = self.size + 1;
+
+        return true;
+    }
+
+    fn remove() {
+        mut value: ^void;
+
+        if self.size > 0 {
+            value = self.data[self.next];
+            self.next = self.next + 1;
+            self.size = self.size - 1;
+            if self.next >= self.capacity {
+                self.next = self.next - self.capacity;
+            }
+        }
+    }
+
+    fn peek(): ^void {
+        if self.size {
+            return self.data[self.next];
+        }
+        return false;
+    }
+
+}
+
+fn main(): int {
+    return 0;
+}
