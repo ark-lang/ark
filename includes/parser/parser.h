@@ -35,7 +35,7 @@
 #define STRUCT_KEYWORD              "struct"
 #define USE_KEYWORD                 "use"
 #define MUT_KEYWORD                 "mut"
-#define FUNCTION_KEYWORD            "fn"
+#define FUNCTION_KEYWORD            "func"
 #define SINGLE_STATEMENT_OPERATOR   "->"
 #define IF_KEYWORD                  "if"
 #define ELSE_KEYWORD                "else"

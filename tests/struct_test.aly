@@ -1,11 +1,11 @@
-fn printf(format: str, _): int;
+func printf(format: str, _): int;
 
 struct Stuff {
 	mut x: int,
 	mut y: int = 10
 }
 
-fn main(): int {
+func main(): int {
 	mut stuff: Stuff;
 	stuff.x = 5;
 	

@@ -4,16 +4,16 @@ struct Cat {
 }
 
 // printf binding for println
-fn printf(format: str, _): int;
+func printf(format: str, _): int;
 
 impl Cat {
-	fn swag(fuck: int);
+	func swag(fuck: int);
 
-	fn say(say: str) {
+	func say(say: str) {
 		printf("this is temporary for now but eventually will do something with struct values\n");
 	}
 }
 
-fn main(): int {
+func main(): int {
 	cat: Cat;
 }

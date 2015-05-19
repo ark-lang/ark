@@ -3,7 +3,7 @@ enum Test {
 	ANOTHER_VALUE = SOME_VALUE
 }
 
-fn main(): int {
+func main(): int {
 
 	return 0;
 }
