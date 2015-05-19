@@ -8,6 +8,6 @@
 !compiler_flag "-lpthread"
 
 // for testing purposes
-fn main(): int {
+func main(): int {
     return 0;
 }
