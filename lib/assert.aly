@@ -9,7 +9,7 @@
 
 // TODO - print to stderr, once it is implemented.
 
-fn assertTrue(expr: bool, failure_message: str) {
+func assertTrue(expr: bool, failure_message: str) {
 	if expr == false {
 		printf("assertTrue() failure: %s\n", failure_message);
 		abort();

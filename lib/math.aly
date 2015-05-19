@@ -11,47 +11,47 @@ PI: f64 = 3.14159265358979323846;
 // Wrapper functions
 //
 
-fn acos(x: f64): f64;
+func acos(x: f64): f64;
 
-fn asin(x: f64): f64;
+func asin(x: f64): f64;
 
-fn atan(x: f64): f64;
+func atan(x: f64): f64;
 
-fn atan2(y: f64, x: f64): f64;
+func atan2(y: f64, x: f64): f64;
 
-fn cos(x: f64): f64;
+func cos(x: f64): f64;
 
-fn cosh(x: f64): f64;
+func cosh(x: f64): f64;
 
-fn sin(x: f64): f64;
+func sin(x: f64): f64;
 
-fn sinh(x: f64): f64;
+func sinh(x: f64): f64;
 
-fn tanh(x: f64): f64;
+func tanh(x: f64): f64;
 
-fn exp(x: f64): f64;
+func exp(x: f64): f64;
 
-fn frexp(x: f64, exponent: ^int): f64;
+func frexp(x: f64, exponent: ^int): f64;
 
-fn ldexp(x: f64, exponent: int): f64;
+func ldexp(x: f64, exponent: int): f64;
 
-fn log(x: f64): f64;
+func log(x: f64): f64;
 
-fn log10(x: f64): f64;
+func log10(x: f64): f64;
 
-fn modf(x: f64, integer: ^int): f64;
+func modf(x: f64, integer: ^int): f64;
 
-fn pow(x: f64, y: f64): f64;
+func pow(x: f64, y: f64): f64;
 
-fn sqrt(x: f64): f64;
+func sqrt(x: f64): f64;
 
-fn ceil(x: f64): f64;
+func ceil(x: f64): f64;
 
-fn fabs(x: f64): f64;
+func fabs(x: f64): f64;
 
-fn floor(x: f64): f64;
+func floor(x: f64): f64;
 
-fn fmod(x: f64, y: f64): f64;
+func fmod(x: f64, y: f64): f64;
 
 //
 // Native functions
@@ -59,20 +59,20 @@ fn fmod(x: f64, y: f64): f64;
 
 // TODO consider implenting as macros/inline functions if they get implemented
 
-fn degToRad(deg: f64): f64 -> deg * 2 * PI / 360.0;
+func degToRad(deg: f64): f64 -> deg * 2 * PI / 360.0;
 
-fn radToDeg(rad: f64): f64 -> rad / 2 / PI * 360.0;
+func radToDeg(rad: f64): f64 -> rad / 2 / PI * 360.0;
 
-fn log2(x: f64): f64 -> log(x) / log(2);
+func log2(x: f64): f64 -> log(x) / log(2);
 
-fn max(x: f64, y: f64): f64 {
+func max(x: f64, y: f64): f64 {
 	if x > y {
 		return x;
 	}
 	return y;
 }
 
-fn min(x: f64, y: f64): f64 {
+func min(x: f64, y: f64): f64 {
 	if x < y {
 		return x;
 	}

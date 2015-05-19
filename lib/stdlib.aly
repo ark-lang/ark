@@ -8,22 +8,22 @@
 // Wrapper functions
 //
 
-fn atof(inp: str): f64;
-fn atoi(inp: str): int;
-fn free(ptr: ^void);
-fn calloc(nitems: usize, size: usize): ^void;
-fn malloc(size: usize): ^void;
-fn realloc(ptr: ^void, size: usize): ^void;
-fn abort();
-fn exit(status: int);
-fn getenv(name: str): str;
-fn system(command: str): int;
+func atof(inp: str): f64;
+func atoi(inp: str): int;
+func free(ptr: ^void);
+func calloc(nitems: usize, size: usize): ^void;
+func malloc(size: usize): ^void;
+func realloc(ptr: ^void, size: usize): ^void;
+func abort();
+func exit(status: int);
+func getenv(name: str): str;
+func system(command: str): int;
 
 //
 // Native functions
 //
 
-fn abs(x: int): int {
+func abs(x: int): int {
 	if x < 0 {
 		return x * -1;
 	}
