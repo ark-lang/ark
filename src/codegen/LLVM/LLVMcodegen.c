@@ -94,17 +94,80 @@ LLVMValueRef genBinaryExpression(LLVMCodeGenerator *self, BinaryExpr *expr) {
 	}
 }
 
+LLVMValueRef genFunctionCall(LLVMCodeGenerator *self, Call *call) {
+	char *funcName = getVectorItem(call->callee, 0);
+	LLVMValueRef func = LLVMGetNamedFunction(self->currentSourceFile->module, funcName);
+
+	if (!func) {
+		genError("Function not found in module");
+		return false;
+	}
+
+	if (LLVMCountParams(func) != call->arguments->size) {
+		genError("Function has too many/few arguments");
+		return false;
+	}
+
+	LLVMValueRef *args = malloc(sizeof(LLVMValueRef) * call->arguments->size);
+	for (int i = 0; i < call->arguments->size; i++) {
+		args[i] = genExpression(self, getVectorItem(call->arguments, i));
+		if (!args[i]) {
+			genError("Could not evaluate argument in function call %s", funcName);
+			free(args);
+			return false;
+		}
+	}
+
+	LLVMBuildCall(self->builder, func, args, call->arguments->size, "calltmp");
+}
+
+LLVMValueRef genTypeName(LLVMCodeGenerator *self, TypeName *name) {
+	printf("todo\n");
+	return false;
+}
+
+LLVMValueRef genLiteral(LLVMCodeGenerator *self, Literal *lit) {
+	switch (lit->type) {
+		case INT_LITERAL_NODE: 
+			printf("%d\n", lit->intLit->value);
+			return LLVMConstInt(LLVMInt32Type(), lit->intLit->value, false);
+		default:
+			printf("hmm?\n");
+			break;
+	}
+	return false;
+}
+
+LLVMValueRef genTypeLit(LLVMCodeGenerator *self, TypeLit *lit) {
+	switch (lit->type) {
+		default:
+			printf("%s\n", getNodeTypeName(lit->type));
+			break;
+	}
+}
+
+LLVMValueRef genType(LLVMCodeGenerator *self, Type *type) {
+	switch (type->type) {
+		case TYPE_NAME_NODE:
+			genTypeName(self, type->typeName);
+			break;
+		case TYPE_LIT_NODE:
+			genTypeLit(self, type->typeLit);
+			break;
+	}
+}
+
 LLVMValueRef genExpression(LLVMCodeGenerator *self, Expression *expr) {
 	switch (expr->exprType) {
-		case TYPE_NODE: break;
-		case LITERAL_NODE: break;
+		case TYPE_NODE: return genType(self, expr->type);
+		case LITERAL_NODE: return genLiteral(self, expr->lit);
 		case BINARY_EXPR_NODE: return genBinaryExpression(self, expr->binary);
-		case UNARY_EXPR_NODE: break;
-		case FUNCTION_CALL_NODE: break;
-		case ARRAY_INITIALIZER_NODE: break;
-		case ARRAY_INDEX_NODE: break;
-		case ALLOC_NODE: break;
-		case SIZEOF_NODE: break;
+		case UNARY_EXPR_NODE: printf("unary\n"); break;
+		case FUNCTION_CALL_NODE: return genFunctionCall(self, expr->call);
+		case ARRAY_INITIALIZER_NODE: printf("array init\n"); break;
+		case ARRAY_INDEX_NODE: printf("array index\n"); break;
+		case ALLOC_NODE: printf("alloc\n"); break;
+		case SIZEOF_NODE: printf("sizeof\n"); break;
 		default:
 			errorMessage("Unknown node in expression %d", expr->exprType);
 			break;
@@ -149,12 +212,17 @@ LLVMValueRef genStatement(LLVMCodeGenerator *self, Statement *stmt) {
 	switch (stmt->type) {
 		case UNSTRUCTURED_STATEMENT_NODE: 
 			return genUnstructuredStatementNode(self, stmt->unstructured);
-		case STRUCTURED_STATEMENT_NODE: 
+		case STRUCTURED_STATEMENT_NODE:
 			return genStructuredStatementNode(self, stmt->structured);
+		case MACRO_NODE: 
+			printf("macro ignored\n");
+			consumeAstNode(self); 
+			break; // ignore the macro
 		default:
-			printf("cheeky nandos with me nan\n");
+			errorMessage("Unknown statement %s\n", getNodeTypeName(stmt->type));
 			break;
 	}
+	printf("returned null idk why\n");
 	return false;
 }
 
@@ -168,18 +236,8 @@ LLVMValueRef genFunctionDecl(LLVMCodeGenerator *self, FunctionDecl *decl) {
 	LLVMBasicBlockRef block = LLVMAppendBasicBlock(prototype, "entry");
 	LLVMPositionBuilderAtEnd(self->builder, block);
 
-	LLVMValueRef body = genStatement(self, decl->body);
-	if (!body) {
-		genError("something fucked up here");
-		LLVMDeleteFunction(prototype);
-		return false;
-	}
-
-	LLVMBuildRet(self->builder, body);
-	if (LLVMVerifyFunction(prototype, LLVMPrintMessageAction)) {
-		genError("Invalid function");
-		LLVMDeleteFunction(prototype);
-		return false;
+	for (int i = 0; i < decl->body->stmtList->stmts->size; i++) {
+		LLVMValueRef body = genStatement(self, getVectorItem(decl->body->stmtList->stmts, i));
 	}
 
 	return prototype;
@@ -191,12 +249,27 @@ LLVMValueRef genDeclaration(LLVMCodeGenerator *self, Declaration *decl) {
 	}
 }
 
+LLVMValueRef genLeaveStatNode(LLVMCodeGenerator *self, LeaveStat *leave) {
+	switch (leave->type) {
+		case RETURN_STAT_NODE: {
+			LLVMValueRef expr = NULL;
+			if (leave->retStmt->expr) {
+				expr = genExpression(self, leave->retStmt->expr);
+			}
+			LLVMBuildRet(self->builder, expr != NULL ? expr : LLVMVoidType());
+			break;
+		}
+	}
+}
+
 LLVMValueRef genUnstructuredStatementNode(LLVMCodeGenerator *self, UnstructuredStatement *stmt) {
 	switch (stmt->type) {
-		case DECLARATION_NODE: printf("cheeky\n"); return genDeclaration(self, stmt->decl);
-		case EXPR_STAT_NODE: printf("nandos\n"); return genExpression(self, stmt->expr); 
-		default:
-			printf("omg!\n");
+		case DECLARATION_NODE: return genDeclaration(self, stmt->decl);
+		case EXPR_STAT_NODE: return genExpression(self, stmt->expr); 
+		case LEAVE_STAT_NODE: return genLeaveStatNode(self, stmt->leave);
+		case FUNCTION_CALL_NODE: return genFunctionCall(self, stmt->call);
+		default: 
+			printf("found %s\n", getNodeTypeName(stmt->type));
 			break;
 	}
 	return false;
@@ -230,9 +303,9 @@ void startLLVMCodeGeneration(LLVMCodeGenerator *self) {
 
 		// just dump mods for now
 		LLVMDumpModule(sf->module);
-		// if (LLVMWriteBitcodeToFile(sf->module, "test.bc")) {
-		// 	genError("Failed to write bit-code");
-		// }
+		if (LLVMWriteBitcodeToFile(sf->module, "test.bc")) {
+			genError("Failed to write bit-code");
+		}
 	}
 }
 
@@ -250,9 +323,9 @@ static LLVMTypeRef getIntType() {
 
 static LLVMTypeRef getLLVMType(DataType type) {
 	switch (type) {
-		case INT_128_TYPE:
-		case UINT_128_TYPE:
-			return LLVMIntType(128);
+		// case INT_128_TYPE:
+		// case UINT_128_TYPE:
+		// 	return LLVMIntType(128);
 			
 		case INT_64_TYPE:
 		case UINT_64_TYPE:
