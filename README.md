@@ -1,5 +1,9 @@
 # [Alloy](http://alloy-lang.org) [![BuildStatus](https://travis-ci.org/alloy-lang/alloy.svg?branch=master)](https://travis-ci.org/alloy-lang/alloy)
 
+## Notice
+We're currently porting the backend from C to LLVM, this may take a while and things will be broken. If
+you want to checkout the progress, have a look at [issue #345](https://github.com/alloy-lang/alloy/issues/345).
+
 ## Resources
 
 * [Reference](/docs/REFERENCE.md)
@@ -16,11 +20,6 @@
 Here's a 3d cube being rendered using SDL and OpenGL in Alloy. You can
 check out the source code for this <a href="https://www.github.com/alloy-lang/space-invaders">here</a>
 </p>
-
-## Disclaimer?
-Alloy is a somewhat experimental language, this means it can and probably will 
-change at any point, be it a small change, or a complete re-write. We consider
-this to be unlikely, but it's still something to consider.
 
 ## Building
 If you want to try out Alloy yourself, clone the repository, compile it, and add `bin/alloyc` to your path. You can
