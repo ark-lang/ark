@@ -75,7 +75,7 @@ for name in files:
 		print(bold("Compiling ") + name + "...")
 	
 	if show_output:
-		compile_result = subprocess.call(["alloyc", "tests/" + name, "-o", "tests/" + output_file])
+		compile_result = subprocess.call(["alloyc", "tests/" + name, "-o", "tests/" + output_file] + alloyc_args)
 	else:
 		compile_result = subprocess.call(["alloyc", "tests/" + name, "-o", "tests/" + output_file] + alloyc_args, stdout=FNULL, stderr=subprocess.STDOUT)
 
