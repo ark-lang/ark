@@ -35,7 +35,7 @@
 #define STRUCT_KEYWORD              "struct"
 #define USE_KEYWORD                 "use"
 #define MUT_KEYWORD                 "mut"
-#define FUNCTION_KEYWORD            "fn"
+#define FUNCTION_KEYWORD            "func"
 #define SINGLE_STATEMENT_OPERATOR   "->"
 #define IF_KEYWORD                  "if"
 #define ELSE_KEYWORD                "else"
@@ -79,9 +79,9 @@ typedef enum {
  * again mostly for lookups.
  */
 typedef enum {
-	INT_64_TYPE, INT_32_TYPE, INT_16_TYPE, INT_8_TYPE,
-	UINT_64_TYPE, UINT_32_TYPE, UINT_16_TYPE, UINT_8_TYPE,
-	FLOAT_64_TYPE, FLOAT_32_TYPE,
+	INT_128_TYPE, INT_64_TYPE, INT_32_TYPE, INT_16_TYPE, INT_8_TYPE,
+	UINT_128_TYPE, UINT_64_TYPE, UINT_32_TYPE, UINT_16_TYPE, UINT_8_TYPE,
+	FLOAT_128_TYPE, FLOAT_64_TYPE, FLOAT_32_TYPE,
 	INT_TYPE, BOOL_TYPE, CHAR_TYPE, VOID_TYPE, UNKNOWN_TYPE
 } DataType;
 

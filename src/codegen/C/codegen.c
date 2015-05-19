@@ -281,12 +281,15 @@ CC_NEWLINE
 "typedef uint16_t u16;" CC_NEWLINE
 "typedef uint32_t u32;" CC_NEWLINE
 "typedef uint64_t u64;" CC_NEWLINE
+"typedef uint64_t u128;" CC_NEWLINE
 "typedef int8_t i8;" CC_NEWLINE
 "typedef int16_t i16;" CC_NEWLINE
 "typedef int32_t i32;" CC_NEWLINE
 "typedef int64_t i64;" CC_NEWLINE
+"typedef int64_t i128;" CC_NEWLINE
 "typedef float f32;" CC_NEWLINE
 "typedef double f64;" CC_NEWLINE
+"typedef double f128;" CC_NEWLINE
 "typedef unsigned int uint;\n"
 CC_NEWLINE
 "#endif\n"

@@ -1,4 +1,4 @@
-fn main(): int {
+func main(): int {
 	if '+' != 43 {
 		return 1;
 	}

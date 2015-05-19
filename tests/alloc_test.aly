@@ -1,10 +1,10 @@
-fn printf(fmt: str, _);
+func printf(fmt: str, _);
 
 struct Test {
 	mut val: int
 }
 
-fn main(): int {
+func main(): int {
 	mut test: ^Test = alloc Test;
 	free test;
 	
