@@ -1,7 +1,7 @@
-fn div(a: float, b: float): ?float {
+func div(a: float, b: float): ?float {
     // for now just parse the ?
 }
 
-fn main(): int {
+func main(): int {
     x: int = div(1, 5);
 }

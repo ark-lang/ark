@@ -1,6 +1,6 @@
-fn printf(format: str, _): int;
+func printf(format: str, _): int;
 
-fn main(): int {
+func main(): int {
 	mut x: int = 10;
 	printf("%d\n", x);
 	x = 21;

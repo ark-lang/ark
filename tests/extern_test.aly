@@ -1,7 +1,7 @@
-fn extern test() {
+func extern test() {
     // idk
 }
 
-fn main(): int {
+func main(): int {
     return 0;
 }
