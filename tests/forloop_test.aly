@@ -1,7 +1,7 @@
-fn printf(format: str, _): int;
-fn getchar(): char;
+func printf(format: str, _): int;
+func getchar(): char;
 
-fn main(): int {
+func main(): int {
 	mut x: int = 0;
 	
 	for x < 5, x = x + 1 {
