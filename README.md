@@ -68,9 +68,9 @@ Or you can just see a small Hello World example below:
 // c binding for printf
 // you have to do this for now, but soon
 // we'll have a standard library for this
-fn printf(format: str, _): int;
+func printf(format: str, _): int;
 
-fn main(): int {
+func main(): int {
     printf("Hello, World");
     return 0;
 }
