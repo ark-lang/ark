@@ -94,13 +94,40 @@ LLVMValueRef genBinaryExpression(LLVMCodeGenerator *self, BinaryExpr *expr) {
 	}
 }
 
+LLVMValueRef genFunctionCall(LLVMCodeGenerator *self, Call *call) {
+	char *funcName = getVectorItem(call->callee, 0);
+	LLVMValueRef func = LLVMGetNamedFunction(self->currentSourceFile->module, funcName);
+
+	if (!func) {
+		genError("Function not found in module");
+		return false;
+	}
+
+	if (LLVMCountParams(func) != call->arguments->size) {
+		genError("Function has too many/few arguments");
+		return false;
+	}
+
+	LLVMValueRef *args = malloc(sizeof(LLVMValueRef) * call->arguments->size);
+	for (int i = 0; i < call->arguments->size; i++) {
+		args[i] = genExpression(self, getVectorItem(call->arguments, i));
+		if (!args[i]) {
+			genError("Could not evaluate argument in function call %s", funcName);
+			free(args);
+			return false;
+		}
+	}
+
+	return LLVMBuildCall(self->builder, func, args, call->arguments->size, "calltmp");
+}
+
 LLVMValueRef genExpression(LLVMCodeGenerator *self, Expression *expr) {
 	switch (expr->exprType) {
 		case TYPE_NODE: break;
 		case LITERAL_NODE: break;
 		case BINARY_EXPR_NODE: return genBinaryExpression(self, expr->binary);
 		case UNARY_EXPR_NODE: break;
-		case FUNCTION_CALL_NODE: break;
+		case FUNCTION_CALL_NODE: return genFunctionCall(self, expr->call);
 		case ARRAY_INITIALIZER_NODE: break;
 		case ARRAY_INDEX_NODE: break;
 		case ALLOC_NODE: break;
