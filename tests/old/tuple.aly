@@ -1,5 +1,5 @@
 func main(): int {
 	// doesn't generate code yet
-	test: (int, int) = (1, 1);
+	test: |int, int| = |1, 1|;
 	return 0;
 }
