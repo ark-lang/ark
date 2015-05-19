@@ -121,17 +121,21 @@ LLVMValueRef genFunctionCall(LLVMCodeGenerator *self, Call *call) {
 	return LLVMBuildCall(self->builder, func, args, call->arguments->size, "calltmp");
 }
 
+LLVMValueRef genType(LLVMCodeGenerator *self, Type *type) {
+	return false;
+}
+
 LLVMValueRef genExpression(LLVMCodeGenerator *self, Expression *expr) {
 	switch (expr->exprType) {
-		case TYPE_NODE: break;
-		case LITERAL_NODE: break;
+		case TYPE_NODE: return genType(self, expr->type);
+		case LITERAL_NODE: printf("lit\n"); break;
 		case BINARY_EXPR_NODE: return genBinaryExpression(self, expr->binary);
-		case UNARY_EXPR_NODE: break;
+		case UNARY_EXPR_NODE: printf("unary\n"); break;
 		case FUNCTION_CALL_NODE: return genFunctionCall(self, expr->call);
-		case ARRAY_INITIALIZER_NODE: break;
-		case ARRAY_INDEX_NODE: break;
-		case ALLOC_NODE: break;
-		case SIZEOF_NODE: break;
+		case ARRAY_INITIALIZER_NODE: printf("array init\n"); break;
+		case ARRAY_INDEX_NODE: printf("array index\n"); break;
+		case ALLOC_NODE: printf("alloc\n"); break;
+		case SIZEOF_NODE: printf("sizeof\n"); break;
 		default:
 			errorMessage("Unknown node in expression %d", expr->exprType);
 			break;
@@ -175,13 +179,20 @@ LLVMValueRef genFunctionSignature(LLVMCodeGenerator *self, FunctionSignature *de
 LLVMValueRef genStatement(LLVMCodeGenerator *self, Statement *stmt) {
 	switch (stmt->type) {
 		case UNSTRUCTURED_STATEMENT_NODE: 
+			printf("unstructured statement\n");
 			return genUnstructuredStatementNode(self, stmt->unstructured);
-		case STRUCTURED_STATEMENT_NODE: 
+		case STRUCTURED_STATEMENT_NODE:
+			printf("structured statement\n");
 			return genStructuredStatementNode(self, stmt->structured);
+		case MACRO_NODE: 
+			printf("macro ignored\n");
+			consumeAstNode(self); 
+			break; // ignore the macro
 		default:
-			printf("cheeky nandos with me nan\n");
+			errorMessage("Unknown statement %s\n", getNodeTypeName(stmt->type));
 			break;
 	}
+	printf("returned null idk why\n");
 	return false;
 }
 
@@ -195,18 +206,14 @@ LLVMValueRef genFunctionDecl(LLVMCodeGenerator *self, FunctionDecl *decl) {
 	LLVMBasicBlockRef block = LLVMAppendBasicBlock(prototype, "entry");
 	LLVMPositionBuilderAtEnd(self->builder, block);
 
-	LLVMValueRef body = genStatement(self, decl->body);
-	if (!body) {
-		genError("something fucked up here");
-		LLVMDeleteFunction(prototype);
-		return false;
-	}
-
-	LLVMBuildRet(self->builder, body);
-	if (LLVMVerifyFunction(prototype, LLVMPrintMessageAction)) {
-		genError("Invalid function");
-		LLVMDeleteFunction(prototype);
-		return false;
+	for (int i = 0; i < decl->body->stmtList->stmts->size; i++) {
+		LLVMValueRef body = genStatement(self, getVectorItem(decl->body->stmtList->stmts, i));
+		if (body) {
+			printf("its good!\n");
+		}
+		else {
+			printf("its not good!\n");
+		}
 	}
 
 	return prototype;
@@ -218,12 +225,26 @@ LLVMValueRef genDeclaration(LLVMCodeGenerator *self, Declaration *decl) {
 	}
 }
 
+LLVMValueRef genLeaveStatNode(LLVMCodeGenerator *self, LeaveStat *leave) {
+	switch (leave->type) {
+		case RETURN_STAT_NODE: {
+			LLVMValueRef expr = NULL;
+			if (leave->retStmt->expr) {
+				expr = genExpression(self, leave->retStmt->expr);
+			}
+			LLVMBuildRet(self->builder, LLVMVoidType());
+			break;
+		}
+	}
+}
+
 LLVMValueRef genUnstructuredStatementNode(LLVMCodeGenerator *self, UnstructuredStatement *stmt) {
 	switch (stmt->type) {
-		case DECLARATION_NODE: printf("cheeky\n"); return genDeclaration(self, stmt->decl);
-		case EXPR_STAT_NODE: printf("nandos\n"); return genExpression(self, stmt->expr); 
-		default:
-			printf("omg!\n");
+		case DECLARATION_NODE: return genDeclaration(self, stmt->decl);
+		case EXPR_STAT_NODE: return genExpression(self, stmt->expr); 
+		case LEAVE_STAT_NODE: return genLeaveStatNode(self, stmt->leave);
+		default: 
+			printf("found %s\n", getNodeTypeName(stmt->type));
 			break;
 	}
 	return false;
