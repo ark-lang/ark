@@ -1463,7 +1463,13 @@ Expression *parseExpression(Parser *self) {
 	if (!expr)
 		return false;
 
-	if (isValidBinaryOp(peekAtTokenStream(self, 0)->content)) {
+	// HACK!
+	// for a tuple expr e.g. x: |int, double| = |1, 2.3|;
+	// it parses it as | Expression, Expression|
+	// now it thinks Expression| is a bitwise OR, so we just
+	// dont parse it as that if theres a semi-colon after the expression
+	if (isValidBinaryOp(peekAtTokenStream(self, 0)->content)
+		&& peekAtTokenStream(self, 1)->content[0] != ';') {
 		return parseBinaryOperator(self, 0, expr);
 	}
 	return expr;
@@ -1519,13 +1525,13 @@ PointerType *parsePointerType(Parser *self) {
 }
 
 TupleType *parseTupleType(Parser *self) {
-	if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, "(", 0)) {
+	if (checkTokenTypeAndContent(self, TOKEN_OPERATOR, "|", 0)) {
 		consumeToken(self);
 
 		TupleType *tuple = createTupleType();
 
 		while (true) {
-			if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, ")", 0)) {
+			if (checkTokenTypeAndContent(self, TOKEN_OPERATOR, "|", 0)) {
 				consumeToken(self);
 				break;
 			}
@@ -1692,13 +1698,12 @@ ArrayIndex *parseArrayIndex(Parser *self) {
 }
 
 TupleExpr *parseTupleExpr(Parser *self) {
-	if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, "(", 0)) {
+	if (checkTokenTypeAndContent(self, TOKEN_OPERATOR, "|", 0)) {
 		consumeToken(self);
 
 		TupleExpr *tuple = createTupleExpr();
-
 		while (true) {
-			if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, ")", 0)) {
+			if (checkTokenTypeAndContent(self, TOKEN_OPERATOR, "|", 0)) {
 				consumeToken(self);
 				break;
 			}
@@ -1710,7 +1715,9 @@ TupleExpr *parseTupleExpr(Parser *self) {
 					consumeToken(self);
 				}
 			}
+
 		}	
+
 
 		return tuple;
 	}
@@ -1745,7 +1752,7 @@ Expression *parsePrimaryExpression(Parser *self) {
 		}
 	}
 
-	if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, "(", 0)) {
+	if (checkTokenTypeAndContent(self, TOKEN_OPERATOR, "|", 0)) {
 		TupleExpr *tuple = parseTupleExpr(self);
 		if (tuple) {
 			Expression *expr = createExpression();

@@ -2,7 +2,7 @@ struct Queue {
     size: int,
     next: int,
     capacity: int,
-    data: ^void,
+    data: ^(^void),
 }
 
 impl Queue {
