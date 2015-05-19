@@ -11,7 +11,7 @@
 
 const char* BINARY_OPS[] = { ".", "*", "/", "%", "+", "=", "-", ">", "<", ">=", "<=", "==", "!=", "&", "|", "&&", "||" };
 
-const char* DATA_TYPES[] = { "i64", "i32", "i16", "i8", "u64", "u32", "u16", "u8", "f64", "f32", "int", "bool", "char", "void" };
+const char* DATA_TYPES[] = { "i128", "i64", "i32", "i16", "i8", "u128", "u64", "u32", "u16", "u8", "f128",  "f64", "f32", "int", "bool", "char", "void" };
 
 int getTypeFromString(char *type) {
 	for (int i = 0; i < ARR_LEN(DATA_TYPES); i++) {
