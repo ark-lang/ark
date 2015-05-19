@@ -42,14 +42,17 @@ SemanticAnalyzer *createSemanticAnalyzer(Vector *sourceFiles) {
 	hashmap_put(self->dataTypes, "i16", createVarType(INTEGER_VAR_TYPE));
 	hashmap_put(self->dataTypes, "i32", createVarType(INTEGER_VAR_TYPE));
 	hashmap_put(self->dataTypes, "i64", createVarType(INTEGER_VAR_TYPE));
+	hashmap_put(self->dataTypes, "i128", createVarType(INTEGER_VAR_TYPE));
 	
 	hashmap_put(self->dataTypes, "u8", createVarType(INTEGER_VAR_TYPE));
 	hashmap_put(self->dataTypes, "u16", createVarType(INTEGER_VAR_TYPE));
 	hashmap_put(self->dataTypes, "u32", createVarType(INTEGER_VAR_TYPE));
 	hashmap_put(self->dataTypes, "u64", createVarType(INTEGER_VAR_TYPE));
+	hashmap_put(self->dataTypes, "u128", createVarType(INTEGER_VAR_TYPE));
 
 	hashmap_put(self->dataTypes, "f32", createVarType(INTEGER_VAR_TYPE));
 	hashmap_put(self->dataTypes, "f64", createVarType(INTEGER_VAR_TYPE));
+	hashmap_put(self->dataTypes, "f128", createVarType(INTEGER_VAR_TYPE));
 	
 	hashmap_put(self->dataTypes, "int", createVarType(INTEGER_VAR_TYPE));
 	hashmap_put(self->dataTypes, "char", createVarType(INTEGER_VAR_TYPE));
