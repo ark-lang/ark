@@ -250,6 +250,10 @@ static LLVMTypeRef getIntType() {
 
 static LLVMTypeRef getLLVMType(DataType type) {
 	switch (type) {
+		case INT_128_TYPE:
+		case UINT_128_TYPE:
+			return LLVMIntType(128);
+			
 		case INT_64_TYPE:
 		case UINT_64_TYPE:
 			return LLVMInt64Type();
@@ -265,7 +269,10 @@ static LLVMTypeRef getLLVMType(DataType type) {
 		case INT_8_TYPE:
 		case UINT_8_TYPE:
 			return LLVMInt8Type();
-			
+		
+		case FLOAT_128_TYPE:
+			return LLVMFP128Type();
+		
 		case FLOAT_64_TYPE:
 			return LLVMDoubleType();
 			
