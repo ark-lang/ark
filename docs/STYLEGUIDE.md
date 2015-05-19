@@ -11,7 +11,7 @@ cover every tiny detail.
 ## Whitespace
 Use spaces around binary operators:
 
-	fn bar(a: int, b: int): int {
+	func bar(a: int, b: int): int {
 		return a + b;
 	}
 
@@ -19,14 +19,14 @@ Spaces after colons and commas:
 
 	struct Cat { a: int, b: int }
 
-	fn bar(a: Cat);
+	func bar(a: Cat);
 
 ### Line Wrapping
 Functions with multiple lines in the signatures should have all the parameters
 aligned with the first, the return type should be on a separate line, aligned
 with the last parameter.
 
-	fn foo(a: int,
+	func foo(a: int,
 		   b: int,
 		   c: int
 		   ): int {
@@ -37,10 +37,10 @@ with the last parameter.
 If a function has only one statement, prefer the single-statement operator:
 
 	// Good
-	fn add(a: int, b: int): int -> a + b;
+	func add(a: int, b: int): int -> a + b;
 
 	// Eh
-	fn add(a: int, b: int): int {
+	func add(a: int, b: int): int {
 		return a + b;
 	}
 
@@ -83,11 +83,11 @@ Instead of:
 ## Braces
 Braces should be on the same line:
 
-	fn foo(): int {
+	func foo(): int {
 		...
 	}
 
-	fn foo(a: int,
+	func foo(a: int,
 		   b: int,
 		   c: int
 		   ): int {
@@ -106,7 +106,7 @@ Braces should be on the same line:
 
 ###### Function/Method Names: CamelCase
 
-	fn fooBar(): void {
+	func fooBar(): void {
 		...
 	}
 
@@ -114,7 +114,7 @@ Braces should be on the same line:
 
 	some_global_var: int = 5;
 
-	fn main(): int {
+	func main(): int {
 		some_local_var: int = 10;
 	}
 
@@ -129,7 +129,7 @@ Braces should be on the same line:
 	};
 
 	impl MyStruct {
-		fn foo() {
+		func foo() {
 			...
 		}
 	};
@@ -147,7 +147,7 @@ Braces should be on the same line:
 	};
 
 	impl Cat {
-		fn setName(): void {
+		func setName(): void {
 			...
 		}
 	}
@@ -159,7 +159,7 @@ Braces should be on the same line:
 	};
 
 	impl Cat {
-		fn setCatName(): void {
+		func setCatName(): void {
 			...
 		}
 	}
