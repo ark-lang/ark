@@ -6,10 +6,10 @@
    line comment! */
 
 # Binding for c printf function
-fn printf(msg: str, _): int;
+func printf(msg: str, _): int;
 
 # Main entry point of the program
-fn main(): int {
+func main(): int {
 	printf("this is a test\n");
 	return 0;
 }

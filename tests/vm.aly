@@ -1,4 +1,4 @@
-fn printf(fmt: str, _);
+func printf(fmt: str, _);
 
 struct VM {
     mut running: bool,
@@ -23,11 +23,11 @@ program: []int = [
 ];
 
 impl VM {
-    fn fetch(): int {
+    func fetch(): int {
         return program[ip];
     }
     
-    fn eval(instr: int) {
+    func eval(instr: int) {
         match instr {
             HLT -> {
                 self.running = false;
@@ -55,7 +55,7 @@ impl VM {
         }
     }
 
-    fn start(): void {
+    func start(): void {
         self.running = true;
         self.ip = 0;
         self.sp = 0;
@@ -67,7 +67,7 @@ impl VM {
     }
 }
 
-fn main(): int {
+func main(): int {
     vm: VM;
     vm.start();
     return 0;
