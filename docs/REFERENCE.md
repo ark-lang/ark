@@ -58,14 +58,19 @@ Note: the C `char` type corresponds to the `i8` type.
 |----|-----------|
 |f32|IEEE 754 single-precision binary floating-point|
 |f64|IEEE 754 double-precision binary floating-point|
+|f128|IEEE 754 quadruple-precision binary floating-point|
 |i8|signed 8 bits|
 |i16|signed 16 bits|
 |i32|signed 32 bits|
 |i64|signed 64 bits|
+|i128|signed 128 bits|
 |u8|unsigned 8 bits|
 |u16|unsigned 16 bits|
 |u32|unsigned 32 bits|
 |u64|unsigned 64 bits|
+|u128|unsigned 128 bits|
+
+Warning: the `i128`, `u128` and `f128` types are only supported on the LLVM backend. On the C backend, they are simple aliases for their 64-bit equivelants.
 
 ## Other
 Other types that don't quite fit a category.
