@@ -292,6 +292,8 @@ void traverseAST(LLVMCodeGenerator *self) {
 }
 
 void startLLVMCodeGeneration(LLVMCodeGenerator *self) {
+	Vector *asmFiles = createVector(VECTOR_EXPONENTIAL);
+	
 	for (int i = 0; i < self->sourceFiles->size; i++) {
 		SourceFile *sf = getVectorItem(self->sourceFiles, i);
 		sf->module = LLVMModuleCreateWithName(sf->name);
@@ -303,10 +305,74 @@ void startLLVMCodeGeneration(LLVMCodeGenerator *self) {
 
 		// just dump mods for now
 		LLVMDumpModule(sf->module);
-		if (LLVMWriteBitcodeToFile(sf->module, "test.bc")) {
-			genError("Failed to write bit-code");
+		
+		sds bitcodeFilename = sdsempty();
+		bitcodeFilename = sdscat(bitcodeFilename, sf->name);
+		bitcodeFilename = sdscat(bitcodeFilename, ".bc");
+		
+		char *error = NULL;
+		int verify_result = LLVMVerifyModule(sf->module, LLVMReturnStatusAction, &error);
+		if (verify_result) {
+			genError("%s", error);
+		} else {
+			if (LLVMWriteBitcodeToFile(sf->module, bitcodeFilename)) {
+				genError("Failed to write bit-code");
+			}
 		}
+		LLVMDisposeMessage(error);
+		
+		sds asmFilename = sdsempty();
+		asmFilename = sdscat(asmFilename, sf->name);
+		asmFilename = sdscat(asmFilename, ".s");
+		
+		// convert bitcode files to assembly files
+		sds toasmcommand = sdsempty();
+		toasmcommand = sdscat(toasmcommand, "llc ");
+		toasmcommand = sdscat(toasmcommand, bitcodeFilename);
+		toasmcommand = sdscat(toasmcommand, " -o ");
+		toasmcommand = sdscat(toasmcommand, asmFilename);
+		
+		int toasmresult = system(toasmcommand);
+		if (toasmresult)
+			genError("Couldn't assemble bitcode file %s", bitcodeFilename);
+		
+		int removeBitcodeResult = remove(bitcodeFilename);
+		if (removeBitcodeResult)
+			genError("Couldn't remove bitcode file %s", bitcodeFilename);
+		
+		pushBackItem(asmFiles, asmFilename);
+		
+		sdsfree(bitcodeFilename);
+		sdsfree(toasmcommand);
 	}
+	
+	sds linkCommand = sdsempty();
+	linkCommand = sdscat(linkCommand, COMPILER);
+	linkCommand = sdscat(linkCommand, " ");
+	
+	// get all the asm files to compile
+	for (int i = 0; i < asmFiles->size; i++) {
+		linkCommand = sdscat(linkCommand, getVectorItem(asmFiles, i));
+		linkCommand = sdscat(linkCommand, " ");
+	}
+	
+	linkCommand = sdscat(linkCommand, " -o ");
+	linkCommand = sdscat(linkCommand, OUTPUT_EXECUTABLE_NAME);
+	
+	int linkResult = system(linkCommand);
+	if (linkResult)
+		genError("Couldn't link object files");
+	
+	sdsfree(linkCommand);
+	
+	for (int i = 0; i < asmFiles->size; i++) {
+		int freeAsmResult = remove(getVectorItem(asmFiles, i));
+		if (freeAsmResult)
+			genError("Couldn't remove assembly file %s", getVectorItem(asmFiles, i));
+		sdsfree(getVectorItem(asmFiles, i));
+	}
+	
+	destroyVector(asmFiles);
 }
 
 static LLVMTypeRef getIntType() {
