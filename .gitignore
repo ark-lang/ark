@@ -61,3 +61,4 @@ builds/
 *.dSYM
 *sublime-*
 *.stackdump
+*.bc
