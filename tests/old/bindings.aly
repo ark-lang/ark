@@ -1,9 +1,0 @@
-!use "testlib"
-
-func printf(format: str, _): int;
-
-func main(): int {
-	mut x: double = pow(5, 2);
-	printf("%f\n", x);
-	return 0;
-}

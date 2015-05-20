@@ -1,7 +1,0 @@
-func div(a: int, b: int): <int> {
-	
-}
-
-func main(): int {
-	return 0;
-}
