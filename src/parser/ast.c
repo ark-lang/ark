@@ -260,13 +260,6 @@ Declaration *createDeclaration() {
 	return safeCalloc(sizeof(Declaration));
 }
 
-IncDecStat *createIncDecStat(Expression *expr, int amount) {
-	IncDecStat *inc = safeMalloc(sizeof(*inc));
-	inc->expr = expr;
-	inc->amount = amount;
-	return inc;
-}
-
 ReturnStat *createReturnStat(Expression *expr) {
 	ReturnStat *ret = safeMalloc(sizeof(*ret));
 	ret->expr = expr;
@@ -376,7 +369,6 @@ void cleanupAST(Vector *nodes) {
 			case FUNCTION_DECL_NODE: destroyFunctionDecl(node->data); break;
 			case VARIABLE_DECL_NODE: destroyVariableDecl(node->data); break;
 			case DECLARATION_NODE: destroyDeclaration(node->data); break;
-			case INC_DEC_STAT_NODE: destroyIncDecStat(node->data); break;
 			case RETURN_STAT_NODE: destroyReturnStat(node->data); break;
 			case BREAK_STAT_NODE: destroyBreakStat(node->data); break;
 			case CONTINUE_STAT_NODE: destroyContinueStat(node->data); break;
@@ -629,12 +621,6 @@ void destroyDeclaration(Declaration *decl) {
 	free(decl);
 }
 
-void destroyIncDecStat(IncDecStat *stmt) {
-	if (!stmt) return;
-	destroyExpression(stmt->expr);
-	free(stmt);
-}
-
 void destroyReturnStat(ReturnStat *stmt) {
 	if (!stmt) return;
 	destroyExpression(stmt->expr);
@@ -670,7 +656,6 @@ void destroyUnstructuredStatement(UnstructuredStatement *stmt) {
 	switch (stmt->type) {
 		case ASSIGNMENT_NODE: destroyAssignment(stmt->assignment); break;
 		case DECLARATION_NODE: destroyDeclaration(stmt->decl); break;
-		case INC_DEC_STAT_NODE: destroyIncDecStat(stmt->incDec); break;
 		case LEAVE_STAT_NODE: destroyLeaveStat(stmt->leave); break;
 		case FUNCTION_CALL_NODE: destroyCall(stmt->call); break;
 		case EXPR_STAT_NODE: destroyExpression(stmt->expr); break;

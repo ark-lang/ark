@@ -907,26 +907,6 @@ LeaveStat *parseLeaveStat(Parser *self) {
 	return false;
 }
 
-// TODO FIXME
-IncDecStat *parseIncDecStat(Parser *self) {
-	Expression *expr = parseExpression(self);
-	if (expr) {
-		if (checkTokenTypeAndContent(self, TOKEN_OPERATOR, "+", 0)
-				&& checkTokenTypeAndContent(self, TOKEN_OPERATOR, "+", 1)) {
-			consumeToken(self);
-			consumeToken(self);
-			return createIncDecStat(expr, 1);
-		}
-		else if (checkTokenTypeAndContent(self, TOKEN_OPERATOR, "-", 0)
-				&& checkTokenTypeAndContent(self, TOKEN_OPERATOR, "-", 1)) {
-			consumeToken(self);
-			consumeToken(self);
-			return createIncDecStat(expr, -1);
-		}
-	}
-	return false;
-}
-
 Vector *parseImplBlock(Parser *self, char *name, char *as) {
 	if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, "{", 0)) {
 		consumeToken(self);
