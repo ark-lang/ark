@@ -28,6 +28,29 @@ void destroyScope(Scope *self) {
 	free(self);
 }
 
+static char *getLoopIndex(SemanticAnalyzer *self, Expression *expr) {
+	switch (expr->exprType) {
+		case BINARY_EXPR_NODE: {
+			if (expr->binary->lhand) {
+				char *name = getLoopIndex(self, expr->binary->lhand);
+				return name;
+			}
+			else {
+				// TODO error here
+			}
+			break;
+		}
+		case TYPE_NODE: {
+			switch (expr->type->type) {
+				case TYPE_NAME_NODE: return expr->type->typeName->name;
+			}
+			break;
+		}
+	}
+	errorMessage("Something went wrong in getLoopIndex");
+	return NULL;
+}
+
 SemanticAnalyzer *createSemanticAnalyzer(Vector *sourceFiles) {
 	SemanticAnalyzer *self = safeMalloc(sizeof(*self));
 	self->sourceFiles = sourceFiles;
@@ -299,9 +322,32 @@ void analyzeUnstructuredStatement(SemanticAnalyzer *self, UnstructuredStatement 
 	}
 }
 
+void analyzeForStat(SemanticAnalyzer *self, ForStat *stmt) {
+	switch (stmt->forType) {
+		case INDEX_FOR_LOOP: {
+			if (stmt->index->binary->lhand) {
+				char *iden = getLoopIndex(self, stmt->index->binary->lhand);
+				VariableDecl *decl = checkVariableExists(self, iden);
+				if (!decl) {
+					errorMessage("For loop index `%s` does not exist in local or global scope", iden);
+				}
+				else if (!decl->mutable) {
+					errorMessage("For loop index `%s` is not mutable", iden);
+				}
+			}
+			else {
+				errorMessage("Couldn't get for loop index");
+			}
+			break;
+		}
+		default: break;
+	}
+}
+
 void analyzeStructuredStatement(SemanticAnalyzer *self, StructuredStatement *structured) {
 	switch (structured->type) {
 		case IF_STAT_NODE: analyzeIfStatement(self, structured->ifStmt); break;
+		case FOR_STAT_NODE: analyzeForStat(self, structured->forStmt); break;
 	}
 	// TODO eventually display an errorMessage here if all the structured stmts are implemented
 }
