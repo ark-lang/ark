@@ -308,14 +308,6 @@ ReturnStat *parseReturnStat(Parser *parser);
 LeaveStat *parseLeaveStat(Parser *parser);
 
 /**
- * Parses an increment or decrement statement, note that this
- * is kinda stupid and should be removed.
- * TODO, FIXME ?
- * @param  parser the parser instance
- */
-IncDecStat *parseIncDecStat(Parser *parser);
-
-/**
  * Parses an implementation block, i.e a group of functions
  * @param  parser the parser instance
  * @param  name   the name of the implementation, or struct owner
