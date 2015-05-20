@@ -756,7 +756,7 @@ static void emitMatchStat(CCodeGenerator *self, MatchStat *match) {
 	emitCode(self, "}" CC_NEWLINE);
 }
 
-char *getLoopIndex(CCodeGenerator *self, Expression *expr) {
+static char *getLoopIndex(CCodeGenerator *self, Expression *expr) {
 	switch (expr->exprType) {
 		case BINARY_EXPR_NODE: {
 			if (expr->binary->lhand) {
