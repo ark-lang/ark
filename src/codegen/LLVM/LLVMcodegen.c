@@ -303,9 +303,17 @@ void startLLVMCodeGeneration(LLVMCodeGenerator *self) {
 
 		// just dump mods for now
 		LLVMDumpModule(sf->module);
-		if (LLVMWriteBitcodeToFile(sf->module, "test.bc")) {
-			genError("Failed to write bit-code");
+		
+		char *error = NULL;
+		LLVMVerifyModule(sf->module, LLVMReturnStatusAction, &error);
+		if (error != NULL) {
+			genError("%s", error);
+		} else {
+			if (LLVMWriteBitcodeToFile(sf->module, "test.bc")) {
+				genError("Failed to write bit-code");
+			}
 		}
+		LLVMDisposeMessage(error);
 	}
 }
 
