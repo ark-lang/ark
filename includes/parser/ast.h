@@ -417,15 +417,6 @@ typedef struct {
 } Declaration;
 
 /**
- * A statement representing an increment
- * or decrement.
- */
-typedef struct {
-	Expression *expr;
-	int amount;
-} IncDecStat;
-
-/**
  * A return statement
  */
 typedef struct {
@@ -464,7 +455,6 @@ typedef struct {
 typedef struct {
 	Declaration *decl;
 	LeaveStat *leave;
-	IncDecStat *incDec;
 	Assignment *assignment;
 	Call *call;
 	Expression *expr;
@@ -621,8 +611,6 @@ VariableDecl *createVariableDecl(Type *type, char *name, bool mutable, Expressio
 
 Declaration *createDeclaration();
 
-IncDecStat *createIncDecStat(Expression *rhand, int inc);
-
 ReturnStat *createReturnStat(Expression *rhand);
 
 BreakStat *createBreakStat();
@@ -732,8 +720,6 @@ void destroyFunctionDecl(FunctionDecl *decl);
 void destroyVariableDecl(VariableDecl *decl);
 
 void destroyDeclaration(Declaration *decl);
-
-void destroyIncDecStat(IncDecStat *stmt);
 
 void destroyReturnStat(ReturnStat *stmt);
 
