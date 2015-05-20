@@ -129,8 +129,9 @@ LLVMValueRef genTypeName(LLVMCodeGenerator *self, TypeName *name) {
 LLVMValueRef genLiteral(LLVMCodeGenerator *self, Literal *lit) {
 	switch (lit->type) {
 		case INT_LITERAL_NODE: 
-			printf("%d\n", lit->intLit->value);
-			return LLVMConstInt(LLVMInt32Type(), lit->intLit->value, false);
+			return LLVMConstInt(getIntType(), lit->intLit->value, false);
+		case FLOAT_LITERAL_NODE:
+			return LLVMConstReal(LLVMFloatType(), lit->intLit->value);
 		default:
 			printf("hmm?\n");
 			break;
