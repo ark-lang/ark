@@ -1,6 +1,0 @@
-use "fileinclusion"
-
-func main(): int {
-	x: int = add(5, 5);
-	return 0;
-}
