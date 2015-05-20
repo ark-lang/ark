@@ -1,8 +1,0 @@
-func printf(format: str, _): int;
-
-func main(): int {
-	mut x: int = 10;
-	printf("%d\n", x);
-	x = 21;
-	printf("%d\n", x);
-}

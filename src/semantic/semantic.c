@@ -7,6 +7,44 @@
 // global scope is always on the bottom of the stack
 #define GLOBAL_SCOPE_INDEX 0
 
+const char *reserved_keywords[] = {
+	"func", "int", "float", "usize", "double",
+	"str", "char", "rune", "i8", "u8", "i16",
+	"u16", "i32", "u32", "i64", "u64", 
+	"i128", "u128", "f32", "f64", "enum",
+	"struct", "alloc", "free", "sizeof",
+	"mut", "void", "impl", "if", "match",
+	"for", "bool"
+};
+
+const char *valid_datatypes[] = {
+	"int", "float", "usize", "double", "str", 
+	"char", "rune", "i8", "u8", "i16", "u16", 
+	"i32", "u32", "i64", "u64", "i128", "u128", 
+	"f32", "f64" "void", "bool"
+};
+
+static bool isReservedKeyword(char *iden) {
+	size_t keywords_size = ARR_LEN(reserved_keywords);
+	for (size_t i = 0; i < keywords_size; i++) {
+		if (!strcmp(iden, reserved_keywords[i])) {
+			errorMessage("`%s` is a reserved keyword", iden);
+			return true;
+		}
+	}
+	return false;
+}
+
+static bool isValidDataType(char *dataType) {
+	size_t datatypes_size = ARR_LEN(valid_datatypes);
+	for (size_t i = 0; i < datatypes_size; i++) {
+		if (!strcmp(dataType, valid_datatypes[i])) {
+			return true;
+		}
+	}
+	return false;
+}
+
 Scope *createScope() {
 	Scope *self = safeMalloc(sizeof(*self));
 	self->funcSymTable = hashmap_new();
@@ -33,6 +71,7 @@ static char *getLoopIndex(SemanticAnalyzer *self, Expression *expr) {
 		case BINARY_EXPR_NODE: {
 			if (expr->binary->lhand) {
 				char *name = getLoopIndex(self, expr->binary->lhand);
+				isReservedKeyword(name);
 				return name;
 			}
 			else {
@@ -99,6 +138,8 @@ void analyzeFunctionDeclaration(SemanticAnalyzer *self, FunctionDecl *decl) {
 		semanticError("Function definition for `%s` is illegal", decl->signature->name);
 	}
 
+	isReservedKeyword(decl->signature->name);
+
 	pushFunctionDeclaration(self, decl);
 	if (!decl->prototype) {
 		pushScope(self);
@@ -114,6 +155,8 @@ void analyzeFunctionDeclaration(SemanticAnalyzer *self, FunctionDecl *decl) {
 }
 
 void analyzeStructDeclaration(SemanticAnalyzer *self, StructDecl *decl) {
+	isReservedKeyword(decl->name);
+
 	pushStructDeclaration(self, decl);
 }
 
@@ -149,6 +192,8 @@ void analyzeVariableDeclaration(SemanticAnalyzer *self, VariableDecl *decl) {
 	VariableDecl *mapDecl = checkVariableExists(self, decl->name);
 	// doesn't exist
 	if (!mapDecl) {
+		isReservedKeyword(decl->name);
+
 		if (decl->inferred) {
 			VarType* type = deduceTypeFromExpression(self, decl->expr);
 			decl->type = varTypeToType(type);
@@ -158,6 +203,12 @@ void analyzeVariableDeclaration(SemanticAnalyzer *self, VariableDecl *decl) {
 			StructDecl *structDecl = checkStructExists(self, decl->type->typeName->name);
 			if (structDecl) {
 				decl->structDecl = structDecl;
+			}
+			else {
+				// not a structure
+				if (!isValidDataType(decl->type->typeName->name)) {
+					semanticError("`%s` is an invalid data type", decl->type->typeName->name);
+				}
 			}
 		}
 
@@ -190,6 +241,8 @@ void analyzeImplDeclaration(SemanticAnalyzer *self, ImplDecl *impl) {
 		semanticError("Impl declaration for `%s` is illegal", impl->name);
 	}
 
+	isReservedKeyword(impl->name);
+
 	pushImplDeclaration(self, impl);
 
 	// add all the impl functions to the impl function sym table
@@ -211,6 +264,8 @@ void analyzeDeclaration(SemanticAnalyzer *self, Declaration *decl) {
 
 void analyzeFunctionCall(SemanticAnalyzer *self, Call *call) {
 	char *callee = getVectorItem(call->callee, 0);
+
+	isReservedKeyword(callee);
 
 	// typecasting
 	Type *type = checkDataTypeExists(self, callee);
@@ -281,7 +336,9 @@ void analyzeTypeNode(SemanticAnalyzer *self, Type *type) {
  	// TODO
 	switch (type->type) {
 		case TYPE_LIT_NODE: break;
-		case TYPE_NAME_NODE: break;
+		case TYPE_NAME_NODE: 
+			printf("penis: %s\n", type->typeName->name);
+			break;
 	}
 }
 
