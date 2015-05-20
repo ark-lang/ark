@@ -305,8 +305,8 @@ void startLLVMCodeGeneration(LLVMCodeGenerator *self) {
 		LLVMDumpModule(sf->module);
 		
 		char *error = NULL;
-		LLVMVerifyModule(sf->module, LLVMReturnStatusAction, &error);
-		if (error != NULL) {
+		int verify_result = LLVMVerifyModule(sf->module, LLVMReturnStatusAction, &error);
+		if (verify_result) {
 			genError("%s", error);
 		} else {
 			if (LLVMWriteBitcodeToFile(sf->module, "test.bc")) {
