@@ -3,13 +3,9 @@
 bool DEBUG_MODE = false;	// default is no debug
 bool OUTPUT_C = false;		// default is no c output
 bool VERBOSE_MODE = false;
-#ifdef ENABLE_LLVM
-	extern bool LLVM_CODEGEN = false;
-#endif
 char *OUTPUT_EXECUTABLE_NAME = "main"; // default is main
-char *COMPILER = "cc";
-char *ADDITIONAL_COMPILER_ARGS = "-g -Wall -std=c99 -fno-builtin -Wno-incompatible-pointer-types-discards-qualifiers";
 bool IGNORE_MAIN = false;
+char *COMPILER = "cc";
 
 void help() {
 	printf("Usage: alloyc [options] files...\n");
@@ -20,20 +16,12 @@ void help() {
 	printf("  -o <file>           Place the output into <file>\n");
 	printf("  -c <file>           Will keep the output C code\n");
 	printf("  --no-main			  Ignores main function\n");
-	printf("  --compiler <name>   Sets the C compiler to <name> (default: CC)\n");
 	printf("  --version           Shows current version\n");
-#ifdef ENABLE_LLVM
-	printf("  --llvm              Sets the codegen backend to LLVM (default: C)\n");
-#endif
+	printf("  --compiler <name>   Sets the C compiler to <name> default CC\n");
 }
 
 void version() {
 	printf("%s %s\n", COMPILER_NAME, COMPILER_VERSION);
-#ifdef ENABLE_LLVM
-	printf("LLVM backend: yes\n");
-#else
-	printf("LLVM backend: no\n");
-#endif
 }
 
 static void parseArgument(CommandLineArgument *arg) {
@@ -57,23 +45,12 @@ static void parseArgument(CommandLineArgument *arg) {
 		help();
 		exit(0);
 	}
-	else if (!strcmp(arg->argument, COMPILER_ARG)) {
-		if (!arg->nextArgument) {
-			errorMessage("Missing compiler command after '" COMPILER_ARG "'");
-		}
-		COMPILER = arg->nextArgument;
-	}
 	else if (!strcmp(arg->argument, OUTPUT_ARG)) {
 		if (!arg->nextArgument) {
 			errorMessage("Missing filename after '" OUTPUT_ARG "'");
 		}
 		OUTPUT_EXECUTABLE_NAME = arg->nextArgument;
 	}
-#ifdef ENABLE_LLVM
-	else if (!strcmp(arg->argument, LLVM_ARG)) {
-		LLVM_CODEGEN = true;
-	}
-#endif
 	else {
 		errorMessage("Unrecognized command line option '%s'", arg->argument);
 	}
@@ -89,10 +66,7 @@ Compiler *createCompiler(int argc, char** argv) {
 	Compiler *self = safeMalloc(sizeof(*self));
 	self->lexer = NULL;
 	self->parser = NULL;
-	self->generator = NULL;
-#ifdef ENABLE_LLVM
 	self->generatorLLVM = NULL;
-#endif
 	self->sourceFiles = createVector(VECTOR_LINEAR);
 	
 	char *ccEnv = getenv("CC");
@@ -167,29 +141,15 @@ void startCompiler(Compiler *self) {
 		return;
 	}
 
-	// compilation stage
-#ifdef ENABLE_LLVM
-	if (LLVM_CODEGEN) {
-		self->generatorLLVM = createLLVMCodeGenerator(self->sourceFiles);
-		startLLVMCodeGeneration(self->generatorLLVM);
-	}
-	else {
-#endif
-		self->generator = createCCodeGenerator(self->sourceFiles);
-		startCCodeGeneration(self->generator);
-#ifdef ENABLE_LLVM
-	}
-#endif
+	self->generatorLLVM = createLLVMCodeGenerator(self->sourceFiles);
+	startLLVMCodeGeneration(self->generatorLLVM);
 }
 
 void destroyCompiler(Compiler *self) {
 	if (self) {
 		if (self->lexer) destroyLexer(self->lexer);
 		if (self->parser) destroyParser(self->parser);
-		if (self->generator) destroyCCodeGenerator(self->generator);
-#ifdef ENABLE_LLVM
 		if (self->generatorLLVM) destroyLLVMCodeGenerator(self->generatorLLVM);
-#endif
 		if (self->semantic) destroySemanticAnalyzer(self->semantic);
 		destroyVector(self->sourceFiles);
 		free(self);
