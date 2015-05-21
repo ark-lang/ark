@@ -328,28 +328,30 @@ void startLLVMCodeGeneration(LLVMCodeGenerator *self) {
 		asmFilename = sdscat(asmFilename, ".s");
 		
 		// convert bitcode files to assembly files
-		sds toasmcommand = sdsempty();
-		toasmcommand = sdscat(toasmcommand, COMPILER);
-		toasmcommand = sdscat(toasmcommand, bitcodeFilename);
-		toasmcommand = sdscat(toasmcommand, " -o ");
-		toasmcommand = sdscat(toasmcommand, asmFilename);
+		sds toAsmCommand = sdsempty();
+		toAsmCommand = sdscat(toAsmCommand, "llc ");
+		toAsmCommand = sdscat(toAsmCommand, bitcodeFilename);
+		toAsmCommand = sdscat(toAsmCommand, " -o ");
+		toAsmCommand = sdscat(toAsmCommand, asmFilename);
 		
-		int toasmresult = system(toasmcommand);
-		if (toasmresult)
+		int toasmresult = system(toAsmCommand);
+		if (toasmresult) {
 			genError("Couldn't assemble bitcode file %s", bitcodeFilename);
-		
+		}
+
 		int removeBitcodeResult = remove(bitcodeFilename);
-		if (removeBitcodeResult)
+		if (removeBitcodeResult) {
 			genError("Couldn't remove bitcode file %s", bitcodeFilename);
-		
+		}
+
 		pushBackItem(asmFiles, asmFilename);
 		
 		sdsfree(bitcodeFilename);
-		sdsfree(toasmcommand);
+		sdsfree(toAsmCommand);
 	}
 	
 	sds linkCommand = sdsempty();
-	linkCommand = sdscat(linkCommand, "ld");
+	linkCommand = sdscat(linkCommand, COMPILER);
 	linkCommand = sdscat(linkCommand, " ");
 	
 	// get all the asm files to compile
@@ -362,15 +364,17 @@ void startLLVMCodeGeneration(LLVMCodeGenerator *self) {
 	linkCommand = sdscat(linkCommand, OUTPUT_EXECUTABLE_NAME);
 	
 	int linkResult = system(linkCommand);
-	if (linkResult)
+	if (linkResult) {
 		genError("Couldn't link object files");
-	
+	}
+
 	sdsfree(linkCommand);
 	
 	for (int i = 0; i < asmFiles->size; i++) {
 		int freeAsmResult = remove(getVectorItem(asmFiles, i));
-		if (freeAsmResult)
+		if (freeAsmResult) {
 			genError("Couldn't remove assembly file %s", getVectorItem(asmFiles, i));
+		}
 		sdsfree(getVectorItem(asmFiles, i));
 	}
 	
