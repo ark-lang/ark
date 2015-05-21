@@ -1,6 +1,0 @@
-func main(): made_up_type {
-    x: made_up_type = 21;
-    y: char = 32;
-
-
-}

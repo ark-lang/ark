@@ -29,6 +29,8 @@ typedef struct {
 	 */
 	Vector *sourceFiles;
 
+	Vector *asmFiles;
+
 	/**
 	 * The current source file to
 	 * generate code for
@@ -63,5 +65,73 @@ void startLLVMCodeGeneration(LLVMCodeGenerator *self);
  * @param self the code gen instance
  */
 void destroyLLVMCodeGenerator(LLVMCodeGenerator *self);
+
+static LLVMTypeRef getIntType();
+
+static LLVMTypeRef getLLVMType(DataType type);
+
+LLVMValueRef genFunctionSignature(LLVMCodeGenerator *self, FunctionSignature *decl);
+
+LLVMValueRef genStatement(LLVMCodeGenerator *self, Statement *stmt);
+
+LLVMValueRef genFunctionDecl(LLVMCodeGenerator *self, FunctionDecl *decl);
+
+LLVMValueRef genDeclaration(LLVMCodeGenerator *self, Declaration *decl);
+
+LLVMValueRef genUnstructuredStatementNode(LLVMCodeGenerator *self, UnstructuredStatement *stmt);
+
+LLVMValueRef genStructuredStatementNode(LLVMCodeGenerator *self, StructuredStatement *stmt);
+
+LLVMValueRef genBinaryExpression(LLVMCodeGenerator *self, BinaryExpr *expr);
+
+LLVMValueRef genExpression(LLVMCodeGenerator *self, Expression *expr);
+
+LLVMValueRef genBinaryExpression(LLVMCodeGenerator *self, BinaryExpr *expr);
+
+LLVMValueRef genFunctionCall(LLVMCodeGenerator *self, Call *call);
+
+LLVMValueRef genTypeName(LLVMCodeGenerator *self, TypeName *name);
+
+LLVMValueRef genLiteral(LLVMCodeGenerator *self, Literal *lit);
+
+LLVMValueRef genTypeLit(LLVMCodeGenerator *self, TypeLit *lit);
+
+LLVMValueRef genType(LLVMCodeGenerator *self, Type *type);
+
+LLVMValueRef genExpression(LLVMCodeGenerator *self, Expression *expr);
+
+LLVMValueRef genFunctionSignature(LLVMCodeGenerator *self, FunctionSignature *decl);
+
+LLVMValueRef genStatement(LLVMCodeGenerator *self, Statement *stmt);
+
+LLVMValueRef genFunctionDecl(LLVMCodeGenerator *self, FunctionDecl *decl);
+
+LLVMValueRef genDeclaration(LLVMCodeGenerator *self, Declaration *decl);
+
+LLVMValueRef genLeaveStatNode(LLVMCodeGenerator *self, LeaveStat *leave);
+
+LLVMValueRef genUnstructuredStatementNode(LLVMCodeGenerator *self, UnstructuredStatement *stmt);
+
+LLVMValueRef genStructuredStatementNode(LLVMCodeGenerator *self, StructuredStatement *stmt);
+
+char *createBitcode(LLVMCodeGenerator *self);
+
+void convertBitcodeToAsm(LLVMCodeGenerator *self, sds bitcodeName);
+
+void createBinary(LLVMCodeGenerator *self);
+
+/**
+ * Jumps ahead in the AST we're parsing
+ * @param self   the code gen instance
+ * @param amount the amount to consume by
+ */
+static void consumeAstNodeBy(LLVMCodeGenerator *self, int amount);
+
+/**
+ * Run through all the nodes in the AST and
+ * generate the code for them!
+ * @param self the code gen instance
+ */
+static void traverseAST(LLVMCodeGenerator *self);
 
 #endif
