@@ -9,10 +9,7 @@
 #include "lexer.h"
 #include "parser.h"
 #include "semantic.h"
-#include "C/codegen.h"
-#ifdef ENABLE_LLVM
-	#include "LLVM/LLVMcodegen.h"
-#endif
+#include "LLVM/LLVMcodegen.h"
 
 #define DEBUG_MODE_ARG 		"-d"
 #define HELP_ARG       		"-h"
@@ -22,9 +19,6 @@
 #define COMPILER_ARG   		"--compiler"
 #define VERSION_ARG    		"--version"
 #define IGNORE_MAIN_ARG		"--no-main"
-#ifdef ENABLE_LLVM
-	#define LLVM_ARG   		"--llvm"
-#endif
 
 /**
  * For handling command line
@@ -41,10 +35,7 @@ typedef struct {
 typedef struct {
 	Lexer *lexer;
 	Parser *parser;
-	CCodeGenerator *generator;
-#ifdef ENABLE_LLVM
 	LLVMCodeGenerator *generatorLLVM;
-#endif
 	SemanticAnalyzer *semantic;
 	Vector *sourceFiles;
 } Compiler;
