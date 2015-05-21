@@ -29,6 +29,8 @@ typedef struct {
 	 */
 	Vector *sourceFiles;
 
+	Vector *asmFiles;
+
 	/**
 	 * The current source file to
 	 * generate code for
