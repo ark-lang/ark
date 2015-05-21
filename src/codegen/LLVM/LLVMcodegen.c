@@ -315,7 +315,8 @@ void startLLVMCodeGeneration(LLVMCodeGenerator *self) {
 		int verify_result = LLVMVerifyModule(sf->module, LLVMReturnStatusAction, &error);
 		if (verify_result) {
 			genError("%s", error);
-		} else {
+		} 
+		else {
 			if (LLVMWriteBitcodeToFile(sf->module, bitcodeFilename)) {
 				genError("Failed to write bit-code");
 			}
@@ -328,7 +329,7 @@ void startLLVMCodeGeneration(LLVMCodeGenerator *self) {
 		
 		// convert bitcode files to assembly files
 		sds toasmcommand = sdsempty();
-		toasmcommand = sdscat(toasmcommand, "llc ");
+		toasmcommand = sdscat(toasmcommand, COMPILER);
 		toasmcommand = sdscat(toasmcommand, bitcodeFilename);
 		toasmcommand = sdscat(toasmcommand, " -o ");
 		toasmcommand = sdscat(toasmcommand, asmFilename);
