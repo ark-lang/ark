@@ -5,6 +5,7 @@ bool OUTPUT_C = false;		// default is no c output
 bool VERBOSE_MODE = false;
 char *OUTPUT_EXECUTABLE_NAME = "main"; // default is main
 bool IGNORE_MAIN = false;
+char *COMPILER = "cc";
 
 void help() {
 	printf("Usage: alloyc [options] files...\n");
@@ -16,7 +17,7 @@ void help() {
 	printf("  -c <file>           Will keep the output C code\n");
 	printf("  --no-main			  Ignores main function\n");
 	printf("  --version           Shows current version\n");
-	printf("  --compiler 		  What compiler to compile asm with\n");
+	printf("  --compiler <name>   Sets the C compiler to <name> default CC\n");
 }
 
 void version() {
@@ -68,6 +69,10 @@ Compiler *createCompiler(int argc, char** argv) {
 	self->generatorLLVM = NULL;
 	self->sourceFiles = createVector(VECTOR_LINEAR);
 	
+	char *ccEnv = getenv("CC");
+	if (ccEnv != NULL && strcmp(ccEnv, ""))
+		COMPILER = ccEnv;
+
 	// i = 1, ignores first argument
 	for (int i = 1; i < argc; i++) {
 		if (argv[i][0] == '-') {
