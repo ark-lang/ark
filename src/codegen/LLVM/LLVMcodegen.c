@@ -348,7 +348,7 @@ void startLLVMCodeGeneration(LLVMCodeGenerator *self) {
 	}
 	
 	sds linkCommand = sdsempty();
-	linkCommand = sdscat(linkCommand, COMPILER);
+	linkCommand = sdscat(linkCommand, "ld");
 	linkCommand = sdscat(linkCommand, " ");
 	
 	// get all the asm files to compile
