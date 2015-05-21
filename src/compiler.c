@@ -16,6 +16,7 @@ void help() {
 	printf("  -c <file>           Will keep the output C code\n");
 	printf("  --no-main			  Ignores main function\n");
 	printf("  --version           Shows current version\n");
+	printf("  --compiler 		  What compiler to compile asm with\n");
 }
 
 void version() {
