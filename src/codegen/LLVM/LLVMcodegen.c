@@ -2,45 +2,6 @@
 
 #define genError(...) errorMessage("LLVM codegen: " __VA_ARGS__)
 
-// Declarations
-
-/**
- * Jumps ahead in the AST we're parsing
- * @param self   the code gen instance
- * @param amount the amount to consume by
- */
-static void consumeAstNodeBy(LLVMCodeGenerator *self, int amount);
-
-/**
- * Run through all the nodes in the AST and
- * generate the code for them!
- * @param self the code gen instance
- */
-static void traverseAST(LLVMCodeGenerator *self);
-
-/**
- * Gets the int type for the current system
- */
-static LLVMTypeRef getIntType();
-
-static LLVMTypeRef getLLVMType(DataType type);
-
-LLVMValueRef genFunctionSignature(LLVMCodeGenerator *self, FunctionSignature *decl);
-
-LLVMValueRef genStatement(LLVMCodeGenerator *self, Statement *stmt);
-
-LLVMValueRef genFunctionDecl(LLVMCodeGenerator *self, FunctionDecl *decl);
-
-LLVMValueRef genDeclaration(LLVMCodeGenerator *self, Declaration *decl);
-
-LLVMValueRef genUnstructuredStatementNode(LLVMCodeGenerator *self, UnstructuredStatement *stmt);
-
-LLVMValueRef genStructuredStatementNode(LLVMCodeGenerator *self, StructuredStatement *stmt);
-
-LLVMValueRef genBinaryExpression(LLVMCodeGenerator *self, BinaryExpr *expr);
-
-LLVMValueRef genExpression(LLVMCodeGenerator *self, Expression *expr);
-
 // Definitions
 
 LLVMCodeGenerator *createLLVMCodeGenerator(Vector *sourceFiles) {
