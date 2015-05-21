@@ -62,7 +62,7 @@ static const char *logOp[] = { "||", "&&" };
 static const char *relOp[] = { "==", "!=", "<", "<=", ">", ">=" };
 static const char *addOp[] = { "+", "-", "|", "^", "=" };
 static const char *mulOp[] = { "+", "/", "%", "<<", ">>", "&" };
-static const char *unaryOp[] = { "+", "-", "!", "^", "<", ">", "*", "&" };
+static const char *unaryOp[] = { "+", "-", "!", "^", "<", ">", "*", "&", "++", "--" };
 
 /**
  * Various types of Literals, mostly for lookups
@@ -306,14 +306,6 @@ ReturnStat *parseReturnStat(Parser *parser);
  * @param  parser the parser instance
  */
 LeaveStat *parseLeaveStat(Parser *parser);
-
-/**
- * Parses an increment or decrement statement, note that this
- * is kinda stupid and should be removed.
- * TODO, FIXME ?
- * @param  parser the parser instance
- */
-IncDecStat *parseIncDecStat(Parser *parser);
 
 /**
  * Parses an implementation block, i.e a group of functions
