@@ -27,6 +27,7 @@ _gen_*.c
 _gen_*.h
 main			# default build name
 tests/*.test
+*.s             # asm stuff
 
 # Shared objects
 *.dll
