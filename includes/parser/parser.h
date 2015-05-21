@@ -62,7 +62,7 @@ static const char *logOp[] = { "||", "&&" };
 static const char *relOp[] = { "==", "!=", "<", "<=", ">", ">=" };
 static const char *addOp[] = { "+", "-", "|", "^", "=" };
 static const char *mulOp[] = { "+", "/", "%", "<<", ">>", "&" };
-static const char *unaryOp[] = { "+", "-", "!", "^", "<", ">", "*", "&" };
+static const char *unaryOp[] = { "+", "-", "!", "^", "<", ">", "*", "&", "++", "--" };
 
 /**
  * Various types of Literals, mostly for lookups
