@@ -8,11 +8,9 @@
 #include "util.h"
 #include "parser.h"
 
-#ifdef ENABLE_LLVM
 #include <llvm-c/ExecutionEngine.h>
 #include <llvm-c/Target.h>
 #include <llvm-c/Transforms/Scalar.h>
-#endif
 
 /**
  * Source file properties
@@ -23,11 +21,7 @@ typedef struct {
 	char *fileContents;      // the contents of the file
 	sds generatedSourceName; // the generated source name with the _gen_ prefix and .c suffix
 	FILE *outputFile;        // the file output
-
-    #ifdef ENABLE_LLVM
     LLVMModuleRef module;
-    #endif
-
 	Vector *tokens;          // the token stream for the source file
 	Vector *ast;             // the output AST tree
 
