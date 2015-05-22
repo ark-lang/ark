@@ -15,7 +15,7 @@
 
 /** the name and version of the compiler */
 #define COMPILER_NAME          "Alloy"
-#define COMPILER_VERSION       "0.0.7"
+#define COMPILER_VERSION       "0.0.8"
 
 #define COMPILER_UNUSED_OBJ(x) (void)(x)
 

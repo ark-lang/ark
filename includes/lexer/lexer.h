@@ -32,7 +32,7 @@ typedef struct {
 	bool failed;			// if lexing failed
 	sds buffer;				// temporary token
 	Vector *tokenStream;	// where the tokens are stored
-	sds fileName;
+	sds fileName;			// where token is stored
 } Lexer;
 
 /**
@@ -311,6 +311,10 @@ static inline bool isOperator(char ch) {
 	return (strchr("+-*/=><!~?:|&%^\"'", ch) != 0); 
 }
 
+/**
+ * @return if the character is an operator that is
+ * valid for an expression
+ */
 static inline bool isExpressionOperator(char ch) { 
 	return (strchr("+-*/=><!~?:|&%^\"'()", ch) != 0); 
 }
