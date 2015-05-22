@@ -161,18 +161,18 @@ We can also infer types in the following manners:
     	weight: float,
     	age: int
     };
-    x: Cat;
-    b := x; // b is of type Cat and contains the values that the struct `x` contains 
+    pew: Cat;
+    b := pew; // b is of type Cat and contains the values that the struct `x` contains 
 
     enum Wew {
     	WOW,
     	MEOW
     }
 
-    x := Wew::WOW;
+    mew := Wew::WOW;
 
-    x : []int = [ 1, 2, 3, 4 ];
-    b := x[2]; // b is of type int
+    ar : []int = [ 1, 2, 3, 4 ];
+    b := ar[2]; // b is of type int
 
 
 ## Type Casting
