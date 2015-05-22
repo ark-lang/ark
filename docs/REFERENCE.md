@@ -121,10 +121,10 @@ literals, and function calls. For instance:
 	c := a + b * 2;
 
 ## Tuples
-A tuple is define similarly to a variable, however you specify the types in parenthesis. For
+A tuple is define similarly to a variable, however you specify the types in pipes. For
 instance:
 
-	mut my_tuple: (int, int);
+	mut my_tuple: |int, int|;
 
 To initialize the tuple with values, we use a similar notation to the tuples signature, and we
 wrap the values in pipes. The order should be corresponding to the types in the signature,
