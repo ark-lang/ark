@@ -42,16 +42,16 @@ LLVMValueRef genBinaryExpression(LLVMCodeGenerator *self, BinaryExpr *expr) {
 	}
 
 	if (!strcmp(expr->binaryOp, "+")) {
-		return LLVMBuildFAdd(self->builder, lhs, rhs, "add");
+		return LLVMBuildAdd(self->builder, lhs, rhs, "add");
 	}
 	else if (!strcmp(expr->binaryOp, "-")) {
-		return LLVMBuildFSub(self->builder, lhs, rhs, "sub");
+		return LLVMBuildSub(self->builder, lhs, rhs, "sub");
 	}
 	else if (!strcmp(expr->binaryOp, "*")) {
-		return LLVMBuildFMul(self->builder, lhs, rhs, "mul");
+		return LLVMBuildMul(self->builder, lhs, rhs, "mul");
 	}
 	else if (!strcmp(expr->binaryOp, "/")) {
-		return LLVMBuildFDiv(self->builder, lhs, rhs, "div");
+		return LLVMBuildUDiv(self->builder, lhs, rhs, "div");
 	}
 }
 
@@ -216,9 +216,14 @@ LLVMValueRef genFunctionDecl(LLVMCodeGenerator *self, FunctionDecl *decl) {
 	return prototype;
 }
 
+LLVMValueRef genVariableDecl(LLVMCodeGenerator *self, VariableDecl *decl) {
+
+}
+
 LLVMValueRef genDeclaration(LLVMCodeGenerator *self, Declaration *decl) {
 	switch (decl->type) {
 		case FUNCTION_DECL_NODE: return genFunctionDecl(self, decl->funcDecl);
+		case VARIABLE_DECL_NODE: return genVariableDecl(self, decl->varDecl);
 	}
 }
 
