@@ -230,7 +230,7 @@ LLVMValueRef genFunctionDecl(LLVMCodeGenerator *self, FunctionDecl *decl) {
 }
 
 LLVMValueRef genVariableDecl(LLVMCodeGenerator *self, VariableDecl *decl) {
-
+	
 }
 
 LLVMValueRef genDeclaration(LLVMCodeGenerator *self, Declaration *decl) {
