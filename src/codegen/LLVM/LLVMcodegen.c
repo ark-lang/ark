@@ -33,6 +33,16 @@ static void consumeAstNodeBy(LLVMCodeGenerator *self, int amount) {
 	self->currentNode += amount;
 }
 
+bool isFloatingType(LLVMValueRef type) {
+	switch (LLVMGetTypeKind(type)) {
+		case LLVMFloatTypeKind: 
+		case LLVMFP128TypeKind:
+		case LLVMDoubleTypeKind:
+			return true;
+		default: return false;
+	}
+}
+
 LLVMValueRef genBinaryExpression(LLVMCodeGenerator *self, BinaryExpr *expr) {
 	LLVMValueRef lhs = genExpression(self, expr->lhand);
 	LLVMValueRef rhs = genExpression(self, expr->lhand);
@@ -41,17 +51,20 @@ LLVMValueRef genBinaryExpression(LLVMCodeGenerator *self, BinaryExpr *expr) {
 		// TODO
 	}
 
+	// FIXME
+	bool floating = false; // isFloatingType(lhs) || isFloatingType(rhs)
+
 	if (!strcmp(expr->binaryOp, "+")) {
-		return LLVMBuildFAdd(self->builder, lhs, rhs, "add");
+		return floating ? LLVMBuildFAdd(self->builder, lhs, rhs, "add") : LLVMBuildAdd(self->builder, lhs, rhs, "add");
 	}
 	else if (!strcmp(expr->binaryOp, "-")) {
-		return LLVMBuildFSub(self->builder, lhs, rhs, "sub");
+		return floating ? LLVMBuildFSub(self->builder, lhs, rhs, "sub") : LLVMBuildSub(self->builder, lhs, rhs, "add");
 	}
 	else if (!strcmp(expr->binaryOp, "*")) {
-		return LLVMBuildFMul(self->builder, lhs, rhs, "mul");
+		return floating ? LLVMBuildFMul(self->builder, lhs, rhs, "mul") : LLVMBuildMul(self->builder, lhs, rhs, "mul");
 	}
 	else if (!strcmp(expr->binaryOp, "/")) {
-		return LLVMBuildFDiv(self->builder, lhs, rhs, "div");
+		return floating ? LLVMBuildFDiv(self->builder, lhs, rhs, "div") : LLVMBuildUDiv(self->builder, lhs, rhs, "div");
 	}
 }
 
@@ -118,7 +131,7 @@ LLVMValueRef genType(LLVMCodeGenerator *self, Type *type) {
 			break;
 	}
 }
-
+ 
 LLVMValueRef genExpression(LLVMCodeGenerator *self, Expression *expr) {
 	switch (expr->exprType) {
 		case TYPE_NODE: return genType(self, expr->type);
@@ -136,12 +149,13 @@ LLVMValueRef genExpression(LLVMCodeGenerator *self, Expression *expr) {
 	}
 }
 
-LLVMValueRef genFunctionSignature(LLVMCodeGenerator *self, FunctionSignature *decl) {
+LLVMValueRef genFunctionSignature(LLVMCodeGenerator *self, FunctionDecl *decl) {
 	// store arguments from func signature
-	unsigned int argCount = decl->parameters->paramList->size;
+	FunctionSignature *signature = decl->signature;
+	unsigned int argCount = signature->parameters->paramList->size;
 
 	// lookup func
-	LLVMValueRef func = LLVMGetNamedFunction(self->currentSourceFile->module, decl->name);
+	LLVMValueRef func = LLVMGetNamedFunction(self->currentSourceFile->module, signature->name);
 	if (func) {
 		if (LLVMCountParams(func) != argCount) {
 			genError("Function exists with different function signature");
@@ -152,7 +166,7 @@ LLVMValueRef genFunctionSignature(LLVMCodeGenerator *self, FunctionSignature *de
 		// set llvm params
 		LLVMTypeRef *params = safeMalloc(sizeof(LLVMTypeRef) * argCount);
 		for (int i = 0; i < argCount; i++) {
-			ParameterSection *param = getVectorItem(decl->parameters->paramList, i);
+			ParameterSection *param = getVectorItem(signature->parameters->paramList, i);
 			if (param->type->type != TYPE_NAME_NODE) {
 				genError("Unsupported type :(");
 				return false;
@@ -162,9 +176,12 @@ LLVMValueRef genFunctionSignature(LLVMCodeGenerator *self, FunctionSignature *de
 		}
 
 		// create func prototype and add it to the module
-		int funcType = getTypeFromString(decl->type->typeName->name);
+		int funcType = getTypeFromString(signature->type->typeName->name);
 		LLVMTypeRef funcTypeRef = LLVMFunctionType(getLLVMType(funcType), params, argCount, false);
-		func = LLVMAddFunction(self->currentSourceFile->module, decl->name, funcTypeRef);
+		func = LLVMAddFunction(self->currentSourceFile->module, signature->name, funcTypeRef);
+		if (decl->signature->isExtern) {
+			LLVMSetLinkage(func, LLVMExternalLinkage);
+		}
 	}
 
 	return func;
@@ -189,7 +206,7 @@ LLVMValueRef genStatement(LLVMCodeGenerator *self, Statement *stmt) {
 }
 
 LLVMValueRef genFunctionDecl(LLVMCodeGenerator *self, FunctionDecl *decl) {
-	LLVMValueRef prototype = genFunctionSignature(self, decl->signature);
+	LLVMValueRef prototype = genFunctionSignature(self, decl);
 	if (!prototype) {
 		genError("hmm");
 		return NULL;
@@ -198,10 +215,12 @@ LLVMValueRef genFunctionDecl(LLVMCodeGenerator *self, FunctionDecl *decl) {
 	LLVMBasicBlockRef block = LLVMAppendBasicBlock(prototype, "entry");
 	LLVMPositionBuilderAtEnd(self->builder, block);
 
+	// generate all the statements n that
 	for (int i = 0; i < decl->body->stmtList->stmts->size; i++) {
 		LLVMValueRef body = genStatement(self, getVectorItem(decl->body->stmtList->stmts, i));
 	}
 
+	// function returns void so we have to put it at the end
 	LLVMValueRef func = LLVMGetNamedFunction(self->currentSourceFile->module, decl->signature->name);
 	if (LLVMGetReturnType(LLVMGetElementType(LLVMTypeOf(func))) == LLVMVoidType()) {
 		LLVMBuildRetVoid(self->builder);
@@ -210,9 +229,14 @@ LLVMValueRef genFunctionDecl(LLVMCodeGenerator *self, FunctionDecl *decl) {
 	return prototype;
 }
 
+LLVMValueRef genVariableDecl(LLVMCodeGenerator *self, VariableDecl *decl) {
+	
+}
+
 LLVMValueRef genDeclaration(LLVMCodeGenerator *self, Declaration *decl) {
 	switch (decl->type) {
 		case FUNCTION_DECL_NODE: return genFunctionDecl(self, decl->funcDecl);
+		case VARIABLE_DECL_NODE: return genVariableDecl(self, decl->varDecl);
 	}
 }
 
