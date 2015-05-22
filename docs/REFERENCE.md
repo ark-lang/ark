@@ -1,5 +1,5 @@
 # Alloy Reference
-This document is an informal specification for Alloy, a systems programming language. 
+This document is an informal specification for Alloy, a systems programming language.
 
 ## Guiding Principles
 Alloy is a systems programming language, intended as an alternative to C. It's main purpose is to modernize C, without deviating from C's original goal of simplicity. Alloy is written in C, the frontend and backend is all hand-written, i.e no parser or lexer libraries, and no LLVM, etc.
@@ -33,7 +33,7 @@ documenting functions, structures, enumerations, etc.
 	fn main(): int {
 
 	}
-	
+
 Comments cannot be nested.
 
 ## Primitive Types
@@ -45,20 +45,20 @@ Alloy provides various primitive types:
 	bool		unsigned 8 bits
 	char		signed 8 bits
 	uint 		an unsigned integer at least 16 bits in size
-	
+
 ## Precision Types
 The precision types are there for when you want a data type to be a specific
 size. If you're writing portable code, we suggest that you use the primitive
 types, however the precision types are available for when you need them.
-	
+
 	f32			IEEE 754 single-precision binary floating-point
 	f64			IEEE 754 double-precision binary floating-point
-	
+
 	i8			signed 8 bits
 	i16			signed 16 bits
 	i32			signed 32 bits
 	i64			signed 64 bits
-	
+
 	u8			unsigned 8 bits
 	u16			unsigned 16 bits
 	u32			unsigned 32 bits
@@ -73,13 +73,13 @@ when you are counting something that cannot be negative, typically it is used fo
 memory.
 
 	usize		unsigned at least 16 bits
-	
+
 ## Variables
 Unlike languages like C or C++, variables are immutable unless otherwise specified with
 the `mut` keyword. A variable can be defined like so:
 
 	name: type;
-	
+
 And declared as follows:
 
 	name: type = some_val;
@@ -127,14 +127,14 @@ instance:
 	mut my_tuple: (int, int);
 
 To initialize the tuple with values, we use a similar notation to the tuples signature, and we
-wrap the values in parenthesis. The order should be corresponding to the types in the signature,
+wrap the values in pipes. The order should be corresponding to the types in the signature,
 for instance:
 
 	// this is valid
-	mut my_type: (int, double) = (10, 3.4);
-	
+	mut my_type: |int, double| = |10, 3.4|;
+
 	// the following errors, note the order of the types/values
-	mut another_type: (int, double) = (3.4, 10);
+	mut another_type: |int, double| = |3.4, 10|;
 
 ### Mutability
 When a variable is mutable, it can be mutated or changed. When a variable is immutable,
@@ -144,12 +144,12 @@ to modify the variable later on in the code. For instance:
 
 	x: int = 5;
 	x = 10;			// ERROR: x is constant!
-	
+
 We can also error it like so:
 
 	x: int;			// ERROR: no value assigned for constant!
-	
-Why? Because variables are treated as constants unless otherwise specified, therefore they must 
+
+Why? Because variables are treated as constants unless otherwise specified, therefore they must
 have a value assigned on definition.
 
 ## Functions
@@ -189,9 +189,9 @@ A structure is a complex data type that defines a list of variables all grouped 
 in memory:
 
 	struct Cat {
-	
+
 	}
-	
+
 A structure contains variable definitions separated by commas. Trailing commas are allowed. For example, we can write
 a structure to define a Cat's properties like so:
 
@@ -200,12 +200,12 @@ a structure to define a Cat's properties like so:
 		age: int,
 		weight: float
 	}
-	
+
 While structures are more complex types, they are defined just as any ordinary type such as an integer
 or float:
 
 	mut terry: cat;
-	
+
 Note how the structure declared is mutable, this is because we aren't declaring any of the fields in the
 structure. We can define the contents of the structure like so:
 
@@ -214,7 +214,7 @@ structure. We can define the contents of the structure like so:
 		age: 2,
 		weight: 3.12
 	};
-	
+
 The struct initializer is a statement, therefore it must be terminated with a semi-colon. Note that
 the values in the struct initializer do not have to be in order, but we suggest you do to keep things
 consistent.
@@ -435,8 +435,7 @@ Note that `x` is not defined in the for loop, but must be defined outside of the
 ## Option Types
 Option types represent an optional value, they can either be `Some` or `None`, i.e. they can either have
 a value, or not have a value -- they are often paired with `match`.
-An option type is denoted with an open angular bracket, the type that is optional, and a closing angle
-bracket.
+An option type is denoted with a question mark and the type that is optional.
 
 	fn example(a: ?int) {
 		match a {
@@ -461,7 +460,7 @@ yet.
 	fn main() {
 		file_name: str = "vident_top_ten_favorite_bread_types.md";
 		file_contents: str = read_file(file_name, ...);
-		
+
 		match file_contents {
 			Some -> printf("file %s contains:\n %s", file_name, file_contents)
 			None -> printf("failed to read file!");
