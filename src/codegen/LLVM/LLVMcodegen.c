@@ -360,7 +360,7 @@ void startLLVMCodeGeneration(LLVMCodeGenerator *self) {
 	destroyVector(self->asmFiles);
 }
 
-static LLVMTypeRef getIntType() {
+LLVMTypeRef getIntType() {
 	switch (sizeof(int)) {
 		case 2: return LLVMInt16Type();
 		case 4: return LLVMInt32Type();
@@ -372,7 +372,7 @@ static LLVMTypeRef getIntType() {
 	}
 }
 
-static LLVMTypeRef getLLVMType(DataType type) {
+LLVMTypeRef getLLVMType(DataType type) {
 	switch (type) {
 		case INT_128_TYPE:
 		case UINT_128_TYPE:
