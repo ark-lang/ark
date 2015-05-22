@@ -29,6 +29,9 @@ typedef struct {
 	 */
 	Vector *sourceFiles;
 
+	/**
+	 * Asm files that are generated from the LLVM IR
+	 */
 	Vector *asmFiles;
 
 	/**
@@ -37,6 +40,9 @@ typedef struct {
 	 */
 	SourceFile *currentSourceFile;
 
+	/**
+	 * IR Builder Reference
+	 */
 	LLVMBuilderRef builder;
 
 	/**
@@ -66,58 +72,156 @@ void startLLVMCodeGeneration(LLVMCodeGenerator *self);
  */
 void destroyLLVMCodeGenerator(LLVMCodeGenerator *self);
 
-static LLVMTypeRef getIntType();
+/**
+ * Gets the integer type based on the
+ * computers architecture.
+ *
+ * This probably wont work, on most modern compilers
+ * it should, but I don't think this will work out well
+ * in C. We should fix this.
+ * 
+ * @return the type as a llvm ref
+ */
+LLVMTypeRef getIntType();
 
-static LLVMTypeRef getLLVMType(DataType type);
+/**
+ * Converts a DataType to an LLVM Type
+ * @param  type the type to convert
+ * @return      the reference to the converted type
+ */
+LLVMTypeRef getLLVMType(DataType type);
 
+/**
+ * Generates code for a function signature
+ * @param  self the codegen instance
+ * @param  decl functionsignature node to generate
+ * @return      the reference of the function signature
+ */
 LLVMValueRef genFunctionSignature(LLVMCodeGenerator *self, FunctionSignature *decl);
 
+/**
+ * Generates a top level statement unstructured or structured
+ * @param  self the codegen instance
+ * @param  stmt the statement node to generate
+ * @return      the reference of the statement node generated
+ */
 LLVMValueRef genStatement(LLVMCodeGenerator *self, Statement *stmt);
 
+/**
+ * Generates a function declaration
+ * @param  self the codegen instance
+ * @param  decl the decl to generate for
+ * @return      the reference of the function decl node generated
+ */
 LLVMValueRef genFunctionDecl(LLVMCodeGenerator *self, FunctionDecl *decl);
 
+/**
+ * Generates a top level declaration node
+ * @param  self the codegen instance
+ * @param  decl the decl node to generate for
+ * @return      the reference to the generated node
+ */
 LLVMValueRef genDeclaration(LLVMCodeGenerator *self, Declaration *decl);
 
+/**
+ * Generates an unstructured statement node
+ * @param  self the codegen instance
+ * @param  stmt the statement node to generate for
+ * @return      the reference to the generated node
+ */
 LLVMValueRef genUnstructuredStatementNode(LLVMCodeGenerator *self, UnstructuredStatement *stmt);
 
+/**
+ * Generates a structured statement node
+ * @param  self the codegen instance
+ * @param  stmt the statement node to generate for
+ * @return      the reference to the generated node
+ */
 LLVMValueRef genStructuredStatementNode(LLVMCodeGenerator *self, StructuredStatement *stmt);
 
+/**
+ * Generates a binary expression
+ * @param  self the codegen instance
+ * @param  expr the expression to generate
+ * @return      the reference for the binary expression
+ */
 LLVMValueRef genBinaryExpression(LLVMCodeGenerator *self, BinaryExpr *expr);
 
+/**
+ * Generates an expression
+ * @param  self the codegen instance
+ * @param  expr the expression to generate
+ * @return      the reference for the expression
+ */
 LLVMValueRef genExpression(LLVMCodeGenerator *self, Expression *expr);
 
-LLVMValueRef genBinaryExpression(LLVMCodeGenerator *self, BinaryExpr *expr);
-
+/**
+ * Generates a function call
+ * @param  self the codegen instance
+ * @param  call the call node to generate
+ * @return      the reference for the call
+ */
 LLVMValueRef genFunctionCall(LLVMCodeGenerator *self, Call *call);
 
+/**
+ * Generates a Type Name
+ * @param  self the codegen instance
+ * @param  name the node to generate
+ * @return      the reference for the typename
+ */
 LLVMValueRef genTypeName(LLVMCodeGenerator *self, TypeName *name);
 
+/**
+ * Generates a literal node
+ * @param  self the codegen instance
+ * @param  lit  the literal node to generate for
+ * @return      the reference for the literal
+ */
 LLVMValueRef genLiteral(LLVMCodeGenerator *self, Literal *lit);
 
+/**
+ * Generates a type lit
+ * @param  self the codegen instance
+ * @param  lit  the literal node to generate
+ * @return      the reference for the type literal
+ */
 LLVMValueRef genTypeLit(LLVMCodeGenerator *self, TypeLit *lit);
 
+/**
+ * Generates a type parent node
+ * @param  self the codegen instance
+ * @param  type the type to generate for
+ * @return      the reference to the generated node
+ */
 LLVMValueRef genType(LLVMCodeGenerator *self, Type *type);
 
-LLVMValueRef genExpression(LLVMCodeGenerator *self, Expression *expr);
-
-LLVMValueRef genFunctionSignature(LLVMCodeGenerator *self, FunctionSignature *decl);
-
-LLVMValueRef genStatement(LLVMCodeGenerator *self, Statement *stmt);
-
-LLVMValueRef genFunctionDecl(LLVMCodeGenerator *self, FunctionDecl *decl);
-
-LLVMValueRef genDeclaration(LLVMCodeGenerator *self, Declaration *decl);
-
+/**
+ * Generates a leave statement node, for instance
+ * a return type, break or continue
+ * @param  self  the codegen instance
+ * @param  leave the node to generate for
+ * @return       the reference to the generated node
+ */
 LLVMValueRef genLeaveStatNode(LLVMCodeGenerator *self, LeaveStat *leave);
 
-LLVMValueRef genUnstructuredStatementNode(LLVMCodeGenerator *self, UnstructuredStatement *stmt);
-
-LLVMValueRef genStructuredStatementNode(LLVMCodeGenerator *self, StructuredStatement *stmt);
-
+/**
+ * Creates bitcode from the sourcefiles modules
+ * @param  self the codegen instance
+ * @return      the filename of the generated bitcode (i.e. file.bc)
+ */
 char *createBitcode(LLVMCodeGenerator *self);
 
+/**
+ * Finds the bitcode file and converts it to assembly
+ * @param self        the codegen instance
+ * @param bitcodeName the name of the bitcode file to convert
+ */
 void convertBitcodeToAsm(LLVMCodeGenerator *self, sds bitcodeName);
 
+/**
+ * Creates a binary file from the assembly created
+ * @param self the codegen instance
+ */
 void createBinary(LLVMCodeGenerator *self);
 
 /**
