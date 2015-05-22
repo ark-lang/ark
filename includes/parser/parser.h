@@ -52,7 +52,7 @@
 #define ALLOC_KEYWORD               "alloc"
 #define FREE_KEYWORD                "free"
 #define SIZEOF_KEYWORD              "sizeof"
-#define EXTERN_KEYWORD				"extern"
+#define EXTERN_KEYWORD				"ext"
 
 /**
  * Various operators that are used in the parser, also used
