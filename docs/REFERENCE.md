@@ -465,7 +465,7 @@ would be compiled as:
 
 The files must also be compiled in order. We plan to fix this soon.
 
-### Pointers
+## Pointers
 The caret (`^`) is what we use to denote a pointer, i.e something that points to an
 address in memory. The ampersand (`&`) symbol is the **address of** operator. For instance:
 
@@ -483,7 +483,7 @@ that points to it. This is again done with the caret (`^`), for example:
 
 We've introduced a new variable `z`, that stored the value at the address `y`, in other words, the value of `x`.
 
-### Managing Memory
+## Managing Memory
 Alloy is not a garbage collected language, therefore when you allocate memory, you must free it after you are
 no longer using it. We felt that, as unsafe as it is to rely on the user to manage the memory being allocated, performance takes a higher precedence. Although garbage collection makes things fool-proof and removes a significant amount of workload from the user, it inhibits the performance we were going for.
 
