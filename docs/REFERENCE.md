@@ -160,9 +160,9 @@ We can also infer types in the following manners:
     	name: str,
     	weight: float,
     	age: int
-    };
+    }
     pew: Cat;
-    b := pew; // b is of type Cat and contains the values that the struct `x` contains 
+    b := pew; // b is of type Cat and contains the values that the instance `pew` contains 
 
     enum Wew {
     	WOW,
