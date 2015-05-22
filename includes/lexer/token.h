@@ -20,8 +20,8 @@ typedef enum {
 	TOKEN_SEPARATOR,          // todo
 	TOKEN_NUMBER,             // generic number (integer, floating, hex, bin, octal)
 	TOKEN_ERRORNEOUS,         // error'd token
-	TOKEN_STRING,
-	TOKEN_CHARACTER,
+	TOKEN_STRING,			  // "some_string"
+	TOKEN_CHARACTER,		  // 'c'
 	TOKEN_UNKNOWN,            // we dont know it durr
 	TOKEN_END_OF_FILE,        // EOF
 	NUM_TOKEN_TYPES,
