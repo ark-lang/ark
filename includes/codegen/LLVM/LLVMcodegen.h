@@ -76,10 +76,6 @@ void destroyLLVMCodeGenerator(LLVMCodeGenerator *self);
  * Gets the integer type based on the
  * computers architecture.
  *
- * This probably wont work, on most modern compilers
- * it should, but I don't think this will work out well
- * in C. We should fix this.
- * 
  * @return the type as a llvm ref
  */
 LLVMTypeRef getIntType();
