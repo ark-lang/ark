@@ -166,6 +166,9 @@ LLVMValueRef genFunctionSignature(LLVMCodeGenerator *self, FunctionDecl *decl) {
 		int funcType = getTypeFromString(signature->type->typeName->name);
 		LLVMTypeRef funcTypeRef = LLVMFunctionType(getLLVMType(funcType), params, argCount, false);
 		func = LLVMAddFunction(self->currentSourceFile->module, signature->name, funcTypeRef);
+		if (decl->signature->isExtern) {
+			LLVMSetLinkage(func, LLVMExternalLinkage);
+		}
 	}
 
 	return func;
