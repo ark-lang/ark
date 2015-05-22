@@ -154,24 +154,24 @@ literals, and function calls. For instance:
 We can also infer types in the following manners:
 
     fn add(a: int, b: int): int -> a + b;
-    x := add(5,5); // x is int
+    x := add(5, 5); // x is int
 
     struct Cat {
     	name: str,
     	weight: float,
     	age: int
     };
-    x : Cat;
+    x: Cat;
     b := x; // b is of type Cat and contains the values that the struct `x` contains 
 
     enum Wew {
     	WOW,
     	MEOW
-    };
+    }
 
     x := Wew::WOW;
 
-    x : []int = { 1, 2, 3, 4 };
+    x : []int = [ 1, 2, 3, 4 ];
     b := x[2]; // b is of type int
 
 
