@@ -1,7 +1,5 @@
 <h1 align="center"><a href="http://alloy-lang.org">The Alloy Programming Language</a></h1>
 
-[![BuildStatus](https://travis-ci.org/alloy-lang/alloy.svg?branch=master)](https://travis-ci.org/alloy-lang/alloy)
-
 ## Notice
 We're currently porting the backend from C to LLVM, this may take a while and things will be broken. If
 you want to checkout the progress, have a look at [issue #345](https://github.com/alloy-lang/alloy/issues/345).
