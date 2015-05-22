@@ -1,8 +1,52 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+
+- [Alloy Reference](#alloy-reference)
+- [Table of Contents](#table-of-contents)
+  - [Guiding Principles](#guiding-principles)
+  - [Comments](#comments)
+  - [Primitive Types](#primitive-types)
+  - [Precision Types](#precision-types)
+    - [`usize`](#usize)
+  - [Variables](#variables)
+  - [Type Inference](#type-inference)
+  - [Literals](#literals)
+    - [Numeric Literals](#numeric-literals)
+    - [Text Literals](#text-literals)
+    - [Mutability](#mutability)
+  - [Tuples](#tuples)
+  - [Functions](#functions)
+    - [Function Return Types](#function-return-types)
+    - [Single-line Functions](#single-line-functions)
+  - [Structures](#structures)
+    - [Default structure values](#default-structure-values)
+  - [Implementations & Methods](#implementations-&-methods)
+  - [Function Prototypes](#function-prototypes)
+    - [Calling C Functions](#calling-c-functions)
+  - [File Inclusion](#file-inclusion)
+    - [Pointers](#pointers)
+    - [Managing Memory](#managing-memory)
+  - [Flow Control](#flow-control)
+    - [If Statements](#if-statements)
+    - [Match Statements](#match-statements)
+    - [For Loops](#for-loops)
+      - [Infinite Loop](#infinite-loop)
+      - ["While" Loop](#while-loop)
+      - ["Traditional" For Loop](#traditional-for-loop)
+  - [Option Types](#option-types)
+  - [Enums](#enums)
+  - [Arrays](#arrays)
+    - [Statically Initializing an array](#statically-initializing-an-array)
+  - [Generics](#generics)
+  - [Macro System](#macro-system)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 # Alloy Reference
 This document is an informal specification for Alloy, a systems programming language. 
 
 ## Guiding Principles
-Alloy is a systems programming language, intended as an alternative to C. It's main purpose is to modernize C, without deviating from C's original goal of simplicity. Alloy is written in C, the frontend and backend is all hand-written, i.e no parser or lexer libraries, and no LLVM, etc.
+Alloy is a systems programming language, intended as an alternative to C. It's main purpose is to modernize C, without deviating from C's original goal of simplicity. Alloy's frontend is written in C, with the backend written in LLVM. For users who've followed the project for a while now, it may seem very abrupt, the fact that we've decided to use LLVM as the backend. After rigorous discussions, we were of the idea that generating C had some serious limitations as far as feature implementations were concerned, ergo we decided to use LLVM. Apart from giving us ground to expand Alloy's features, it also gave us comparable performance, both of which we aimed for initially.
 
 The design is motivated by the following:
 
@@ -72,18 +116,15 @@ Note: the C `char` type corresponds to the `i8` type.
 
 Warning: the `i128`, `u128` and `f128` types are only supported on the LLVM backend. On the C backend, they are simple aliases for their 64-bit equivelants.
 
-## Other
-Other types that don't quite fit a category.
-
 ### `usize`
 The `usize` or unsigned size, it can not represent any negative values. It is used
 when you are counting something that cannot be negative, typically it is used for
 memory.
 
-	usize		unsigned at least 16 bits
+	usize		//unsigned at least 16 bits
 	
 ## Variables
-Unlike languages like C or C++, variables are immutable unless otherwise specified with
+Unlike languages like C or C++, variables are immutable unless otherwise preceeded by
 the `mut` keyword. A variable can be defined like so:
 
 	name: type;
@@ -91,6 +132,27 @@ the `mut` keyword. A variable can be defined like so:
 And declared as follows:
 
 	name: type = some_val;
+
+Variables whose type is to be inferred can be declared as follows:
+
+    name := some_val;
+More about type inference is discussed below.
+
+## Type Inference
+The syntax for type inference is nearly identical to a typical variable declaration, all
+you have to do is omit the type, for instance:
+
+	my_type := 5;
+	my_double := 5.3;
+
+Type-inference is still an early implementation, decimal values will be stored as doubles
+as opposed to floats. This is so you don't lose precision. Type-inference works with variables,
+literals, and function calls. For instance:
+
+	a := 5;
+	b := 10;
+	c := a + b * 2;
+
 
 ## Literals
 
@@ -146,42 +208,11 @@ The following escape sequences are available:
 |\oNNN|octal number|
 |\xNN|hex number|
 
-## Type Inference
-The syntax for type inference is nearly identical to a typical variable declaration, all
-you have to do is omit the type, for instance:
-
-	my_type := 5;
-	my_double := 5.3;
-
-Type-inference is still an early implementation, decimal values will be stored as doubles
-as opposed to floats. This is so you don't lose precision. Type-inference works with variables,
-literals, and function calls. For instance:
-
-	a := 5;
-	b := 10;
-	c := a + b * 2;
-
-## Tuples
-A tuple is define similarly to a variable, however you specify the types in parenthesis. For
-instance:
-
-	mut my_tuple: (int, int);
-
-To initialize the tuple with values, we use a similar notation to the tuples signature, and we
-wrap the values in parenthesis. The order should be corresponding to the types in the signature,
-for instance:
-
-	// this is valid
-	mut my_type: (int, double) = (10, 3.4);
-	
-	// the following errors, note the order of the types/values
-	mut another_type: (int, double) = (3.4, 10);
-
 ### Mutability
 When a variable is mutable, it can be mutated or changed. When a variable is immutable,
-it cannot be changed. By default, Alloy assumes that a variable you define is immutable.
-You can however, specify the `mut` keyword, this will indicate to the compiler that you intend
-to modify the variable later on in the code. For instance:
+it cannot be changed. By default, Alloy assumes that a variable you've defined is immutable.
+You can however, specify the `mut` keyword before the declaration. This will inform the compiler that you intend
+to modify the variable later in the program. For instance:
 
 	x: int = 5;
 	x = 10;         // ERROR: x is constant!
@@ -190,15 +221,31 @@ We can also error it like so:
 
 	x: int;         // ERROR: no value assigned for constant!
 	
-Why? Because variables are treated as constants unless otherwise specified, therefore they must 
+Why? Because variables are treated as constants unless otherwise specified; therefore they must 
 have a value assigned on definition.
+
+## Tuples
+A tuple is defined in a manner similar to a variable. However you specify the type and the values it contains within the pipe symbol (`|`). For instance:
+
+	mut my_tuple: |int, int|;
+
+To initialize the tuple with values, we use a similar notation to the tuples signature, and we
+wrap the values in pipes. The order should be the same as the order used in signifying the types in the signature.
+For instance:
+
+	// this is valid
+	mut my_type: |int, double| = |10, 3.4|;
+	
+	// the following errors, note the order of the types/values. 
+	// the int must come before the double in the values
+	mut another_type: |int, double| = |3.4, 10|; 
 
 ## Functions
 A function defines a sequence of statements and an optional return value, along with a name,
-and a set of parameters. Functions are declared with the keyword `func`. Followed by a name to
+and a set of parameters. Functions are declared with the keyword `func`, followed by a name to
 identify the function, and then a list of parameters. Finally, an optional colon `:` followed by
-a return type, e.g. a struct, data type or `void`. Note that if you do not specify a colon and
-a return type, the function is assumed to be void by default.
+a return type, e.g. a struct, data type or `void` can be added. Note that if you do not specify a colon and
+a return type, it is assumed that the function returns the `void` type.
 
 An example of a function:
 
@@ -242,12 +289,12 @@ a structure to define a Cat's properties like so:
 		weight: float
 	}
 	
-While structures are more complex types, they are defined just as any ordinary type such as an integer
-or float:
+While structures are more complex types, they are instantiated just as any ordinary type, such as an integer
+or a float:
 
 	mut terry: cat;
 	
-Note how the structure declared is mutable, this is because we aren't declaring any of the fields in the
+Note how the structure declared is mutable. This is because we aren't declaring any of the fields in the
 structure. We can define the contents of the structure like so:
 
 	terry: cat = {
@@ -260,26 +307,33 @@ The struct initializer is a statement, therefore it must be terminated with a se
 the values in the struct initializer do not have to be in order, but we suggest you do to keep things
 consistent.
 
+A structure declaration can also be preceeded by the `packed` keyword. The `packed` keyword prevents aligning of structure members according to the platform the user is on, i.e. 32-bit or 64-bit. A good article going over padding and data structure alignment can be found on [this Wikipedia page and can be a good resource for the curious.](http://en.wikipedia.org/wiki/Data_structure_alignment). A packed structure can be declared like so:
+
+    packed struct cat {
+	    name: str,
+		age: int,
+		weight: float
+	}
+
 ### Default structure values
-You can also have a structure that has default values if there are no
-initial values given:
+A structure's members can also be assigned default values:
 
 	struct Cat {
 		name: str = "Terry",
 		age: int = 0
 	}
 
-This means that when you make an instance of the structure, but do not
-give a value for the name -- or any other member in the structure -- it
-will fallback to the default value specified on the structures declaration.
+In this example, upon creation of an instance of the `Cat` structure, the value of the `name` member will by default be `"Terry"`, provided a custom value has not already been assigned. Below, we create an instance of the structure `Cat`, called `cat`, and *only* give its `age` member a value. This means that the `name` member of the instance already holds the default value "Terry".
 
 	cat: ^Cat = {
 		age: 12
 	};
 
+Therefore running
+
 	printf("%s is %d years old\n", cat.name, cat.age);
 
-Will give us:
+will give us:
 
 	Terry is 12 years old
 
@@ -320,10 +374,11 @@ via the dot operator:
 
 ## Function Prototypes
 A function prototype is similar to the syntax for a function declaration, however instead of using
-curly braces to start a new block, you end the statement with a semi-colon. For example, a function prototype
+curly braces to start a new block, you end the statement with a semi-colon. A function prototype is a good way of defining all the functions you will be using in your program before actually implementing them. For example, a function prototype
 for a function `add` that takes two parameters (both integers), and returns an integer would be as follows:
 
 	func add(a: int, b: int): int;
+The function can then be implemented elsewhere in the program. While (in most cases) a trivial move, sometimes adding the function prototype at the start of the program before implementing it elsewhere is considered good practice. 
 
 ### Calling C Functions
 You can use the function prototypes showcased above to call c functions. Say we wanted to use the `printf`
@@ -373,7 +428,7 @@ We could write a really simple "math" library with some bindings to C's `<math.h
 And we can use this library in a file:
 
 	// main.aly
-	!use "math" // note we don't use "math.aly", just "math"
+	!use "math" // note we don't use "math.aly", just "math"; makes it cleaner
 
 	func main(): int {
 		mut x: double = pow(5, 2);
@@ -386,33 +441,33 @@ would be compiled as:
 
 	alloyc math.aly main.aly
 
-Note that the order matters too. We plan to fix this in the future.
+The files must also be compiled in order. We plan to fix this soon.
 
 ### Pointers
-The caret (`^`) is what we used to denote a pointer, i.e something that points to an
-address in memory. Then there is the ampersand (`&`), which means **address of**. For instance:
+The caret (`^`) is what we use to denote a pointer, i.e something that points to an
+address in memory. The ampersand (`&`) symbol is the **address of** operator. For instance:
 
 	x: int = 5;
 	y: ^int = &x;
 
 In the above example, we create an integer `x` that stores the value `5` somewhere in memory. The variable `y` is
-pointing to the address of `x`. So we have `y`, now if we try to print it out, you'll get an address. This is because
-it just stores the address `x`. Now if we want to access the value at the address of x, we must dereference the pointer
+pointing to the address of `x`. Printing out the value of `y` will give you random gibberish denoting the memory chunk in which `x` is located. This is because
+it just stores the address to `x`. Now if we want to access the value at the address of x, we must *dereference* the pointer
 that points to it. This is again done with the caret (`^`), for example:
 
 	x: int = 5;     // 5
 	y: ^int = &x;   // 0xDEADBEEF       (somewhat arbitrary address)
 	z: int = ^y;    // 5                (get the value at our address 0xDEADBEEF)
 
-We've introduced a new variable `z`, that stored the value at the address `y`.
+We've introduced a new variable `z`, that stored the value at the address `y`, in other words, the value of `x`.
 
 ### Managing Memory
 Alloy is not a garbage collected language, therefore when you allocate memory, you must free it after you are
-no longer using it.
+no longer using it. We felt that, as unsafe as it is to rely on the user to manage the memory being allocated, performance takes a higher precedence. Although garbage collection makes things fool-proof and removes a significant amount of workload from the user, it inhibits the performance we were going for.
 
 ## Flow Control
 ### If Statements
-If statements are denoted with the `if` keyword followed by a condition. Parenthesis around an expression
+If statements are denoted with the `if` keyword followed by a condition. Parenthesis around the expression/condition
 are optional:
 
 	if x == 1 {
@@ -420,7 +475,7 @@ are optional:
 	}
 
 ### Match Statements
-Match statements are very similar to switchs in C. Note that by default, a match clause will break instead
+Match statements are very similar to C's `switch` statement. Note that by default, a match clause will break instead
 of continuing to other clauses. A match is denoted with the `match` keyword, followed by something to match
 and then a block:
 
@@ -428,20 +483,20 @@ and then a block:
 		...
 	}
 
-Within the match statement, are match clauses. Match clauses consist of an expression, followed by a single
+Within the match statement are match clauses. Match clauses consist of an expression, followed by a single
 statement operator `->`, or a block if you want to do multiple statements:
 
 	match x {
 		0 -> ...;
 		1 {
-
+			...
 		};
 	}
 
 Each clause must end with a semi-colon, including blocks.
 
 ### For Loops
-For loops are a little more different in Alloy. There are no while loops, or do while loops.
+For loops are a little more different in Alloy. There are no while loops, or do-while loops.
 
 #### Infinite Loop
 If you want to just loop till you break, you write a for loop with no condition, for instance:
@@ -459,14 +514,14 @@ after the `for` keyword:
 	}
 
 #### "Traditional" For Loop
-Finally, if you want to iterate from A to B or vice versa, you write a for loop with two conditions.
-The first being the range, the second condition being the step. For instance:
+Finally, if you want to iterate from A to B or vice versa, you write a for loop with two conditions-
+the first being the range and the second being the step. For instance:
 
 	for x < 10, x++ {
 		...
 	}
 
-Note that `x` is not defined in the for loop, but must be defined outside of the for loop. For instance:
+Also note that `x` is not defined in the for loop; it must be defined outside of the loop. For instance:
 
 	mut x: int = 0;
 	for x < 10, x++ {
@@ -474,8 +529,8 @@ Note that `x` is not defined in the for loop, but must be defined outside of the
 	}
 
 ## Option Types
-Option types represent an optional value, they can either be `Some` or `None`, i.e. they can either have
-a value, or not have a value -- they are often paired with `match`.
+Option types represent an optional value- they can either be `Some` or `None`, i.e. they can either have
+a value, or not have a value -- they are often paired with a `match` statement.
 An option type is denoted with an open angular bracket, the type that is optional, and a closing angle
 bracket.
 
@@ -486,7 +541,7 @@ bracket.
 		}
 	}
 
-Here's an example with an Option type as a function return type. These are especially useful for
+Here's an example with an `Option` type as a function return type. These are especially useful for
 cleanly checking for errors in your code. Note that the example below is semi-pseudo code, i.e.
 the functions that it calls do not exist, since we haven't written any file IO libraries for Alloy
 yet.
@@ -498,7 +553,6 @@ yet.
 		}
 		return None;
 	}
-
 	func main() {
 		file_name: str = "vident_top_ten_favorite_bread_types.md";
 		file_contents: str = read_file(file_name, ...);
@@ -507,12 +561,11 @@ yet.
 			Some -> printf("file %s contains:\n %s", file_name, file_contents)
 			None -> printf("failed to read file!");
 		}
-
 		return 0;
 	}
 
 ## Enums
-An enumeration is denoted with the `enum` keyword, followed by a name, and a block. The block contains
+An enumeration is denoted with the `enum` keyword, followed by a name and a block. The block contains
 the enum items, which are identifiers (typically uppercase) with an optional default value. Enum items
 must be terminated with a comma (excluding the final item in the enumerion). For example:
 
@@ -551,7 +604,7 @@ bracket:
 To retrieve a value in an array, you do the same syntax, but you do not assign a value. For
 instance, I could store the value in another variable like so:
 
-	x: int = points[0]; // is now 10
+	x: int = points[0]; // x is now 10
 
 ### Statically Initializing an array
 If you already know what data needs to be stored in the array, you can simply initialize
