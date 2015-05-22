@@ -40,6 +40,7 @@ typedef struct {
 	/** if this stage failed or not */
 	bool failed;
 
+	/** for emulating scope */
 	Stack *scopes;
 } SemanticAnalyzer;
 
@@ -83,8 +84,18 @@ Scope *createScope();
  */
 void destroyScope(Scope *scope);
 
+/**
+ * Create a variable type on the heap
+ * @param  type the type to allocate
+ * @return      the allocated type
+ */
 VarType *createVarType(int type);
 
+/**
+ * Destroy the given variable type
+ * note this isnt called at all, lol 
+ * @param type the type to destroy
+ */
 void destroyVarType(VarType *type);
 
 /**
@@ -290,6 +301,12 @@ ImplDecl *checkGlobalImplExists(SemanticAnalyzer *self, char *implName);
  */
 FunctionDecl *checkFunctionExists(SemanticAnalyzer *self, char *funcName);
 
+/**
+ * Check if a local parameter exists
+ * @param  self      the semantic analyzer instance
+ * @param  paramName the parameter name to lookup
+ * @return           the paramter section if it exists, or NULL (false)
+ */
 ParameterSection *checkLocalParameterExists(SemanticAnalyzer *self, char *paramName);
 
 /**
@@ -299,34 +316,105 @@ ParameterSection *checkLocalParameterExists(SemanticAnalyzer *self, char *paramN
  */
 Type *checkDataTypeExists(SemanticAnalyzer *self, char *name);
 
+/**
+ * Pushes a parameter to the scope
+ * @param self  the semantic analyzer instance
+ * @param param the param to push
+ */
 void pushParameterSection(SemanticAnalyzer *self, ParameterSection *param);
 
+/**
+ * Pushes a variable declaration
+ * @param self the semantic analyzer instance
+ * @param var  the variable to push
+ */
 void pushVariableDeclaration(SemanticAnalyzer *self, VariableDecl *var);
 
+/**
+ * Pushes a structure declaration
+ * @param self the semantic analyzer instance
+ * @param structure  the structure to push
+ */
 void pushStructDeclaration(SemanticAnalyzer *self, StructDecl *structure);
 
+/**
+ * Pushes a function declaration
+ * @param self the semantic analyzer instance
+ * @param func  the function to push
+ */
 void pushFunctionDeclaration(SemanticAnalyzer *self, FunctionDecl *func);
 
+/**
+ * Pushes an implementation declaration
+ * @param self the semantic analyzer instance
+ * @param impl  the impl to push
+ */
 void pushImplDeclaration(SemanticAnalyzer *self, ImplDecl *impl);
 
-VarType *createVarType(int type);
+/** TYPE INFERENCE DEDUCTION STUFF */
 
-void destroyVarType(VarType *type);
-
+/**
+ * Deduces a type from the given call
+ * @param  self the semantic analyzer instance
+ * @param  call the call to deduce
+ * @return      the var type we deduced the call to be
+ */
 VarType *deduceTypeFromFunctionCall(SemanticAnalyzer *self, Call *call);
 
+/**
+ * Deduces a type from the given type val
+ * @param  self the semantic analyzer instance
+ * @param  typeVal the type val to deduce
+ * @return      the type val type val we deduced the val type to be
+ */
 VarType *deduceTypeFromTypeVal(SemanticAnalyzer *self, char *typeVal);
 
+/**
+ * Deduces a type from the given lit
+ * @param  self the semantic analyzer instance
+ * @param  lit the lit to deduce
+ * @return      the var type we deduced the lit to be
+ */
 VarType *deduceTypeFromLiteral(SemanticAnalyzer *self, Literal *lit);
 
+/**
+ * Deduces a type from the given binary expression
+ * @param  self the semantic analyzer instance
+ * @param  expr the binary expression to deduce
+ * @return      the var type we deduced the binary expression to be
+ */
 VarType *deduceTypeFromBinaryExpr(SemanticAnalyzer *self, BinaryExpr *expr);
 
+/**
+ * Deduces a type from the given type
+ * @param  self the semantic analyzer instance
+ * @param  type the type to deduce
+ * @return      the var type we deduced the type to be
+ */
 VarType *deduceTypeFromType(SemanticAnalyzer *self, Type *type);
 
+/**
+ * Deduces a type from the given unary expression
+ * @param  self the semantic analyzer instance
+ * @param  expr the unary expression to deduce
+ * @return      the var type we deduced the unary expression to be
+ */
 VarType *deduceTypeFromUnaryExpr(SemanticAnalyzer *self, UnaryExpr *expr);
 
+/**
+ * Deduces a type from the given type
+ * @param  self the semantic analyzer instance
+ * @param  type the type to deduce
+ * @return      the var type we deduced the type to be
+ */
 VarType *deduceTypeFromTypeNode(SemanticAnalyzer *self, TypeName *type);
 
+/**
+ * Deduces a type from the given expression
+ * @param  self the semantic analyzer instance
+ * @param  expr the expression to deduce
+ * @return      the var type we deduced the expression to be
+ */
 VarType *deduceTypeFromExpression(SemanticAnalyzer *self, Expression *expr);
 
 /**
