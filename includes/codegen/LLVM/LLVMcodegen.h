@@ -93,7 +93,7 @@ LLVMTypeRef getLLVMType(DataType type);
  * @param  decl functionsignature node to generate
  * @return      the reference of the function signature
  */
-LLVMValueRef genFunctionSignature(LLVMCodeGenerator *self, FunctionSignature *decl);
+LLVMValueRef genFunctionSignature(LLVMCodeGenerator *self, FunctionDecl *decl);
 
 /**
  * Generates a top level statement unstructured or structured
