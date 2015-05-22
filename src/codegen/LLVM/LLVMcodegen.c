@@ -79,8 +79,7 @@ LLVMValueRef genFunctionCall(LLVMCodeGenerator *self, Call *call) {
 		}
 	}
 
-	LLVMValueRef ret = LLVMGetReturnType(func);
-	LLVMBuildCall(self->builder, func, args, call->arguments->size, ret == LLVMVoidType() ? NULL : "calltmp");
+	LLVMBuildCall(self->builder, func, args, call->arguments->size, "");
 }
 
 LLVMValueRef genTypeName(LLVMCodeGenerator *self, TypeName *name) {
