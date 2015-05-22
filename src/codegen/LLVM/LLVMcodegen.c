@@ -79,8 +79,7 @@ LLVMValueRef genFunctionCall(LLVMCodeGenerator *self, Call *call) {
 		}
 	}
 
-	LLVMValueRef ret = LLVMGetReturnType(func);
-	LLVMBuildCall(self->builder, func, args, call->arguments->size, ret == LLVMVoidType() ? NULL : "calltmp");
+	LLVMBuildCall(self->builder, func, args, call->arguments->size, "");
 }
 
 LLVMValueRef genTypeName(LLVMCodeGenerator *self, TypeName *name) {
@@ -201,6 +200,11 @@ LLVMValueRef genFunctionDecl(LLVMCodeGenerator *self, FunctionDecl *decl) {
 
 	for (int i = 0; i < decl->body->stmtList->stmts->size; i++) {
 		LLVMValueRef body = genStatement(self, getVectorItem(decl->body->stmtList->stmts, i));
+	}
+
+	LLVMValueRef func = LLVMGetNamedFunction(self->currentSourceFile->module, decl->signature->name);
+	if (LLVMGetReturnType(LLVMGetElementType(LLVMTypeOf(func))) == LLVMVoidType()) {
+		LLVMBuildRetVoid(self->builder);
 	}
 
 	return prototype;
