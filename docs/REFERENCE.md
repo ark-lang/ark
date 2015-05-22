@@ -225,19 +225,19 @@ The following escape sequences are available:
 
 |Sequence|Description|
 |--------|-----------|
-|\a|alarm/bell|
-|\b|backspace|
-|\f|formfeed|
-|\n|newline|
-|\r|carriage return|
-|\t|horizontal tab|
-|\v|vertical tab|
-|\\\\|backslash|
-|\'|single quotation mark|
-|\"|double quotation mark|
-|\?|question mark|
-|\oNNN|octal number|
-|\xNN|hex number|
+|`\a`|alarm/bell|
+|`\b`|backspace|
+|`\f`|formfeed|
+|`\n`|newline|
+|`\r`|carriage return|
+|`\t`|horizontal tab|
+|`\v`|vertical tab|
+|`\\\\`|backslash|
+|`\'`|single quotation mark|
+|`\"`|double quotation mark|
+|`\?`|question mark|
+|`\oNNN`|octal number|
+|`\xNN`|hex number|
 
 ### Mutability
 When a variable is mutable, it can be mutated or changed. When a variable is immutable,
