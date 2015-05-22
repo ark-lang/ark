@@ -202,6 +202,11 @@ LLVMValueRef genFunctionDecl(LLVMCodeGenerator *self, FunctionDecl *decl) {
 		LLVMValueRef body = genStatement(self, getVectorItem(decl->body->stmtList->stmts, i));
 	}
 
+	LLVMValueRef func = LLVMGetNamedFunction(self->currentSourceFile->module, decl->signature->name);
+	if (LLVMGetReturnType(LLVMGetElementType(LLVMTypeOf(func))) == LLVMVoidType()) {
+		LLVMBuildRetVoid(self->builder);
+	}
+
 	return prototype;
 }
 
