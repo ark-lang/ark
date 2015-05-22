@@ -1,5 +1,5 @@
-<!-- START doctoc generated TOC please keep comment here to allow auto update -->
-<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+# Alloy Reference
+This document is an informal specification for Alloy, a systems programming language. 
 
 # Table of Contents
 
@@ -12,6 +12,7 @@
     - [`usize`](#usize)
   - [Variables](#variables)
   - [Type Inference](#type-inference)
+  - [Type Casting](#type-casting)
   - [Literals](#literals)
     - [Numeric Literals](#numeric-literals)
     - [Text Literals](#text-literals)
@@ -34,7 +35,7 @@
     - [For Loops](#for-loops)
       - [Infinite Loop](#infinite-loop)
       - ["While" Loop](#while-loop)
-      - ["Traditional" For Loop](#traditional-for-loop)
+      - [Indexed For Loop](#indexed-for-loop)
   - [Option Types](#option-types)
   - [Enums](#enums)
   - [Arrays](#arrays)
@@ -42,13 +43,8 @@
   - [Generics](#generics)
   - [Macro System](#macro-system)
 
-<!-- END doctoc generated TOC please keep comment here to allow auto update -->
-
-# Alloy Reference
-This document is an informal specification for Alloy, a systems programming language. 
-
 ## Guiding Principles
-Alloy is a systems programming language, intended as an alternative to C. It's main purpose is to modernize C, without deviating from C's original goal of simplicity. Alloy's frontend is written in C, with the backend written in LLVM. For users who've followed the project for a while now, it may seem very abrupt, the fact that we've decided to use LLVM as the backend. After rigorous discussions, we were of the idea that generating C had some serious limitations as far as feature implementations were concerned, ergo we decided to use LLVM. Apart from giving us ground to expand Alloy's features, it also gave us comparable performance, both of which we aimed for initially.
+Alloy is a systems programming language, intended as an alternative to C. It's main purpose is to modernize C, without deviating from C's original goal of simplicity. Alloy's frontend is written in C, with LLVM being used for the backend. For users who have followed the project for a while now, it may seem very abrupt, the fact that we've decided to use LLVM as the backend. After rigorous discussions, we were of the idea that generating C had some serious limitations as far as feature implementations were concerned, ergo we decided to use LLVM. Apart from giving us ground to expand Alloy's features, it also gave us comparable performance, both of which we aimed for initially.
 
 The design is motivated by the following:
 
@@ -155,6 +151,30 @@ literals, and function calls. For instance:
 	b := 10;
 	c := a + b * 2;
 
+Type inferencing for a struct's members can be done like so. Type inferencing for structs has not been implemented yet, so the proposed syntax is below:
+
+	struct Cat {
+		name: str,
+		age: int,
+		weight: _
+	}
+
+Here weight has an inferred type.
+
+Type inferencing is not possible for a function's parameters. We may implement this in the future.
+The proposed syntax for it is:
+
+    func add(a: _, b: _) -> return a + b;
+
+## Type Casting
+In Alloy, type casting can be done as follows:
+
+    mut my_val: float = 1.3;
+    mut my_val_two: int = int(my_val); // my_val_two is now 1
+
+To do type casting, the type its being casted to must be added, followed by the value being casted in parentheses. 
+
+    val: int = int(4.5); // val is now 4
 
 ## Literals
 
@@ -515,7 +535,7 @@ after the `for` keyword:
 		printf("loop while x is true\n");
 	}
 
-#### "Traditional" For Loop
+#### Indexed For Loop
 Finally, if you want to iterate from A to B or vice versa, you write a for loop with two conditions-
 the first being the range and the second being the step. For instance:
 
