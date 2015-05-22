@@ -27,8 +27,8 @@ This document is an informal specification for Alloy, a systems programming lang
   - [Function Prototypes](#function-prototypes)
     - [Calling C Functions](#calling-c-functions)
   - [File Inclusion](#file-inclusion)
-    - [Pointers](#pointers)
-    - [Managing Memory](#managing-memory)
+  - [Pointers](#pointers)
+  - [Managing Memory](#managing-memory)
   - [Flow Control](#flow-control)
     - [If Statements](#if-statements)
     - [Match Statements](#match-statements)
@@ -151,20 +151,29 @@ literals, and function calls. For instance:
 	b := 10;
 	c := a + b * 2;
 
-Type inferencing for a struct's members can be done like so. Type inferencing for structs has not been implemented yet, so the proposed syntax is below:
+We can also infer types in the following manners:
 
-	struct Cat {
-		name: str,
-		age: int,
-		weight: _
-	}
+    fn add(a: int, b: int): int -> a + b;
+    x := add(5,5); // x is int
 
-Here weight has an inferred type.
+    struct Cat {
+    	name: str,
+    	weight: float,
+    	age: int
+    };
+    x : Cat;
+    b := x; // b is of type Cat and contains the values that the struct `x` contains 
 
-Type inferencing is not possible for a function's parameters. We may implement this in the future.
-The proposed syntax for it is:
+    enum Wew {
+    	WOW,
+    	MEOW
+    };
 
-    func add(a: _, b: _) -> return a + b;
+    x := Wew::WOW;
+
+    x : []int = { 1, 2, 3, 4 };
+    b := x[2]; // b is of type int
+
 
 ## Type Casting
 In Alloy, type casting can be done as follows:
@@ -305,7 +314,7 @@ in memory:
 A structure contains variable definitions separated by commas. Trailing commas are allowed. For example, we can write
 a structure to define a Cat's properties like so:
 
-	struct cat {
+	struct Cat {
 		name: str,
 		age: int,
 		weight: float
@@ -314,12 +323,12 @@ a structure to define a Cat's properties like so:
 While structures are more complex types, they are instantiated just as any ordinary type, such as an integer
 or a float:
 
-	mut terry: cat;
+	mut terry: Cat;
 	
 Note how the structure declared is mutable. This is because we aren't declaring any of the fields in the
 structure. We can define the contents of the structure like so:
 
-	terry: cat = {
+	terry: Cat = {
 		name: "Terry",
 		age: 2,
 		weight: 3.12
@@ -331,7 +340,7 @@ consistent.
 
 A structure declaration can also be preceeded by the `packed` keyword. The `packed` keyword prevents aligning of structure members according to the platform the user is on, i.e. 32-bit or 64-bit. A good article going over padding and data structure alignment can be found on [this Wikipedia page and can be a good resource for the curious.](http://en.wikipedia.org/wiki/Data_structure_alignment). A packed structure can be declared like so:
 
-    packed struct cat {
+    packed struct Cat {
 	    name: str,
 		age: int,
 		weight: float
@@ -485,7 +494,9 @@ We've introduced a new variable `z`, that stored the value at the address `y`, i
 
 ## Managing Memory
 Alloy is not a garbage collected language, therefore when you allocate memory, you must free it after you are
-no longer using it. We felt that, as unsafe as it is to rely on the user to manage the memory being allocated, performance takes a higher precedence. Although garbage collection makes things fool-proof and removes a significant amount of workload from the user, it inhibits the performance we were going for.
+no longer using it. We felt that, as unsafe as it is to rely on the user to manage the memory being allocated, performance takes a higher precedence. Although garbage collection makes things fool-proof and removes a significant amount of workload from the user, it inhibits the performance we were going for. 
+
+Memory is allocated using the `alloc` keyword and freed using the `free` keyword. The size of a particular type can be found using the `sizeof` operator, much like C. The `realloc` keyword can be used to reallocate a chunk of memory, in case it needs to be of a larger/smaller size.
 
 ## Flow Control
 ### If Statements
