@@ -33,6 +33,16 @@ static void consumeAstNodeBy(LLVMCodeGenerator *self, int amount) {
 	self->currentNode += amount;
 }
 
+bool isFloatingType(LLVMValueRef type) {
+	switch (LLVMGetTypeKind(type)) {
+		case LLVMFloatTypeKind: 
+		case LLVMFP128TypeKind:
+		case LLVMDoubleTypeKind:
+			return true;
+		default: return false;
+	}
+}
+
 LLVMValueRef genBinaryExpression(LLVMCodeGenerator *self, BinaryExpr *expr) {
 	LLVMValueRef lhs = genExpression(self, expr->lhand);
 	LLVMValueRef rhs = genExpression(self, expr->lhand);
@@ -41,17 +51,20 @@ LLVMValueRef genBinaryExpression(LLVMCodeGenerator *self, BinaryExpr *expr) {
 		// TODO
 	}
 
+	// FIXME
+	bool floating = false; // isFloatingType(lhs) || isFloatingType(rhs)
+
 	if (!strcmp(expr->binaryOp, "+")) {
-		return LLVMBuildAdd(self->builder, lhs, rhs, "add");
+		return floating ? LLVMBuildFAdd(self->builder, lhs, rhs, "add") : LLVMBuildAdd(self->builder, lhs, rhs, "add");
 	}
 	else if (!strcmp(expr->binaryOp, "-")) {
-		return LLVMBuildSub(self->builder, lhs, rhs, "sub");
+		return floating ? LLVMBuildFSub(self->builder, lhs, rhs, "sub") : LLVMBuildSub(self->builder, lhs, rhs, "add");
 	}
 	else if (!strcmp(expr->binaryOp, "*")) {
-		return LLVMBuildMul(self->builder, lhs, rhs, "mul");
+		return floating ? LLVMBuildFMul(self->builder, lhs, rhs, "mul") : LLVMBuildMul(self->builder, lhs, rhs, "mul");
 	}
 	else if (!strcmp(expr->binaryOp, "/")) {
-		return LLVMBuildUDiv(self->builder, lhs, rhs, "div");
+		return floating ? LLVMBuildFDiv(self->builder, lhs, rhs, "div") : LLVMBuildUDiv(self->builder, lhs, rhs, "div");
 	}
 }
 
