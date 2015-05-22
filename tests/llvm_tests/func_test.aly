@@ -2,6 +2,10 @@ func add(): void {
 
 }
 
+func sub(): int {
+    return 5 + 5;
+}
+
 func main(): int {
     add();
     return 0;
