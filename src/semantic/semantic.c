@@ -112,16 +112,17 @@ SemanticAnalyzer *createSemanticAnalyzer(Vector *sourceFiles) {
 	hashmap_put(self->dataTypes, "u64", createVarType(INTEGER_VAR_TYPE));
 	hashmap_put(self->dataTypes, "u128", createVarType(INTEGER_VAR_TYPE));
 
-	hashmap_put(self->dataTypes, "f32", createVarType(INTEGER_VAR_TYPE));
-	hashmap_put(self->dataTypes, "f64", createVarType(INTEGER_VAR_TYPE));
-	hashmap_put(self->dataTypes, "f128", createVarType(INTEGER_VAR_TYPE));
+	hashmap_put(self->dataTypes, "f32", createVarType(FLOAT_VAR_TYPE));
+	hashmap_put(self->dataTypes, "f64", createVarType(DOUBLE_VAR_TYPE));
+	hashmap_put(self->dataTypes, "f128", createVarType(QUAD_VAR_TYPE));
 	
 	hashmap_put(self->dataTypes, "int", createVarType(INTEGER_VAR_TYPE));
-	hashmap_put(self->dataTypes, "char", createVarType(INTEGER_VAR_TYPE));
-	hashmap_put(self->dataTypes, "str", createVarType(INTEGER_VAR_TYPE));
+	hashmap_put(self->dataTypes, "char", createVarType(CHAR_VAR_TYPE));
+	hashmap_put(self->dataTypes, "str", createVarType(STRING_VAR_TYPE));
 	hashmap_put(self->dataTypes, "bool", createVarType(INTEGER_VAR_TYPE));
-	hashmap_put(self->dataTypes, "float", createVarType(INTEGER_VAR_TYPE));
-	hashmap_put(self->dataTypes, "double", createVarType(INTEGER_VAR_TYPE));
+	hashmap_put(self->dataTypes, "float", createVarType(FLOAT_VAR_TYPE));
+	hashmap_put(self->dataTypes, "double", createVarType(DOUBLE_VAR_TYPE));
+	hashmap_put(self->dataTypes, "byte", createVarType(BYTE_VAR_TYPE));
 
 	return self;
 }
