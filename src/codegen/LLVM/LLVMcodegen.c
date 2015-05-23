@@ -206,6 +206,8 @@ LLVMValueRef genStatement(LLVMCodeGenerator *self, Statement *stmt) {
 }
 
 LLVMValueRef genFunctionDecl(LLVMCodeGenerator *self, FunctionDecl *decl) {
+	self->currentSourceFile->scope++;
+
 	LLVMValueRef prototype = genFunctionSignature(self, decl);
 	if (!prototype) {
 		genError("hmm");
@@ -226,11 +228,25 @@ LLVMValueRef genFunctionDecl(LLVMCodeGenerator *self, FunctionDecl *decl) {
 		LLVMBuildRetVoid(self->builder);
 	}
 
+	self->currentSourceFile->scope--;
 	return prototype;
 }
 
 LLVMValueRef genVariableDecl(LLVMCodeGenerator *self, VariableDecl *decl) {
-	
+	int scope = self->currentSourceFile->scope;
+
+	if (scope == GLOBAL_SCOPE) {
+		LLVMValueRef expr = genExpression(self, decl->expr);
+		if (expr) {
+			LLVMAddGlobal(self->currentSourceFile->module, expr, decl->name);
+		}
+		else {
+			genError("Invalid expr");
+		}
+	}
+	else {
+		genError("penis");
+	}
 }
 
 LLVMValueRef genDeclaration(LLVMCodeGenerator *self, Declaration *decl) {
