@@ -96,8 +96,9 @@ LLVMValueRef genFunctionCall(LLVMCodeGenerator *self, Call *call) {
 }
 
 LLVMValueRef genTypeName(LLVMCodeGenerator *self, TypeName *name) {
-	printf("todo\n");
-	return false;
+	int typeAsEnum = getTypeFromString(name->name);
+	printf("type: %s\n", name->name);
+	return getLLVMType(typeAsEnum);
 }
 
 LLVMValueRef genLiteral(LLVMCodeGenerator *self, Literal *lit) {
@@ -116,7 +117,7 @@ LLVMValueRef genLiteral(LLVMCodeGenerator *self, Literal *lit) {
 LLVMValueRef genTypeLit(LLVMCodeGenerator *self, TypeLit *lit) {
 	switch (lit->type) {
 		default:
-			printf("%s\n", getNodeTypeName(lit->type));
+			printf("abc: %s\n", getNodeTypeName(lit->type));
 			break;
 	}
 }
@@ -124,10 +125,11 @@ LLVMValueRef genTypeLit(LLVMCodeGenerator *self, TypeLit *lit) {
 LLVMValueRef genType(LLVMCodeGenerator *self, Type *type) {
 	switch (type->type) {
 		case TYPE_NAME_NODE:
-			genTypeName(self, type->typeName);
-			break;
+			return genTypeName(self, type->typeName);
 		case TYPE_LIT_NODE:
-			genTypeLit(self, type->typeLit);
+			return genTypeLit(self, type->typeLit);
+		default:
+			printf("todo\n");
 			break;
 	}
 }
@@ -206,6 +208,8 @@ LLVMValueRef genStatement(LLVMCodeGenerator *self, Statement *stmt) {
 }
 
 LLVMValueRef genFunctionDecl(LLVMCodeGenerator *self, FunctionDecl *decl) {
+	self->currentSourceFile->scope++;
+
 	LLVMValueRef prototype = genFunctionSignature(self, decl);
 	if (!prototype) {
 		genError("hmm");
@@ -220,11 +224,34 @@ LLVMValueRef genFunctionDecl(LLVMCodeGenerator *self, FunctionDecl *decl) {
 		LLVMValueRef body = genStatement(self, getVectorItem(decl->body->stmtList->stmts, i));
 	}
 
+	// function returns void so we have to put it at the end
+	// LLVMValueRef func = LLVMGetNamedFunction(self->currentSourceFile->module, decl->signature->name);
+	// if (LLVMGetReturnType(LLVMGetElementType(LLVMTypeOf(func))) == LLVMVoidType()) {
+	// 	LLVMBuildRetVoid(self->builder);
+	// }
+
+	self->currentSourceFile->scope--;
 	return prototype;
 }
 
 LLVMValueRef genVariableDecl(LLVMCodeGenerator *self, VariableDecl *decl) {
-	
+	int scope = self->currentSourceFile->scope;
+
+	if (scope == GLOBAL_SCOPE) {
+		LLVMValueRef expr = genExpression(self, decl->expr);
+		if (expr) {
+			LLVMAddGlobal(self->currentSourceFile->module, expr, decl->name);
+		}
+		else {
+			genError("Invalid expr");
+		}
+	}
+	else {
+		LLVMValueRef alloc = LLVMBuildAlloca(self->builder, genType(self, decl->type), decl->name);
+		if (decl->expr) {
+			LLVMBuildStore(self->builder, genExpression(self, decl->expr), alloc);
+		}
+	}
 }
 
 LLVMValueRef genDeclaration(LLVMCodeGenerator *self, Declaration *decl) {
@@ -431,9 +458,12 @@ LLVMTypeRef getLLVMType(DataType type) {
 		case BOOL_TYPE:
 			return LLVMInt1Type();
 			
+		case BYTE_TYPE:
+			return LLVMInt1Type();
+
 		case CHAR_TYPE:
-			genError("Char type unimplemented");
-			return NULL; // gonna get replaced
+			// genError("Char type unimplemented");
+			return LLVMInt8Type(); // for now its i8 -- gonna get replaced
 			
 		case VOID_TYPE:
 			return LLVMVoidType();

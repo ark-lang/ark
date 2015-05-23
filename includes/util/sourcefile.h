@@ -17,6 +17,8 @@
 #include <llvm-c/Target.h>
 #include <llvm-c/Transforms/Scalar.h>
 
+#define GLOBAL_SCOPE 0
+
 /**
  * Source file properties
  */
@@ -27,6 +29,7 @@ typedef struct {
     LLVMModuleRef module;    // module for the source file
 	Vector *tokens;          // the token stream for the source file
 	Vector *ast;             // the output AST tree
+    int scope;               // for simple scope emulation
 } SourceFile;
 
 /**

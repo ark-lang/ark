@@ -1,5 +1,5 @@
 func add(): void {
-	return;
+    
 }
 
 /*func sub(): int {
