@@ -96,8 +96,9 @@ LLVMValueRef genFunctionCall(LLVMCodeGenerator *self, Call *call) {
 }
 
 LLVMValueRef genTypeName(LLVMCodeGenerator *self, TypeName *name) {
-	printf("todo\n");
-	return false;
+	int typeAsEnum = getTypeFromString(name->name);
+	printf("type: %s\n", name->name);
+	return getLLVMType(typeAsEnum);
 }
 
 LLVMValueRef genLiteral(LLVMCodeGenerator *self, Literal *lit) {
@@ -116,7 +117,7 @@ LLVMValueRef genLiteral(LLVMCodeGenerator *self, Literal *lit) {
 LLVMValueRef genTypeLit(LLVMCodeGenerator *self, TypeLit *lit) {
 	switch (lit->type) {
 		default:
-			printf("%s\n", getNodeTypeName(lit->type));
+			printf("abc: %s\n", getNodeTypeName(lit->type));
 			break;
 	}
 }
@@ -124,10 +125,11 @@ LLVMValueRef genTypeLit(LLVMCodeGenerator *self, TypeLit *lit) {
 LLVMValueRef genType(LLVMCodeGenerator *self, Type *type) {
 	switch (type->type) {
 		case TYPE_NAME_NODE:
-			genTypeName(self, type->typeName);
-			break;
+			return genTypeName(self, type->typeName);
 		case TYPE_LIT_NODE:
-			genTypeLit(self, type->typeLit);
+			return genTypeLit(self, type->typeLit);
+		default:
+			printf("todo\n");
 			break;
 	}
 }
@@ -245,7 +247,10 @@ LLVMValueRef genVariableDecl(LLVMCodeGenerator *self, VariableDecl *decl) {
 		}
 	}
 	else {
-		LLVMBuildAlloca(self->builder, genType(self, decl->type), decl->name);
+		LLVMValueRef alloc = LLVMBuildAlloca(self->builder, genType(self, decl->type), decl->name);
+		if (decl->expr) {
+			LLVMBuildStore(self->builder, genExpression(self, decl->expr), alloc);
+		}
 	}
 }
 
