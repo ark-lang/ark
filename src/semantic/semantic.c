@@ -133,6 +133,20 @@ void analyzeBlock(SemanticAnalyzer *self, Block *block) {
 	}
 }
 
+bool isReturnStatement(Statement *stmt) {
+	if (!stmt)
+		return false;
+
+	if (stmt->type != UNSTRUCTURED_STATEMENT_NODE)
+		return false;
+
+	UnstructuredStatement *unstrucStmt = stmt->unstructured;
+	if (unstrucStmt->type != LEAVE_STAT_NODE)
+		return false;
+
+	return unstrucStmt->leave->type == RETURN_STAT_NODE;
+}
+
 void analyzeFunctionDeclaration(SemanticAnalyzer *self, FunctionDecl *decl) {
 	if (self->scopes->stackPointer != GLOBAL_SCOPE_INDEX) {
 		semanticError("Function definition for `%s` is illegal", decl->signature->name);
@@ -151,6 +165,11 @@ void analyzeFunctionDeclaration(SemanticAnalyzer *self, FunctionDecl *decl) {
 	if (!decl->prototype) {
 		analyzeBlock(self, decl->body);
 		popScope(self);
+		
+		Vector *stmts = decl->body->stmtList->stmts;
+		if (!(stmts->size > 0 && isReturnStatement(getVectorItem(stmts, stmts->size - 1)))) {
+			pushBackItem(stmts, wrapExpressionInReturnStat(NULL));
+		}
 	}
 }
 
