@@ -1,7 +1,8 @@
-func extern test() {
-    // idk
+func ext test() {
+
 }
 
 func main(): int {
+    test();
     return 0;
 }
