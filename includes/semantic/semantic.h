@@ -47,9 +47,12 @@ typedef struct {
 // for the hacky type inference
 typedef enum {
 	INTEGER_VAR_TYPE,
+	FLOAT_VAR_TYPE,
 	DOUBLE_VAR_TYPE,
+	QUAD_VAR_TYPE,
 	STRING_VAR_TYPE,
 	CHAR_VAR_TYPE,
+	BYTE_VAR_TYPE,
 	STRUCTURE_VAR_TYPE,
 	UNKNOWN_VAR_TYPE
 } VariableType;
