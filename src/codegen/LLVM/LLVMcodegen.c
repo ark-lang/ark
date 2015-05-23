@@ -245,7 +245,7 @@ LLVMValueRef genVariableDecl(LLVMCodeGenerator *self, VariableDecl *decl) {
 		}
 	}
 	else {
-		genError("penis");
+		LLVMBuildAlloca(self->builder, genType(self, decl->type), decl->name);
 	}
 }
 

@@ -34,7 +34,7 @@ This document is an informal specification for Alloy, a systems programming lang
     - [Match Statements](#match-statements)
     - [For Loops](#for-loops)
       - [Infinite Loop](#infinite-loop)
-      - ["While" Loop](#while-loop)
+      - [Conditional Loop](#while-loop)
       - [Indexed For Loop](#indexed-for-loop)
   - [Option Types](#option-types)
   - [Enums](#enums)
@@ -303,6 +303,15 @@ If you have a function that consists of a single statement, it's suggested that 
 
 	func add(a: int, b: int): int -> a + b;
 
+### External Functions
+To allow external linkage to a function, you define the function as you would typically,
+however after the `func` keyword, you specify the function is external by writing the `ext`
+keyword:
+
+    func ext do_stuff() {
+        // do stuff here
+    }
+
 ## Structures
 A structure is a complex data type that defines a list of variables all grouped under one name
 in memory:
@@ -538,7 +547,7 @@ If you want to just loop till you break, you write a for loop with no condition,
 		printf("loop....\n");
 	}
 
-#### "While" Loop
+#### Conditional Loop
 If you want to loop while a condition is true, you do the same for loop, but with a condition
 after the `for` keyword:
 
@@ -591,7 +600,7 @@ yet.
 		file_contents: str = read_file(file_name, ...);
 		
 		match file_contents {
-			Some -> printf("file %s contains:\n %s", file_name, file_contents)
+			Some -> printf("file %s contains:\n %s", file_name, file_contents);
 			None -> printf("failed to read file!");
 		}
 		return 0;
