@@ -1147,9 +1147,6 @@ Block *parseBlock(Parser *self) {
 }
 
 Statement *wrapExpressionInReturnStat(Expression *expr) {
-	if (!expr)
-		return false;
-	
 	ReturnStat *ret = createReturnStat(expr);
 	if (!ret)
 		return false;
@@ -1184,6 +1181,7 @@ FunctionDecl *parseFunctionDecl(Parser *self) {
 				decl->signature = signature;
 				decl->body = block;
 				decl->prototype = false;
+
 				return decl;
 			}
 		}
