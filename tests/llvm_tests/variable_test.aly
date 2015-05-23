@@ -1,3 +1,5 @@
+glob: int = 10;
+
 func main(): int {
     x: int = 5;
     return 0;
