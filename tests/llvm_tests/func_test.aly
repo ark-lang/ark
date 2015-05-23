@@ -1,12 +1,12 @@
 func add(): void {
-
+	return;
 }
 
-func sub(): int {
-    return 5 + 5;
-}
+/*func sub(): int {
+	return 5 + 5;
+}*/
 
 func main(): int {
-    add();
-    return 0;
+	add();
+	return 0;
 }

@@ -223,10 +223,10 @@ LLVMValueRef genFunctionDecl(LLVMCodeGenerator *self, FunctionDecl *decl) {
 	}
 
 	// function returns void so we have to put it at the end
-	LLVMValueRef func = LLVMGetNamedFunction(self->currentSourceFile->module, decl->signature->name);
-	if (LLVMGetReturnType(LLVMGetElementType(LLVMTypeOf(func))) == LLVMVoidType()) {
-		LLVMBuildRetVoid(self->builder);
-	}
+	// LLVMValueRef func = LLVMGetNamedFunction(self->currentSourceFile->module, decl->signature->name);
+	// if (LLVMGetReturnType(LLVMGetElementType(LLVMTypeOf(func))) == LLVMVoidType()) {
+	// 	LLVMBuildRetVoid(self->builder);
+	// }
 
 	self->currentSourceFile->scope--;
 	return prototype;
@@ -263,7 +263,7 @@ LLVMValueRef genLeaveStatNode(LLVMCodeGenerator *self, LeaveStat *leave) {
 			if (leave->retStmt->expr) {
 				expr = genExpression(self, leave->retStmt->expr);
 			}
-			LLVMBuildRet(self->builder, expr != NULL ? expr : LLVMVoidType());
+			LLVMBuildRet(self->builder, expr);
 			break;
 		}
 	}
