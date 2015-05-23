@@ -46,15 +46,6 @@ show_output = False
 
 FNULL = open(os.devnull, 'w')
 
-# arguments to pass to the compiler
-alloyc_args = []
-if "--llvm" in sys.argv:
-	llvm_support = subprocess.call(["alloyc", "--llvm", "--version"], stdout=FNULL, stderr=subprocess.STDOUT)
-	if llvm_support != 0:
-		print(bold(red("LLVM compiler backend not enabled")))
-		exit(-1);
-	alloyc_args.append("--llvm")
-
 # This is kind of hacky and not very scalable,
 # will show the output if they added -o as an arg
 if "-o" in sys.argv or "--show-output" in sys.argv:
@@ -75,9 +66,9 @@ for name in files:
 		print(bold("Compiling ") + name + "...")
 	
 	if show_output:
-		compile_result = subprocess.call(["alloyc", "tests/" + name, "-o", "tests/" + output_file] + alloyc_args)
+		compile_result = subprocess.call(["alloyc", "tests/" + name, "-o", "tests/" + output_file])
 	else:
-		compile_result = subprocess.call(["alloyc", "tests/" + name, "-o", "tests/" + output_file] + alloyc_args, stdout=FNULL, stderr=subprocess.STDOUT)
+		compile_result = subprocess.call(["alloyc", "tests/" + name, "-o", "tests/" + output_file], stdout=FNULL, stderr=subprocess.STDOUT)
 
 	if compile_result != 0:
 		if show_output: 

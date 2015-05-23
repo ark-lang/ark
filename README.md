@@ -54,8 +54,6 @@ If alloyc is not in your `$PATH`:
 
 	$ PATH=$PATH:"./bin/" ./test.py
 
-Pass the `--llvm` argument to test.py to use the LLVM backend instead of the C backend.
-
 ## Status
 Alloy is still constantly being worked on. At the moment it compiles,
 however some aspects of the language are unimplemented or broken.
