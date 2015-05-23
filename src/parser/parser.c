@@ -1147,9 +1147,6 @@ Block *parseBlock(Parser *self) {
 }
 
 Statement *wrapExpressionInReturnStat(Expression *expr) {
-	if (!expr)
-		return false;
-	
 	ReturnStat *ret = createReturnStat(expr);
 	if (!ret)
 		return false;
@@ -1174,6 +1171,20 @@ Statement *wrapExpressionInReturnStat(Expression *expr) {
 	return stmt;
 }
 
+bool isReturnStatement(Statement *stmt) {
+	if (!stmt)
+		return false;
+
+	if (stmt->type != UNSTRUCTURED_STATEMENT_NODE)
+		return false;
+
+	UnstructuredStatement *unstrucStmt = stmt->unstructured;
+	if (unstrucStmt->type != LEAVE_STAT_NODE)
+		return false;
+
+	return unstrucStmt->leave->type == RETURN_STAT_NODE;
+}
+
 FunctionDecl *parseFunctionDecl(Parser *self) {
 	FunctionSignature *signature = parseFunctionSignature(self);
 	if (signature) {
@@ -1184,6 +1195,11 @@ FunctionDecl *parseFunctionDecl(Parser *self) {
 				decl->signature = signature;
 				decl->body = block;
 				decl->prototype = false;
+
+				if (!(block->stmtList->stmts->size > 0 && isReturnStatement(getVectorItem(block->stmtList->stmts, block->stmtList->stmts->size - 1)))) {
+					pushBackItem(block->stmtList->stmts, wrapExpressionInReturnStat(NULL));
+				}
+
 				return decl;
 			}
 		}
