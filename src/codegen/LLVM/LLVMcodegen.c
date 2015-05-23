@@ -453,9 +453,13 @@ LLVMTypeRef getLLVMType(DataType type) {
 		case BOOL_TYPE:
 			return LLVMInt1Type();
 			
+		case BYTE_TYPE:
+			printf("really?\n");
+			return LLVMInt1Type();
+
 		case CHAR_TYPE:
-			genError("Char type unimplemented");
-			return NULL; // gonna get replaced
+			// genError("Char type unimplemented");
+			return LLVMInt8Type(); // for now its i8 -- gonna get replaced
 			
 		case VOID_TYPE:
 			return LLVMVoidType();

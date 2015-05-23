@@ -11,7 +11,19 @@
 
 const char* BINARY_OPS[] = { ".", "*", "/", "%", "+", "=", "-", ">", "<", ">=", "<=", "==", "!=", "&", "|", "&&", "||" };
 
-const char* DATA_TYPES[] = { "i128", "i64", "i32", "i16", "i8", "u128", "u64", "u32", "u16", "u8", "f128",  "f64", "f32", "int", "bool", "char", "void" };
+/**
+ * IMPORTANT: the order of this matters a lot since
+ * it's how types are looked up for the enum item!!!
+ *
+ * FIXME we could probably use the hashmap shit in the
+ * semantic thing for this anyway
+ */
+const char* DATA_TYPES[] = { 
+	"i128", "i64", "i32", "i16", "i8",
+	"u128", "u64", "u32", "u16", "u8",
+	"f128", "f64", "f32", "byte",
+	"int", "bool", "char", "void", "???"
+};
 
 int getTypeFromString(char *type) {
 	for (int i = 0; i < ARR_LEN(DATA_TYPES); i++) {
