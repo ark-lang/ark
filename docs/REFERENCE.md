@@ -232,7 +232,7 @@ The following escape sequences are available:
 |`\r`|carriage return|
 |`\t`|horizontal tab|
 |`\v`|vertical tab|
-|`\\\\`|backslash|
+|`\\`|backslash|
 |`\'`|single quotation mark|
 |`\"`|double quotation mark|
 |`\?`|question mark|
