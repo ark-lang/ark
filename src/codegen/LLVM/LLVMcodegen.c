@@ -454,7 +454,6 @@ LLVMTypeRef getLLVMType(DataType type) {
 			return LLVMInt1Type();
 			
 		case BYTE_TYPE:
-			printf("really?\n");
 			return LLVMInt1Type();
 
 		case CHAR_TYPE:
