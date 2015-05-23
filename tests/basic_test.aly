@@ -1,0 +1,8 @@
+func add(a: int, b: int): int {
+    return 12;
+}
+
+func main(): int {
+    add(5, 5);
+    return 12;
+}
