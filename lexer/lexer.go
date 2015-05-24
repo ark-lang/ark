@@ -82,6 +82,8 @@ func (v *lexer) lex() {
 			v.recognizeNumberToken()
 		} else if isLetter(v.peek(0)) || v.peek(0) == '_' {
 			v.recognizeIdentifierToken()
+		} else if v.peek(0) == '"' {
+			v.recognizeStringToken()
 		}
 		
 		v.consume(1)
@@ -178,6 +180,22 @@ func (v *lexer) recognizeIdentifierToken() {
 	}
 	
 	v.pushToken(TOKEN_IDENTIFIER)
+}
+
+func (v *lexer) recognizeStringToken() {
+	v.expect('"')
+	
+	for {
+		if v.peek(0) == '\\' && v.peek(1) == '"' {
+			v.consume(2)
+		} else if v.peek(0) == '"' {
+			v.consume(1)
+			v.pushToken(TOKEN_STRING)
+			return
+		} else {
+			v.consume(1)
+		}
+	}
 }
 
 func isDecimalDigit(r rune) bool {

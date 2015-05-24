@@ -6,6 +6,8 @@
 
 // hello
 
+s1: str = "he\"llo"
+
 func ten(): int {
 	return 0x05 + 5;
 }
