@@ -94,7 +94,7 @@ Compiler *createCompiler(int argc, char** argv) {
 
 			parseArgument(&arg);
 		}
-		else if (strstr(argv[i], ".aly")) {
+		else if (strstr(argv[i], ".ark")) {
 			SourceFile *file = createSourceFile(sdsnew(argv[i]));
 			if (!file) {
 				verboseModeMessage("Error when attempting to create a source file");
