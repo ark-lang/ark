@@ -1,7 +1,7 @@
 # alloy-go
 Experimental Alloy compiler in Go
 
-You cand find the language reference and other stuff over [https://github.com/alloy-lang/alloy](here).
+You cand find the language reference and other stuff over [here](https://github.com/alloy-lang/alloy).
 
 ## Installing
 Requires Go.
