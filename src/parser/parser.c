@@ -8,7 +8,6 @@
 				        peekAtTokenStream(self, 0)->charStart,\
 						peekAtTokenStream(self, 0)->charEnd,\
 						peekAtTokenStream(self, 0)->inputStart,\
-						peekAtTokenStream(self, 0)->inputEnd,\
 				        __VA_ARGS__)
 
 #define PRINT_CURR_TOK() printf("current token: %s\n", peekAtTokenStream(self, 0)->content);

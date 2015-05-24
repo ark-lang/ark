@@ -1,6 +1,6 @@
 #include "token.h"
 
-Token *createToken(int lineNumber, int charStart, int charEnd, int inputStart, int inputEnd, sds fileName) {
+Token *createToken(int lineNumber, int charStart, int charEnd, int inputStart, sds fileName) {
 	Token *tok = safeMalloc(sizeof(*tok));
 	tok->type = TOKEN_UNKNOWN;
 	tok->content = NULL;
@@ -8,7 +8,6 @@ Token *createToken(int lineNumber, int charStart, int charEnd, int inputStart, i
 	tok->charEnd = charEnd;
 	tok->charStart = charStart;
 	tok->inputStart = inputStart;
-	tok->inputEnd = inputEnd;
 	tok->fileName = fileName;
 	return tok;
 }

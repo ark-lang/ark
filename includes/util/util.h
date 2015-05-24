@@ -144,7 +144,7 @@ void errorMessageWithPosition(char *fileName, int lineNumber, int charNumber, in
  * @param msg           the message to print
  * @param ... 			extra arguments
  */
-void errorMessageWithPositionAndLine(char* src, char *fileName, int lineNumber, int charNumber, int charEnd, int inputStart, int inputEnd, const char *fmt, ...);
+void errorMessageWithPositionAndLine(char* src, char *fileName, int lineNumber, int charNumber, int charEnd, int inputStart, const char *fmt, ...);
 
 /**
  * Emits a primary message to the console

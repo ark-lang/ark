@@ -306,7 +306,7 @@ void recognizeErroneousToken(Lexer *self) {
 /** pushes a token with no content */
 void pushToken(Lexer *self, int type) {
 	int tokenLength = self->pos - self->startPos; // The length (in characters) of this token
-	Token *tok = createToken(self->lineNumber, self->charNumber-tokenLength, self->charNumber, self->startPos, self->pos, self->fileName);
+	Token *tok = createToken(self->lineNumber, self->charNumber-tokenLength, self->charNumber, self->startPos, self->fileName);
 	tok->type = type;
 	tok->content = extractToken(self, self->startPos, self->pos - self->startPos);
 	pushBackItem(self->tokenStream, tok);
@@ -315,7 +315,7 @@ void pushToken(Lexer *self, int type) {
 /** pushes a token with content */
 void pushInitializedToken(Lexer *self, int type, char *content) {
 	int tokenLength = self->pos - self->startPos; // The length (in characters) of this token
-	Token *tok = createToken(self->lineNumber, self->charNumber-tokenLength, self->charNumber, self->startPos, self->pos, self->fileName);
+	Token *tok = createToken(self->lineNumber, self->charNumber-tokenLength, self->charNumber, self->startPos, self->fileName);
 	tok->type = type;
 	tok->content = content;
 	pushBackItem(self->tokenStream, tok);
