@@ -1,1 +1,1 @@
-go generate ./lexer
+go generate ./{codegen,common,lexer,parser,util}
