@@ -97,11 +97,11 @@ func Lex(input []rune, filename string, verbose bool) []*Token {
 	}
 	
 	if v.verbose {
-		fmt.Println(util.TEXT_BOLD + util.TEXT_GREEN + "Starting lexing" + util.TEXT_RESET)
+		fmt.Println(util.TEXT_BOLD + util.TEXT_GREEN + "Starting lexing" + util.TEXT_RESET, filename)
 	}
 	v.lex()
 	if v.verbose {
-		fmt.Println(util.TEXT_BOLD + util.TEXT_GREEN + "Finished lexing" + util.TEXT_RESET)
+		fmt.Println(util.TEXT_BOLD + util.TEXT_GREEN + "Finished lexing" + util.TEXT_RESET, filename)
 	}
 	return v.output
 }
