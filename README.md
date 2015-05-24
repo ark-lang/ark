@@ -11,6 +11,7 @@ Building LLVM bindings (must be done first and may take a while):
 	$ go get -d llvm.org/llvm/bindings/go/llvm
 	$ cd $GOPATH/src/llvm.org/llvm/bindings/go/
 	$ ./build.sh
+	$ go install llvm.org/llvm/bindings/go/llvm
 
 Building alloy-go:
 
