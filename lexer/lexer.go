@@ -21,7 +21,8 @@ type lexer struct {
 }
 
 func (v *lexer) errWithCustomPosition(err string, ln, cn int) {
-	fmt.Printf(util.TEXT_RED + util.TEXT_BOLD + "Lexer error [%d:%d:%s]:" + util.TEXT_RESET + " %s\n", ln, cn, v.filename, err)
+	fmt.Printf(util.TEXT_RED + util.TEXT_BOLD + "Lexer error:" + util.TEXT_RESET + " [%s:%d:%d] %s\n",
+			v.filename, ln, cn, err)
 	os.Exit(1)
 }
 
