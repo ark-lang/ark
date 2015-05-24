@@ -28,7 +28,7 @@ typedef struct {
 	size_t inputLength;		// sizeof lexer input
 	int charNumber;			// current character at line
 	int startPos;			// keeps track of positions without comments
-	bool running;			// if lexer is running 
+	bool running;			// if lexer is running
 	bool failed;			// if lexing failed
 	sds buffer;				// temporary token
 	Vector *tokenStream;	// where the tokens are stored
@@ -45,7 +45,7 @@ char* getLineNumberContext(Vector *stream, int lineNumber);
 
 /**
  * Create an instance of the Lexer
- * 
+ *
  * @param input the input to lex
  * @return instance of Lexer
  */
@@ -62,7 +62,7 @@ void startLexingFiles(Lexer *lexer, Vector *sourceFiles);
 /**
  * Simple substring, basically extracts the token from
  * the lexers input from [start .. start + length]
- * 
+ *
  * @param lexer instance of lexer
  * @param start start of the input
  * @param length of the input
@@ -73,16 +73,16 @@ char* extractToken(Lexer *lexer, int start, int length);
 /**
  * Advance to the next character, consuming the
  * current one.
- * 
+ *
  * @param lexer instance of the lexer
  */
 void consumeCharacter(Lexer *lexer);
 
 /**
  * Skips layout characters, such as spaces,
- * and comments, which are denoted with the 
+ * and comments, which are denoted with the
  * pound (#).
- * 
+ *
  * @param lexer the lexer instance
  */
 void skipLayoutAndComments(Lexer *lexer);
@@ -90,35 +90,35 @@ void skipLayoutAndComments(Lexer *lexer);
 /**
  * Checks if current character is the given character
  * otherwise throws an error
- * 
+ *
  * @param lexer the lexer instance
  */
 void expectCharacter(Lexer *lexer, char c);
 
 /**
  * Recognize an identifier
- * 
+ *
  * @param lexer the lexer instance
  */
 void recognizeIdentifierToken(Lexer *lexer);
 
 /**
  * Recognize an Integer
- * 
+ *
  * @param lexer the lexer instance
  */
 void recognizeNumberToken(Lexer *lexer);
 
 /**
  * Recognize a String
- * 
+ *
  * @param lexer the lexer instance
  */
 void recognizeStringToken(Lexer *lexer);
 
 /**
  * Recognize a Character
- * 
+ *
  * @param lexer the lexer instance
  */
 void recognizeCharacterToken(Lexer *lexer);
@@ -150,9 +150,9 @@ void recognizeSeparatorToken(Lexer *lexer);
 void recognizeErroneousToken(Lexer *lexer);
 
 /**
- * Pushes a token to the token tree, also captures the 
+ * Pushes a token to the token tree, also captures the
  * token content so you don't have to.
- * 
+ *
  * @param lexer the lexer for access to the token tree
  * @param type  the type of token
  */
@@ -169,7 +169,7 @@ void pushInitializedToken(Lexer *lexer, int type, char *content);
 /**
  * Peek ahead in the character stream by
  * the given amount
- * 
+ *
  * @lexer instance of lexer
  * @ahead amount to peek by
  * @return the char we peeked at
@@ -178,7 +178,7 @@ char peekAhead(Lexer *lexer, int ahead);
 
 /**
  * Process the next token in the token stream
- * 
+ *
  * @param lexer the lexer instance
  */
 void getNextToken(Lexer *lexer);
@@ -186,7 +186,7 @@ void getNextToken(Lexer *lexer);
 /**
  * Destroys the given lexer instance,
  * freeing any memory
- * 
+ *
  * @param lexer the lexer instance to destroy
  */
 void destroyLexer(Lexer *lexer);
@@ -195,56 +195,56 @@ void destroyLexer(Lexer *lexer);
  * @return if the character given is the end of input
  * @param ch the character to check
  */
-static inline bool isEndOfInput(char ch) { 
-	return ch == '\0'; 
+static inline bool isEndOfInput(char ch) {
+	return ch == '\0';
 }
 
 /**
  * @return if the character given is a layout character
  * @param ch the character to check
  */
-static inline bool isLayout(char ch) { 
-	return !isEndOfInput(ch) && (ch) <= ' '; 
+static inline bool isLayout(char ch) {
+	return !isEndOfInput(ch) && (ch) <= ' ';
 }
 
 /**
- * @return if the character given is a comment closer 
+ * @return if the character given is a comment closer
  * @param ch the character to check
  */
-static inline bool isCommentCloser(char ch) { 
-	return ch == '\n'; 
+static inline bool isCommentCloser(char ch) {
+	return ch == '\n';
 }
 
 /**
  * @return if the character given is an uppercase letter
  * @param ch the character to check
  */
-static inline bool isUpperLetter(char ch) { 
-	return 'A' <= ch && ch <= 'Z'; 
+static inline bool isUpperLetter(char ch) {
+	return 'A' <= ch && ch <= 'Z';
 }
 
 /**
  * @return if the character given is a lower case letter
  * @param ch the character to check
  */
-static inline bool isLowerLetter(char ch) { 
-	return 'a' <= ch && ch <= 'z'; 
+static inline bool isLowerLetter(char ch) {
+	return 'a' <= ch && ch <= 'z';
 }
 
 /**
  * @return if the character given is a letter a-z, A-Z
  * @param ch the character to check
  */
-static inline bool isLetter(char ch) { 
-	return isUpperLetter(ch) || isLowerLetter(ch); 
+static inline bool isLetter(char ch) {
+	return isUpperLetter(ch) || isLowerLetter(ch);
 }
 
 /**
  * @return if the character given is a digit 0-9
  * @param ch the character to check
  */
-static inline bool isDigit(char ch) { 
-	return '0' <= ch && ch <= '9'; 
+static inline bool isDigit(char ch) {
+	return '0' <= ch && ch <= '9';
 }
 
 /**
@@ -275,60 +275,61 @@ static inline bool isOctChar(char ch) {
  * @return if the character given is a letter or digit a-z, A-Z, 0-9
  * @param ch the character to check
  */
-static inline bool isLetterOrDigit(char ch) { 
-	return isLetter(ch) || isDigit(ch); 
+static inline bool isLetterOrDigit(char ch) {
+	return isLetter(ch) || isDigit(ch);
 }
 
 /**
  * @return if the character given is an underscore
  * @param ch the character to check
  */
-static inline bool isUnderscore(char ch) { 
-	return ch == '_'; 
+static inline bool isUnderscore(char ch) {
+	return ch == '_';
 }
 
 /**
  * @return if the character given is a quote, denoting a string
  * @param ch the character to check
  */
-static inline bool isString(char ch) { 
-	return ch == '"'; 
+static inline bool isString(char ch) {
+	return ch == '"';
 }
 
 /**
  * @return if the character given is a single quote, denoting a character
  * @param ch the character to check
  */
-static inline bool isCharacter(char ch) { 
-	return ch == '\''; 
+static inline bool isCharacter(char ch) {
+	return ch == '\'';
 }
 
 /**
  * @return if the character given is an operator
  * @param ch the character to check
  */
-static inline bool isOperator(char ch) { 
-	return (strchr("+-*/=><!~?:|&%^\"'", ch) != 0); 
+static inline bool isOperator(char ch) {
+	return (strchr("+-*/=><!~?:|&%^\"'", ch) != 0);
 }
 
-static inline bool isExpressionOperator(char ch) { 
-	return (strchr("+-*/=><!~?:|&%^\"'()", ch) != 0); 
+static inline bool isExpressionOperator(char ch) {
+	return (strchr("+-*/=><!~?:|&%^\"'()", ch) != 0);
 }
 
 /**
  * @return if the character given is a separator
  * @param ch the character to check
  */
-static inline bool isSeparator(char ch) { 
-	return (strchr(" ;,.`@(){}[] ", ch) != 0); 
+static inline bool isSeparator(char ch) {
+	return (strchr(" ;,.`@(){}[] ", ch) != 0);
 }
 
 /**
  * @return if the character is end of line to track line number
  * @param ch character to check
  */
-static inline bool isEndOfLine(char ch) { 
-	return ch == '\n'; 
+static inline bool isEndOfLine(char ch) {
+	return ch == '\n';
 }
+
 
 #endif // __LEXER_H

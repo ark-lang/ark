@@ -31,13 +31,19 @@ typedef enum {
  * type 		- the token type
  * content 		- the token content
  * line_number 	- the line number of the token
- * char_number 	- the number of the char of the token
+ * charStart 	- the column of the first character in this token
+ * charEnd		- the column of the last character in this token
+ * inputStart	- the index in the input at which this token starts
+ * inputEnd		- the index in the input at which this token ends
  */
 typedef struct {
 	int type;
 	sds content;
 	int lineNumber;
-	int charNumber;
+	int charStart;
+	int charEnd;
+	int inputStart;
+	int inputEnd;
 	sds fileName;
 } Token;
 
@@ -47,7 +53,7 @@ typedef struct {
  * @param lineNumber the line number of the token
  * @param charNumber the character number
  */
-Token *createToken(int lineNumber, int charNumber, sds fileName);
+Token *createToken(int lineNumber, int charStart, int charEnd, int inputStart, int inputEnd, sds fileName);
 
 /**
  * Retrieve the token name of the given token

@@ -98,10 +98,11 @@ void warningMessage(const char *fmt, ...);
  * @param fileName      the filename to print (can be NULL)
  * @param lineNumber    the line number to print
  * @param charNumber    the character number to print
+ * @param charEnd	    the end character number to print
  * @param msg           the message to print
  * @param ... 			extra arguments
  */
-void warningMessageWithPosition(char *fileName, int lineNumber, int charNumber, const char *fmt, ...);
+void warningMessageWithPosition(char *fileName, int lineNumber, int charNumber, int charEnd, const char *fmt, ...);
 
 /**
  * Emits a message when in verbose mode
@@ -123,10 +124,27 @@ void errorMessage(const char *fmt, ...);
  * @param fileName      the filename to print (can be NULL)
  * @param lineNumber    the line number to print
  * @param charNumber    the character number to print
+ * @param charEnd	    the end character number to print
  * @param msg           the message to print
  * @param ... 			extra arguments
  */
-void errorMessageWithPosition(char *fileName, int lineNumber, int charNumber, const char *fmt, ...);
+void errorMessageWithPosition(char *fileName, int lineNumber, int charNumber, int charEnd, const char *fmt, ...);
+
+/**
+ * Emits an error message to the console, will also exit
+ * The error message contains a line and character number.
+ * After printing the error message, the errored line and position are displayed
+ * @param src			the file's contents
+ * @param fileName      the filename to print (can be NULL)
+ * @param lineNumber    the line number to print
+ * @param charNumber    the character number to print
+ * @param charEnd	    the end character number to print
+ * @param inputStart 	the start of the input where the error occurred
+ * @param inputEnd		the end of the input where the error occured
+ * @param msg           the message to print
+ * @param ... 			extra arguments
+ */
+void errorMessageWithPositionAndLine(char* src, char *fileName, int lineNumber, int charNumber, int charEnd, int inputStart, int inputEnd, const char *fmt, ...);
 
 /**
  * Emits a primary message to the console

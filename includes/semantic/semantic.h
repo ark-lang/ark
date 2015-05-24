@@ -65,7 +65,7 @@ typedef struct {
  */
 typedef struct {
 	int type;
-} VarType; 
+} VarType;
 
 /*
  * Create a new Scope

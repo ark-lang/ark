@@ -38,7 +38,7 @@ SemanticAnalyzer *createSemanticAnalyzer(Vector *sourceFiles) {
 	hashmap_put(self->dataTypes, "i16", createVarType(INTEGER_VAR_TYPE));
 	hashmap_put(self->dataTypes, "i32", createVarType(INTEGER_VAR_TYPE));
 	hashmap_put(self->dataTypes, "i64", createVarType(INTEGER_VAR_TYPE));
-	
+
 	hashmap_put(self->dataTypes, "u8", createVarType(INTEGER_VAR_TYPE));
 	hashmap_put(self->dataTypes, "u16", createVarType(INTEGER_VAR_TYPE));
 	hashmap_put(self->dataTypes, "u32", createVarType(INTEGER_VAR_TYPE));
@@ -46,7 +46,7 @@ SemanticAnalyzer *createSemanticAnalyzer(Vector *sourceFiles) {
 
 	hashmap_put(self->dataTypes, "f32", createVarType(INTEGER_VAR_TYPE));
 	hashmap_put(self->dataTypes, "f64", createVarType(INTEGER_VAR_TYPE));
-	
+
 	hashmap_put(self->dataTypes, "int", createVarType(INTEGER_VAR_TYPE));
 	hashmap_put(self->dataTypes, "char", createVarType(INTEGER_VAR_TYPE));
 	hashmap_put(self->dataTypes, "str", createVarType(INTEGER_VAR_TYPE));
@@ -126,7 +126,7 @@ void analyzeVariableDeclaration(SemanticAnalyzer *self, VariableDecl *decl) {
 void analyzeAssignment(SemanticAnalyzer *self, Assignment *assign) {
 	VariableDecl *mapDecl = checkVariableExists(self, assign->iden);
 	ParameterSection *paramDecl = checkLocalParameterExists(self, assign->iden);
-	
+
 	// check assign thing exists
 	if (!mapDecl && !paramDecl) {
 		semanticError("`%s` undeclared", assign->iden);
@@ -149,7 +149,7 @@ void analyzeDeclaration(SemanticAnalyzer *self, Declaration *decl) {
 void analyzeFunctionCall(SemanticAnalyzer *self, Call *call) {
 	char *callee = getVectorItem(call->callee, 0);
 
-	FunctionDecl *decl = checkFunctionExists(self, callee);	
+	FunctionDecl *decl = checkFunctionExists(self, callee);
 	if (!decl) {
 		semanticError("Attempting to call undefined function `%s`", callee);
 	}
@@ -239,10 +239,10 @@ void analyzeStructuredStatement(SemanticAnalyzer *self, StructuredStatement *str
 
 void analyzeStatement(SemanticAnalyzer *self, Statement *stmt) {
 	switch (stmt->type) {
-		case UNSTRUCTURED_STATEMENT_NODE: 
+		case UNSTRUCTURED_STATEMENT_NODE:
 			analyzeUnstructuredStatement(self, stmt->unstructured);
 			break;
-		case STRUCTURED_STATEMENT_NODE: 
+		case STRUCTURED_STATEMENT_NODE:
 			analyzeStructuredStatement(self, stmt->structured);
 			break;
 	}
@@ -263,7 +263,7 @@ void startSemanticAnalysis(SemanticAnalyzer *self) {
 		self->currentNode = 0;
 		self->currentSourceFile = sf;
 		self->abstractSyntaxTree = self->currentSourceFile->ast;
-		
+
 		for (int j = 0; j < self->abstractSyntaxTree->size; j++) {
 			Statement *stmt = getVectorItem(self->abstractSyntaxTree, j);
 			analyzeStatement(self, stmt);

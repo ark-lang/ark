@@ -1,10 +1,14 @@
 #include "parser.h"
 
 #define parserError(...) self->failed = true, \
-						errorMessageWithPosition(\
+						errorMessageWithPositionAndLine(\
+						self->src, \
 				        peekAtTokenStream(self, 0)->fileName,\
 				        peekAtTokenStream(self, 0)->lineNumber,\
-				        peekAtTokenStream(self, 0)->charNumber,\
+				        peekAtTokenStream(self, 0)->charStart,\
+						peekAtTokenStream(self, 0)->charEnd,\
+						peekAtTokenStream(self, 0)->inputStart,\
+						peekAtTokenStream(self, 0)->inputEnd,\
 				        __VA_ARGS__)
 
 #define PRINT_CURR_TOK() printf("current token: %s\n", peekAtTokenStream(self, 0)->content);
@@ -81,7 +85,7 @@ void destroyParser(Parser *self) {
 
 int parseEscapedCharacter(char *str, int *len) {
 	int val = -1;
-	
+
 	// this is super messy, it will be done with const arrays eventually
 	if (!strncmp(str, "\\n", 2))
 		val = '\n';
@@ -107,12 +111,12 @@ int parseEscapedCharacter(char *str, int *len) {
 		val = '\"';
 	else if (!strncmp(str, "\\\"", 2))
 		val = '\?';
-	
+
 	if (len != NULL)
 		*len = 2;
-	
+
 	// TODO parse octal/hex escapes
-	
+
 	return val;
 }
 
@@ -121,18 +125,18 @@ int parseEscapedCharacter(char *str, int *len) {
 CharLit *parseCharLit(Parser *self) {
 	if (getLiteralType(peekAtTokenStream(self, 0)) != LITERAL_CHAR)
 		return false;
-	
+
 	char *str = consumeToken(self)->content;
-	
+
 	// convert the char from textual representation into an int
-	
+
 	if (strlen(str) == 3)
 		return createCharLit(*(str + 1));
-	
+
 	int val = parseEscapedCharacter(str + 1, NULL);
 	if (val != -1)
 		return createCharLit(val);
-	
+
 	parserError("Malformed character constant: `%s`", str);
 	return false;
 }
@@ -140,15 +144,15 @@ CharLit *parseCharLit(Parser *self) {
 IntLit *parseIntLit(Parser *self) {
 	if (getLiteralType(peekAtTokenStream(self, 0)) != LITERAL_NUMBER)
 		return false;
-	
+
 	char *str = peekAtTokenStream(self, 0)->content;
-	
+
 	for (int i = 0; str[i]; i++)
 		if (str[i] == '.')
 			return false; // it's a floating point
-	
+
 	uint64_t value = 0;
-	
+
 	if (str[1] == 'b') { // binary literal
 		for (int i = 2; str[i]; i++) {
 			value *= 2;
@@ -184,17 +188,17 @@ IntLit *parseIntLit(Parser *self) {
 FloatLit *parseFloatLit(Parser *self) {
 	if (getLiteralType(peekAtTokenStream(self, 0)) != LITERAL_NUMBER)
 		return false;
-	
+
 	char *str = peekAtTokenStream(self, 0)->content;
-	
+
 	bool isFloat = false;
 	for (int i = 0; str[i]; i++)
 		if (str[i] == '.')
 			isFloat = true;
-	
+
 	if (!isFloat)
 		return false;
-	
+
 	return createFloatLit(atof(consumeToken(self)->content));
 }
 
@@ -202,34 +206,34 @@ Literal *parseLiteral(Parser *self) {
 	if (getLiteralType(peekAtTokenStream(self, 0)) == LITERAL_ERRORED) {
 		return false;
 	}
-	
-	Literal *literal = createLiteral(); 
-	
+
+	Literal *literal = createLiteral();
+
 	CharLit *charLit = parseCharLit(self);
 	if (charLit) {
 		literal->charLit = charLit;
 		literal->type = CHAR_LITERAL_NODE;
 		return literal;
 	}
-	
+
 	IntLit *intLit = parseIntLit(self);
 	if (intLit) {
 		literal->intLit = intLit;
 		literal->type = INT_LITERAL_NODE;
-		return literal;	
+		return literal;
 	}
-	
+
 	FloatLit *floatLit = parseFloatLit(self);
 	if (floatLit) {
 		literal->floatLit = floatLit;
 		literal->type = FLOAT_LITERAL_NODE;
 		return literal;
 	}
-	
+
 	literal->type = STRING_LITERAL_NODE;
 	literal->stringLit = createStringLit(consumeToken(self)->content);
 	return literal;
-	
+
 	return false;
 }
 
@@ -318,7 +322,7 @@ Type *parseType(Parser *self) {
 		type->type = TYPE_NAME_NODE;
 		return type;
 	}
-	
+
 	return false;
 }
 
@@ -332,7 +336,7 @@ FieldDecl *parseFieldDecl(Parser *self) {
 
 	if (checkTokenType(self, TOKEN_IDENTIFIER, 0)) {
 		char *name = consumeToken(self)->content;
-		
+
 		if (checkTokenTypeAndContent(self, TOKEN_OPERATOR, ":", 0)) {
 			consumeToken(self);
 		}
@@ -424,7 +428,7 @@ ParameterSection *parseParameterSection(Parser *self) {
 
 		if (checkTokenType(self, TOKEN_IDENTIFIER, 0)) {
 			char *name = consumeToken(self)->content;
-			
+
 			if (checkTokenTypeAndContent(self, TOKEN_OPERATOR, ":", 0)) {
 				consumeToken(self);
 			}
@@ -475,7 +479,7 @@ Parameters *parseParameters(Parser *self) {
 					}
 					consumeToken(self);
 				}
-			} 
+			}
 			else {
 				break;
 			}
@@ -513,7 +517,7 @@ FunctionSignature *parseFunctionSignature(Parser *self) {
 						else {
 							parserError("Expected function return type in `%s`, found: %s", functionName, peekAtTokenStream(self, 0)->content);
 						}
-					} 
+					}
 					else if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, "{", 0)
 						|| checkTokenTypeAndContent(self, TOKEN_SEPARATOR, ";", 0)) {
 						// just assume it's void.
@@ -523,7 +527,7 @@ FunctionSignature *parseFunctionSignature(Parser *self) {
 
 						FunctionSignature *sign = createFunctionSignature(functionName, params, false, type);
 						return sign;
-					} 
+					}
 					else {
 						parserError("Function `%s` is missing a block, return type, or semi-colon, found: %s", functionName, peekAtTokenStream(self, 0)->content);
 					}
@@ -537,7 +541,7 @@ FunctionSignature *parseFunctionSignature(Parser *self) {
 EnumItem *parseEnumItem(Parser *self) {
 	// a = expr,
 	// b,
-	
+
 	if (checkTokenType(self, TOKEN_IDENTIFIER, 0)) {
 		char *itemName = consumeToken(self)->content;
 
@@ -682,7 +686,7 @@ ForStat *parseForStat(Parser *self) {
 				stmt->forType = INFINITE_FOR_LOOP;
 				stmt->body = block;
 				return stmt;
-			} 
+			}
 			else {
 				parserError("For Loop expected a block, found: %s", peekAtTokenStream(self, 0)->content);
 			}
@@ -699,7 +703,7 @@ ForStat *parseForStat(Parser *self) {
 					stmt->index = index;
 					stmt->body = block;
 					return stmt;
-				} 
+				}
 				else {
 					parserError("For Loop expected a block, found: %s", peekAtTokenStream(self, 0)->content);
 				}
@@ -719,7 +723,7 @@ ForStat *parseForStat(Parser *self) {
 					stmt->body = block;
 					return stmt;
 				}
-			} 
+			}
 			else {
 				parserError("Invalid signature in for loop, found: %s", peekAtTokenStream(self, 0)->content);
 			}
@@ -750,7 +754,7 @@ MatchClause *parseMatchClause(Parser *self) {
 MatchStat *parseMatchStat(Parser *self) {
     if (checkTokenTypeAndContent(self, TOKEN_IDENTIFIER, MATCH_KEYWORD, 0)) {
         consumeToken(self);
-        
+
         Expression *expr = parseExpression(self);
         if (expr) {
         	MatchStat *stmt = createMatchStat(expr);
@@ -761,7 +765,7 @@ MatchStat *parseMatchStat(Parser *self) {
 
         	if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, "{", 0)) {
 	            consumeToken(self);
-	            
+
 	            while (true) {
 		        	if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, "}", 0)) {
 		            	consumeToken(self);
@@ -1034,7 +1038,7 @@ UnstructuredStatement *parseUnstructuredStatement(Parser *self) {
 Macro *parseMacro(Parser *self) {
 	if (!checkTokenTypeAndContent(self, TOKEN_OPERATOR, "!", 0)) {
 		return false;
-	}	
+	}
 
 	LinkerFlagMacro *linker = parseLinkerFlagMacro(self);
 	if (linker) {
@@ -1043,7 +1047,7 @@ Macro *parseMacro(Parser *self) {
 		stmt->type = LINKER_FLAG_MACRO_NODE;
 		return stmt;
 	}
-	
+
 	UseMacro *use = parseUseMacro(self);
 	if (use) {
 		Macro *stmt = createMacro();
@@ -1121,23 +1125,23 @@ Block *parseBlock(Parser *self) {
 Statement *wrapExpressionInReturnStat(Expression *expr) {
 	if (!expr)
 		return false;
-	
+
 	ReturnStat *ret = createReturnStat(expr);
 	if (!ret)
 		return false;
-	
+
 	LeaveStat *leave = createLeaveStat();
 	if (!leave)
 		return false;
 	leave->retStmt = ret;
 	leave->type = RETURN_STAT_NODE;
-	
+
 	UnstructuredStatement *unstrucStmt = createUnstructuredStatement();
 	if (!unstrucStmt)
 		return false;
 	unstrucStmt->leave = leave;
 	unstrucStmt->type = LEAVE_STAT_NODE;
-	
+
 	Statement *stmt = createStatement();
 	if (!stmt)
 		return false;
@@ -1161,29 +1165,29 @@ FunctionDecl *parseFunctionDecl(Parser *self) {
 		}
 		else if (checkTokenTypeAndContent(self, TOKEN_OPERATOR, SINGLE_STATEMENT_OPERATOR, 0)) {
 			consumeToken(self);
-			
+
 			if (checkTokenTypeAndContent(self, TOKEN_IDENTIFIER, RETURN_KEYWORD, 0)) {
 				parserError("Expected expression, found: %s", peekAtTokenStream(self, 0)->content);
 				return false;
 			}
-		
+
 			Block *block = createBlock();
 			if (!block)
 				return false;
-			
+
 			Expression *expr = parseExpression(self);
 			if (!expr)
 				return false;
-			
+
 			pushBackItem(block->stmtList->stmts, wrapExpressionInReturnStat(expr));
-			
+
 			if (checkTokenTypeAndContent(self, TOKEN_SEPARATOR, ";", 0)) {
 				consumeToken(self);
 			}
 			else {
 				parserError("Expected semi-colon at the end of expression, found: %s", peekAtTokenStream(self, 0)->content);
 			}
-			
+
 			FunctionDecl *decl = createFunctionDecl();
 			decl->signature = signature;
 			decl->body = block;
@@ -1227,7 +1231,7 @@ VariableDecl *parseVariableDecl(Parser *self) {
 
 			// consume dat colon bby
 			consumeToken(self);
-			
+
 			Type *type = NULL;
 			if (!inferred) {
 				type = parseType(self);
@@ -1357,7 +1361,7 @@ ArrayType *parseArrayType(Parser *self) {
 		else {
 			expr = parseExpression(self);
 			if (!expr) {
-				errorMessage("Array type expected closing square bracket or expression");					
+				errorMessage("Array type expected closing square bracket or expression");
 				return false;
 			}
 			else {
@@ -1589,7 +1593,7 @@ TupleExpr *parseTupleExpr(Parser *self) {
 					consumeToken(self);
 				}
 			}
-		}	
+		}
 
 		return tuple;
 	}
@@ -1629,7 +1633,7 @@ Expression *parsePrimaryExpression(Parser *self) {
 		}
 	}
 
-	if (checkTokenType(self, TOKEN_IDENTIFIER, 0) 
+	if (checkTokenType(self, TOKEN_IDENTIFIER, 0)
 		&& checkTokenTypeAndContent(self, TOKEN_SEPARATOR, ".", 1)) {
 		Vector *members = createVector(VECTOR_EXPONENTIAL);
 		while (true) {
@@ -1682,7 +1686,7 @@ Expression *parsePrimaryExpression(Parser *self) {
 }
 
 Call *parseCall(Parser *self) {
-	if (checkTokenType(self, TOKEN_IDENTIFIER, 0) && 
+	if (checkTokenType(self, TOKEN_IDENTIFIER, 0) &&
 		(checkTokenTypeAndContent(self, TOKEN_SEPARATOR, "(", 1) || checkTokenTypeAndContent(self, TOKEN_SEPARATOR, ".", 1))) {
 
 		Vector *idens = NULL;
@@ -1794,8 +1798,8 @@ Token *peekAtTokenStream(Parser *self, int ahead) {
 
 bool isLiteral(Parser *self, int ahead) {
 	Token *tok = peekAtTokenStream(self, ahead);
-	return tok->type == TOKEN_STRING 
-			|| tok->type == TOKEN_NUMBER 
+	return tok->type == TOKEN_STRING
+			|| tok->type == TOKEN_NUMBER
 			|| tok->type == TOKEN_CHARACTER;
 }
 
@@ -1808,6 +1812,7 @@ void startParsingSourceFiles(Parser *self, Vector *sourceFiles) {
 		self->parseTree = createVector(VECTOR_EXPONENTIAL);
 		self->tokenIndex = 0;
 		self->parsing = true;
+		self->src = file->alloyFileContents;
 
 		parseTokenStream(self);
 

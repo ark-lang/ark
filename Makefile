@@ -1,4 +1,4 @@
-CFLAGS = -g -Wall -std=c99 -Wextra -pedantic
+CFLAGS = -g -w -std=c99 -Wextra -pedantic
 
 .PHONY: all clean
 
@@ -19,11 +19,11 @@ SOURCES = $(wildcard src/*.c) \
 
 all: ${SOURCES}
 	@mkdir -p bin/
-	$(CC) $(CFLAGS) $(INCLUDES) ${SOURCES} -o bin/alloyc
+	@$(CC) $(CFLAGS) $(INCLUDES) ${SOURCES} -o bin/alloyc
 
 
 clean:
-	@rm -f *.o	
+	@rm -f *.o
 	@rm -rf bin/
 	@rm -f _gen_*	# remove any output code if it's there
 	@rm -rf *.dSYM/

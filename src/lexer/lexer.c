@@ -59,7 +59,7 @@ void consumeCharacter(Lexer *self) {
 		self->charNumber = 0;	// reset the char number back to zero
 		self->lineNumber++;
 	}
-    
+
 	self->currentChar = self->input[++self->pos];
 	self->charNumber++;
 }
@@ -80,7 +80,7 @@ void skipLayoutAndComments(Lexer *self) {
 			if (isEndOfInput(self->currentChar)) return;
 			consumeCharacter(self);
 		}
-		
+
 		while (isLayout(self->currentChar)) {
 			consumeCharacter(self);
 		}
@@ -123,7 +123,7 @@ void skipLayoutAndComments(Lexer *self) {
 			if (isEndOfInput(self->currentChar)) return;
 			consumeCharacter(self);
 		}
-		
+
 		while (isLayout(self->currentChar)) {
 			consumeCharacter(self);
 		}
@@ -170,7 +170,7 @@ void recognizeNumberToken(Lexer *self) {
 
 	if (self->currentChar == '.') {
 		consumeCharacter(self); // consume dot
-		
+
 		while (isDigit(self->currentChar)) {
 			consumeCharacter(self);
 		}
@@ -187,7 +187,7 @@ void recognizeNumberToken(Lexer *self) {
 		while (isHexChar(self->currentChar)) {
 			consumeCharacter(self);
 		}
-		
+
 		pushToken(self, TOKEN_NUMBER);
 	}
 	else if (self->currentChar == 'b') {
@@ -196,7 +196,7 @@ void recognizeNumberToken(Lexer *self) {
 		while (isBinChar(self->currentChar)) {
 			consumeCharacter(self);
 		}
-		
+
 		pushToken(self, TOKEN_NUMBER);
 	}
 	else if (self->currentChar == 'o') {
@@ -205,11 +205,11 @@ void recognizeNumberToken(Lexer *self) {
 		while (isOctChar(self->currentChar)) {
 			consumeCharacter(self);
 		}
-		
+
 		pushToken(self, TOKEN_NUMBER);
 	}
 	else {
-		// it'll do 
+		// it'll do
 		bool isDecimal = false;
 
 		while (isDigit(self->currentChar)) {
@@ -242,7 +242,7 @@ void recognizeStringToken(Lexer *self) {
 	while (!isString(self->currentChar)) {
 		consumeCharacter(self);
 		if (isEndOfInput(self->currentChar)) {
-			errorMessageWithPosition(self->fileName, errline, errpos, "Unterminated string literal");
+			errorMessageWithPosition(self->fileName, errline, errpos, self->pos, "Unterminated string literal");
 		}
 	}
 
@@ -253,16 +253,16 @@ void recognizeStringToken(Lexer *self) {
 
 void recognizeCharacterToken(Lexer *self) {
 	expectCharacter(self, '\'');
-	
+
 	int errpos = self->charNumber;
 	int errline = self->lineNumber;
 	if (self->currentChar == '\'')
-		errorMessageWithPosition(self->fileName, self->lineNumber, self->charNumber, "Empty character literal");
-	
+		errorMessageWithPosition(self->fileName, self->lineNumber, self->charNumber, self->pos, "Empty character literal");
+
 	while (!(self->currentChar == '\'' && peekAhead(self, -1) != '\\')) {
 		consumeCharacter(self);
 		if (isEndOfInput(self->currentChar)) {
-			errorMessageWithPosition(self->fileName, errline, errpos, "Unterminated character literal");
+			errorMessageWithPosition(self->fileName, errline, errpos, self->pos, "Unterminated character literal");
 		}
 	}
 
@@ -305,7 +305,8 @@ void recognizeErroneousToken(Lexer *self) {
 
 /** pushes a token with no content */
 void pushToken(Lexer *self, int type) {
-	Token *tok = createToken(self->lineNumber, self->charNumber, self->fileName);
+	int tokenLength = self->pos - self->startPos; // The length (in characters) of this token
+	Token *tok = createToken(self->lineNumber, self->charNumber-tokenLength, self->charNumber, self->startPos, self->pos, self->fileName);
 	tok->type = type;
 	tok->content = extractToken(self, self->startPos, self->pos - self->startPos);
 	pushBackItem(self->tokenStream, tok);
@@ -313,7 +314,8 @@ void pushToken(Lexer *self, int type) {
 
 /** pushes a token with content */
 void pushInitializedToken(Lexer *self, int type, char *content) {
-	Token *tok = createToken(self->lineNumber, self->charNumber, self->fileName);
+	int tokenLength = self->pos - self->startPos; // The length (in characters) of this token
+	Token *tok = createToken(self->lineNumber, self->charNumber-tokenLength, self->charNumber, self->startPos, self->pos, self->fileName);
 	tok->type = type;
 	tok->content = content;
 	pushBackItem(self->tokenStream, tok);
