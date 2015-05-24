@@ -88,9 +88,10 @@ func (v *lexer) lex() {
 			v.recognizeCharacterToken()
 		} else if isOperator(v.peek(0)) {
 			v.recognizeOperatorToken()
+		} else if isSeparator(v.peek(0)) {
+			v.recognizeSeparatorToken()
 		} else {
-			v.consume(1)
-			v.discardBuffer()
+			v.err("Unrecognised token")
 		}
 	}
 }
@@ -241,6 +242,11 @@ func (v *lexer) recognizeOperatorToken() {
 	v.pushToken(TOKEN_OPERATOR)
 }
 
+func (v *lexer) recognizeSeparatorToken() {
+	v.consume(1)
+	v.pushToken(TOKEN_SEPARATOR)
+}
+
 func isDecimalDigit(r rune) bool {
 	return r >= '0' && r <= '9'
 }
@@ -266,7 +272,7 @@ func isOperator(r rune) bool {
 }
 
 func isExpressionOperator(r rune) bool {
-	return strings.ContainsRune("+-*/=><!~?:|&%^\"'()", r);
+	return strings.ContainsRune("+-*/=><!~?:|&%^\"'()", r); // this is unused?
 }
 
 func isSeparator(r rune) bool {
