@@ -99,7 +99,7 @@ int getTypeFromString(char *type);
 typedef struct {
 	Vector *tokenStream;	// the stream of tokens to parse
 	Vector *parseTree;		// the AST created
-	char* src;				// the source file contents
+	char *src;				// the source file contents
 
 	map_t binopPrecedence;
 	int tokenIndex;			// current token
