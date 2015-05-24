@@ -169,12 +169,19 @@ LLVMValueRef genFunctionSignature(LLVMCodeGenerator *self, FunctionDecl *decl) {
 		LLVMTypeRef *params = safeMalloc(sizeof(LLVMTypeRef) * argCount);
 		for (int i = 0; i < argCount; i++) {
 			ParameterSection *param = getVectorItem(signature->parameters->paramList, i);
-			if (param->type->type != TYPE_NAME_NODE) {
-				genError("Unsupported type :(");
-				return false;
+			char *name = NULL;
+			bool isPointer = false;
+			if (param->type->typeLit) {
+				if (param->type->typeLit->type == POINTER_TYPE_NODE) {
+					name = param->type->typeLit->pointerType->type->typeName->name;
+					isPointer = true;
+				}
 			}
-			int type = getTypeFromString(param->type->typeName->name);
-			params[i] = getLLVMType(type);
+			else {
+				name = param->type->typeName->name;
+			}
+			int type = getTypeFromString(name);
+			params[i] = isPointer ? LLVMPointerType(getLLVMType(type), 0) : getLLVMType(type);
 		}
 
 		// create func prototype and add it to the module
@@ -216,19 +223,15 @@ LLVMValueRef genFunctionDecl(LLVMCodeGenerator *self, FunctionDecl *decl) {
 		return NULL;
 	}
 
-	LLVMBasicBlockRef block = LLVMAppendBasicBlock(prototype, "entry");
-	LLVMPositionBuilderAtEnd(self->builder, block);
+	if (!decl->prototype) {
+		LLVMBasicBlockRef block = LLVMAppendBasicBlock(prototype, "entry");
+		LLVMPositionBuilderAtEnd(self->builder, block);
 
-	// generate all the statements n that
-	for (int i = 0; i < decl->body->stmtList->stmts->size; i++) {
-		LLVMValueRef body = genStatement(self, getVectorItem(decl->body->stmtList->stmts, i));
+		// generate all the statements n that
+		for (int i = 0; i < decl->body->stmtList->stmts->size; i++) {
+			LLVMValueRef body = genStatement(self, getVectorItem(decl->body->stmtList->stmts, i));
+		}
 	}
-
-	// function returns void so we have to put it at the end
-	// LLVMValueRef func = LLVMGetNamedFunction(self->currentSourceFile->module, decl->signature->name);
-	// if (LLVMGetReturnType(LLVMGetElementType(LLVMTypeOf(func))) == LLVMVoidType()) {
-	// 	LLVMBuildRetVoid(self->builder);
-	// }
 
 	self->currentSourceFile->scope--;
 	return prototype;
