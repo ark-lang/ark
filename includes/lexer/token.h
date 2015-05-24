@@ -34,13 +34,17 @@ extern const char *TOKEN_TYPE_NAME[];
  * type 		- the token type
  * content 		- the token content
  * line_number 	- the line number of the token
- * char_number 	- the number of the char of the token
+ * line_start	- the index in the input where this token's line starts
+ * char_number 	- the column of the first char in this token
+ * char_end		- the column of the last char in this token
  */
 typedef struct {
 	int type;
 	sds content;
 	int lineNumber;
+	int lineStart;
 	int charNumber;
+	int charEnd;
 	sds fileName;
 } Token;
 
@@ -48,9 +52,11 @@ typedef struct {
  * Create a token
  *
  * @param lineNumber the line number of the token
- * @param charNumber the character number
+ * @param lineStart  the index in the input where this token's line starts
+ * @param charNumber the column of the first char in the token
+ * @param charEnd	 the column of the last char in the token
  */
-Token *createToken(int lineNumber, int charNumber, sds fileName);
+Token *createToken(int lineNumber, int lineStart, int charNumber, int charEnd, sds fileName);
 
 /**
  * Retrieve the token name of the given token

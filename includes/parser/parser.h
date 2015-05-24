@@ -99,6 +99,7 @@ int getTypeFromString(char *type);
 typedef struct {
 	Vector *tokenStream;	// the stream of tokens to parse
 	Vector *parseTree;		// the AST created
+	char* src;				// the source file contents
 
 	map_t binopPrecedence;
 	int tokenIndex;			// current token
@@ -215,7 +216,7 @@ FieldDeclList *parseFieldDeclList(Parser *parser);
 StructDecl *parseStructDecl(Parser *parser);
 
 /**
- * Parses a parameter section, i.e a parameter in a 
+ * Parses a parameter section, i.e a parameter in a
  * parameter list, for instance: a: int is a parameter
  * section
  * @param  parser the parser instance
@@ -435,7 +436,7 @@ Statement *wrapExpressionInReturnStat(Expression *expr);
 
 /**
  * Creates a new Precedence to be stored in a hashmap,
- * this is a small workaround for allocating it on the 
+ * this is a small workaround for allocating it on the
  * heap cleanly.
  * @param  prec the precedence to create
  */
