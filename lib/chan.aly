@@ -1,6 +1,6 @@
 # Thought I would **attempt** to
 # implement a Go-like channel thing
-# this assumes you are on Mac, since Alloy
+# this assumes you are on Mac, since Ark
 # doesn't have have any way to determine
 # what OS you are on so I can write specific
 # code to make it portable. This is a TODO.

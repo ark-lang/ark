@@ -1,6 +1,6 @@
 //
 // stdlib.aly
-// This file contains the Alloy standard IO library.
+// This file contains the Ark standard IO library.
 // Right now, most of it is a wrapper around the C stdio library.
 //
 
