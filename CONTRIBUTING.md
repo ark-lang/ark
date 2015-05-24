@@ -30,7 +30,7 @@ fix an existing bug; here are what we consider must do steps.
   Typically, if theres a segmentation fault, or other bug
   that occurrs on run-time, g/lldb is a good start.
 * Use valgrind to track down memory leaks
-* Run the ark code with the `-v` flag! This is the verbose
+* Run the Ark code with the `-v` flag! This is the verbose
   flag and can help you locate what *stage the bug occurrs.
   *during lexical analysis, semantic analysis, parsing, etc...
 
