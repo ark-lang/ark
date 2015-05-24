@@ -1,3 +1,5 @@
+func puts(fmt: ^i32): i32;
+
 func add(a: int, b: int): int {
     return 12;
 }
