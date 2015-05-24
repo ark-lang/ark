@@ -84,6 +84,8 @@ func (v *lexer) lex() {
 			v.recognizeIdentifierToken()
 		} else if v.peek(0) == '"' {
 			v.recognizeStringToken()
+		} else if v.peek(0) == '\'' {
+			v.recognizeCharacterToken()
 		}
 		
 		v.consume(1)
@@ -194,6 +196,28 @@ func (v *lexer) recognizeStringToken() {
 			return
 		} else if isEOF(v.peek(0))	{
 			v.err("Unterminated string constant")
+		} else {
+			v.consume(1)
+		}
+	}
+}
+
+func (v *lexer) recognizeCharacterToken() {
+	v.expect('\'')
+	
+	if v.peek(0) == '\'' {
+		v.err("Empty character constant")
+	}
+	
+	for {
+		if v.peek(0) == '\\' && v.peek(1) == '\'' {
+			v.consume(2)
+		} else if v.peek(0) == '\'' {
+			v.consume(1)
+			v.pushToken(TOKEN_CHARACTER)
+			return
+		} else if isEOF(v.peek(0)) {
+			v.err("Unterminated character constant")
 		} else {
 			v.consume(1)
 		}
