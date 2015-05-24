@@ -1,6 +1,8 @@
 # alloy-go
 Experimental Alloy compiler in Go
 
+You cand find the language reference and other stuff over [https://github.com/alloy-lang/alloy](here).
+
 ## Installing
 Requires Go.
 
@@ -12,6 +14,8 @@ Make sure `$GOPATH/bin` is in your `$PATH`.
 
 ## Styleguide
 * Use tabs for indenting, spaces for alignment.
+
+I'm currently undecided on whether to standardise British or American English.
 
 ### Abbreviations
 * Statement -> Stat

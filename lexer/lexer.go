@@ -1,5 +1,7 @@
 package lexer
 
+// Note that most of the panic() calls should be removed once the lexer is bug-free.
+
 import (
 	"strings"
 	"log"
@@ -17,6 +19,10 @@ func (v *lexer) err(err string) {
 }
 
 func (v *lexer) peek(ahead int) rune {
+	if ahead < 0 {
+		panic(fmt.Sprintf("Tried to peek a negative number: %d", ahead))
+	}
+	
 	if v.endPos + ahead >= len(v.input) {
 		return 0;
 	}
@@ -24,7 +30,18 @@ func (v *lexer) peek(ahead int) rune {
 }
 
 func (v *lexer) consume(num int) {
+	if num <= 0 {
+		panic(fmt.Sprintf("Tried to consume %d runes", num))
+	}
 	v.endPos += num;
+}
+
+func (v *lexer) expect(r rune) {
+	if v.peek(0) == r {
+		v.consume(1)
+	} else {
+		v.err(fmt.Sprintf("Expected `%c`, found `%c`", r, v.peek(0)))
+	}
 }
 
 func (v *lexer) discardBuffer() {
@@ -41,6 +58,10 @@ func (v *lexer) pushToken(t TokenType) {
 	tok.Contents = string(v.input[v.startPos:v.endPos])
 	v.startPos = v.endPos
 	v.output = append(v.output, tok)
+	
+	if true {
+		fmt.Printf("[%4d:%4d:%s] `%s`\n", v.startPos, v.endPos, tok.Type, tok.Contents)
+	}
 }
 
 func Lex(input []rune) []*Token {
@@ -54,6 +75,10 @@ func (v *lexer) lex() {
 		v.skipLayoutAndComments()
 		if isEOF(v.peek(0)) {
 			return
+		}
+		
+		if isDecimalDigit(v.peek(0)) {
+			v.recognizeNumberToken();
 		}
 		
 		v.consume(1)
@@ -85,7 +110,10 @@ func (v *lexer) skipLayoutAndComments() {
 	
 	// Single-line comments
 	if v.peek(0) == '#' || (v.peek(0) == '/' && v.peek(1) == '/') {
-		v.consume(2)
+		v.consume(1)
+		if v.peek(0) == '/' {
+			v.consume(1)
+		}
 		
 		for {
 			if isEOL(v.peek(0)) || isEOF(v.peek(0)) {
@@ -96,8 +124,43 @@ func (v *lexer) skipLayoutAndComments() {
 		}
 	}
 	
-	v.printBuffer()
+	//v.printBuffer()
 	v.discardBuffer()
+}
+
+func (v *lexer) recognizeNumberToken() {
+	v.consume(1)
+	
+	if v.peek(0) == 'x' || v.peek(0) == 'X' { // Hexadecimal
+		v.consume(1)
+		for isHexDigit(v.peek(0)) || v.peek(0) == '_' {
+			v.consume(1)
+		}
+		v.pushToken(TOKEN_NUMBER)
+	} else if v.peek(0) == 'b' { // Binary
+		v.consume(1)
+		for isBinaryDigit(v.peek(0)) || v.peek(0) == '_' {
+			v.consume(1)
+		}
+		v.pushToken(TOKEN_NUMBER)
+	} else if v.peek(0) == 'o' {
+		v.consume(1)
+		for isOctalDigit(v.peek(0)) || v.peek(0) == '_' {
+			v.consume(1)
+		}
+		v.pushToken(TOKEN_NUMBER)
+	} else {
+		for {
+			if isDecimalDigit(v.peek(0)) || v.peek(0) == '_' {
+				v.consume(1)
+				continue
+			} else if v.peek(0) == 'f' || v.peek(0) == 'd' {
+				v.consume(1)
+			}
+			v.pushToken(TOKEN_NUMBER)
+			return;
+		}
+	}
 }
 
 func isDecimalDigit(r rune) bool {

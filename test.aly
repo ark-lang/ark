@@ -7,7 +7,7 @@ mm
 // hello
 
 func ten(): int {
-	return 5 + 5;
+	return 0x05 + 5;
 }
 
 func main(): int {
