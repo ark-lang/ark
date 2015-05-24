@@ -1,9 +1,9 @@
-# alloy-go
-Experimental Alloy compiler in Go
+# ark-go
+Experimental Ark compiler in Go
 
-You cand find the language reference and other stuff over [here](https://github.com/alloy-lang/alloy).
+You cand find the language reference and other stuff over [here](https://github.com/ark-lang/ark).
 
-	Usage of alloy-go:
+	Usage of ark-go:
 	  -input:   input file
 	  -output:  output file
 	  -v:       enable verbose mode
@@ -19,11 +19,11 @@ Building LLVM bindings (must be done first and may take a while):
 	$ ./build.sh
 	$ go install llvm.org/llvm/bindings/go/llvm
 
-Building alloy-go:
+Building ark-go:
 
-	$ go get github.com/alloy-lang/alloy-go
-	$ go install github.com/alloy-lang/alloy-go
-	$ alloy-go
+	$ go get github.com/ark-lang/ark-go
+	$ go install github.com/ark-lang/ark-go
+	$ ark-go
 
 Make sure `$GOPATH/bin` is in your `$PATH`.
 

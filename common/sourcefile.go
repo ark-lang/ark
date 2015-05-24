@@ -3,7 +3,7 @@ package common
 import (
 	"io/ioutil"
 	
-	"github.com/alloy-lang/alloy-go/lexer"
+	"github.com/ark-lang/ark-go/lexer"
 )
 
 type Sourcefile struct {

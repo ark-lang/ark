@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"flag"
 	
-	"github.com/alloy-lang/alloy-go/common"
-	"github.com/alloy-lang/alloy-go/lexer"
-	"github.com/alloy-lang/alloy-go/parser"
-	//"github.com/alloy-lang/alloy-go/codegen"
+	"github.com/ark-lang/ark-go/common"
+	"github.com/ark-lang/ark-go/lexer"
+	"github.com/ark-lang/ark-go/parser"
+	//"github.com/ark-lang/ark-go/codegen"
 )
 
 var versionFlag = flag.Bool("version", false, "show version information")
@@ -47,5 +47,5 @@ func check(err error) {
 }
 
 func version() {
-	fmt.Println("alloy-go 2015 - experimental")
+	fmt.Println("ark-go 2015 - experimental")
 }

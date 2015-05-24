@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 	
-	"github.com/alloy-lang/alloy-go/lexer"
-	"github.com/alloy-lang/alloy-go/util"
+	"github.com/ark-lang/ark-go/lexer"
+	"github.com/ark-lang/ark-go/util"
 )
 
 type File struct {

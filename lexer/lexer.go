@@ -8,7 +8,7 @@ import (
 	"unicode"
 	"os"
 	
-	"github.com/alloy-lang/alloy-go/util"
+	"github.com/ark-lang/ark-go/util"
 )
 
 type lexer struct {
