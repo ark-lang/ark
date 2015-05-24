@@ -3,6 +3,12 @@ Experimental Alloy compiler in Go
 
 You cand find the language reference and other stuff over [here](https://github.com/alloy-lang/alloy).
 
+	Usage of alloy-go:
+	  -input:   input file
+	  -output:  output file
+	  -v:       enable verbose mode
+	  -version: show version information
+
 ## Installing
 Requires Go to be installed and $GOPATH setup.
 

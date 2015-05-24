@@ -10,6 +10,7 @@ import (
 	//"github.com/alloy-lang/alloy-go/codegen"
 )
 
+var versionFlag = flag.Bool("version", false, "show version information")
 var verboseFlag = flag.Bool("v", false, "enable verbose mode")
 var inputFlag = flag.String("input", "", "input file")
 var outputFlag = flag.String("output", "", "output file")
@@ -17,9 +18,12 @@ var outputFlag = flag.String("output", "", "output file")
 func main() {
 	flag.Parse()
 	
+	if *versionFlag {
+		version()
+		return
+	}
+	
 	verbose := *verboseFlag
-
-	fmt.Println("alloy-go 2015")
 	
 	sourcefiles := make([]*common.Sourcefile, 0)
 	input, err := common.NewSourcefile(*inputFlag)
@@ -40,4 +44,8 @@ func check(err error) {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func version() {
+	fmt.Println("alloy-go 2015 - experimental")
 }
