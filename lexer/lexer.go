@@ -64,8 +64,14 @@ func (v *lexer) printBuffer() {
 }
 
 func (v *lexer) pushToken(t TokenType) {
-	tok := &Token { Type: t, Filename: v.filename }
-	tok.Contents = string(v.input[v.startPos:v.endPos])
+	tok := &Token {
+		Type: t,
+		Filename: v.filename,
+		CharNumber: v.charNumber,
+		LineNumber: v.lineNumber,
+		Contents: string(v.input[v.startPos:v.endPos]),
+	}
+	
 	v.startPos = v.endPos
 	v.output = append(v.output, tok)
 	
