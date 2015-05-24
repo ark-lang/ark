@@ -4,9 +4,11 @@ package lexer
 
 import (
 	"strings"
-	"log"
 	"fmt"
 	"unicode"
+	"os"
+	
+	"github.com/alloy-lang/alloy-go/util"
 )
 
 type lexer struct {
@@ -15,10 +17,12 @@ type lexer struct {
 	output []*Token
 	filename string
 	charNumber, lineNumber int
+	verbose bool
 }
 
 func (v *lexer) errWithCustomPosition(err string, ln, cn int) {
-	log.Fatal(fmt.Sprintf("Lexer error [%d:%d:%s]: %s\n", ln, cn, v.filename, err))
+	fmt.Printf(util.TEXT_RED + util.TEXT_BOLD + "Lexer error [%d:%d:%s]:" + util.TEXT_RESET + " %s\n", ln, cn, v.filename, err)
+	os.Exit(1)
 }
 
 func (v *lexer) err(err string) {
@@ -75,12 +79,12 @@ func (v *lexer) pushToken(t TokenType) {
 	v.startPos = v.endPos
 	v.output = append(v.output, tok)
 	
-	if true {
+	if v.verbose {
 		fmt.Printf("[%4d:%4d:%-17s] `%s`\n", v.startPos, v.endPos, tok.Type, tok.Contents)
 	}
 }
 
-func Lex(input []rune, filename string) []*Token {
+func Lex(input []rune, filename string, verbose bool) []*Token {
 	v := &lexer {
 		input: input,
 		startPos: 0,
@@ -88,9 +92,16 @@ func Lex(input []rune, filename string) []*Token {
 		filename: filename,
 		charNumber: 1,
 		lineNumber: 1,
+		verbose: verbose,
 	}
 	
+	if v.verbose {
+		fmt.Println(util.TEXT_BOLD + util.TEXT_GREEN + "Starting lexing" + util.TEXT_RESET)
+	}
 	v.lex()
+	if v.verbose {
+		fmt.Println(util.TEXT_BOLD + util.TEXT_GREEN + "Finished lexing" + util.TEXT_RESET)
+	}
 	return v.output
 }
 
@@ -230,7 +241,7 @@ func (v *lexer) recognizeStringToken() {
 			v.pushToken(TOKEN_STRING)
 			return
 		} else if isEOF(v.peek(0))	{
-			v.errWithCustomPosition("Unterminated block literal", lineNumber, charNumber)
+			v.errWithCustomPosition("Unterminated string literal", lineNumber, charNumber)
 		} else {
 			v.consume()
 		}

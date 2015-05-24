@@ -21,3 +21,4 @@ I'm currently undecided on whether to standardise British or American English.
 ### Abbreviations
 * Statement -> Stat
 * Expression -> Expr
+* Declaration -> Decl
