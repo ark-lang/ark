@@ -14,6 +14,7 @@ Make sure `$GOPATH/bin` is in your `$PATH`.
 
 ## Styleguide
 * Use tabs for indenting, spaces for alignment.
+* Use `v` as the name of the struct a method is called on
 
 I'm currently undecided on whether to standardise British or American English.
 
