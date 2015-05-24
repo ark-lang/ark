@@ -25,7 +25,7 @@ func main() {
 	sourcefiles = append(sourcefiles, input)
 	
 	for _, file := range sourcefiles {
-		file.Tokens = lexer.Lex(file.Contents)
+		file.Tokens = lexer.Lex(file.Contents, *inputFlag)
 	}
 }
 
