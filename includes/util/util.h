@@ -133,6 +133,18 @@ void errorMessage(const char *fmt, ...);
 void errorMessageWithPosition(char *fileName, int lineNumber, int charNumber, const char *fmt, ...);
 
 /**
+ * Emits an error message to the console, will also exit
+ * The error message contains a line and character number.
+ * After emitting the error message, the errornous is displayed.
+ * @param fileName      the filename to print (can be NULL)
+ * @param lineNumber    the line number to print
+ * @param charNumber    the character number to print
+ * @param msg           the message to print
+ * @param ... 			extra arguments
+ */
+void errorMessageWithPositionAndLine(char *src, char *fileName, int lineNumber, int lineStart, int charNumber, int charEnd, const char *fmt, ...);
+
+/**
  * Emits a primary message to the console
  * @param msg           the message to print
  * @param ... 			extra arguments
