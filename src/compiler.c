@@ -8,7 +8,7 @@ bool IGNORE_MAIN = false;
 char *COMPILER = "cc";
 
 void help() {
-	printf("Usage: alloyc [options] files...\n");
+	printf("Usage: arkc [options] files...\n");
 	printf("Options:\n");
 	printf("  -h                  Shows this help menu\n");
 	printf("  -v                  Verbose compilation\n");
