@@ -9,3 +9,10 @@ Requires Go.
 	$ alloy-go
 
 Make sure `$GOPATH/bin` is in your `$PATH`.
+
+## Styleguide
+* Use tabs for indenting, spaces for alignment.
+
+### Abbreviations
+* Statement -> Stat
+* Expression -> Expr

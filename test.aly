@@ -1,0 +1,16 @@
+/*
+ Test block comment
+*/
+mm
+# hello
+
+// hello
+
+func ten(): int {
+	return 5 + 5;
+}
+
+func main(): int {
+	thing: int = ten();
+	return ten - 10;
+}
