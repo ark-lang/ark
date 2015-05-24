@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # Simple test script
 # Goes through all files in the test/ directory
-# and runs all of the files matching this: *_test.aly
+# and runs all of the files matching this: *_test.ark
 
 import os, subprocess, sys, re
 
@@ -57,7 +57,7 @@ def sort_nicely(l):
 	alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)', key)]
 	l.sort(key = alphanum_key)
 
-files = [x for x in os.listdir("tests") if x.endswith("_test.aly")]
+files = [x for x in os.listdir("tests") if x.endswith("_test.ark")]
 sort_nicely(files)
 for name in files:
 	output_file = name + ".test"
@@ -66,9 +66,9 @@ for name in files:
 		print(bold("Compiling ") + name + "...")
 	
 	if show_output:
-		compile_result = subprocess.call(["alloyc", "tests/" + name, "-o", "tests/" + output_file])
+		compile_result = subprocess.call(["arkc", "tests/" + name, "-o", "tests/" + output_file])
 	else:
-		compile_result = subprocess.call(["alloyc", "tests/" + name, "-o", "tests/" + output_file], stdout=FNULL, stderr=subprocess.STDOUT)
+		compile_result = subprocess.call(["arkc", "tests/" + name, "-o", "tests/" + output_file], stdout=FNULL, stderr=subprocess.STDOUT)
 
 	if compile_result != 0:
 		if show_output: 
