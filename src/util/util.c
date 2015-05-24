@@ -177,7 +177,7 @@ void errorMessageWithPosition(char *fileName, int lineNumber, int charNumber, co
 	exit(1);
 }
 
-void errorMessageWithPositionAndLine(char* src, char *fileName, int lineNumber, int lineStart, int charStart, int charEnd, const char *fmt, ...){
+void errorMessageWithPositionAndLine(char *src, char *fileName, int lineNumber, int lineStart, int charStart, int charEnd, const char *fmt, ...){
 	// Print the error message
 	va_list arg;
 	va_start(arg, fmt);
@@ -197,9 +197,9 @@ void errorMessageWithPositionAndLine(char* src, char *fileName, int lineNumber, 
 
 	for(int i = lineStart - charStart; i < lineStart - charStart + charEnd; line++, i++) fprintf(stderr, "%c", *line);
  	fprintf(stderr, "\n");
- 	for(int i = 0; i < charStart - 1; i++) fprintf(stderr, " ");
 
  	if(tokLength > 1){
+		for(int i = 0; i < charStart - 1; i++) fprintf(stderr, " ");
 		fprintf(stderr, "^");
  		for(int i = 0; i < tokLength - 2; i++) fprintf(stderr, "-");
  	}
