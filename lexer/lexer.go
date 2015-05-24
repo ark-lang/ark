@@ -192,6 +192,8 @@ func (v *lexer) recognizeStringToken() {
 			v.consume(1)
 			v.pushToken(TOKEN_STRING)
 			return
+		} else if isEOF(v.peek(0))	{
+			v.err("Unterminated string constant")
 		} else {
 			v.consume(1)
 		}
