@@ -13,15 +13,6 @@ We're also looking to change our name, so if you have any suggestions you would 
 * [Contributing](/CONTRIBUTING.md)
 * [Ark Style Guide](/docs/STYLEGUIDE.md)
 
-## Example
-<p align="center">
-<img src="http://ark-lang.org/example.gif" width="312px" height="312px" />
-</p>
-<p align="center">
-Here's a 3d cube being rendered using SDL and OpenGL in Ark. You can
-check out the source code for this <a href="https://www.github.com/ark-lang/space-invaders">here</a>
-</p>
-
 ## Building
 If you want to try out Ark yourself, clone the repository, compile it, and add `bin/arkc` to your path. You can
 also run the test script (you'll need python) `test.py` to see if the tests work, though we can't guarantee they
