@@ -6,6 +6,7 @@ import (
 	"strings"
 	"log"
 	"fmt"
+	"unicode"
 )
 
 type lexer struct {
@@ -60,7 +61,7 @@ func (v *lexer) pushToken(t TokenType) {
 	v.output = append(v.output, tok)
 	
 	if true {
-		fmt.Printf("[%4d:%4d:%s] `%s`\n", v.startPos, v.endPos, tok.Type, tok.Contents)
+		fmt.Printf("[%4d:%4d:%-17s] `%s`\n", v.startPos, v.endPos, tok.Type, tok.Contents)
 	}
 }
 
@@ -78,7 +79,9 @@ func (v *lexer) lex() {
 		}
 		
 		if isDecimalDigit(v.peek(0)) {
-			v.recognizeNumberToken();
+			v.recognizeNumberToken()
+		} else if isLetter(v.peek(0)) || v.peek(0) == '_' {
+			v.recognizeIdentifierToken()
 		}
 		
 		v.consume(1)
@@ -167,6 +170,16 @@ func (v *lexer) recognizeNumberToken() {
 	}
 }
 
+func (v *lexer) recognizeIdentifierToken() {
+	v.consume(1)
+	
+	for isLetter(v.peek(0)) || isDecimalDigit(v.peek(0)) || v.peek(0) == '_' {
+		v.consume(1)
+	}
+	
+	v.pushToken(TOKEN_IDENTIFIER)
+}
+
 func isDecimalDigit(r rune) bool {
 	return r >= '0' && r <= '9'
 }
@@ -181,6 +194,10 @@ func isBinaryDigit(r rune) bool {
 
 func isOctalDigit(r rune) bool {
 	return r >= '0' && r <= '7'
+}
+
+func isLetter(r rune) bool {
+	return unicode.IsLetter(r)
 }
 
 func isOperator(r rune) bool {
@@ -204,6 +221,6 @@ func isEOF(r rune) bool {
 }
 
 func isLayout(r rune) bool {
-	return r <= ' ' && !isEOF(r)
+	return (r <= ' ' || unicode.IsSpace(r)) && !isEOF(r)
 }
 

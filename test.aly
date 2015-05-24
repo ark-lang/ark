@@ -10,6 +10,10 @@ func ten(): int {
 	return 0x05 + 5;
 }
 
+func _2345_test日本語てすと(): int {
+	
+}
+
 func main(): int {
 	thing: int = ten();
 	return ten - 10;
