@@ -86,10 +86,12 @@ func (v *lexer) lex() {
 			v.recognizeStringToken()
 		} else if v.peek(0) == '\'' {
 			v.recognizeCharacterToken()
+		} else if isOperator(v.peek(0)) {
+			v.recognizeOperatorToken()
+		} else {
+			v.consume(1)
+			v.discardBuffer()
 		}
-		
-		v.consume(1)
-		v.discardBuffer()
 	}
 }
 
@@ -222,6 +224,21 @@ func (v *lexer) recognizeCharacterToken() {
 			v.consume(1)
 		}
 	}
+}
+
+func (v *lexer) recognizeOperatorToken() {
+	// stop := from being treated as an operator
+	// treat them as individual operators instead.
+	if v.peek(0) == ':' && v.peek(1) == '=' {
+		v.consume(1)
+	} else {
+		v.consume(1)
+		if isOperator(v.peek(0)) {
+			v.consume(1)
+		}
+	}
+	
+	v.pushToken(TOKEN_OPERATOR)
 }
 
 func isDecimalDigit(r rune) bool {
