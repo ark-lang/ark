@@ -131,25 +131,29 @@ func (v *lexer) skipLayoutAndComments() {
 func (v *lexer) recognizeNumberToken() {
 	v.consume(1)
 	
-	if v.peek(0) == 'x' || v.peek(0) == 'X' { // Hexadecimal
+	if v.peek(0) == 'x' || v.peek(0) == 'X' {
+		// Hexadecimal
 		v.consume(1)
 		for isHexDigit(v.peek(0)) || v.peek(0) == '_' {
 			v.consume(1)
 		}
 		v.pushToken(TOKEN_NUMBER)
-	} else if v.peek(0) == 'b' { // Binary
+	} else if v.peek(0) == 'b' {
+		// Binary
 		v.consume(1)
 		for isBinaryDigit(v.peek(0)) || v.peek(0) == '_' {
 			v.consume(1)
 		}
 		v.pushToken(TOKEN_NUMBER)
 	} else if v.peek(0) == 'o' {
+		// Octal
 		v.consume(1)
 		for isOctalDigit(v.peek(0)) || v.peek(0) == '_' {
 			v.consume(1)
 		}
 		v.pushToken(TOKEN_NUMBER)
 	} else {
+		// Decimal
 		for {
 			if isDecimalDigit(v.peek(0)) || v.peek(0) == '_' {
 				v.consume(1)
