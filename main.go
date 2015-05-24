@@ -7,6 +7,7 @@ import (
 	"github.com/alloy-lang/alloy-go/common"
 	"github.com/alloy-lang/alloy-go/lexer"
 	"github.com/alloy-lang/alloy-go/parser"
+	//"github.com/alloy-lang/alloy-go/codegen"
 )
 
 var verboseFlag = flag.Bool("v", false, "enable verbose mode")
