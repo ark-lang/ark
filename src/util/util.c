@@ -177,13 +177,44 @@ void errorMessageWithPosition(char *fileName, int lineNumber, int charNumber, co
 	exit(1);
 }
 
+void errorMessageWithPositionAndLine(char* src, char *fileName, int lineNumber, int lineStart, int charStart, int charEnd, const char *fmt, ...){
+	// Print the error message
+	va_list arg;
+	va_start(arg, fmt);
+	char *temp = GET_RED_TEXT("error: ");
+	fprintf(stderr, "%s", temp);
+	if (fileName != NULL)
+		fprintf(stderr, "[%s:%d:%d-%d] ", fileName, lineNumber, charStart, charEnd);
+	else
+		fprintf(stderr, "[%d:%d-%d] ", lineNumber, charStart, charEnd);
+	vfprintf(stderr, fmt, arg);
+	fprintf(stderr, "\n");
+	va_end(arg);
+
+	// Print the marker and line
+	int tokLength = charEnd - charStart;
+ 	char* line = src + lineStart - charStart;
+
+	for(int i = lineStart - charStart; i < lineStart - charStart + charEnd; line++, i++) fprintf(stderr, "%c", *line);
+ 	fprintf(stderr, "\n");
+ 	for(int i = 0; i < charStart - 1; i++) fprintf(stderr, " ");
+
+ 	if(tokLength > 1){
+		fprintf(stderr, "^");
+ 		for(int i = 0; i < tokLength - 2; i++) fprintf(stderr, "-");
+ 	}
+	fprintf(stderr, "^\n");
+
+	exit(1);
+}
+
 void primaryMessage(const char *fmt, ...) {
 	va_list arg;
 	va_start(arg, fmt);
 	vfprintf(stdout, fmt, arg);
 	fprintf(stdout, "\n");
 	va_end(arg);
-} 
+}
 
 const char *getFilenameExtension(const char *filename) {
 	const char *dot = strrchr(filename, '.');
