@@ -142,7 +142,7 @@ void errorMessageWithPosition(char *fileName, int lineNumber, int charNumber, co
  * @param msg           the message to print
  * @param ... 			extra arguments
  */
-void errorMessageWithPositionAndLine(char* src, char *fileName, int lineNumber, int lineStart, int charNumber, int charEnd, const char *fmt, ...);
+void errorMessageWithPositionAndLine(char *src, char *fileName, int lineNumber, int lineStart, int charNumber, int charEnd, const char *fmt, ...);
 
 /**
  * Emits a primary message to the console
