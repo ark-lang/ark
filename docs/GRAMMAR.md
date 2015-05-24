@@ -1,4 +1,4 @@
-This document specifies the grammar for the Alloy programming language. It's still a work in progress,
+This document specifies the grammar for the Ark programming language. It's still a work in progress,
 some of the language may be missing, or some of the following may be incorrect/invalid or out-dated.
 The grammar pretty much maps straight onto the parsers source.
 

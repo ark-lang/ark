@@ -1,9 +1,9 @@
-# Alloy Reference
-This document is an informal specification for Alloy, a systems programming language. 
+# Ark Reference
+This document is an informal specification for Ark, a systems programming language. 
 
 # Table of Contents
 
-- [Alloy Reference](#alloy-reference)
+- [Ark Reference](#ark-reference)
 - [Table of Contents](#table-of-contents)
   - [Guiding Principles](#guiding-principles)
   - [Comments](#comments)
@@ -44,7 +44,7 @@ This document is an informal specification for Alloy, a systems programming lang
   - [Macro System](#macro-system)
 
 ## Guiding Principles
-Alloy is a systems programming language, intended as an alternative to C. It's main purpose is to modernize C, without deviating from C's original goal of simplicity. Alloy's frontend is written in C, with LLVM being used for the backend. For users who have followed the project for a while now, it may seem very abrupt, the fact that we've decided to use LLVM as the backend. After rigorous discussions, we were of the idea that generating C had some serious limitations as far as feature implementations were concerned, ergo we decided to use LLVM. Apart from giving us ground to expand Alloy's features, it also gave us comparable performance, both of which we aimed for initially.
+Ark is a systems programming language, intended as an alternative to C. It's main purpose is to modernize C, without deviating from C's original goal of simplicity. Ark's frontend is written in C, with LLVM being used for the backend. For users who have followed the project for a while now, it may seem very abrupt, the fact that we've decided to use LLVM as the backend. After rigorous discussions, we were of the idea that generating C had some serious limitations as far as feature implementations were concerned, ergo we decided to use LLVM. Apart from giving us ground to expand Ark's features, it also gave us comparable performance, both of which we aimed for initially.
 
 The design is motivated by the following:
 
@@ -79,7 +79,7 @@ documenting functions, structures, enumerations, etc.
 Comments cannot be nested.
 
 ## Primitive Types
-Alloy provides various primitive types:
+Ark provides various primitive types:
 
 |Type|Description|
 |----|-----------|
@@ -176,7 +176,7 @@ We can also infer types in the following manners:
 
 
 ## Type Casting
-In Alloy, type casting can be done as follows:
+In Ark, type casting can be done as follows:
 
     mut my_val: float = 1.3;
     mut my_val_two: int = int(my_val); // my_val_two is now 1
@@ -241,7 +241,7 @@ The following escape sequences are available:
 
 ### Mutability
 When a variable is mutable, it can be mutated or changed. When a variable is immutable,
-it cannot be changed. By default, Alloy assumes that a variable you've defined is immutable.
+it cannot be changed. By default, Ark assumes that a variable you've defined is immutable.
 You can however, specify the `mut` keyword before the declaration. This will inform the compiler that you intend
 to modify the variable later in the program. For instance:
 
@@ -423,11 +423,11 @@ The function can then be implemented elsewhere in the program. While (in most ca
 ### Calling C Functions
 You can use the function prototypes showcased above to call c functions. Say we wanted to use the `printf`
 function in `stdio`, we create a prototype for it. Note that the printf is a variadic function, i.e. it can
-take an unspecified amount of arguments. This is denoted with an ellipses in C, and in Alloy, an underscore.
+take an unspecified amount of arguments. This is denoted with an ellipses in C, and in Ark, an underscore.
 Note that this is mostly for backwards compatibility with C code, and we don't suggest you use it in your code
 generally. Once you've created the prototype, it is called like any other function.
 
-Here's an example of printf in Alloy:
+Here's an example of printf in Ark:
 
 	// main.aly
 	func printf(format: str, _): int;
@@ -439,7 +439,7 @@ Here's an example of printf in Alloy:
 	}
 
 ## File Inclusion
-File inclusion is very simple in Alloy. One of the problems with C is the tedious header files. To include
+File inclusion is very simple in Ark. One of the problems with C is the tedious header files. To include
 a file, you must use the `use` macro<sup>disclaimer: not an actual macro yet, but it still works</sup>, which is
 the `use` keyword followed by the filename to include (minus the `aly` extension) in quotes. For example:
 
@@ -479,7 +479,7 @@ And we can use this library in a file:
 Note that you need to compile any files that you use, so the code sample above
 would be compiled as:
 
-	alloyc math.aly main.aly
+	arkc math.aly main.aly
 
 The files must also be compiled in order. We plan to fix this soon.
 
@@ -502,7 +502,7 @@ that points to it. This is again done with the caret (`^`), for example:
 We've introduced a new variable `z`, that stored the value at the address `y`, in other words, the value of `x`.
 
 ## Managing Memory
-Alloy is not a garbage collected language, therefore when you allocate memory, you must free it after you are
+Ark is not a garbage collected language, therefore when you allocate memory, you must free it after you are
 no longer using it. We felt that, as unsafe as it is to rely on the user to manage the memory being allocated, performance takes a higher precedence. Although garbage collection makes things fool-proof and removes a significant amount of workload from the user, it inhibits the performance we were going for. 
 
 Memory is allocated using the `alloc` keyword and freed using the `free` keyword. The size of a particular type can be found using the `sizeof` operator, much like C. The `realloc` keyword can be used to reallocate a chunk of memory, in case it needs to be of a larger/smaller size.
@@ -538,7 +538,7 @@ statement operator `->`, or a block if you want to do multiple statements:
 Each clause must end with a semi-colon, including blocks.
 
 ### For Loops
-For loops are a little more different in Alloy. There are no while loops, or do-while loops.
+For loops are a little more different in Ark. There are no while loops, or do-while loops.
 
 #### Infinite Loop
 If you want to just loop till you break, you write a for loop with no condition, for instance:
@@ -585,7 +585,7 @@ bracket.
 
 Here's an example with an `Option` type as a function return type. These are especially useful for
 cleanly checking for errors in your code. Note that the example below is semi-pseudo code, i.e.
-the functions that it calls do not exist, since we haven't written any file IO libraries for Alloy
+the functions that it calls do not exist, since we haven't written any file IO libraries for Ark
 yet.
 
 	func read_file(name: str): ?str {
@@ -661,8 +661,8 @@ at the end of the initializing block, this is because it's still a statement.
 
 ## Generics
 We're still thinking about this, want to suggest an idea/have your say? Post an issue, or comment
-on an existing one (relevant to the topic) [here](https://github.com/alloy-lang/alloy/issues).
+on an existing one (relevant to the topic) [here](https://github.com/ark-lang/ark/issues).
 
 ## Macro System
 We're still thinking about this, want to suggest an idea/have your say? Post an issue, or comment
-on an existing one (relevant to the topic) [here](https://github.com/alloy-lang/alloy/issues).
+on an existing one (relevant to the topic) [here](https://github.com/ark-lang/ark/issues).
