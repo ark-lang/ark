@@ -86,8 +86,11 @@ func Parse(tokens []*lexer.Token, verbose bool) *File {
 
 func (v *parser) parse() {
 	for v.peek(0) != nil {
-		v.parseStatement()
-		v.consumeToken()
+		if n := v.parseStatement(); n != nil {
+			v.pushNode(n)
+		} else {
+			v.consumeToken() // TODO
+		}		
 	}
 }
 
