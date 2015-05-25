@@ -1,0 +1,12 @@
+# The library for input and output, currently
+# it's bindings to C's standard input output library
+
+# C Bindings
+func getchar(): int;
+func remove(filename: str): int;
+func rename(oldFilename: str, newFilename: str): int;
+func putchar(c: int): int;
+func printf(format: str, _): int;
+func perror(message: str);
+
+# Native
