@@ -41,6 +41,19 @@ typedef enum {
 	ALLOC_NODE, SIZEOF_NODE, FREE_STAT_NODE, NUM_OF_NODES
 } NodeType;
 
+/**
+ * The data types that are supported by the compiler,
+ * again mostly for lookups.
+ *
+ * THIS MUST START AT 1! (true checking shit makes it easier)
+ */
+typedef enum {
+	INT_128_TYPE, INT_64_TYPE, INT_32_TYPE, INT_16_TYPE, INT_8_TYPE,
+	UINT_128_TYPE, UINT_64_TYPE, UINT_32_TYPE, UINT_16_TYPE, UINT_8_TYPE,
+	FLOAT_128_TYPE, FLOAT_64_TYPE, FLOAT_32_TYPE, BYTE_TYPE,
+	INT_TYPE, BOOL_TYPE, CHAR_TYPE, VOID_TYPE, UNKNOWN_TYPE
+} DataType;
+
 extern const char *NODE_NAME[];
 
 typedef enum {
@@ -69,6 +82,7 @@ typedef struct {
 typedef struct {
 	Type *type; // if we're allocating by type
 	size_t size; // if we're allocating by set size
+	// what about expressions yo?!!?!
 } Alloc;
 
 /**
@@ -139,6 +153,7 @@ typedef struct {
 	char *name;
 	int type;
 	bool isArray;
+	int dataType;
 	int arrayLen;
 } TypeName;
 

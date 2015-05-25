@@ -75,17 +75,6 @@ typedef enum {
 } LiteralType;
 
 /**
- * The data types that are supported by the compiler,
- * again mostly for lookups.
- */
-typedef enum {
-	INT_128_TYPE, INT_64_TYPE, INT_32_TYPE, INT_16_TYPE, INT_8_TYPE,
-	UINT_128_TYPE, UINT_64_TYPE, UINT_32_TYPE, UINT_16_TYPE, UINT_8_TYPE,
-	FLOAT_128_TYPE, FLOAT_64_TYPE, FLOAT_32_TYPE, BYTE_TYPE,
-	INT_TYPE, BOOL_TYPE, CHAR_TYPE, VOID_TYPE, UNKNOWN_TYPE
-} DataType;
-
-/**
  * @return the datatype (enum) that corresponds to
  * the given string. Note this compares names, not values,
  * i.e. don't mistake this for type inferrence. It will just
