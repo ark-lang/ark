@@ -38,7 +38,7 @@ VectorItem getVectorItem(Vector *vec, int index) {
 }
 
 VectorItem getVectorTop(Vector *vec) {
-	return getVectorItem(vec, vec->size);
+	return getVectorItem(vec, vec->size - 1);
 }
 
 void destroyVector(Vector *vec) {
