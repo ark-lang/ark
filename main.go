@@ -8,6 +8,7 @@ import (
 	"github.com/ark-lang/ark-go/lexer"
 	"github.com/ark-lang/ark-go/parser"
 	//"github.com/ark-lang/ark-go/codegen"
+	//"github.com/ark-lang/ark-go/codegen/LLVMCodegen"
 )
 
 var versionFlag = flag.Bool("version", false, "show version information")
@@ -38,6 +39,9 @@ func main() {
 	for _, file := range sourcefiles {
 		parsedFiles = append(parsedFiles, parser.Parse(file.Tokens, verbose))
 	}
+	
+	//gen := &LLVMCodegen.LLVMCodegen {}
+	//gen.Generate()
 }
 
 func check(err error) {
