@@ -12,6 +12,18 @@ bool isASCII(char c) {
 	return ((c & (~0x7f)) == 0);
 }
 
+char *boldText(char *s) {
+	#ifdef WINDOWS
+		return s;
+	#else
+		sds result = sdsempty();
+		result = sdscat(result, "\x1B[01m");
+		result = sdscat(result, s);
+		result = sdscat(result, "\x1B[00m");
+		return result;
+	#endif
+}
+
 sds randString(size_t length) {
     static char charset[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_";
     sds randomString = sdsempty();

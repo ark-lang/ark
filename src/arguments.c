@@ -24,8 +24,8 @@ Vector *eatArguments() {
 
 int printArgument(any_t __attribute__((unused)) passedData, any_t item) {
     Argument *arg = item;
-    int width = 15;
-    printf("  %-*s %s\n", width, arg->argName, arg->argDescription);
+    int width = 20;
+    printf("  %-*s %s\n", width, boldText(arg->argName), arg->argDescription);
     return MAP_OK;
 }
 
