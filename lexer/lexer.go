@@ -20,14 +20,14 @@ type lexer struct {
 	verbose bool
 }
 
-func (v *lexer) errWithCustomPosition(err string, ln, cn int) {
+func (v *lexer) errWithCustomPosition(ln, cn int, err string, stuff... interface {}) {
 	fmt.Printf(util.TEXT_RED + util.TEXT_BOLD + "Lexer error:" + util.TEXT_RESET + " [%s:%d:%d] %s\n",
-			v.filename, ln, cn, err)
+			v.filename, ln, cn, fmt.Sprintf(err, stuff))
 	os.Exit(1)
 }
 
-func (v *lexer) err(err string) {
-	v.errWithCustomPosition(err, v.lineNumber, v.charNumber)
+func (v *lexer) err(err string, stuff... interface {}) {
+	v.errWithCustomPosition(v.lineNumber, v.charNumber, err, stuff...)
 }
 
 func (v *lexer) peek(ahead int) rune {
@@ -55,7 +55,7 @@ func (v *lexer) expect(r rune) {
 	if v.peek(0) == r {
 		v.consume()
 	} else {
-		v.err(fmt.Sprintf("Expected `%c`, found `%c`", r, v.peek(0)))
+		v.err("Expected `%c`, found `%c`", r, v.peek(0))
 	}
 }
 
@@ -147,7 +147,7 @@ func (v *lexer) skipLayoutAndComments() {
 		
 		for {
 			if isEOF(v.peek(0)) {
-				v.errWithCustomPosition("Unterminated block comment", lineNumber, charNumber)
+				v.errWithCustomPosition(lineNumber, charNumber, "Unterminated block comment")
 			}
 			if v.peek(0) == '*' && v.peek(1) == '/' {
 				v.consume()
@@ -242,7 +242,7 @@ func (v *lexer) recognizeStringToken() {
 			v.pushToken(TOKEN_STRING)
 			return
 		} else if isEOF(v.peek(0))	{
-			v.errWithCustomPosition("Unterminated string literal", lineNumber, charNumber)
+			v.errWithCustomPosition(lineNumber, charNumber, "Unterminated string literal")
 		} else {
 			v.consume()
 		}
@@ -268,7 +268,7 @@ func (v *lexer) recognizeCharacterToken() {
 			v.pushToken(TOKEN_CHARACTER)
 			return
 		} else if isEOF(v.peek(0)) {
-			v.errWithCustomPosition("Unterminated character literal", lineNumber, charNumber)
+			v.errWithCustomPosition(lineNumber, charNumber, "Unterminated character literal")
 		} else {
 			v.consume()
 		}

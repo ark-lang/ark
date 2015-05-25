@@ -18,7 +18,7 @@ type parser struct {
 }
 
 func (v *parser) err(err string, stuff... interface {}) {
-	fmt.Printf(util.TEXT_RED + util.TEXT_BOLD + "Lexer error:" + util.TEXT_RESET + " [%s:%d:%d] %s\n",
+	fmt.Printf(util.TEXT_RED + util.TEXT_BOLD + "Parser error:" + util.TEXT_RESET + " [%s:%d:%d] %s\n",
 			v.peek(0).Filename, v.peek(0).LineNumber, v.peek(0).CharNumber, fmt.Sprintf(err, stuff...))
 	os.Exit(2)
 }
