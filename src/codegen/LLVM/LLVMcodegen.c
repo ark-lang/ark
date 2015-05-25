@@ -10,6 +10,7 @@ LLVMCodeGenerator *createLLVMCodeGenerator(Vector *sourceFiles) {
 	self->currentNode = 0;
 	self->sourceFiles = sourceFiles;
 	self->builder = LLVMCreateBuilder();
+	self->namedValues = hashmap_new();
 	return self;
 }
 
@@ -20,6 +21,9 @@ void destroyLLVMCodeGenerator(LLVMCodeGenerator *self) {
 		destroySourceFile(sourceFile);
 		verboseModeMessage("Destroyed source files iteration %d", i);
 	}
+
+	// TODO clear named values
+	hashmap_free(self->namedValues);
 
 	free(self);
 	verboseModeMessage("Destroyed compiler");
@@ -51,7 +55,6 @@ LLVMValueRef genBinaryExpression(LLVMCodeGenerator *self, BinaryExpr *expr) {
 		// TODO
 	}
 
-	// FIXME
 	bool floating = false; // isFloatingType(lhs) || isFloatingType(rhs)
 
 	if (!strcmp(expr->binaryOp, "+")) {
@@ -84,7 +87,9 @@ LLVMValueRef genFunctionCall(LLVMCodeGenerator *self, Call *call) {
 
 	LLVMValueRef *args = malloc(sizeof(LLVMValueRef) * call->arguments->size);
 	for (int i = 0; i < call->arguments->size; i++) {
-		args[i] = genExpression(self, getVectorItem(call->arguments, i));
+		Expression *expr = getVectorItem(call->arguments, i);
+		args[i] = genExpression(self, expr);
+
 		if (!args[i]) {
 			genError("Could not evaluate argument in function call %s", funcName);
 			free(args);
@@ -96,8 +101,16 @@ LLVMValueRef genFunctionCall(LLVMCodeGenerator *self, Call *call) {
 }
 
 LLVMValueRef genTypeName(LLVMCodeGenerator *self, TypeName *name) {
-	int typeAsEnum = getTypeFromString(name->name);
-	return getLLVMType(typeAsEnum);
+	if (name->dataType == UNKNOWN_TYPE) {
+		VariableReference *ref = NULL;
+		if (hashmap_get(self->namedValues, name->name, (void**) &ref) == MAP_OK) {
+			return ref->value;
+		}
+	}
+	else {
+		int typeAsEnum = getTypeFromString(name->name);
+		return getLLVMType(typeAsEnum);
+	}
 }
 
 LLVMValueRef genLiteral(LLVMCodeGenerator *self, Literal *lit) {
@@ -107,6 +120,7 @@ LLVMValueRef genLiteral(LLVMCodeGenerator *self, Literal *lit) {
 		case FLOAT_LITERAL_NODE:
 			return LLVMConstReal(LLVMFloatType(), lit->intLit->value);
 		case STRING_LITERAL_NODE: {
+			// this is kind of wrong
 			size_t stringLength = strlen(lit->stringLit->value);
 			LLVMValueRef str = LLVMAddGlobal(self->currentSourceFile->module, LLVMArrayType(LLVMInt8Type(), stringLength), "");
 			LLVMSetLinkage(str, LLVMInternalLinkage);
@@ -131,10 +145,12 @@ LLVMValueRef genTypeLit(LLVMCodeGenerator *self, TypeLit *lit) {
 
 LLVMValueRef genType(LLVMCodeGenerator *self, Type *type) {
 	switch (type->type) {
-		case TYPE_NAME_NODE:
+		case TYPE_NAME_NODE: {
 			return genTypeName(self, type->typeName);
-		case TYPE_LIT_NODE:
+		}
+		case TYPE_LIT_NODE: {
 			return genTypeLit(self, type->typeLit);
+		}
 		default:
 			printf("todo\n");
 			break;
@@ -198,6 +214,16 @@ LLVMValueRef genFunctionSignature(LLVMCodeGenerator *self, FunctionDecl *decl) {
 		if (decl->signature->isExtern) {
 			LLVMSetLinkage(func, LLVMExternalLinkage);
 		}
+
+		for (int i = 0; i < argCount; i++) {
+			LLVMValueRef param = LLVMGetParam(func, i);
+			ParameterSection *paramSection = getVectorItem(signature->parameters->paramList, i);
+			LLVMSetValueName(param, paramSection->name);
+
+			VariableReference *ref = createVariableRef(paramSection->name);
+			ref->value = param;
+			hashmap_put(self->namedValues, paramSection->name, ref);
+		}
 	}
 
 	return func;
@@ -259,6 +285,10 @@ LLVMValueRef genVariableDecl(LLVMCodeGenerator *self, VariableDecl *decl) {
 	}
 	else {
 		LLVMValueRef alloc = LLVMBuildAlloca(self->builder, genType(self, decl->type), decl->name);
+		VariableReference *ref = createVariableRef(decl->name);
+		ref->value = alloc;
+		hashmap_put(self->namedValues, decl->name, ref);
+
 		if (decl->expr) {
 			LLVMBuildStore(self->builder, genExpression(self, decl->expr), alloc);
 		}
@@ -343,10 +373,11 @@ void convertBitcodeToAsm(LLVMCodeGenerator *self, sds bitcodeName) {
 	toAsmCommand = sdscat(toAsmCommand, " -o ");
 	toAsmCommand = sdscat(toAsmCommand, asmFilename);
 	
-	int toasmresult = system(toAsmCommand);
-	if (toasmresult) {
+	FILE *pipe = popen(toAsmCommand, "r");
+	if (!pipe) {
 		genError("Couldn't assemble bitcode file %s", bitcodeName);
 	}
+	pclose(pipe);
 
 	int removeBitcodeResult = remove(bitcodeName);
 	if (removeBitcodeResult) {
@@ -373,10 +404,11 @@ void createBinary(LLVMCodeGenerator *self) {
 	linkCommand = sdscat(linkCommand, " -o ");
 	linkCommand = sdscat(linkCommand, OUTPUT_EXECUTABLE_NAME);
 	
-	int linkResult = system(linkCommand);
-	if (linkResult) {
+	FILE *pipe = popen(linkCommand, "r");
+	if (!pipe) {
 		genError("Couldn't link object files");
 	}
+	pclose(pipe);
 
 	sdsfree(linkCommand);
 	
@@ -480,7 +512,7 @@ LLVMTypeRef getLLVMType(DataType type) {
 			return LLVMVoidType();
 			
 		case UNKNOWN_TYPE:
-			genError("Unknown type");
+			genError("Unknown type %d\n", type);
 			return NULL;
 	}
 }
