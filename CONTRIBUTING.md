@@ -21,6 +21,7 @@ We love Pull Requests! If you are planning on contributing, please read this lis
 * Make sure you work on a separate branch
 * Make sure your patch is up-to-date with the master branch, if not, please rebase
 * If you are implementing a feature of some kind, please add a test if there is not an existing one already
+* Please add a summary or brief description of your PR, however, the more detail the better
 
 ## Fixing Bugs
 If you've found a bug when implementing a feature, or want to
