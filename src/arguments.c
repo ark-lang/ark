@@ -22,17 +22,17 @@ Vector *eatArguments() {
     return vec;
 }
 
+int printArgument(any_t __attribute__((unused)) passedData, any_t item) {
+    Argument *arg = item;
+    int width = 20;
+    printf("  %-*s %s\n", width, boldText(arg->argName), arg->argDescription);
+    return MAP_OK;
+}
+
 void help() {
-    // eventually this should iterate through the hasmap
-    // and print out all of the help description shit
     printf("Usage:\n\n  ark command [arguments]\n\n");
     printf("Commands:\n\n");
-    printf("  help                      Shows this help menu\n");
-    printf("  verbose                   Verbose compilation\n");
-    printf("  debug                     Logs extra debug information\n");
-    printf("  out <file>                Place the output into <file>\n");
-    printf("  version                   Shows current version\n");
-    printf("  compiler <name>           Sets the C compiler to <name> (default: cc)\n");
+    hashmap_iterate(arguments, printArgument, NULL);
     printf("\n");
 }
 
@@ -53,6 +53,7 @@ void out() {
     }
     OUTPUT_EXECUTABLE_NAME = topItem;
     printf("setting OUTPUT_EXECUTABLE_NAME to %s\n", topItem);
+    destroyVector(args);
 }
 
 void version() {
@@ -68,6 +69,12 @@ void compiler() {
     }
     printf("setting compiler to %s\n", topItem);
     COMPILER = topItem;
+    destroyVector(args);
+}
+
+int destroyArguments(any_t __attribute__((unused)) passedData, any_t item) {
+    destroyArgument(item);
+    return MAP_OK;
 }
 
 Vector *setup_arguments(int argc, char** argv) {
@@ -110,6 +117,7 @@ Vector *setup_arguments(int argc, char** argv) {
     }
 
     // memory leak here
+    hashmap_iterate(arguments, destroyArguments, NULL);
     hashmap_free(arguments);
 
     return result;
