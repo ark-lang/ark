@@ -1,11 +1,10 @@
 <h1 align="center"><a href="http://ark-lang.org">The Ark Programming Language</a></h1>
 
-
 ## Notice
 **For the final time, we've changed our name. We're the *Ark* programming language now. We had to get rid of Alloy due to some complications, and finalized on Ark. The entire discussion (which is rather long for a name change) can be found on [issue #195](https://github.com/ark-lang/ark/issues/195).**
 
 ## Notice 2
-We're also currently porting the backend from C to LLVM, this may take a while and things will be broken. If
+We're also currently porting the backend from C to **LLVM**, this may take a while and things will be broken. If
 you want to checkout the progress, have a look at [issue #345](https://github.com/ark-lang/ark/issues/345).
 
 
@@ -37,7 +36,8 @@ You will need:
 
 We're using LLVM by default now, so you can just run `make` to create the executable.
 
-However, note that the LLVM backend is currently very incomplete, and is only recommended for development purposes. We're working as fast as possible to get it as stable as possible.
+However, note that the LLVM backend is currently very incomplete, and is only recommended for development purposes. 
+We're working as fast as possible to get it as stable as possible.
 
 ### Testing
 Note that python is required.
@@ -48,10 +48,6 @@ If arkc is in your `$PATH`:
 If arkc is not in your `$PATH`:
 
 	$ PATH=$PATH:"./bin/" ./test.py
-
-## Status
-Ark is still constantly being worked on. At the moment it compiles,
-however some aspects of the language are unimplemented or broken.
 
 ## Just show me what it looks like already
 Sure, you can either see a small virtual machine implemented in Ark [here](tests/vm.aly). 
