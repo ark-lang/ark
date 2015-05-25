@@ -56,16 +56,6 @@ Scope *createScope() {
 	return self;
 }
 
-void destroyScope(Scope *self) {
-	hashmap_free(self->funcSymTable);
-	hashmap_free(self->varSymTable);
-	hashmap_free(self->structSymTable);
-	hashmap_free(self->paramSymTable);
-	hashmap_free(self->implSymTable);
-	hashmap_free(self->implFuncSymTable);
-	free(self);
-}
-
 static char *getLoopIndex(SemanticAnalyzer *self, Expression *expr) {
 	switch (expr->exprType) {
 		case BINARY_EXPR_NODE: {
@@ -650,11 +640,18 @@ void popScope(SemanticAnalyzer *self) {
 	free(scope);
 }
 
+int freeDataTypes(any_t __attribute__((unused)) passedData, any_t item) {
+	destroyVarType(item);
+	return MAP_OK;
+}
+
 void destroySemanticAnalyzer(SemanticAnalyzer *self) {
 	// clear up the remaining scope stuff
 	for (int i = 0; i < self->scopes->stackPointer; i++) {
 		popScope(self);
 	}
+
+	hashmap_iterate(self->dataTypes, freeDataTypes, NULL);
 	hashmap_free(self->dataTypes);
 	destroyStack(self->scopes);
 
