@@ -1,6 +1,6 @@
 # standard library for memory allocation
 
-!use "stdlib"
+!use "std"
 
 struct Block {}
 

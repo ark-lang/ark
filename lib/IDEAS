@@ -1,4 +1,0 @@
-* Possibly rename stdio to just io
-* Possibly rename stdlib to std
-* It seems like a good idea to rename the functions later on so they are more consistent, once more conventions for Ark are established. For example, remove() could be renamed to * emoveFile(), because remove() is an inspecific function name clogging up the global namespace.
-* Speaking of namespaces, should a module/namespace system be implemented?

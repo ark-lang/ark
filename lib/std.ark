@@ -1,13 +1,7 @@
-//
-// stdlib.aly
-// This file contains the Ark standard IO library.
-// Right now, most of it is a wrapper around the C stdio library.
-//
+# This file contains the Ark standard IO library.
+# Right now, most of it is a wrapper around the C stdio library.
 
-//
-// Wrapper functions
-//
-
+# C Bindings
 func atof(inp: str): f64;
 func atoi(inp: str): int;
 func free(ptr: ^void);
@@ -19,9 +13,7 @@ func exit(status: int);
 func getenv(name: str): str;
 func system(command: str): int;
 
-//
-// Native functions
-//
+# Native
 
 func abs(x: int): int {
 	if x < 0 {
