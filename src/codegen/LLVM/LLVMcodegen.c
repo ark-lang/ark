@@ -97,7 +97,6 @@ LLVMValueRef genFunctionCall(LLVMCodeGenerator *self, Call *call) {
 
 LLVMValueRef genTypeName(LLVMCodeGenerator *self, TypeName *name) {
 	int typeAsEnum = getTypeFromString(name->name);
-	printf("type: %s\n", name->name);
 	return getLLVMType(typeAsEnum);
 }
 
@@ -107,6 +106,14 @@ LLVMValueRef genLiteral(LLVMCodeGenerator *self, Literal *lit) {
 			return LLVMConstInt(getIntType(), lit->intLit->value, false);
 		case FLOAT_LITERAL_NODE:
 			return LLVMConstReal(LLVMFloatType(), lit->intLit->value);
+		case STRING_LITERAL_NODE: {
+			size_t stringLength = strlen(lit->stringLit->value);
+			LLVMValueRef str = LLVMAddGlobal(self->currentSourceFile->module, LLVMArrayType(LLVMInt8Type(), stringLength), "");
+			LLVMSetLinkage(str, LLVMInternalLinkage);
+  			LLVMSetGlobalConstant(str, true);
+  			LLVMSetInitializer(str, LLVMConstString(lit->stringLit->value, stringLength, true));
+  			return str;
+		}
 		default:
 			printf("hmm?\n");
 			break;
@@ -243,7 +250,8 @@ LLVMValueRef genVariableDecl(LLVMCodeGenerator *self, VariableDecl *decl) {
 	if (scope == GLOBAL_SCOPE) {
 		LLVMValueRef expr = genExpression(self, decl->expr);
 		if (expr) {
-			LLVMAddGlobal(self->currentSourceFile->module, expr, decl->name);
+			LLVMValueRef glob = LLVMAddGlobal(self->currentSourceFile->module, genType(self, decl->type), decl->name);
+			LLVMSetGlobalConstant(glob, !decl->mutable);
 		}
 		else {
 			genError("Invalid expr");
