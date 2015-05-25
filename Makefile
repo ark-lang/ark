@@ -21,7 +21,7 @@ SOURCES = $(wildcard src/*.c) \
 all: ${SOURCES}
 	@mkdir -p bin/
 	@${CC} ${CFLAGS} $(INCLUDES) ${SOURCES} -c ${SOURCES}
-	@${CXX} *.o ${LDFLAGS} -o bin/arkc 
+	@${CXX} *.o ${LDFLAGS} -o bin/ark 
 	@-rm *.o
 
 clean:
