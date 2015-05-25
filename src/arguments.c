@@ -77,6 +77,7 @@ Vector *setup_arguments(int argc, char** argv) {
     arg_count = argc;
     arg_value = argv;
 
+    // memory leaks will fix when its not 4am in the morning
     hashmap_put(arguments, "help", createArgument("help", "Shows this help menu", 0, &help));
     hashmap_put(arguments, "verbose", createArgument("verbose", "Verbose compilation", 0, &verbose));
     hashmap_put(arguments, "debug", createArgument("debug", "Logs extra debug information", 0, &debug));
@@ -107,6 +108,9 @@ Vector *setup_arguments(int argc, char** argv) {
             }
         }
     }
+
+    // memory leak here
+    hashmap_free(arguments);
 
     return result;
 }
