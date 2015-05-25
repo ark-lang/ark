@@ -1196,7 +1196,6 @@ FunctionDecl *parseFunctionDecl(Parser *self) {
 				decl->signature = signature;
 				decl->body = block;
 				decl->prototype = false;
-
 				return decl;
 			}
 		}
@@ -1446,7 +1445,19 @@ int getTokenPrecedence(Parser *self) {
 
 TypeName *parseTypeName(Parser *self) {
 	if (checkTokenType(self, TOKEN_IDENTIFIER, 0)) {
-		return createTypeName(consumeToken(self)->content);
+		char *name = consumeToken(self)->content;
+		TypeName *result = createTypeName(name);
+
+		// set the type if it needs to be set?
+		int dataType = getTypeFromString(name);
+		if (dataType != UNKNOWN_TYPE) {
+			result->dataType = dataType;
+		} 
+		else {
+			result->dataType = UNKNOWN_TYPE;
+		}
+
+		return result;
 	}
 	return false;
 }

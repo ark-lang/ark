@@ -66,9 +66,9 @@ for name in files:
 		print(bold("Compiling ") + name + "...")
 	
 	if show_output:
-		compile_result = subprocess.call(["arkc", "tests/" + name, "-o", "tests/" + output_file])
+		compile_result = subprocess.call(["ark", "tests/" + name, "-o", "tests/" + output_file])
 	else:
-		compile_result = subprocess.call(["arkc", "tests/" + name, "-o", "tests/" + output_file], stdout=FNULL, stderr=subprocess.STDOUT)
+		compile_result = subprocess.call(["ark", "tests/" + name, "-o", "tests/" + output_file], stdout=FNULL, stderr=subprocess.STDOUT)
 
 	if compile_result != 0:
 		if show_output: 
