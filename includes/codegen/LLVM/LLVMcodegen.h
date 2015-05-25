@@ -11,6 +11,7 @@
 #include <llvm-c/Analysis.h>
 #include <llvm-c/BitWriter.h>
 
+#include "variable.h"
 #include "util.h"
 #include "parser.h"
 #include "vector.h"
@@ -44,6 +45,8 @@ typedef struct {
 	 * IR Builder Reference
 	 */
 	LLVMBuilderRef builder;
+
+	map_t namedValues;
 
 	/**
 	 * Our index in the abstract syntax
