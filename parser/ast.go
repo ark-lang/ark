@@ -18,3 +18,20 @@ type Decl interface {
 	Node
 	declNode()
 }
+
+
+type Variable struct {
+	Type Type
+	Name string
+	Mutable bool
+}
+
+
+// Nodes
+
+type VariableDecl struct {
+	Variable *Variable
+	Assignment Expr
+}
+
+func (v *VariableDecl) declNode() {}

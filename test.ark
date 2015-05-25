@@ -8,7 +8,6 @@
 
 s1: str = "he\"llo";
 c1: i8 = 'r';
-c2 := '\'';
 
 func ten(): int {
 	return 0x05 + 5;
