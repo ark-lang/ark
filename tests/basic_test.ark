@@ -8,6 +8,6 @@ func add(a: int, b: int): int {
 
 func main(): int {
     x: i32 = 10;
-    add(5, 5);
+    add(x, 5);
     return 12;
 }
