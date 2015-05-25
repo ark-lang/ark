@@ -10,15 +10,8 @@
 #include "parser.h"
 #include "semantic.h"
 #include "LLVM/LLVMcodegen.h"
-
-#define DEBUG_MODE_ARG 		"-d"
-#define HELP_ARG       		"-h"
-#define VERBOSE_ARG    		"-v"
-#define OUTPUT_ARG     		"-o"
-#define OUTPUT_C_ARG   		"-c"
-#define COMPILER_ARG   		"--compiler"
-#define VERSION_ARG    		"--version"
-#define IGNORE_MAIN_ARG		"--no-main"
+#include "hashmap.h"
+#include "arguments.h"
 
 /**
  * For handling command line
@@ -38,6 +31,8 @@ typedef struct {
 	LLVMCodeGenerator *generatorLLVM;
 	SemanticAnalyzer *semantic;
 	Vector *sourceFiles;
+
+    map_t arguments;
 } Compiler;
 
 /**
