@@ -15,8 +15,9 @@ void destroyArgument(Argument *arg) {
 
 Vector *eatArguments() {
     Vector *vec = createVector(VECTOR_EXPONENTIAL);
-    for (int i = 1; i < currentArgument->arguments + 1; i++) {
-        pushBackItem(vec, argv[i]);
+    for (int i = currentArgumentIndex; i < currentArgument->arguments + currentArgumentIndex; i++) {
+        char *value = arg_value[i + 1];
+        pushBackItem(vec, value);
     }
     return vec;
 }
@@ -51,6 +52,7 @@ void out() {
         return;
     }
     OUTPUT_EXECUTABLE_NAME = topItem;
+    printf("setting OUTPUT_EXECUTABLE_NAME to %s\n", topItem);
 }
 
 void version() {
@@ -64,12 +66,16 @@ void compiler() {
         errorMessage("Missing argument, expected %d arguments for command `%s`", currentArgument->arguments, currentArgument->argName);
         return;
     }
+    printf("setting compiler to %s\n", topItem);
     COMPILER = topItem;
 }
 
 Vector *setup_arguments(int argc, char** argv) {
     arguments = hashmap_new();
     Vector *result = createVector(VECTOR_EXPONENTIAL);
+
+    arg_count = argc;
+    arg_value = argv;
 
     hashmap_put(arguments, "help", createArgument("help", "Shows this help menu", 0, &help));
     hashmap_put(arguments, "verbose", createArgument("verbose", "Verbose compilation", 0, &verbose));
@@ -92,6 +98,8 @@ Vector *setup_arguments(int argc, char** argv) {
             Argument *arg = NULL;
             if (hashmap_get(arguments, argv[i], (void**) &arg) == MAP_OK) {
                 currentArgument = arg;
+                currentArgumentIndex = i;
+                i += arg->arguments;
                 arg->action();
             }
             else {
