@@ -157,8 +157,9 @@ func (v *parser) parseVariableDecl() *VariableDecl {
 			if varDecl.Assignment == nil {
 				v.err("Expected expression in assignment to variable `%s`", variable.Name)
 			}
-
-		} else if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ";") {
+		}
+		
+		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ";") {
 			v.consumeToken()
 		} else {
 			v.err("Missing semicolon at end of variable declaration")
