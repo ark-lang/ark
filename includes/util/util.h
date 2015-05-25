@@ -28,9 +28,11 @@
 #ifdef WINDOWS
 	#define GET_RED_TEXT(x) (x)
 	#define GET_ORANGE_TEXT(x) (x)
+    #define BOLD_TEXT(x) (x)
 #else
 	#define GET_RED_TEXT(x) ("\x1B[31m" x "\x1B[00m")
 	#define GET_ORANGE_TEXT(x) ("\x1B[33m" x "\x1B[00m")
+    #define BOLD_TEXT(x) ("\x1B[01m" x "\x1B[00m")
 #endif
 
 /** macro for array length */
@@ -59,6 +61,8 @@ bool isASCII(char c);
  * @return  a new char instance
  */
 char *customStrdup(const char *s);
+
+char *boldText(char *s);
 
 /**
  * Generates a random string of the given length
