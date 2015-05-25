@@ -44,25 +44,25 @@ func (v *VariableDecl) declNode() {}
  */
 
 type RuneLiteral struct {
-	value rune
+	Value rune
 }
 
 func (v *RuneLiteral) exprNode() {}
 
 type IntegerLiteral struct {
-	value uint64
+	Value uint64
 }
 
 func (v *IntegerLiteral) exprNode() {}
 
 type FloatingLiteral struct {
-	value float64
+	Value float64
 }
 
 func (v *FloatingLiteral) exprNode() {}
 
 type StringLiteral struct {
-	value string
+	Value string
 }
 
 func (v *StringLiteral) exprNode() {}

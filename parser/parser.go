@@ -202,7 +202,7 @@ func (v *parser) parseNumericLiteral() Expr {
 	if strings.HasPrefix(num, "0x") || strings.HasPrefix(num, "0X") {
 		// Hexadecimal integer
 		hex := &IntegerLiteral {}
-		hex.value, err = strconv.ParseUint(num[2:], 16, 64)
+		hex.Value, err = strconv.ParseUint(num[2:], 16, 64)
 		if err != nil {
 			panic("bad hex got through lexer")
 		}
@@ -210,7 +210,7 @@ func (v *parser) parseNumericLiteral() Expr {
 	} else if strings.HasPrefix(num, "0b") {
 		// Binary integer
 		bin := &IntegerLiteral {}
-		bin.value, err = strconv.ParseUint(num[2:], 2, 64)
+		bin.Value, err = strconv.ParseUint(num[2:], 2, 64)
 		if err != nil {
 			panic("bad binary got through lexer")
 		}
@@ -218,7 +218,7 @@ func (v *parser) parseNumericLiteral() Expr {
 	} else if strings.HasPrefix(num, "0o") {
 		// Octal integer
 		oct := &IntegerLiteral {}
-		oct.value, err = strconv.ParseUint(num[2:], 8, 64)
+		oct.Value, err = strconv.ParseUint(num[2:], 8, 64)
 		if err != nil {
 			panic("bad octal got through lexer")
 		}
@@ -233,7 +233,7 @@ func (v *parser) parseNumericLiteral() Expr {
 	} else {
 		// Decimal integer
 		i := &IntegerLiteral {}
-		i.value, err = strconv.ParseUint(num, 10, 64)
+		i.Value, err = strconv.ParseUint(num, 10, 64)
 		if err != nil {
 			panic("bad decimal got through lexer")
 		}
