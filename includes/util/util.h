@@ -62,6 +62,8 @@ bool isASCII(char c);
  */
 char *customStrdup(const char *s);
 
+char *boldText(char *s);
+
 /**
  * Generates a random string of the given length
  * @param length the length of the string
