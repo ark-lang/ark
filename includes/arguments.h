@@ -13,9 +13,10 @@ typedef struct {
 } Argument;
 
 static map_t *arguments;
-static int argc;
-static char **argv;
+static int arg_count;
+static char **arg_value;
 static Argument *currentArgument;
+static int currentArgumentIndex;
 
 Argument *createArgument(char *argName, char *argDescription, size_t arguments, void (*action)(void));
 
