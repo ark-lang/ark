@@ -176,6 +176,9 @@ func (v *parser) parseVariableDecl() *VariableDecl {
 
 func (v *parser) parseExpr() Expr {
 	if litExpr := v.parseLiteral(); litExpr != nil {
+		if i, ok := litExpr.(*IntegerLiteral); ok {
+			fmt.Println(i.Value)
+		}
 		return litExpr
 	}
 	return nil
@@ -203,25 +206,34 @@ func (v *parser) parseNumericLiteral() Expr {
 	if strings.HasPrefix(num, "0x") || strings.HasPrefix(num, "0X") {
 		// Hexadecimal integer
 		hex := &IntegerLiteral {}
-		hex.Value, err = strconv.ParseUint(num[2:], 16, 64)
-		if err != nil {
-			panic("bad hex got through lexer")
+		for _, r := range num[2:] {
+			if r == '_' {
+				continue
+			}
+			hex.Value *= 16
+			hex.Value += uint64(hexRuneToInt(r))
 		}
 		return hex
 	} else if strings.HasPrefix(num, "0b") {
 		// Binary integer
 		bin := &IntegerLiteral {}
-		bin.Value, err = strconv.ParseUint(num[2:], 2, 64)
-		if err != nil {
-			panic("bad binary got through lexer")
+		for _, r := range num[2:] {
+			if r == '_' {
+				continue
+			}
+			bin.Value *= 2
+			bin.Value += uint64(binRuneToInt(r))
 		}
 		return bin
 	} else if strings.HasPrefix(num, "0o") {
 		// Octal integer
 		oct := &IntegerLiteral {}
-		oct.Value, err = strconv.ParseUint(num[2:], 8, 64)
-		if err != nil {
-			panic("bad octal got through lexer")
+		for _, r := range num[2:] {
+			if r == '_' {
+				continue
+			}
+			oct.Value *= 8
+			oct.Value += uint64(octRuneToInt(r))
 		}
 		return oct
 	} else if strings.ContainsRune(num, '.') || strings.HasSuffix(num, "f") || strings.HasSuffix(num, "d") {
@@ -254,9 +266,12 @@ func (v *parser) parseNumericLiteral() Expr {
 	} else {
 		// Decimal integer
 		i := &IntegerLiteral {}
-		i.Value, err = strconv.ParseUint(num, 10, 64)
-		if err != nil {
-			panic("bad decimal got through lexer")
+		for _, r := range num {
+			if r == '_' {
+				continue
+			}
+			i.Value *= 10
+			i.Value += uint64(r - '0')
 		}
 		return i
 	}
