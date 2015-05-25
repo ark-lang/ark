@@ -1,7 +1,7 @@
 # ark-go
-Experimental Ark compiler in Go
+Experimental Ark compiler in Go.
 
-You cand find the language reference and other stuff over [here](https://github.com/ark-lang/ark).
+You can find the language reference and other stuff over [here](https://github.com/ark-lang/ark).
 
 	Usage of ark-go:
 	  -input:   input file
@@ -28,7 +28,7 @@ Building ark-go:
 Make sure `$GOPATH/bin` is in your `$PATH`.
 
 ## Styleguide
-* Use tabs for indenting, spaces for alignment.
+* Use tabs for indenting, spaces for alignment
 * Use `v` as the name of the struct a method is called on
 * Use American English (unfortunately)
 
