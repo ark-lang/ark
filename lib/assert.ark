@@ -4,8 +4,8 @@
 // Not based on the C library.
 //
 
-!use "stdio"
-!use "stdlib"
+!use "io"
+!use "std"
 
 // TODO - print to stderr, once it is implemented.
 

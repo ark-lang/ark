@@ -1,30 +1,46 @@
+# Data structure for a simple queue
+
+!use "mem"
+
 struct Queue {
+    # size of the queue
     size: int,
+
+    # index of the next item in the queue
     next: int,
+
+    # the capacity of the queue
     capacity: int,
+
+    # the queues data
     data: ^(^void),
 }
 
 impl Queue {
+
+    # create a new queue with the given
+    # capacity
     func new(capacity: usize) {
         self.size = 0;
         self.next = 0;
         self.capacity = capacity;
-        self.data = alloc ^void;
+        self.data = Block::new(sizeof(^self.data));
     }
 
+    # returns if the queue is full
     func full() {
         return self.size >= size.capacity;
     }
 
-    func dispose() {
-        // parsing error here
-        // perhaps it should be
-        // an expression, not a Type?
-        // free self.data;
-        // free self;
+    # delete the queue
+    func delete() {
+        Block::delete(self.data);
+        Block::delete(self);
     }
 
+    # adds a value to the queue
+    # returns true on success
+    # and false on failure
     func add(value: ^void): bool {
         if (self.full()) {
             return false;
@@ -40,6 +56,7 @@ impl Queue {
         return true;
     }
 
+    # remove a value from the queue
     func remove() {
         mut value: ^void;
 
@@ -53,6 +70,9 @@ impl Queue {
         }
     }
 
+    # peek at the next value in the queue
+    # returns the item in the queue, or
+    # false if there is no item
     func peek(): ^void {
         if self.size {
             return self.data[self.next];
@@ -60,8 +80,4 @@ impl Queue {
         return false;
     }
 
-}
-
-func main(): int {
-    return 0;
 }
