@@ -1,8 +1,6 @@
 package codegen
 
-import (
-	
-)
+import ()
 
 type Codegen interface {
 	Generate()

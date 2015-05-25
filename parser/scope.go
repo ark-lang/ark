@@ -2,25 +2,25 @@ package parser
 
 type Scope struct {
 	Outer *Scope
-	Vars map[string]*Variable
+	Vars  map[string]*Variable
 	Types map[string]Type
 }
 
 func newScope(outer *Scope) *Scope {
-	return &Scope {
+	return &Scope{
 		Outer: outer,
-		Vars: make(map[string]*Variable),
+		Vars:  make(map[string]*Variable),
 		Types: make(map[string]Type),
 	}
 }
 
 func newGlobalScope() *Scope {
 	s := newScope(nil)
-	
+
 	for i := 0; i < len(_PrimitiveType_index); i++ {
 		s.InsertType(PrimitiveType(i))
 	}
-	
+
 	return s
 }
 

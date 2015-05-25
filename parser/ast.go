@@ -1,7 +1,6 @@
 package parser
 
 type Node interface {
-	
 }
 
 type Stat interface {
@@ -19,18 +18,16 @@ type Decl interface {
 	declNode()
 }
 
-
 type Variable struct {
-	Type Type
-	Name string
+	Type    Type
+	Name    string
 	Mutable bool
 }
-
 
 // Nodes
 
 type VariableDecl struct {
-	Variable *Variable
+	Variable   *Variable
 	Assignment Expr
 }
 

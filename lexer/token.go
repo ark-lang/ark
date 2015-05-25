@@ -16,8 +16,8 @@ const (
 )
 
 type Token struct {
-	Type TokenType
-	Contents string
+	Type                   TokenType
+	Contents               string
 	CharNumber, LineNumber int
-	Filename string
+	Filename               string
 }

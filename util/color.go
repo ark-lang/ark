@@ -5,9 +5,9 @@ import (
 )
 
 var (
-	TEXT_BOLD string = ""
+	TEXT_BOLD  string = ""
 	TEXT_RESET string = ""
-	TEXT_RED string = ""
+	TEXT_RED   string = ""
 	TEXT_GREEN string = ""
 )
 
