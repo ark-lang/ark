@@ -1,8 +1,13 @@
 package parser
 
+// Note that you should include a lot of calls to panic() where something's happening that shouldn't be.
+// This will help to find bugs. Once the compiler is in a better state, a lot of these calls can be removed.
+
 import (
 	"fmt"
 	"os"
+	"strings"
+	"strconv"
 
 	"github.com/ark-lang/ark-go/lexer"
 	"github.com/ark-lang/ark-go/util"
@@ -43,6 +48,17 @@ func (v *parser) consumeToken() *lexer.Token {
 
 func (v *parser) pushNode(node Node) {
 	v.file.nodes = append(v.file.nodes, node)
+}
+
+func (v *parser) pushScope() {
+	v.scope = newScope(v.scope)
+}
+
+func (v *parser) popScope() {
+	v.scope = v.scope.Outer
+	if v.scope == nil {
+		panic("pushed too many scopes")
+	}
 }
 
 func (v *parser) tokenMatches(ahead int, t lexer.TokenType, contents string) bool {
@@ -120,7 +136,6 @@ func (v *parser) parseVariableDecl() *VariableDecl {
 	}
 
 	if v.tokensMatch(lexer.TOKEN_IDENTIFIER, "", lexer.TOKEN_OPERATOR, ":") {
-		fmt.Println("yes")
 		variable.Name = v.consumeToken().Contents // consume name
 
 		v.consumeToken() // consume :
@@ -159,5 +174,77 @@ func (v *parser) parseVariableDecl() *VariableDecl {
 }
 
 func (v *parser) parseExpr() Expr {
+	if litExpr := v.parseLiteral(); litExpr != nil {
+		return litExpr
+	}
+	return nil
+}
+
+func (v *parser) parseLiteral() Expr {
+	if numLit := v.parseNumericLiteral(); numLit != nil {
+		return numLit
+	} else if stringLit := v.parseStringLiteral(); stringLit != nil {
+		return stringLit
+	} else if runeLit := v.parseRuneLiteral(); runeLit != nil {
+		return runeLit
+	}
+	return nil
+}
+
+func (v *parser) parseNumericLiteral() Expr {
+	if !v.tokenMatches(0, lexer.TOKEN_NUMBER, "") {
+		return nil
+	}
+	
+	num := v.consumeToken().Contents
+	var err error
+	
+	if strings.HasPrefix(num, "0x") || strings.HasPrefix(num, "0X") {
+		// Hexadecimal integer
+		hex := &IntegerLiteral {}
+		hex.value, err = strconv.ParseUint(num[2:], 16, 64)
+		if err != nil {
+			panic("bad hex got through lexer")
+		}
+		return hex
+	} else if strings.HasPrefix(num, "0b") {
+		// Binary integer
+		bin := &IntegerLiteral {}
+		bin.value, err = strconv.ParseUint(num[2:], 2, 64)
+		if err != nil {
+			panic("bad binary got through lexer")
+		}
+		return bin
+	} else if strings.HasPrefix(num, "0o") {
+		// Octal integer
+		oct := &IntegerLiteral {}
+		oct.value, err = strconv.ParseUint(num[2:], 8, 64)
+		if err != nil {
+			panic("bad octal got through lexer")
+		}
+		return oct
+	} else if strings.ContainsRune(num, '.') || strings.HasSuffix(num, "f") || strings.HasSuffix(num, "d") {
+		if strings.Count(num, ".") > 1 {
+			v.err("Floating-point cannot have multiple periods: `%s`", num)
+			return nil
+		}
+		// TODO parse float
+		return nil
+	} else {
+		// Decimal integer
+		i := &IntegerLiteral {}
+		i.value, err = strconv.ParseUint(num[2:], 10, 64)
+		if err != nil {
+			panic("bad decimal got through lexer")
+		}
+		return i
+	}
+}
+
+func (v *parser) parseStringLiteral() *StringLiteral {
+	return nil
+}
+
+func (v *parser) parseRuneLiteral() *RuneLiteral {
 	return nil
 }

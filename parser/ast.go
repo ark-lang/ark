@@ -24,7 +24,13 @@ type Variable struct {
 	Mutable bool
 }
 
+//
 // Nodes
+//
+
+/**
+ * Declarations
+ */
 
 type VariableDecl struct {
 	Variable   *Variable
@@ -32,3 +38,32 @@ type VariableDecl struct {
 }
 
 func (v *VariableDecl) declNode() {}
+
+/**
+ * Expressions
+ */
+
+type RuneLiteral struct {
+	value rune
+}
+
+func (v *RuneLiteral) exprNode() {}
+
+type IntegerLiteral struct {
+	value uint64
+}
+
+func (v *IntegerLiteral) exprNode() {}
+
+type FloatingLiteral struct {
+	value float64
+}
+
+func (v *FloatingLiteral) exprNode() {}
+
+type StringLiteral struct {
+	value string
+}
+
+func (v *StringLiteral) exprNode() {}
+
