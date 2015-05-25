@@ -14,7 +14,7 @@ you want to check out the progress, have a look at [issue #345](https://github.c
 * [Ark Style Guide](/docs/STYLEGUIDE.md)
 
 ## Building
-If you want to try out Ark yourself, clone the repository, compile it, and add `bin/arkc` to your path. You can
+If you want to try out Ark yourself, clone the repository, compile it, and add `bin/ark` to your path. You can
 also run the test script (you'll need python) `test.py` to see if the tests work, though we can't guarantee they
 will all run successfully if you're building the nightly.
 
