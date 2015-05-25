@@ -176,9 +176,6 @@ func (v *parser) parseVariableDecl() *VariableDecl {
 
 func (v *parser) parseExpr() Expr {
 	if litExpr := v.parseLiteral(); litExpr != nil {
-		if i, ok := litExpr.(*IntegerLiteral); ok {
-			fmt.Println(i.Value)
-		}
 		return litExpr
 	}
 	return nil
@@ -211,7 +208,11 @@ func (v *parser) parseNumericLiteral() Expr {
 				continue
 			}
 			hex.Value *= 16
-			hex.Value += uint64(hexRuneToInt(r))
+			if val := uint64(hexRuneToInt(r)); val >= 0 {
+				hex.Value += val
+			} else {
+				v.err("Malformed hex literal: `%s`", num)
+			}
 		}
 		return hex
 	} else if strings.HasPrefix(num, "0b") {
@@ -222,7 +223,11 @@ func (v *parser) parseNumericLiteral() Expr {
 				continue
 			}
 			bin.Value *= 2
-			bin.Value += uint64(binRuneToInt(r))
+			if val := uint64(binRuneToInt(r)); val >= 0 {
+				bin.Value += val
+			} else {
+				v.err("Malformed binary literal: `%s`", num)
+			}
 		}
 		return bin
 	} else if strings.HasPrefix(num, "0o") {
@@ -233,7 +238,11 @@ func (v *parser) parseNumericLiteral() Expr {
 				continue
 			}
 			oct.Value *= 8
-			oct.Value += uint64(octRuneToInt(r))
+			if val := uint64(octRuneToInt(r)); val >= 0 {
+				oct.Value += val
+			} else {
+				v.err("Malformed octal literal: `%s`", num)
+			}
 		}
 		return oct
 	} else if strings.ContainsRune(num, '.') || strings.HasSuffix(num, "f") || strings.HasSuffix(num, "d") {
