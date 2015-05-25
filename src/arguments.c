@@ -109,5 +109,8 @@ Vector *setup_arguments(int argc, char** argv) {
         }
     }
 
+    // memory leak here
+    hashmap_free(arguments);
+
     return result;
 }

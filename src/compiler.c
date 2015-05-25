@@ -17,6 +17,7 @@ Compiler *createCompiler(int argc, char** argv) {
 	self->lexer = NULL;
 	self->parser = NULL;
 	self->generatorLLVM = NULL;
+	self->semantic = NULL;
 
 	char *ccEnv = getenv("CC");
 	if (ccEnv != NULL && strcmp(ccEnv, ""))
@@ -24,7 +25,6 @@ Compiler *createCompiler(int argc, char** argv) {
 
 	self->sourceFiles = setup_arguments(argc, argv);
 	if (self->sourceFiles->size == 0) {
-		errorMessage("no source files given");
 		destroyCompiler(self);
 		return NULL;
 	}
@@ -34,6 +34,7 @@ Compiler *createCompiler(int argc, char** argv) {
 
 void startCompiler(Compiler *self) {
 	if (!self->sourceFiles || self->sourceFiles->size == 0) {
+		printf("not running \n");
 		return;
 	}
 
@@ -73,7 +74,7 @@ void destroyCompiler(Compiler *self) {
 		if (self->parser) destroyParser(self->parser);
 		if (self->generatorLLVM) destroyLLVMCodeGenerator(self->generatorLLVM);
 		if (self->semantic) destroySemanticAnalyzer(self->semantic);
-		destroyVector(self->sourceFiles);
+		if (self->sourceFiles) destroyVector(self->sourceFiles);
 		free(self);
 		verboseModeMessage("Destroyed compiler");
 	}
