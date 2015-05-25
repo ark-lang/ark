@@ -1,9 +1,13 @@
 <h1 align="center"><a href="http://ark-lang.org">The Ark Programming Language</a></h1>
 
+
 ## Notice
-We're currently porting the backend from C to LLVM, this may take a while and things will be broken. If
+**For the final time, we've changed our name. We're the *Ark* programming language now. We had to get rid of Alloy due to some complications, and finalized on Ark. The entire discussion (which is rather long for a name change) can be found on [issue #195](https://github.com/ark-lang/ark/issues/195).
+
+## Notice 2
+We're also currently porting the backend from C to LLVM, this may take a while and things will be broken. If
 you want to checkout the progress, have a look at [issue #345](https://github.com/ark-lang/ark/issues/345).
-We're also looking to change our name, so if you have any suggestions you would like to make, please head over to [issue #195](https://github.com/ark-lang/ark/issues/195) and do so.
+
 
 ## Resources
 
