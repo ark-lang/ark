@@ -267,7 +267,7 @@ int hashmap_put(map_t in, char* key, any_t value) {
 	/* Set the data */
 	m->data[index].data = value;
 	m->data[index].key = key;
-	m->data[index].in_use = 1;
+	m->data[index].in_use = true;
 	m->size++;
 
 	return MAP_OK;

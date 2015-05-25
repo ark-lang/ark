@@ -15,7 +15,8 @@
 
 /** the name and version of the compiler */
 #define COMPILER_NAME          "Ark"
-#define COMPILER_VERSION       "0.0.8"
+#define COMPILER_VERSION       "0.0.9"
+#define COMPILER_EXTENSION     ".ark"
 
 #define COMPILER_UNUSED_OBJ(x) (void)(x)
 
