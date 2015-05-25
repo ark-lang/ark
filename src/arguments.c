@@ -1,11 +1,12 @@
 #include "arguments.h"
 
-Argument *createArgument(char *argName, char *argDescription, size_t arguments, void (*action)(void)) {
+Argument *createArgument(char *argName, char *argDescription, size_t arguments, void (*action)(void), int type) {
     Argument *arg = safeMalloc(sizeof(*arg));
     arg->argName = argName;
     arg->argDescription = argDescription;
     arg->action = action;
     arg->arguments = arguments;
+    arg->type = type;
     return arg;
 }
 
@@ -22,8 +23,17 @@ Vector *eatArguments() {
     return vec;
 }
 
-int printArgument(any_t __attribute__((unused)) passedData, any_t item) {
+int printCommand(any_t __attribute__((unused)) passedData, any_t item) {
     Argument *arg = item;
+    if (arg->type != ARG_COMMAND) return MAP_OK;
+    int width = 20;
+    printf("  %-*s %s\n", width, boldText(arg->argName), arg->argDescription);
+    return MAP_OK;
+}
+
+int printOption(any_t __attribute__((unused)) passedData, any_t item) {
+    Argument *arg = item;
+    if (arg->type != ARG_OPTION) return MAP_OK;
     int width = 20;
     printf("  %-*s %s\n", width, boldText(arg->argName), arg->argDescription);
     return MAP_OK;
@@ -31,8 +41,13 @@ int printArgument(any_t __attribute__((unused)) passedData, any_t item) {
 
 void help() {
     printf("Usage:\n\n  ark command [arguments]\n\n");
+
     printf("Commands:\n\n");
-    hashmap_iterate(arguments, printArgument, NULL);
+    hashmap_iterate(arguments, printCommand, NULL);
+    printf("\n");
+
+    printf("Options:\n\n");
+    hashmap_iterate(arguments, printOption, NULL);
     printf("\n");
 }
 
@@ -85,12 +100,12 @@ Vector *setup_arguments(int argc, char** argv) {
     arg_value = argv;
 
     // memory leaks will fix when its not 4am in the morning
-    hashmap_put(arguments, "help", createArgument("help", "Shows this help menu", 0, &help));
-    hashmap_put(arguments, "verbose", createArgument("verbose", "Verbose compilation", 0, &verbose));
-    hashmap_put(arguments, "debug", createArgument("debug", "Logs extra debug information", 0, &debug));
-    hashmap_put(arguments, "out", createArgument("out", "Place the output into <file>", 1, &out));
-    hashmap_put(arguments, "version", createArgument("version", "Shows current version", 0, &version));
-    hashmap_put(arguments, "compiler", createArgument("compiler", "Sets the C compiler to <name> (default: cc)", 1, &compiler));
+    hashmap_put(arguments, "help", createArgument("help", "Shows this help menu", 0, &help, ARG_COMMAND));
+    hashmap_put(arguments, "version", createArgument("version", "Shows current version", 0, &version, ARG_COMMAND));
+    hashmap_put(arguments, "-v", createArgument("-v", "Verbose compilation", 0, &verbose, ARG_OPTION));
+    hashmap_put(arguments, "-d", createArgument("-d", "Logs extra debug information", 0, &debug, ARG_OPTION));
+    hashmap_put(arguments, "-o", createArgument("-o", "Place the output into <file>", 1, &out, ARG_OPTION));
+    hashmap_put(arguments, "-ac", createArgument("-ac", "Sets the C compiler to <name> (default: cc)", 1, &compiler, ARG_OPTION));
 
     // i = 1, ignores first argument
     for (int i = 1; i < argc; i++) {
