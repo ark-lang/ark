@@ -229,8 +229,28 @@ func (v *parser) parseNumericLiteral() Expr {
 			v.err("Floating-point cannot have multiple periods: `%s`", num)
 			return nil
 		}
-		// TODO parse float
-		return nil
+		
+		fnum := num
+		if strings.HasSuffix(num, "f") || strings.HasSuffix(num, "d") {
+			fnum = fnum[:len(fnum) - 1]
+		}
+		
+		f := &FloatingLiteral {}
+		f.Value, err = strconv.ParseFloat(fnum, 64)
+		
+		if err != nil {
+			if err.(*strconv.NumError).Err == strconv.ErrSyntax {
+				v.err("Malformed floating-point literal: `%s`", num)
+				return nil
+			} else if err.(*strconv.NumError).Err == strconv.ErrRange {
+				v.err("Floating-point literal cannot be represented: `%s`", num)
+				return nil
+			} else {
+				panic("shouldn't be here, ever")
+			}
+		}
+		
+		return f
 	} else {
 		// Decimal integer
 		i := &IntegerLiteral {}

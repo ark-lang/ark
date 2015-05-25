@@ -203,9 +203,9 @@ func (v *lexer) recognizeNumberToken() {
 		}
 		v.pushToken(TOKEN_NUMBER)
 	} else {
-		// Decimal
+		// Decimal or floating
 		for {
-			if isDecimalDigit(v.peek(0)) || v.peek(0) == '_' {
+			if isDecimalDigit(v.peek(0)) || v.peek(0) == '_' || v.peek(0) == '.' {
 				v.consume()
 				continue
 			} else if v.peek(0) == 'f' || v.peek(0) == 'd' {
