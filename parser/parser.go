@@ -233,7 +233,7 @@ func (v *parser) parseNumericLiteral() Expr {
 	} else {
 		// Decimal integer
 		i := &IntegerLiteral {}
-		i.value, err = strconv.ParseUint(num[2:], 10, 64)
+		i.value, err = strconv.ParseUint(num, 10, 64)
 		if err != nil {
 			panic("bad decimal got through lexer")
 		}
