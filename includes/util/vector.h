@@ -51,6 +51,13 @@ void pushBackItem(Vector *vec, VectorItem item);
 VectorItem getVectorItem(Vector *vec, int index);
 
 /**
+ * Retrieves the top of the vector
+ * @param  vec the vector to retrieve from
+ * @return     the item at the top of the vector
+ */
+VectorItem getVectorTop(Vector *vec);
+
+/**
  * Destroys the given vector
  * 
  * @param vec the vector to destroy
