@@ -347,7 +347,7 @@ void analyzeTypeNode(SemanticAnalyzer *self, Type *type) {
 	switch (type->type) {
 		case TYPE_LIT_NODE: break;
 		case TYPE_NAME_NODE: 
-			printf("penis: %s\n", type->typeName->name);
+			// printf("penis: %s\n", type->typeName->name);
 			break;
 	}
 }
