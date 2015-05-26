@@ -111,6 +111,10 @@ func (v *parser) parse() {
 }
 
 func (v *parser) parseStatement() Node {
+	for v.tokenMatches(0, lexer.TOKEN_COMMENT, "") || v.tokenMatches(0, lexer.TOKEN_DOCCOMMENT, "") {
+		v.consumeToken()
+	}
+	
 	if decl := v.parseDecl(); decl != nil {
 		return decl
 	}

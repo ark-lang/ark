@@ -109,6 +109,7 @@ func Lex(input []rune, filename string, verbose bool) []*Token {
 func (v *lexer) lex() {
 	for {
 		v.skipLayoutAndComments()
+		
 		if isEOF(v.peek(0)) {
 			return
 		}
@@ -136,6 +137,8 @@ start:
 	for isLayout(v.peek(0)) {
 		v.consume()
 	}
+	
+	v.discardBuffer()
 
 	lineNumber := v.lineNumber
 	charNumber := v.charNumber
@@ -152,6 +155,7 @@ start:
 			if v.peek(0) == '*' && v.peek(1) == '/' {
 				v.consume()
 				v.consume()
+				v.pushToken(TOKEN_COMMENT)
 				goto start
 			}
 			v.consume()
@@ -160,6 +164,7 @@ start:
 
 	// Single-line comments
 	if v.peek(0) == '#' || (v.peek(0) == '/' && v.peek(1) == '/') {
+		isDoc := v.peek(0) == '#'
 		v.consume()
 		if v.peek(0) == '/' {
 			v.consume()
@@ -167,6 +172,11 @@ start:
 
 		for {
 			if isEOL(v.peek(0)) || isEOF(v.peek(0)) {
+				if isDoc {
+					v.pushToken(TOKEN_DOCCOMMENT)
+				} else {
+					v.pushToken(TOKEN_COMMENT)
+				}
 				v.consume()
 				goto start
 			}
