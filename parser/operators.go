@@ -52,7 +52,7 @@ func newBinOpPrecedenceMap() map[BinOpType]int {
 	
 	for i, list := range precedences {
 		for _, op := range list {
-			m[op] = i
+			m[op] = i + 1
 		}
 	}
 	
