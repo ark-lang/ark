@@ -195,9 +195,9 @@ func (v *parser) parseExpr() Expr {
 	if pri == nil {
 		return nil
 	}
-	
+
 	if bin := v.parseBinaryOperator(0, pri); bin != nil {
-		
+
 		return bin
 	}
 	return pri
@@ -208,36 +208,36 @@ func (v *parser) parseBinaryOperator(upperPrecedence int, lhand Expr) Expr {
 	if tok.Type != lexer.TOKEN_OPERATOR {
 		return nil
 	}
-	
+
 	for {
 		tokPrecedence := v.getPrecedence(stringToBinOpType(v.peek(0).Contents))
 		if tokPrecedence < upperPrecedence {
 			return lhand
 		}
-	
+
 		typ := stringToBinOpType(v.peek(0).Contents)
 		if typ == BINOP_ERR {
 			panic("yep")
 		}
-		
+
 		v.consumeToken()
 
-		rhand := v.parsePrimaryExpr();
+		rhand := v.parsePrimaryExpr()
 		if rhand == nil {
 			return nil
 		}
 		nextPrecedence := v.getPrecedence(stringToBinOpType(v.peek(0).Contents))
 		if tokPrecedence < nextPrecedence {
-			rhand = v.parseBinaryOperator(tokPrecedence + 1, rhand)
+			rhand = v.parseBinaryOperator(tokPrecedence+1, rhand)
 			if rhand == nil {
 				return nil
 			}
 		}
-	
+
 		temp := &BinaryExpr{
 			Lhand: lhand,
 			Rhand: rhand,
-			Op: typ,
+			Op:    typ,
 		}
 		lhand = temp
 	}

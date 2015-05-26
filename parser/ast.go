@@ -110,7 +110,6 @@ func (v *BinaryExpr) exprNode() {}
 
 func (v *BinaryExpr) String() string {
 	return "[BinaryLiteral: " + v.Lhand.String() + " " +
-		v.Op.String() + " "	+
+		v.Op.String() + " " +
 		v.Rhand.String() + "]"
 }
-
