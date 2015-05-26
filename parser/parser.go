@@ -291,7 +291,7 @@ func (v *parser) parseStringLiteral() *StringLiteral {
 		return nil
 	}
 	
-	return nil
+	return &StringLiteral {unescapeString(v.consumeToken().Contents) }
 }
 
 func (v *parser) parseRuneLiteral() *RuneLiteral {
