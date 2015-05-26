@@ -30,7 +30,11 @@ type Variable struct {
 }
 
 func (v *Variable) String() string {
-	return "[Variable " + v.Name + "]" // TODO mut, type
+	mut := ""
+	if v.Mutable {
+		mut = "mut "
+	}
+	return "(Variable " + mut + v.Name + ": " + v.Type.GetTypeName() + ")"
 }
 
 //
@@ -41,6 +45,8 @@ func (v *Variable) String() string {
  * Declarations
  */
 
+// VariableDecl
+
 type VariableDecl struct {
 	Variable   *Variable
 	Assignment Expr
@@ -50,16 +56,18 @@ func (v *VariableDecl) declNode() {}
 
 func (v *VariableDecl) String() string {
 	if v.Assignment == nil {
-		return "[VariableDecl " + v.Variable.String() + "]"
+		return "(VariableDecl " + v.Variable.String() + ")"
 	} else {
-		return "[VariableDecl " + v.Variable.String() +
-			" = " + v.Assignment.String() + "]"
+		return "(VariableDecl " + v.Variable.String() +
+			" = " + v.Assignment.String() + ")"
 	}
 }
 
 /**
  * Expressions
  */
+
+// RuneLiteral
 
 type RuneLiteral struct {
 	Value rune
@@ -68,8 +76,10 @@ type RuneLiteral struct {
 func (v *RuneLiteral) exprNode() {}
 
 func (v *RuneLiteral) String() string {
-	return fmt.Sprintf("[RuneLiteral: %c]", v.Value)
+	return fmt.Sprintf("(RuneLiteral: %c)", v.Value)
 }
+
+// IntegerLiteral
 
 type IntegerLiteral struct {
 	Value uint64
@@ -78,8 +88,10 @@ type IntegerLiteral struct {
 func (v *IntegerLiteral) exprNode() {}
 
 func (v *IntegerLiteral) String() string {
-	return fmt.Sprintf("[IntegerLiteral: %d]", v.Value)
+	return fmt.Sprintf("(IntegerLiteral: %d)", v.Value)
 }
+
+// FloatingLiteral
 
 type FloatingLiteral struct {
 	Value float64
@@ -88,8 +100,10 @@ type FloatingLiteral struct {
 func (v *FloatingLiteral) exprNode() {}
 
 func (v *FloatingLiteral) String() string {
-	return fmt.Sprintf("[FloatingLiteral: %f]", v.Value)
+	return fmt.Sprintf("(FloatingLiteral: %f)", v.Value)
 }
+
+// StringLiteral
 
 type StringLiteral struct {
 	Value string
@@ -98,8 +112,10 @@ type StringLiteral struct {
 func (v *StringLiteral) exprNode() {}
 
 func (v *StringLiteral) String() string {
-	return "[StringLiteral: " + v.Value + "]"
+	return "(StringLiteral: " + v.Value + ")"
 }
+
+// BinaryExpr
 
 type BinaryExpr struct {
 	Lhand, Rhand Expr
@@ -109,7 +125,7 @@ type BinaryExpr struct {
 func (v *BinaryExpr) exprNode() {}
 
 func (v *BinaryExpr) String() string {
-	return "[BinaryLiteral: " + v.Lhand.String() + " " +
+	return "(BinaryExpr: " + v.Lhand.String() + " " +
 		v.Op.String() + " " +
-		v.Rhand.String() + "]"
+		v.Rhand.String() + ")"
 }
