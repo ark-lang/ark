@@ -22,7 +22,7 @@ type lexer struct {
 
 func (v *lexer) errWithCustomPosition(ln, cn int, err string, stuff ...interface{}) {
 	fmt.Printf(util.TEXT_RED+util.TEXT_BOLD+"Lexer error:"+util.TEXT_RESET+" [%s:%d:%d] %s\n",
-		v.filename, ln, cn, fmt.Sprintf(err, stuff))
+		v.filename, ln, cn, fmt.Sprintf(err, stuff...))
 	os.Exit(1)
 }
 
@@ -260,12 +260,12 @@ func (v *lexer) recognizeCharacterToken() {
 	}
 
 	for {
-		if v.peek(0) == '\\' && v.peek(1) == '\'' {
+		if v.peek(0) == '\\' && (v.peek(1) == '\'' || v.peek(1) == '\\') {
 			v.consume()
 			v.consume()
 		} else if v.peek(0) == '\'' {
 			v.consume()
-			v.pushToken(TOKEN_CHARACTER)
+			v.pushToken(TOKEN_RUNE)
 			return
 		} else if isEOF(v.peek(0)) {
 			v.errWithCustomPosition(lineNumber, charNumber, "Unterminated character literal")

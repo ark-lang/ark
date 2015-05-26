@@ -4,9 +4,9 @@ package lexer
 
 import "fmt"
 
-const _TokenType_name = "TOKEN_CHARACTERTOKEN_IDENTIFIERTOKEN_SEPARATORTOKEN_OPERATORTOKEN_NUMBERTOKEN_ERRONEOUSTOKEN_STRINGTOKEN_UNKNOWNTOKEN_END_OF_FILE"
+const _TokenType_name = "TOKEN_RUNETOKEN_IDENTIFIERTOKEN_SEPARATORTOKEN_OPERATORTOKEN_NUMBERTOKEN_ERRONEOUSTOKEN_STRINGTOKEN_UNKNOWNTOKEN_END_OF_FILE"
 
-var _TokenType_index = [...]uint8{15, 31, 46, 60, 72, 87, 99, 112, 129}
+var _TokenType_index = [...]uint8{10, 26, 41, 55, 67, 82, 94, 107, 124}
 
 func (i TokenType) String() string {
 	if i < 0 || i >= TokenType(len(_TokenType_index)) {

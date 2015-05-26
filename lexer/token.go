@@ -4,7 +4,7 @@ package lexer
 type TokenType int
 
 const (
-	TOKEN_CHARACTER TokenType = iota
+	TOKEN_RUNE TokenType = iota
 	TOKEN_IDENTIFIER
 	TOKEN_SEPARATOR
 	TOKEN_OPERATOR

@@ -287,9 +287,27 @@ func (v *parser) parseNumericLiteral() Expr {
 }
 
 func (v *parser) parseStringLiteral() *StringLiteral {
+	if !v.tokenMatches(0, lexer.TOKEN_STRING, "") {
+		return nil
+	}
+	
 	return nil
 }
 
 func (v *parser) parseRuneLiteral() *RuneLiteral {
-	return nil
+	if !v.tokenMatches(0, lexer.TOKEN_RUNE, "") {
+		return nil
+	}
+	
+	raw := v.consumeToken().Contents
+	c := unescapeString(raw)
+	
+	if l := len([]rune(c)); l == 3 {
+		return &RuneLiteral { Value: []rune(c)[1] }
+	} else if l < 3 {
+		panic("lexer problem")
+	} else {
+		v.err("Rune literal contains more than one rune: `%s`", raw)
+		return nil
+	}
 }
