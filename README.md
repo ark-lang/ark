@@ -1,7 +1,9 @@
 #<a href="http://ark-lang.org">The Ark Programming Language</a>
 
-## Notice
+## Notices
 **For the final time, we've changed our name. We're the *Ark* programming language now. We had to get rid of Alloy due to some complications, and finalized on Ark. The entire discussion (which is rather long for a name change) can be found on [issue #195](https://github.com/ark-lang/ark/issues/195).**
+
+**Due to this name change, we've also migrated the subreddit from r/alloy_lang to [r/ark_lang](http://www.reddit.com/r/ark_lang), go subscribe! Finally, our irc has moved from #alloy-lang to #ark-lang**
 
 We're also currently porting the backend from C to **LLVM**, this may take a while and things will be broken. If
 you want to check out the progress, have a look at [issue #345](https://github.com/ark-lang/ark/issues/345).
