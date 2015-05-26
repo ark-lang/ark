@@ -2,6 +2,8 @@ package parser
 
 import (
 	"fmt"
+
+	"github.com/ark-lang/ark-go/util"
 )
 
 type Node interface {
@@ -34,7 +36,7 @@ func (v *Variable) String() string {
 	if v.Mutable {
 		mut = "mut "
 	}
-	return "(Variable " + mut + v.Name + ": " + v.Type.GetTypeName() + ")"
+	return "(" + util.Blue("Variable") + " " + mut + v.Name + ": " + util.Green(v.Type.GetTypeName()) + ")"
 }
 
 //
@@ -56,9 +58,9 @@ func (v *VariableDecl) declNode() {}
 
 func (v *VariableDecl) String() string {
 	if v.Assignment == nil {
-		return "(VariableDecl " + v.Variable.String() + ")"
+		return "(" + util.Blue("VariableDecl") + " " + v.Variable.String() + ")"
 	} else {
-		return "(VariableDecl " + v.Variable.String() +
+		return "(" + util.Blue("VariableDecl") + " " + v.Variable.String() +
 			" = " + v.Assignment.String() + ")"
 	}
 }
@@ -76,7 +78,7 @@ type RuneLiteral struct {
 func (v *RuneLiteral) exprNode() {}
 
 func (v *RuneLiteral) String() string {
-	return fmt.Sprintf("(RuneLiteral: %c)", v.Value)
+	return fmt.Sprintf("("+util.Blue("RuneLiteral")+": "+util.Yellow("%c")+")", v.Value)
 }
 
 // IntegerLiteral
@@ -88,7 +90,7 @@ type IntegerLiteral struct {
 func (v *IntegerLiteral) exprNode() {}
 
 func (v *IntegerLiteral) String() string {
-	return fmt.Sprintf("(IntegerLiteral: %d)", v.Value)
+	return fmt.Sprintf("("+util.Blue("IntegerLiteral")+": "+util.Yellow("%d")+")", v.Value)
 }
 
 // FloatingLiteral
@@ -100,7 +102,7 @@ type FloatingLiteral struct {
 func (v *FloatingLiteral) exprNode() {}
 
 func (v *FloatingLiteral) String() string {
-	return fmt.Sprintf("(FloatingLiteral: %f)", v.Value)
+	return fmt.Sprintf("("+util.Blue("FloatingLiteral")+": "+util.Yellow("%f")+")", v.Value)
 }
 
 // StringLiteral
@@ -112,7 +114,7 @@ type StringLiteral struct {
 func (v *StringLiteral) exprNode() {}
 
 func (v *StringLiteral) String() string {
-	return "(StringLiteral: " + v.Value + ")"
+	return "(" + util.Blue("StringLiteral") + ": " + util.Yellow(v.Value) + ")"
 }
 
 // BinaryExpr
@@ -125,7 +127,7 @@ type BinaryExpr struct {
 func (v *BinaryExpr) exprNode() {}
 
 func (v *BinaryExpr) String() string {
-	return "(BinaryExpr: " + v.Lhand.String() + " " +
+	return "(" + util.Blue("BinaryExpr") + ": " + v.Lhand.String() + " " +
 		v.Op.String() + " " +
 		v.Rhand.String() + ")"
 }
