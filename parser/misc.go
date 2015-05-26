@@ -8,9 +8,9 @@ func hexRuneToInt(r rune) int {
 	if r >= '0' && r <= '9' {
 		return int(r - '0')
 	} else if r >= 'A' && r <= 'F' {
-		return int(r - 'A') + 10
+		return int(r-'A') + 10
 	} else if r >= 'a' && r <= 'f' {
-		return int(r - 'a') + 10
+		return int(r-'a') + 10
 	} else {
 		return -1
 	}
@@ -49,7 +49,7 @@ func parseEscapeSequence(s []rune) (rune, int) {
 func unescapeString(s string) string {
 	out := make([]rune, 0)
 	sr := []rune(s)
-	
+
 	for i := 0; i < len(sr); i++ {
 		if sr[i] == '\\' {
 			i++
@@ -58,6 +58,6 @@ func unescapeString(s string) string {
 			out = append(out, sr[i])
 		}
 	}
-	
+
 	return string(out)
 }

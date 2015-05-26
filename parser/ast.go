@@ -67,11 +67,9 @@ type StringLiteral struct {
 
 func (v *StringLiteral) exprNode() {}
 
-
 type BinaryExpr struct {
 	Lhand, Rhand Expr
-	Op BinOpType
+	Op           BinOpType
 }
 
 func (v *BinaryExpr) exprNode() {}
-

@@ -6,8 +6,8 @@ package parser
 import (
 	"fmt"
 	"os"
-	"strings"
 	"strconv"
+	"strings"
 
 	"github.com/ark-lang/ark-go/lexer"
 	"github.com/ark-lang/ark-go/util"
@@ -114,7 +114,7 @@ func (v *parser) parseStatement() Node {
 	for v.tokenMatches(0, lexer.TOKEN_COMMENT, "") || v.tokenMatches(0, lexer.TOKEN_DOCCOMMENT, "") {
 		v.consumeToken()
 	}
-	
+
 	if decl := v.parseDecl(); decl != nil {
 		return decl
 	}
@@ -162,7 +162,7 @@ func (v *parser) parseVariableDecl() *VariableDecl {
 				v.err("Expected expression in assignment to variable `%s`", variable.Name)
 			}
 		}
-		
+
 		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ";") {
 			v.consumeToken()
 		} else {
@@ -200,13 +200,13 @@ func (v *parser) parseNumericLiteral() Expr {
 	if !v.tokenMatches(0, lexer.TOKEN_NUMBER, "") {
 		return nil
 	}
-	
+
 	num := v.consumeToken().Contents
 	var err error
-	
+
 	if strings.HasPrefix(num, "0x") || strings.HasPrefix(num, "0X") {
 		// Hexadecimal integer
-		hex := &IntegerLiteral {}
+		hex := &IntegerLiteral{}
 		for _, r := range num[2:] {
 			if r == '_' {
 				continue
@@ -221,7 +221,7 @@ func (v *parser) parseNumericLiteral() Expr {
 		return hex
 	} else if strings.HasPrefix(num, "0b") {
 		// Binary integer
-		bin := &IntegerLiteral {}
+		bin := &IntegerLiteral{}
 		for _, r := range num[2:] {
 			if r == '_' {
 				continue
@@ -236,7 +236,7 @@ func (v *parser) parseNumericLiteral() Expr {
 		return bin
 	} else if strings.HasPrefix(num, "0o") {
 		// Octal integer
-		oct := &IntegerLiteral {}
+		oct := &IntegerLiteral{}
 		for _, r := range num[2:] {
 			if r == '_' {
 				continue
@@ -254,15 +254,15 @@ func (v *parser) parseNumericLiteral() Expr {
 			v.err("Floating-point cannot have multiple periods: `%s`", num)
 			return nil
 		}
-		
+
 		fnum := num
 		if strings.HasSuffix(num, "f") || strings.HasSuffix(num, "d") {
-			fnum = fnum[:len(fnum) - 1]
+			fnum = fnum[:len(fnum)-1]
 		}
-		
-		f := &FloatingLiteral {}
+
+		f := &FloatingLiteral{}
 		f.Value, err = strconv.ParseFloat(fnum, 64)
-		
+
 		if err != nil {
 			if err.(*strconv.NumError).Err == strconv.ErrSyntax {
 				v.err("Malformed floating-point literal: `%s`", num)
@@ -274,11 +274,11 @@ func (v *parser) parseNumericLiteral() Expr {
 				panic("shouldn't be here, ever")
 			}
 		}
-		
+
 		return f
 	} else {
 		// Decimal integer
-		i := &IntegerLiteral {}
+		i := &IntegerLiteral{}
 		for _, r := range num {
 			if r == '_' {
 				continue
@@ -294,20 +294,20 @@ func (v *parser) parseStringLiteral() *StringLiteral {
 	if !v.tokenMatches(0, lexer.TOKEN_STRING, "") {
 		return nil
 	}
-	
-	return &StringLiteral {unescapeString(v.consumeToken().Contents) }
+
+	return &StringLiteral{unescapeString(v.consumeToken().Contents)}
 }
 
 func (v *parser) parseRuneLiteral() *RuneLiteral {
 	if !v.tokenMatches(0, lexer.TOKEN_RUNE, "") {
 		return nil
 	}
-	
+
 	raw := v.consumeToken().Contents
 	c := unescapeString(raw)
-	
+
 	if l := len([]rune(c)); l == 3 {
-		return &RuneLiteral { Value: []rune(c)[1] }
+		return &RuneLiteral{Value: []rune(c)[1]}
 	} else if l < 3 {
 		panic("lexer problem")
 	} else {
