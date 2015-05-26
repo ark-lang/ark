@@ -19,6 +19,8 @@ float3: f64 = 0.0004;
 s1: str= "he\"llo";
 c1: i8 = 'r';
 
+bintest: int = 5 + 5 * 5;
+
 func ten(): int {
 	return 0x05 + 5;
 }

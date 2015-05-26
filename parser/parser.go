@@ -81,7 +81,10 @@ func (v *parser) tokensMatch(args ...interface{}) bool {
 }
 
 func (v *parser) getPrecedence(op BinOpType) int {
-	return v.binOpPrecedences[op]
+	if p := v.binOpPrecedences[op]; p > 0 {
+		return p
+	}
+	return -1
 }
 
 func Parse(tokens []*lexer.Token, verbose bool) *File {
@@ -110,6 +113,9 @@ func (v *parser) parse() {
 	for v.peek(0) != nil {
 		if n := v.parseStatement(); n != nil {
 			v.pushNode(n)
+			if v.verbose && n != nil {
+				fmt.Println(n)
+			}
 		} else {
 			v.consumeToken() // TODO
 		}
@@ -185,6 +191,59 @@ func (v *parser) parseVariableDecl() *VariableDecl {
 }
 
 func (v *parser) parseExpr() Expr {
+	pri := v.parsePrimaryExpr()
+	if pri == nil {
+		return nil
+	}
+	
+	if bin := v.parseBinaryOperator(0, pri); bin != nil {
+		
+		return bin
+	}
+	return pri
+}
+
+func (v *parser) parseBinaryOperator(upperPrecedence int, lhand Expr) Expr {
+	tok := v.peek(0)
+	if tok.Type != lexer.TOKEN_OPERATOR {
+		return nil
+	}
+	
+	for {
+		tokPrecedence := v.getPrecedence(stringToBinOpType(v.peek(0).Contents))
+		if tokPrecedence < upperPrecedence {
+			return lhand
+		}
+	
+		typ := stringToBinOpType(v.peek(0).Contents)
+		if typ == BINOP_ERR {
+			panic("yep")
+		}
+		
+		v.consumeToken()
+
+		rhand := v.parsePrimaryExpr();
+		if rhand == nil {
+			return nil
+		}
+		nextPrecedence := v.getPrecedence(stringToBinOpType(v.peek(0).Contents))
+		if tokPrecedence < nextPrecedence {
+			rhand = v.parseBinaryOperator(tokPrecedence + 1, rhand)
+			if rhand == nil {
+				return nil
+			}
+		}
+	
+		temp := &BinaryExpr{
+			Lhand: lhand,
+			Rhand: rhand,
+			Op: typ,
+		}
+		lhand = temp
+	}
+}
+
+func (v *parser) parsePrimaryExpr() Expr {
 	if litExpr := v.parseLiteral(); litExpr != nil {
 		return litExpr
 	}
