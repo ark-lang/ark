@@ -315,3 +315,7 @@ func (v *parser) parseRuneLiteral() *RuneLiteral {
 		return nil
 	}
 }
+
+func (v *parser) parseBinaryExpr(lhand Expr) *BinaryExpr {
+	return nil
+}
