@@ -36,7 +36,7 @@ func (v *Variable) String() string {
 	if v.Mutable {
 		mut = "mut "
 	}
-	return "(" + util.Blue("Variable") + " " + mut + v.Name + ": " + util.Green(v.Type.GetTypeName()) + ")"
+	return "(" + util.Blue("Variable") + ": " + mut + v.Name + ": " + util.Green(v.Type.GetTypeName()) + ")"
 }
 
 //
@@ -58,9 +58,9 @@ func (v *VariableDecl) declNode() {}
 
 func (v *VariableDecl) String() string {
 	if v.Assignment == nil {
-		return "(" + util.Blue("VariableDecl") + " " + v.Variable.String() + ")"
+		return "(" + util.Blue("VariableDecl") + ": " + v.Variable.String() + ")"
 	} else {
-		return "(" + util.Blue("VariableDecl") + " " + v.Variable.String() +
+		return "(" + util.Blue("VariableDecl") + ": " + v.Variable.String() +
 			" = " + v.Assignment.String() + ")"
 	}
 }
