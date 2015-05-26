@@ -1,1 +1,1 @@
-go generate ./{codegen,common,lexer,parser,util}
+go generate ./{codegen{/LLVMCodegen,},common,lexer,parser,util}

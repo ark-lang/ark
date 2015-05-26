@@ -19,7 +19,8 @@ type parser struct {
 	currentToken int
 	verbose      bool
 
-	scope *Scope
+	scope            *Scope
+	binOpPrecedences map[BinOpType]int
 }
 
 func (v *parser) err(err string, stuff ...interface{}) {
@@ -79,14 +80,19 @@ func (v *parser) tokensMatch(args ...interface{}) bool {
 	return true
 }
 
+func (v *parser) getPrecedence(op BinOpType) int {
+	return v.binOpPrecedences[op]
+}
+
 func Parse(tokens []*lexer.Token, verbose bool) *File {
 	p := &parser{
 		file: &File{
 			nodes: make([]Node, 0),
 		},
-		input:   tokens,
-		verbose: verbose,
-		scope:   newGlobalScope(),
+		input:            tokens,
+		verbose:          verbose,
+		scope:            newGlobalScope(),
+		binOpPrecedences: newBinOpPrecedenceMap(),
 	}
 
 	if verbose {
