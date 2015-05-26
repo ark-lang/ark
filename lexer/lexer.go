@@ -76,13 +76,14 @@ func (v *lexer) pushToken(t TokenType) {
 		LineNumber: v.lineNumber,
 		Contents:   string(v.input[v.startPos:v.endPos]),
 	}
-
-	v.startPos = v.endPos
+	
 	v.output = append(v.output, tok)
 
 	if v.verbose {
 		fmt.Printf("[%4d:%4d:%-17s] `%s`\n", v.startPos, v.endPos, tok.Type, tok.Contents)
 	}
+	
+	v.startPos = v.endPos
 }
 
 func Lex(input []rune, filename string, verbose bool) []*Token {
