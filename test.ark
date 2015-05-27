@@ -26,7 +26,7 @@ func ten(): int {
 	return 0x05 + 5;
 }
 
-func _2345_test日本語てすと(): int {
+func _2345_test日本語てすと(と: int, とと: i32): int {
 	
 }
 
