@@ -196,6 +196,13 @@ func (v *parser) parseFunctionDecl() *FunctionDecl {
 		if (v.tokenMatches(0, lexer.TOKEN_OPERATOR, ":")) {
 			v.consumeToken()
 
+			// mutable return type
+			if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_MUT) {
+				v.consumeToken()
+				funcDecl.Mutable = true
+			}
+
+			// actual return type
 			if typ := v.parseType(); typ != nil {
 				funcDecl.Type = typ
 			} else {

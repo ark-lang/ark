@@ -72,12 +72,17 @@ type FunctionDecl struct {
 	Name string
 	Parameters *List
 	Type Type
+	Mutable bool
 }
 
 func (v *FunctionDecl) declNode() {}
 
 func (v *FunctionDecl) String() string {
-	return "(" + util.Blue("FunctionDecl") + ": " + v.Name + " " + v.Parameters.String() + ")" + " (" + util.Blue("Return Type:") + " " + util.Green(v.Type.GetTypeName()) + ")"
+	mut := ""
+	if v.Mutable {
+		mut = util.Green("[mutable] ")
+	}
+	return "(" + util.Blue("FunctionDecl") + ": " + mut + v.Name + " " + v.Parameters.String() + ")" + " (" + util.Blue("Return Type:") + " " + util.Green(v.Type.GetTypeName()) + ")"
 }
 
 /**

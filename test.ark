@@ -30,7 +30,7 @@ func _2345_test日本語てすと(と: int, とと: i32): int {
 	
 }
 
-func main(a: int): int {
+func main(a: int): mut int {
 	// thing: int = ten();
 	// thing++;
 	return thing - 11;
