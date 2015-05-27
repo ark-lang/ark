@@ -143,6 +143,10 @@ func (v *parser) parseDecl() Decl {
 		return variableDecl
 	}
 
+	if structureDecl := v.parseStructDecl(); structureDecl != nil {
+		return structureDecl
+	}
+
 	if functionDecl := v.parseFunctionDecl(); functionDecl != nil {
 		return functionDecl
 	}
@@ -173,9 +177,11 @@ func (v *parser) parseType() Type {
 }
 
 func (v *parser) parseFunctionDecl() *FunctionDecl {
-	funcDecl := &FunctionDecl{}
-
 	if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_FUNC) {
+		funcDecl := &FunctionDecl{}
+
+		v.pushScope()
+
 		v.consumeToken()
 		
 		// name
@@ -224,9 +230,13 @@ func (v *parser) parseFunctionDecl() *FunctionDecl {
 		} else {
 			v.err("Expecting block after function decl even though some point prototypes should be support lol whatever")
 		}
+
+		v.popScope()
+
+		return funcDecl
 	}
 
-	return funcDecl
+	return nil
 }
 
 func (v *parser) parseList() *List {
@@ -257,6 +267,73 @@ func (v *parser) parseList() *List {
 	}
 
 	return list
+}
+
+func (v *parser) parseAttribute(attrib string) bool {
+	if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "[") {
+		if !v.tokenMatches(2, lexer.TOKEN_SEPARATOR, "]") {
+			v.err("Attribute missing closing bracket")
+			return false
+		}
+
+		// eat the opening bracket
+		v.consumeToken()
+
+		// eat the attribute name
+		if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, attrib) {
+			v.consumeToken()
+		}
+
+		// eat the closing bracket
+		v.consumeToken()
+		return true
+	}
+	return false
+}
+
+func (v *parser) parseStructDecl() *StructDecl {
+	if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_STRUCT) {
+		structDecl := &StructDecl{}
+		
+		v.pushScope()
+
+		v.consumeToken()
+
+		if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, "") {
+			structDecl.Name = v.consumeToken().Contents
+
+			structDecl.Packed = v.parseAttribute("packed")
+
+			// TODO semi colons i.e. struct with no body?
+			var itemCount = 0
+			if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "{") {
+				v.consumeToken()
+
+				for {
+					if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "}") {
+						v.consumeToken()
+						break
+					}
+					
+					if variable := v.parseVariableDecl(); variable != nil {
+						structDecl.Items.PushBack(variable)
+						itemCount++
+					} else {
+						v.err("Invalid structure item in structure `%s`", structDecl.Name)
+					}
+					
+					if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ",") {
+						v.consumeToken()
+					}
+				}
+			}
+		}
+
+		v.popScope()
+
+		return structDecl
+	}
+	return nil
 }
 
 func (v *parser) parseVariableDecl() *VariableDecl {

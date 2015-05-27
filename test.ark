@@ -22,6 +22,12 @@ un: i8 = !1;
 
 mut bintest: int = 5 * 5 + 5 * 5;
 
+// packed structure syntax idea?
+struct Test [packed] {
+    a: int = 5,
+    b: int = 5
+}
+
 func ten(): int {
 	return 0x05 + 5;
 }

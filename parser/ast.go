@@ -66,6 +66,20 @@ func (v *VariableDecl) String() string {
 	}
 }
 
+// StructDecl
+
+type StructDecl struct {
+	Name string
+	Items list.List
+	Packed bool
+}
+
+func (v *StructDecl) declNode() {}
+
+func (v *StructDecl) String() string {
+	return "(" + util.Blue("StructDecl") + ": " + v.Name + ")"
+}
+
 // FunctionDecl
 
 type FunctionDecl struct {
