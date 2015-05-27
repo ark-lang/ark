@@ -143,5 +143,5 @@ func (v *UnaryExpr) exprNode() {}
 
 func (v *UnaryExpr) String() string {
 	return "(" + util.Blue("UnaryExpr") + ": " +
-		v.Op.String() + v.Expr.String() + ")"
+		v.Op.String() + " " + v.Expr.String() + ")"
 }

@@ -293,7 +293,7 @@ func (v *lexer) recognizeOperatorToken() {
 		v.consume()
 	} else {
 		v.consume()
-		if isOperator(v.peek(0)) {
+		if isOperator(v.peek(0)) && v.peek(0) != '^' {
 			v.consume()
 		}
 	}

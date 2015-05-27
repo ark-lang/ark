@@ -2,6 +2,8 @@ package parser
 
 type Type interface {
 	GetTypeName() string
+	GetRawType() Type            // type disregarding pointers
+	GetLevelsOfIndirection() int // number of pointers you have to go through to get to the actual type
 }
 
 //go:generate stringer -type=PrimitiveType
@@ -34,10 +36,46 @@ func (v PrimitiveType) GetTypeName() string {
 	return v.String()[10:]
 }
 
+func (v PrimitiveType) GetRawType() Type {
+	return v
+}
+
+func (v PrimitiveType) GetLevelsOfIndirection() int {
+	return 0
+}
+
+// StructType
+
 type StructType struct {
 	Name string
 }
 
 func (v *StructType) GetTypeName() string {
 	return v.Name
+}
+
+func (v *StructType) GetRawType() Type {
+	return v
+}
+
+func (v *StructType) GetLevelsOfIndirection() int {
+	return 0
+}
+
+// PointerTyper
+
+type PointerType struct {
+	Addressee Type
+}
+
+func (v *PointerType) GetTypeName() string {
+	return "^" + v.Addressee.GetTypeName()
+}
+
+func (v *PointerType) GetRawType() Type {
+	return v.Addressee.GetRawType()
+}
+
+func (v *PointerType) GetLevelsOfIndirection() int {
+	return v.Addressee.GetLevelsOfIndirection() + 1
 }

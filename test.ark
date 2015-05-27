@@ -17,7 +17,8 @@ float: f64 = 0.2465f;
 float2: f64 = 1.35d;
 float3: f64 = 0.0004;
 mut s1: str= "he\"llo";
-c1: i8 = 'r';
+c1: ^^^^i8 = 'r';
+un: i8 = !1;
 
 bintest: int = 5 * 5 + 5 * 5;
 

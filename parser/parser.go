@@ -140,6 +140,29 @@ func (v *parser) parseDecl() Decl {
 	return nil
 }
 
+func (v *parser) parseType() Type {
+	if !(v.peek(0).Type == lexer.TOKEN_IDENTIFIER || v.tokenMatches(0, lexer.TOKEN_OPERATOR, "^")) {
+		return nil
+	}
+
+	if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "^") {
+		v.consumeToken()
+		if innerType := v.parseType(); innerType != nil {
+			return &PointerType{Addressee: innerType}
+		} else {
+			v.err("TODO")
+		}
+	}
+
+	typeName := v.consumeToken().Contents // consume type
+
+	typ := v.scope.GetType(typeName)
+	if typ == nil {
+		v.err("Unrecognized type `%s`", typeName)
+	}
+	return typ
+}
+
 func (v *parser) parseVariableDecl() *VariableDecl {
 	variable := &Variable{}
 	varDecl := &VariableDecl{
@@ -156,13 +179,8 @@ func (v *parser) parseVariableDecl() *VariableDecl {
 
 		v.consumeToken() // consume :
 
-		if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, "") {
-			typeName := v.consumeToken().Contents // consume type
-
-			variable.Type = v.scope.GetType(typeName)
-			if variable.Type == nil {
-				v.err("Unrecognized type `%s`", typeName)
-			}
+		if typ := v.parseType(); typ != nil {
+			variable.Type = typ
 		} else if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "=") {
 			panic("type inference unimplemented")
 		}
