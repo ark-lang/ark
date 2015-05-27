@@ -30,8 +30,8 @@ func _2345_test日本語てすと(): int {
 	
 }
 
-func main(): int {
-	thing: int = ten();
-	thing++;
+func main(a: int): int {
+	// thing: int = ten();
+	// thing++;
 	return thing - 11;
 }

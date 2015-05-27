@@ -135,7 +135,16 @@ func (v *parser) parseStatement() Node {
 
 func (v *parser) parseDecl() Decl {
 	if variableDecl := v.parseVariableDecl(); variableDecl != nil {
+		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ";") {
+			v.consumeToken()
+		} else {
+			v.err("Missing semicolon at end of variable declaration")
+		}
 		return variableDecl
+	}
+
+	if functionDecl := v.parseFunctionDecl(); functionDecl != nil {
+		return functionDecl
 	}
 	return nil
 }
@@ -161,6 +170,86 @@ func (v *parser) parseType() Type {
 		v.err("Unrecognized type `%s`", typeName)
 	}
 	return typ
+}
+
+func (v *parser) parseFunctionDecl() *FunctionDecl {
+	funcDecl := &FunctionDecl{}
+
+	if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_FUNC) {
+		v.consumeToken()
+		
+		// name
+		if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, "") {
+			funcDecl.Name = v.consumeToken().Contents
+		} else {
+			v.err("Function expected an identifier")
+		}
+
+		// list
+		if list := v.parseList(); list != nil {
+			funcDecl.Parameters = list
+		} else {
+			v.err("Function declaration `%s` expected a list after identifier", funcDecl.Name)
+		}
+
+		// return type
+		if (v.tokenMatches(0, lexer.TOKEN_OPERATOR, ":")) {
+			v.consumeToken()
+
+			if typ := v.parseType(); typ != nil {
+				funcDecl.Type = typ
+			} else {
+				v.err("Expected function return type after colon for function `%s`", funcDecl.Name)
+			}
+		}
+
+		// block
+		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "{") {
+			v.consumeToken()
+
+			for {
+				if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "}") {
+					v.consumeToken()
+					break
+				}
+				v.consumeToken() // ignore it
+			}
+		} else {
+			v.err("Expecting block after function decl even though some point prototypes should be support lol whatever")
+		}
+	}
+
+	return funcDecl
+}
+
+func (v *parser) parseList() *List {
+	list := &List{}
+
+	if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "(") {
+		v.consumeToken()
+
+		for {
+			if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ")") {
+				v.consumeToken()
+				break
+			}
+
+			if item := v.parseVariableDecl(); item != nil {
+				list.Items.PushBack(item)
+			} else {
+				v.err("Invalid expression given in list")
+			}
+
+			// todo trailing comma, allow them maybe?
+			// also dont enforce these when there is only
+			// one parameter, i.e. func add(a: int,) would be disallowed
+			if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ",") {
+				v.consumeToken()
+			}
+		}
+	}
+
+	return list
 }
 
 func (v *parser) parseVariableDecl() *VariableDecl {
@@ -191,12 +280,6 @@ func (v *parser) parseVariableDecl() *VariableDecl {
 			if varDecl.Assignment == nil {
 				v.err("Expected expression in assignment to variable `%s`", variable.Name)
 			}
-		}
-
-		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ";") {
-			v.consumeToken()
-		} else {
-			v.err("Missing semicolon at end of variable declaration")
 		}
 	} else {
 		return nil

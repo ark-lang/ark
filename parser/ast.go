@@ -2,6 +2,7 @@ package parser
 
 import (
 	"fmt"
+	"container/List"
 
 	"github.com/ark-lang/ark-go/util"
 )
@@ -63,6 +64,20 @@ func (v *VariableDecl) String() string {
 		return "(" + util.Blue("VariableDecl") + ": " + v.Variable.String() +
 			" = " + v.Assignment.String() + ")"
 	}
+}
+
+// FunctionDecl
+
+type FunctionDecl struct {
+	Name string
+	Parameters *List
+	Type Type
+}
+
+func (v *FunctionDecl) declNode() {}
+
+func (v *FunctionDecl) String() string {
+	return "(" + util.Blue("FunctionDecl") + ": " + v.Name + " " + v.Parameters.String() + ")" + " (" + util.Blue("Return Type:") + " " + util.Green(v.Type.GetTypeName()) + ")"
 }
 
 /**
@@ -130,6 +145,23 @@ func (v *BinaryExpr) String() string {
 	return "(" + util.Blue("BinaryExpr") + ": " + v.Lhand.String() + " " +
 		v.Op.String() + " " +
 		v.Rhand.String() + ")"
+}
+
+// List
+
+type List struct {
+	Items list.List
+}
+
+func (v *List) listNode() {}
+
+func (v *List) String() string {
+	var result = "(" + util.Blue("List: ");
+	for item := v.Items.Front(); item != nil; item = item.Next() {
+		result += item.Value.(*VariableDecl).String()
+	}
+	result += ")"
+	return result
 }
 
 // UnaryExpr

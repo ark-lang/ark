@@ -39,3 +39,30 @@ Make sure `$GOPATH/bin` is in your `$PATH`.
 
 ## gogenerate.sh
 The script gogenerate.sh is included for the convenience of the developers. It runs `go generate` on all the modules in alloy-go.
+
+# Developers Notes
+### Wed 27 May
+#### _Notes on recent implementations_
+A list is N amount of variable decl's surrounded by parenthesis.
+
+	List = "(" { "," VariableDecl } ")"
+
+A function declaration uses this list, for instance:
+
+	FuncDecl = "func" iden list [ Type ] ( "{" Block "}" | "->" Statement )
+
+However, since a list can be expression, this makes the following legal:
+
+	func add(a: int = 5) {
+
+	}
+
+Therefore in a later stage (i.e. semantic analysis) you would have
+to say that in the context of a list, assigning a variable is illegal. Another option
+is that we create a new node for parameter values, which would be similar to a variable
+decl, however assignment would not be valid. Currently, I'm assuming we're doing the former,
+therefore I have made it so that semi-colons are enforced in the DeclNode for a VariableDecl
+Node, as opposed to doing it at the end of the List, because of this change the parser
+does not expect you to do this:
+
+	func add(a: int,; b: int;)
