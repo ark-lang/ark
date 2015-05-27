@@ -77,7 +77,12 @@ type StructDecl struct {
 func (v *StructDecl) declNode() {}
 
 func (v *StructDecl) String() string {
-	return "(" + util.Blue("StructDecl") + ": " + v.Name + ")"
+	var result = "((" + util.Blue("StructDecl") + ": " + v.Name + ")\n"
+	for item := v.Items.Front(); item != nil; item = item.Next() {
+		result += "\t" + item.Value.(*VariableDecl).String() + "\n"
+	}
+	result += ")"
+	return result
 }
 
 // FunctionDecl
