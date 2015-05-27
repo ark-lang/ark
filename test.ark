@@ -13,14 +13,14 @@ i4: i32 = 1_000_005;
 rune1: rune = 'a';
 rune2: rune = '\\';
 rune3: rune = '\'';
-float: f64 = 0.2465f;
+mut float: f64 = 0.2465f;
 float2: f64 = 1.35d;
-float3: f64 = 0.0004;
+mut float3: f64 = 0.0004;
 mut s1: str= "he\"llo";
-c1: ^^^^i8 = 'r';
+mut c1: ^^^^i8 = 'r';
 un: i8 = !1;
 
-bintest: int = 5 * 5 + 5 * 5;
+mut bintest: int = 5 * 5 + 5 * 5;
 
 func ten(): int {
 	return 0x05 + 5;

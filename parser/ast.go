@@ -35,7 +35,7 @@ type Variable struct {
 func (v *Variable) String() string {
 	mut := ""
 	if v.Mutable {
-		mut = "mut "
+		mut = util.Green("[mutable] ")
 	}
 	return "(" + util.Blue("Variable") + ": " + mut + v.Name + ": " + util.Green(v.Type.GetTypeName()) + ")"
 }
