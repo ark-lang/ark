@@ -131,3 +131,17 @@ func (v *BinaryExpr) String() string {
 		v.Op.String() + " " +
 		v.Rhand.String() + ")"
 }
+
+// UnaryExpr
+
+type UnaryExpr struct {
+	Expr Expr
+	Op   UnOpType
+}
+
+func (v *UnaryExpr) exprNode() {}
+
+func (v *UnaryExpr) String() string {
+	return "(" + util.Blue("UnaryExpr") + ": " +
+		v.Op.String() + v.Expr.String() + ")"
+}

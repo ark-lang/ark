@@ -197,7 +197,6 @@ func (v *parser) parseExpr() Expr {
 	}
 
 	if bin := v.parseBinaryOperator(0, pri); bin != nil {
-
 		return bin
 	}
 	return pri
@@ -246,8 +245,31 @@ func (v *parser) parseBinaryOperator(upperPrecedence int, lhand Expr) Expr {
 func (v *parser) parsePrimaryExpr() Expr {
 	if litExpr := v.parseLiteral(); litExpr != nil {
 		return litExpr
+	} else if unaryExpr := v.parseUnaryExpr(); unaryExpr != nil {
+		return unaryExpr
 	}
 	return nil
+}
+
+func (v *parser) parseUnaryExpr() *UnaryExpr {
+	if !v.tokenMatches(0, lexer.TOKEN_OPERATOR, "") {
+		return nil
+	}
+
+	contents := v.peek(0).Contents
+	op := stringToUnOpType(contents)
+	if op == UNOP_ERR {
+		return nil
+	}
+
+	v.consumeToken()
+
+	e := v.parseExpr()
+	if e == nil {
+		v.err("Expected expression after unary operator `%s`", contents)
+	}
+
+	return &UnaryExpr{Expr: e, Op: op}
 }
 
 func (v *parser) parseLiteral() Expr {
@@ -379,8 +401,4 @@ func (v *parser) parseRuneLiteral() *RuneLiteral {
 		v.err("Rune literal contains more than one rune: `%s`", raw)
 		return nil
 	}
-}
-
-func (v *parser) parseBinaryExpr(lhand Expr) *BinaryExpr {
-	return nil
 }
