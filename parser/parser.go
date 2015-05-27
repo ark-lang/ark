@@ -399,8 +399,8 @@ func (v *parser) parseStringLiteral() *StringLiteral {
 	if !v.tokenMatches(0, lexer.TOKEN_STRING, "") {
 		return nil
 	}
-
-	return &StringLiteral{unescapeString(v.consumeToken().Contents)}
+	c := v.consumeToken().Contents
+	return &StringLiteral{unescapeString(c[1:len(c)-1])}
 }
 
 func (v *parser) parseRuneLiteral() *RuneLiteral {
