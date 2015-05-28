@@ -2,7 +2,7 @@ package parser
 
 import (
 	"fmt"
-	"container/List"
+	"container/list"
 
 	"github.com/ark-lang/ark-go/util"
 )
