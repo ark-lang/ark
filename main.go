@@ -1,8 +1,9 @@
 package main
 
 import (
-	"flag"
 	"fmt"
+	"os"
+	"strings"
 
 	"github.com/ark-lang/ark-go/common"
 	"github.com/ark-lang/ark-go/lexer"
@@ -11,28 +12,24 @@ import (
 	//"github.com/ark-lang/ark-go/codegen/LLVMCodegen"
 )
 
-var versionFlag = flag.Bool("version", false, "show version information")
-var verboseFlag = flag.Bool("v", false, "enable verbose mode")
-var inputFlag = flag.String("input", "", "input file")
-var outputFlag = flag.String("output", "", "output file")
-
 func main() {
-	flag.Parse()
-
-	if *versionFlag {
-		version()
-		return
-	}
-
-	verbose := *verboseFlag
+	verbose := true
 
 	sourcefiles := make([]*common.Sourcefile, 0)
-	input, err := common.NewSourcefile(*inputFlag)
-	check(err)
-	sourcefiles = append(sourcefiles, input)
+
+	arguments := os.Args[1:]
+	for _, arg := range arguments {
+		if strings.HasSuffix(arg, ".ark") {
+			input, err := common.NewSourcefile(arg)
+			check(err)
+			sourcefiles = append(sourcefiles, input)
+		} else {
+			fmt.Println("unknown command")
+		}
+	}
 
 	for _, file := range sourcefiles {
-		file.Tokens = lexer.Lex(file.Contents, *inputFlag, verbose)
+		file.Tokens = lexer.Lex(file.Contents, file.Filename, verbose)
 	}
 
 	parsedFiles := make([]*parser.File, 0)
