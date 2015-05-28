@@ -181,14 +181,14 @@ func (v *parser) parseFunctionDecl() *FunctionDecl {
 		function := &Function{}
 
 		v.consumeToken()
-		
+
 		// name
 		if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, "") {
 			function.Name = v.consumeToken().Contents
 		} else {
 			v.err("Function expected an identifier")
 		}
-		
+
 		if vname := v.scope.InsertFunction(function); vname != nil {
 			v.err("Illegal redeclaration of function `%s`", function.Name)
 		}
@@ -201,7 +201,7 @@ func (v *parser) parseFunctionDecl() *FunctionDecl {
 		}
 
 		// return type
-		if (v.tokenMatches(0, lexer.TOKEN_OPERATOR, ":")) {
+		if v.tokenMatches(0, lexer.TOKEN_OPERATOR, ":") {
 			v.consumeToken()
 
 			// mutable return type
@@ -221,7 +221,7 @@ func (v *parser) parseFunctionDecl() *FunctionDecl {
 		// block
 		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "{") {
 			v.consumeToken()
-			
+
 			v.pushScope()
 
 			for {
@@ -231,14 +231,13 @@ func (v *parser) parseFunctionDecl() *FunctionDecl {
 				}
 				v.consumeToken() // ignore it
 			}
-			
+
 			v.popScope()
 		} else {
 			v.err("Expecting block after function decl even though some point prototypes should be support lol whatever")
 		}
 
-
-		return &FunctionDecl{ Function: function }
+		return &FunctionDecl{Function: function}
 	}
 
 	return nil
@@ -322,25 +321,24 @@ func (v *parser) parseStructDecl() *StructDecl {
 						v.consumeToken()
 						break
 					}
-					
+
 					if variable := v.parseVariableDecl(); variable != nil {
 						struc.Items.PushBack(variable)
 						itemCount++
 					} else {
 						v.err("Invalid structure item in structure `%s`", struc.Name)
 					}
-					
+
 					if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ",") {
 						v.consumeToken()
 					}
 				}
-				
+
 				v.popScope()
 			}
 		}
 
-
-		return &StructDecl{ Struct: struc }
+		return &StructDecl{Struct: struc}
 	}
 	return nil
 }
@@ -576,7 +574,7 @@ func (v *parser) parseStringLiteral() *StringLiteral {
 		return nil
 	}
 	c := v.consumeToken().Contents
-	return &StringLiteral{unescapeString(c[1:len(c)-1])}
+	return &StringLiteral{unescapeString(c[1 : len(c)-1])}
 }
 
 func (v *parser) parseRuneLiteral() *RuneLiteral {

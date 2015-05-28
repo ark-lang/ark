@@ -1,8 +1,8 @@
 package parser
 
 import (
-	"fmt"
 	"container/list"
+	"fmt"
 
 	"github.com/ark-lang/ark-go/util"
 )
@@ -41,10 +41,10 @@ func (v *Variable) String() string {
 }
 
 type Function struct {
-	Name string
+	Name       string
 	Parameters *List
-	Type Type
-	Mutable bool
+	Type       Type
+	Mutable    bool
 }
 
 func (v *Function) String() string {
@@ -182,7 +182,7 @@ type List struct {
 func (v *List) listNode() {}
 
 func (v *List) String() string {
-	var result = "(" + util.Blue("List: ");
+	var result = "(" + util.Blue("List: ")
 	for item := v.Items.Front(); item != nil; item = item.Next() {
 		result += item.Value.(*VariableDecl).String()
 	}

@@ -2,7 +2,7 @@ package parser
 
 import (
 	"container/list"
-	
+
 	"github.com/ark-lang/ark-go/util"
 )
 
@@ -53,8 +53,8 @@ func (v PrimitiveType) GetLevelsOfIndirection() int {
 // StructType
 
 type StructType struct {
-	Name string
-	Items list.List
+	Name   string
+	Items  list.List
 	Packed bool
 }
 
