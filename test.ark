@@ -33,7 +33,7 @@ func ten(): int {
 }
 
 
-func _2345_test日本語てすと(と: int, とと: i32): int {
+func _2345_test日本語てすと(と: int, un: i32): int {
 	
 }
 

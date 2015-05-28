@@ -193,6 +193,8 @@ func (v *parser) parseFunctionDecl() *FunctionDecl {
 			v.err("Illegal redeclaration of function `%s`", function.Name)
 		}
 
+		v.pushScope()
+
 		// list
 		if list := v.parseList(); list != nil {
 			function.Parameters = list
@@ -222,7 +224,6 @@ func (v *parser) parseFunctionDecl() *FunctionDecl {
 		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "{") {
 			v.consumeToken()
 
-			v.pushScope()
 
 			for {
 				if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "}") {
@@ -231,11 +232,11 @@ func (v *parser) parseFunctionDecl() *FunctionDecl {
 				}
 				v.consumeToken() // ignore it
 			}
-
-			v.popScope()
 		} else {
 			v.err("Expecting block after function decl even though some point prototypes should be support lol whatever")
 		}
+
+		v.popScope()
 
 		return &FunctionDecl{Function: function}
 	}
