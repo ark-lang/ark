@@ -37,8 +37,8 @@ Make sure `$GOPATH/bin` is in your `$PATH`.
 * Expression -> Expr
 * Declaration -> Decl
 
-## gogenerate.sh
-The script gogenerate.sh is included for the convenience of the developers. It runs `go generate` on all the modules in alloy-go.
+## `make gen`
+The target `gen` is included for the convenience of the developers. It runs `go generate` on all the modules in alloy-go.
 
 # Developers Notes
 ### Wed 27 May
