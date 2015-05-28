@@ -4,6 +4,7 @@ type Scope struct {
 	Outer *Scope
 	Vars  map[string]*Variable
 	Types map[string]Type
+	Funcs map[string]*Function
 }
 
 func newScope(outer *Scope) *Scope {
@@ -11,6 +12,7 @@ func newScope(outer *Scope) *Scope {
 		Outer: outer,
 		Vars:  make(map[string]*Variable),
 		Types: make(map[string]Type),
+		Funcs: make(map[string]*Function),
 	}
 }
 
@@ -54,6 +56,23 @@ func (v *Scope) GetVariable(name string) *Variable {
 		return r
 	} else if v.Outer != nil {
 		return v.Outer.GetVariable(name)
+	}
+	return nil
+}
+
+func (v *Scope) InsertFunction(t *Function) *Function {
+	c := v.Funcs[t.Name]
+	if c == nil {
+		v.Funcs[t.Name] = t
+	}
+	return c
+}
+
+func (v *Scope) GetFunction(name string) *Function {
+	if r := v.Funcs[name]; r != nil {
+		return r
+	} else if v.Outer != nil {
+		return v.Outer.GetFunction(name)
 	}
 	return nil
 }

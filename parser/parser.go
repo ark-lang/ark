@@ -178,24 +178,27 @@ func (v *parser) parseType() Type {
 
 func (v *parser) parseFunctionDecl() *FunctionDecl {
 	if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_FUNC) {
-		funcDecl := &FunctionDecl{}
-
-		v.pushScope()
+		function := &Function{}
 
 		v.consumeToken()
 		
 		// name
 		if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, "") {
-			funcDecl.Name = v.consumeToken().Contents
+			function.Name = v.consumeToken().Contents
 		} else {
 			v.err("Function expected an identifier")
+		}
+		
+		if vname := v.scope.InsertFunction(function); vname != nil {
+			fmt.Println("yes")
+			v.err("Illegal redeclaration of function `%s`", function.Name)
 		}
 
 		// list
 		if list := v.parseList(); list != nil {
-			funcDecl.Parameters = list
+			function.Parameters = list
 		} else {
-			v.err("Function declaration `%s` expected a list after identifier", funcDecl.Name)
+			v.err("Function declaration `%s` expected a list after identifier", function.Name)
 		}
 
 		// return type
@@ -205,20 +208,22 @@ func (v *parser) parseFunctionDecl() *FunctionDecl {
 			// mutable return type
 			if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_MUT) {
 				v.consumeToken()
-				funcDecl.Mutable = true
+				function.Mutable = true
 			}
 
 			// actual return type
 			if typ := v.parseType(); typ != nil {
-				funcDecl.Type = typ
+				function.Type = typ
 			} else {
-				v.err("Expected function return type after colon for function `%s`", funcDecl.Name)
+				v.err("Expected function return type after colon for function `%s`", function.Name)
 			}
 		}
 
 		// block
 		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "{") {
 			v.consumeToken()
+			
+			v.pushScope()
 
 			for {
 				if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "}") {
@@ -227,13 +232,14 @@ func (v *parser) parseFunctionDecl() *FunctionDecl {
 				}
 				v.consumeToken() // ignore it
 			}
+			
+			v.popScope()
 		} else {
 			v.err("Expecting block after function decl even though some point prototypes should be support lol whatever")
 		}
 
-		v.popScope()
 
-		return funcDecl
+		return &FunctionDecl{ Function: function }
 	}
 
 	return nil

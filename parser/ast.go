@@ -40,6 +40,21 @@ func (v *Variable) String() string {
 	return "(" + util.Blue("Variable") + ": " + mut + v.Name + ": " + util.Green(v.Type.GetTypeName()) + ")"
 }
 
+type Function struct {
+	Name string
+	Parameters *List
+	Type Type
+	Mutable bool
+}
+
+func (v *Function) String() string {
+	mut := ""
+	if v.Mutable {
+		mut = util.Green("[mutable] ")
+	}
+	return "(" + util.Blue("Function") + ": " + mut + v.Name + " " + v.Parameters.String() + ": " + util.Green(v.Type.GetTypeName()) + ")"
+}
+
 //
 // Nodes
 //
@@ -88,20 +103,14 @@ func (v *StructDecl) String() string {
 // FunctionDecl
 
 type FunctionDecl struct {
-	Name string
-	Parameters *List
-	Type Type
-	Mutable bool
+	Function *Function
+	//Body *Block TODO
 }
 
 func (v *FunctionDecl) declNode() {}
 
 func (v *FunctionDecl) String() string {
-	mut := ""
-	if v.Mutable {
-		mut = util.Green("[mutable] ")
-	}
-	return "(" + util.Blue("FunctionDecl") + ": " + mut + v.Name + " " + v.Parameters.String() + ")" + " (" + util.Blue("Return Type:") + " " + util.Green(v.Type.GetTypeName()) + ")"
+	return "(" + util.Blue("FunctionDecl") + ": " + v.Function.String() + ")"
 }
 
 /**
