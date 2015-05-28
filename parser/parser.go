@@ -111,7 +111,7 @@ func Parse(tokens []*lexer.Token, verbose bool) *File {
 
 func (v *parser) parse() {
 	for v.peek(0) != nil {
-		if n := v.parseStatement(); n != nil {
+		if n := v.parseNode(); n != nil {
 			v.pushNode(n)
 			if v.verbose && n != nil {
 				fmt.Println(n)
@@ -122,13 +122,22 @@ func (v *parser) parse() {
 	}
 }
 
-func (v *parser) parseStatement() Node {
+func (v *parser) parseNode() Node {
 	for v.tokenMatches(0, lexer.TOKEN_COMMENT, "") || v.tokenMatches(0, lexer.TOKEN_DOCCOMMENT, "") {
 		v.consumeToken()
 	}
 
 	if decl := v.parseDecl(); decl != nil {
 		return decl
+	} else if stat := v.parseStat(); stat != nil {
+		return stat
+	}
+	return nil
+}
+
+func (v *parser) parseStat() Stat {
+	if returnStat := v.parseReturnStat(); returnStat != nil {
+		return returnStat
 	}
 	return nil
 }
@@ -219,7 +228,7 @@ func (v *parser) parseFunctionDecl() *FunctionDecl {
 				v.err("Expected function return type after colon for function `%s`", function.Name)
 			}
 		}
-		
+
 		funcDecl := &FunctionDecl{Function: function}
 
 		// block
@@ -241,23 +250,42 @@ func (v *parser) parseBlock() *Block {
 	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "{") {
 		return nil
 	}
-	
+
 	v.consumeToken()
-	
+
 	block := newBlock()
-	
+
 	for {
 		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "}") {
 			v.consumeToken()
 			return block
 		}
-		
-		if s := v.parseStatement(); s != nil {
+
+		if s := v.parseNode(); s != nil {
 			block.appendNode(s)
 		} else {
-			v.err("dunno what happened here")
+			v.err("Expected statment, found something else")
 		}
 	}
+}
+
+func (v *parser) parseReturnStat() *ReturnStat {
+	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_RETURN) {
+		return nil
+	}
+
+	v.consumeToken()
+
+	expr := v.parseExpr()
+	if expr == nil {
+		v.err("Expected expression in return statement, found `%s`", v.peek(0).Contents)
+	}
+
+	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ";") {
+		v.err("Expected semicolon after return statement, found `%s`", v.peek(0).Contents)
+	}
+	v.consumeToken()
+	return &ReturnStat{Value: expr}
 }
 
 func (v *parser) parseList() *List {

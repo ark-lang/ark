@@ -64,11 +64,15 @@ type Block struct {
 }
 
 func newBlock() *Block {
-	return &Block{ Nodes: make([]Node, 0) }
+	return &Block{Nodes: make([]Node, 0)}
 }
 
 func (v *Block) String() string {
-	result := "(" + util.Blue("Block:") + ":\n"
+	if len(v.Nodes) == 0 {
+		return "(" + util.Blue("Block") + ": )"
+	}
+
+	result := "(" + util.Blue("Block") + ":\n"
 	for _, n := range v.Nodes {
 		result += "\t" + n.String() + "\n"
 	}
@@ -117,13 +121,32 @@ func (v *StructDecl) String() string {
 
 type FunctionDecl struct {
 	Function *Function
-	Body *Block
+	Body     *Block
 }
 
 func (v *FunctionDecl) declNode() {}
 
 func (v *FunctionDecl) String() string {
-	return "(" + util.Blue("FunctionDecl") + ": " + v.Function.String() + ")"
+	result := "(" + util.Blue("FunctionDecl") + ": " + v.Function.String() + " "
+	if v.Body != nil {
+		result += v.Body.String()
+	}
+	return result + ")"
+}
+
+/**
+ * Statements
+ */
+
+type ReturnStat struct {
+	Value Expr
+}
+
+func (v *ReturnStat) statNode() {}
+
+func (v *ReturnStat) String() string {
+	return "(" + util.Green("ReturnStat") + ": " +
+		v.Value.String() + ")"
 }
 
 /**
@@ -202,7 +225,7 @@ type List struct {
 func (v *List) listNode() {}
 
 func (v *List) String() string {
-	var result = "(" + util.Blue("List: ")
+	var result = "(" + util.Blue("List") + ": "
 	for item := v.Items.Front(); item != nil; item = item.Next() {
 		result += item.Value.(*VariableDecl).String()
 		if item.Next() != nil {
