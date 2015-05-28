@@ -59,6 +59,26 @@ func (v *Function) String() string {
 // Nodes
 //
 
+type Block struct {
+	Nodes []Node
+}
+
+func newBlock() *Block {
+	return &Block{ Nodes: make([]Node, 0) }
+}
+
+func (v *Block) String() string {
+	result := "(" + util.Blue("Block:") + ":\n"
+	for _, n := range v.Nodes {
+		result += "\t" + n.String() + "\n"
+	}
+	return result + ")"
+}
+
+func (v *Block) appendNode(n Node) {
+	v.Nodes = append(v.Nodes, n)
+}
+
 /**
  * Declarations
  */
@@ -97,7 +117,7 @@ func (v *StructDecl) String() string {
 
 type FunctionDecl struct {
 	Function *Function
-	//Body *Block TODO
+	Body *Block
 }
 
 func (v *FunctionDecl) declNode() {}
@@ -185,6 +205,9 @@ func (v *List) String() string {
 	var result = "(" + util.Blue("List: ")
 	for item := v.Items.Front(); item != nil; item = item.Next() {
 		result += item.Value.(*VariableDecl).String()
+		if item.Next() != nil {
+			result += " "
+		}
 	}
 	result += ")"
 	return result

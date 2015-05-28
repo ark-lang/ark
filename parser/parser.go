@@ -219,29 +219,45 @@ func (v *parser) parseFunctionDecl() *FunctionDecl {
 				v.err("Expected function return type after colon for function `%s`", function.Name)
 			}
 		}
+		
+		funcDecl := &FunctionDecl{Function: function}
 
 		// block
-		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "{") {
-			v.consumeToken()
-
-
-			for {
-				if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "}") {
-					v.consumeToken()
-					break
-				}
-				v.consumeToken() // ignore it
-			}
+		if block := v.parseBlock(); block != nil {
+			funcDecl.Body = block
 		} else {
 			v.err("Expecting block after function decl even though some point prototypes should be support lol whatever")
 		}
 
 		v.popScope()
 
-		return &FunctionDecl{Function: function}
+		return funcDecl
 	}
 
 	return nil
+}
+
+func (v *parser) parseBlock() *Block {
+	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "{") {
+		return nil
+	}
+	
+	v.consumeToken()
+	
+	block := newBlock()
+	
+	for {
+		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "}") {
+			v.consumeToken()
+			return block
+		}
+		
+		if s := v.parseStatement(); s != nil {
+			block.appendNode(s)
+		} else {
+			v.err("dunno what happened here")
+		}
+	}
 }
 
 func (v *parser) parseList() *List {
