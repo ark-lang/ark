@@ -190,7 +190,6 @@ func (v *parser) parseFunctionDecl() *FunctionDecl {
 		}
 		
 		if vname := v.scope.InsertFunction(function); vname != nil {
-			fmt.Println("yes")
 			v.err("Illegal redeclaration of function `%s`", function.Name)
 		}
 
@@ -299,21 +298,24 @@ func (v *parser) parseAttribute(attrib string) bool {
 
 func (v *parser) parseStructDecl() *StructDecl {
 	if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_STRUCT) {
-		structDecl := &StructDecl{}
-		
-		v.pushScope()
+		struc := &StructType{}
 
 		v.consumeToken()
 
 		if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, "") {
-			structDecl.Name = v.consumeToken().Contents
+			struc.Name = v.consumeToken().Contents
+			if sname := v.scope.InsertType(struc); sname != nil {
+				v.err("Illegal redeclaration of type `%s`", struc.Name)
+			}
 
-			structDecl.Packed = v.parseAttribute("packed")
+			struc.Packed = v.parseAttribute("packed")
 
 			// TODO semi colons i.e. struct with no body?
 			var itemCount = 0
 			if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "{") {
 				v.consumeToken()
+
+				v.pushScope()
 
 				for {
 					if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "}") {
@@ -322,22 +324,23 @@ func (v *parser) parseStructDecl() *StructDecl {
 					}
 					
 					if variable := v.parseVariableDecl(); variable != nil {
-						structDecl.Items.PushBack(variable)
+						struc.Items.PushBack(variable)
 						itemCount++
 					} else {
-						v.err("Invalid structure item in structure `%s`", structDecl.Name)
+						v.err("Invalid structure item in structure `%s`", struc.Name)
 					}
 					
 					if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ",") {
 						v.consumeToken()
 					}
 				}
+				
+				v.popScope()
 			}
 		}
 
-		v.popScope()
 
-		return structDecl
+		return &StructDecl{ Struct: struc }
 	}
 	return nil
 }

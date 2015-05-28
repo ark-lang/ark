@@ -1,5 +1,11 @@
 package parser
 
+import (
+	"container/list"
+	
+	"github.com/ark-lang/ark-go/util"
+)
+
 type Type interface {
 	GetTypeName() string
 	GetRawType() Type            // type disregarding pointers
@@ -48,6 +54,16 @@ func (v PrimitiveType) GetLevelsOfIndirection() int {
 
 type StructType struct {
 	Name string
+	Items list.List
+	Packed bool
+}
+
+func (v *StructType) String() string {
+	result := "(" + util.Blue("StructType") + ": " + v.Name + "\n"
+	for item := v.Items.Front(); item != nil; item = item.Next() {
+		result += "\t" + item.Value.(*VariableDecl).String() + "\n"
+	}
+	return result + ")"
 }
 
 func (v *StructType) GetTypeName() string {

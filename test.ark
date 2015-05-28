@@ -28,7 +28,6 @@ struct Test [packed] {
     b: int = 5
 }
 
-func ten(): i32 {}
 func ten(): int {
 	return 0x05 + 5;
 }
