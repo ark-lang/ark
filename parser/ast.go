@@ -145,7 +145,7 @@ type ReturnStat struct {
 func (v *ReturnStat) statNode() {}
 
 func (v *ReturnStat) String() string {
-	return "(" + util.Green("ReturnStat") + ": " +
+	return "(" + util.Blue("ReturnStat") + ": " +
 		v.Value.String() + ")"
 }
 
