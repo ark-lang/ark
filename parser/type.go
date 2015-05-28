@@ -36,6 +36,7 @@ const (
 	PRIMITIVE_rune
 
 	PRIMITIVE_int
+	PRIMITIVE_uint
 )
 
 func (v PrimitiveType) GetTypeName() string {
