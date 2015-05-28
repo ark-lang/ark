@@ -58,7 +58,7 @@ func (v *parser) pushScope() {
 func (v *parser) popScope() {
 	v.scope = v.scope.Outer
 	if v.scope == nil {
-		panic("pushed too many scopes")
+		panic("popped too many scopes")
 	}
 }
 
