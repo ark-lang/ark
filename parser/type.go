@@ -56,11 +56,15 @@ func (v PrimitiveType) GetLevelsOfIndirection() int {
 type StructType struct {
 	Name   string
 	Items  list.List
-	Packed bool
+	Attrs  []*Attr
 }
 
 func (v *StructType) String() string {
-	result := "(" + util.Blue("StructType") + ": " + v.Name + "\n"
+	result := "(" + util.Blue("StructType") + ": "
+	for _, attr := range v.Attrs {
+		result += attr.String() + " "
+	}
+	result += v.Name + "\n"
 	for item := v.Items.Front(); item != nil; item = item.Next() {
 		result += "\t" + item.Value.(*VariableDecl).String() + "\n"
 	}

@@ -45,14 +45,18 @@ type Function struct {
 	Parameters *List
 	Type       Type
 	Mutable    bool
+	Attrs      []*Attr
 }
 
 func (v *Function) String() string {
-	mut := ""
+	result := "(" + util.Blue("Function") + ": "
 	if v.Mutable {
-		mut = util.Green("[mutable] ")
+		result += util.Green("[mutable] ")
 	}
-	return "(" + util.Blue("Function") + ": " + mut + v.Name + " " + v.Parameters.String() + ": " + util.Green(v.Type.GetTypeName()) + ")"
+	for _, attr := range v.Attrs {
+		result += attr.String() + " "
+	}
+	return result + v.Name + " " + v.Parameters.String() + ": " + util.Green(v.Type.GetTypeName()) + ")"
 }
 
 //

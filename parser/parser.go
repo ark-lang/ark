@@ -318,28 +318,6 @@ func (v *parser) parseList() *List {
 	return list
 }
 
-func (v *parser) parseAttribute(attrib string) bool {
-	if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "[") {
-		if !v.tokenMatches(2, lexer.TOKEN_SEPARATOR, "]") {
-			v.err("Attribute missing closing bracket")
-			return false
-		}
-
-		// eat the opening bracket
-		v.consumeToken()
-
-		// eat the attribute name
-		if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, attrib) {
-			v.consumeToken()
-		}
-
-		// eat the closing bracket
-		v.consumeToken()
-		return true
-	}
-	return false
-}
-
 func (v *parser) parseStructDecl() *StructDecl {
 	if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_STRUCT) {
 		struc := &StructType{}
@@ -352,7 +330,10 @@ func (v *parser) parseStructDecl() *StructDecl {
 				v.err("Illegal redeclaration of type `%s`", struc.Name)
 			}
 
-			struc.Packed = v.parseAttribute("packed")
+			struc.Attrs = make([]*Attr, 0)
+			for attr := v.parseAttr(); attr != nil; attr = v.parseAttr() {
+				struc.Attrs = append(struc.Attrs, attr)
+			}
 
 			// TODO semi colons i.e. struct with no body?
 			var itemCount = 0
