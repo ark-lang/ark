@@ -20,6 +20,7 @@ type Stat interface {
 type Expr interface {
 	Node
 	exprNode()
+	GetType() Type
 }
 
 type Decl interface {
@@ -51,6 +52,7 @@ type Function struct {
 	Type       Type
 	Mutable    bool
 	Attrs      []*Attr
+	Body       *Block
 }
 
 func (v *Function) String() string {
@@ -61,7 +63,11 @@ func (v *Function) String() string {
 	for _, attr := range v.Attrs {
 		result += attr.String() + " "
 	}
-	return result + v.Name + " " + v.Parameters.String() + ": " + util.Green(v.Type.GetTypeName()) + ")"
+	result += v.Name + " " + v.Parameters.String() + ": " + util.Green(v.Type.GetTypeName()) + " "
+	if v.Body != nil {
+		result += v.Body.String()
+	}
+	return result + ")"
 }
 
 //
@@ -130,17 +136,12 @@ func (v *StructDecl) String() string {
 
 type FunctionDecl struct {
 	Function *Function
-	Body     *Block
 }
 
 func (v *FunctionDecl) declNode() {}
 
 func (v *FunctionDecl) String() string {
-	result := "(" + util.Blue("FunctionDecl") + ": " + v.Function.String() + " "
-	if v.Body != nil {
-		result += v.Body.String()
-	}
-	return result + ")"
+	return "(" + util.Blue("FunctionDecl") + ": " + v.Function.String() + ")"
 }
 
 /**
@@ -174,6 +175,10 @@ func (v *RuneLiteral) String() string {
 	return fmt.Sprintf("("+util.Blue("RuneLiteral")+": "+util.Yellow("%c")+")", v.Value)
 }
 
+func (v *RuneLiteral) GetType() Type {
+	return PRIMITIVE_rune
+}
+
 // IntegerLiteral
 
 type IntegerLiteral struct {
@@ -184,6 +189,10 @@ func (v *IntegerLiteral) exprNode() {}
 
 func (v *IntegerLiteral) String() string {
 	return fmt.Sprintf("("+util.Blue("IntegerLiteral")+": "+util.Yellow("%d")+")", v.Value)
+}
+
+func (v *IntegerLiteral) GetType() Type {
+	return PRIMITIVE_int
 }
 
 // FloatingLiteral
@@ -198,6 +207,10 @@ func (v *FloatingLiteral) String() string {
 	return fmt.Sprintf("("+util.Blue("FloatingLiteral")+": "+util.Yellow("%f")+")", v.Value)
 }
 
+func (v *FloatingLiteral) GetType() Type {
+	return PRIMITIVE_f64
+}
+
 // StringLiteral
 
 type StringLiteral struct {
@@ -210,11 +223,16 @@ func (v *StringLiteral) String() string {
 	return "(" + util.Blue("StringLiteral") + ": " + util.Yellow(v.Value) + ")"
 }
 
+func (v *StringLiteral) GetType() Type {
+	return PRIMITIVE_str
+}
+
 // BinaryExpr
 
 type BinaryExpr struct {
 	Lhand, Rhand Expr
 	Op           BinOpType
+	Type         Type
 }
 
 func (v *BinaryExpr) exprNode() {}
@@ -223,6 +241,29 @@ func (v *BinaryExpr) String() string {
 	return "(" + util.Blue("BinaryExpr") + ": " + v.Lhand.String() + " " +
 		v.Op.String() + " " +
 		v.Rhand.String() + ")"
+}
+
+func (v *BinaryExpr) GetType() Type {
+	return v.Type
+}
+
+// UnaryExpr
+
+type UnaryExpr struct {
+	Expr Expr
+	Op   UnOpType
+	Type Type
+}
+
+func (v *UnaryExpr) exprNode() {}
+
+func (v *UnaryExpr) String() string {
+	return "(" + util.Blue("UnaryExpr") + ": " +
+		v.Op.String() + " " + v.Expr.String() + ")"
+}
+
+func (v *UnaryExpr) GetType() Type {
+	return v.Type
 }
 
 // List
@@ -243,18 +284,4 @@ func (v *List) String() string {
 	}
 	result += ")"
 	return result
-}
-
-// UnaryExpr
-
-type UnaryExpr struct {
-	Expr Expr
-	Op   UnOpType
-}
-
-func (v *UnaryExpr) exprNode() {}
-
-func (v *UnaryExpr) String() string {
-	return "(" + util.Blue("UnaryExpr") + ": " +
-		v.Op.String() + " " + v.Expr.String() + ")"
 }

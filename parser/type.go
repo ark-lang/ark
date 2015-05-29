@@ -10,6 +10,8 @@ type Type interface {
 	GetTypeName() string
 	GetRawType() Type            // type disregarding pointers
 	GetLevelsOfIndirection() int // number of pointers you have to go through to get to the actual type
+	IsIntegerType() bool
+	IsFloatingType() bool
 }
 
 //go:generate stringer -type=PrimitiveType
@@ -37,7 +39,29 @@ const (
 
 	PRIMITIVE_int
 	PRIMITIVE_uint
+
+	PRIMITIVE_bool
 )
+
+func (v PrimitiveType) IsIntegerType() bool {
+	switch v {
+	case PRIMITIVE_i8, PRIMITIVE_i16, PRIMITIVE_i32, PRIMITIVE_i64, PRIMITIVE_i128,
+		PRIMITIVE_u8, PRIMITIVE_u16, PRIMITIVE_u32, PRIMITIVE_u64, PRIMITIVE_u128,
+		PRIMITIVE_int, PRIMITIVE_uint:
+		return true
+	default:
+		return false
+	}
+}
+
+func (v PrimitiveType) IsFloatingType() bool {
+	switch v {
+	case PRIMITIVE_f32, PRIMITIVE_f64, PRIMITIVE_f128:
+		return true
+	default:
+		return false
+	}
+}
 
 func (v PrimitiveType) GetTypeName() string {
 	return v.String()[10:]
@@ -83,6 +107,14 @@ func (v *StructType) GetLevelsOfIndirection() int {
 	return 0
 }
 
+func (v *StructType) IsIntegerType() bool {
+	return false
+}
+
+func (v *StructType) IsFloatingType() bool {
+	return false
+}
+
 // PointerTyper
 
 type PointerType struct {
@@ -99,4 +131,12 @@ func (v *PointerType) GetRawType() Type {
 
 func (v *PointerType) GetLevelsOfIndirection() int {
 	return v.Addressee.GetLevelsOfIndirection() + 1
+}
+
+func (v *PointerType) IsIntegerType() bool {
+	return false
+}
+
+func (v *PointerType) IsFloatingType() bool {
+	return false
 }

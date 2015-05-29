@@ -106,6 +106,15 @@ func Parse(tokens []*lexer.Token, verbose bool) *File {
 		fmt.Println(util.TEXT_BOLD+util.TEXT_GREEN+"Finished parsing"+util.TEXT_RESET, tokens[0].Filename)
 	}
 
+	sem := &semanticAnalyzer{file: p.file}
+	if verbose {
+		fmt.Println(util.TEXT_BOLD+util.TEXT_GREEN+"Started analyzing"+util.TEXT_RESET, tokens[0].Filename)
+	}
+	sem.analyze()
+	if verbose {
+		fmt.Println(util.TEXT_BOLD+util.TEXT_GREEN+"Finished analyzing"+util.TEXT_RESET, tokens[0].Filename)
+	}
+
 	return p.file
 }
 
@@ -233,7 +242,7 @@ func (v *parser) parseFunctionDecl() *FunctionDecl {
 
 		// block
 		if block := v.parseBlock(); block != nil {
-			funcDecl.Body = block
+			funcDecl.Function.Body = block
 		} else {
 			v.err("Expecting block after function decl even though some point prototypes should be support lol whatever")
 		}

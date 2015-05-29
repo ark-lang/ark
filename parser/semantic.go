@@ -25,8 +25,15 @@ func (v *semanticAnalyzer) analyze() {
 	}
 }
 
+func (v *Block) analyze(s *semanticAnalyzer) {
+	for _, n := range v.Nodes {
+		n.analyze(s)
+	}
+}
+
 func (v *VariableDecl) analyze(s *semanticAnalyzer) {
 	v.Variable.analyze(s)
+	v.Assignment.analyze(s)
 }
 
 func (v *Variable) analyze(s *semanticAnalyzer) {
@@ -73,7 +80,27 @@ func (v *Function) analyze(s *semanticAnalyzer) {
 
 func (v *ReturnStat) analyze(s *semanticAnalyzer) {}
 
-func (v *UnaryExpr) analyze(s *semanticAnalyzer) {}
+func (v *UnaryExpr) analyze(s *semanticAnalyzer) {
+	v.Expr.analyze(s)
+	switch v.Op {
+	case UNOP_LOG_NOT:
+		if v.Expr.GetType() == PRIMITIVE_bool {
+			v.Type = PRIMITIVE_bool
+		} else {
+			s.err("Used logical not on non-bool")
+		}
+	case UNOP_BIT_NOT:
+		if v.Expr.GetType().IsIntegerType() || v.Expr.GetType().IsFloatingType() {
+			v.Type = v.Expr.GetType()
+		} else {
+			s.err("Used bitwise not on non-numeric type")
+		}
+	case UNOP_ADDRESS:
+	case UNOP_DEREF:
+	default:
+		panic("whoops")
+	}
+}
 
 func (v *BinaryExpr) analyze(s *semanticAnalyzer) {}
 

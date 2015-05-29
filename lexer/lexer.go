@@ -327,11 +327,11 @@ func isLetter(r rune) bool {
 }
 
 func isOperator(r rune) bool {
-	return strings.ContainsRune("+-*/=><!~?:|&%^\"'", r)
+	return strings.ContainsRune("+-*/=><!~?:|&%^", r)
 }
 
 func isExpressionOperator(r rune) bool {
-	return strings.ContainsRune("+-*/=><!~?:|&%^\"'()", r) // this is unused?
+	return strings.ContainsRune("+-*/=><!~?:|&%^()", r) // this is unused?
 }
 
 func isSeparator(r rune) bool {
