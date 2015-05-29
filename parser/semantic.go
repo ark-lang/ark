@@ -3,7 +3,7 @@ package parser
 import (
 	"fmt"
 	"os"
-	
+
 	"github.com/ark-lang/ark-go/util"
 )
 
@@ -13,7 +13,7 @@ type semanticAnalyzer struct {
 
 func (v *semanticAnalyzer) err(err string, stuff ...interface{}) {
 	/*fmt.Printf(util.TEXT_RED+util.TEXT_BOLD+"Semantic error:"+util.TEXT_RESET+" [%s:%d:%d] %s\n",
-		v.peek(0).Filename, v.peek(0).LineNumber, v.peek(0).CharNumber, fmt.Sprintf(err, stuff...))*/
+	v.peek(0).Filename, v.peek(0).LineNumber, v.peek(0).CharNumber, fmt.Sprintf(err, stuff...))*/
 	fmt.Printf(util.TEXT_RED+util.TEXT_BOLD+"Semantic error:"+util.TEXT_RESET+" %s\n",
 		fmt.Sprintf(err, stuff...))
 	os.Exit(2)
@@ -66,7 +66,7 @@ func (v *Function) analyze(s *semanticAnalyzer) {
 	for _, attr := range v.Attrs {
 		switch attr.Key {
 		default:
-			s.err("Invalid unction attribute key `%s`", attr.Key)
+			s.err("Invalid function attribute key `%s`", attr.Key)
 		}
 	}
 }

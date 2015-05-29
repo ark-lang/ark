@@ -54,9 +54,9 @@ func (v PrimitiveType) GetLevelsOfIndirection() int {
 // StructType
 
 type StructType struct {
-	Name   string
-	Items  list.List
-	Attrs  []*Attr
+	Name  string
+	Items list.List
+	Attrs []*Attr
 }
 
 func (v *StructType) String() string {
