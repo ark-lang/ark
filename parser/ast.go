@@ -9,6 +9,7 @@ import (
 
 type Node interface {
 	String() string
+	analyze(*semanticAnalyzer)
 }
 
 type Stat interface {
@@ -30,14 +31,18 @@ type Variable struct {
 	Type    Type
 	Name    string
 	Mutable bool
+	Attrs   []*Attr
 }
 
 func (v *Variable) String() string {
-	mut := ""
+	result := "(" + util.Blue("Variable") + ": "
 	if v.Mutable {
-		mut = util.Green("[mutable] ")
+		result += util.Green("[mutable] ")
 	}
-	return "(" + util.Blue("Variable") + ": " + mut + v.Name + ": " + util.Green(v.Type.GetTypeName()) + ")"
+	for _, attr := range v.Attrs {
+		result += attr.String() + " "
+	}
+	return result + v.Name + " " + util.Green(v.Type.GetTypeName()) + ")"
 }
 
 type Function struct {
