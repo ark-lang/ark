@@ -35,7 +35,7 @@ func ten(): int {
 
 
 func _2345_test日本語てすと(と: int, un: i32): int {
-	
+
 }
 
 func main(a: int): mut int {

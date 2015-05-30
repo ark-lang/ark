@@ -96,7 +96,14 @@ func (v *UnaryExpr) analyze(s *semanticAnalyzer) {
 			s.err("Used bitwise not on non-numeric type")
 		}
 	case UNOP_ADDRESS:
+		v.Type = &PointerType{Addressee: v.Expr.GetType()}
+		// TODO make sure v.Expr is a variable! (can't take address of a literal)
 	case UNOP_DEREF:
+		if ptr, ok := v.Expr.GetType().(*PointerType); ok {
+			v.Type = ptr.Addressee
+		} else {
+			s.err("Used dereference operator on non-pointer")
+		}
 	default:
 		panic("whoops")
 	}
