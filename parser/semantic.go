@@ -97,10 +97,14 @@ func (v *semanticAnalyzer) checkDuplicateAttrs(attrs []*Attr) {
 	}
 }
 
-func (v *ReturnStat) analyze(s *semanticAnalyzer) {}
+func (v *ReturnStat) analyze(s *semanticAnalyzer) {
+	v.Value.analyze(s)
+	// TODO check return value same as function type
+}
 
 func (v *UnaryExpr) analyze(s *semanticAnalyzer) {
 	v.Expr.analyze(s)
+
 	switch v.Op {
 	case UNOP_LOG_NOT:
 		if v.Expr.GetType() == PRIMITIVE_bool {
@@ -128,7 +132,10 @@ func (v *UnaryExpr) analyze(s *semanticAnalyzer) {
 	}
 }
 
-func (v *BinaryExpr) analyze(s *semanticAnalyzer) {}
+func (v *BinaryExpr) analyze(s *semanticAnalyzer) {
+	v.Lhand.analyze(s)
+	v.Rhand.analyze(s)
+}
 
 func (v *StringLiteral) analyze(s *semanticAnalyzer) {}
 
