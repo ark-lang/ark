@@ -339,10 +339,7 @@ func (v *parser) parseStructDecl() *StructDecl {
 				v.err("Illegal redeclaration of type `%s`", struc.Name)
 			}
 
-			struc.Attrs = make([]*Attr, 0)
-			for attr := v.parseAttr(); attr != nil; attr = v.parseAttr() {
-				struc.Attrs = append(struc.Attrs, attr)
-			}
+			struc.Attrs = v.parseAttrs()
 
 			// TODO semi colons i.e. struct with no body?
 			var itemCount = 0

@@ -38,8 +38,11 @@ func (v *VariableDecl) analyze(s *semanticAnalyzer) {
 
 func (v *Variable) analyze(s *semanticAnalyzer) {
 	// make sure there are no illegal attributes
+	s.checkDuplicateAttrs(v.Attrs)
 	for _, attr := range v.Attrs {
 		switch attr.Key {
+		case "deprecated":
+			// value is optional, nothing to check
 		default:
 			s.err("Invalid variable attribute key `%s`", attr.Key)
 		}
@@ -52,12 +55,15 @@ func (v *StructDecl) analyze(s *semanticAnalyzer) {
 
 func (v *StructType) analyze(s *semanticAnalyzer) {
 	// make sure there are no illegal attributes
+	s.checkDuplicateAttrs(v.Attrs)
 	for _, attr := range v.Attrs {
 		switch attr.Key {
 		case "packed":
 			if attr.Value != "" {
 				s.err("Struct attribute `%s` doesn't expect value", attr.Key)
 			}
+		case "deprecated":
+			// value is optional, nothing to check
 		default:
 			s.err("Invalid struct attribute key `%s`", attr.Key)
 		}
@@ -70,11 +76,24 @@ func (v *FunctionDecl) analyze(s *semanticAnalyzer) {
 
 func (v *Function) analyze(s *semanticAnalyzer) {
 	// make sure there are no illegal attributes
+	s.checkDuplicateAttrs(v.Attrs)
 	for _, attr := range v.Attrs {
 		switch attr.Key {
+		case "deprecated":
+			// value is optional, nothing to check
 		default:
 			s.err("Invalid function attribute key `%s`", attr.Key)
 		}
+	}
+}
+
+func (v *semanticAnalyzer) checkDuplicateAttrs(attrs []*Attr) {
+	encountered := make(map[string]bool)
+	for _, attr := range attrs {
+		if encountered[attr.Key] {
+			v.err("Duplicate attribute `%s`", attr.Key)
+		}
+		encountered[attr.Key] = true
 	}
 }
 

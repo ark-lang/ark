@@ -24,7 +24,7 @@ t: i8 = ~10;
 mut bintest: int = 5 * 5 + 5 * 5;
 
 // packed structure syntax idea?
-struct Test [packed] {
+struct Test [packed,deprecated="Deprecated Message"] {
     a: int = 5,
     b: int = 5
 }
