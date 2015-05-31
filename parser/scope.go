@@ -27,9 +27,9 @@ func newGlobalScope() *Scope {
 }
 
 func (v *Scope) InsertType(t Type) Type {
-	c := v.Types[t.GetTypeName()]
+	c := v.Types[t.TypeName()]
 	if c == nil {
-		v.Types[t.GetTypeName()] = t
+		v.Types[t.TypeName()] = t
 	}
 	return c
 }

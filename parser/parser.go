@@ -8,6 +8,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/ark-lang/ark-go/lexer"
 	"github.com/ark-lang/ark-go/util"
@@ -101,9 +102,17 @@ func Parse(tokens []*lexer.Token, verbose bool) *File {
 	if verbose {
 		fmt.Println(util.TEXT_BOLD+util.TEXT_GREEN+"Started parsing"+util.TEXT_RESET, tokens[0].Filename)
 	}
+	t := time.Now()
 	p.parse()
+	sem := &semanticAnalyzer{file: p.file}
+	sem.analyze()
+	dur := time.Since(t)
 	if verbose {
-		fmt.Println(util.TEXT_BOLD+util.TEXT_GREEN+"Finished parsing"+util.TEXT_RESET, tokens[0].Filename)
+		for _, n := range p.file.nodes {
+			fmt.Println(n.String())
+		}
+		fmt.Printf(util.TEXT_BOLD+util.TEXT_GREEN+"Finished parsing"+util.TEXT_RESET+" %s (%.2fms)\n",
+			tokens[0].Filename, float32(dur.Nanoseconds())/1000000)
 	}
 
 	return p.file
@@ -113,9 +122,6 @@ func (v *parser) parse() {
 	for v.peek(0) != nil {
 		if n := v.parseNode(); n != nil {
 			v.pushNode(n)
-			if v.verbose && n != nil {
-				fmt.Println(n)
-			}
 		} else {
 			v.consumeToken() // TODO
 		}
@@ -138,25 +144,29 @@ func (v *parser) parseNode() Node {
 func (v *parser) parseStat() Stat {
 	if returnStat := v.parseReturnStat(); returnStat != nil {
 		return returnStat
+	} else if callStat := v.parseCallStat(); callStat != nil {
+		return callStat
+	}
+	return nil
+}
+
+func (v *parser) parseCallStat() *CallStat {
+	if call := v.parseCallExpr(); call != nil {
+		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ";") {
+			v.consumeToken()
+			return &CallStat{Call: call}
+		}
+		v.err("Expected semicolon after function call statement, found `%s`", v.peek(0))
 	}
 	return nil
 }
 
 func (v *parser) parseDecl() Decl {
-	if variableDecl := v.parseVariableDecl(); variableDecl != nil {
-		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ";") {
-			v.consumeToken()
-		} else {
-			v.err("Missing semicolon at end of variable declaration")
-		}
+	if variableDecl := v.parseVariableDecl(true); variableDecl != nil {
 		return variableDecl
-	}
-
-	if structureDecl := v.parseStructDecl(); structureDecl != nil {
+	} else if structureDecl := v.parseStructDecl(); structureDecl != nil {
 		return structureDecl
-	}
-
-	if functionDecl := v.parseFunctionDecl(); functionDecl != nil {
+	} else if functionDecl := v.parseFunctionDecl(); functionDecl != nil {
 		return functionDecl
 	}
 	return nil
@@ -170,7 +180,7 @@ func (v *parser) parseType() Type {
 	if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "^") {
 		v.consumeToken()
 		if innerType := v.parseType(); innerType != nil {
-			return &PointerType{Addressee: innerType}
+			return pointerTo(innerType)
 		} else {
 			v.err("TODO")
 		}
@@ -186,64 +196,89 @@ func (v *parser) parseType() Type {
 }
 
 func (v *parser) parseFunctionDecl() *FunctionDecl {
-	if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_FUNC) {
-		function := &Function{}
-
-		v.consumeToken()
-
-		// name
-		if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, "") {
-			function.Name = v.consumeToken().Contents
-		} else {
-			v.err("Function expected an identifier")
-		}
-
-		if vname := v.scope.InsertFunction(function); vname != nil {
-			v.err("Illegal redeclaration of function `%s`", function.Name)
-		}
-
-		v.pushScope()
-
-		// list
-		if list := v.parseList(); list != nil {
-			function.Parameters = list
-		} else {
-			v.err("Function declaration `%s` expected a list after identifier", function.Name)
-		}
-
-		// return type
-		if v.tokenMatches(0, lexer.TOKEN_OPERATOR, ":") {
-			v.consumeToken()
-
-			// mutable return type
-			if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_MUT) {
-				v.consumeToken()
-				function.Mutable = true
-			}
-
-			// actual return type
-			if typ := v.parseType(); typ != nil {
-				function.Type = typ
-			} else {
-				v.err("Expected function return type after colon for function `%s`", function.Name)
-			}
-		}
-
-		funcDecl := &FunctionDecl{Function: function}
-
-		// block
-		if block := v.parseBlock(); block != nil {
-			funcDecl.Body = block
-		} else {
-			v.err("Expecting block after function decl even though some point prototypes should be support lol whatever")
-		}
-
-		v.popScope()
-
-		return funcDecl
+	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_FUNC) {
+		return nil
 	}
 
-	return nil
+	function := &Function{}
+
+	v.consumeToken()
+
+	// name
+	if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, "") {
+		function.Name = v.consumeToken().Contents
+	} else {
+		v.err("Function expected an identifier")
+	}
+
+	if vname := v.scope.InsertFunction(function); vname != nil {
+		v.err("Illegal redeclaration of function `%s`", function.Name)
+	}
+
+	v.pushScope()
+
+	// Arguments
+	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "(") {
+		v.err("Expected `(` after function identifier, found `%s`", v.peek(0).Contents)
+	}
+	v.consumeToken()
+
+	function.Parameters = make([]*VariableDecl, 0)
+	if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ")") {
+		v.consumeToken()
+	} else {
+		for {
+			if decl := v.parseVariableDecl(false); decl != nil {
+				if decl.Assignment != nil {
+					v.err("Assignment in function parameter `%s`", decl.Variable.Name)
+				}
+
+				function.Parameters = append(function.Parameters, decl)
+			} else {
+				v.err("Expected function parameter, found `%s`", v.peek(0).Contents)
+			}
+
+			if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ")") {
+				v.consumeToken()
+				break
+			} else if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ",") {
+				v.consumeToken()
+			} else {
+				v.err("Expected `)` or `,` after function parameter, found `%s`", v.peek(0).Contents)
+			}
+		}
+	}
+
+	// return type
+	if v.tokenMatches(0, lexer.TOKEN_OPERATOR, ":") {
+		v.consumeToken()
+
+		// mutable return type
+		if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_MUT) {
+			v.consumeToken()
+			function.Mutable = true
+		}
+
+		// actual return type
+		if typ := v.parseType(); typ != nil {
+			function.ReturnType = typ
+		} else {
+			v.err("Expected function return type after colon for function `%s`", function.Name)
+		}
+	}
+
+	funcDecl := &FunctionDecl{Function: function}
+
+	// block
+	if block := v.parseBlock(); block != nil {
+		funcDecl.Function.Body = block
+	} else {
+		v.err("Expecting block after function decl even though some point prototypes should be support lol whatever")
+	}
+
+	v.popScope()
+
+	return funcDecl
 }
 
 func (v *parser) parseBlock() *Block {
@@ -256,6 +291,9 @@ func (v *parser) parseBlock() *Block {
 	block := newBlock()
 
 	for {
+		for v.tokenMatches(0, lexer.TOKEN_COMMENT, "") || v.tokenMatches(0, lexer.TOKEN_DOCCOMMENT, "") {
+			v.consumeToken()
+		}
 		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "}") {
 			v.consumeToken()
 			return block
@@ -288,58 +326,6 @@ func (v *parser) parseReturnStat() *ReturnStat {
 	return &ReturnStat{Value: expr}
 }
 
-func (v *parser) parseList() *List {
-	list := &List{}
-
-	if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "(") {
-		v.consumeToken()
-
-		for {
-			if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ")") {
-				v.consumeToken()
-				break
-			}
-
-			if item := v.parseVariableDecl(); item != nil {
-				list.Items.PushBack(item)
-			} else {
-				v.err("Invalid expression given in list")
-			}
-
-			// todo trailing comma, allow them maybe?
-			// also dont enforce these when there is only
-			// one parameter, i.e. func add(a: int,) would be disallowed
-			if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ",") {
-				v.consumeToken()
-			}
-		}
-	}
-
-	return list
-}
-
-func (v *parser) parseAttribute(attrib string) bool {
-	if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "[") {
-		if !v.tokenMatches(2, lexer.TOKEN_SEPARATOR, "]") {
-			v.err("Attribute missing closing bracket")
-			return false
-		}
-
-		// eat the opening bracket
-		v.consumeToken()
-
-		// eat the attribute name
-		if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, attrib) {
-			v.consumeToken()
-		}
-
-		// eat the closing bracket
-		v.consumeToken()
-		return true
-	}
-	return false
-}
-
 func (v *parser) parseStructDecl() *StructDecl {
 	if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_STRUCT) {
 		struc := &StructType{}
@@ -352,7 +338,7 @@ func (v *parser) parseStructDecl() *StructDecl {
 				v.err("Illegal redeclaration of type `%s`", struc.Name)
 			}
 
-			struc.Packed = v.parseAttribute("packed")
+			struc.Attrs = v.parseAttrs()
 
 			// TODO semi colons i.e. struct with no body?
 			var itemCount = 0
@@ -367,8 +353,8 @@ func (v *parser) parseStructDecl() *StructDecl {
 						break
 					}
 
-					if variable := v.parseVariableDecl(); variable != nil {
-						struc.Items.PushBack(variable)
+					if variable := v.parseVariableDecl(false); variable != nil {
+						struc.addVariableDecl(variable)
 						itemCount++
 					} else {
 						v.err("Invalid structure item in structure `%s`", struc.Name)
@@ -388,7 +374,7 @@ func (v *parser) parseStructDecl() *StructDecl {
 	return nil
 }
 
-func (v *parser) parseVariableDecl() *VariableDecl {
+func (v *parser) parseVariableDecl(needSemicolon bool) *VariableDecl {
 	variable := &Variable{}
 	varDecl := &VariableDecl{
 		Variable: variable,
@@ -399,31 +385,39 @@ func (v *parser) parseVariableDecl() *VariableDecl {
 		v.consumeToken()
 	}
 
-	if v.tokensMatch(lexer.TOKEN_IDENTIFIER, "", lexer.TOKEN_OPERATOR, ":") {
-		variable.Name = v.consumeToken().Contents // consume name
-
-		v.consumeToken() // consume :
-
-		if typ := v.parseType(); typ != nil {
-			variable.Type = typ
-		} else if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "=") {
-			panic("type inference unimplemented")
-		}
-
-		if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "=") {
-			v.consumeToken() // consume =
-			varDecl.Assignment = v.parseExpr()
-			if varDecl.Assignment == nil {
-				v.err("Expected expression in assignment to variable `%s`", variable.Name)
-			}
-		}
-	} else {
+	if !v.tokensMatch(lexer.TOKEN_IDENTIFIER, "", lexer.TOKEN_OPERATOR, ":") {
 		return nil
+	}
+	variable.Name = v.consumeToken().Contents // consume name
+
+	v.consumeToken() // consume :
+
+	if typ := v.parseType(); typ != nil {
+		variable.Type = typ
+	} else if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "=") {
+		variable.Type = nil
+	}
+
+	if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "=") {
+		v.consumeToken() // consume =
+		varDecl.Assignment = v.parseExpr()
+		if varDecl.Assignment == nil {
+			v.err("Expected expression in assignment to variable `%s`", variable.Name)
+		}
 	}
 
 	if sname := v.scope.InsertVariable(variable); sname != nil {
 		v.err("Illegal redeclaration of variable `%s`", variable.Name)
 	}
+
+	if needSemicolon {
+		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ";") {
+			v.consumeToken()
+		} else {
+			v.err("Expected semicolon at end of variable declaration, found `%s`", v.peek(0).Contents)
+		}
+	}
+
 	return varDecl
 }
 
@@ -484,8 +478,118 @@ func (v *parser) parsePrimaryExpr() Expr {
 		return litExpr
 	} else if unaryExpr := v.parseUnaryExpr(); unaryExpr != nil {
 		return unaryExpr
+	} else if castExpr := v.parseCastExpr(); castExpr != nil {
+		return castExpr
+	} else if callExpr := v.parseCallExpr(); callExpr != nil {
+		return callExpr
+	} else if accessExpr := v.parseAccessExpr(); accessExpr != nil {
+		return accessExpr
 	}
+
 	return nil
+}
+
+func (v *parser) parseAccessExpr() *AccessExpr {
+	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, "") {
+		return nil
+	}
+
+	access := &AccessExpr{}
+
+	ident := v.consumeToken().Contents
+	access.Variable = v.scope.GetVariable(ident)
+	if access.Variable == nil {
+		v.err("Unresolved variable `%s`", ident)
+	}
+
+	for {
+		if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ".") {
+			return access
+		}
+		v.consumeToken()
+
+		structType, ok := access.Variable.Type.(*StructType)
+		if !ok {
+			v.err("Cannot access member of `%s`, type `%s`", access.Variable.Name, access.Variable.Type.TypeName())
+		}
+
+		memberName := v.consumeToken().Contents
+		decl := structType.getVariableDecl(memberName)
+		if decl == nil {
+			v.err("Struct `%s` does not contain member `%s`", structType.TypeName(), memberName)
+		}
+
+		access.StructVariables = append(access.StructVariables, access.Variable)
+		access.Variable = decl.Variable
+	}
+}
+
+func (v *parser) parseCallExpr() *CallExpr {
+	if !v.tokensMatch(lexer.TOKEN_IDENTIFIER, "", lexer.TOKEN_SEPARATOR, "(") {
+		return nil
+	}
+
+	function := v.scope.GetFunction(v.peek(0).Contents)
+	if function == nil {
+		v.err("Call to undefined function `%s`", v.peek(0).Contents)
+	}
+	v.consumeToken()
+	v.consumeToken()
+
+	args := make([]Expr, 0)
+	if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ")") {
+		v.consumeToken()
+	} else {
+		for {
+			if expr := v.parseExpr(); expr != nil {
+				args = append(args, expr)
+			} else {
+				v.err("Expected function argument, found `%s`", v.peek(0).Contents)
+			}
+
+			if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ")") {
+				v.consumeToken()
+				break
+			} else if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ",") {
+				v.consumeToken()
+			} else {
+				v.err("Expected `)` or `,` after function argument, found `%s`", v.peek(0).Contents)
+			}
+		}
+	}
+
+	return &CallExpr{
+		Arguments: args,
+		Function:  function,
+	}
+}
+
+func (v *parser) parseCastExpr() *CastExpr {
+	if !v.tokensMatch(lexer.TOKEN_IDENTIFIER, "", lexer.TOKEN_SEPARATOR, "(") {
+		return nil
+	}
+
+	typ := v.scope.GetType(v.peek(0).Contents)
+	if typ == nil {
+		return nil
+	}
+	v.consumeToken()
+	v.consumeToken()
+
+	expr := v.parseExpr()
+	if expr == nil {
+		v.err("Expected expression in typecast, found `%s`", v.peek(0))
+	}
+
+	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ")") {
+		v.err("Exprected `)` at the end of typecase, found `%s`", v.peek(0))
+	}
+	v.consumeToken()
+
+	return &CastExpr{
+		Type: typ,
+		Expr: expr,
+	}
 }
 
 func (v *parser) parseUnaryExpr() *UnaryExpr {

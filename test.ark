@@ -10,22 +10,35 @@ i1: i32 = 0b100010_101010; // 2218
 i2: i32 = 0x39_57; // 14679
 i3: i32 = 0o25_36; // 1374
 i4: i32 = 1_000_005;
-rune1: rune = 'a';
+rune1 := 'a';
 rune2: rune = '\\';
 rune3: rune = '\'';
 mut float: f64 = 0.2465f;
 float2: f64 = 1.35d;
 mut float3: f64 = 0.0004;
 mut s1: str= "he\"llo";
-mut c1: ^^^^i8 = 'r';
-un: i8 = !1;
+//un: i8 = !1;
+t: int = int('h');
+
+//h := i1 + 6;
+
+bitshiftTest := 1 << i8(4);
 
 mut bintest: int = 5 * 5 + 5 * 5;
+mshifttest: int = 10 << 7;
+
+inferenceTest := 10;
+
+booltest := 1 == 0;
 
 // packed structure syntax idea?
-struct Test [packed] {
-    a: int = 5,
-    b: int = 5
+struct Test [packed,deprecated="Deprecated Message"] {
+    a: i32 = 5,
+    b := 5
+}
+
+struct Test2 {
+    a: Test
 }
 
 func ten(): int {
@@ -34,12 +47,19 @@ func ten(): int {
 
 
 func _2345_test日本語てすと(と: int, un: i32): int {
-	
+
 }
 
 func main(a: int): mut int {
 	// thing: int = ten();
 	// thing++;
 	//return thing - 11;
-	return 11;
+
+    ten();
+
+    structTest: Test2;
+
+    duh := _2345_test日本語てすと(6, 7);
+
+	return structTest.a.b;
 }

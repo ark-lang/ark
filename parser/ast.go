@@ -1,7 +1,6 @@
 package parser
 
 import (
-	"container/list"
 	"fmt"
 
 	"github.com/ark-lang/ark-go/util"
@@ -9,6 +8,7 @@ import (
 
 type Node interface {
 	String() string
+	analyze(*semanticAnalyzer)
 }
 
 type Stat interface {
@@ -19,6 +19,8 @@ type Stat interface {
 type Expr interface {
 	Node
 	exprNode()
+	GetType() Type
+	setTypeHint(Type) // the type of the parent node, nil if parent node's type is inferred
 }
 
 type Decl interface {
@@ -30,29 +32,46 @@ type Variable struct {
 	Type    Type
 	Name    string
 	Mutable bool
+	Attrs   []*Attr
 }
 
 func (v *Variable) String() string {
-	mut := ""
+	result := "(" + util.Blue("Variable") + ": "
 	if v.Mutable {
-		mut = util.Green("[mutable] ")
+		result += util.Green("[mutable] ")
 	}
-	return "(" + util.Blue("Variable") + ": " + mut + v.Name + ": " + util.Green(v.Type.GetTypeName()) + ")"
+	for _, attr := range v.Attrs {
+		result += attr.String() + " "
+	}
+	return result + v.Name + " " + util.Green(v.Type.TypeName()) + ")"
 }
 
 type Function struct {
 	Name       string
-	Parameters *List
-	Type       Type
+	Parameters []*VariableDecl
+	ReturnType Type
 	Mutable    bool
+	Attrs      []*Attr
+	Body       *Block
 }
 
 func (v *Function) String() string {
-	mut := ""
+	result := "(" + util.Blue("Function") + ": "
 	if v.Mutable {
-		mut = util.Green("[mutable] ")
+		result += util.Green("[mutable] ")
 	}
-	return "(" + util.Blue("Function") + ": " + mut + v.Name + " " + v.Parameters.String() + ": " + util.Green(v.Type.GetTypeName()) + ")"
+	for _, attr := range v.Attrs {
+		result += attr.String() + " "
+	}
+	result += v.Name
+	for _, par := range v.Parameters {
+		result += " " + par.String()
+	}
+	result += ": " + util.Green(v.ReturnType.TypeName()) + " "
+	if v.Body != nil {
+		result += v.Body.String()
+	}
+	return result + ")"
 }
 
 //
@@ -121,17 +140,12 @@ func (v *StructDecl) String() string {
 
 type FunctionDecl struct {
 	Function *Function
-	Body     *Block
 }
 
 func (v *FunctionDecl) declNode() {}
 
 func (v *FunctionDecl) String() string {
-	result := "(" + util.Blue("FunctionDecl") + ": " + v.Function.String() + " "
-	if v.Body != nil {
-		result += v.Body.String()
-	}
-	return result + ")"
+	return "(" + util.Blue("FunctionDecl") + ": " + v.Function.String() + ")"
 }
 
 /**
@@ -149,6 +163,17 @@ func (v *ReturnStat) String() string {
 		v.Value.String() + ")"
 }
 
+type CallStat struct {
+	Call *CallExpr
+}
+
+func (v *CallStat) statNode() {}
+
+func (v *CallStat) String() string {
+	return "(" + util.Blue("CallStat") + ": " +
+		v.Call.String() + ")"
+}
+
 /**
  * Expressions
  */
@@ -156,37 +181,54 @@ func (v *ReturnStat) String() string {
 // RuneLiteral
 
 type RuneLiteral struct {
-	Value rune
+	Value    rune
+	typeHint Type
 }
 
 func (v *RuneLiteral) exprNode() {}
 
 func (v *RuneLiteral) String() string {
-	return fmt.Sprintf("("+util.Blue("RuneLiteral")+": "+util.Yellow("%c")+")", v.Value)
+	return fmt.Sprintf("("+util.Blue("RuneLiteral")+": "+util.Yellow("%c")+" "+util.Green(v.GetType().TypeName())+")", v.Value)
+}
+
+func (v *RuneLiteral) GetType() Type {
+	return PRIMITIVE_rune
 }
 
 // IntegerLiteral
 
 type IntegerLiteral struct {
-	Value uint64
+	Value    uint64
+	Type     Type
+	typeHint Type
 }
 
 func (v *IntegerLiteral) exprNode() {}
 
 func (v *IntegerLiteral) String() string {
-	return fmt.Sprintf("("+util.Blue("IntegerLiteral")+": "+util.Yellow("%d")+")", v.Value)
+	return fmt.Sprintf("("+util.Blue("IntegerLiteral")+": "+util.Yellow("%d")+" "+util.Green(v.GetType().TypeName())+")", v.Value)
+}
+
+func (v *IntegerLiteral) GetType() Type {
+	return v.Type
 }
 
 // FloatingLiteral
 
 type FloatingLiteral struct {
-	Value float64
+	Value    float64
+	Type     Type
+	typeHint Type
 }
 
 func (v *FloatingLiteral) exprNode() {}
 
 func (v *FloatingLiteral) String() string {
-	return fmt.Sprintf("("+util.Blue("FloatingLiteral")+": "+util.Yellow("%f")+")", v.Value)
+	return fmt.Sprintf("("+util.Blue("FloatingLiteral")+": "+util.Yellow("%f")+" "+util.Green(v.GetType().TypeName())+")", v.Value)
+}
+
+func (v *FloatingLiteral) GetType() Type {
+	return v.Type
 }
 
 // StringLiteral
@@ -198,7 +240,11 @@ type StringLiteral struct {
 func (v *StringLiteral) exprNode() {}
 
 func (v *StringLiteral) String() string {
-	return "(" + util.Blue("StringLiteral") + ": " + util.Yellow(v.Value) + ")"
+	return "(" + util.Blue("StringLiteral") + ": " + util.Yellow(v.Value) + " " + util.Green(v.GetType().TypeName()) + ")"
+}
+
+func (v *StringLiteral) GetType() Type {
+	return PRIMITIVE_str
 }
 
 // BinaryExpr
@@ -206,6 +252,8 @@ func (v *StringLiteral) String() string {
 type BinaryExpr struct {
 	Lhand, Rhand Expr
 	Op           BinOpType
+	Type         Type
+	typeHint     Type
 }
 
 func (v *BinaryExpr) exprNode() {}
@@ -216,31 +264,17 @@ func (v *BinaryExpr) String() string {
 		v.Rhand.String() + ")"
 }
 
-// List
-
-type List struct {
-	Items list.List
-}
-
-func (v *List) listNode() {}
-
-func (v *List) String() string {
-	var result = "(" + util.Blue("List") + ": "
-	for item := v.Items.Front(); item != nil; item = item.Next() {
-		result += item.Value.(*VariableDecl).String()
-		if item.Next() != nil {
-			result += " "
-		}
-	}
-	result += ")"
-	return result
+func (v *BinaryExpr) GetType() Type {
+	return v.Type
 }
 
 // UnaryExpr
 
 type UnaryExpr struct {
-	Expr Expr
-	Op   UnOpType
+	Expr     Expr
+	Op       UnOpType
+	Type     Type
+	typeHint Type
 }
 
 func (v *UnaryExpr) exprNode() {}
@@ -248,4 +282,68 @@ func (v *UnaryExpr) exprNode() {}
 func (v *UnaryExpr) String() string {
 	return "(" + util.Blue("UnaryExpr") + ": " +
 		v.Op.String() + " " + v.Expr.String() + ")"
+}
+
+func (v *UnaryExpr) GetType() Type {
+	return v.Type
+}
+
+// CastExpr
+
+type CastExpr struct {
+	Expr Expr
+	Type Type
+}
+
+func (v *CastExpr) exprNode() {}
+
+func (v *CastExpr) String() string {
+	return "(" + util.Blue("CastExpr") + ": " + v.Expr.String() + " " + util.Green(v.GetType().TypeName()) + ")"
+}
+
+func (v *CastExpr) GetType() Type {
+	return v.Type
+}
+
+// CallExpr
+
+type CallExpr struct {
+	Function  *Function
+	Arguments []Expr
+}
+
+func (v *CallExpr) exprNode() {}
+
+func (v *CallExpr) String() string {
+	result := "(" + util.Blue("CallExpr") + ": " + v.Function.Name
+	for _, arg := range v.Arguments {
+		result += " " + arg.String()
+	}
+	return result + " " + util.Green(v.GetType().TypeName()) + ")"
+}
+
+func (v *CallExpr) GetType() Type {
+	return v.Function.ReturnType
+}
+
+// AccessExpr
+
+type AccessExpr struct {
+	StructVariables []*Variable
+	Variable        *Variable
+}
+
+func (v *AccessExpr) exprNode() {}
+
+func (v *AccessExpr) String() string {
+	result := "(" + util.Blue("AccessExpr") + ": "
+	for _, struc := range v.StructVariables {
+		result += struc.Name + "."
+	}
+	result += v.Variable.Name
+	return result + ")"
+}
+
+func (v *AccessExpr) GetType() Type {
+	return v.Variable.Type
 }

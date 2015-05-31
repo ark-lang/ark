@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 	"unicode"
 
 	"github.com/ark-lang/ark-go/util"
@@ -100,9 +101,12 @@ func Lex(input []rune, filename string, verbose bool) []*Token {
 	if v.verbose {
 		fmt.Println(util.TEXT_BOLD+util.TEXT_GREEN+"Starting lexing"+util.TEXT_RESET, filename)
 	}
+	t := time.Now()
 	v.lex()
+	dur := time.Since(t)
 	if v.verbose {
-		fmt.Println(util.TEXT_BOLD+util.TEXT_GREEN+"Finished lexing"+util.TEXT_RESET, filename)
+		fmt.Printf(util.TEXT_BOLD+util.TEXT_GREEN+"Finished lexing"+util.TEXT_RESET+" %s (%.2fms)\n",
+			filename, float32(dur)/1000000)
 	}
 	return v.output
 }
@@ -327,11 +331,11 @@ func isLetter(r rune) bool {
 }
 
 func isOperator(r rune) bool {
-	return strings.ContainsRune("+-*/=><!~?:|&%^\"'", r)
+	return strings.ContainsRune("+-*/=><!~?:|&%^", r)
 }
 
 func isExpressionOperator(r rune) bool {
-	return strings.ContainsRune("+-*/=><!~?:|&%^\"'()", r) // this is unused?
+	return strings.ContainsRune("+-*/=><!~?:|&%^()", r) // this is unused?
 }
 
 func isSeparator(r rune) bool {

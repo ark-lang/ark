@@ -1,15 +1,14 @@
 package parser
 
-import (
-	"container/list"
-
-	"github.com/ark-lang/ark-go/util"
-)
+import "github.com/ark-lang/ark-go/util"
 
 type Type interface {
-	GetTypeName() string
-	GetRawType() Type            // type disregarding pointers
-	GetLevelsOfIndirection() int // number of pointers you have to go through to get to the actual type
+	TypeName() string
+	RawType() Type            // type disregarding pointers
+	LevelsOfIndirection() int // number of pointers you have to go through to get to the actual type
+	IsIntegerType() bool
+	IsFloatingType() bool
+	CanCastTo(Type) bool
 }
 
 //go:generate stringer -type=PrimitiveType
@@ -37,62 +36,138 @@ const (
 
 	PRIMITIVE_int
 	PRIMITIVE_uint
+
+	PRIMITIVE_bool
 )
 
-func (v PrimitiveType) GetTypeName() string {
+func (v PrimitiveType) IsIntegerType() bool {
+	switch v {
+	case PRIMITIVE_i8, PRIMITIVE_i16, PRIMITIVE_i32, PRIMITIVE_i64, PRIMITIVE_i128,
+		PRIMITIVE_u8, PRIMITIVE_u16, PRIMITIVE_u32, PRIMITIVE_u64, PRIMITIVE_u128,
+		PRIMITIVE_int, PRIMITIVE_uint:
+		return true
+	default:
+		return false
+	}
+}
+
+func (v PrimitiveType) IsFloatingType() bool {
+	switch v {
+	case PRIMITIVE_f32, PRIMITIVE_f64, PRIMITIVE_f128:
+		return true
+	default:
+		return false
+	}
+}
+
+func (v PrimitiveType) TypeName() string {
 	return v.String()[10:]
 }
 
-func (v PrimitiveType) GetRawType() Type {
+func (v PrimitiveType) RawType() Type {
 	return v
 }
 
-func (v PrimitiveType) GetLevelsOfIndirection() int {
+func (v PrimitiveType) LevelsOfIndirection() int {
 	return 0
+}
+
+func (v PrimitiveType) CanCastTo(t Type) bool {
+	return (v.IsIntegerType() || v.IsFloatingType() || v == PRIMITIVE_rune) &&
+		(t.IsFloatingType() || t.IsIntegerType() || t == PRIMITIVE_rune)
 }
 
 // StructType
 
 type StructType struct {
-	Name   string
-	Items  list.List
-	Packed bool
+	Name      string
+	Variables []*VariableDecl
+	Attrs     []*Attr
 }
 
 func (v *StructType) String() string {
-	result := "(" + util.Blue("StructType") + ": " + v.Name + "\n"
-	for item := v.Items.Front(); item != nil; item = item.Next() {
-		result += "\t" + item.Value.(*VariableDecl).String() + "\n"
+	result := "(" + util.Blue("StructType") + ": "
+	for _, attr := range v.Attrs {
+		result += attr.String() + " "
+	}
+	result += v.Name + "\n"
+	for _, decl := range v.Variables {
+		result += "\t" + decl.String() + "\n"
 	}
 	return result + ")"
 }
 
-func (v *StructType) GetTypeName() string {
+func (v *StructType) TypeName() string {
 	return v.Name
 }
 
-func (v *StructType) GetRawType() Type {
+func (v *StructType) RawType() Type {
 	return v
 }
 
-func (v *StructType) GetLevelsOfIndirection() int {
+func (v *StructType) LevelsOfIndirection() int {
 	return 0
 }
 
-// PointerTyper
+func (v *StructType) IsIntegerType() bool {
+	return false
+}
+
+func (v *StructType) IsFloatingType() bool {
+	return false
+}
+
+func (v *StructType) CanCastTo(t Type) bool {
+	return false
+}
+
+func (v *StructType) getVariableDecl(s string) *VariableDecl {
+	for _, decl := range v.Variables {
+		if decl.Variable.Name == s {
+			return decl
+		}
+	}
+	return nil
+}
+
+func (v *StructType) addVariableDecl(decl *VariableDecl) {
+	v.Variables = append(v.Variables, decl)
+}
+
+// PointerType
 
 type PointerType struct {
 	Addressee Type
 }
 
-func (v *PointerType) GetTypeName() string {
-	return "^" + v.Addressee.GetTypeName()
+// IMPORTANT:
+// Use this method to make PointerTypes. Most importantly, NEVER take the
+// address of a PointerType! ie, using &PointerType{}. This would make two
+// PointerTypes to the same PrimitiveType inequal, when they should be equal.
+func pointerTo(t Type) PointerType {
+	return PointerType{Addressee: t}
 }
 
-func (v *PointerType) GetRawType() Type {
-	return v.Addressee.GetRawType()
+func (v PointerType) TypeName() string {
+	return "^" + v.Addressee.TypeName()
 }
 
-func (v *PointerType) GetLevelsOfIndirection() int {
-	return v.Addressee.GetLevelsOfIndirection() + 1
+func (v PointerType) RawType() Type {
+	return v.Addressee.RawType()
+}
+
+func (v PointerType) LevelsOfIndirection() int {
+	return v.Addressee.LevelsOfIndirection() + 1
+}
+
+func (v PointerType) IsIntegerType() bool {
+	return false
+}
+
+func (v PointerType) IsFloatingType() bool {
+	return false
+}
+
+func (v PointerType) CanCastTo(t Type) bool {
+	return false
 }
