@@ -1,15 +1,14 @@
-<h1 align="center"><a href="http://ark-lang.org">The Ark Programming Language</a></h1>
+#<a href="http://ark-lang.org">The Ark Programming Language</a>
 
-## Notice
+## Notices
 **For the final time, we've changed our name. We're the *Ark* programming language now. We had to get rid of Alloy due to some complications, and finalized on Ark. The entire discussion (which is rather long for a name change) can be found on [issue #195](https://github.com/ark-lang/ark/issues/195).**
 
-## Notice 2
-We're also currently porting the backend from C to **LLVM**, this may take a while and things will be broken. If
-you want to checkout the progress, have a look at [issue #345](https://github.com/ark-lang/ark/issues/345).
+**Due to this name change, we've also migrated the subreddit from r/alloy_lang to [r/ark_lang](http://www.reddit.com/r/ark_lang), go subscribe! Finally, our irc has moved from #alloy-lang to #ark-lang**
 
+We're also currently porting the backend from C to **LLVM**, this may take a while and things will be broken. If
+you want to check out the progress, have a look at [issue #345](https://github.com/ark-lang/ark/issues/345).
 
 ## Resources
-
 * [Reference](/docs/REFERENCE.md)
 * [Tests](/tests/)
 * [Libraries](/lib/)
@@ -17,7 +16,7 @@ you want to checkout the progress, have a look at [issue #345](https://github.co
 * [Ark Style Guide](/docs/STYLEGUIDE.md)
 
 ## Building
-If you want to try out Ark yourself, clone the repository, compile it, and add `bin/arkc` to your path. You can
+If you want to try out Ark yourself, clone the repository, compile it, and add `bin/ark` to your path. You can
 also run the test script (you'll need python) `test.py` to see if the tests work, though we can't guarantee they
 will all run successfully if you're building the nightly.
 
@@ -40,17 +39,16 @@ However, note that the LLVM backend is currently very incomplete, and is only re
 We're working as fast as possible to get it as stable as possible.
 
 ### Testing
-Note that python is required.
-If arkc is in your `$PATH`:
+If Ark is in your `$PATH`:
 
 	$ ./test.py
 
-If arkc is not in your `$PATH`:
+If Ark is not in your `$PATH`:
 
 	$ PATH=$PATH:"./bin/" ./test.py
 
 ## Just show me what it looks like already
-Sure, you can either see a small virtual machine implemented in Ark [here](tests/vm.aly). 
+Sure, you can either see a small virtual machine implemented in Ark [here](tests/old_tests/vm.ark). 
 Or you can just see a small Hello World example below:
 
 ```rust
