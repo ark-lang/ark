@@ -8,6 +8,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/ark-lang/ark-go/lexer"
 	"github.com/ark-lang/ark-go/util"
@@ -101,14 +102,17 @@ func Parse(tokens []*lexer.Token, verbose bool) *File {
 	if verbose {
 		fmt.Println(util.TEXT_BOLD+util.TEXT_GREEN+"Started parsing"+util.TEXT_RESET, tokens[0].Filename)
 	}
+	t := time.Now()
 	p.parse()
 	sem := &semanticAnalyzer{file: p.file}
 	sem.analyze()
+	dur := time.Since(t)
 	if verbose {
 		for _, n := range p.file.nodes {
 			fmt.Println(n.String())
 		}
-		fmt.Println(util.TEXT_BOLD+util.TEXT_GREEN+"Finished parsing"+util.TEXT_RESET, tokens[0].Filename)
+		fmt.Printf(util.TEXT_BOLD+util.TEXT_GREEN+"Finished parsing"+util.TEXT_RESET+" %s (%.2fms)\n",
+			tokens[0].Filename, float32(dur.Nanoseconds())/1000000)
 	}
 
 	return p.file
