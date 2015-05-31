@@ -303,3 +303,17 @@ func (v *CastExpr) analyze(s *semanticAnalyzer) {
 func (v *CastExpr) setTypeHint(t Type) {
 	v.Expr.setTypeHint(nil)
 }
+
+func (v *CallExpr) analyze(s *semanticAnalyzer) {
+	if len(v.Arguments) != len(v.Function.Parameters) {
+		s.err("Call to `%s` expects %d arguments, have %d",
+			v.Function.Name, len(v.Function.Parameters), len(v.Arguments))
+	}
+
+	for i, arg := range v.Arguments {
+		arg.setTypeHint(v.Function.Parameters[i].Variable.Type)
+		arg.analyze(s)
+	}
+}
+
+func (v *CallExpr) setTypeHint(t Type) {}

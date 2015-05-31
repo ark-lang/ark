@@ -32,7 +32,7 @@ struct Test [packed,deprecated="Deprecated Message"] {
 }
 
 func ten(): int {
-	//return 0x05 + 5;
+	return 0x05 + 5;
 }
 
 
@@ -44,5 +44,6 @@ func main(a: int): mut int {
 	// thing: int = ten();
 	// thing++;
 	//return thing - 11;
+    duh := _2345_test日本語てすと(6, 7);
 	return 0;
 }

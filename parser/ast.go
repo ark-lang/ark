@@ -293,3 +293,24 @@ func (v *CastExpr) String() string {
 func (v *CastExpr) GetType() Type {
 	return v.Type
 }
+
+// CallExpr
+
+type CallExpr struct {
+	Function  *Function
+	Arguments []Expr
+}
+
+func (v *CallExpr) exprNode() {}
+
+func (v *CallExpr) String() string {
+	result := "(" + util.Blue("CallExpr") + ": " + v.Function.Name
+	for _, arg := range v.Arguments {
+		result += " " + arg.String()
+	}
+	return result + " " + util.Green(v.GetType().TypeName()) + ")"
+}
+
+func (v *CallExpr) GetType() Type {
+	return v.Function.ReturnType
+}

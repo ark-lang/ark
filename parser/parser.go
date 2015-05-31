@@ -147,13 +147,9 @@ func (v *parser) parseStat() Stat {
 func (v *parser) parseDecl() Decl {
 	if variableDecl := v.parseVariableDecl(true); variableDecl != nil {
 		return variableDecl
-	}
-
-	if structureDecl := v.parseStructDecl(); structureDecl != nil {
+	} else if structureDecl := v.parseStructDecl(); structureDecl != nil {
 		return structureDecl
-	}
-
-	if functionDecl := v.parseFunctionDecl(); functionDecl != nil {
+	} else if functionDecl := v.parseFunctionDecl(); functionDecl != nil {
 		return functionDecl
 	}
 	return nil
@@ -467,8 +463,50 @@ func (v *parser) parsePrimaryExpr() Expr {
 		return unaryExpr
 	} else if castExpr := v.parseCastExpr(); castExpr != nil {
 		return castExpr
+	} else if callExpr := v.parseCallExpr(); callExpr != nil {
+		return callExpr
 	}
 	return nil
+}
+
+func (v *parser) parseCallExpr() *CallExpr {
+	if !v.tokensMatch(lexer.TOKEN_IDENTIFIER, "", lexer.TOKEN_SEPARATOR, "(") {
+		return nil
+	}
+
+	function := v.scope.GetFunction(v.peek(0).Contents)
+	if function == nil {
+		v.err("Call to undefined function `%s`", v.peek(0).Contents)
+	}
+	v.consumeToken()
+	v.consumeToken()
+
+	args := make([]Expr, 0)
+	if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ")") {
+		v.consumeToken()
+	} else {
+		for {
+			if expr := v.parseExpr(); expr != nil {
+				args = append(args, expr)
+			} else {
+				v.err("Expected function argument, found `%s`", v.peek(0).Contents)
+			}
+
+			if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ")") {
+				v.consumeToken()
+				break
+			} else if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ",") {
+				v.consumeToken()
+			} else {
+				v.err("Expected `)` or `,` after function argument, found `%s`", v.peek(0).Contents)
+			}
+		}
+	}
+
+	return &CallExpr{
+		Arguments: args,
+		Function:  function,
+	}
 }
 
 func (v *parser) parseCastExpr() *CastExpr {
