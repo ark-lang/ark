@@ -1,7 +1,6 @@
 package parser
 
 import (
-	"container/list"
 	"fmt"
 
 	"github.com/ark-lang/ark-go/util"
@@ -49,7 +48,7 @@ func (v *Variable) String() string {
 
 type Function struct {
 	Name       string
-	Parameters *List
+	Parameters []*VariableDecl
 	ReturnType Type
 	Mutable    bool
 	Attrs      []*Attr
@@ -64,7 +63,11 @@ func (v *Function) String() string {
 	for _, attr := range v.Attrs {
 		result += attr.String() + " "
 	}
-	result += v.Name + " " + v.Parameters.String() + ": " + util.Green(v.ReturnType.TypeName()) + " "
+	result += v.Name
+	for _, par := range v.Parameters {
+		result += " " + par.String()
+	}
+	result += ": " + util.Green(v.ReturnType.TypeName()) + " "
 	if v.Body != nil {
 		result += v.Body.String()
 	}
@@ -289,28 +292,4 @@ func (v *CastExpr) String() string {
 
 func (v *CastExpr) GetType() Type {
 	return v.Type
-}
-
-/**
- * Other
- */
-
-// List
-
-type List struct {
-	Items list.List
-}
-
-func (v *List) listNode() {}
-
-func (v *List) String() string {
-	var result = "(" + util.Blue("List") + ": "
-	for item := v.Items.Front(); item != nil; item = item.Next() {
-		result += item.Value.(*VariableDecl).String()
-		if item.Next() != nil {
-			result += " "
-		}
-	}
-	result += ")"
-	return result
 }

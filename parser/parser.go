@@ -188,64 +188,89 @@ func (v *parser) parseType() Type {
 }
 
 func (v *parser) parseFunctionDecl() *FunctionDecl {
-	if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_FUNC) {
-		function := &Function{}
-
-		v.consumeToken()
-
-		// name
-		if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, "") {
-			function.Name = v.consumeToken().Contents
-		} else {
-			v.err("Function expected an identifier")
-		}
-
-		if vname := v.scope.InsertFunction(function); vname != nil {
-			v.err("Illegal redeclaration of function `%s`", function.Name)
-		}
-
-		v.pushScope()
-
-		// list
-		if list := v.parseList(); list != nil {
-			function.Parameters = list
-		} else {
-			v.err("Function declaration `%s` expected a list after identifier", function.Name)
-		}
-
-		// return type
-		if v.tokenMatches(0, lexer.TOKEN_OPERATOR, ":") {
-			v.consumeToken()
-
-			// mutable return type
-			if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_MUT) {
-				v.consumeToken()
-				function.Mutable = true
-			}
-
-			// actual return type
-			if typ := v.parseType(); typ != nil {
-				function.ReturnType = typ
-			} else {
-				v.err("Expected function return type after colon for function `%s`", function.Name)
-			}
-		}
-
-		funcDecl := &FunctionDecl{Function: function}
-
-		// block
-		if block := v.parseBlock(); block != nil {
-			funcDecl.Function.Body = block
-		} else {
-			v.err("Expecting block after function decl even though some point prototypes should be support lol whatever")
-		}
-
-		v.popScope()
-
-		return funcDecl
+	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_FUNC) {
+		return nil
 	}
 
-	return nil
+	function := &Function{}
+
+	v.consumeToken()
+
+	// name
+	if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, "") {
+		function.Name = v.consumeToken().Contents
+	} else {
+		v.err("Function expected an identifier")
+	}
+
+	if vname := v.scope.InsertFunction(function); vname != nil {
+		v.err("Illegal redeclaration of function `%s`", function.Name)
+	}
+
+	v.pushScope()
+
+	// Arguments
+	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "(") {
+		v.err("Expected `(` after function identifier, found `%s`", v.peek(0).Contents)
+	}
+	v.consumeToken()
+
+	function.Parameters = make([]*VariableDecl, 0)
+	if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ")") {
+		v.consumeToken()
+	} else {
+		for {
+			if decl := v.parseVariableDecl(); decl != nil {
+				if decl.Assignment != nil {
+					v.err("Assignment in function parameter `%s`", decl.Variable.Name)
+				}
+
+				function.Parameters = append(function.Parameters, decl)
+			} else {
+				v.err("Expected function parameter, found `%s`", v.peek(0).Contents)
+			}
+
+			if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ")") {
+				v.consumeToken()
+				break
+			} else if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ",") {
+				v.consumeToken()
+			} else {
+				v.err("Expected `)` or `,` after function parameter, found `%s`", v.peek(0).Contents)
+			}
+		}
+	}
+
+	// return type
+	if v.tokenMatches(0, lexer.TOKEN_OPERATOR, ":") {
+		v.consumeToken()
+
+		// mutable return type
+		if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_MUT) {
+			v.consumeToken()
+			function.Mutable = true
+		}
+
+		// actual return type
+		if typ := v.parseType(); typ != nil {
+			function.ReturnType = typ
+		} else {
+			v.err("Expected function return type after colon for function `%s`", function.Name)
+		}
+	}
+
+	funcDecl := &FunctionDecl{Function: function}
+
+	// block
+	if block := v.parseBlock(); block != nil {
+		funcDecl.Function.Body = block
+	} else {
+		v.err("Expecting block after function decl even though some point prototypes should be support lol whatever")
+	}
+
+	v.popScope()
+
+	return funcDecl
 }
 
 func (v *parser) parseBlock() *Block {
@@ -291,36 +316,6 @@ func (v *parser) parseReturnStat() *ReturnStat {
 	}
 	v.consumeToken()
 	return &ReturnStat{Value: expr}
-}
-
-func (v *parser) parseList() *List {
-	list := &List{}
-
-	if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "(") {
-		v.consumeToken()
-
-		for {
-			if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ")") {
-				v.consumeToken()
-				break
-			}
-
-			if item := v.parseVariableDecl(); item != nil {
-				list.Items.PushBack(item)
-			} else {
-				v.err("Invalid expression given in list")
-			}
-
-			// todo trailing comma, allow them maybe?
-			// also dont enforce these when there is only
-			// one parameter, i.e. func add(a: int,) would be disallowed
-			if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ",") {
-				v.consumeToken()
-			}
-		}
-	}
-
-	return list
 }
 
 func (v *parser) parseStructDecl() *StructDecl {
