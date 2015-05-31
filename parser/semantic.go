@@ -260,15 +260,26 @@ func (v *BinaryExpr) analyze(s *semanticAnalyzer) {
 
 func (v *BinaryExpr) setTypeHint(t Type) {
 	switch v.Op.Category() {
-	case OP_ARITHMETIC:
+	case OP_ARITHMETIC, OP_BITWISE:
+		if v.Op == BINOP_BIT_LEFT || v.Op == BINOP_BIT_RIGHT {
+			v.Rhand.setTypeHint(nil)
+			v.Lhand.setTypeHint(t)
+			return
+		}
+		if t == nil {
+			if v.Lhand.GetType() == nil && v.Rhand.GetType() != nil {
+				v.Lhand.setTypeHint(v.Rhand.GetType())
+				return
+			} else if v.Rhand.GetType() == nil && v.Lhand.GetType() != nil {
+				v.Rhand.setTypeHint(v.Lhand.GetType())
+				return
+			}
+		}
 		v.Lhand.setTypeHint(t)
 		v.Rhand.setTypeHint(t)
 	case OP_COMPARISON:
 		v.Lhand.setTypeHint(nil)
 		v.Rhand.setTypeHint(nil)
-	case OP_BITWISE:
-		v.Lhand.setTypeHint(t)
-		v.Rhand.setTypeHint(t)
 	case OP_LOGICAL:
 		v.Lhand.setTypeHint(PRIMITIVE_bool)
 		v.Rhand.setTypeHint(PRIMITIVE_bool)

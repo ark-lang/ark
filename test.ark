@@ -20,6 +20,10 @@ mut s1: str= "he\"llo";
 //un: i8 = !1;
 t: int = int('h');
 
+h := i1 + 6;
+
+bitshiftTest := 1 << i8(4);
+
 mut bintest: int = 5 * 5 + 5 * 5;
 mshifttest: int = 10 << 7;
 
@@ -44,7 +48,7 @@ func main(a: int): mut int {
 	// thing: int = ten();
 	// thing++;
 	//return thing - 11;
-    
+
     ten();
 
     structTest: Test;
