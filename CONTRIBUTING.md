@@ -16,11 +16,12 @@ There are plenty of things you can do to help:
 * Work on the compiler
 
 ## Pull Requests
-We love Pull Requests! Please make sure you work on a separate branch, and
-that you rebase with the master before submitting. If you are implementing
-a feature of some kind, please add a test if there is not an existing one
-already! Please add a summary or brief description of your PR, however the
-more detail the better.
+We love Pull Requests! If you are planning on contributing, please read this list:
+
+* Make sure you work on a separate branch
+* Make sure your patch is up-to-date with the master branch, if not, please rebase
+* If you are implementing a feature of some kind, please add a test if there is not an existing one already
+* Please add a summary or brief description of your PR, however, the more detail the better
 
 ## Fixing Bugs
 If you've found a bug when implementing a feature, or want to
@@ -28,11 +29,10 @@ fix an existing bug; here are what we consider must do steps.
 
 * Run it through a debugger, e.g. `lldb` or `gdb`.
   Typically, if theres a segmentation fault, or other bug
-  that occurrs on run-time, g/lldb is a good start.
-* Use valgrind to track down memory leaks
+  that occurs on run-time, g/lldb is a good start.
+* Use Valgrind to track down memory leaks
 * Run the Ark code with the `-v` flag! This is the verbose
-  flag and can help you locate what *stage the bug occurrs.
-  *during lexical analysis, semantic analysis, parsing, etc...
+  flag and can help you locate what stage the bug occurs (during lexical analysis, semantic analysis, parsing, etc).
 
 ## Writing Ark code
 Be it personal code, or you're contributing to the standard libraries,
@@ -42,7 +42,7 @@ also make the code a lot more readable and easier to maintain.
 
 ## Community
 Please do not post questions for help in the Issue Tracker _unless_ you think
-it's a bug related to the ark compiler, or a feature. Instead, check out
+it's a bug related to the Ark compiler, or a feature. Instead, check out
 the following communities:
 
 ### IRC
@@ -53,10 +53,6 @@ channel on freenode.
 * ip: `irc.freenode.net`
 * channel: `#ark-lang`
 
-### Subreddit
+### Reddit
 We also have a subreddit, [here's the link](http://www.reddit.com/r/ark_lang). Feel free to ask us questions on that,
 a lot of the developers are also Reddit addicts.
-
-### Mailing List
-We have no idea how this works, but apparently we should have one, [so here it is](https://groups.google.com/forum/#!forum/ark-lang).
-It's recommended that you open an issue than head over to the IRC since we dont check the mailing list too often.
