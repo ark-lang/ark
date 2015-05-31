@@ -278,6 +278,15 @@ func (v *BinaryExpr) setTypeHint(t Type) {
 		v.Lhand.setTypeHint(t)
 		v.Rhand.setTypeHint(t)
 	case OP_COMPARISON:
+		if t == nil {
+			if v.Lhand.GetType() == nil && v.Rhand.GetType() != nil {
+				v.Lhand.setTypeHint(v.Rhand.GetType())
+				return
+			} else if v.Rhand.GetType() == nil && v.Lhand.GetType() != nil {
+				v.Rhand.setTypeHint(v.Lhand.GetType())
+				return
+			}
+		}
 		v.Lhand.setTypeHint(nil)
 		v.Rhand.setTypeHint(nil)
 	case OP_LOGICAL:
@@ -329,6 +338,7 @@ func (v *RuneLiteral) setTypeHint(t Type)          {}
 // CastExpr
 
 func (v *CastExpr) analyze(s *semanticAnalyzer) {
+	v.Expr.setTypeHint(nil)
 	v.Expr.analyze(s)
 	if v.Type == v.Expr.GetType() {
 		s.warn("Casting expression of type `%s` to the same type",
@@ -339,9 +349,7 @@ func (v *CastExpr) analyze(s *semanticAnalyzer) {
 	}
 }
 
-func (v *CastExpr) setTypeHint(t Type) {
-	v.Expr.setTypeHint(nil)
-}
+func (v *CastExpr) setTypeHint(t Type) {}
 
 // CallExpr
 

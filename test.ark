@@ -29,7 +29,7 @@ mshifttest: int = 10 << 7;
 
 inferenceTest := 10;
 
-booltest := 1 == 0;
+booltest := 1 == i8(0);
 
 // packed structure syntax idea?
 struct Test [packed,deprecated="Deprecated Message"] {
