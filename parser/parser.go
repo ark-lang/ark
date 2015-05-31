@@ -467,8 +467,38 @@ func (v *parser) parsePrimaryExpr() Expr {
 		return litExpr
 	} else if unaryExpr := v.parseUnaryExpr(); unaryExpr != nil {
 		return unaryExpr
+	} else if castExpr := v.parseCastExpr(); castExpr != nil {
+		return castExpr
 	}
 	return nil
+}
+
+func (v *parser) parseCastExpr() *CastExpr {
+	if !v.tokensMatch(lexer.TOKEN_IDENTIFIER, "", lexer.TOKEN_SEPARATOR, "(") {
+		return nil
+	}
+
+	typ := v.scope.GetType(v.peek(0).Contents)
+	if typ == nil {
+		return nil
+	}
+	v.consumeToken()
+	v.consumeToken()
+
+	expr := v.parseExpr()
+	if expr == nil {
+		v.err("Expected expression in typecast, found `%s`", v.peek(0))
+	}
+
+	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ")") {
+		v.err("Exprected `)` at the end of typecase, found `%s`", v.peek(0))
+	}
+	v.consumeToken()
+
+	return &CastExpr{
+		Type: typ,
+		Expr: expr,
+	}
 }
 
 func (v *parser) parseUnaryExpr() *UnaryExpr {

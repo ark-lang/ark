@@ -26,6 +26,13 @@ func (v *semanticAnalyzer) err(err string, stuff ...interface{}) {
 	os.Exit(2)
 }
 
+func (v *semanticAnalyzer) warn(err string, stuff ...interface{}) {
+	/*fmt.Printf(util.TEXT_RED+util.TEXT_BOLD+"Semantic error:"+util.TEXT_RESET+" [%s:%d:%d] %s\n",
+	v.peek(0).Filename, v.peek(0).LineNumber, v.peek(0).CharNumber, fmt.Sprintf(err, stuff...))*/
+	fmt.Printf(util.TEXT_RED+util.TEXT_BOLD+"Semantic warning:"+util.TEXT_RESET+" %s\n",
+		fmt.Sprintf(err, stuff...))
+}
+
 func (v *semanticAnalyzer) analyze() {
 	for _, node := range v.file.nodes {
 		node.analyze(v)
@@ -281,3 +288,18 @@ func (v *StringLiteral) setTypeHint(t Type)          {}
 
 func (v *RuneLiteral) analyze(s *semanticAnalyzer) {}
 func (v *RuneLiteral) setTypeHint(t Type)          {}
+
+func (v *CastExpr) analyze(s *semanticAnalyzer) {
+	v.Expr.analyze(s)
+	if v.Type == v.Expr.GetType() {
+		s.warn("Casting expression of type `%s` to the same type",
+			v.Type.TypeName())
+	} else if !v.Expr.GetType().CanCastTo(v.Type) {
+		s.err("Cannot cast expression of type `%s` to type `%s`",
+			v.Expr.GetType().TypeName(), v.Type.TypeName())
+	}
+}
+
+func (v *CastExpr) setTypeHint(t Type) {
+	v.Expr.setTypeHint(nil)
+}

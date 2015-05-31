@@ -274,6 +274,23 @@ func (v *UnaryExpr) GetType() Type {
 	return v.Type
 }
 
+// CastExpr
+
+type CastExpr struct {
+	Expr Expr
+	Type Type
+}
+
+func (v *CastExpr) exprNode() {}
+
+func (v *CastExpr) String() string {
+	return "(" + util.Blue("CastExpr") + ": " + v.Expr.String() + " " + util.Green(v.GetType().TypeName()) + ")"
+}
+
+func (v *CastExpr) GetType() Type {
+	return v.Type
+}
+
 /**
  * Other
  */

@@ -8,6 +8,7 @@ type Type interface {
 	LevelsOfIndirection() int // number of pointers you have to go through to get to the actual type
 	IsIntegerType() bool
 	IsFloatingType() bool
+	CanCastTo(Type) bool
 }
 
 //go:generate stringer -type=PrimitiveType
@@ -71,6 +72,11 @@ func (v PrimitiveType) LevelsOfIndirection() int {
 	return 0
 }
 
+func (v PrimitiveType) CanCastTo(t Type) bool {
+	return (v.IsIntegerType() || v.IsFloatingType() || v == PRIMITIVE_rune) &&
+		(t.IsFloatingType() || t.IsIntegerType() || t == PRIMITIVE_rune)
+}
+
 // StructType
 
 type StructType struct {
@@ -111,6 +117,10 @@ func (v *StructType) IsFloatingType() bool {
 	return false
 }
 
+func (v *StructType) CanCastTo(t Type) bool {
+	return false
+}
+
 // PointerType
 
 type PointerType struct {
@@ -138,5 +148,9 @@ func (v PointerType) IsIntegerType() bool {
 }
 
 func (v PointerType) IsFloatingType() bool {
+	return false
+}
+
+func (v PointerType) CanCastTo(t Type) bool {
 	return false
 }
