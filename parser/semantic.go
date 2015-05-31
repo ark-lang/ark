@@ -321,7 +321,7 @@ func (v *FloatingLiteral) setTypeHint(t Type) {
 	case PRIMITIVE_f64, PRIMITIVE_f32, PRIMITIVE_f128:
 		v.Type = t
 	default:
-		v.Type = PRIMITIVE_f64
+		v.Type = PRIMITIVE_f32
 	}
 }
 
