@@ -29,11 +29,10 @@ type Decl interface {
 }
 
 type Variable struct {
-	Type         Type
-	Name         string
-	ParentStruct *StructType // can be nil
-	Mutable      bool
-	Attrs        []*Attr
+	Type    Type
+	Name    string
+	Mutable bool
+	Attrs   []*Attr
 }
 
 func (v *Variable) String() string {
@@ -336,12 +335,13 @@ type AccessExpr struct {
 func (v *AccessExpr) exprNode() {}
 
 func (v *AccessExpr) String() string {
-	result := "(" + util.Blue("AccessExpr") + ": "
+	/*result := "(" + util.Blue("AccessExpr") + ": "
 	if v.Variable.ParentStruct != nil {
 		result += v.Variable.ParentStruct.Name + "."
 	}
 	result += v.Variable.Name
-	return result + ")"
+	return result + ")"*/
+	return ""
 }
 
 func (v *AccessExpr) GetType() Type {

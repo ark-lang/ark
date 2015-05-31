@@ -131,7 +131,6 @@ func (v *StructType) getVariableDecl(s string) *VariableDecl {
 }
 
 func (v *StructType) addVariableDecl(decl *VariableDecl) {
-	decl.Variable.ParentStruct = v
 	v.Variables = append(v.Variables, decl)
 }
 

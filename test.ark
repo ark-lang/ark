@@ -20,7 +20,7 @@ mut s1: str= "he\"llo";
 //un: i8 = !1;
 t: int = int('h');
 
-h := i1 + 6;
+//h := i1 + 6;
 
 bitshiftTest := 1 << i8(4);
 
@@ -33,6 +33,10 @@ inferenceTest := 10;
 struct Test [packed,deprecated="Deprecated Message"] {
     a: i32 = 5,
     b := 5
+}
+
+struct Test2 {
+    a: Test
 }
 
 func ten(): int {
@@ -51,9 +55,9 @@ func main(a: int): mut int {
 
     ten();
 
-    structTest: Test;
+    //structTest: Test2;
 
     duh := _2345_test日本語てすと(6, 7);
 
-	return structTest.b;
+	return 8;//structTest.a.b;
 }

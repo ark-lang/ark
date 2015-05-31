@@ -490,7 +490,7 @@ func (v *parser) parsePrimaryExpr() Expr {
 }
 
 func (v *parser) parseAccessExpr() *AccessExpr {
-	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, "") {
+	/*if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, "") {
 		return nil
 	}
 
@@ -520,7 +520,8 @@ func (v *parser) parseAccessExpr() *AccessExpr {
 		}
 
 		access.Variable = decl.Variable
-	}
+	}*/
+	return nil
 }
 
 func (v *parser) parseCallExpr() *CallExpr {
