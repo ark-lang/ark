@@ -121,6 +121,20 @@ func (v *StructType) CanCastTo(t Type) bool {
 	return false
 }
 
+func (v *StructType) getVariableDecl(s string) *VariableDecl {
+	for _, decl := range v.Variables {
+		if decl.Variable.Name == s {
+			return decl
+		}
+	}
+	return nil
+}
+
+func (v *StructType) addVariableDecl(decl *VariableDecl) {
+	decl.Variable.ParentStruct = v
+	v.Variables = append(v.Variables, decl)
+}
+
 // PointerType
 
 type PointerType struct {

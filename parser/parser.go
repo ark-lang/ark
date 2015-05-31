@@ -354,7 +354,7 @@ func (v *parser) parseStructDecl() *StructDecl {
 					}
 
 					if variable := v.parseVariableDecl(false); variable != nil {
-						struc.Variables = append(struc.Variables, variable)
+						struc.addVariableDecl(variable)
 						itemCount++
 					} else {
 						v.err("Invalid structure item in structure `%s`", struc.Name)
@@ -482,8 +482,45 @@ func (v *parser) parsePrimaryExpr() Expr {
 		return castExpr
 	} else if callExpr := v.parseCallExpr(); callExpr != nil {
 		return callExpr
+	} else if accessExpr := v.parseAccessExpr(); accessExpr != nil {
+		return accessExpr
 	}
+
 	return nil
+}
+
+func (v *parser) parseAccessExpr() *AccessExpr {
+	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, "") {
+		return nil
+	}
+
+	access := &AccessExpr{}
+
+	ident := v.consumeToken().Contents
+	access.Variable = v.scope.GetVariable(ident)
+	if access.Variable == nil {
+		v.err("Unresolved variable `%s`", access.Variable.Name)
+	}
+
+	for {
+		if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ".") {
+			return access
+		}
+		v.consumeToken()
+
+		structType, ok := access.Variable.Type.(*StructType)
+		if !ok {
+			v.err("Cannot access member of `%s`, type `%s`", access.Variable.Name, access.Variable.Type.TypeName())
+		}
+
+		memberName := v.consumeToken().Contents
+		decl := structType.getVariableDecl(memberName)
+		if decl == nil {
+			v.err("Struct `%s` does not contain member `%s`", structType.TypeName(), memberName)
+		}
+
+		access.Variable = decl.Variable
+	}
 }
 
 func (v *parser) parseCallExpr() *CallExpr {

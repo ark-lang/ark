@@ -114,8 +114,12 @@ func (v *Variable) analyze(s *semanticAnalyzer) {
 
 func (v *VariableDecl) analyze(s *semanticAnalyzer) {
 	v.Variable.analyze(s)
-	v.Assignment.setTypeHint(v.Variable.Type)
-	v.Assignment.analyze(s)
+	if v.Assignment != nil {
+		v.Assignment.setTypeHint(v.Variable.Type)
+		v.Assignment.analyze(s)
+	} else {
+		return
+	}
 
 	if v.Variable.Type == nil { // type is inferred
 		v.Variable.Type = v.Assignment.GetType()
@@ -230,8 +234,6 @@ func (v *BinaryExpr) analyze(s *semanticAnalyzer) {
 			}
 		}
 
-	case BINOP_DOT: // TODO
-
 	case BINOP_BIT_LEFT, BINOP_BIT_RIGHT:
 		if lht := v.Lhand.GetType(); !(lht.IsFloatingType() || lht.IsIntegerType() || lht.LevelsOfIndirection() > 0) {
 			s.err("Left-hand operand for bitshift operator `%s` must be numeric or a pointer, have `%s`",
@@ -250,8 +252,6 @@ func (v *BinaryExpr) analyze(s *semanticAnalyzer) {
 		} else {
 			v.Type = PRIMITIVE_bool
 		}
-
-	case BINOP_ASSIGN:
 
 	default:
 		panic("unimplemented bin operation")
@@ -272,10 +272,6 @@ func (v *BinaryExpr) setTypeHint(t Type) {
 	case OP_LOGICAL:
 		v.Lhand.setTypeHint(PRIMITIVE_bool)
 		v.Rhand.setTypeHint(PRIMITIVE_bool)
-	case OP_ACCESS:
-		// TODO
-	case OP_ASSIGN:
-		// TODO
 	default:
 		panic("missing opcategory")
 	}
@@ -351,3 +347,11 @@ func (v *CallExpr) analyze(s *semanticAnalyzer) {
 }
 
 func (v *CallExpr) setTypeHint(t Type) {}
+
+// AccessExpr
+
+func (v *AccessExpr) analyze(s *semanticAnalyzer) {
+
+}
+
+func (v *AccessExpr) setTypeHint(t Type) {}

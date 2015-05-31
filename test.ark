@@ -44,7 +44,12 @@ func main(a: int): mut int {
 	// thing: int = ten();
 	// thing++;
 	//return thing - 11;
+    
     ten();
+
+    structTest: Test;
+
     duh := _2345_test日本語てすと(6, 7);
-	return 0;
+
+	return structTest.b;
 }

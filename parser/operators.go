@@ -7,7 +7,6 @@ const (
 	OP_COMPARISON
 	OP_BITWISE
 	OP_LOGICAL
-	OP_ACCESS
 	OP_ASSIGN
 )
 
@@ -21,8 +20,6 @@ func (v OpCategory) PrettyString() string {
 		return "bitwise"
 	case OP_LOGICAL:
 		return "logical"
-	case OP_ACCESS:
-		return "access"
 	case OP_ASSIGN:
 		return "assignment"
 	default:
@@ -42,8 +39,6 @@ const (
 	BINOP_DIV
 	BINOP_MOD
 
-	BINOP_DOT
-
 	BINOP_GREATER
 	BINOP_LESS
 	BINOP_GREATER_EQ
@@ -59,12 +54,10 @@ const (
 
 	BINOP_LOG_AND
 	BINOP_LOG_OR
-
-	BINOP_ASSIGN
 )
 
-var binOpStrings = []string{"", "+", "-", "*", "/", "%", ".", ">", "<", ">=", "<=",
-	"==", "!=", "&", "|", "^", "<<", ">>", "&&", "||", "="}
+var binOpStrings = []string{"", "+", "-", "*", "/", "%", ">", "<", ">=", "<=",
+	"==", "!=", "&", "|", "^", "<<", ">>", "&&", "||"}
 
 func stringToBinOpType(s string) BinOpType {
 	for i, str := range binOpStrings {
@@ -83,16 +76,12 @@ func (v BinOpType) Category() OpCategory {
 	switch v {
 	case BINOP_ADD, BINOP_SUB, BINOP_MUL, BINOP_DIV, BINOP_MOD:
 		return OP_ARITHMETIC
-	case BINOP_DOT:
-		return OP_ACCESS
 	case BINOP_GREATER, BINOP_LESS, BINOP_GREATER_EQ, BINOP_LESS_EQ, BINOP_EQ, BINOP_NOT_EQ:
 		return OP_COMPARISON
 	case BINOP_BIT_AND, BINOP_BIT_OR, BINOP_BIT_XOR, BINOP_BIT_LEFT, BINOP_BIT_RIGHT:
 		return OP_BITWISE
 	case BINOP_LOG_AND, BINOP_LOG_OR:
 		return OP_LOGICAL
-	case BINOP_ASSIGN:
-		return OP_ASSIGN
 	default:
 		panic("missing op category")
 	}
@@ -103,7 +92,6 @@ func newBinOpPrecedenceMap() map[BinOpType]int {
 
 	// lowest to highest
 	precedences := [][]BinOpType{
-		{BINOP_ASSIGN},
 		{BINOP_LOG_OR},
 		{BINOP_LOG_AND},
 		{BINOP_BIT_OR},
@@ -113,7 +101,6 @@ func newBinOpPrecedenceMap() map[BinOpType]int {
 		{BINOP_BIT_LEFT, BINOP_BIT_RIGHT},
 		{BINOP_ADD, BINOP_SUB},
 		{BINOP_MUL, BINOP_DIV, BINOP_MOD},
-		{BINOP_DOT},
 	}
 
 	for i, list := range precedences {
