@@ -163,6 +163,17 @@ func (v *ReturnStat) String() string {
 		v.Value.String() + ")"
 }
 
+type CallStat struct {
+	Call *CallExpr
+}
+
+func (v *CallStat) statNode() {}
+
+func (v *CallStat) String() string {
+	return "(" + util.Blue("CallStat") + ": " +
+		v.Call.String() + ")"
+}
+
 /**
  * Expressions
  */

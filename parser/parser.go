@@ -140,6 +140,19 @@ func (v *parser) parseNode() Node {
 func (v *parser) parseStat() Stat {
 	if returnStat := v.parseReturnStat(); returnStat != nil {
 		return returnStat
+	} else if callStat := v.parseCallStat(); callStat != nil {
+		return callStat
+	}
+	return nil
+}
+
+func (v *parser) parseCallStat() *CallStat {
+	if call := v.parseCallExpr(); call != nil {
+		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ";") {
+			v.consumeToken()
+			return &CallStat{Call: call}
+		}
+		v.err("Expected semicolon after function call statement, found `%s`", v.peek(0))
 	}
 	return nil
 }

@@ -317,3 +317,9 @@ func (v *CallExpr) analyze(s *semanticAnalyzer) {
 }
 
 func (v *CallExpr) setTypeHint(t Type) {}
+
+func (v *CallStat) analyze(s *semanticAnalyzer) {
+	v.Call.analyze(s)
+}
+
+func (v *CallStat) setTypeHint(t Type) {}

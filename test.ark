@@ -44,6 +44,6 @@ func main(a: int): mut int {
 	// thing: int = ten();
 	// thing++;
 	//return thing - 11;
-    duh := _2345_test日本語てすと(6, 7);
+    ten();
 	return 0;
 }
