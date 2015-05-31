@@ -50,7 +50,7 @@ func (v *Variable) String() string {
 type Function struct {
 	Name       string
 	Parameters *List
-	Type       Type
+	ReturnType Type
 	Mutable    bool
 	Attrs      []*Attr
 	Body       *Block
@@ -64,7 +64,7 @@ func (v *Function) String() string {
 	for _, attr := range v.Attrs {
 		result += attr.String() + " "
 	}
-	result += v.Name + " " + v.Parameters.String() + ": " + util.Green(v.Type.TypeName()) + " "
+	result += v.Name + " " + v.Parameters.String() + ": " + util.Green(v.ReturnType.TypeName()) + " "
 	if v.Body != nil {
 		result += v.Body.String()
 	}
@@ -174,7 +174,7 @@ type RuneLiteral struct {
 func (v *RuneLiteral) exprNode() {}
 
 func (v *RuneLiteral) String() string {
-	return fmt.Sprintf("("+util.Blue("RuneLiteral")+": "+util.Yellow("%c")+")", v.Value)
+	return fmt.Sprintf("("+util.Blue("RuneLiteral")+": "+util.Yellow("%c")+" "+util.Green(v.GetType().TypeName())+")", v.Value)
 }
 
 func (v *RuneLiteral) GetType() Type {
@@ -192,7 +192,7 @@ type IntegerLiteral struct {
 func (v *IntegerLiteral) exprNode() {}
 
 func (v *IntegerLiteral) String() string {
-	return fmt.Sprintf("("+util.Blue("IntegerLiteral")+": "+util.Yellow("%d")+")", v.Value)
+	return fmt.Sprintf("("+util.Blue("IntegerLiteral")+": "+util.Yellow("%d")+" "+util.Green(v.GetType().TypeName())+")", v.Value)
 }
 
 func (v *IntegerLiteral) GetType() Type {
@@ -210,7 +210,7 @@ type FloatingLiteral struct {
 func (v *FloatingLiteral) exprNode() {}
 
 func (v *FloatingLiteral) String() string {
-	return fmt.Sprintf("("+util.Blue("FloatingLiteral")+": "+util.Yellow("%f")+")", v.Value)
+	return fmt.Sprintf("("+util.Blue("FloatingLiteral")+": "+util.Yellow("%f")+" "+util.Green(v.GetType().TypeName())+")", v.Value)
 }
 
 func (v *FloatingLiteral) GetType() Type {
@@ -226,7 +226,7 @@ type StringLiteral struct {
 func (v *StringLiteral) exprNode() {}
 
 func (v *StringLiteral) String() string {
-	return "(" + util.Blue("StringLiteral") + ": " + util.Yellow(v.Value) + ")"
+	return "(" + util.Blue("StringLiteral") + ": " + util.Yellow(v.Value) + " " + util.Green(v.GetType().TypeName()) + ")"
 }
 
 func (v *StringLiteral) GetType() Type {

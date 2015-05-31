@@ -14,7 +14,8 @@ import (
 // Expr(s) then return.
 
 type semanticAnalyzer struct {
-	file *File
+	file     *File
+	function *Function // the function we're in, or nil if we aren't
 }
 
 func (v *semanticAnalyzer) err(err string, stuff ...interface{}) {
@@ -81,6 +82,10 @@ func (v *StructType) analyze(s *semanticAnalyzer) {
 			s.err("Invalid struct attribute key `%s`", attr.Key)
 		}
 	}
+
+	for _, decl := range v.Variables {
+		decl.analyze(s)
+	}
 }
 
 func (v *FunctionDecl) analyze(s *semanticAnalyzer) {
@@ -98,6 +103,12 @@ func (v *Function) analyze(s *semanticAnalyzer) {
 			s.err("Invalid function attribute key `%s`", attr.Key)
 		}
 	}
+
+	s.function = v
+	if v.Body != nil {
+		v.Body.analyze(s)
+	}
+	s.function = nil
 }
 
 func (v *semanticAnalyzer) checkDuplicateAttrs(attrs []*Attr) {
@@ -111,10 +122,17 @@ func (v *semanticAnalyzer) checkDuplicateAttrs(attrs []*Attr) {
 }
 
 func (v *ReturnStat) analyze(s *semanticAnalyzer) {
-	v.Value.analyze(s)
-	// TODO check return value same as function type
-}
+	if s.function == nil {
+		s.err("Return statement must be in a function")
+	}
 
+	v.Value.setTypeHint(s.function.ReturnType)
+	v.Value.analyze(s)
+	if v.Value.GetType() != s.function.ReturnType {
+		s.err("Cannot return expression of type `%s` from function `%s` of type `%s`",
+			v.Value.GetType().TypeName(), s.function.Name, s.function.ReturnType.TypeName())
+	}
+}
 func (v *UnaryExpr) analyze(s *semanticAnalyzer) {
 	v.Expr.analyze(s)
 

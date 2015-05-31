@@ -1,10 +1,6 @@
 package parser
 
-import (
-	"container/list"
-
-	"github.com/ark-lang/ark-go/util"
-)
+import "github.com/ark-lang/ark-go/util"
 
 type Type interface {
 	TypeName() string
@@ -78,9 +74,9 @@ func (v PrimitiveType) LevelsOfIndirection() int {
 // StructType
 
 type StructType struct {
-	Name  string
-	Items list.List
-	Attrs []*Attr
+	Name      string
+	Variables []*VariableDecl
+	Attrs     []*Attr
 }
 
 func (v *StructType) String() string {
@@ -89,8 +85,8 @@ func (v *StructType) String() string {
 		result += attr.String() + " "
 	}
 	result += v.Name + "\n"
-	for item := v.Items.Front(); item != nil; item = item.Next() {
-		result += "\t" + item.Value.(*VariableDecl).String() + "\n"
+	for _, decl := range v.Variables {
+		result += "\t" + decl.String() + "\n"
 	}
 	return result + ")"
 }

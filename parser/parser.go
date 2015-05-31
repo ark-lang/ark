@@ -225,7 +225,7 @@ func (v *parser) parseFunctionDecl() *FunctionDecl {
 
 			// actual return type
 			if typ := v.parseType(); typ != nil {
-				function.Type = typ
+				function.ReturnType = typ
 			} else {
 				v.err("Expected function return type after colon for function `%s`", function.Name)
 			}
@@ -258,6 +258,9 @@ func (v *parser) parseBlock() *Block {
 	block := newBlock()
 
 	for {
+		for v.tokenMatches(0, lexer.TOKEN_COMMENT, "") || v.tokenMatches(0, lexer.TOKEN_DOCCOMMENT, "") {
+			v.consumeToken()
+		}
 		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "}") {
 			v.consumeToken()
 			return block
@@ -348,7 +351,7 @@ func (v *parser) parseStructDecl() *StructDecl {
 					}
 
 					if variable := v.parseVariableDecl(); variable != nil {
-						struc.Items.PushBack(variable)
+						struc.Variables = append(struc.Variables, variable)
 						itemCount++
 					} else {
 						v.err("Invalid structure item in structure `%s`", struc.Name)
