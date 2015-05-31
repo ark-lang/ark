@@ -33,6 +33,16 @@ func (v *semanticAnalyzer) warn(err string, stuff ...interface{}) {
 		fmt.Sprintf(err, stuff...))
 }
 
+func (v *semanticAnalyzer) checkDuplicateAttrs(attrs []*Attr) {
+	encountered := make(map[string]bool)
+	for _, attr := range attrs {
+		if encountered[attr.Key] {
+			v.err("Duplicate attribute `%s`", attr.Key)
+		}
+		encountered[attr.Key] = true
+	}
+}
+
 func (v *semanticAnalyzer) analyze() {
 	for _, node := range v.file.nodes {
 		node.analyze(v)
@@ -45,19 +55,7 @@ func (v *Block) analyze(s *semanticAnalyzer) {
 	}
 }
 
-func (v *VariableDecl) analyze(s *semanticAnalyzer) {
-	v.Variable.analyze(s)
-	v.Assignment.setTypeHint(v.Variable.Type)
-	v.Assignment.analyze(s)
-	if v.Variable.Type == nil { // type is inferred
-		v.Variable.Type = v.Assignment.GetType()
-	} else if v.Variable.Type != v.Assignment.GetType() {
-		s.err("Cannot assign expression of type `%s` to variable of type `%s`",
-			v.Assignment.GetType().TypeName(), v.Variable.Type.TypeName())
-	}
-}
-
-func (v *Variable) analyze(s *semanticAnalyzer) {
+func (v *Function) analyze(s *semanticAnalyzer) {
 	// make sure there are no illegal attributes
 	s.checkDuplicateAttrs(v.Attrs)
 	for _, attr := range v.Attrs {
@@ -65,13 +63,15 @@ func (v *Variable) analyze(s *semanticAnalyzer) {
 		case "deprecated":
 			// value is optional, nothing to check
 		default:
-			s.err("Invalid variable attribute key `%s`", attr.Key)
+			s.err("Invalid function attribute key `%s`", attr.Key)
 		}
 	}
-}
 
-func (v *StructDecl) analyze(s *semanticAnalyzer) {
-	v.Struct.analyze(s)
+	s.function = v
+	if v.Body != nil {
+		v.Body.analyze(s)
+	}
+	s.function = nil
 }
 
 func (v *StructType) analyze(s *semanticAnalyzer) {
@@ -95,11 +95,7 @@ func (v *StructType) analyze(s *semanticAnalyzer) {
 	}
 }
 
-func (v *FunctionDecl) analyze(s *semanticAnalyzer) {
-	v.Function.analyze(s)
-}
-
-func (v *Function) analyze(s *semanticAnalyzer) {
+func (v *Variable) analyze(s *semanticAnalyzer) {
 	// make sure there are no illegal attributes
 	s.checkDuplicateAttrs(v.Attrs)
 	for _, attr := range v.Attrs {
@@ -107,26 +103,39 @@ func (v *Function) analyze(s *semanticAnalyzer) {
 		case "deprecated":
 			// value is optional, nothing to check
 		default:
-			s.err("Invalid function attribute key `%s`", attr.Key)
+			s.err("Invalid variable attribute key `%s`", attr.Key)
 		}
 	}
-
-	s.function = v
-	if v.Body != nil {
-		v.Body.analyze(s)
-	}
-	s.function = nil
 }
 
-func (v *semanticAnalyzer) checkDuplicateAttrs(attrs []*Attr) {
-	encountered := make(map[string]bool)
-	for _, attr := range attrs {
-		if encountered[attr.Key] {
-			v.err("Duplicate attribute `%s`", attr.Key)
-		}
-		encountered[attr.Key] = true
+/**
+ * Declarations
+ */
+
+func (v *VariableDecl) analyze(s *semanticAnalyzer) {
+	v.Variable.analyze(s)
+	v.Assignment.setTypeHint(v.Variable.Type)
+	v.Assignment.analyze(s)
+
+	if v.Variable.Type == nil { // type is inferred
+		v.Variable.Type = v.Assignment.GetType()
+	} else if v.Variable.Type != v.Assignment.GetType() {
+		s.err("Cannot assign expression of type `%s` to variable of type `%s`",
+			v.Assignment.GetType().TypeName(), v.Variable.Type.TypeName())
 	}
 }
+
+func (v *StructDecl) analyze(s *semanticAnalyzer) {
+	v.Struct.analyze(s)
+}
+
+func (v *FunctionDecl) analyze(s *semanticAnalyzer) {
+	v.Function.analyze(s)
+}
+
+/*
+ * Statements
+ */
 
 func (v *ReturnStat) analyze(s *semanticAnalyzer) {
 	if s.function == nil {
@@ -140,6 +149,17 @@ func (v *ReturnStat) analyze(s *semanticAnalyzer) {
 			v.Value.GetType().TypeName(), s.function.Name, s.function.ReturnType.TypeName())
 	}
 }
+
+func (v *CallStat) analyze(s *semanticAnalyzer) {
+	v.Call.analyze(s)
+}
+
+/*
+ * Expressions
+ */
+
+// UnaryExpr
+
 func (v *UnaryExpr) analyze(s *semanticAnalyzer) {
 	v.Expr.analyze(s)
 
@@ -182,6 +202,8 @@ func (v *UnaryExpr) setTypeHint(t Type) {
 		panic("whoops")
 	}
 }
+
+// BinaryExpr
 
 func (v *BinaryExpr) analyze(s *semanticAnalyzer) {
 	v.Lhand.analyze(s)
@@ -259,6 +281,8 @@ func (v *BinaryExpr) setTypeHint(t Type) {
 	}
 }
 
+// IntegerLiteral
+
 func (v *IntegerLiteral) analyze(s *semanticAnalyzer) {}
 
 func (v *IntegerLiteral) setTypeHint(t Type) {
@@ -272,6 +296,8 @@ func (v *IntegerLiteral) setTypeHint(t Type) {
 	}
 }
 
+// FloatingLiteral
+
 func (v *FloatingLiteral) analyze(s *semanticAnalyzer) {}
 
 func (v *FloatingLiteral) setTypeHint(t Type) {
@@ -283,11 +309,17 @@ func (v *FloatingLiteral) setTypeHint(t Type) {
 	}
 }
 
+// StringLiteral
+
 func (v *StringLiteral) analyze(s *semanticAnalyzer) {}
 func (v *StringLiteral) setTypeHint(t Type)          {}
 
+// RuneLiteral
+
 func (v *RuneLiteral) analyze(s *semanticAnalyzer) {}
 func (v *RuneLiteral) setTypeHint(t Type)          {}
+
+// CastExpr
 
 func (v *CastExpr) analyze(s *semanticAnalyzer) {
 	v.Expr.analyze(s)
@@ -304,6 +336,8 @@ func (v *CastExpr) setTypeHint(t Type) {
 	v.Expr.setTypeHint(nil)
 }
 
+// CallExpr
+
 func (v *CallExpr) analyze(s *semanticAnalyzer) {
 	if len(v.Arguments) != len(v.Function.Parameters) {
 		s.err("Call to `%s` expects %d arguments, have %d",
@@ -317,9 +351,3 @@ func (v *CallExpr) analyze(s *semanticAnalyzer) {
 }
 
 func (v *CallExpr) setTypeHint(t Type) {}
-
-func (v *CallStat) analyze(s *semanticAnalyzer) {
-	v.Call.analyze(s)
-}
-
-func (v *CallStat) setTypeHint(t Type) {}
