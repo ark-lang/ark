@@ -145,12 +145,7 @@ func (v *parser) parseStat() Stat {
 }
 
 func (v *parser) parseDecl() Decl {
-	if variableDecl := v.parseVariableDecl(); variableDecl != nil {
-		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ";") {
-			v.consumeToken()
-		} else {
-			v.err("Expected semicolon at end of variable declaration, found `%s`", v.peek(0).Contents)
-		}
+	if variableDecl := v.parseVariableDecl(true); variableDecl != nil {
 		return variableDecl
 	}
 
@@ -220,7 +215,7 @@ func (v *parser) parseFunctionDecl() *FunctionDecl {
 		v.consumeToken()
 	} else {
 		for {
-			if decl := v.parseVariableDecl(); decl != nil {
+			if decl := v.parseVariableDecl(false); decl != nil {
 				if decl.Assignment != nil {
 					v.err("Assignment in function parameter `%s`", decl.Variable.Name)
 				}
@@ -345,7 +340,7 @@ func (v *parser) parseStructDecl() *StructDecl {
 						break
 					}
 
-					if variable := v.parseVariableDecl(); variable != nil {
+					if variable := v.parseVariableDecl(false); variable != nil {
 						struc.Variables = append(struc.Variables, variable)
 						itemCount++
 					} else {
@@ -366,7 +361,7 @@ func (v *parser) parseStructDecl() *StructDecl {
 	return nil
 }
 
-func (v *parser) parseVariableDecl() *VariableDecl {
+func (v *parser) parseVariableDecl(needSemicolon bool) *VariableDecl {
 	variable := &Variable{}
 	varDecl := &VariableDecl{
 		Variable: variable,
@@ -377,31 +372,39 @@ func (v *parser) parseVariableDecl() *VariableDecl {
 		v.consumeToken()
 	}
 
-	if v.tokensMatch(lexer.TOKEN_IDENTIFIER, "", lexer.TOKEN_OPERATOR, ":") {
-		variable.Name = v.consumeToken().Contents // consume name
-
-		v.consumeToken() // consume :
-
-		if typ := v.parseType(); typ != nil {
-			variable.Type = typ
-		} else if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "=") {
-			variable.Type = nil
-		}
-
-		if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "=") {
-			v.consumeToken() // consume =
-			varDecl.Assignment = v.parseExpr()
-			if varDecl.Assignment == nil {
-				v.err("Expected expression in assignment to variable `%s`", variable.Name)
-			}
-		}
-	} else {
+	if !v.tokensMatch(lexer.TOKEN_IDENTIFIER, "", lexer.TOKEN_OPERATOR, ":") {
 		return nil
+	}
+	variable.Name = v.consumeToken().Contents // consume name
+
+	v.consumeToken() // consume :
+
+	if typ := v.parseType(); typ != nil {
+		variable.Type = typ
+	} else if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "=") {
+		variable.Type = nil
+	}
+
+	if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "=") {
+		v.consumeToken() // consume =
+		varDecl.Assignment = v.parseExpr()
+		if varDecl.Assignment == nil {
+			v.err("Expected expression in assignment to variable `%s`", variable.Name)
+		}
 	}
 
 	if sname := v.scope.InsertVariable(variable); sname != nil {
 		v.err("Illegal redeclaration of variable `%s`", variable.Name)
 	}
+
+	if needSemicolon {
+		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ";") {
+			v.consumeToken()
+		} else {
+			v.err("Expected semicolon at end of variable declaration, found `%s`", v.peek(0).Contents)
+		}
+	}
+
 	return varDecl
 }
 
