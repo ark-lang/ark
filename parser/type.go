@@ -127,6 +127,10 @@ type PointerType struct {
 	Addressee Type
 }
 
+// IMPORTANT:
+// Use this method to make PointerTypes. Most importantly, NEVER take the
+// address of a PointerType! ie, using &PointerType{}. This would make two
+// PointerTypes to the same PrimitiveType inequal, when they should be equal.
 func pointerTo(t Type) PointerType {
 	return PointerType{Addressee: t}
 }
