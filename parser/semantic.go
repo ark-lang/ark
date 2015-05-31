@@ -7,6 +7,12 @@ import (
 	"github.com/ark-lang/ark-go/util"
 )
 
+// IMPORTANT NOTE for setTypeHint():
+// When implementing this function for an Expr, only set the Expr's Type if
+// you are on a lowest-level Expr, ie. a literal. That means, if you Expr
+// contains a pointer to another Expr(s), simple pass the type hint along to that
+// Expr(s) then return.
+
 type semanticAnalyzer struct {
 	file *File
 }
@@ -33,7 +39,14 @@ func (v *Block) analyze(s *semanticAnalyzer) {
 
 func (v *VariableDecl) analyze(s *semanticAnalyzer) {
 	v.Variable.analyze(s)
+	v.Assignment.setTypeHint(v.Variable.Type)
 	v.Assignment.analyze(s)
+	if v.Variable.Type == nil { // type is inferred
+		v.Variable.Type = v.Assignment.GetType()
+	} else if v.Variable.Type != v.Assignment.GetType() {
+		s.err("Cannot assign expression of type `%s` to variable of type `%s`",
+			v.Assignment.GetType().TypeName(), v.Variable.Type.TypeName())
+	}
 }
 
 func (v *Variable) analyze(s *semanticAnalyzer) {
@@ -132,6 +145,19 @@ func (v *UnaryExpr) analyze(s *semanticAnalyzer) {
 	}
 }
 
+func (v *UnaryExpr) setTypeHint(t Type) {
+	switch v.Op {
+	case UNOP_LOG_NOT:
+		v.Expr.setTypeHint(PRIMITIVE_bool)
+	case UNOP_BIT_NOT:
+		v.Expr.setTypeHint(t)
+	case UNOP_ADDRESS, UNOP_DEREF:
+		v.Expr.setTypeHint(nil)
+	default:
+		panic("whoops")
+	}
+}
+
 func (v *BinaryExpr) analyze(s *semanticAnalyzer) {
 	v.Lhand.analyze(s)
 	v.Rhand.analyze(s)
@@ -185,10 +211,55 @@ func (v *BinaryExpr) analyze(s *semanticAnalyzer) {
 	}
 }
 
-func (v *StringLiteral) analyze(s *semanticAnalyzer) {}
+func (v *BinaryExpr) setTypeHint(t Type) {
+	switch v.Op.Category() {
+	case OP_ARITHMETIC:
+		v.Lhand.setTypeHint(t)
+		v.Rhand.setTypeHint(t)
+	case OP_COMPARISON:
+		v.Lhand.setTypeHint(nil)
+		v.Rhand.setTypeHint(nil)
+	case OP_BITWISE:
+		v.Lhand.setTypeHint(t)
+		v.Rhand.setTypeHint(t)
+	case OP_LOGICAL:
+		v.Lhand.setTypeHint(PRIMITIVE_bool)
+		v.Rhand.setTypeHint(PRIMITIVE_bool)
+	case OP_ACCESS:
+		// TODO
+	case OP_ASSIGN:
+		// TODO
+	default:
+		panic("missing opcategory")
+	}
+}
 
 func (v *IntegerLiteral) analyze(s *semanticAnalyzer) {}
 
+func (v *IntegerLiteral) setTypeHint(t Type) {
+	switch t {
+	case PRIMITIVE_int, PRIMITIVE_uint,
+		PRIMITIVE_i8, PRIMITIVE_i16, PRIMITIVE_i32, PRIMITIVE_i64, PRIMITIVE_i128,
+		PRIMITIVE_u8, PRIMITIVE_u16, PRIMITIVE_u32, PRIMITIVE_u64, PRIMITIVE_u128:
+		v.Type = t
+	default:
+		v.Type = PRIMITIVE_int // TODO check overflow
+	}
+}
+
 func (v *FloatingLiteral) analyze(s *semanticAnalyzer) {}
 
+func (v *FloatingLiteral) setTypeHint(t Type) {
+	switch t {
+	case PRIMITIVE_f64, PRIMITIVE_f32, PRIMITIVE_f128:
+		v.Type = t
+	default:
+		v.Type = PRIMITIVE_f64
+	}
+}
+
+func (v *StringLiteral) analyze(s *semanticAnalyzer) {}
+func (v *StringLiteral) setTypeHint(t Type)          {}
+
 func (v *RuneLiteral) analyze(s *semanticAnalyzer) {}
+func (v *RuneLiteral) setTypeHint(t Type)          {}

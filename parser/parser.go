@@ -102,17 +102,13 @@ func Parse(tokens []*lexer.Token, verbose bool) *File {
 		fmt.Println(util.TEXT_BOLD+util.TEXT_GREEN+"Started parsing"+util.TEXT_RESET, tokens[0].Filename)
 	}
 	p.parse()
-	if verbose {
-		fmt.Println(util.TEXT_BOLD+util.TEXT_GREEN+"Finished parsing"+util.TEXT_RESET, tokens[0].Filename)
-	}
-
 	sem := &semanticAnalyzer{file: p.file}
-	if verbose {
-		fmt.Println(util.TEXT_BOLD+util.TEXT_GREEN+"Started analyzing"+util.TEXT_RESET, tokens[0].Filename)
-	}
 	sem.analyze()
 	if verbose {
-		fmt.Println(util.TEXT_BOLD+util.TEXT_GREEN+"Finished analyzing"+util.TEXT_RESET, tokens[0].Filename)
+		for _, n := range p.file.nodes {
+			fmt.Println(n.String())
+		}
+		fmt.Println(util.TEXT_BOLD+util.TEXT_GREEN+"Finished parsing"+util.TEXT_RESET, tokens[0].Filename)
 	}
 
 	return p.file
@@ -122,9 +118,6 @@ func (v *parser) parse() {
 	for v.peek(0) != nil {
 		if n := v.parseNode(); n != nil {
 			v.pushNode(n)
-			if v.verbose && n != nil {
-				fmt.Println(n)
-			}
 		} else {
 			v.consumeToken() // TODO
 		}
@@ -394,7 +387,7 @@ func (v *parser) parseVariableDecl() *VariableDecl {
 		if typ := v.parseType(); typ != nil {
 			variable.Type = typ
 		} else if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "=") {
-			panic("type inference unimplemented")
+			variable.Type = nil
 		}
 
 		if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "=") {

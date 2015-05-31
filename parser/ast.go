@@ -21,6 +21,7 @@ type Expr interface {
 	Node
 	exprNode()
 	GetType() Type
+	setTypeHint(Type) // the type of the parent node, nil if parent node's type is inferred
 }
 
 type Decl interface {
@@ -166,7 +167,8 @@ func (v *ReturnStat) String() string {
 // RuneLiteral
 
 type RuneLiteral struct {
-	Value rune
+	Value    rune
+	typeHint Type
 }
 
 func (v *RuneLiteral) exprNode() {}
@@ -182,7 +184,9 @@ func (v *RuneLiteral) GetType() Type {
 // IntegerLiteral
 
 type IntegerLiteral struct {
-	Value uint64
+	Value    uint64
+	Type     Type
+	typeHint Type
 }
 
 func (v *IntegerLiteral) exprNode() {}
@@ -192,13 +196,15 @@ func (v *IntegerLiteral) String() string {
 }
 
 func (v *IntegerLiteral) GetType() Type {
-	return PRIMITIVE_int
+	return v.Type
 }
 
 // FloatingLiteral
 
 type FloatingLiteral struct {
-	Value float64
+	Value    float64
+	Type     Type
+	typeHint Type
 }
 
 func (v *FloatingLiteral) exprNode() {}
@@ -208,7 +214,7 @@ func (v *FloatingLiteral) String() string {
 }
 
 func (v *FloatingLiteral) GetType() Type {
-	return PRIMITIVE_f64
+	return v.Type
 }
 
 // StringLiteral
@@ -233,6 +239,7 @@ type BinaryExpr struct {
 	Lhand, Rhand Expr
 	Op           BinOpType
 	Type         Type
+	typeHint     Type
 }
 
 func (v *BinaryExpr) exprNode() {}
@@ -250,9 +257,10 @@ func (v *BinaryExpr) GetType() Type {
 // UnaryExpr
 
 type UnaryExpr struct {
-	Expr Expr
-	Op   UnOpType
-	Type Type
+	Expr     Expr
+	Op       UnOpType
+	Type     Type
+	typeHint Type
 }
 
 func (v *UnaryExpr) exprNode() {}
