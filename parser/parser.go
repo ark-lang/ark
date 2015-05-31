@@ -490,7 +490,7 @@ func (v *parser) parsePrimaryExpr() Expr {
 }
 
 func (v *parser) parseAccessExpr() *AccessExpr {
-	/*if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, "") {
+	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, "") {
 		return nil
 	}
 
@@ -499,7 +499,7 @@ func (v *parser) parseAccessExpr() *AccessExpr {
 	ident := v.consumeToken().Contents
 	access.Variable = v.scope.GetVariable(ident)
 	if access.Variable == nil {
-		v.err("Unresolved variable `%s`", access.Variable.Name)
+		v.err("Unresolved variable `%s`", ident)
 	}
 
 	for {
@@ -519,9 +519,9 @@ func (v *parser) parseAccessExpr() *AccessExpr {
 			v.err("Struct `%s` does not contain member `%s`", structType.TypeName(), memberName)
 		}
 
+		access.StructVariables = append(access.StructVariables, access.Variable)
 		access.Variable = decl.Variable
-	}*/
-	return nil
+	}
 }
 
 func (v *parser) parseCallExpr() *CallExpr {

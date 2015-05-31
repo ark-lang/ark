@@ -329,19 +329,19 @@ func (v *CallExpr) GetType() Type {
 // AccessExpr
 
 type AccessExpr struct {
-	Variable *Variable
+	StructVariables []*Variable
+	Variable        *Variable
 }
 
 func (v *AccessExpr) exprNode() {}
 
 func (v *AccessExpr) String() string {
-	/*result := "(" + util.Blue("AccessExpr") + ": "
-	if v.Variable.ParentStruct != nil {
-		result += v.Variable.ParentStruct.Name + "."
+	result := "(" + util.Blue("AccessExpr") + ": "
+	for _, struc := range v.StructVariables {
+		result += struc.Name + "."
 	}
 	result += v.Variable.Name
-	return result + ")"*/
-	return ""
+	return result + ")"
 }
 
 func (v *AccessExpr) GetType() Type {
