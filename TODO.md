@@ -16,6 +16,7 @@
   * [ ] Indexed
   * [ ] Conditional
   * [ ] Infinite
+  * [ ] Iterating
 * [ ] Traits
 
 ### Semantic Analysis
