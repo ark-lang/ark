@@ -7,9 +7,9 @@ import (
 )
 
 type Type interface {
-	GetTypeName() string
-	GetRawType() Type            // type disregarding pointers
-	GetLevelsOfIndirection() int // number of pointers you have to go through to get to the actual type
+	TypeName() string
+	RawType() Type            // type disregarding pointers
+	LevelsOfIndirection() int // number of pointers you have to go through to get to the actual type
 	IsIntegerType() bool
 	IsFloatingType() bool
 }
@@ -63,15 +63,15 @@ func (v PrimitiveType) IsFloatingType() bool {
 	}
 }
 
-func (v PrimitiveType) GetTypeName() string {
+func (v PrimitiveType) TypeName() string {
 	return v.String()[10:]
 }
 
-func (v PrimitiveType) GetRawType() Type {
+func (v PrimitiveType) RawType() Type {
 	return v
 }
 
-func (v PrimitiveType) GetLevelsOfIndirection() int {
+func (v PrimitiveType) LevelsOfIndirection() int {
 	return 0
 }
 
@@ -95,15 +95,15 @@ func (v *StructType) String() string {
 	return result + ")"
 }
 
-func (v *StructType) GetTypeName() string {
+func (v *StructType) TypeName() string {
 	return v.Name
 }
 
-func (v *StructType) GetRawType() Type {
+func (v *StructType) RawType() Type {
 	return v
 }
 
-func (v *StructType) GetLevelsOfIndirection() int {
+func (v *StructType) LevelsOfIndirection() int {
 	return 0
 }
 
@@ -115,28 +115,32 @@ func (v *StructType) IsFloatingType() bool {
 	return false
 }
 
-// PointerTyper
+// PointerType
 
 type PointerType struct {
 	Addressee Type
 }
 
-func (v *PointerType) GetTypeName() string {
-	return "^" + v.Addressee.GetTypeName()
+func pointerTo(t Type) PointerType {
+	return PointerType{Addressee: t}
 }
 
-func (v *PointerType) GetRawType() Type {
-	return v.Addressee.GetRawType()
+func (v PointerType) TypeName() string {
+	return "^" + v.Addressee.TypeName()
 }
 
-func (v *PointerType) GetLevelsOfIndirection() int {
-	return v.Addressee.GetLevelsOfIndirection() + 1
+func (v PointerType) RawType() Type {
+	return v.Addressee.RawType()
 }
 
-func (v *PointerType) IsIntegerType() bool {
+func (v PointerType) LevelsOfIndirection() int {
+	return v.Addressee.LevelsOfIndirection() + 1
+}
+
+func (v PointerType) IsIntegerType() bool {
 	return false
 }
 
-func (v *PointerType) IsFloatingType() bool {
+func (v PointerType) IsFloatingType() bool {
 	return false
 }

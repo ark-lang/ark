@@ -156,7 +156,7 @@ func (v *parser) parseDecl() Decl {
 		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ";") {
 			v.consumeToken()
 		} else {
-			v.err("Missing semicolon at end of variable declaration")
+			v.err("Expected semicolon at end of variable declaration, found `%s`", v.peek(0).Contents)
 		}
 		return variableDecl
 	}
@@ -179,7 +179,7 @@ func (v *parser) parseType() Type {
 	if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "^") {
 		v.consumeToken()
 		if innerType := v.parseType(); innerType != nil {
-			return &PointerType{Addressee: innerType}
+			return pointerTo(innerType)
 		} else {
 			v.err("TODO")
 		}

@@ -22,6 +22,7 @@ mut c1: ^^^^i8 = 'r';
 t: i8 = ~10;
 
 mut bintest: int = 5 * 5 + 5 * 5;
+mshifttest: int = 10 << 7;
 
 // packed structure syntax idea?
 struct Test [packed,deprecated="Deprecated Message"] {

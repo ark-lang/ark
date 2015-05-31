@@ -43,7 +43,7 @@ func (v *Variable) String() string {
 	for _, attr := range v.Attrs {
 		result += attr.String() + " "
 	}
-	return result + v.Name + " " + util.Green(v.Type.GetTypeName()) + ")"
+	return result + v.Name + " " + util.Green(v.Type.TypeName()) + ")"
 }
 
 type Function struct {
@@ -63,7 +63,7 @@ func (v *Function) String() string {
 	for _, attr := range v.Attrs {
 		result += attr.String() + " "
 	}
-	result += v.Name + " " + v.Parameters.String() + ": " + util.Green(v.Type.GetTypeName()) + " "
+	result += v.Name + " " + v.Parameters.String() + ": " + util.Green(v.Type.TypeName()) + " "
 	if v.Body != nil {
 		result += v.Body.String()
 	}
@@ -265,6 +265,10 @@ func (v *UnaryExpr) String() string {
 func (v *UnaryExpr) GetType() Type {
 	return v.Type
 }
+
+/**
+ * Other
+ */
 
 // List
 

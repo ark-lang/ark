@@ -1,5 +1,35 @@
 package parser
 
+type OpCategory int
+
+const (
+	OP_ARITHMETIC OpCategory = iota
+	OP_COMPARISON
+	OP_BITWISE
+	OP_LOGICAL
+	OP_ACCESS
+	OP_ASSIGN
+)
+
+func (v OpCategory) PrettyString() string {
+	switch v {
+	case OP_ARITHMETIC:
+		return "arithmetic"
+	case OP_COMPARISON:
+		return "comparison"
+	case OP_BITWISE:
+		return "bitwise"
+	case OP_LOGICAL:
+		return "logical"
+	case OP_ACCESS:
+		return "access"
+	case OP_ASSIGN:
+		return "assignment"
+	default:
+		panic("missing opcategory")
+	}
+}
+
 //go:generate stringer -type=BinOpType
 type BinOpType int
 
@@ -33,6 +63,41 @@ const (
 	BINOP_ASSIGN
 )
 
+var binOpStrings = []string{"", "+", "-", "*", "/", "%", ".", ">", "<", ">=", "<=",
+	"==", "!=", "&", "|", "^", "<<", ">>", "&&", "||", "="}
+
+func stringToBinOpType(s string) BinOpType {
+	for i, str := range binOpStrings {
+		if str == s {
+			return BinOpType(i)
+		}
+	}
+	return BINOP_ERR
+}
+
+func (v BinOpType) OpString() string {
+	return binOpStrings[v]
+}
+
+func (v BinOpType) Category() OpCategory {
+	switch v {
+	case BINOP_ADD, BINOP_SUB, BINOP_MUL, BINOP_DIV, BINOP_MOD:
+		return OP_ARITHMETIC
+	case BINOP_DOT:
+		return OP_ACCESS
+	case BINOP_GREATER, BINOP_LESS, BINOP_GREATER_EQ, BINOP_LESS_EQ, BINOP_EQ, BINOP_NOT_EQ:
+		return OP_COMPARISON
+	case BINOP_BIT_AND, BINOP_BIT_OR, BINOP_BIT_XOR, BINOP_BIT_LEFT, BINOP_BIT_RIGHT:
+		return OP_BITWISE
+	case BINOP_LOG_AND, BINOP_LOG_OR:
+		return OP_LOGICAL
+	case BINOP_ASSIGN:
+		return OP_ASSIGN
+	default:
+		panic("missing op category")
+	}
+}
+
 func newBinOpPrecedenceMap() map[BinOpType]int {
 	m := make(map[BinOpType]int)
 
@@ -45,6 +110,7 @@ func newBinOpPrecedenceMap() map[BinOpType]int {
 		{BINOP_BIT_AND},
 		{BINOP_EQ, BINOP_NOT_EQ},
 		{BINOP_GREATER, BINOP_LESS, BINOP_GREATER_EQ, BINOP_LESS_EQ},
+		{BINOP_BIT_LEFT, BINOP_BIT_RIGHT},
 		{BINOP_ADD, BINOP_SUB},
 		{BINOP_MUL, BINOP_DIV, BINOP_MOD},
 		{BINOP_DOT},
@@ -72,59 +138,6 @@ const (
 	UNOP_ADDRESS
 	UNOP_DEREF
 )
-
-func stringToBinOpType(s string) BinOpType {
-	switch s {
-	case "+":
-		return BINOP_ADD
-	case "-":
-		return BINOP_SUB
-	case "*":
-		return BINOP_MUL
-	case "/":
-		return BINOP_DIV
-	case "%":
-		return BINOP_MOD
-
-	case ".":
-		return BINOP_DOT
-
-	case ">":
-		return BINOP_GREATER
-	case "<":
-		return BINOP_LESS
-	case ">=":
-		return BINOP_GREATER_EQ
-	case "<=":
-		return BINOP_LESS_EQ
-	case "==":
-		return BINOP_EQ
-	case "!=":
-		return BINOP_NOT_EQ
-
-	case "&":
-		return BINOP_BIT_AND
-	case "|":
-		return BINOP_BIT_OR
-	case "^":
-		return BINOP_BIT_XOR
-	case "<<":
-		return BINOP_BIT_LEFT
-	case ">>":
-		return BINOP_BIT_RIGHT
-
-	case "&&":
-		return BINOP_LOG_AND
-	case "||":
-		return BINOP_LOG_OR
-
-	case "=":
-		return BINOP_ASSIGN
-
-	default:
-		return BINOP_ERR
-	}
-}
 
 func stringToUnOpType(s string) UnOpType {
 	switch s {

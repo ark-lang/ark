@@ -119,10 +119,10 @@ func (v *UnaryExpr) analyze(s *semanticAnalyzer) {
 			s.err("Used bitwise not on non-numeric type")
 		}
 	case UNOP_ADDRESS:
-		v.Type = &PointerType{Addressee: v.Expr.GetType()}
+		v.Type = pointerTo(v.Expr.GetType())
 		// TODO make sure v.Expr is a variable! (can't take address of a literal)
 	case UNOP_DEREF:
-		if ptr, ok := v.Expr.GetType().(*PointerType); ok {
+		if ptr, ok := v.Expr.GetType().(PointerType); ok {
 			v.Type = ptr.Addressee
 		} else {
 			s.err("Used dereference operator on non-pointer")
@@ -135,6 +135,54 @@ func (v *UnaryExpr) analyze(s *semanticAnalyzer) {
 func (v *BinaryExpr) analyze(s *semanticAnalyzer) {
 	v.Lhand.analyze(s)
 	v.Rhand.analyze(s)
+
+	switch v.Op {
+	case BINOP_ADD, BINOP_SUB, BINOP_MUL, BINOP_DIV, BINOP_MOD,
+		BINOP_GREATER, BINOP_LESS, BINOP_GREATER_EQ, BINOP_LESS_EQ, BINOP_EQ, BINOP_NOT_EQ,
+		BINOP_BIT_AND, BINOP_BIT_OR, BINOP_BIT_XOR:
+		if v.Lhand.GetType() != v.Rhand.GetType() {
+			s.err("Operands for binary operator `%s` must have the same type, have `%s` and `%s`",
+				v.Op.OpString(), v.Lhand.GetType().TypeName(), v.Rhand.GetType().TypeName())
+		} else if lht := v.Lhand.GetType(); !(lht.IsIntegerType() || lht.IsFloatingType() || lht.LevelsOfIndirection() > 0) {
+			s.err("Operands for binary operator `%s` must be numeric or pointers, have `%s`",
+				v.Op.OpString(), v.Lhand.GetType().TypeName())
+		} else {
+			switch v.Op.Category() {
+			case OP_ARITHMETIC:
+				v.Type = v.Lhand.GetType()
+			case OP_COMPARISON:
+				v.Type = PRIMITIVE_bool
+			default:
+				panic("shouldn't happenen ever")
+			}
+		}
+
+	case BINOP_DOT: // TODO
+
+	case BINOP_BIT_LEFT, BINOP_BIT_RIGHT:
+		if lht := v.Lhand.GetType(); !(lht.IsFloatingType() || lht.IsIntegerType() || lht.LevelsOfIndirection() > 0) {
+			s.err("Left-hand operand for bitshift operator `%s` must be numeric or a pointer, have `%s`",
+				v.Op.OpString(), lht.TypeName())
+		} else if !v.Rhand.GetType().IsIntegerType() {
+			s.err("Right-hand operatnd for bitshift operator `%s` must be an integer, have `%s`",
+				v.Op.OpString(), v.Rhand.GetType().TypeName())
+		} else {
+			v.Type = lht
+		}
+
+	case BINOP_LOG_AND, BINOP_LOG_OR:
+		if v.Lhand.GetType() != PRIMITIVE_bool || v.Rhand.GetType() != PRIMITIVE_bool {
+			s.err("Operands for logical operator `%s` must have the same type, have `%s` and `%s`",
+				v.Op.OpString(), v.Lhand.GetType().TypeName(), v.Rhand.GetType().TypeName())
+		} else {
+			v.Type = PRIMITIVE_bool
+		}
+
+	case BINOP_ASSIGN:
+
+	default:
+		panic("unimplemented bin operation")
+	}
 }
 
 func (v *StringLiteral) analyze(s *semanticAnalyzer) {}
