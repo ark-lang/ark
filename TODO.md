@@ -1,6 +1,6 @@
 # Todo List
 
-### [ ] Parsing
+### Parsing
 * [ ] If Statements
 * [ ] Else If Statements
 * [ ] Else Statements
@@ -18,8 +18,8 @@
   * [ ] Infinite
 * [ ] Traits
 
-### [ ] Semantic Analysis
+### Semantic Analysis
 * [ ] ...
 
-### [ ] Codegen
+### Codegen
 * [ ] ...
