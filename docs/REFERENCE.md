@@ -119,7 +119,7 @@ The `usize` or unsigned size, it can not represent any negative values. It is us
 when you are counting something that cannot be negative, typically it is used for
 memory.
 
-	usize		//unsigned at least 16 bits
+	usize		// unsigned at least 16 bits
 	
 ## Variables
 Unlike languages like C or C++, variables are immutable unless otherwise preceeded by
@@ -299,9 +299,14 @@ We can simplify this using a return type of `int`, for instance:
 
 ### Single-line Functions
 If you have a function that consists of a single statement, it's suggested that you use the
-`->` operator instead of an entire block. The `return` keyword is omitted.
+`->` operator instead of an entire block. Single line functions also take the last expression
+and return it, so you do not have to specify a return statement.
 
 	func add(a: int, b: int): int -> a + b;
+
+You can still write normal functions that have no return type like so:
+
+    func sayHello(name: str): void -> printf("Hello %s\n", name);
 
 ### External Functions
 To allow external linkage to a function, you define the function as you would typically,
@@ -600,8 +605,8 @@ yet.
 		file_contents: str = read_file(file_name, ...);
 		
 		match file_contents {
-			Some -> printf("file %s contains:\n %s", file_name, file_contents);
-			None -> printf("failed to read file!");
+			Some -> printf("file %s contains:\n %s", file_name, file_contents),
+			None -> printf("failed to read file!"),
 		}
 		return 0;
 	}
@@ -614,7 +619,7 @@ must be terminated with a comma (excluding the final item in the enumerion). For
 	enum DogBreed {
 		POODLE,
 		GRAYHOUND,
-		SHIH_ZU
+		SHIH_ZU,
 	}
 
 To refer to the enum item, you need to specify the name of the enumeration, followed by two colons `::`,
