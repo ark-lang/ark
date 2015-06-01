@@ -18,33 +18,40 @@ type semanticAnalyzer struct {
 	function *Function // the function we're in, or nil if we aren't
 }
 
-func (v *semanticAnalyzer) err(err string, stuff ...interface{}) {
-	/*fmt.Printf(util.TEXT_RED+util.TEXT_BOLD+"Semantic error:"+util.TEXT_RESET+" [%s:%d:%d] %s\n",
-	v.peek(0).Filename, v.peek(0).LineNumber, v.peek(0).CharNumber, fmt.Sprintf(err, stuff...))*/
-	fmt.Printf(util.TEXT_RED+util.TEXT_BOLD+"Semantic error:"+util.TEXT_RESET+" %s\n",
-		fmt.Sprintf(err, stuff...))
+func (v *semanticAnalyzer) err(thing Locatable, err string, stuff ...interface{}) {
+	line, char := thing.Pos()
+	fmt.Printf(util.TEXT_RED+util.TEXT_BOLD+"Semantic error:"+util.TEXT_RESET+" [%s:%d:%d] %s\n",
+		v.file.Name, line, char, fmt.Sprintf(err, stuff...))
 	os.Exit(2)
 }
 
-func (v *semanticAnalyzer) warn(err string, stuff ...interface{}) {
-	/*fmt.Printf(util.TEXT_RED+util.TEXT_BOLD+"Semantic error:"+util.TEXT_RESET+" [%s:%d:%d] %s\n",
-	v.peek(0).Filename, v.peek(0).LineNumber, v.peek(0).CharNumber, fmt.Sprintf(err, stuff...))*/
-	fmt.Printf(util.TEXT_RED+util.TEXT_BOLD+"Semantic warning:"+util.TEXT_RESET+" %s\n",
-		fmt.Sprintf(err, stuff...))
+func (v *semanticAnalyzer) warn(thing Locatable, err string, stuff ...interface{}) {
+	line, char := thing.Pos()
+	fmt.Printf(util.TEXT_YELLOW+util.TEXT_BOLD+"Semantic warning:"+util.TEXT_RESET+" [%s:%d:%d] %s\n",
+		v.file.Name, line, char, fmt.Sprintf(err, stuff...))
+}
+
+func (v *semanticAnalyzer) warnDeprecated(thing Locatable, typ, name, message string) {
+	mess := fmt.Sprintf("Access of deprecated %s `%s`", typ, name)
+	if message == "" {
+		v.warn(thing, mess)
+	} else {
+		v.warn(thing, mess+": "+message)
+	}
 }
 
 func (v *semanticAnalyzer) checkDuplicateAttrs(attrs []*Attr) {
 	encountered := make(map[string]bool)
 	for _, attr := range attrs {
 		if encountered[attr.Key] {
-			v.err("Duplicate attribute `%s`", attr.Key)
+			v.err(attr, "Duplicate attribute `%s`", attr.Key)
 		}
 		encountered[attr.Key] = true
 	}
 }
 
 func (v *semanticAnalyzer) analyze() {
-	for _, node := range v.file.nodes {
+	for _, node := range v.file.Nodes {
 		node.analyze(v)
 	}
 }
@@ -63,7 +70,7 @@ func (v *Function) analyze(s *semanticAnalyzer) {
 		case "deprecated":
 			// value is optional, nothing to check
 		default:
-			s.err("Invalid function attribute key `%s`", attr.Key)
+			s.err(attr, "Invalid function attribute key `%s`", attr.Key)
 		}
 	}
 
@@ -76,17 +83,17 @@ func (v *Function) analyze(s *semanticAnalyzer) {
 
 func (v *StructType) analyze(s *semanticAnalyzer) {
 	// make sure there are no illegal attributes
-	s.checkDuplicateAttrs(v.Attrs)
-	for _, attr := range v.Attrs {
+	s.checkDuplicateAttrs(v.attrs)
+	for _, attr := range v.Attrs() {
 		switch attr.Key {
 		case "packed":
 			if attr.Value != "" {
-				s.err("Struct attribute `%s` doesn't expect value", attr.Key)
+				s.err(attr, "Struct attribute `%s` doesn't expect value", attr.Key)
 			}
 		case "deprecated":
 			// value is optional, nothing to check
 		default:
-			s.err("Invalid struct attribute key `%s`", attr.Key)
+			s.err(attr, "Invalid struct attribute key `%s`", attr.Key)
 		}
 	}
 
@@ -103,7 +110,7 @@ func (v *Variable) analyze(s *semanticAnalyzer) {
 		case "deprecated":
 			// value is optional, nothing to check
 		default:
-			s.err("Invalid variable attribute key `%s`", attr.Key)
+			s.err(attr, "Invalid variable attribute key `%s`", attr.Key)
 		}
 	}
 }
@@ -117,15 +124,16 @@ func (v *VariableDecl) analyze(s *semanticAnalyzer) {
 	if v.Assignment != nil {
 		v.Assignment.setTypeHint(v.Variable.Type)
 		v.Assignment.analyze(s)
-	} else {
-		return
-	}
 
-	if v.Variable.Type == nil { // type is inferred
-		v.Variable.Type = v.Assignment.GetType()
-	} else if v.Variable.Type != v.Assignment.GetType() {
-		s.err("Cannot assign expression of type `%s` to variable of type `%s`",
-			v.Assignment.GetType().TypeName(), v.Variable.Type.TypeName())
+		if v.Variable.Type == nil { // type is inferred
+			v.Variable.Type = v.Assignment.GetType()
+		} else if v.Variable.Type != v.Assignment.GetType() {
+			s.err(v, "Cannot assign expression of type `%s` to variable of type `%s`",
+				v.Assignment.GetType().TypeName(), v.Variable.Type.TypeName())
+		}
+	}
+	if dep := getAttr(v.Variable.Type.Attrs(), "deprecated"); dep != nil {
+		s.warnDeprecated(v, "type", v.Variable.Type.TypeName(), dep.Value)
 	}
 }
 
@@ -143,13 +151,13 @@ func (v *FunctionDecl) analyze(s *semanticAnalyzer) {
 
 func (v *ReturnStat) analyze(s *semanticAnalyzer) {
 	if s.function == nil {
-		s.err("Return statement must be in a function")
+		s.err(v, "Return statement must be in a function")
 	}
 
 	v.Value.setTypeHint(s.function.ReturnType)
 	v.Value.analyze(s)
 	if v.Value.GetType() != s.function.ReturnType {
-		s.err("Cannot return expression of type `%s` from function `%s` of type `%s`",
+		s.err(v.Value, "Cannot return expression of type `%s` from function `%s` of type `%s`",
 			v.Value.GetType().TypeName(), s.function.Name, s.function.ReturnType.TypeName())
 	}
 }
@@ -172,13 +180,13 @@ func (v *UnaryExpr) analyze(s *semanticAnalyzer) {
 		if v.Expr.GetType() == PRIMITIVE_bool {
 			v.Type = PRIMITIVE_bool
 		} else {
-			s.err("Used logical not on non-bool")
+			s.err(v, "Used logical not on non-bool")
 		}
 	case UNOP_BIT_NOT:
 		if v.Expr.GetType().IsIntegerType() || v.Expr.GetType().IsFloatingType() {
 			v.Type = v.Expr.GetType()
 		} else {
-			s.err("Used bitwise not on non-numeric type")
+			s.err(v, "Used bitwise not on non-numeric type")
 		}
 	case UNOP_ADDRESS:
 		v.Type = pointerTo(v.Expr.GetType())
@@ -187,7 +195,7 @@ func (v *UnaryExpr) analyze(s *semanticAnalyzer) {
 		if ptr, ok := v.Expr.GetType().(PointerType); ok {
 			v.Type = ptr.Addressee
 		} else {
-			s.err("Used dereference operator on non-pointer")
+			s.err(v, "Used dereference operator on non-pointer")
 		}
 	default:
 		panic("whoops")
@@ -218,10 +226,10 @@ func (v *BinaryExpr) analyze(s *semanticAnalyzer) {
 		BINOP_GREATER, BINOP_LESS, BINOP_GREATER_EQ, BINOP_LESS_EQ, BINOP_EQ, BINOP_NOT_EQ,
 		BINOP_BIT_AND, BINOP_BIT_OR, BINOP_BIT_XOR:
 		if v.Lhand.GetType() != v.Rhand.GetType() {
-			s.err("Operands for binary operator `%s` must have the same type, have `%s` and `%s`",
+			s.err(v, "Operands for binary operator `%s` must have the same type, have `%s` and `%s`",
 				v.Op.OpString(), v.Lhand.GetType().TypeName(), v.Rhand.GetType().TypeName())
 		} else if lht := v.Lhand.GetType(); !(lht.IsIntegerType() || lht.IsFloatingType() || lht.LevelsOfIndirection() > 0) {
-			s.err("Operands for binary operator `%s` must be numeric or pointers, have `%s`",
+			s.err(v, "Operands for binary operator `%s` must be numeric or pointers, have `%s`",
 				v.Op.OpString(), v.Lhand.GetType().TypeName())
 		} else {
 			switch v.Op.Category() {
@@ -236,10 +244,10 @@ func (v *BinaryExpr) analyze(s *semanticAnalyzer) {
 
 	case BINOP_BIT_LEFT, BINOP_BIT_RIGHT:
 		if lht := v.Lhand.GetType(); !(lht.IsFloatingType() || lht.IsIntegerType() || lht.LevelsOfIndirection() > 0) {
-			s.err("Left-hand operand for bitshift operator `%s` must be numeric or a pointer, have `%s`",
+			s.err(v.Lhand, "Left-hand operand for bitshift operator `%s` must be numeric or a pointer, have `%s`",
 				v.Op.OpString(), lht.TypeName())
 		} else if !v.Rhand.GetType().IsIntegerType() {
-			s.err("Right-hand operatnd for bitshift operator `%s` must be an integer, have `%s`",
+			s.err(v.Rhand, "Right-hand operatnd for bitshift operator `%s` must be an integer, have `%s`",
 				v.Op.OpString(), v.Rhand.GetType().TypeName())
 		} else {
 			v.Type = lht
@@ -247,7 +255,7 @@ func (v *BinaryExpr) analyze(s *semanticAnalyzer) {
 
 	case BINOP_LOG_AND, BINOP_LOG_OR:
 		if v.Lhand.GetType() != PRIMITIVE_bool || v.Rhand.GetType() != PRIMITIVE_bool {
-			s.err("Operands for logical operator `%s` must have the same type, have `%s` and `%s`",
+			s.err(v, "Operands for logical operator `%s` must have the same type, have `%s` and `%s`",
 				v.Op.OpString(), v.Lhand.GetType().TypeName(), v.Rhand.GetType().TypeName())
 		} else {
 			v.Type = PRIMITIVE_bool
@@ -341,10 +349,10 @@ func (v *CastExpr) analyze(s *semanticAnalyzer) {
 	v.Expr.setTypeHint(nil)
 	v.Expr.analyze(s)
 	if v.Type == v.Expr.GetType() {
-		s.warn("Casting expression of type `%s` to the same type",
+		s.warn(v, "Casting expression of type `%s` to the same type",
 			v.Type.TypeName())
 	} else if !v.Expr.GetType().CanCastTo(v.Type) {
-		s.err("Cannot cast expression of type `%s` to type `%s`",
+		s.err(v, "Cannot cast expression of type `%s` to type `%s`",
 			v.Expr.GetType().TypeName(), v.Type.TypeName())
 	}
 }
@@ -355,13 +363,17 @@ func (v *CastExpr) setTypeHint(t Type) {}
 
 func (v *CallExpr) analyze(s *semanticAnalyzer) {
 	if len(v.Arguments) != len(v.Function.Parameters) {
-		s.err("Call to `%s` expects %d arguments, have %d",
+		s.err(v, "Call to `%s` expects %d arguments, have %d",
 			v.Function.Name, len(v.Function.Parameters), len(v.Arguments))
 	}
 
 	for i, arg := range v.Arguments {
 		arg.setTypeHint(v.Function.Parameters[i].Variable.Type)
 		arg.analyze(s)
+	}
+
+	if dep := getAttr(v.Function.Attrs, "deprecated"); dep != nil {
+		s.warnDeprecated(v, "function", v.Function.Name, dep.Value)
 	}
 }
 
@@ -370,7 +382,11 @@ func (v *CallExpr) setTypeHint(t Type) {}
 // AccessExpr
 
 func (v *AccessExpr) analyze(s *semanticAnalyzer) {
-
+	for _, variable := range append(v.StructVariables, v.Variable) {
+		if dep := getAttr(variable.Attrs, "deprecated"); dep != nil {
+			s.warnDeprecated(v, "variable", variable.Name, dep.Value)
+		}
+	}
 }
 
 func (v *AccessExpr) setTypeHint(t Type) {}

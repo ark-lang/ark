@@ -6,8 +6,9 @@ import (
 )
 
 type Attr struct {
-	Key   string
-	Value string
+	Key                    string
+	Value                  string
+	lineNumber, charNumber int
 }
 
 func (v *Attr) String() string {
@@ -20,15 +21,34 @@ func (v *Attr) String() string {
 	return util.Green(result)
 }
 
+func getAttr(attrs []*Attr, s string) *Attr {
+	for _, a := range attrs {
+		if s == a.Key {
+			return a
+		}
+	}
+	return nil
+}
+
+func (v *Attr) Pos() (line, char int) {
+	return v.lineNumber, v.charNumber
+}
+
+func (v *Attr) setPos(line, char int) {
+	panic("don't call this")
+}
+
 func (v *parser) parseAttrs() []*Attr {
 	ret := make([]*Attr, 0)
 	for v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "[") {
 		// eat the opening bracket
 		v.consumeToken()
 	thing:
-		attr := &Attr{}
-
-		attr.Key = v.consumeToken().Contents
+		attr := &Attr{
+			lineNumber: v.peek(0).LineNumber,
+			charNumber: v.peek(0).CharNumber,
+			Key:        v.consumeToken().Contents,
+		}
 
 		if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "=") {
 			v.consumeToken() // eat =

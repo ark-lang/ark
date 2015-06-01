@@ -6,9 +6,16 @@ import (
 	"github.com/ark-lang/ark-go/util"
 )
 
+type Locatable interface {
+	Pos() (line, char int)
+	setPos(line, char int)
+}
+
 type Node interface {
 	String() string
+	NodeName() string
 	analyze(*semanticAnalyzer)
+	Locatable
 }
 
 type Stat interface {
@@ -26,6 +33,19 @@ type Expr interface {
 type Decl interface {
 	Node
 	declNode()
+}
+
+type nodePos struct {
+	lineNumber, charNumber int
+}
+
+func (v nodePos) Pos() (line, char int) {
+	return v.lineNumber, v.charNumber
+}
+
+func (v *nodePos) setPos(line, char int) {
+	v.lineNumber = line
+	v.charNumber = char
 }
 
 type Variable struct {
@@ -79,6 +99,7 @@ func (v *Function) String() string {
 //
 
 type Block struct {
+	nodePos
 	Nodes []Node
 }
 
@@ -102,6 +123,10 @@ func (v *Block) appendNode(n Node) {
 	v.Nodes = append(v.Nodes, n)
 }
 
+func (v *Block) NodeName() string {
+	return "block"
+}
+
 /**
  * Declarations
  */
@@ -109,6 +134,7 @@ func (v *Block) appendNode(n Node) {
 // VariableDecl
 
 type VariableDecl struct {
+	nodePos
 	Variable   *Variable
 	Assignment Expr
 }
@@ -124,9 +150,14 @@ func (v *VariableDecl) String() string {
 	}
 }
 
+func (v *VariableDecl) NodeName() string {
+	return "variable declaration"
+}
+
 // StructDecl
 
 type StructDecl struct {
+	nodePos
 	Struct *StructType
 }
 
@@ -136,9 +167,14 @@ func (v *StructDecl) String() string {
 	return "(" + util.Blue("StructDecl") + ": " + v.Struct.String() + ")"
 }
 
+func (v *StructDecl) NodeName() string {
+	return "struct declaration"
+}
+
 // FunctionDecl
 
 type FunctionDecl struct {
+	nodePos
 	Function *Function
 }
 
@@ -148,11 +184,18 @@ func (v *FunctionDecl) String() string {
 	return "(" + util.Blue("FunctionDecl") + ": " + v.Function.String() + ")"
 }
 
+func (v *FunctionDecl) NodeName() string {
+	return "function declaration"
+}
+
 /**
  * Statements
  */
 
+// ReturnStat
+
 type ReturnStat struct {
+	nodePos
 	Value Expr
 }
 
@@ -163,7 +206,14 @@ func (v *ReturnStat) String() string {
 		v.Value.String() + ")"
 }
 
+func (v *ReturnStat) NodeName() string {
+	return "return statement"
+}
+
+// CallStat
+
 type CallStat struct {
+	nodePos
 	Call *CallExpr
 }
 
@@ -174,6 +224,10 @@ func (v *CallStat) String() string {
 		v.Call.String() + ")"
 }
 
+func (v *CallStat) NodeName() string {
+	return "call statement"
+}
+
 /**
  * Expressions
  */
@@ -181,6 +235,7 @@ func (v *CallStat) String() string {
 // RuneLiteral
 
 type RuneLiteral struct {
+	nodePos
 	Value    rune
 	typeHint Type
 }
@@ -195,9 +250,14 @@ func (v *RuneLiteral) GetType() Type {
 	return PRIMITIVE_rune
 }
 
+func (v *RuneLiteral) NodeName() string {
+	return "rune literal"
+}
+
 // IntegerLiteral
 
 type IntegerLiteral struct {
+	nodePos
 	Value    uint64
 	Type     Type
 	typeHint Type
@@ -213,9 +273,14 @@ func (v *IntegerLiteral) GetType() Type {
 	return v.Type
 }
 
+func (v *IntegerLiteral) NodeName() string {
+	return "integer literal"
+}
+
 // FloatingLiteral
 
 type FloatingLiteral struct {
+	nodePos
 	Value    float64
 	Type     Type
 	typeHint Type
@@ -231,9 +296,14 @@ func (v *FloatingLiteral) GetType() Type {
 	return v.Type
 }
 
+func (v *FloatingLiteral) NodeName() string {
+	return "floating-point literal"
+}
+
 // StringLiteral
 
 type StringLiteral struct {
+	nodePos
 	Value string
 }
 
@@ -247,9 +317,14 @@ func (v *StringLiteral) GetType() Type {
 	return PRIMITIVE_str
 }
 
+func (v *StringLiteral) NodeName() string {
+	return "string literal"
+}
+
 // BinaryExpr
 
 type BinaryExpr struct {
+	nodePos
 	Lhand, Rhand Expr
 	Op           BinOpType
 	Type         Type
@@ -268,9 +343,14 @@ func (v *BinaryExpr) GetType() Type {
 	return v.Type
 }
 
+func (v *BinaryExpr) NodeName() string {
+	return "binary expression"
+}
+
 // UnaryExpr
 
 type UnaryExpr struct {
+	nodePos
 	Expr     Expr
 	Op       UnOpType
 	Type     Type
@@ -288,9 +368,14 @@ func (v *UnaryExpr) GetType() Type {
 	return v.Type
 }
 
+func (v *UnaryExpr) NodeName() string {
+	return "unary expression"
+}
+
 // CastExpr
 
 type CastExpr struct {
+	nodePos
 	Expr Expr
 	Type Type
 }
@@ -305,9 +390,14 @@ func (v *CastExpr) GetType() Type {
 	return v.Type
 }
 
+func (v *CastExpr) NodeName() string {
+	return "typecast expression"
+}
+
 // CallExpr
 
 type CallExpr struct {
+	nodePos
 	Function  *Function
 	Arguments []Expr
 }
@@ -326,9 +416,14 @@ func (v *CallExpr) GetType() Type {
 	return v.Function.ReturnType
 }
 
+func (v *CallExpr) NodeName() string {
+	return "call expression"
+}
+
 // AccessExpr
 
 type AccessExpr struct {
+	nodePos
 	StructVariables []*Variable
 	Variable        *Variable
 }
@@ -346,4 +441,8 @@ func (v *AccessExpr) String() string {
 
 func (v *AccessExpr) GetType() Type {
 	return v.Variable.Type
+}
+
+func (v *AccessExpr) NodeName() string {
+	return "access expression"
 }

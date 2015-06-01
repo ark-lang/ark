@@ -9,6 +9,7 @@ type Type interface {
 	IsIntegerType() bool
 	IsFloatingType() bool
 	CanCastTo(Type) bool
+	Attrs() []*Attr
 }
 
 //go:generate stringer -type=PrimitiveType
@@ -77,17 +78,21 @@ func (v PrimitiveType) CanCastTo(t Type) bool {
 		(t.IsFloatingType() || t.IsIntegerType() || t == PRIMITIVE_rune)
 }
 
+func (v PrimitiveType) Attrs() []*Attr {
+	return nil
+}
+
 // StructType
 
 type StructType struct {
 	Name      string
 	Variables []*VariableDecl
-	Attrs     []*Attr
+	attrs     []*Attr
 }
 
 func (v *StructType) String() string {
 	result := "(" + util.Blue("StructType") + ": "
-	for _, attr := range v.Attrs {
+	for _, attr := range v.attrs {
 		result += attr.String() + " "
 	}
 	result += v.Name + "\n"
@@ -134,6 +139,10 @@ func (v *StructType) addVariableDecl(decl *VariableDecl) {
 	v.Variables = append(v.Variables, decl)
 }
 
+func (v *StructType) Attrs() []*Attr {
+	return v.attrs
+}
+
 // PointerType
 
 type PointerType struct {
@@ -170,4 +179,8 @@ func (v PointerType) IsFloatingType() bool {
 
 func (v PointerType) CanCastTo(t Type) bool {
 	return false
+}
+
+func (v PointerType) Attrs() []*Attr {
+	return nil
 }

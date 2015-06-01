@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ark-lang/ark-go/common"
 	"github.com/ark-lang/ark-go/lexer"
 	"github.com/ark-lang/ark-go/util"
 )
@@ -20,8 +21,10 @@ type parser struct {
 	currentToken int
 	verbose      bool
 
-	scope            *Scope
-	binOpPrecedences map[BinOpType]int
+	scope             *Scope
+	binOpPrecedences  map[BinOpType]int
+	attrs             []*Attr
+	curNodeTokenStart int
 }
 
 func (v *parser) err(err string, stuff ...interface{}) {
@@ -49,7 +52,7 @@ func (v *parser) consumeToken() *lexer.Token {
 }
 
 func (v *parser) pushNode(node Node) {
-	v.file.nodes = append(v.file.nodes, node)
+	v.file.Nodes = append(v.file.Nodes, node)
 }
 
 func (v *parser) pushScope() {
@@ -61,6 +64,12 @@ func (v *parser) popScope() {
 	if v.scope == nil {
 		panic("popped too many scopes")
 	}
+}
+
+func (v *parser) fetchAttrs() []*Attr {
+	ret := v.attrs
+	v.attrs = nil
+	return ret
 }
 
 func (v *parser) tokenMatches(ahead int, t lexer.TokenType, contents string) bool {
@@ -88,19 +97,20 @@ func (v *parser) getPrecedence(op BinOpType) int {
 	return -1
 }
 
-func Parse(tokens []*lexer.Token, verbose bool) *File {
+func Parse(input *common.Sourcefile, verbose bool) *File {
 	p := &parser{
 		file: &File{
-			nodes: make([]Node, 0),
+			Nodes: make([]Node, 0),
+			Name:  input.Filename,
 		},
-		input:            tokens,
+		input:            input.Tokens,
 		verbose:          verbose,
 		scope:            newGlobalScope(),
 		binOpPrecedences: newBinOpPrecedenceMap(),
 	}
 
 	if verbose {
-		fmt.Println(util.TEXT_BOLD+util.TEXT_GREEN+"Started parsing"+util.TEXT_RESET, tokens[0].Filename)
+		fmt.Println(util.TEXT_BOLD+util.TEXT_GREEN+"Started parsing"+util.TEXT_RESET, input.Filename)
 	}
 	t := time.Now()
 	p.parse()
@@ -108,11 +118,11 @@ func Parse(tokens []*lexer.Token, verbose bool) *File {
 	sem.analyze()
 	dur := time.Since(t)
 	if verbose {
-		for _, n := range p.file.nodes {
+		for _, n := range p.file.Nodes {
 			fmt.Println(n.String())
 		}
 		fmt.Printf(util.TEXT_BOLD+util.TEXT_GREEN+"Finished parsing"+util.TEXT_RESET+" %s (%.2fms)\n",
-			tokens[0].Filename, float32(dur.Nanoseconds())/1000000)
+			input.Filename, float32(dur.Nanoseconds())/1000000)
 	}
 
 	return p.file
@@ -123,7 +133,7 @@ func (v *parser) parse() {
 		if n := v.parseNode(); n != nil {
 			v.pushNode(n)
 		} else {
-			v.consumeToken() // TODO
+			panic("what's this over here?")
 		}
 	}
 }
@@ -133,21 +143,38 @@ func (v *parser) parseNode() Node {
 		v.consumeToken()
 	}
 
+	v.attrs = v.parseAttrs()
+	var ret Node
 	if decl := v.parseDecl(); decl != nil {
-		return decl
+		ret = decl
 	} else if stat := v.parseStat(); stat != nil {
-		return stat
+		ret = stat
 	}
+
+	if ret != nil {
+		if len(v.attrs) > 0 {
+			v.err("%s does not accept attributes", util.CapitalizeFirst(ret.NodeName()))
+		}
+		return ret
+	}
+
 	return nil
 }
 
 func (v *parser) parseStat() Stat {
+	var ret Stat
+	line, char := v.peek(0).LineNumber, v.peek(0).CharNumber
+
 	if returnStat := v.parseReturnStat(); returnStat != nil {
-		return returnStat
+		ret = returnStat
 	} else if callStat := v.parseCallStat(); callStat != nil {
-		return callStat
+		ret = callStat
+	} else {
+		return nil
 	}
-	return nil
+
+	ret.setPos(line, char)
+	return ret
 }
 
 func (v *parser) parseCallStat() *CallStat {
@@ -162,14 +189,19 @@ func (v *parser) parseCallStat() *CallStat {
 }
 
 func (v *parser) parseDecl() Decl {
-	if variableDecl := v.parseVariableDecl(true); variableDecl != nil {
-		return variableDecl
-	} else if structureDecl := v.parseStructDecl(); structureDecl != nil {
-		return structureDecl
+	var ret Decl
+	line, char := v.peek(0).LineNumber, v.peek(0).CharNumber
+	if structureDecl := v.parseStructDecl(); structureDecl != nil {
+		ret = structureDecl
 	} else if functionDecl := v.parseFunctionDecl(); functionDecl != nil {
-		return functionDecl
+		ret = functionDecl
+	} else if variableDecl := v.parseVariableDecl(true); variableDecl != nil {
+		ret = variableDecl
+	} else {
+		return nil
 	}
-	return nil
+	ret.setPos(line, char)
+	return ret
 }
 
 func (v *parser) parseType() Type {
@@ -200,7 +232,7 @@ func (v *parser) parseFunctionDecl() *FunctionDecl {
 		return nil
 	}
 
-	function := &Function{}
+	function := &Function{Attrs: v.fetchAttrs()}
 
 	v.consumeToken()
 
@@ -327,58 +359,59 @@ func (v *parser) parseReturnStat() *ReturnStat {
 }
 
 func (v *parser) parseStructDecl() *StructDecl {
-	if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_STRUCT) {
-		struc := &StructType{}
+	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_STRUCT) {
+		return nil
+	}
+	struc := &StructType{}
 
+	v.consumeToken()
+
+	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, "") {
+		v.err("Expected identifier after `struct` keyword, found `%s`", v.peek(0).Contents)
+	}
+	struc.Name = v.consumeToken().Contents
+	if sname := v.scope.InsertType(struc); sname != nil {
+		v.err("Illegal redeclaration of type `%s`", struc.Name)
+	}
+
+	struc.attrs = v.fetchAttrs()
+
+	// TODO semi colons i.e. struct with no body?
+	var itemCount = 0
+	if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "{") {
 		v.consumeToken()
 
-		if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, "") {
-			struc.Name = v.consumeToken().Contents
-			if sname := v.scope.InsertType(struc); sname != nil {
-				v.err("Illegal redeclaration of type `%s`", struc.Name)
+		v.pushScope()
+
+		for {
+			if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "}") {
+				v.consumeToken()
+				break
 			}
 
-			struc.Attrs = v.parseAttrs()
+			if variable := v.parseVariableDecl(false); variable != nil {
+				struc.addVariableDecl(variable)
+				itemCount++
+			} else {
+				v.err("Invalid structure item in structure `%s`", struc.Name)
+			}
 
-			// TODO semi colons i.e. struct with no body?
-			var itemCount = 0
-			if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "{") {
+			if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ",") {
 				v.consumeToken()
-
-				v.pushScope()
-
-				for {
-					if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "}") {
-						v.consumeToken()
-						break
-					}
-
-					if variable := v.parseVariableDecl(false); variable != nil {
-						struc.addVariableDecl(variable)
-						itemCount++
-					} else {
-						v.err("Invalid structure item in structure `%s`", struc.Name)
-					}
-
-					if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ",") {
-						v.consumeToken()
-					}
-				}
-
-				v.popScope()
 			}
 		}
 
-		return &StructDecl{Struct: struc}
+		v.popScope()
+	} else {
+		v.err("Expected body after struct identifier, found `%s`", v.peek(0).Contents)
 	}
-	return nil
+
+	return &StructDecl{Struct: struc}
 }
 
 func (v *parser) parseVariableDecl(needSemicolon bool) *VariableDecl {
-	variable := &Variable{}
-	varDecl := &VariableDecl{
-		Variable: variable,
-	}
+	variable := &Variable{Attrs: v.fetchAttrs()}
+	varDecl := &VariableDecl{Variable: variable}
 
 	if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_MUT) {
 		variable.Mutable = true
@@ -423,11 +456,14 @@ func (v *parser) parseVariableDecl(needSemicolon bool) *VariableDecl {
 
 func (v *parser) parseExpr() Expr {
 	pri := v.parsePrimaryExpr()
+	line, char := v.peek(0).LineNumber, v.peek(0).CharNumber
 	if pri == nil {
 		return nil
 	}
+	pri.setPos(line, char)
 
 	if bin := v.parseBinaryOperator(0, pri); bin != nil {
+		bin.setPos(line, char)
 		return bin
 	}
 	return pri
@@ -723,7 +759,7 @@ func (v *parser) parseStringLiteral() *StringLiteral {
 		return nil
 	}
 	c := v.consumeToken().Contents
-	return &StringLiteral{unescapeString(c[1 : len(c)-1])}
+	return &StringLiteral{Value: unescapeString(c[1 : len(c)-1])}
 }
 
 func (v *parser) parseRuneLiteral() *RuneLiteral {

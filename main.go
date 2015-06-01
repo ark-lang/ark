@@ -38,7 +38,7 @@ func main() {
 
 	parsedFiles := make([]*parser.File, 0)
 	for _, file := range sourcefiles {
-		parsedFiles = append(parsedFiles, parser.Parse(file.Tokens, verbose))
+		parsedFiles = append(parsedFiles, parser.Parse(file, verbose))
 	}
 
 	//gen := &LLVMCodegen.LLVMCodegen {}

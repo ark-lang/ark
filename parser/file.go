@@ -1,5 +1,6 @@
 package parser
 
 type File struct {
-	nodes []Node
+	Nodes []Node
+	Name  string
 }
