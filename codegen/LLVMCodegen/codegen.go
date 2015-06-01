@@ -1,12 +1,17 @@
 package LLVMCodegen
 
 import (
-//"llvm.org/llvm/bindings/go/llvm"
+	"C"
+	"unsafe"
+
+	//"llvm.org/llvm/bindings/go/llvm"
 )
 
-type LLVMCodegen struct {
+const intSize = int(unsafe.Sizeof(C.int(0)))
+
+type Codegen struct {
 }
 
-func (v *LLVMCodegen) Generate() {
+func (v *Codegen) Generate() {
 
 }
