@@ -433,8 +433,13 @@ func (v *parser) parseStructDecl() *StructDecl {
 				break
 			}
 
+			line, char := v.peek(0).LineNumber, v.peek(0).CharNumber
 			if variable := v.parseVariableDecl(false); variable != nil {
+				if variable.Variable.Mutable {
+					v.err("Cannot specify `mut` keyword on struct member: `%s`", variable.Variable.Name)
+				}
 				struc.addVariableDecl(variable)
+				variable.setPos(line, char)
 				itemCount++
 			} else {
 				v.err("Invalid structure item in structure `%s`", struc.Name)

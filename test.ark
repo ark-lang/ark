@@ -31,8 +31,8 @@ inferenceTest := 10;
 
 booltest := 1 == i8(0);
 
-// packed structure syntax idea?
-[packed] struct Test {
+[packed]
+struct Test {
     a: i32 = 5,
     b := 5
 }
@@ -46,7 +46,7 @@ func ten(): int {
 }
 
 
-[deprecated] func _2345_test日本語てすと(と: int, un: i32): int {
+func _2345_test日本語てすと(と: int, un: i32): int {
 
 }
 
@@ -57,7 +57,7 @@ func main(a: int): mut int {
 
     ten();
 
-    [deprecated] mut structTest: Test2;
+    mut structTest: Test2;
     structTest.a.b = 6;
 
     duh := _2345_test日本語てすと(6, 7);

@@ -38,6 +38,15 @@ func (v *Attr) setPos(line, char int) {
 	panic("don't call this")
 }
 
+func (v *semanticAnalyzer) checkAttrsDistanceFromLine(attrs []*Attr, line int, declType, declName string) {
+	for i := len(attrs) - 1; i >= 0; i-- {
+		if attrs[i].lineNumber < line-1 {
+			v.warn(attrs[i], "Gap of %d lines between declaration of %s `%s` and `%s` attribute", line-attrs[i].lineNumber, declType, declName, attrs[i].Key)
+		}
+		line = attrs[i].lineNumber
+	}
+}
+
 func (v *parser) parseAttrs() []*Attr {
 	ret := make([]*Attr, 0)
 	for v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "[") {

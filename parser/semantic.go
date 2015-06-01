@@ -132,17 +132,22 @@ func (v *VariableDecl) analyze(s *semanticAnalyzer) {
 				v.Assignment.GetType().TypeName(), v.Variable.Type.TypeName())
 		}
 	}
+
 	if dep := getAttr(v.Variable.Type.Attrs(), "deprecated"); dep != nil {
 		s.warnDeprecated(v, "type", v.Variable.Type.TypeName(), dep.Value)
 	}
+
+	s.checkAttrsDistanceFromLine(v.Variable.Attrs, v.lineNumber, "variable", v.Variable.Name)
 }
 
 func (v *StructDecl) analyze(s *semanticAnalyzer) {
 	v.Struct.analyze(s)
+	s.checkAttrsDistanceFromLine(v.Struct.Attrs(), v.lineNumber, "type", v.Struct.TypeName())
 }
 
 func (v *FunctionDecl) analyze(s *semanticAnalyzer) {
 	v.Function.analyze(s)
+	s.checkAttrsDistanceFromLine(v.Function.Attrs, v.lineNumber, "function", v.Function.Name)
 }
 
 /*
