@@ -84,18 +84,44 @@ func (v *Codegen) genDecl(n parser.Decl) {
 	case *parser.FunctionDecl:
 		// TODO
 	case *parser.StructDecl:
-		// TODO
+		v.genStructDecl(n.(*parser.StructDecl))
 	case *parser.VariableDecl:
-		v.genVariableDecl(n.(*parser.VariableDecl))
+		v.genVariableDecl(n.(*parser.VariableDecl), true)
 	default:
 		panic("")
 	}
 }
 
-func (v *Codegen) genVariableDecl(n *parser.VariableDecl) {
+func (v *Codegen) writeAttrs(attrs []*parser.Attr) {
+
+}
+
+func (v *Codegen) genStructDecl(n *parser.StructDecl) {
+	v.write("struct ")
+	v.writeAttrs(n.Struct.Attrs())
+	v.write("%s {", n.Struct.Name)
+	v.indent++
+	v.nl()
+
+	for i, member := range n.Struct.Variables {
+		v.genVariableDecl(member, false)
+		if i == len(n.Struct.Variables)-1 {
+			v.indent--
+		} else {
+			v.write(",")
+		}
+		v.nl()
+	}
+
+	v.write("}")
+	v.nl()
+}
+
+func (v *Codegen) genVariableDecl(n *parser.VariableDecl, semicolon bool) {
 	/*for _, attr := range n.Variable.Attrs {
 		// TODO
 	}*/
+	v.writeAttrs(n.Variable.Attrs)
 	if n.Variable.Mutable {
 		v.write("%s ", parser.KEYWORD_MUT)
 	}
@@ -104,8 +130,10 @@ func (v *Codegen) genVariableDecl(n *parser.VariableDecl) {
 		v.write(" = ")
 		v.genExpr(n.Assignment)
 	}
-	v.write(";")
-	v.nl()
+	if semicolon {
+		v.write(";")
+		v.nl()
+	}
 }
 
 func (v *Codegen) genExpr(n parser.Expr) {
