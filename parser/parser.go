@@ -289,6 +289,10 @@ func (v *parser) parseFunctionDecl() *FunctionDecl {
 		v.err("Function expected an identifier")
 	}
 
+	if keywordMap[function.Name] {
+		v.err("Cannot name function reserved keyword `%s`", function.Name)
+	}
+
 	if vname := v.scope.InsertFunction(function); vname != nil {
 		v.err("Illegal redeclaration of function `%s`", function.Name)
 	}
@@ -464,6 +468,11 @@ func (v *parser) parseStructDecl() *StructDecl {
 		v.err("Expected identifier after `struct` keyword, found `%s`", v.peek(0).Contents)
 	}
 	struc.Name = v.consumeToken().Contents
+
+	if keywordMap[struc.Name] {
+		v.err("Cannot name struct reserved keyword `%s`", struc.Name)
+	}
+
 	if sname := v.scope.InsertType(struc); sname != nil {
 		v.err("Illegal redeclaration of type `%s`", struc.Name)
 	}
@@ -521,6 +530,10 @@ func (v *parser) parseVariableDecl(needSemicolon bool) *VariableDecl {
 		return nil
 	}
 	variable.Name = v.consumeToken().Contents // consume name
+
+	if keywordMap[variable.Name] {
+		v.err("Cannot name variable reserved keyword `%s`", variable.Name)
+	}
 
 	v.consumeToken() // consume :
 
