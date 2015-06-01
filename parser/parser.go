@@ -165,7 +165,9 @@ func (v *parser) parseStat() Stat {
 	var ret Stat
 	line, char := v.peek(0).LineNumber, v.peek(0).CharNumber
 
-	if returnStat := v.parseReturnStat(); returnStat != nil {
+	if ifStat := v.parseIfStat(); ifStat != nil {
+		ret = ifStat
+	} else if returnStat := v.parseReturnStat(); returnStat != nil {
 		ret = returnStat
 	} else if callStat := v.parseCallStat(); callStat != nil {
 		ret = callStat
@@ -400,6 +402,54 @@ func (v *parser) parseReturnStat() *ReturnStat {
 	}
 	v.consumeToken()
 	return &ReturnStat{Value: expr}
+}
+
+func (v *parser) parseIfStat() *IfStat {
+	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_IF) {
+		return nil
+	}
+	v.consumeToken()
+
+	ifStat := &IfStat{
+		Exprs:  make([]Expr, 0),
+		Bodies: make([]*Block, 0),
+	}
+
+	for {
+		expr := v.parseExpr()
+		if expr == nil {
+			v.err("Expected expression for if condition, found `%s`", v.peek(0).Contents)
+		}
+		ifStat.Exprs = append(ifStat.Exprs, expr)
+
+		v.pushScope()
+		body := v.parseBlock()
+		v.popScope()
+		if body == nil {
+			v.err("Expected body after if condition, found `%s`", v.peek(0).Contents)
+		}
+		ifStat.Bodies = append(ifStat.Bodies, body)
+
+		if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_ELSE) {
+			v.consumeToken()
+			if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_IF) {
+				v.consumeToken()
+				continue
+			} else {
+				fmt.Println("hi")
+				v.pushScope()
+				body := v.parseBlock()
+				v.popScope()
+				if body == nil {
+					v.err("Expected else body, found `%s`", v.peek(0).Contents)
+				}
+				ifStat.Else = body
+				return ifStat
+			}
+		} else {
+			return ifStat
+		}
+	}
 }
 
 func (v *parser) parseStructDecl() *StructDecl {

@@ -240,7 +240,7 @@ type AssignStat struct {
 func (v *AssignStat) statNode() {}
 
 func (v *AssignStat) String() string {
-	result := "(" + util.Blue("AssignStat") + ": " //)" // + v.Expr.String() + ")"
+	result := "(" + util.Blue("AssignStat") + ": "
 	if v.Deref != nil {
 		result += v.Deref.String()
 
@@ -252,6 +252,33 @@ func (v *AssignStat) String() string {
 
 func (v *AssignStat) NodeName() string {
 	return "assignment statement"
+}
+
+// IfStat
+
+type IfStat struct {
+	nodePos
+	Exprs  []Expr
+	Bodies []*Block
+	Else   *Block // can be nil
+}
+
+func (v *IfStat) statNode() {}
+
+func (v *IfStat) String() string {
+	result := "(" + util.Blue("IfStat") + ": "
+	for i, expr := range v.Exprs {
+		result += expr.String() + " "
+		result += v.Bodies[i].String()
+	}
+	if v.Else != nil {
+		result += v.Else.String()
+	}
+	return result + ")"
+}
+
+func (v *IfStat) NodeName() string {
+	return "if statement"
 }
 
 /**

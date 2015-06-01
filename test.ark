@@ -62,6 +62,12 @@ func main(a: int): mut int {
 
     duh := _2345_test日本語てすと(6, 7);
 
+    if 5 == 5 {
+        two := 2;
+    } else if 6 == 5 {
+        two := 2;
+    }
+
     num: int = 0;
     var: ^int;
     //var = &num;

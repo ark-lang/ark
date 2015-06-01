@@ -167,6 +167,25 @@ func (v *ReturnStat) analyze(s *semanticAnalyzer) {
 	}
 }
 
+func (v *IfStat) analyze(s *semanticAnalyzer) {
+	for _, expr := range v.Exprs {
+		expr.setTypeHint(PRIMITIVE_bool)
+		expr.analyze(s)
+		if expr.GetType() != PRIMITIVE_bool {
+			s.err(expr, "If condition must be of type `bool`")
+		}
+	}
+
+	for _, body := range v.Bodies {
+		body.analyze(s)
+	}
+
+	if v.Else != nil {
+		v.Else.analyze(s)
+	}
+
+}
+
 // CallStat
 
 func (v *CallStat) analyze(s *semanticAnalyzer) {
