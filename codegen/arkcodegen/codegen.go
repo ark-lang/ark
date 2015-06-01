@@ -93,12 +93,18 @@ func (v *Codegen) genDecl(n parser.Decl) {
 }
 
 func (v *Codegen) writeAttrs(attrs []*parser.Attr) {
-
+	for _, attr := range attrs {
+		v.write("[%s", attr.Key)
+		if attr.Value != "" {
+			v.write("=\"%s\"", attr.Value)
+		}
+		v.write("] ")
+	}
 }
 
 func (v *Codegen) genStructDecl(n *parser.StructDecl) {
-	v.write("struct ")
 	v.writeAttrs(n.Struct.Attrs())
+	v.write("struct ")
 	v.write("%s {", n.Struct.Name)
 	v.indent++
 	v.nl()
@@ -118,9 +124,6 @@ func (v *Codegen) genStructDecl(n *parser.StructDecl) {
 }
 
 func (v *Codegen) genVariableDecl(n *parser.VariableDecl, semicolon bool) {
-	/*for _, attr := range n.Variable.Attrs {
-		// TODO
-	}*/
 	v.writeAttrs(n.Variable.Attrs)
 	if n.Variable.Mutable {
 		v.write("%s ", parser.KEYWORD_MUT)
