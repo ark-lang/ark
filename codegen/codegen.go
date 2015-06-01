@@ -5,5 +5,5 @@ import (
 )
 
 type Codegen interface {
-	Generate(binaryName string, input []*parser.File)
+	Generate(input []*parser.File)
 }

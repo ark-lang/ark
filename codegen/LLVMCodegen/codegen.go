@@ -12,9 +12,10 @@ import (
 const intSize = int(unsafe.Sizeof(C.int(0)))
 
 type Codegen struct {
+	OutputName string
 }
 
-func (v *Codegen) Generate(binaryName string, input []*parser.File) {
+func (v *Codegen) Generate(input []*parser.File) {
 
 }
 
