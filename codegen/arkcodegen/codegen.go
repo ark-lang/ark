@@ -4,10 +4,10 @@ import (
 	"github.com/ark-lang/ark-go/parser"
 )
 
-type ArkCodegen struct {
+type Codegen struct {
 	Minify bool
 }
 
-func (v *ArkCodegen) Generate(input []*parser.File) {
+func (v *Codegen) Generate(input []*parser.File) {
 
 }

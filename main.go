@@ -6,12 +6,17 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ark-lang/ark-go/codegen"
+	"github.com/ark-lang/ark-go/codegen/LLVMCodegen"
+	"github.com/ark-lang/ark-go/codegen/arkcodegen"
 	"github.com/ark-lang/ark-go/common"
 	"github.com/ark-lang/ark-go/lexer"
 	"github.com/ark-lang/ark-go/parser"
 	"github.com/ark-lang/ark-go/util"
-	//"github.com/ark-lang/ark-go/codegen"
-	//"github.com/ark-lang/ark-go/codegen/LLVMCodegen"
+)
+
+var (
+	flagArkCodegen = false
 )
 
 func main() {
@@ -27,6 +32,8 @@ func main() {
 			input, err := common.NewSourcefile(arg)
 			check(err)
 			sourcefiles = append(sourcefiles, input)
+		} else if arg == "--codegen=ark" {
+			flagArkCodegen = true
 		} else {
 			fmt.Println("unknown command")
 		}
@@ -43,6 +50,16 @@ func main() {
 
 	//gen := &LLVMCodegen.LLVMCodegen {}
 	//gen.Generate()
+
+	var gen codegen.Codegen
+	if flagArkCodegen {
+		gen = &arkcodegen.Codegen{}
+	} else {
+		gen = &LLVMCodegen.Codegen{
+			OutputName: "out",
+		}
+	}
+	gen.Generate(parsedFiles)
 
 	dur := time.Since(startTime)
 	fmt.Printf("%s %d file(s) (%.2fms)\n",
