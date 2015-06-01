@@ -16,7 +16,7 @@ rune3: rune = '\'';
 mut float: f64 = 0.2465f;
 float2: f64 = 1.35d;
 mut float3: f64 = 0.0004;
-mut s1: str= "he\"llo";
+mut s1: str= "he\"l\nlo";
 //un: i8 = !1;
 t: int = int('h');
 

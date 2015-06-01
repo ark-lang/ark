@@ -243,7 +243,7 @@ type RuneLiteral struct {
 func (v *RuneLiteral) exprNode() {}
 
 func (v *RuneLiteral) String() string {
-	return fmt.Sprintf("("+util.Blue("RuneLiteral")+": "+util.Yellow("%c")+" "+util.Green(v.GetType().TypeName())+")", v.Value)
+	return fmt.Sprintf("(" + util.Blue("RuneLiteral") + ": " + colorizeEscapedString(escapeString(string(v.Value))) + " " + util.Green(v.GetType().TypeName()) + ")")
 }
 
 func (v *RuneLiteral) GetType() Type {
@@ -310,7 +310,7 @@ type StringLiteral struct {
 func (v *StringLiteral) exprNode() {}
 
 func (v *StringLiteral) String() string {
-	return "(" + util.Blue("StringLiteral") + ": " + util.Yellow(v.Value) + " " + util.Green(v.GetType().TypeName()) + ")"
+	return "(" + util.Blue("StringLiteral") + ": " + colorizeEscapedString((escapeString(v.Value))) + " " + util.Green(v.GetType().TypeName()) + ")"
 }
 
 func (v *StringLiteral) GetType() Type {

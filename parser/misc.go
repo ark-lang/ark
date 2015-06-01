@@ -2,6 +2,8 @@ package parser
 
 import (
 	"strings"
+
+	"github.com/ark-lang/ark-go/util"
 )
 
 func hexRuneToInt(r rune) int {
@@ -39,13 +41,6 @@ const (
 	SIMPLE_ESCAPE_NAMES  string = "abfnrtv\\'\""
 )
 
-func parseEscapeSequence(s []rune) (rune, int) {
-	if s[0] != '\\' {
-		return -1, 0
-	}
-	return 0, 0
-}
-
 func unescapeString(s string) string {
 	out := make([]rune, 0)
 	sr := []rune(s)
@@ -60,4 +55,45 @@ func unescapeString(s string) string {
 	}
 
 	return string(out)
+}
+
+// escape for debug output
+// only things that can't be displayed need to be escaped
+func escapeString(s string) string {
+	out := make([]rune, 0)
+	sr := []rune(s)
+
+main_loop:
+	for _, r := range sr {
+		for i, escapeVal := range []rune(SIMPLE_ESCAPE_VALUES) {
+			if r == escapeVal && r != '"' && r != '\'' {
+				out = append(out, '\\', []rune(SIMPLE_ESCAPE_NAMES)[i])
+				continue main_loop
+			}
+		}
+		out = append(out, r)
+	}
+
+	return string(out)
+}
+
+func colorizeEscapedString(input string) string {
+	inputRunes := []rune(input)
+	outputRunes := make([]rune,
+		len(inputRunes))
+
+	outputRunes = append(outputRunes, []rune(util.TEXT_YELLOW)...)
+	for i := 0; i < len(inputRunes); i++ {
+		if inputRunes[i] == '\\' {
+			outputRunes = append(outputRunes, []rune(util.TEXT_RESET+util.TEXT_CYAN)...)
+			i++
+			outputRunes = append(outputRunes, '\\', inputRunes[i])
+			outputRunes = append(outputRunes, []rune(util.TEXT_YELLOW)...)
+			continue
+		}
+		outputRunes = append(outputRunes, inputRunes[i])
+	}
+
+	outputRunes = append(outputRunes, []rune(util.TEXT_RESET)...)
+	return string(outputRunes)
 }
