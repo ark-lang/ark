@@ -15,7 +15,7 @@ type Codegen struct {
 	OutputName string
 }
 
-func (v *Codegen) Generate(input []*parser.File) {
+func (v *Codegen) Generate(input []*parser.File, verbose bool) {
 
 }
 

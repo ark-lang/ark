@@ -140,3 +140,19 @@ func stringToUnOpType(s string) UnOpType {
 		return UNOP_ERR
 	}
 }
+
+func (v UnOpType) OpString() string {
+	switch v {
+	case UNOP_LOG_NOT:
+		return "!"
+
+	case UNOP_BIT_NOT:
+		return "~"
+
+	case UNOP_ADDRESS:
+		return "&"
+
+	default:
+		return "ERR"
+	}
+}

@@ -41,7 +41,7 @@ const (
 	SIMPLE_ESCAPE_NAMES  string = "abfnrtv\\'\""
 )
 
-func unescapeString(s string) string {
+func UnescapeString(s string) string {
 	out := make([]rune, 0)
 	sr := []rune(s)
 
@@ -59,14 +59,14 @@ func unescapeString(s string) string {
 
 // escape for debug output
 // only things that can't be displayed need to be escaped
-func escapeString(s string) string {
+func EscapeString(s string) string {
 	out := make([]rune, 0)
 	sr := []rune(s)
 
 main_loop:
 	for _, r := range sr {
 		for i, escapeVal := range []rune(SIMPLE_ESCAPE_VALUES) {
-			if r == escapeVal && r != '"' && r != '\'' {
+			if r == escapeVal {
 				out = append(out, '\\', []rune(SIMPLE_ESCAPE_NAMES)[i])
 				continue main_loop
 			}

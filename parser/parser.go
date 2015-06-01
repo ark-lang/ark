@@ -887,7 +887,7 @@ func (v *parser) parseStringLiteral() *StringLiteral {
 		return nil
 	}
 	c := v.consumeToken().Contents
-	return &StringLiteral{Value: unescapeString(c[1 : len(c)-1])}
+	return &StringLiteral{Value: UnescapeString(c[1 : len(c)-1])}
 }
 
 func (v *parser) parseRuneLiteral() *RuneLiteral {
@@ -896,7 +896,7 @@ func (v *parser) parseRuneLiteral() *RuneLiteral {
 	}
 
 	raw := v.consumeToken().Contents
-	c := unescapeString(raw)
+	c := UnescapeString(raw)
 
 	if l := len([]rune(c)); l == 3 {
 		return &RuneLiteral{Value: []rune(c)[1]}

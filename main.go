@@ -59,7 +59,7 @@ func main() {
 			OutputName: "out",
 		}
 	}
-	gen.Generate(parsedFiles)
+	gen.Generate(parsedFiles, verbose)
 
 	dur := time.Since(startTime)
 	fmt.Printf("%s %d file(s) (%.2fms)\n",

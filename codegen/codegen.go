@@ -5,5 +5,5 @@ import (
 )
 
 type Codegen interface {
-	Generate(input []*parser.File)
+	Generate(input []*parser.File, verbose bool)
 }
