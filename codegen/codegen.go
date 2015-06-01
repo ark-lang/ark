@@ -1,7 +1,9 @@
 package codegen
 
-import ()
+import (
+	"github.com/ark-lang/ark-go/parser"
+)
 
 type Codegen interface {
-	Generate()
+	Generate(binaryName string, input []*parser.File)
 }
