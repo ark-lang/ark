@@ -228,6 +228,32 @@ func (v *CallStat) NodeName() string {
 	return "call statement"
 }
 
+// AssignStat
+
+type AssignStat struct {
+	nodePos
+	Deref      *DerefExpr // one of these should be nil, not neither or both
+	Access     *AccessExpr
+	Assignment Expr
+}
+
+func (v *AssignStat) statNode() {}
+
+func (v *AssignStat) String() string {
+	result := "(" + util.Blue("AssignStat") + ": " //)" // + v.Expr.String() + ")"
+	if v.Deref != nil {
+		result += v.Deref.String()
+
+	} else if v.Access != nil {
+		result += v.Access.String()
+	}
+	return result + " = " + v.Assignment.String() + ")"
+}
+
+func (v *AssignStat) NodeName() string {
+	return "assignment statement"
+}
+
 /**
  * Expressions
  */
@@ -445,4 +471,26 @@ func (v *AccessExpr) GetType() Type {
 
 func (v *AccessExpr) NodeName() string {
 	return "access expression"
+}
+
+// DerefExpr
+
+type DerefExpr struct {
+	nodePos
+	Expr Expr
+	Type Type
+}
+
+func (v *DerefExpr) exprNode() {}
+
+func (v *DerefExpr) String() string {
+	return "(" + util.Blue("DerefExpr") + ": " + v.Expr.String() + ")"
+}
+
+func (v *DerefExpr) GetType() Type {
+	return v.Type
+}
+
+func (v *DerefExpr) NodeName() string {
+	return "dereference expression"
 }

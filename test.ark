@@ -57,9 +57,13 @@ func main(a: int): mut int {
 
     ten();
 
-    [deprecated] structTest: Test2;
+    [deprecated] mut structTest: Test2;
+    structTest.a.b = 6;
 
     duh := _2345_test日本語てすと(6, 7);
 
-	return structTest.a.b;
+    num: int = 0;
+    var: ^int;
+    //var = &num;
+	return ^var;
 }

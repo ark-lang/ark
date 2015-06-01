@@ -123,7 +123,6 @@ const (
 	UNOP_BIT_NOT
 
 	UNOP_ADDRESS
-	UNOP_DEREF
 )
 
 func stringToUnOpType(s string) UnOpType {
@@ -136,8 +135,6 @@ func stringToUnOpType(s string) UnOpType {
 
 	case "&":
 		return UNOP_ADDRESS
-	case "^":
-		return UNOP_DEREF
 
 	default:
 		return UNOP_ERR

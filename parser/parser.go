@@ -169,12 +169,56 @@ func (v *parser) parseStat() Stat {
 		ret = returnStat
 	} else if callStat := v.parseCallStat(); callStat != nil {
 		ret = callStat
+	} else if assignStat := v.parseAssignStat(); assignStat != nil {
+		ret = assignStat
 	} else {
 		return nil
 	}
 
 	ret.setPos(line, char)
 	return ret
+}
+
+func (v *parser) parseAssignStat() *AssignStat {
+	for i := 0; true; i++ {
+		if v.peek(i) == nil || v.tokenMatches(i, lexer.TOKEN_SEPARATOR, ";") {
+			return nil
+		} else if v.tokenMatches(i, lexer.TOKEN_OPERATOR, "=") {
+			break
+		}
+	}
+
+	assign := &AssignStat{}
+	line, char := v.peek(0).LineNumber, v.peek(0).CharNumber
+
+	if deref := v.parseDerefExpr(); deref != nil {
+		deref.setPos(line, char)
+		assign.Deref = deref
+	} else if access := v.parseAccessExpr(); access != nil {
+		access.setPos(line, char)
+		assign.Access = access
+	} else {
+		v.err("Malformed assignment statement")
+	}
+
+	if !v.tokenMatches(0, lexer.TOKEN_OPERATOR, "=") {
+		v.err("Expected `=`, found `%s`", v.peek(0).Contents)
+	}
+	v.consumeToken()
+
+	if expr := v.parseExpr(); expr != nil {
+		assign.Assignment = expr
+	} else {
+		v.err("Expected expression in variable assignment, found `%s`", v.peek(0).Contents)
+	}
+
+	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ";") {
+		v.err("Expected semicolon after assignment statement, found `%s`", v.peek(0).Contents)
+	}
+	v.consumeToken()
+
+	return assign
+
 }
 
 func (v *parser) parseCallStat() *CallStat {
@@ -512,6 +556,8 @@ func (v *parser) parseBinaryOperator(upperPrecedence int, lhand Expr) Expr {
 func (v *parser) parsePrimaryExpr() Expr {
 	if litExpr := v.parseLiteral(); litExpr != nil {
 		return litExpr
+	} else if derefExpr := v.parseDerefExpr(); derefExpr != nil {
+		return derefExpr
 	} else if unaryExpr := v.parseUnaryExpr(); unaryExpr != nil {
 		return unaryExpr
 	} else if castExpr := v.parseCastExpr(); castExpr != nil {
@@ -647,6 +693,20 @@ func (v *parser) parseUnaryExpr() *UnaryExpr {
 	}
 
 	return &UnaryExpr{Expr: e, Op: op}
+}
+
+func (v *parser) parseDerefExpr() *DerefExpr {
+	if !v.tokenMatches(0, lexer.TOKEN_OPERATOR, "^") {
+		return nil
+	}
+	v.consumeToken()
+
+	e := v.parseExpr()
+	if e == nil {
+		v.err("Expected expression after dereference operator")
+	}
+
+	return &DerefExpr{Expr: e}
 }
 
 func (v *parser) parseLiteral() Expr {

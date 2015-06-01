@@ -162,8 +162,41 @@ func (v *ReturnStat) analyze(s *semanticAnalyzer) {
 	}
 }
 
+// CallStat
+
 func (v *CallStat) analyze(s *semanticAnalyzer) {
 	v.Call.analyze(s)
+}
+
+// AssignStat
+
+func (v *AssignStat) analyze(s *semanticAnalyzer) {
+	if (v.Deref == nil) == (v.Access == nil) { // make sure aren't both not null or null
+		panic("oh no")
+	}
+
+	var lhs Expr
+	if v.Deref != nil {
+		lhs = v.Deref
+	} else if v.Access != nil {
+		var variable *Variable
+		if len(v.Access.StructVariables) > 0 {
+			variable = v.Access.StructVariables[0]
+		} else {
+			variable = v.Access.Variable
+		}
+		if !variable.Mutable {
+			s.err(v, "Cannot assign value to immutable variable `%s`", variable.Name)
+		}
+		lhs = v.Access
+	}
+
+	v.Assignment.setTypeHint(lhs.GetType())
+	v.Assignment.analyze(s)
+	lhs.analyze(s)
+	if lhs.GetType() != v.Assignment.GetType() {
+		s.err(v, "Mismatched types: `%s` and `%s`", lhs.GetType().TypeName(), v.Assignment.GetType().TypeName())
+	}
 }
 
 /*
@@ -189,14 +222,10 @@ func (v *UnaryExpr) analyze(s *semanticAnalyzer) {
 			s.err(v, "Used bitwise not on non-numeric type")
 		}
 	case UNOP_ADDRESS:
-		v.Type = pointerTo(v.Expr.GetType())
-		// TODO make sure v.Expr is a variable! (can't take address of a literal)
-	case UNOP_DEREF:
-		if ptr, ok := v.Expr.GetType().(PointerType); ok {
-			v.Type = ptr.Addressee
-		} else {
-			s.err(v, "Used dereference operator on non-pointer")
+		if _, ok := v.Expr.(*AccessExpr); !ok {
+			s.err(v, "Cannot take address of non-variable")
 		}
+		v.Type = pointerTo(v.Expr.GetType())
 	default:
 		panic("whoops")
 	}
@@ -208,8 +237,7 @@ func (v *UnaryExpr) setTypeHint(t Type) {
 		v.Expr.setTypeHint(PRIMITIVE_bool)
 	case UNOP_BIT_NOT:
 		v.Expr.setTypeHint(t)
-	case UNOP_ADDRESS, UNOP_DEREF:
-		v.Expr.setTypeHint(nil)
+	case UNOP_ADDRESS:
 	default:
 		panic("whoops")
 	}
@@ -390,3 +418,17 @@ func (v *AccessExpr) analyze(s *semanticAnalyzer) {
 }
 
 func (v *AccessExpr) setTypeHint(t Type) {}
+
+// DerefExpr
+
+func (v *DerefExpr) analyze(s *semanticAnalyzer) {
+	if ptr, ok := v.Expr.GetType().(PointerType); !ok {
+		s.err(v, "Cannot dereference expression of type `%s`", v.Expr.GetType().TypeName())
+	} else {
+		v.Type = ptr.Addressee
+	}
+}
+
+func (v *DerefExpr) setTypeHint(t Type) {
+	v.Expr.setTypeHint(pointerTo(t))
+}
