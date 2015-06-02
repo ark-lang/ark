@@ -1,0 +1,23 @@
+# This file contains the Ark standard IO library.
+# Right now, most of it is a wrapper around the C stdio library.
+
+# C Bindings
+func atof(inp: str): f64;
+func atoi(inp: str): int;
+func free(ptr: ^void);
+func calloc(nitems: usize, size: usize): ^void;
+func malloc(size: usize): ^void;
+func realloc(ptr: ^void, size: usize): ^void;
+func abort();
+func exit(status: int);
+func getenv(name: str): str;
+func system(command: str): int;
+
+# Native
+
+func abs(x: int): int {
+	if x < 0 {
+		return x * -1;
+	}
+	return x;
+}

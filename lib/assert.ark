@@ -1,0 +1,19 @@
+//
+// assert.aly
+// Contains a native library for assertions.
+// Not based on the C library.
+//
+
+!use {
+    "io",
+    "std",
+}
+
+// TODO - print to stderr, once it is implemented.
+
+func assertTrue(expr: bool, failure_message: str) {
+	if expr == false {
+		printf("assertTrue() failure: %s\n", failure_message);
+		abort();
+	}
+}
