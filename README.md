@@ -55,7 +55,7 @@ Usage of ark:
 * Declaration -> Decl
 
 ## `make gen` and `make fmt`
-The target `gen` is included for the convenience of the developers. It runs `go generate` on all the modules in alloy-go.
+The target `gen` is included for the convenience of the developers. It runs `go generate` on all the modules in ark.
 
 ### Testing
 If Ark is in your `$PATH`:
