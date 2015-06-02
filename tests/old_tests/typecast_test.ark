@@ -1,9 +1,0 @@
-func printf(fmt: str, _): int;
-
-func main(): int {
-	if i8('a') != 97 {
-		return 1;
-	}
-
-    return 0;
-}
