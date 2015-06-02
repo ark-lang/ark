@@ -5,11 +5,12 @@ Experimental Ark compiler in Go.
 * [Language reference](https://github.com/ark-lang/ark-docs/blob/master/REFERENCE.md)
 * [Ark Style Guide](https://github.com/ark-lang/ark-docs/blob/master/STYLEGUIDE.md)
 
+
 	Usage of ark-go:
-	  -input:   input file
-	  -output:  output file
-	  -v:       enable verbose mode
-	  -version: show version information
+	  -v:                 enable verbose mode
+	  --output:           output file
+	  --version:          show version information
+	  --codegen=<backend> sets the codegen to <backend> (none, llvm or ark. default: none)
 
 ## Installing
 Requires Go to be installed and $GOPATH setup.

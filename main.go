@@ -15,27 +15,34 @@ import (
 	"github.com/ark-lang/ark-go/util"
 )
 
-var (
-	flagArkCodegen = false
-)
-
 func main() {
 	startTime := time.Now()
 
 	verbose := true
+	codegenFlag := "none" // defaults to none
 
 	sourcefiles := make([]*common.Sourcefile, 0)
 
+	// TODO write nice arg parser, should be POSIX-based
 	arguments := os.Args[1:]
 	for _, arg := range arguments {
 		if strings.HasSuffix(arg, ".ark") {
 			input, err := common.NewSourcefile(arg)
 			check(err)
 			sourcefiles = append(sourcefiles, input)
-		} else if arg == "--codegen=ark" {
-			flagArkCodegen = true
+		} else if strings.HasPrefix(arg, "--codegen=") {
+			codegenFlag = arg[len("--codegen="):]
+			switch codegenFlag {
+			case "none", "llvm", "ark":
+				// nothing to do
+			default:
+				fmt.Println("Invalid argument to --codegen:", codegenFlag)
+				fmt.Println("Valid arguments: none, llvm, ark")
+				os.Exit(99)
+			}
 		} else {
-			fmt.Println("unknown command")
+			fmt.Println("Unknown command:", arg)
+			os.Exit(98)
 		}
 	}
 
@@ -51,15 +58,22 @@ func main() {
 	//gen := &LLVMCodegen.LLVMCodegen {}
 	//gen.Generate()
 
-	var gen codegen.Codegen
-	if flagArkCodegen {
-		gen = &arkcodegen.Codegen{}
-	} else {
-		gen = &LLVMCodegen.Codegen{
-			OutputName: "out",
+	if codegenFlag != "none" {
+		var gen codegen.Codegen
+
+		switch codegenFlag {
+		case "ark":
+			gen = &arkcodegen.Codegen{}
+		case "llvm":
+			gen = &LLVMCodegen.Codegen{
+				OutputName: "out",
+			}
+		default:
+			panic("whoops")
 		}
+
+		gen.Generate(parsedFiles, verbose)
 	}
-	gen.Generate(parsedFiles, verbose)
 
 	dur := time.Since(startTime)
 	fmt.Printf("%s %d file(s) (%.2fms)\n",
