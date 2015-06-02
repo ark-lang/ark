@@ -217,8 +217,6 @@ func (v *Codegen) genVariableDecl(n *parser.VariableDecl, semicolon bool) llvm.V
 	if n.Assignment != nil {
 		if value := v.genExpr(n.Assignment); !value.IsNil() {
 			v.builder.CreateStore(value, alloc)
-		} else {
-			v.err("shit")
 		}
 	}
 
@@ -281,6 +279,43 @@ func (v *Codegen) genStringLiteral(n *parser.StringLiteral) llvm.Value {
 
 func (v *Codegen) genBinaryExpr(n *parser.BinaryExpr) llvm.Value {
 	var res llvm.Value
+
+	lhand := v.genExpr(n.Lhand)
+	rhand := v.genExpr(n.Rhand)
+
+	if (lhand.IsNil() || rhand.IsNil()) {
+		v.err("invalid binary expr")
+	} else {
+		floating := n.Lhand.GetType().IsFloatingType() || n.Rhand.GetType().IsFloatingType();
+		
+		switch n.Op {
+		case parser.BINOP_ADD:
+			if (floating) {
+				return v.builder.CreateFAdd(lhand, rhand, "tmp")
+			} else {
+				return v.builder.CreateAdd(lhand, rhand, "tmp")
+			}
+		case parser.BINOP_SUB:
+			if (floating) {
+				return v.builder.CreateFSub(lhand, rhand, "tmp")
+			} else {
+				return v.builder.CreateSub(lhand, rhand, "tmp")
+			}
+		case parser.BINOP_MUL:
+			if (floating) {
+				return v.builder.CreateFMul(lhand, rhand, "tmp")
+			} else {
+				return v.builder.CreateMul(lhand, rhand, "tmp")
+			}
+		case parser.BINOP_DIV:
+			if (floating) {
+				return v.builder.CreateFDiv(lhand, rhand, "tmp")
+			} else {
+				//? ??
+				return v.builder.CreateUDiv(lhand, rhand, "tmp")
+			}
+		}
+	}
 
 	return res
 }
