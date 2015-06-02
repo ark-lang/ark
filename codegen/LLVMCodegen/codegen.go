@@ -185,6 +185,10 @@ func (v *Codegen) genFunctionDecl(n *parser.FunctionDecl) llvm.Value {
 		block := llvm.AddBasicBlock(function, "entry")
 		v.builder.SetInsertPointAtEnd(block)
 
+		for _, stat := range n.Function.Body.Nodes {
+			v.genNode(stat)
+		}
+
 		// loop thru block and gen statements
 
 		return function
@@ -206,12 +210,16 @@ func (v *Codegen) genStructDecl(n *parser.StructDecl) llvm.Value {
 func (v *Codegen) genVariableDecl(n *parser.VariableDecl, semicolon bool) llvm.Value {
 	var res llvm.Value
 
-	if n.Variable.Mutable {
-		// do mut stuff here
-	}
+	// if n.Variable.Mutable
+
+	alloc := v.builder.CreateAlloca(typeToLLVMType(n.Variable.Type), n.Variable.Name)
 
 	if n.Assignment != nil {
-		v.genExpr(n.Assignment)
+		if value := v.genExpr(n.Assignment); !value.IsNil() {
+			v.builder.CreateStore(value, alloc)
+		} else {
+			v.err("shit")
+		}
 	}
 
 	return res
@@ -222,27 +230,27 @@ func (v *Codegen) genExpr(n parser.Expr) llvm.Value {
 
 	switch n.(type) {
 	case *parser.RuneLiteral:
-		v.genRuneLiteral(n.(*parser.RuneLiteral))
+		return v.genRuneLiteral(n.(*parser.RuneLiteral))
 	case *parser.IntegerLiteral:
-		v.genIntegerLiteral(n.(*parser.IntegerLiteral))
+		return v.genIntegerLiteral(n.(*parser.IntegerLiteral))
 	case *parser.FloatingLiteral:
-		v.genFloatingLiteral(n.(*parser.FloatingLiteral))
+		return v.genFloatingLiteral(n.(*parser.FloatingLiteral))
 	case *parser.StringLiteral:
-		v.genStringLiteral(n.(*parser.StringLiteral))
+		return v.genStringLiteral(n.(*parser.StringLiteral))
 	case *parser.BinaryExpr:
-		v.genBinaryExpr(n.(*parser.BinaryExpr))
+		return v.genBinaryExpr(n.(*parser.BinaryExpr))
 	case *parser.UnaryExpr:
-		v.genUnaryExpr(n.(*parser.UnaryExpr))
+		return v.genUnaryExpr(n.(*parser.UnaryExpr))
 	case *parser.CastExpr:
-		v.genCastExpr(n.(*parser.CastExpr))
+		return v.genCastExpr(n.(*parser.CastExpr))
 	case *parser.CallExpr:
-		v.genCallExpr(n.(*parser.CallExpr))
+		return v.genCallExpr(n.(*parser.CallExpr))
 	case *parser.AccessExpr:
-		v.genAccessExpr(n.(*parser.AccessExpr))
+		return v.genAccessExpr(n.(*parser.AccessExpr))
 	case *parser.DerefExpr:
-		v.genDerefExpr(n.(*parser.DerefExpr))
+		return v.genDerefExpr(n.(*parser.DerefExpr))
 	case *parser.BracketExpr:
-		v.genBracketExpr(n.(*parser.BracketExpr))
+		return v.genBracketExpr(n.(*parser.BracketExpr))
 	default:
 		panic("unimplemented expr")
 	}
@@ -256,9 +264,7 @@ func (v *Codegen) genRuneLiteral(n *parser.RuneLiteral) llvm.Value {
 }
 
 func (v *Codegen) genIntegerLiteral(n *parser.IntegerLiteral) llvm.Value {
-	var res llvm.Value
-
-	return res
+	return llvm.ConstInt(v.getIntType(), n.Value, false)
 }
 
 func (v *Codegen) genFloatingLiteral(n *parser.FloatingLiteral) llvm.Value {
@@ -343,6 +349,20 @@ func typeToLLVMType(typ parser.Type) llvm.Type {
 
 func structTypeToLLVMType(typ *parser.StructType) llvm.Type {
 	return llvm.IntType(1)
+}
+
+func (v *Codegen) getIntType() llvm.Type {
+	switch intSize {
+	case 2: 
+		return llvm.IntType(16)
+	case 4: 
+		return llvm.IntType(32)
+	case 8: 
+		return llvm.IntType(64)
+	default:
+		fmt.Printf("todo a verbose message saying switching to 16 bit for default?")
+		return llvm.IntType(16)
+	}
 }
 
 func primitiveTypeToLLVMType(typ parser.PrimitiveType) llvm.Type {
