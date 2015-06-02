@@ -1,7 +1,6 @@
 # Contributing
 We'd love your contributions to make Ark a better programming language.
 
-<<<<<<< HEAD
 ***All code changes to the Go codebase must have `go fmt` run on them***
 
 ## Interested in contributing?
@@ -16,31 +15,13 @@ There are plenty of things you can do to help:
 * Comment on issues, your voice helps us make the language better!
 * Fix bugs/implement features in the issue tracker
 * Create/fix/modify documentation
-=======
-## Interested in contributing?
-If you want to contribute to Ark, that's great! We encourage all 
-developers to actively discuss Ark and its features/implementations 
-on the IRC ([#ark-lang](http://webchat.freenode.net/?channels=%23ark-lang)).
-
-### What can I do to help? 
-There are plenty of things you can do to help:
-
-* Comment on issues, your voice helps us make the language better!
-* Fix bugs/implement features in the issue tracker
-* Create/fix/modify documentation
-* Work on the standard library
->>>>>>> 7b809376e8b79ef131aaa19be5fa091809348bd4
 * Work on the compiler
 
 ## Pull Requests
 We love Pull Requests! If you are planning on contributing, please read this list:
 
-<<<<<<< HEAD
 * Run `go fmt` on your code
 * Work on a separate branch
-=======
-* Make sure you work on a separate branch
->>>>>>> 7b809376e8b79ef131aaa19be5fa091809348bd4
 * Make sure your patch is up-to-date with the master branch, if not, please rebase
 * If you are implementing a feature of some kind, please add a test if there is not an existing one already
 * Please add a summary or brief description of your PR, however, the more detail the better
@@ -58,11 +39,7 @@ fix an existing bug; here are what we consider must do steps.
 
 ## Writing Ark code
 Be it personal code, or you're contributing to the standard libraries,
-<<<<<<< HEAD
 check out the [style guide](https://github.com/ark-lang/ark-docs/blob/master/STYLEGUIDE.md). Not only will this keep everything
-=======
-check out the [style guide](/STYLEGUIDE.md). Not only will this keep everything
->>>>>>> 7b809376e8b79ef131aaa19be5fa091809348bd4
 consistent (if you're contributing to the std libraries that is), but it will
 also make the code a lot more readable and easier to maintain.
 
@@ -81,8 +58,4 @@ channel on freenode.
 
 ### Reddit
 We also have a subreddit, [here's the link](http://www.reddit.com/r/ark_lang). Feel free to ask us questions on that,
-<<<<<<< HEAD
 a lot of the developers are also Reddit addicts.
-=======
-a lot of the developers are also Reddit addicts.
->>>>>>> 7b809376e8b79ef131aaa19be5fa091809348bd4

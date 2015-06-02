@@ -1,7 +1,0 @@
-func div(a: float, b: float): ?float {
-    // for now just parse the ?
-}
-
-func main(): int {
-    x: int = div(1, 5);
-}
