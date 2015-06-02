@@ -7,8 +7,8 @@ import (
 	"time"
 	"unsafe"
 
-	"github.com/ark-lang/ark-go/parser"
-	"github.com/ark-lang/ark-go/util"
+	"github.com/ark-lang/ark/parser"
+	"github.com/ark-lang/ark/util"
 
 	"llvm.org/llvm/bindings/go/llvm"
 )

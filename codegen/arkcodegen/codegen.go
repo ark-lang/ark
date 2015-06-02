@@ -5,8 +5,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/ark-lang/ark-go/parser"
-	"github.com/ark-lang/ark-go/util"
+	"github.com/ark-lang/ark/parser"
+	"github.com/ark-lang/ark/util"
 )
 
 func (v *Codegen) err(err string, stuff ...interface{}) {

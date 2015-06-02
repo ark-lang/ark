@@ -3,7 +3,7 @@ package parser
 import (
 	"fmt"
 
-	"github.com/ark-lang/ark-go/util"
+	"github.com/ark-lang/ark/util"
 )
 
 type Locatable interface {

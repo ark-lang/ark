@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/ark-lang/ark-go/util"
+	"github.com/ark-lang/ark/util"
 )
 
 // IMPORTANT NOTE for setTypeHint():

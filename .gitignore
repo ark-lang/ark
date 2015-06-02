@@ -24,7 +24,7 @@ _testmain.go
 *.prof
 
 .dSYM/
-ark-go
+ark
 
 # Ark codegen out files
 *.ark.out

@@ -3,7 +3,7 @@ package parser
 import (
 	"strings"
 
-	"github.com/ark-lang/ark-go/util"
+	"github.com/ark-lang/ark/util"
 )
 
 func hexRuneToInt(r rune) int {
