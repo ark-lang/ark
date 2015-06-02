@@ -1,0 +1,51 @@
+# Wrapper around the C math.h library.
+
+!compiler_flag "-lm"
+
+PI: f64 = 3.14159265358979323846;
+
+# C Bindings
+func acos(x: f64): f64;
+func asin(x: f64): f64;
+func atan(x: f64): f64;
+func atan2(y: f64, x: f64): f64;
+func cos(x: f64): f64;
+func cosh(x: f64): f64;
+func sin(x: f64): f64;
+func sinh(x: f64): f64;
+func tanh(x: f64): f64;
+func exp(x: f64): f64;
+func frexp(x: f64, exponent: ^int): f64;
+func ldexp(x: f64, exponent: int): f64;
+func log(x: f64): f64;
+func log10(x: f64): f64;
+func modf(x: f64, integer: ^int): f64;
+func pow(x: f64, y: f64): f64;
+func sqrt(x: f64): f64;
+func ceil(x: f64): f64;
+func fabs(x: f64): f64;
+func floor(x: f64): f64;
+func fmod(x: f64, y: f64): f64;
+
+# Native
+
+func degToRad(deg: f64): f64 -> deg * 2 * PI / 360.0;
+
+func radToDeg(rad: f64): f64 -> rad / 2 / PI * 360.0;
+
+func log2(x: f64): f64 -> log(x) / log(2);
+
+func max(x: f64, y: f64): f64 {
+	if x > y {
+		return x;
+	}
+	return y;
+}
+
+func min(x: f64, y: f64): f64 {
+	if x < y {
+		return x;
+	}
+	return y;
+}
+
