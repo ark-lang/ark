@@ -1,4 +1,4 @@
-# <span align="center">Ark</span>
+# <h1 align="center">Ark</h1>
 
 ## Important Notice!!
 We've ported to **Go**, we've still got the original C code, which you
