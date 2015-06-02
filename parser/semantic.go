@@ -338,17 +338,14 @@ func (v *BinaryExpr) setTypeHint(t Type) {
 		v.Lhand.setTypeHint(t)
 		v.Rhand.setTypeHint(t)
 	case OP_COMPARISON:
-		if t == nil {
-			if v.Lhand.GetType() == nil && v.Rhand.GetType() != nil {
-				v.Lhand.setTypeHint(v.Rhand.GetType())
-				return
-			} else if v.Rhand.GetType() == nil && v.Lhand.GetType() != nil {
-				v.Rhand.setTypeHint(v.Lhand.GetType())
-				return
-			}
+		if v.Lhand.GetType() == nil && v.Rhand.GetType() != nil {
+			v.Lhand.setTypeHint(v.Rhand.GetType())
+		} else if v.Rhand.GetType() == nil && v.Lhand.GetType() != nil {
+			v.Rhand.setTypeHint(v.Lhand.GetType())
+		} else {
+			v.Lhand.setTypeHint(nil)
+			v.Rhand.setTypeHint(nil)
 		}
-		v.Lhand.setTypeHint(nil)
-		v.Rhand.setTypeHint(nil)
 	case OP_LOGICAL:
 		v.Lhand.setTypeHint(PRIMITIVE_bool)
 		v.Rhand.setTypeHint(PRIMITIVE_bool)

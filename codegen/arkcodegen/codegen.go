@@ -87,14 +87,65 @@ func (v *Codegen) genNode(n parser.Node) {
 func (v *Codegen) genStat(n parser.Stat) {
 	switch n.(type) {
 	case *parser.ReturnStat:
-		// TODO
+		v.genReturnStat(n.(*parser.ReturnStat))
 	case *parser.CallStat:
-		// TODO
+		v.genCallStat(n.(*parser.CallStat))
 	case *parser.AssignStat:
-		// TODO
+		v.genAssignStat(n.(*parser.AssignStat))
+	case *parser.IfStat:
+		v.genIfStat(n.(*parser.IfStat))
 	default:
 		panic("unimplimented stat")
 	}
+}
+
+func (v *Codegen) genReturnStat(n *parser.ReturnStat) {
+	v.write("%s ", parser.KEYWORD_RETURN)
+	v.genExpr(n.Value)
+	v.write(";")
+	v.nl()
+}
+
+func (v *Codegen) genCallStat(n *parser.CallStat) {
+	v.genExpr(n.Call)
+	v.write(";")
+	v.nl()
+}
+
+func (v *Codegen) genAssignStat(n *parser.AssignStat) {
+	if n.Deref != nil {
+		v.genExpr(n.Deref)
+	} else {
+		v.genExpr(n.Access)
+	}
+	v.write(" = ")
+	v.genExpr(n.Assignment)
+	v.write(";")
+	v.nl()
+}
+
+func (v *Codegen) genIfStat(n *parser.IfStat) {
+	v.nl()
+	for i, expr := range n.Exprs {
+		v.write("%s ", parser.KEYWORD_IF)
+		v.genExpr(expr)
+		v.write(" ")
+		v.genBlock(n.Bodies[i])
+
+		if i == len(n.Exprs)-1 { // last stat
+			break
+		}
+
+		v.write(" else ")
+	}
+
+	if n.Else != nil {
+		v.write(" else ")
+		v.genBlock(n.Else)
+	}
+
+	v.nl()
+	v.nl()
 }
 
 func (v *Codegen) genDecl(n parser.Decl) {
@@ -108,7 +159,7 @@ func (v *Codegen) genDecl(n parser.Decl) {
 	case *parser.VariableDecl:
 		v.genVariableDecl(n.(*parser.VariableDecl), true)
 	default:
-		panic("")
+		panic("unimplimented decl")
 	}
 }
 
@@ -206,8 +257,10 @@ func (v *Codegen) genExpr(n parser.Expr) {
 		v.genUnaryExpr(n.(*parser.UnaryExpr))
 	case *parser.CastExpr:
 		v.genCastExpr(n.(*parser.CastExpr))
-	case *parser.CallExpr: // TODO
-	case *parser.AccessExpr: // TODO
+	case *parser.CallExpr:
+		v.genCallExpr(n.(*parser.CallExpr))
+	case *parser.AccessExpr:
+		v.genAccessExpr(n.(*parser.AccessExpr))
 	case *parser.DerefExpr:
 		v.genDerefExpr(n.(*parser.DerefExpr))
 	default:
@@ -246,6 +299,24 @@ func (v *Codegen) genCastExpr(n *parser.CastExpr) {
 	v.write("%s(", n.Type.TypeName())
 	v.genExpr(n.Expr)
 	v.write(")")
+}
+
+func (v *Codegen) genCallExpr(n *parser.CallExpr) {
+	v.write("%s(", n.Function.Name)
+	for i, arg := range n.Arguments {
+		v.genExpr(arg)
+		if i < len(n.Arguments)-1 {
+			v.write(", ")
+		}
+	}
+	v.write(")")
+}
+
+func (v *Codegen) genAccessExpr(n *parser.AccessExpr) {
+	for _, struc := range n.StructVariables {
+		v.write("%s.", struc.Name)
+	}
+	v.write(n.Variable.Name)
 }
 
 func (v *Codegen) genDerefExpr(n *parser.DerefExpr) {

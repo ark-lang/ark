@@ -440,7 +440,6 @@ func (v *parser) parseIfStat() *IfStat {
 				v.consumeToken()
 				continue
 			} else {
-				fmt.Println("hi")
 				v.pushScope()
 				body := v.parseBlock()
 				v.popScope()

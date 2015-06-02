@@ -66,6 +66,8 @@ func main(a: int): mut int {
         two := 2;
     } else if 6 == 5 {
         two := 2;
+    } else {
+        two := 3;
     }
 
     num: int = 0;
