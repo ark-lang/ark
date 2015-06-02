@@ -167,6 +167,8 @@ func (v *parser) parseStat() Stat {
 
 	if ifStat := v.parseIfStat(); ifStat != nil {
 		ret = ifStat
+	} else if loopStat := v.parseLoopStat(); loopStat != nil {
+		ret = loopStat
 	} else if returnStat := v.parseReturnStat(); returnStat != nil {
 		ret = returnStat
 	} else if callStat := v.parseCallStat(); callStat != nil {
@@ -453,6 +455,39 @@ func (v *parser) parseIfStat() *IfStat {
 			return ifStat
 		}
 	}
+}
+
+func (v *parser) parseLoopStat() *LoopStat {
+	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_FOR) {
+		return nil
+	}
+	v.consumeToken()
+
+	loop := &LoopStat{}
+
+	if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "{") { // infinite loop
+		loop.LoopType = LOOP_TYPE_INFINITE
+
+		loop.Body = v.parseBlock()
+		if loop.Body == nil {
+			v.err("Malformed infinite loop body")
+		}
+		return loop
+	}
+
+	if cond := v.parseExpr(); cond != nil {
+		loop.LoopType = LOOP_TYPE_CONDITIONAL
+		loop.Condition = cond
+
+		loop.Body = v.parseBlock()
+		if loop.Body == nil {
+			v.err("Malformed infinite loop body")
+		}
+		return loop
+	}
+
+	v.err("Malformed `%s` loop", KEYWORD_FOR)
+	return nil
 }
 
 func (v *parser) parseStructDecl() *StructDecl {

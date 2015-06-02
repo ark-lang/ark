@@ -223,6 +223,21 @@ func (v *AssignStat) analyze(s *semanticAnalyzer) {
 	}
 }
 
+// LoopStat
+
+func (v *LoopStat) analyze(s *semanticAnalyzer) {
+	v.Body.analyze(s)
+
+	switch v.LoopType {
+	case LOOP_TYPE_INFINITE:
+	case LOOP_TYPE_CONDITIONAL:
+		v.Condition.setTypeHint(PRIMITIVE_bool)
+		v.Condition.analyze(s)
+	default:
+		panic("invalid loop type")
+	}
+}
+
 /*
  * Expressions
  */
