@@ -18,7 +18,7 @@ import (
 func main() {
 	startTime := time.Now()
 
-	verbose := true
+	verbose := false
 	codegenFlag := "none" // defaults to none
 
 	sourcefiles := make([]*common.Sourcefile, 0)
@@ -40,6 +40,11 @@ func main() {
 				fmt.Println("Valid arguments: none, llvm, ark")
 				os.Exit(99)
 			}
+		} else if arg == "--version" {
+			version()
+			return
+		} else if arg == "-v" {
+			verbose = true
 		} else {
 			fmt.Println("Unknown command:", arg)
 			os.Exit(98)
