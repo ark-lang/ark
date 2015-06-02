@@ -1,9 +1,0 @@
-func add(a: int): void {
-    
-}
-
-func main(): int {
-	a: int = 5;
-    add(a);
-	return 0;
-}
