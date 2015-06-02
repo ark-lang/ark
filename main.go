@@ -18,8 +18,8 @@ import (
 func main() {
 	startTime := time.Now()
 
-	verbose := false
-	codegenFlag := "none" // defaults to none
+	verbose := true
+	codegenFlag := "llvm" // defaults to none
 
 	sourcefiles := make([]*common.Sourcefile, 0)
 
