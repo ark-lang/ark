@@ -621,7 +621,9 @@ func (v *parser) parseBinaryOperator(upperPrecedence int, lhand Expr) Expr {
 }
 
 func (v *parser) parsePrimaryExpr() Expr {
-	if litExpr := v.parseLiteral(); litExpr != nil {
+	if bracketExpr := v.parseBracketExpr(); bracketExpr != nil {
+		return bracketExpr
+	} else if litExpr := v.parseLiteral(); litExpr != nil {
 		return litExpr
 	} else if derefExpr := v.parseDerefExpr(); derefExpr != nil {
 		return derefExpr
@@ -636,6 +638,25 @@ func (v *parser) parsePrimaryExpr() Expr {
 	}
 
 	return nil
+}
+
+func (v *parser) parseBracketExpr() *BracketExpr {
+	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "(") {
+		return nil
+	}
+	v.consumeToken()
+
+	expr := v.parseExpr()
+	if expr == nil {
+		v.err("Expected expression after `)`, found `%s`", v.peek(0).Contents)
+	}
+
+	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ")") {
+		v.err("Expected matching `)`, found `%s`", v.peek(0).Contents)
+	}
+	v.consumeToken()
+
+	return &BracketExpr{Expr: expr}
 }
 
 func (v *parser) parseAccessExpr() *AccessExpr {

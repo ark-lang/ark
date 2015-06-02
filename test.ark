@@ -24,7 +24,7 @@ t: int = int('h');
 
 bitshiftTest := 1 << i8(4);
 
-mut bintest: int = 5 * 5 + 5 * 5;
+mut bintest: int = 5 * (5 + 5) * 5;
 mshifttest: int = 10 << 7;
 
 inferenceTest := 10;
