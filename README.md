@@ -1,7 +1,7 @@
 #<a href="http://ark-lang.org">The Ark Programming Language</a>
 
 ## Notices
-#<span style="color:red;">Important Notice!!</span>
+### Important Notice!!
 We've ported to **Go**, we've still got the original C code, which you
 can find [here](https://github.com/ark-lang/ark-c)
 
