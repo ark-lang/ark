@@ -1,3 +1,13 @@
+<<<<<<< HEAD
+all:
+	go install github.com/ark-lang/ark
+
+fmt:
+	go fmt github.com/ark-lang/ark/{codegen{/LLVMCodegen,},common,lexer,parser,util}
+
+gen:
+	go generate ./{codegen{/LLVMCodegen,},common,lexer,parser,util}
+=======
 CFLAGS = -g -Wall -std=c99 -Wextra -pedantic -Wno-unused-function -Wno-unused-parameter `llvm-config --cflags` -DENABLE_LLVM -w
 LDFLAGS = `llvm-config --cxxflags --ldflags --libs core analysis native bitwriter --system-libs`
 
@@ -31,3 +41,4 @@ clean:
 	@rm -rf *.dSYM/
 	@rm -rf tests/*.test
 	@rm -rf tests/*.dSYM/
+>>>>>>> 7b809376e8b79ef131aaa19be5fa091809348bd4
