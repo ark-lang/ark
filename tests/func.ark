@@ -1,8 +1,9 @@
-func add(): int {
+func add(a: int, b: int): int {
 
 }
 
 func main(): int {
     x: int = 5;
-    add();
+    z: int = add(5, 10);
+    y: int = 19 + 1;
 }
