@@ -281,6 +281,48 @@ func (v *IfStat) NodeName() string {
 	return "if statement"
 }
 
+// LoopStat
+
+type LoopStatType int
+
+const (
+	LOOP_TYPE_UNSET LoopStatType = iota
+	LOOP_TYPE_INFINITE
+	LOOP_TYPE_CONDITIONAL
+)
+
+type LoopStat struct {
+	nodePos
+	LoopType LoopStatType
+
+	Body *Block
+
+	// LOOP_TYPE_CONDITIONAL
+	Condition Expr
+}
+
+func (v *LoopStat) statNode() {}
+
+func (v *LoopStat) String() string {
+	result := "(" + util.Blue("LoopStat") + ": "
+
+	switch v.LoopType {
+	case LOOP_TYPE_INFINITE:
+	case LOOP_TYPE_CONDITIONAL:
+		result += v.Condition.String() + " "
+	default:
+		panic("invalid loop type")
+	}
+
+	result += v.Body.String()
+
+	return result + ")"
+}
+
+func (v *LoopStat) NodeName() string {
+	return "loop statement"
+}
+
 /**
  * Expressions
  */

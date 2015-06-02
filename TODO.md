@@ -14,8 +14,8 @@
 * [ ] Modules
 * [ ] Loops
   * [ ] Indexed
-  * [ ] Conditional
-  * [ ] Infinite
+  * [x] Conditional
+  * [x] Infinite
   * [ ] Iterating
 * [ ] Traits
 

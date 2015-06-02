@@ -70,6 +70,14 @@ func main(a: int): mut int {
         two := 3;
     }
 
+    for {
+
+    }
+
+    for 1 == 0 {
+
+    }
+
     num: int = 0;
     var: ^int;
     //var = &num;

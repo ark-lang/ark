@@ -94,6 +94,8 @@ func (v *Codegen) genStat(n parser.Stat) {
 		v.genAssignStat(n.(*parser.AssignStat))
 	case *parser.IfStat:
 		v.genIfStat(n.(*parser.IfStat))
+	case *parser.LoopStat:
+		v.genLoopStat(n.(*parser.LoopStat))
 	default:
 		panic("unimplimented stat")
 	}
@@ -144,6 +146,23 @@ func (v *Codegen) genIfStat(n *parser.IfStat) {
 		v.genBlock(n.Else)
 	}
 
+	v.nl()
+	v.nl()
+}
+
+func (v *Codegen) genLoopStat(n *parser.LoopStat) {
+	v.nl()
+	v.write("%s ", parser.KEYWORD_FOR)
+	switch n.LoopType {
+	case parser.LOOP_TYPE_INFINITE:
+	case parser.LOOP_TYPE_CONDITIONAL:
+		v.genExpr(n.Condition)
+		v.write(" ")
+	default:
+		panic("invalid loop type")
+	}
+
+	v.genBlock(n.Body)
 	v.nl()
 	v.nl()
 }
