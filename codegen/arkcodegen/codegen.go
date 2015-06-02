@@ -263,6 +263,8 @@ func (v *Codegen) genExpr(n parser.Expr) {
 		v.genAccessExpr(n.(*parser.AccessExpr))
 	case *parser.DerefExpr:
 		v.genDerefExpr(n.(*parser.DerefExpr))
+	case *parser.BracketExpr:
+		v.genBracketExpr(n.(*parser.BracketExpr))
 	default:
 		panic("unimplemented expr")
 	}
@@ -322,4 +324,10 @@ func (v *Codegen) genAccessExpr(n *parser.AccessExpr) {
 func (v *Codegen) genDerefExpr(n *parser.DerefExpr) {
 	v.write("^")
 	v.genExpr(n.Expr)
+}
+
+func (v *Codegen) genBracketExpr(n *parser.BracketExpr) {
+	v.write("(")
+	v.genExpr(n.Expr)
+	v.write(")")
 }

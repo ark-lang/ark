@@ -453,3 +453,13 @@ func (v *DerefExpr) analyze(s *semanticAnalyzer) {
 func (v *DerefExpr) setTypeHint(t Type) {
 	v.Expr.setTypeHint(pointerTo(t))
 }
+
+// BracketExpr
+
+func (v *BracketExpr) analyze(s *semanticAnalyzer) {
+	v.Expr.analyze(s)
+}
+
+func (v *BracketExpr) setTypeHint(t Type) {
+	v.Expr.setTypeHint(t)
+}

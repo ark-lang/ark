@@ -521,3 +521,24 @@ func (v *DerefExpr) GetType() Type {
 func (v *DerefExpr) NodeName() string {
 	return "dereference expression"
 }
+
+// BracketExpr
+
+type BracketExpr struct {
+	nodePos
+	Expr Expr
+}
+
+func (v *BracketExpr) exprNode() {}
+
+func (v *BracketExpr) String() string {
+	return "(" + util.Blue("BracketExpr") + ": " + v.Expr.String() + ")"
+}
+
+func (v *BracketExpr) GetType() Type {
+	return v.Expr.GetType()
+}
+
+func (v *BracketExpr) NodeName() string {
+	return "bracketed expression"
+}
