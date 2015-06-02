@@ -16,16 +16,20 @@ func (v *Codegen) err(err string, stuff ...interface{}) {
 }
 
 func (v *Codegen) write(format string, stuff ...interface{}) {
+	if v.lastWasNl {
+		for i := 0; i < v.indent; i++ {
+			v.curOutput.Write([]byte("\t"))
+		}
+		v.lastWasNl = false
+	}
 	fmt.Fprintf(v.curOutput, format, stuff...)
 }
 
 // outputs a newline if not in minified mode
 func (v *Codegen) nl() {
 	if !v.Minify {
-		v.write("\n")
-		for i := 0; i < v.indent; i++ {
-			v.write("\t")
-		}
+		v.curOutput.Write([]byte("\n"))
+		v.lastWasNl = true
 	}
 }
 
@@ -35,7 +39,8 @@ type Codegen struct {
 	input     []*parser.File
 	curOutput *os.File
 
-	indent int // number of tabs indented
+	indent    int // number of tabs indented
+	lastWasNl bool
 }
 
 func (v *Codegen) Generate(input []*parser.File, verbose bool) {
@@ -75,15 +80,30 @@ func (v *Codegen) genNode(n parser.Node) {
 	case parser.Expr:
 		v.genExpr(n.(parser.Expr))
 	case parser.Stat:
+		v.genStat(n.(parser.Stat))
+	}
+}
+
+func (v *Codegen) genStat(n parser.Stat) {
+	switch n.(type) {
+	case *parser.ReturnStat:
 		// TODO
+	case *parser.CallStat:
+		// TODO
+	case *parser.AssignStat:
+		// TODO
+	default:
+		panic("unimplimented stat")
 	}
 }
 
 func (v *Codegen) genDecl(n parser.Decl) {
 	switch n.(type) {
 	case *parser.FunctionDecl:
-		// TODO
+		v.nl()
+		v.genFunctionDecl(n.(*parser.FunctionDecl))
 	case *parser.StructDecl:
+		v.nl()
 		v.genStructDecl(n.(*parser.StructDecl))
 	case *parser.VariableDecl:
 		v.genVariableDecl(n.(*parser.VariableDecl), true)
@@ -102,9 +122,40 @@ func (v *Codegen) writeAttrs(attrs []*parser.Attr) {
 	}
 }
 
+func (v *Codegen) genBlock(n *parser.Block) {
+	v.write("{")
+	v.indent++
+	v.nl()
+	for _, stat := range n.Nodes {
+		v.genNode(stat)
+	}
+	v.indent--
+	v.write("}")
+}
+
+func (v *Codegen) genFunctionDecl(n *parser.FunctionDecl) {
+	v.writeAttrs(n.Function.Attrs)
+	v.write("%s ", parser.KEYWORD_FUNC)
+	v.write("%s(", n.Function.Name)
+	for i, par := range n.Function.Parameters {
+		v.genVariableDecl(par, false)
+		if i < len(n.Function.Parameters)-1 {
+			v.write(", ")
+		}
+	}
+	v.write(")")
+
+	if n.Function.ReturnType != nil {
+		v.write(": %s", n.Function.ReturnType.TypeName())
+	}
+	v.write(" ")
+	v.genBlock(n.Function.Body)
+	v.nl()
+}
+
 func (v *Codegen) genStructDecl(n *parser.StructDecl) {
 	v.writeAttrs(n.Struct.Attrs())
-	v.write("struct ")
+	v.write("%s ", parser.KEYWORD_STRUCT)
 	v.write("%s {", n.Struct.Name)
 	v.indent++
 	v.nl()
