@@ -42,7 +42,7 @@ struct Test2 {
 }
 
 func ten(): int {
-	return 0x05 + 5;
+    return 0x05 + 5;
 }
 
 
@@ -51,9 +51,9 @@ func _2345_test日本語てすと(と: int, un: i32): int {
 }
 
 func main(a: int): mut int {
-	// thing: int = ten();
-	// thing++;
-	//return thing - 11;
+    // thing: int = ten();
+    // thing++;
+    //return thing - 11;
 
     ten();
 
@@ -81,5 +81,5 @@ func main(a: int): mut int {
     num: int = 0;
     var: ^int;
     //var = &num;
-	return ^var;
+    return ^var;
 }
