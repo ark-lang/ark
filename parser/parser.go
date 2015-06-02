@@ -10,9 +10,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ark-lang/ark-go/common"
-	"github.com/ark-lang/ark-go/lexer"
-	"github.com/ark-lang/ark-go/util"
+	"github.com/ark-lang/ark/common"
+	"github.com/ark-lang/ark/lexer"
+	"github.com/ark-lang/ark/util"
 )
 
 type parser struct {

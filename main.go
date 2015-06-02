@@ -6,13 +6,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ark-lang/ark-go/codegen"
-	"github.com/ark-lang/ark-go/codegen/LLVMCodegen"
-	"github.com/ark-lang/ark-go/codegen/arkcodegen"
-	"github.com/ark-lang/ark-go/common"
-	"github.com/ark-lang/ark-go/lexer"
-	"github.com/ark-lang/ark-go/parser"
-	"github.com/ark-lang/ark-go/util"
+	"github.com/ark-lang/ark/codegen"
+	"github.com/ark-lang/ark/codegen/LLVMCodegen"
+	"github.com/ark-lang/ark/codegen/arkcodegen"
+	"github.com/ark-lang/ark/common"
+	"github.com/ark-lang/ark/lexer"
+	"github.com/ark-lang/ark/parser"
+	"github.com/ark-lang/ark/util"
 )
 
 func main() {
@@ -90,5 +90,5 @@ func check(err error) {
 }
 
 func version() {
-	fmt.Println("ark-go 2015 - experimental")
+	fmt.Println("ark 2015 - experimental")
 }

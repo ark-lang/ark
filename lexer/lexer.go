@@ -9,7 +9,7 @@ import (
 	"time"
 	"unicode"
 
-	"github.com/ark-lang/ark-go/util"
+	"github.com/ark-lang/ark/util"
 )
 
 type lexer struct {

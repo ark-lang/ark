@@ -1,7 +1,7 @@
 package codegen
 
 import (
-	"github.com/ark-lang/ark-go/parser"
+	"github.com/ark-lang/ark/parser"
 )
 
 type Codegen interface {

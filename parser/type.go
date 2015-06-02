@@ -1,6 +1,6 @@
 package parser
 
-import "github.com/ark-lang/ark-go/util"
+import "github.com/ark-lang/ark/util"
 
 type Type interface {
 	TypeName() string
