@@ -60,9 +60,6 @@ func main() {
 		parsedFiles = append(parsedFiles, parser.Parse(file, verbose))
 	}
 
-	//gen := &LLVMCodegen.LLVMCodegen {}
-	//gen.Generate()
-
 	if codegenFlag != "none" {
 		var gen codegen.Codegen
 

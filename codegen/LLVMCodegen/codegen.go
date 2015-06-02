@@ -2,10 +2,10 @@ package LLVMCodegen
 
 import (
 	"C"
-	"unsafe"
 	"fmt"
-	"time"
 	"os"
+	"time"
+	"unsafe"
 
 	"github.com/ark-lang/ark-go/parser"
 	"github.com/ark-lang/ark-go/util"
@@ -16,8 +16,8 @@ import (
 const intSize = int(unsafe.Sizeof(C.int(0)))
 
 type Codegen struct {
-	input     []*parser.File
-	curFile   *parser.File
+	input   []*parser.File
+	curFile *parser.File
 
 	builder llvm.Builder
 
@@ -109,16 +109,11 @@ func (v *Codegen) genAssignStat(n *parser.AssignStat) llvm.Value {
 func (v *Codegen) genIfStat(n *parser.IfStat) llvm.Value {
 	var res llvm.Value
 
-	for i, expr := range n.Exprs {
+	for _, expr := range n.Exprs {
 		v.genExpr(expr)
-		v.genBlock(n.Bodies[i])
 	}
 
-	if n.Else != nil {
-		v.genBlock(n.Else)
-	}
-
-    return res
+	return res
 }
 
 func (v *Codegen) genLoopStat(n *parser.LoopStat) llvm.Value {
@@ -132,9 +127,7 @@ func (v *Codegen) genLoopStat(n *parser.LoopStat) llvm.Value {
 		panic("invalid loop type")
 	}
 
-	v.genBlock(n.Body)
-
-    return res
+	return res
 }
 
 func (v *Codegen) genDecl(n parser.Decl) llvm.Value {
@@ -151,25 +144,18 @@ func (v *Codegen) genDecl(n parser.Decl) llvm.Value {
 		panic("unimplimented decl")
 	}
 
-    return res
-}
-
-func (v *Codegen) genBlock(n *parser.Block) llvm.Value {
-	var res llvm.Value
-	for _, stat := range n.Nodes {
-		v.genNode(stat)
-	}
-    return res
+	return res
 }
 
 func (v *Codegen) genFunctionDecl(n *parser.FunctionDecl) llvm.Value {
 	var res llvm.Value
 
 	function := v.curFile.Module.NamedFunction(n.Function.Name)
-	if function.IsNil() {
+	if !function.IsNil() {
 		v.err("function `%s` already exists in module", n.Function.Name)
+		return res
 	} else {
-		numOfParams := len(n.Function.Parameters);
+		numOfParams := len(n.Function.Parameters)
 		params := make([]llvm.Type, numOfParams)
 		for i, par := range n.Function.Parameters {
 			params[i] = typeToLLVMType(par.Variable.Type)
@@ -185,7 +171,7 @@ func (v *Codegen) genFunctionDecl(n *parser.FunctionDecl) llvm.Value {
 
 		// create the function type
 		funcType := llvm.FunctionType(funcTypeRaw, params, false)
-		
+
 		// add that shit
 		function = llvm.AddFunction(v.curFile.Module, n.Function.Name, funcType)
 
@@ -196,10 +182,15 @@ func (v *Codegen) genFunctionDecl(n *parser.FunctionDecl) llvm.Value {
 			// maybe store it in a hashmap somewhere?
 		}
 
+		block := llvm.AddBasicBlock(function, "entry")
+		v.builder.SetInsertPointAtEnd(block)
+
+		// loop thru block and gen statements
+
 		return function
 	}
 
-    return res
+	return res
 }
 
 func (v *Codegen) genStructDecl(n *parser.StructDecl) llvm.Value {
@@ -209,7 +200,7 @@ func (v *Codegen) genStructDecl(n *parser.StructDecl) llvm.Value {
 		v.genVariableDecl(member, false)
 	}
 
-    return res
+	return res
 }
 
 func (v *Codegen) genVariableDecl(n *parser.VariableDecl, semicolon bool) llvm.Value {
@@ -223,7 +214,7 @@ func (v *Codegen) genVariableDecl(n *parser.VariableDecl, semicolon bool) llvm.V
 		v.genExpr(n.Assignment)
 	}
 
-    return res
+	return res
 }
 
 func (v *Codegen) genExpr(n parser.Expr) llvm.Value {
@@ -256,53 +247,52 @@ func (v *Codegen) genExpr(n parser.Expr) llvm.Value {
 		panic("unimplemented expr")
 	}
 
-    return res
+	return res
 }
 
 func (v *Codegen) genRuneLiteral(n *parser.RuneLiteral) llvm.Value {
 	var res llvm.Value
-    return res
+	return res
 }
 
 func (v *Codegen) genIntegerLiteral(n *parser.IntegerLiteral) llvm.Value {
 	var res llvm.Value
 
-    return res
+	return res
 }
 
 func (v *Codegen) genFloatingLiteral(n *parser.FloatingLiteral) llvm.Value {
 	var res llvm.Value
 
-    return res
+	return res
 }
-
 
 func (v *Codegen) genStringLiteral(n *parser.StringLiteral) llvm.Value {
 	var res llvm.Value
 
-    return res
+	return res
 }
 
 func (v *Codegen) genBinaryExpr(n *parser.BinaryExpr) llvm.Value {
 	var res llvm.Value
 
-    return res
+	return res
 }
 
 func (v *Codegen) genUnaryExpr(n *parser.UnaryExpr) llvm.Value {
 	var res llvm.Value
 
-    return res
+	return res
 }
 
 func (v *Codegen) genCastExpr(n *parser.CastExpr) llvm.Value {
 	var res llvm.Value
 
-    return res
+	return res
 }
 
 func (v *Codegen) genCallExpr(n *parser.CallExpr) llvm.Value {
-	function := v.curFile.Module.NamedFunction(n.Function.Name); 
+	function := v.curFile.Module.NamedFunction(n.Function.Name)
 	if function.IsNil() {
 		v.err("function does not exist in current module")
 	}
@@ -323,19 +313,19 @@ func (v *Codegen) genCallExpr(n *parser.CallExpr) llvm.Value {
 func (v *Codegen) genAccessExpr(n *parser.AccessExpr) llvm.Value {
 	var res llvm.Value
 
-    return res
+	return res
 }
 
 func (v *Codegen) genDerefExpr(n *parser.DerefExpr) llvm.Value {
 	var res llvm.Value
 
-    return res
+	return res
 }
 
 func (v *Codegen) genBracketExpr(n *parser.BracketExpr) llvm.Value {
 	var res llvm.Value
 
-    return res
+	return res
 }
 
 func typeToLLVMType(typ parser.Type) llvm.Type {
@@ -352,7 +342,7 @@ func typeToLLVMType(typ parser.Type) llvm.Type {
 }
 
 func structTypeToLLVMType(typ *parser.StructType) llvm.Type {
-    return llvm.IntType(1)
+	return llvm.IntType(1)
 }
 
 func primitiveTypeToLLVMType(typ parser.PrimitiveType) llvm.Type {
