@@ -5,11 +5,7 @@
 We've ported to **Go**, we've still got the original C code, which you
 can find [here](https://github.com/ark-lang/ark-c)
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 **Due to the name change, we've migrated the subreddit from r/alloy_lang to [r/ark_lang](http://www.reddit.com/r/ark_lang), go subscribe! Finally, our irc has moved from #alloy-lang to #ark-lang**
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ## Resources
 * [Reference](/docs/REFERENCE.md)
