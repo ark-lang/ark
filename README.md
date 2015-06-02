@@ -2,15 +2,16 @@
 Experimental Ark compiler in Go.
 
 * [#ark-lang](http://webchat.freenode.net/?channels=%23ark-lang) on freenode
-* [Language reference](https://github.com/ark-lang/ark-docs/blob/master/REFERENCE.md)
+* [Language reference](https://github.com/ark-lang/ark-docs/blob/master/REFERENCE.md) 
 * [Ark Style Guide](https://github.com/ark-lang/ark-docs/blob/master/STYLEGUIDE.md)
 
-
-	Usage of ark-go:
-	  -v:                 enable verbose mode
-	  --output:           output file
-	  --version:          show version information
-	  --codegen=<backend> sets the codegen to <backend> (none, llvm or ark. default: none)
+```
+Usage of ark-go:
+  -v:                 enable verbose mode
+  --output:           output file
+  --version:          show version information
+  --codegen=<backend> sets the codegen to <backend> (none, llvm or ark. default: none)
+```
 
 ## Installing
 Requires Go to be installed and $GOPATH setup.
