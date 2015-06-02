@@ -1,4 +1,4 @@
-#The Ark Programming Language
+# <span align="center">Ark</span>
 
 ## Important Notice!!
 We've ported to **Go**, we've still got the original C code, which you
