@@ -1,9 +1,9 @@
 # Todo List
 
 ### Parsing
-* [ ] If Statements
-* [ ] Else If Statements
-* [ ] Else Statements
+* [x] If Statements
+* [x] Else If Statements
+* [x] Else Statements
 * [ ] Match
   * [ ] Ranges?
 * [ ] Boolean Constants
