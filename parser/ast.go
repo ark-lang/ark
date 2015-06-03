@@ -53,6 +53,7 @@ type Variable struct {
 	Name    string
 	Mutable bool
 	Attrs   []*Attr
+	scope   *Scope
 }
 
 func (v *Variable) String() string {
@@ -66,6 +67,10 @@ func (v *Variable) String() string {
 	return result + v.Name + " " + util.Green(v.Type.TypeName()) + ")"
 }
 
+func (v *Variable) Scope() *Scope {
+	return v.scope
+}
+
 type Function struct {
 	Name       string
 	Parameters []*VariableDecl
@@ -73,6 +78,11 @@ type Function struct {
 	Mutable    bool
 	Attrs      []*Attr
 	Body       *Block
+	scope      *Scope
+}
+
+func (v *Function) Scope() *Scope {
+	return v.scope
 }
 
 func (v *Function) String() string {
@@ -399,7 +409,7 @@ func (v *FloatingLiteral) NodeName() string {
 
 type StringLiteral struct {
 	nodePos
-	Value string
+	Value  string
 	StrLen int
 }
 
