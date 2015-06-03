@@ -2,16 +2,16 @@
 
 ## Important Notice!!
 We've ported to **Go**, we've still got the original C code, which you
-can find [here](https://github.com/ark-lang/ark-c)
+can find [here](https://github.com/ark-lang/ark-c).
 
-Due to the name change, we've migrated the subreddit from r/alloy_lang to [r/ark_lang](http://www.reddit.com/r/ark_lang), go subscribe! Finally, our irc has moved from #alloy-lang to #ark-lang
+Due to the name change, we've migrated the subreddit from /r/alloy_lang to [/r/ark_lang](http://www.reddit.com/r/ark_lang), go subscribe! Finally, our IRC channel has moved from #alloy-lang to [#ark-lang](https://webchat.freenode.net/?channels=%23ark-lang) on freenode.
 
 ## Resources
-* [Reference](/docs/REFERENCE.md)
+* [Reference](https://github.com/ark-lang/ark-docs/blob/master/REFERENCE.md)
 * [Tests](/tests/)
 * [Libraries](/lib/)
 * [Contributing](/CONTRIBUTING.md)
-* [Ark Style Guide](/docs/STYLEGUIDE.md)
+* [Ark Style Guide](https://github.com/ark-lang/ark-docs/blob/master/STYLEGUIDE.md)
 
 ## Installing
 Requires Go to be installed and $GOPATH setup.
