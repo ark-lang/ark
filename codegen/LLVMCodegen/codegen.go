@@ -291,32 +291,32 @@ func (v *Codegen) genBinaryExpr(n *parser.BinaryExpr) llvm.Value {
 	lhand := v.genExpr(n.Lhand)
 	rhand := v.genExpr(n.Rhand)
 
-	if (lhand.IsNil() || rhand.IsNil()) {
+	if lhand.IsNil() || rhand.IsNil() {
 		v.err("invalid binary expr")
 	} else {
-		floating := n.Lhand.GetType().IsFloatingType() || n.Rhand.GetType().IsFloatingType();
-		
+		floating := n.Lhand.GetType().IsFloatingType() || n.Rhand.GetType().IsFloatingType()
+
 		switch n.Op {
 		case parser.BINOP_ADD:
-			if (floating) {
+			if floating {
 				return v.builder.CreateFAdd(lhand, rhand, "tmp")
 			} else {
 				return v.builder.CreateAdd(lhand, rhand, "tmp")
 			}
 		case parser.BINOP_SUB:
-			if (floating) {
+			if floating {
 				return v.builder.CreateFSub(lhand, rhand, "tmp")
 			} else {
 				return v.builder.CreateSub(lhand, rhand, "tmp")
 			}
 		case parser.BINOP_MUL:
-			if (floating) {
+			if floating {
 				return v.builder.CreateFMul(lhand, rhand, "tmp")
 			} else {
 				return v.builder.CreateMul(lhand, rhand, "tmp")
 			}
 		case parser.BINOP_DIV:
-			if (floating) {
+			if floating {
 				return v.builder.CreateFDiv(lhand, rhand, "tmp")
 			} else {
 				//? ??

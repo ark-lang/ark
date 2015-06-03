@@ -943,7 +943,7 @@ func (v *parser) parseStringLiteral() *StringLiteral {
 	}
 	c := v.consumeToken().Contents
 	strLen := len(c)
-	return &StringLiteral{Value: UnescapeString(c[1 : strLen - 1]), StrLen: strLen}
+	return &StringLiteral{Value: UnescapeString(c[1 : strLen-1]), StrLen: strLen}
 }
 
 func (v *parser) parseRuneLiteral() *RuneLiteral {
