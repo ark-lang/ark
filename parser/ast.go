@@ -49,11 +49,12 @@ func (v *nodePos) setPos(line, char int) {
 }
 
 type Variable struct {
-	Type    Type
-	Name    string
-	Mutable bool
-	Attrs   []*Attr
-	scope   *Scope
+	Type         Type
+	Name         string
+	Mutable      bool
+	Attrs        []*Attr
+	scope        *Scope
+	ParentStruct *StructType
 }
 
 func (v *Variable) String() string {
@@ -64,7 +65,7 @@ func (v *Variable) String() string {
 	for _, attr := range v.Attrs {
 		result += attr.String() + " "
 	}
-	return result + v.Name + " " + util.Green(v.Type.TypeName()) + ")"
+	return result + v.Name + util.Magenta(" <"+v.MangledName(MANGLE_ARK_UNSTABLE)+"> ") + util.Green(v.Type.TypeName()) + ")"
 }
 
 func (v *Variable) Scope() *Scope {
@@ -101,7 +102,7 @@ func (v *Function) String() string {
 	if v.Body != nil {
 		result += v.Body.String()
 	}
-	return result + ")"
+	return result + util.Magenta(" <"+v.MangledName(MANGLE_ARK_UNSTABLE)) + "> " + ")"
 }
 
 //
