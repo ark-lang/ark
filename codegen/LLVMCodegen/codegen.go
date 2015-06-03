@@ -262,7 +262,7 @@ func (v *Codegen) genRuneLiteral(n *parser.RuneLiteral) llvm.Value {
 }
 
 func (v *Codegen) genIntegerLiteral(n *parser.IntegerLiteral) llvm.Value {
-	return llvm.ConstInt(v.getIntType(), n.Value, false)
+	return llvm.ConstInt(typeToLLVMType(n.Type), n.Value, false)
 }
 
 func (v *Codegen) genFloatingLiteral(n *parser.FloatingLiteral) llvm.Value {
@@ -272,9 +272,17 @@ func (v *Codegen) genFloatingLiteral(n *parser.FloatingLiteral) llvm.Value {
 }
 
 func (v *Codegen) genStringLiteral(n *parser.StringLiteral) llvm.Value {
-	var res llvm.Value
-
-	return res
+	val := llvm.ConstString(n.Value, true)
+	str := llvm.AddGlobal(v.curFile.Module, val.Type(), "")
+	str.SetLinkage(llvm.InternalLinkage)
+	str.SetGlobalConstant(true)
+	str.SetInitializer(val)
+	str = llvm.ConstBitCast(str, llvm.PointerType(llvm.IntType(32), 0))
+	global := llvm.AddGlobal(v.curFile.Module, val.Type(), "")
+	global.SetGlobalConstant(true)
+	global.SetLinkage(llvm.InternalLinkage)
+	global.SetInitializer(str)
+	return global
 }
 
 func (v *Codegen) genBinaryExpr(n *parser.BinaryExpr) llvm.Value {
@@ -386,20 +394,6 @@ func structTypeToLLVMType(typ *parser.StructType) llvm.Type {
 	return llvm.IntType(1)
 }
 
-func (v *Codegen) getIntType() llvm.Type {
-	switch intSize {
-	case 2: 
-		return llvm.IntType(16)
-	case 4: 
-		return llvm.IntType(32)
-	case 8: 
-		return llvm.IntType(64)
-	default:
-		fmt.Printf("todo a verbose message saying switching to 16 bit for default?")
-		return llvm.IntType(16)
-	}
-}
-
 func primitiveTypeToLLVMType(typ parser.PrimitiveType) llvm.Type {
 	switch typ {
 	case parser.PRIMITIVE_int, parser.PRIMITIVE_uint:
@@ -427,7 +421,8 @@ func primitiveTypeToLLVMType(typ parser.PrimitiveType) llvm.Type {
 	case parser.PRIMITIVE_bool:
 		return llvm.IntType(1)
 	case parser.PRIMITIVE_str:
-		panic("not sure how this works yet")
+		// maybe this?
+		return llvm.PointerType(llvm.IntType(32), 0)
 
 	default:
 		panic("Unimplemented primitive type in LLVM codegen")

@@ -400,6 +400,7 @@ func (v *FloatingLiteral) NodeName() string {
 type StringLiteral struct {
 	nodePos
 	Value string
+	StrLen int
 }
 
 func (v *StringLiteral) exprNode() {}
