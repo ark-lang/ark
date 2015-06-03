@@ -26,6 +26,10 @@ func newGlobalScope() *Scope {
 	return s
 }
 
+func (v *Scope) IsGlobal() bool {
+	return v.Outer == nil
+}
+
 func (v *Scope) InsertType(t Type) Type {
 	c := v.Types[t.TypeName()]
 	if c == nil {
@@ -47,6 +51,7 @@ func (v *Scope) InsertVariable(t *Variable) *Variable {
 	c := v.Vars[t.Name]
 	if c == nil {
 		v.Vars[t.Name] = t
+		t.scope = v
 	}
 	return c
 }
@@ -64,6 +69,7 @@ func (v *Scope) InsertFunction(t *Function) *Function {
 	c := v.Funcs[t.Name]
 	if c == nil {
 		v.Funcs[t.Name] = t
+		t.scope = v
 	}
 	return c
 }
