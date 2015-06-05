@@ -241,6 +241,10 @@ func (v *Codegen) genFunctionDecl(n *parser.FunctionDecl) llvm.Value {
 			v.genNode(stat)
 		}
 
+		if (funcTypeRaw == llvm.VoidType()) {
+			v.err("void function !!!")
+		}
+
 		// loop thru block and gen statements
 
 		return function
