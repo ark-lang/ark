@@ -104,7 +104,10 @@ func (v *Function) String() string {
 	for _, par := range v.Parameters {
 		result += " " + par.String()
 	}
-	result += ": " + util.Green(v.ReturnType.TypeName()) + " "
+	if v.ReturnType != nil {
+		result += ": " + util.Green(v.ReturnType.TypeName()) + " "
+	}
+
 	if v.Body != nil {
 		result += v.Body.String()
 	}
