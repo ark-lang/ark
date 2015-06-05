@@ -10,4 +10,5 @@ func main(): int {
     x: int = 5;
     z: int = add(5, 10);
     y: int = 19 + 1;
+    return 5;
 }
