@@ -99,7 +99,7 @@ func (v *StructType) String() string {
 	for _, decl := range v.Variables {
 		result += "\t" + decl.String() + "\n"
 	}
-	return result + ")"
+	return result + util.Magenta(" <"+v.MangledName(MANGLE_ARK_UNSTABLE)+"> ") + ")"
 }
 
 func (v *StructType) TypeName() string {
@@ -137,6 +137,7 @@ func (v *StructType) getVariableDecl(s string) *VariableDecl {
 
 func (v *StructType) addVariableDecl(decl *VariableDecl) {
 	v.Variables = append(v.Variables, decl)
+	decl.Variable.ParentStruct = v
 }
 
 func (v *StructType) Attrs() []*Attr {
