@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Object files
 *.o
 *.ko
@@ -96,4 +95,4 @@ ark
 
 # Ark codegen out files
 *.ark.out
->>>>>>> origin/go
+docgen/
