@@ -98,14 +98,15 @@ func (v *Codegen) Generate(input []*parser.File, verbose bool) {
 				infile.Name, float32(dur.Nanoseconds())/1000000)
 		}
 
-		if bitcode, err := v.createBitcode(); !err {
-			if asm, err := v.bitcodeToASM(bitcode); !err {
-				v.createBinary(asm)
-			}
+		// not now...
+		// if bitcode, err := v.createBitcode(); !err {
+		// 	if asm, err := v.bitcodeToASM(bitcode); !err {
+		// 		v.createBinary(asm)
+		// 	}
 
-		}
+		// }
 
-		// infile.Module.Dump()
+		infile.Module.Dump()
 	}
 }
 
@@ -142,7 +143,13 @@ func (v *Codegen) genStat(n parser.Stat) llvm.Value {
 }
 
 func (v *Codegen) genReturnStat(n *parser.ReturnStat) llvm.Value {
-	return v.genExpr(n.Value)
+	var res llvm.Value
+	if n.Value == nil {
+		res = v.builder.CreateRetVoid()
+	} else {
+		res = v.builder.CreateRet(v.genExpr(n.Value))
+	}
+	return res
 }
 
 func (v *Codegen) genCallStat(n *parser.CallStat) llvm.Value {
@@ -241,8 +248,9 @@ func (v *Codegen) genFunctionDecl(n *parser.FunctionDecl) llvm.Value {
 			v.genNode(stat)
 		}
 
+		// function returns void, lets return void...
 		if (funcTypeRaw == llvm.VoidType()) {
-			v.err("void function !!!")
+			v.builder.CreateRetVoid()
 		}
 
 		// loop thru block and gen statements
