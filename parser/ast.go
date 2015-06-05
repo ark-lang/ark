@@ -33,6 +33,7 @@ type Expr interface {
 type Decl interface {
 	Node
 	declNode()
+	DocComments() []*DocComment
 }
 
 type nodePos struct {
@@ -48,11 +49,18 @@ func (v *nodePos) setPos(line, char int) {
 	v.charNumber = char
 }
 
+type DocComment struct {
+	Contents           string
+	StartLine, EndLine int
+}
+
 type Variable struct {
-	Type    Type
-	Name    string
-	Mutable bool
-	Attrs   []*Attr
+	Type         Type
+	Name         string
+	Mutable      bool
+	Attrs        []*Attr
+	scope        *Scope
+	ParentStruct *StructType
 }
 
 func (v *Variable) String() string {
@@ -63,7 +71,11 @@ func (v *Variable) String() string {
 	for _, attr := range v.Attrs {
 		result += attr.String() + " "
 	}
-	return result + v.Name + " " + util.Green(v.Type.TypeName()) + ")"
+	return result + v.Name + util.Magenta(" <"+v.MangledName(MANGLE_ARK_UNSTABLE)+"> ") + util.Green(v.Type.TypeName()) + ")"
+}
+
+func (v *Variable) Scope() *Scope {
+	return v.scope
 }
 
 type Function struct {
@@ -73,6 +85,11 @@ type Function struct {
 	Mutable    bool
 	Attrs      []*Attr
 	Body       *Block
+	scope      *Scope
+}
+
+func (v *Function) Scope() *Scope {
+	return v.scope
 }
 
 func (v *Function) String() string {
@@ -91,7 +108,7 @@ func (v *Function) String() string {
 	if v.Body != nil {
 		result += v.Body.String()
 	}
-	return result + ")"
+	return result + util.Magenta(" <"+v.MangledName(MANGLE_ARK_UNSTABLE)) + "> " + ")"
 }
 
 //
@@ -137,6 +154,7 @@ type VariableDecl struct {
 	nodePos
 	Variable   *Variable
 	Assignment Expr
+	docs       []*DocComment
 }
 
 func (v *VariableDecl) declNode() {}
@@ -152,6 +170,10 @@ func (v *VariableDecl) String() string {
 
 func (v *VariableDecl) NodeName() string {
 	return "variable declaration"
+}
+
+func (v *VariableDecl) DocComments() []*DocComment {
+	return v.docs
 }
 
 // StructDecl
@@ -171,11 +193,16 @@ func (v *StructDecl) NodeName() string {
 	return "struct declaration"
 }
 
+func (v *StructDecl) DocComments() []*DocComment {
+	return nil // TODO
+}
+
 // FunctionDecl
 
 type FunctionDecl struct {
 	nodePos
 	Function *Function
+	docs     []*DocComment
 }
 
 func (v *FunctionDecl) declNode() {}
@@ -186,6 +213,10 @@ func (v *FunctionDecl) String() string {
 
 func (v *FunctionDecl) NodeName() string {
 	return "function declaration"
+}
+
+func (v *FunctionDecl) DocComments() []*DocComment {
+	return v.docs
 }
 
 /**
@@ -399,7 +430,7 @@ func (v *FloatingLiteral) NodeName() string {
 
 type StringLiteral struct {
 	nodePos
-	Value string
+	Value  string
 	StrLen int
 }
 
