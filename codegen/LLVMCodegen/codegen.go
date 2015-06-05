@@ -4,6 +4,7 @@ import (
 	"C"
 	"fmt"
 	"os"
+	"os/exec"
 	"time"
 	"unsafe"
 
@@ -30,6 +31,50 @@ func (v *Codegen) err(err string, stuff ...interface{}) {
 	os.Exit(2)
 }
 
+func (v *Codegen) createBitcode() (string, bool) {
+	filename := v.curFile.Name + ".bc"
+	if err := llvm.VerifyModule(v.curFile.Module, llvm.ReturnStatusAction); err != nil {
+		fmt.Println(err)
+		return "", true
+	}
+
+	fileHandle, err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
+	if err != nil {
+		v.err("Couldn't create bitcode file `%s`" + err.Error(), filename)
+	}
+	defer fileHandle.Close()
+
+	if res := llvm.WriteBitcodeToFile(v.curFile.Module, fileHandle); res != nil {
+		v.err("failed to write bitcode to file for " + v.curFile.Name)
+	}
+
+	return filename, false
+}
+
+func (v *Codegen) bitcodeToASM(filename string) (string, bool) {
+	asmName := filename + ".s"
+	toAsmCommand := "llc " + filename + " -o " + asmName
+	
+	if cmd := exec.Command(toAsmCommand); cmd != nil {
+		v.err("failed to convert bitcode to assembly")
+		return "", true
+	}
+
+	if cmd := exec.Command("rm " + filename); cmd != nil {
+		v.err("failed to remove " + filename)
+		return "", true
+	}
+
+	return asmName, false
+}
+
+func (v *Codegen) createBinary(file string) {
+	link := "cc " + file + " -o main.out"
+	if cmd := exec.Command(link); cmd != nil {
+		v.err("failed to link object files")
+	}
+}
+
 func (v *Codegen) Generate(input []*parser.File, verbose bool) {
 	v.input = input
 	v.builder = llvm.NewBuilder()
@@ -53,7 +98,14 @@ func (v *Codegen) Generate(input []*parser.File, verbose bool) {
 				infile.Name, float32(dur.Nanoseconds())/1000000)
 		}
 
-		infile.Module.Dump()
+		if bitcode, err := v.createBitcode(); !err {
+			if asm, err := v.bitcodeToASM(bitcode); !err {
+				v.createBinary(asm)
+			}
+
+		}
+
+		// infile.Module.Dump()
 	}
 }
 
