@@ -2,6 +2,10 @@ func add(a: int, b: int): int {
     return 5 + 5;
 }
 
+func this_is_void(swag: int) {
+
+}
+
 func main(): int {
     x: int = 5;
     z: int = add(5, 10);
