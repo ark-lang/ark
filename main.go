@@ -99,5 +99,6 @@ func check(err error) {
 }
 
 func version() {
-	fmt.Println("ark 2015 - experimental")
+	// 0.2 since LLVM/Go?
+	fmt.Println("Ark version 0.2.0")
 }
