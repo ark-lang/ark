@@ -13,12 +13,13 @@ import (
 )
 
 type lexer struct {
-	input                  []rune
-	startPos, endPos       int
-	output                 []*Token
-	filename               string
-	charNumber, lineNumber int
-	verbose                bool
+	input                      []rune
+	startPos, endPos           int
+	output                     []*Token
+	filename                   string
+	charNumber, lineNumber     int
+	tokStartChar, tokStartLine int
+	verbose                    bool
 }
 
 func (v *lexer) errWithCustomPosition(ln, cn int, err string, stuff ...interface{}) {
@@ -62,6 +63,9 @@ func (v *lexer) expect(r rune) {
 
 func (v *lexer) discardBuffer() {
 	v.startPos = v.endPos
+
+	v.tokStartChar = v.charNumber
+	v.tokStartLine = v.lineNumber
 }
 
 // debugging func
@@ -71,11 +75,13 @@ func (v *lexer) printBuffer() {
 
 func (v *lexer) pushToken(t TokenType) {
 	tok := &Token{
-		Type:       t,
-		Filename:   v.filename,
-		CharNumber: v.charNumber,
-		LineNumber: v.lineNumber,
-		Contents:   string(v.input[v.startPos:v.endPos]),
+		Type:          t,
+		Filename:      v.filename,
+		CharNumber:    v.tokStartChar,
+		LineNumber:    v.tokStartLine,
+		EndCharNumber: v.charNumber,
+		EndLineNumber: v.lineNumber,
+		Contents:      string(v.input[v.startPos:v.endPos]),
 	}
 
 	v.output = append(v.output, tok)
@@ -84,18 +90,20 @@ func (v *lexer) pushToken(t TokenType) {
 		fmt.Printf("[%4d:%4d:%-17s] `%s`\n", v.startPos, v.endPos, tok.Type, tok.Contents)
 	}
 
-	v.startPos = v.endPos
+	v.discardBuffer()
 }
 
 func Lex(input []rune, filename string, verbose bool) []*Token {
 	v := &lexer{
-		input:      input,
-		startPos:   0,
-		endPos:     0,
-		filename:   filename,
-		charNumber: 1,
-		lineNumber: 1,
-		verbose:    verbose,
+		input:        input,
+		startPos:     0,
+		endPos:       0,
+		filename:     filename,
+		charNumber:   1,
+		lineNumber:   1,
+		tokStartChar: 1,
+		tokStartLine: 1,
+		verbose:      verbose,
 	}
 
 	if v.verbose {
@@ -152,6 +160,7 @@ start:
 	if v.peek(0) == '/' && v.peek(1) == '*' {
 		v.consume()
 		v.consume()
+		isDoc := v.peek(0) == '*'
 
 		for {
 			if isEOF(v.peek(0)) {
@@ -160,7 +169,11 @@ start:
 			if v.peek(0) == '*' && v.peek(1) == '/' {
 				v.consume()
 				v.consume()
-				v.pushToken(TOKEN_COMMENT)
+				if isDoc {
+					v.pushToken(TOKEN_DOCCOMMENT)
+				} else {
+					v.pushToken(TOKEN_COMMENT)
+				}
 				goto start
 			}
 			v.consume()
@@ -168,12 +181,10 @@ start:
 	}
 
 	// Single-line comments
-	if v.peek(0) == '#' || (v.peek(0) == '/' && v.peek(1) == '/') {
-		isDoc := v.peek(0) == '#'
+	if v.peek(0) == '/' && v.peek(1) == '/' {
 		v.consume()
-		if v.peek(0) == '/' {
-			v.consume()
-		}
+		v.consume()
+		isDoc := v.peek(0) == '/'
 
 		for {
 			if isEOL(v.peek(0)) || isEOF(v.peek(0)) {

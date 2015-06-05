@@ -39,6 +39,9 @@ Usage of ark:
   --codegen=<backend> sets the codegen to <backend> (none, llvm or ark. default: none)
 ```
 
+## Generating Docs
+You can run ark with the `--docgen` option to generate documentation from the input files. The output directory is `docgen/`.
+
 ## `make gen` and `make fmt`
 The target `gen` is included for the convenience of the developers. It runs `go generate` on all the modules in ark.
 
