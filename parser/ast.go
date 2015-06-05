@@ -33,6 +33,7 @@ type Expr interface {
 type Decl interface {
 	Node
 	declNode()
+	DocComments() []*DocComment
 }
 
 type nodePos struct {
@@ -46,6 +47,11 @@ func (v nodePos) Pos() (line, char int) {
 func (v *nodePos) setPos(line, char int) {
 	v.lineNumber = line
 	v.charNumber = char
+}
+
+type DocComment struct {
+	Contents           string
+	StartLine, EndLine int
 }
 
 type Variable struct {
@@ -148,6 +154,7 @@ type VariableDecl struct {
 	nodePos
 	Variable   *Variable
 	Assignment Expr
+	docs       []*DocComment
 }
 
 func (v *VariableDecl) declNode() {}
@@ -163,6 +170,10 @@ func (v *VariableDecl) String() string {
 
 func (v *VariableDecl) NodeName() string {
 	return "variable declaration"
+}
+
+func (v *VariableDecl) DocComments() []*DocComment {
+	return v.docs
 }
 
 // StructDecl
@@ -182,11 +193,16 @@ func (v *StructDecl) NodeName() string {
 	return "struct declaration"
 }
 
+func (v *StructDecl) DocComments() []*DocComment {
+	return nil // TODO
+}
+
 // FunctionDecl
 
 type FunctionDecl struct {
 	nodePos
 	Function *Function
+	docs     []*DocComment
 }
 
 func (v *FunctionDecl) declNode() {}
@@ -197,6 +213,10 @@ func (v *FunctionDecl) String() string {
 
 func (v *FunctionDecl) NodeName() string {
 	return "function declaration"
+}
+
+func (v *FunctionDecl) DocComments() []*DocComment {
+	return v.docs
 }
 
 /**

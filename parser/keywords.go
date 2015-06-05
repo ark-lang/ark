@@ -50,3 +50,15 @@ func init() {
 	keywordMap[KEYWORD_USE] = true
 	keywordMap[KEYWORD_VOID] = true
 }
+
+func isReservedKeyword(s string) bool {
+	if m := keywordMap[s]; m {
+		return true
+	}
+
+	if len(s) >= 2 && s[0] == '_' && s[1] == 'Z' {
+		return true
+	}
+
+	return false
+}

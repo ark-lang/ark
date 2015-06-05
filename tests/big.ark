@@ -2,10 +2,9 @@
  Test block comment
 */
 
-# hello
-
 // hello
 
+/// test doc comment for i1
 i1: i32 = 0b100010_101010; // 2218
 i2: i32 = 0x39_57; // 14679
 i3: i32 = 0o25_36; // 1374
@@ -50,6 +49,7 @@ func _2345_test日本語てすと(と: int, un: i32): int {
 
 }
 
+/// test doc comment for main()
 func main(a: int): mut int {
     // thing: int = ten();
     // thing++;
