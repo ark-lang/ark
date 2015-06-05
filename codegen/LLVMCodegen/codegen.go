@@ -40,7 +40,7 @@ func (v *Codegen) createBitcode() (string, bool) {
 
 	fileHandle, err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
 	if err != nil {
-		v.err("Couldn't create bitcode file `%s`" + err.Error(), filename)
+		v.err("Couldn't create bitcode file `%s`"+err.Error(), filename)
 	}
 	defer fileHandle.Close()
 
@@ -54,7 +54,7 @@ func (v *Codegen) createBitcode() (string, bool) {
 func (v *Codegen) bitcodeToASM(filename string) (string, bool) {
 	asmName := filename + ".s"
 	toAsmCommand := "llc " + filename + " -o " + asmName
-	
+
 	if cmd := exec.Command(toAsmCommand); cmd != nil {
 		v.err("failed to convert bitcode to assembly")
 		return "", true
