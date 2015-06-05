@@ -10,6 +10,7 @@ import (
 	"github.com/ark-lang/ark/codegen/LLVMCodegen"
 	"github.com/ark-lang/ark/codegen/arkcodegen"
 	"github.com/ark-lang/ark/common"
+	"github.com/ark-lang/ark/doc"
 	"github.com/ark-lang/ark/lexer"
 	"github.com/ark-lang/ark/parser"
 	"github.com/ark-lang/ark/util"
@@ -20,6 +21,7 @@ func main() {
 
 	verbose := true
 	codegenFlag := "llvm" // defaults to none
+	docFlag := false
 
 	sourcefiles := make([]*common.Sourcefile, 0)
 
@@ -45,6 +47,8 @@ func main() {
 			return
 		} else if arg == "-v" {
 			verbose = true
+		} else if arg == "--docgen" {
+			docFlag = true
 		} else {
 			fmt.Println("Unknown command:", arg)
 			os.Exit(98)
@@ -60,7 +64,12 @@ func main() {
 		parsedFiles = append(parsedFiles, parser.Parse(file, verbose))
 	}
 
-	if codegenFlag != "none" {
+	if docFlag {
+		docgen := &doc.Docgen{
+			Input: parsedFiles,
+		}
+		docgen.Generate(verbose)
+	} else if codegenFlag != "none" {
 		var gen codegen.Codegen
 
 		switch codegenFlag {
