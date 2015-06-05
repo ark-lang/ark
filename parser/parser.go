@@ -25,6 +25,7 @@ type parser struct {
 	binOpPrecedences  map[BinOpType]int
 	attrs             []*Attr
 	curNodeTokenStart int
+	docCommentsBuf    []*DocComment
 }
 
 func (v *parser) err(err string, stuff ...interface{}) {
@@ -69,6 +70,12 @@ func (v *parser) popScope() {
 func (v *parser) fetchAttrs() []*Attr {
 	ret := v.attrs
 	v.attrs = nil
+	return ret
+}
+
+func (v *parser) fetchDocComments() []*DocComment {
+	ret := v.docCommentsBuf
+	v.docCommentsBuf = nil
 	return ret
 }
 
@@ -138,9 +145,35 @@ func (v *parser) parse() {
 	}
 }
 
+func (v *parser) parseDocComment() *DocComment {
+	if !v.tokenMatches(0, lexer.TOKEN_DOCCOMMENT, "") {
+		return nil
+	}
+	tok := v.consumeToken()
+	doc := &DocComment{
+		StartLine: tok.LineNumber,
+		EndLine:   tok.EndLineNumber,
+	}
+
+	if strings.HasPrefix(tok.Contents, "/**") {
+		doc.Contents = tok.Contents[3 : len(doc.Contents)-2]
+	} else if strings.HasPrefix(tok.Contents, "///") {
+		doc.Contents = tok.Contents[3:]
+	} else {
+		panic(fmt.Sprintf("How did this doccomment get through the lexer??\n`%s`", tok.Contents))
+	}
+
+	return doc
+}
+
 func (v *parser) parseNode() Node {
+	v.docCommentsBuf = make([]*DocComment, 0)
 	for v.tokenMatches(0, lexer.TOKEN_COMMENT, "") || v.tokenMatches(0, lexer.TOKEN_DOCCOMMENT, "") {
-		v.consumeToken()
+		if v.tokenMatches(0, lexer.TOKEN_DOCCOMMENT, "") {
+			v.docCommentsBuf = append(v.docCommentsBuf, v.parseDocComment())
+		} else {
+			v.consumeToken()
+		}
 	}
 
 	v.attrs = v.parseAttrs()
@@ -154,6 +187,9 @@ func (v *parser) parseNode() Node {
 	if ret != nil {
 		if len(v.attrs) > 0 {
 			v.err("%s does not accept attributes", util.CapitalizeFirst(ret.NodeName()))
+		}
+		if len(v.docCommentsBuf) > 0 {
+			v.err("%s does not accept documentation comments", util.CapitalizeFirst(ret.NodeName())) // TODO fix for func decls
 		}
 		return ret
 	}
@@ -262,7 +298,7 @@ func (v *parser) parseType() Type {
 		if innerType := v.parseType(); innerType != nil {
 			return pointerTo(innerType)
 		} else {
-			v.err("TODO")
+			v.err("Expected type name")
 		}
 	}
 
@@ -291,12 +327,17 @@ func (v *parser) parseFunctionDecl() *FunctionDecl {
 		v.err("Function expected an identifier")
 	}
 
-	if keywordMap[function.Name] {
+	if isReservedKeyword(function.Name) {
 		v.err("Cannot name function reserved keyword `%s`", function.Name)
 	}
 
 	if vname := v.scope.InsertFunction(function); vname != nil {
 		v.err("Illegal redeclaration of function `%s`", function.Name)
+	}
+
+	funcDecl := &FunctionDecl{
+		Function: function,
+		docs:     v.fetchDocComments(),
 	}
 
 	v.pushScope()
@@ -350,8 +391,6 @@ func (v *parser) parseFunctionDecl() *FunctionDecl {
 			v.err("Expected function return type after colon for function `%s`", function.Name)
 		}
 	}
-
-	funcDecl := &FunctionDecl{Function: function}
 
 	// block
 	if block := v.parseBlock(); block != nil {
@@ -503,7 +542,7 @@ func (v *parser) parseStructDecl() *StructDecl {
 	}
 	struc.Name = v.consumeToken().Contents
 
-	if keywordMap[struc.Name] {
+	if isReservedKeyword(struc.Name) {
 		v.err("Cannot name struct reserved keyword `%s`", struc.Name)
 	}
 
@@ -565,7 +604,7 @@ func (v *parser) parseVariableDecl(needSemicolon bool) *VariableDecl {
 	}
 	variable.Name = v.consumeToken().Contents // consume name
 
-	if keywordMap[variable.Name] {
+	if isReservedKeyword(variable.Name) {
 		v.err("Cannot name variable reserved keyword `%s`", variable.Name)
 	}
 
@@ -596,6 +635,8 @@ func (v *parser) parseVariableDecl(needSemicolon bool) *VariableDecl {
 			v.err("Expected semicolon at end of variable declaration, found `%s`", v.peek(0).Contents)
 		}
 	}
+
+	varDecl.docs = v.fetchDocComments()
 
 	return varDecl
 }
