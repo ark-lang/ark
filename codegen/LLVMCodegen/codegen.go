@@ -249,7 +249,7 @@ func (v *Codegen) genFunctionDecl(n *parser.FunctionDecl) llvm.Value {
 		}
 
 		// function returns void, lets return void...
-		if (funcTypeRaw == llvm.VoidType()) {
+		if funcTypeRaw == llvm.VoidType() {
 			v.builder.CreateRetVoid()
 		}
 
