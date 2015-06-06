@@ -53,14 +53,14 @@ func (v *Codegen) createBitcode() (string, bool) {
 
 func (v *Codegen) bitcodeToASM(filename string) (string, bool) {
 	asmName := filename + ".s"
-	toAsmCommand := "llc " + filename + " -o " + asmName
+	toAsmCommand := filename + " -o " + asmName
 
-	if cmd := exec.Command(toAsmCommand); cmd != nil {
+	if cmd := exec.Command("llc", toAsmCommand); cmd != nil {
 		v.err("failed to convert bitcode to assembly")
 		return "", true
 	}
 
-	if cmd := exec.Command("rm " + filename); cmd != nil {
+	if cmd := exec.Command("rm", filename); cmd != nil {
 		v.err("failed to remove " + filename)
 		return "", true
 	}
@@ -68,8 +68,13 @@ func (v *Codegen) bitcodeToASM(filename string) (string, bool) {
 	return asmName, false
 }
 
-func (v *Codegen) createBinary(file string) {
-	link := "cc " + file + " -o main.out"
+func (v *Codegen) createBinary(files []string) {
+	link := "cc "
+	for _, asmFile := range files {
+		link += asmFile + " "
+	}
+	link += " -o main.out"
+
 	if cmd := exec.Command(link); cmd != nil {
 		v.err("failed to link object files")
 	}
@@ -78,6 +83,8 @@ func (v *Codegen) createBinary(file string) {
 func (v *Codegen) Generate(input []*parser.File, verbose bool) {
 	v.input = input
 	v.builder = llvm.NewBuilder()
+
+	var assemblyFiles []string
 
 	for _, infile := range input {
 		infile.Module = llvm.NewModule(infile.Name)
@@ -98,16 +105,17 @@ func (v *Codegen) Generate(input []*parser.File, verbose bool) {
 				infile.Name, float32(dur.Nanoseconds())/1000000)
 		}
 
-		// not now...
-		// if bitcode, err := v.createBitcode(); !err {
-		// 	if asm, err := v.bitcodeToASM(bitcode); !err {
-		// 		v.createBinary(asm)
-		// 	}
 
-		// }
+		if bitcode, err := v.createBitcode(); !err {
+			if asm, err := v.bitcodeToASM(bitcode); !err {
+				assemblyFiles = append(assemblyFiles, asm)
+			}
+		}
 
 		infile.Module.Dump()
 	}
+
+	v.createBinary(assemblyFiles)
 }
 
 func (v *Codegen) genNode(n parser.Node) llvm.Value {
