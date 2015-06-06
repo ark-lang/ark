@@ -1,8 +1,7 @@
 <h1 align="center">Ark</h1>
 
 ## Important Notice!!
-We've ported to **Go**, we've still got the original C code, which you
-can find [here](https://github.com/ark-lang/ark-c).
+We've ported to **Go**. We've still got the original C code, which you can find [here](https://github.com/ark-lang/ark-c).
 
 Due to the name change, we've migrated the subreddit from /r/alloy_lang to [/r/ark_lang](http://www.reddit.com/r/ark_lang), go subscribe! Finally, our IRC channel has moved from #alloy-lang to [#ark-lang](https://webchat.freenode.net/?channels=%23ark-lang) on freenode.
 
@@ -31,16 +30,18 @@ Building ark:
 
 Make sure `$GOPATH/bin` is in your `$PATH`.
 
+## Usage
+For detailed usage information, run `ark help`. For information on specific commands, use `ark help <command>`.
+
+### Building
 ```
-Usage of ark:
-  -v:                 enable verbose mode
-  --output:           output file
-  --version:          show version information
-  --codegen=<backend> sets the codegen to <backend> (none, llvm or ark. default: none)
+ark build tests/big_test.ark
 ```
 
-## Generating Docs
-You can run ark with the `--docgen` option to generate documentation from the input files. The output directory is `docgen/`.
+##& Docgen
+```
+ark docgen tests/big_test.ark --dir some_output_dir
+```
 
 ## `make gen` and `make fmt`
 The target `gen` is included for the convenience of the developers. It runs `go generate` on all the modules in ark.
