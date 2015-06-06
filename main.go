@@ -3,8 +3,9 @@ package main
 import (
 	"fmt"
 	"os"
-	"strings"
 	"time"
+
+	"gopkg.in/alecthomas/kingpin.v2"
 
 	"github.com/ark-lang/ark/codegen"
 	"github.com/ark-lang/ark/codegen/LLVMCodegen"
@@ -16,63 +17,73 @@ import (
 	"github.com/ark-lang/ark/util"
 )
 
+const (
+	VERSION = "0.0.2"
+	AUTHOR  = "The Ark Authors"
+)
+
+var startTime time.Time
+
 func main() {
-	startTime := time.Now()
+	startTime = time.Now()
 
-	verbose := true
-	codegenFlag := "llvm" // defaults to none
-	docFlag := false
+	var command string
+	var numFiles int
 
+	switch kingpin.MustParse(app.Parse(os.Args[1:])) {
+	case buildCom.FullCommand():
+		build(*buildInputs, *buildOutput)
+		numFiles = len(*buildInputs)
+		command = buildCom.FullCommand()
+
+	case docgenCom.FullCommand():
+		docgen(*docgenInputs, *docgenDir)
+		numFiles = len(*docgenInputs)
+		command = docgenCom.FullCommand()
+	}
+
+	if command != "" {
+		dur := time.Since(startTime)
+		fmt.Printf("%s (%d file(s), %.2fms)\n",
+			util.TEXT_GREEN+util.TEXT_BOLD+fmt.Sprintf("Finished %s", command)+util.TEXT_RESET,
+			numFiles, float32(dur.Nanoseconds())/1000000)
+	}
+}
+
+func check(err error) {
+	if err != nil {
+		panic(err)
+	}
+}
+
+func parseFiles(files []string) []*parser.File {
 	sourcefiles := make([]*common.Sourcefile, 0)
 
-	// TODO write nice arg parser, should be POSIX-based
-	arguments := os.Args[1:]
-	for _, arg := range arguments {
-		if strings.HasSuffix(arg, ".ark") {
-			input, err := common.NewSourcefile(arg)
-			check(err)
-			sourcefiles = append(sourcefiles, input)
-		} else if strings.HasPrefix(arg, "--codegen=") {
-			codegenFlag = arg[len("--codegen="):]
-			switch codegenFlag {
-			case "none", "llvm", "ark":
-				// nothing to do
-			default:
-				fmt.Println("Invalid argument to --codegen:", codegenFlag)
-				fmt.Println("Valid arguments: none, llvm, ark")
-				os.Exit(99)
-			}
-		} else if arg == "--version" {
-			version()
-			return
-		} else if arg == "-v" {
-			verbose = true
-		} else if arg == "--docgen" {
-			docFlag = true
-		} else {
-			fmt.Println("Unknown command:", arg)
-			os.Exit(98)
-		}
+	for _, file := range files {
+		input, err := common.NewSourcefile(file)
+		check(err) // TODO nice error
+		sourcefiles = append(sourcefiles, input)
 	}
 
 	for _, file := range sourcefiles {
-		file.Tokens = lexer.Lex(file.Contents, file.Filename, verbose)
+		file.Tokens = lexer.Lex(file.Contents, file.Filename, *verbose)
 	}
 
 	parsedFiles := make([]*parser.File, 0)
 	for _, file := range sourcefiles {
-		parsedFiles = append(parsedFiles, parser.Parse(file, verbose))
+		parsedFiles = append(parsedFiles, parser.Parse(file, *verbose))
 	}
 
-	if docFlag {
-		docgen := &doc.Docgen{
-			Input: parsedFiles,
-		}
-		docgen.Generate(verbose)
-	} else if codegenFlag != "none" {
+	return parsedFiles
+}
+
+func build(input []string, output string) {
+	parsedFiles := parseFiles(input)
+
+	if *buildCodegen != "none" {
 		var gen codegen.Codegen
 
-		switch codegenFlag {
+		switch *buildCodegen {
 		case "ark":
 			gen = &arkcodegen.Codegen{}
 		case "llvm":
@@ -83,22 +94,15 @@ func main() {
 			panic("whoops")
 		}
 
-		gen.Generate(parsedFiles, verbose)
-	}
-
-	dur := time.Since(startTime)
-	fmt.Printf("%s %d file(s) (%.2fms)\n",
-		util.TEXT_GREEN+util.TEXT_BOLD+"Finished compiling"+util.TEXT_RESET,
-		len(sourcefiles), float32(dur.Nanoseconds())/1000000)
-}
-
-func check(err error) {
-	if err != nil {
-		panic(err)
+		gen.Generate(parsedFiles, *verbose)
 	}
 }
 
-func version() {
-	// 0.2 since LLVM/Go?
-	fmt.Println("Ark version 0.2.0")
+func docgen(input []string, dir string) {
+	gen := &doc.Docgen{
+		Input: parseFiles(input),
+		Dir:   dir,
+	}
+
+	gen.Generate(*verbose)
 }
