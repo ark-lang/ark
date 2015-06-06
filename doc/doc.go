@@ -10,7 +10,9 @@ import (
 )
 
 type Docgen struct {
-	Input     []*parser.File
+	Input []*parser.File
+	Dir   string
+
 	output    []*File
 	curOutput *File
 }
@@ -59,7 +61,7 @@ func (v *Docgen) traverse(verbose bool) {
 }
 
 func (v *Docgen) generate() {
-	outputDir := "./docgen/" // TODO command line option for this
+	outputDir := "./" + v.Dir + "/"
 
 	err := os.MkdirAll(outputDir, os.ModeDir|0777)
 	if err != nil {
