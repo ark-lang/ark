@@ -15,8 +15,8 @@ Due to the name change, we've migrated the subreddit from /r/alloy_lang to [/r/a
 ## Installing
 Requires Go to be installed and $GOPATH setup.
 
-## Installing LLVM
-Building LLVM bindings (must be done first and may take a while):
+## Fetching LLVM
+Fetching LLVM bindings:
 
     $ go get -d llvm.org/llvm/bindings/go/llvm
 
@@ -32,6 +32,7 @@ cancel the checkout, and delete any files it makes... then run the following:
     $ go get -d llvm.org/llvm/bindings/go/llvm
 
 ## Installing Ark
+Building LLVM bindings (must be done first and may take a while).
 
     $ cd $GOPATH/src/llvm.org/llvm/bindings/go/
     $ ./build.sh
