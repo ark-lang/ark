@@ -20,7 +20,7 @@ Building LLVM bindings (must be done first and may take a while):
 
     $ go get -d llvm.org/llvm/bindings/go/llvm
 
-### Only do this if LLVM fails to install!
+### [Only do this if LLVM fails to install!](https://llvm.org/bugs/show_bug.cgi?id=22766)
 Note that this can fail! For some reason it rejects the certificate, if you're having this
 problem, try this little workaround:
 
