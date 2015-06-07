@@ -1,0 +1,11 @@
+struct Test {
+    x: int,
+    y: int,
+    z: f64,
+    a: f32,
+    e: str,
+}
+
+func main(): int {
+
+}
