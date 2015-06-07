@@ -84,8 +84,6 @@ func (v *Codegen) Generate(input []*parser.File, verbose bool) {
 	v.input = input
 	v.builder = llvm.NewBuilder()
 
-	var assemblyFiles []string
-
 	for _, infile := range input {
 		infile.Module = llvm.NewModule(infile.Name)
 		v.curFile = infile
@@ -105,17 +103,8 @@ func (v *Codegen) Generate(input []*parser.File, verbose bool) {
 				infile.Name, float32(dur.Nanoseconds())/1000000)
 		}
 
-
-		if bitcode, err := v.createBitcode(); !err {
-			if asm, err := v.bitcodeToASM(bitcode); !err {
-				assemblyFiles = append(assemblyFiles, asm)
-			}
-		}
-
 		infile.Module.Dump()
 	}
-
-	v.createBinary(assemblyFiles)
 }
 
 func (v *Codegen) genNode(n parser.Node) llvm.Value {
@@ -270,13 +259,18 @@ func (v *Codegen) genFunctionDecl(n *parser.FunctionDecl) llvm.Value {
 }
 
 func (v *Codegen) genStructDecl(n *parser.StructDecl) llvm.Value {
-	var res llvm.Value
+	numOfFields := len(n.Struct.Variables)
+	fields := make([]llvm.Type, numOfFields)
+	packed := false
 
-	for _, member := range n.Struct.Variables {
-		v.genVariableDecl(member, false)
+	for i, member := range n.Struct.Variables {
+		memberType := typeToLLVMType(member.Variable.Type)
+		fields[i] = memberType
 	}
 
-	return res
+	structure := llvm.StructType(fields, packed)
+	result := llvm.AddGlobal(v.curFile.Module, structure, n.Struct.Name)
+	return result
 }
 
 func (v *Codegen) genVariableDecl(n *parser.VariableDecl, semicolon bool) llvm.Value {
