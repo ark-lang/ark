@@ -1,5 +1,5 @@
 struct Test {
-    x: int,
+    x: int = 1,
     y: int,
     z: f64,
     a: f32,
