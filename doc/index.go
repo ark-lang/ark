@@ -33,14 +33,23 @@ const INDEX_TEMPLATE_STR = `<!DOCTYPE html>
     <head>
         <meta charset="UTF-8" />
         <title>Doctype Index</title>
-		<link rel="stylesheet" type="text/css" href="style.css" />
+
+        <link href='http://fonts.googleapis.com/css?family=Fira+Sans:300,400,500,700|Fira+Mono|Source+Serif+Pro:400,700' rel='stylesheet' type='text/css'>
+        <link rel="stylesheet" type="text/css" href="style.css" />
     </head>
 
     <body>
-        <h1>Docgen Index</h1>
+        <div class="slab">
+            <div class="wrapper">
+                <h1 class="slab-title">Docgen Index</h1>
+                <a href="index.html">Index</a>
+            </div>
+        </div>
 
-		<dl>
-        	{{range .Files}}<dd><a href="files/{{.Name}}.html">{{.Name}}</a></dd>{{end}}
-		</dl>
+        <div class="wrapper">
+            <ul class="files">
+                {{range .Files}}<li><a href="files/{{.Name}}.html">{{.Name}}</a></li>{{end}}
+            </ul>
+        </div>
     </body>
 </html>`
