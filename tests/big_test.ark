@@ -49,7 +49,21 @@ func _2345_test日本語てすと(と: int, un: i32): int {
 
 }
 
-/// test doc comment for main()
+/**
+test doc comment for main()
+test <html> injection
+test `inline` code
+test *emphasized* text
+```
+fenced code
+```
+# h1
+## h2
+### h3
+#### h4
+##### h5
+###### h6
+ */
 func main(a: int): mut int {
     // thing: int = ten();
     // thing++;
