@@ -58,39 +58,55 @@ const FILE_TEMPLATE_STR = `<!DOCTYPE html>
     <head>
 		<meta charset="UTF-8" />
         <title>Doctype Index</title>
+
+		<link href='http://fonts.googleapis.com/css?family=Fira+Sans:300,400,500,700|Fira+Mono|Source+Serif+Pro:400,700' rel='stylesheet' type='text/css'>
 		<link rel="stylesheet" type="text/css" href="{{.RootLoc}}style.css" />
     </head>
 
     <body>
-		<a href="{{.RootLoc}}index.html">Index</a>
-        <h1>File {{.Name}}</h1>
+        <div class="slab">
+        	<div class="wrapper">
+		        <h1 class="slab-title">File {{.Name}}</h1>
+				<a href="{{.RootLoc}}index.html">Index</a>
+			</div>
+		</div>
 
-		<h2>Overview</h2>
-		<dl>
-			{{range .VariableDecls}}<dd><a href="#{{.Ident}}">{{.Snippet}}</a></dd>{{end}}
-			{{range .StructDecls}}<dd><a href="#{{.Ident}}">{{.Snippet}}</a></dd>{{end}}
-			{{range .FunctionDecls}}<dd><a href="#{{.Ident}}">{{.Snippet}}</a></dd>{{end}}
-		</dl>
+		<div class="wrapper">
+	        <section class="doc">
+				<h2>Overview</h2>
+				<ul>
+					{{range .VariableDecls}}<li><a href="#{{.Ident}}">{{.Snippet}}</a></li>{{end}}
+					{{range .StructDecls}}<li><a href="#{{.Ident}}">{{.Snippet}}</a></li>{{end}}
+					{{range .FunctionDecls}}<li><a href="#{{.Ident}}">{{.Snippet}}</a></li>{{end}}
+				</ul>
+			</section>
 
-		<h2>Variables</h2>
-		{{range .VariableDecls}}
-		<h3 id="{{.Ident}}">{{.Ident}}</h3>
-		<pre class="snippet"><code>{{.Snippet}}</code></pre>
-		<div class="doccomment">{{.ParsedDocs}}</div>
-		{{end}}
+			<section class="doc">
+				<h2>Variables</h2>
+					{{range .VariableDecls}}
+					<h3 id="{{.Ident}}">{{.Ident}}</h3>
+					<pre class="snippet"><code>{{.Snippet}}</code></pre>
+					<div class="doccomment">{{.ParsedDocs}}</div>
+				{{end}}
+			</section>
 
-		<h2>Structs</h2>
-		{{range .StructDecls}}
-		<h3 id="{{.Ident}}">{{.Ident}}</h3>
-		<pre class="snippet"><code>{{.Snippet}}</code></pre>
-		<div class="doccomment">{{.ParsedDocs}}</div>
-		{{end}}
+			<section class="doc">
+				<h2>Structs</h2>
+					{{range .StructDecls}}
+					<h3 id="{{.Ident}}">{{.Ident}}</h3>
+					<pre class="snippet"><code>{{.Snippet}}</code></pre>
+					<div class="doccomment">{{.ParsedDocs}}</div>
+				{{end}}
+			</section>
 
-		<h2>Functions</h2>
-		{{range .FunctionDecls}}
-		<h3 id="{{.Ident}}">{{.Ident}}</h3>
-		<pre class="snippet"><code>{{.Snippet}}</code></pre>
-		<div class="doccomment">{{.ParsedDocs}}</div>
-		{{end}}
+			<section class="doc">
+				<h2>Functions</h2>
+					{{range .FunctionDecls}}
+					<h3 id="{{.Ident}}">{{.Ident}}</h3>
+					<pre class="snippet"><code>{{.Snippet}}</code></pre>
+					<div class="doccomment">{{.ParsedDocs}}</div>
+				{{end}}
+			</section>
+		</div>
 	</body>
 </html>`
