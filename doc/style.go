@@ -15,8 +15,13 @@ func (v *Docgen) generateStyle() {
 }
 
 const STYLE = `
+* {
+	margin: 0;
+	padding: 0;
+}
+
 a, p, h1, h2, h3, h4, h5, h6 {
-	font-family: sans-serif;
+	font-family: "Helvetica Neue", sans-serif;
 }
 
 a {
