@@ -156,7 +156,7 @@ func (v *parser) parseDocComment() *DocComment {
 	}
 
 	if strings.HasPrefix(tok.Contents, "/**") {
-		doc.Contents = tok.Contents[3 : len(doc.Contents)-2]
+		doc.Contents = tok.Contents[3 : len(tok.Contents)-2]
 	} else if strings.HasPrefix(tok.Contents, "///") {
 		doc.Contents = tok.Contents[3:]
 	} else {
