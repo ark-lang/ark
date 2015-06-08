@@ -53,11 +53,11 @@ func (v *Docgen) generateFile(file *File) {
 	}
 }
 
-const FILE_TEMPLATE_STR = `<!DOCTYPE>
-<html>
+const FILE_TEMPLATE_STR = `<!DOCTYPE html>
+<html lang="en">
     <head>
-        <title>Doctype Index</title>
 		<meta charset="UTF-8" />
+        <title>Doctype Index</title>
 		<link rel="stylesheet" type="text/css" href="{{.RootLoc}}style.css" />
     </head>
 

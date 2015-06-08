@@ -28,11 +28,11 @@ func (v *Docgen) generateIndex() {
 	}
 }
 
-const INDEX_TEMPLATE_STR = `<!DOCTYPE>
-<html>
+const INDEX_TEMPLATE_STR = `<!DOCTYPE html>
+<html lang="en">
     <head>
+        <meta charset="UTF-8" />
         <title>Doctype Index</title>
-		<meta charset="UTF-8" />
 		<link rel="stylesheet" type="text/css" href="style.css" />
     </head>
 
