@@ -40,16 +40,18 @@ For detailed usage information, run `ark help`. For information on specific comm
 
 ### Building
 ```
-ark build tests/big_test.ark
+ark build tests/big_test.ark -o out_name
 ```
+If the `-o` option is not specified, the outputted binary will be names `main`.
 
-##& Docgen
+### Docgen
 ```
 ark docgen tests/big_test.ark --dir some_output_dir
 ```
+If the `--dir` option is not specified, the generated documentation will be placed in `docgen`.
 
 ## `make gen` and `make fmt`
-The target `gen` is included for the convenience of the developers. It runs `go generate` on all the modules in ark.
+The targets `gen` and `fmt` are included for the convenience of the developers. They runs `go generate` on all the modules in ark.
 
 ### Testing
 If Ark is in your `$PATH`:
