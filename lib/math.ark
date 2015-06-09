@@ -1,10 +1,5 @@
-# Wrapper around the C math.h library.
-
-!compiler_flag "-lm"
-
 PI: f64 = 3.14159265358979323846;
 
-# C Bindings
 func acos(x: f64): f64;
 func asin(x: f64): f64;
 func atan(x: f64): f64;
@@ -26,8 +21,6 @@ func ceil(x: f64): f64;
 func fabs(x: f64): f64;
 func floor(x: f64): f64;
 func fmod(x: f64, y: f64): f64;
-
-# Native
 
 func degToRad(deg: f64): f64 -> deg * 2 * PI / 360.0;
 
