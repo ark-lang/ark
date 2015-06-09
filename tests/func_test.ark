@@ -3,7 +3,7 @@ func add(a: int, b: int): int {
 }
 
 func this_is_void(swag: int) {
-    return;
+    
 }
 
 func main(): int {
