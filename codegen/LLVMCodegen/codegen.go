@@ -1,7 +1,8 @@
 package LLVMCodegen
 
+import "C"
+
 import (
-	"C"
 	"fmt"
 	"os"
 	"os/exec"
@@ -21,7 +22,7 @@ type Codegen struct {
 	curFile *parser.File
 
 	builder llvm.Builder
-	lookup map[string]llvm.Value
+	lookup  map[string]llvm.Value
 
 	OutputName string
 }

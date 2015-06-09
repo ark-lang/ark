@@ -12,10 +12,13 @@ Due to the name change, we've migrated the subreddit from /r/alloy_lang to [/r/a
 * [Contributing](/CONTRIBUTING.md)
 * [Ark Style Guide](https://github.com/ark-lang/ark-docs/blob/master/STYLEGUIDE.md)
 
-## Installing
-Requires Go to be installed and $GOPATH setup.
+## Dependencies
+* Go installed and `$GOPATH` setup
+* svn
+* LLVM installed, with `llvm-config` and `llc` in your `$PATH`
+* a C++ compiler
 
-Building LLVM bindings (must be done first and may take a while):
+## Installing
 
     $ mkdir -p $GOPATH/src
     $ cd $GOPATH/src
@@ -23,12 +26,10 @@ Building LLVM bindings (must be done first and may take a while):
 Replace `RELEASE_360` with the version of LLVM you have installed. For example, version 3.6.1 becomes `RELEASE_361`. You can find out your version of llvm by running `llvm-config --version`.
 
     $ svn co https://llvm.org/svn/llvm-project/llvm/tags/RELEASE_360/final llvm.org/llvm
-    $ cd $GOPATH/src/llvm.org/llvm/bindings/go/
-    $ ./build.sh -DLLVM_TARGETS_TO_BUILD=host
-    $ go install llvm.org/llvm/bindings/go/llvm
-
-Building ark:
-
+    $ export CGO_CPPFLAGS="`llvm-config --cppflags`"
+    $ export CGO_LDFLAGS="`llvm-config --ldflags --libs --system-libs all`"
+    $ export CGO_CXXFLAGS=-std=c++11
+    $ go install -tags byollvm llvm.org/llvm/bindings/go/llvm
     $ go get github.com/ark-lang/ark
     $ go install github.com/ark-lang/ark
 

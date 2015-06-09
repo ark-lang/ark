@@ -10,6 +10,10 @@ const (
 )
 
 func (v *Function) MangledName(typ MangleType) string {
+	if v.Name == "main" {
+		return "main" // TODO make sure only one main function
+	}
+
 	switch typ {
 	case MANGLE_ARK_UNSTABLE:
 		result := fmt.Sprintf("_F_%d%s", len([]rune(v.Name)), v.Name)
