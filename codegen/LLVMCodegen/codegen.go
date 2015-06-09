@@ -557,9 +557,15 @@ func (v *Codegen) genCallExpr(n *parser.CallExpr) llvm.Value {
 }
 
 func (v *Codegen) genAccessExpr(n *parser.AccessExpr) llvm.Value {
-	var res llvm.Value
+	var load llvm.Value
 
-	return res
+	if len(n.StructVariables) > 0 {
+		panic("struct access unimplimented")
+	}
+
+	load = v.builder.CreateLoad(v.variableLookup[n.Variable], n.Variable.MangledName(parser.MANGLE_ARK_UNSTABLE))
+
+	return load
 }
 
 func (v *Codegen) genDerefExpr(n *parser.DerefExpr) llvm.Value {
