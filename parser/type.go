@@ -61,6 +61,15 @@ func (v PrimitiveType) IsFloatingType() bool {
 	}
 }
 
+func (v PrimitiveType) IsSigned() bool {
+	switch v {
+	case PRIMITIVE_i8, PRIMITIVE_i16, PRIMITIVE_i32, PRIMITIVE_i64, PRIMITIVE_i128, PRIMITIVE_int:
+		return true
+	default:
+		return false
+	}
+}
+
 func (v PrimitiveType) TypeName() string {
 	return v.String()[10:]
 }

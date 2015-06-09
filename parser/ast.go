@@ -539,7 +539,10 @@ func (v *CallExpr) String() string {
 	for _, arg := range v.Arguments {
 		result += " " + arg.String()
 	}
-	return result + " " + util.Green(v.GetType().TypeName()) + ")"
+	if v.GetType() != nil {
+		result += " " + util.Green(v.GetType().TypeName())
+	}
+	return result + ")"
 }
 
 func (v *CallExpr) GetType() Type {
