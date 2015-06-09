@@ -21,6 +21,7 @@ type Codegen struct {
 	curFile *parser.File
 
 	builder llvm.Builder
+	lookup map[string]llvm.Value
 
 	OutputName string
 }
@@ -88,6 +89,7 @@ func (v *Codegen) createBinary() {
 func (v *Codegen) Generate(input []*parser.File, verbose bool) {
 	v.input = input
 	v.builder = llvm.NewBuilder()
+	v.lookup = make(map[string]llvm.Value)
 
 	for _, infile := range input {
 		infile.Module = llvm.NewModule(infile.Name)
@@ -160,12 +162,10 @@ func (v *Codegen) genCallStat(n *parser.CallStat) llvm.Value {
 }
 
 func (v *Codegen) genAssignStat(n *parser.AssignStat) llvm.Value {
-	if n.Deref != nil {
-		v.genExpr(n.Deref)
-	} else {
-		v.genExpr(n.Access)
-	}
-	return v.genExpr(n.Assignment)
+
+	alloca := v.lookup[n.Access.Variable.MangledName(parser.MANGLE_ARK_UNSTABLE)]
+	store := v.builder.CreateStore(v.genExpr(n.Assignment), alloca)
+	return store
 }
 
 func (v *Codegen) genIfStat(n *parser.IfStat) llvm.Value {
@@ -212,7 +212,8 @@ func (v *Codegen) genDecl(n parser.Decl) llvm.Value {
 func (v *Codegen) genFunctionDecl(n *parser.FunctionDecl) llvm.Value {
 	var res llvm.Value
 
-	function := v.curFile.Module.NamedFunction(n.Function.Name)
+	mangledName := n.Function.MangledName(parser.MANGLE_ARK_UNSTABLE)
+	function := v.curFile.Module.NamedFunction(mangledName)
 	if !function.IsNil() {
 		v.err("function `%s` already exists in module", n.Function.Name)
 		return res
@@ -235,12 +236,12 @@ func (v *Codegen) genFunctionDecl(n *parser.FunctionDecl) llvm.Value {
 		funcType := llvm.FunctionType(funcTypeRaw, params, false)
 
 		// add that shit
-		function = llvm.AddFunction(v.curFile.Module, n.Function.Name, funcType)
+		function = llvm.AddFunction(v.curFile.Module, mangledName, funcType)
 
 		// do some magical shit for later
 		for i := 0; i < numOfParams; i++ {
 			funcParam := function.Param(i)
-			funcParam.SetName(n.Function.Parameters[i].Variable.Name)
+			funcParam.SetName(n.Function.Parameters[i].Variable.MangledName(parser.MANGLE_ARK_UNSTABLE))
 			// maybe store it in a hashmap somewhere?
 		}
 
@@ -275,7 +276,7 @@ func (v *Codegen) genStructDecl(n *parser.StructDecl) llvm.Value {
 	}
 
 	structure := llvm.StructType(fields, packed)
-	result := llvm.AddGlobal(v.curFile.Module, structure, n.Struct.Name)
+	result := llvm.AddGlobal(v.curFile.Module, structure, n.Struct.MangledName(parser.MANGLE_ARK_UNSTABLE))
 	return result
 }
 
@@ -284,7 +285,9 @@ func (v *Codegen) genVariableDecl(n *parser.VariableDecl, semicolon bool) llvm.V
 
 	// if n.Variable.Mutable
 
-	alloc := v.builder.CreateAlloca(typeToLLVMType(n.Variable.Type), n.Variable.Name)
+	mangledName := n.Variable.MangledName(parser.MANGLE_ARK_UNSTABLE)
+	alloc := v.builder.CreateAlloca(typeToLLVMType(n.Variable.Type), mangledName)
+	v.lookup[mangledName] = alloc
 
 	if n.Assignment != nil {
 		if value := v.genExpr(n.Assignment); !value.IsNil() {
@@ -413,7 +416,8 @@ func (v *Codegen) genCastExpr(n *parser.CastExpr) llvm.Value {
 }
 
 func (v *Codegen) genCallExpr(n *parser.CallExpr) llvm.Value {
-	function := v.curFile.Module.NamedFunction(n.Function.Name)
+	mangledName := n.Function.MangledName(parser.MANGLE_ARK_UNSTABLE)
+	function := v.curFile.Module.NamedFunction(mangledName)
 	if function.IsNil() {
 		v.err("function does not exist in current module")
 	}
