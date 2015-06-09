@@ -1,8 +1,7 @@
 package LLVMCodegen
 
-import "C"
-
 import (
+	"C"
 	"fmt"
 	"os"
 	"os/exec"
@@ -21,8 +20,8 @@ type Codegen struct {
 	input   []*parser.File
 	curFile *parser.File
 
-	builder llvm.Builder
-	lookup  map[string]llvm.Value
+	builder        llvm.Builder
+	variableLookup map[*parser.Variable]llvm.Value
 
 	OutputName string
 }
@@ -64,10 +63,12 @@ func (v *Codegen) bitcodeToASM(filename string) string {
 
 func (v *Codegen) createBinary() {
 	linkArgs := []string{}
+	asmFiles := []string{}
 
 	for _, file := range v.input {
 		name := v.createBitcode(file)
 		asmName := v.bitcodeToASM(name)
+		asmFiles = append(asmFiles, asmName)
 
 		if err := os.Remove(name); err != nil {
 			v.err("Failed to remove "+name+": `%s`", err.Error())
@@ -85,12 +86,16 @@ func (v *Codegen) createBinary() {
 	if err := cmd.Run(); err != nil {
 		v.err("failed to link object files: `%s`", err.Error())
 	}
+
+	for _, asmFile := range asmFiles {
+		os.Remove(asmFile)
+	}
 }
 
 func (v *Codegen) Generate(input []*parser.File, verbose bool) {
 	v.input = input
 	v.builder = llvm.NewBuilder()
-	v.lookup = make(map[string]llvm.Value)
+	v.variableLookup = make(map[*parser.Variable]llvm.Value)
 
 	for _, infile := range input {
 		infile.Module = llvm.NewModule(infile.Name)
@@ -164,7 +169,7 @@ func (v *Codegen) genCallStat(n *parser.CallStat) llvm.Value {
 
 func (v *Codegen) genAssignStat(n *parser.AssignStat) llvm.Value {
 
-	alloca := v.lookup[n.Access.Variable.MangledName(parser.MANGLE_ARK_UNSTABLE)]
+	alloca := v.variableLookup[n.Access.Variable]
 	store := v.builder.CreateStore(v.genExpr(n.Assignment), alloca)
 	return store
 }
@@ -194,8 +199,6 @@ func (v *Codegen) genLoopStat(n *parser.LoopStat) llvm.Value {
 }
 
 func (v *Codegen) genDecl(n parser.Decl) llvm.Value {
-	var res llvm.Value
-
 	switch n.(type) {
 	case *parser.FunctionDecl:
 		return v.genFunctionDecl(n.(*parser.FunctionDecl))
@@ -206,8 +209,6 @@ func (v *Codegen) genDecl(n parser.Decl) llvm.Value {
 	default:
 		panic("unimplimented decl")
 	}
-
-	return res
 }
 
 func (v *Codegen) genFunctionDecl(n *parser.FunctionDecl) llvm.Value {
@@ -262,8 +263,6 @@ func (v *Codegen) genFunctionDecl(n *parser.FunctionDecl) llvm.Value {
 
 		return function
 	}
-
-	return res
 }
 
 func (v *Codegen) genStructDecl(n *parser.StructDecl) llvm.Value {
@@ -288,7 +287,7 @@ func (v *Codegen) genVariableDecl(n *parser.VariableDecl, semicolon bool) llvm.V
 
 	mangledName := n.Variable.MangledName(parser.MANGLE_ARK_UNSTABLE)
 	alloc := v.builder.CreateAlloca(typeToLLVMType(n.Variable.Type), mangledName)
-	v.lookup[mangledName] = alloc
+	v.variableLookup[n.Variable] = alloc
 
 	if n.Assignment != nil {
 		if value := v.genExpr(n.Assignment); !value.IsNil() {
@@ -300,8 +299,6 @@ func (v *Codegen) genVariableDecl(n *parser.VariableDecl, semicolon bool) llvm.V
 }
 
 func (v *Codegen) genExpr(n parser.Expr) llvm.Value {
-	var res llvm.Value
-
 	switch n.(type) {
 	case *parser.RuneLiteral:
 		return v.genRuneLiteral(n.(*parser.RuneLiteral))
@@ -328,8 +325,6 @@ func (v *Codegen) genExpr(n parser.Expr) llvm.Value {
 	default:
 		panic("unimplemented expr")
 	}
-
-	return res
 }
 
 func (v *Codegen) genRuneLiteral(n *parser.RuneLiteral) llvm.Value {
@@ -370,38 +365,133 @@ func (v *Codegen) genBinaryExpr(n *parser.BinaryExpr) llvm.Value {
 	if lhand.IsNil() || rhand.IsNil() {
 		v.err("invalid binary expr")
 	} else {
-		floating := n.Lhand.GetType().IsFloatingType() || n.Rhand.GetType().IsFloatingType()
-
 		switch n.Op {
+		// Arithmetic
 		case parser.BINOP_ADD:
-			if floating {
+			if n.GetType().IsFloatingType() {
 				return v.builder.CreateFAdd(lhand, rhand, "tmp")
 			} else {
 				return v.builder.CreateAdd(lhand, rhand, "tmp")
 			}
 		case parser.BINOP_SUB:
-			if floating {
+			if n.GetType().IsFloatingType() {
 				return v.builder.CreateFSub(lhand, rhand, "tmp")
 			} else {
 				return v.builder.CreateSub(lhand, rhand, "tmp")
 			}
 		case parser.BINOP_MUL:
-			if floating {
+			if n.GetType().IsFloatingType() {
 				return v.builder.CreateFMul(lhand, rhand, "tmp")
 			} else {
 				return v.builder.CreateMul(lhand, rhand, "tmp")
 			}
 		case parser.BINOP_DIV:
-			if floating {
+			if n.GetType().IsFloatingType() {
 				return v.builder.CreateFDiv(lhand, rhand, "tmp")
 			} else {
-				//? ??
-				return v.builder.CreateUDiv(lhand, rhand, "tmp")
+				if n.GetType().(parser.PrimitiveType).IsSigned() {
+					return v.builder.CreateSDiv(lhand, rhand, "tmp")
+				} else {
+					return v.builder.CreateUDiv(lhand, rhand, "tmp")
+				}
 			}
+		case parser.BINOP_MOD:
+			if n.GetType().IsFloatingType() {
+				return v.builder.CreateFRem(lhand, rhand, "tmp")
+			} else {
+				if n.GetType().(parser.PrimitiveType).IsSigned() {
+					return v.builder.CreateSRem(lhand, rhand, "tmp")
+				} else {
+					return v.builder.CreateURem(lhand, rhand, "tmp")
+				}
+			}
+
+		// Comparison
+		case parser.BINOP_GREATER, parser.BINOP_LESS, parser.BINOP_GREATER_EQ, parser.BINOP_LESS_EQ, parser.BINOP_EQ, parser.BINOP_NOT_EQ:
+			if n.GetType().IsFloatingType() {
+				return v.builder.CreateFCmp(comparisonOpToFloatPredicate(n.Op), lhand, rhand, "tmp")
+			} else {
+				return v.builder.CreateICmp(comparisonOpToIntPredicate(n.Op, n.Lhand.GetType().(parser.PrimitiveType).IsSigned()), lhand, rhand, "tmp")
+			}
+
+		// Bitwise
+		case parser.BINOP_BIT_AND:
+			return v.builder.CreateAnd(lhand, rhand, "tmp")
+		case parser.BINOP_BIT_OR:
+			return v.builder.CreateOr(lhand, rhand, "tmp")
+		case parser.BINOP_BIT_XOR:
+			return v.builder.CreateXor(lhand, rhand, "tmp")
+		case parser.BINOP_BIT_LEFT:
+			return v.builder.CreateShl(lhand, rhand, "tmp")
+		case parser.BINOP_BIT_RIGHT:
+			// TODO make sure both operands are same type (create type cast here?)
+			// TODO in semantic.go, make sure rhand is *unsigned* (LLVM always treats it that way)
+			// TODO logical shift right?
+			return v.builder.CreateAShr(lhand, rhand, "tmp")
+
+		// Logical
+		case parser.BINOP_LOG_AND:
+			return v.builder.CreateAnd(lhand, rhand, "tmp")
+		case parser.BINOP_LOG_OR:
+			return v.builder.CreateOr(lhand, rhand, "tmp")
+
+		default:
+			panic("umimplented binop")
 		}
 	}
 
 	return res
+}
+
+func comparisonOpToIntPredicate(op parser.BinOpType, signed bool) llvm.IntPredicate {
+	switch op {
+	case parser.BINOP_GREATER:
+		if signed {
+			return llvm.IntSGT
+		}
+		return llvm.IntUGT
+	case parser.BINOP_LESS:
+		if signed {
+			return llvm.IntSLT
+		}
+		return llvm.IntULT
+	case parser.BINOP_GREATER_EQ:
+		if signed {
+			return llvm.IntSGE
+		}
+		return llvm.IntUGE
+	case parser.BINOP_LESS_EQ:
+		if signed {
+			return llvm.IntSLE
+		}
+		return llvm.IntULE
+	case parser.BINOP_EQ:
+		return llvm.IntEQ
+	case parser.BINOP_NOT_EQ:
+		return llvm.IntNE
+	default:
+		panic("shouln't get this")
+	}
+}
+
+func comparisonOpToFloatPredicate(op parser.BinOpType) llvm.FloatPredicate {
+	// TODO add stuff to docs about handling of QNAN
+	switch op {
+	case parser.BINOP_GREATER:
+		return llvm.FloatOGT
+	case parser.BINOP_LESS:
+		return llvm.FloatOLT
+	case parser.BINOP_GREATER_EQ:
+		return llvm.FloatOGE
+	case parser.BINOP_LESS_EQ:
+		return llvm.FloatOLE
+	case parser.BINOP_EQ:
+		return llvm.FloatOEQ
+	case parser.BINOP_NOT_EQ:
+		return llvm.FloatONE
+	default:
+		panic("shouln't get this")
+	}
 }
 
 func (v *Codegen) genUnaryExpr(n *parser.UnaryExpr) llvm.Value {

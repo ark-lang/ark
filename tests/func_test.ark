@@ -9,6 +9,9 @@ func this_is_void(swag: int) {
 func main(): int {
     x: int = 5;
     z: int = add(5, 10);
-    y: int = 19 + 1;
-    return 5;
+    y: int = 19 - 25;
+
+    this_is_void(5);
+
+    return 12 % 5;
 }
