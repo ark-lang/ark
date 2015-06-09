@@ -1,0 +1,9 @@
+// this is a bit of a hacky **temporary** syntax!!
+
+// really hacky, just hack in some attributes so
+// we can say that the function is extern, variadic,
+// a prototype and a c binding
+[extern, variadic, prototype, C]
+func printf(fmt: str): int {
+
+}
