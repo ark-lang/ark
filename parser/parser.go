@@ -437,6 +437,11 @@ func (v *parser) parseReturnStat() *ReturnStat {
 
 	v.consumeToken()
 
+	/*if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ";") {
+		v.consumeToken()
+		return &ReturnStat{}
+	}*/
+
 	expr := v.parseExpr()
 	if expr == nil {
 		v.err("Expected expression in return statement, found `%s`", v.peek(0).Contents)
