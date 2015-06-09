@@ -390,71 +390,71 @@ func (v *Codegen) genBinaryExpr(n *parser.BinaryExpr) llvm.Value {
 		// Arithmetic
 		case parser.BINOP_ADD:
 			if n.GetType().IsFloatingType() {
-				return v.builder.CreateFAdd(lhand, rhand, "tmp")
+				return v.builder.CreateFAdd(lhand, rhand, "")
 			} else {
-				return v.builder.CreateAdd(lhand, rhand, "tmp")
+				return v.builder.CreateAdd(lhand, rhand, "")
 			}
 		case parser.BINOP_SUB:
 			if n.GetType().IsFloatingType() {
-				return v.builder.CreateFSub(lhand, rhand, "tmp")
+				return v.builder.CreateFSub(lhand, rhand, "")
 			} else {
-				return v.builder.CreateSub(lhand, rhand, "tmp")
+				return v.builder.CreateSub(lhand, rhand, "")
 			}
 		case parser.BINOP_MUL:
 			if n.GetType().IsFloatingType() {
-				return v.builder.CreateFMul(lhand, rhand, "tmp")
+				return v.builder.CreateFMul(lhand, rhand, "")
 			} else {
-				return v.builder.CreateMul(lhand, rhand, "tmp")
+				return v.builder.CreateMul(lhand, rhand, "")
 			}
 		case parser.BINOP_DIV:
 			if n.GetType().IsFloatingType() {
-				return v.builder.CreateFDiv(lhand, rhand, "tmp")
+				return v.builder.CreateFDiv(lhand, rhand, "")
 			} else {
 				if n.GetType().(parser.PrimitiveType).IsSigned() {
-					return v.builder.CreateSDiv(lhand, rhand, "tmp")
+					return v.builder.CreateSDiv(lhand, rhand, "")
 				} else {
-					return v.builder.CreateUDiv(lhand, rhand, "tmp")
+					return v.builder.CreateUDiv(lhand, rhand, "")
 				}
 			}
 		case parser.BINOP_MOD:
 			if n.GetType().IsFloatingType() {
-				return v.builder.CreateFRem(lhand, rhand, "tmp")
+				return v.builder.CreateFRem(lhand, rhand, "")
 			} else {
 				if n.GetType().(parser.PrimitiveType).IsSigned() {
-					return v.builder.CreateSRem(lhand, rhand, "tmp")
+					return v.builder.CreateSRem(lhand, rhand, "")
 				} else {
-					return v.builder.CreateURem(lhand, rhand, "tmp")
+					return v.builder.CreateURem(lhand, rhand, "")
 				}
 			}
 
 		// Comparison
 		case parser.BINOP_GREATER, parser.BINOP_LESS, parser.BINOP_GREATER_EQ, parser.BINOP_LESS_EQ, parser.BINOP_EQ, parser.BINOP_NOT_EQ:
 			if n.GetType().IsFloatingType() {
-				return v.builder.CreateFCmp(comparisonOpToFloatPredicate(n.Op), lhand, rhand, "tmp")
+				return v.builder.CreateFCmp(comparisonOpToFloatPredicate(n.Op), lhand, rhand, "")
 			} else {
-				return v.builder.CreateICmp(comparisonOpToIntPredicate(n.Op, n.Lhand.GetType().IsSigned()), lhand, rhand, "tmp")
+				return v.builder.CreateICmp(comparisonOpToIntPredicate(n.Op, n.Lhand.GetType().IsSigned()), lhand, rhand, "")
 			}
 
 		// Bitwise
 		case parser.BINOP_BIT_AND:
-			return v.builder.CreateAnd(lhand, rhand, "tmp")
+			return v.builder.CreateAnd(lhand, rhand, "")
 		case parser.BINOP_BIT_OR:
-			return v.builder.CreateOr(lhand, rhand, "tmp")
+			return v.builder.CreateOr(lhand, rhand, "")
 		case parser.BINOP_BIT_XOR:
-			return v.builder.CreateXor(lhand, rhand, "tmp")
+			return v.builder.CreateXor(lhand, rhand, "")
 		case parser.BINOP_BIT_LEFT:
-			return v.builder.CreateShl(lhand, rhand, "tmp")
+			return v.builder.CreateShl(lhand, rhand, "")
 		case parser.BINOP_BIT_RIGHT:
 			// TODO make sure both operands are same type (create type cast here?)
 			// TODO in semantic.go, make sure rhand is *unsigned* (LLVM always treats it that way)
 			// TODO logical shift right?
-			return v.builder.CreateAShr(lhand, rhand, "tmp")
+			return v.builder.CreateAShr(lhand, rhand, "")
 
 		// Logical
 		case parser.BINOP_LOG_AND:
-			return v.builder.CreateAnd(lhand, rhand, "tmp")
+			return v.builder.CreateAnd(lhand, rhand, "")
 		case parser.BINOP_LOG_OR:
-			return v.builder.CreateOr(lhand, rhand, "tmp")
+			return v.builder.CreateOr(lhand, rhand, "")
 
 		default:
 			panic("umimplented binop")
@@ -520,9 +520,9 @@ func (v *Codegen) genUnaryExpr(n *parser.UnaryExpr) llvm.Value {
 
 	switch n.Op {
 	case parser.UNOP_BIT_NOT, parser.UNOP_LOG_NOT:
-		return v.builder.CreateNot(expr, "tmp")
+		return v.builder.CreateNot(expr, "")
 	case parser.UNOP_NEGATIVE:
-		return v.builder.CreateNeg(expr, "tmp")
+		return v.builder.CreateNeg(expr, "")
 	case parser.UNOP_ADDRESS:
 		panic("hmmm")
 	default:
