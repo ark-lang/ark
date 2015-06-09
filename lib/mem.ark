@@ -1,14 +1,11 @@
-# standard library for memory allocation
+// !use "std"
 
-!use "std"
+struct Block {
 
-struct Block {}
+}
 
 impl Block {
 
-    # allocates memory on the heap
-    # returns a pointer to the address
-    # where the memory was allocated
     static func new(size: usize): ^void? {
         data: ^void = malloc(size);
         if !data {
@@ -18,10 +15,6 @@ impl Block {
         return Some(data);
     }
 
-    # deletes the given memory on the heap
-    # returns true if it successfully deleted
-    # the given memory, otherwise will return
-    # false on failure
     static func delete(data: ^void): bool {
         result: int = free(data);
         if !result {
