@@ -72,7 +72,7 @@ section.doc {
 	display: block;
 	width: 100%;
 	background: #546E7A;
-	padding: 6rem;
+	padding: 2rem;
 	color: #fff;
 }
 
@@ -95,6 +95,10 @@ pre, code {
 
 a {
 	text-decoration: none;
+}
+
+.declname {
+	margin-top: 1em;
 }
 
 .doccomment {
