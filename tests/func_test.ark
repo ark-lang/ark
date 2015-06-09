@@ -15,5 +15,19 @@ func main(): int {
 
     this_is_void(5);
 
+    if 1 == 1 {
+        if 5 == 5 {
+            second1 := 0;
+        } else {
+            second2 := 1;
+        }
+    } else if 1 == 0 {
+        duh2: int = 6;
+    } else if 1 == 6 {
+        duh3: int = 7;
+    } else {
+        duh4: int = 8;
+    }
+
     return -42;
 }

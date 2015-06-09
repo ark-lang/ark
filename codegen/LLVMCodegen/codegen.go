@@ -24,6 +24,9 @@ type Codegen struct {
 	variableLookup map[*parser.Variable]llvm.Value
 
 	OutputName string
+
+	inFunction      bool
+	currentFunction llvm.Value
 }
 
 func (v *Codegen) err(err string, stuff ...interface{}) {
@@ -121,33 +124,29 @@ func (v *Codegen) Generate(input []*parser.File, verbose bool) {
 	}
 }
 
-func (v *Codegen) genNode(n parser.Node) llvm.Value {
-	var res llvm.Value
-
+func (v *Codegen) genNode(n parser.Node) {
 	switch n.(type) {
 	case parser.Decl:
-		return v.genDecl(n.(parser.Decl))
+		v.genDecl(n.(parser.Decl))
 	case parser.Expr:
-		return v.genExpr(n.(parser.Expr))
+		v.genExpr(n.(parser.Expr))
 	case parser.Stat:
-		return v.genStat(n.(parser.Stat))
+		v.genStat(n.(parser.Stat))
 	}
-
-	return res
 }
 
-func (v *Codegen) genStat(n parser.Stat) llvm.Value {
+func (v *Codegen) genStat(n parser.Stat) {
 	switch n.(type) {
 	case *parser.ReturnStat:
-		return v.genReturnStat(n.(*parser.ReturnStat))
+		v.genReturnStat(n.(*parser.ReturnStat))
 	case *parser.CallStat:
-		return v.genCallStat(n.(*parser.CallStat))
+		v.genCallStat(n.(*parser.CallStat))
 	case *parser.AssignStat:
-		return v.genAssignStat(n.(*parser.AssignStat))
+		v.genAssignStat(n.(*parser.AssignStat))
 	case *parser.IfStat:
-		return v.genIfStat(n.(*parser.IfStat))
+		v.genIfStat(n.(*parser.IfStat))
 	case *parser.LoopStat:
-		return v.genLoopStat(n.(*parser.LoopStat))
+		v.genLoopStat(n.(*parser.LoopStat))
 	default:
 		panic("unimplimented stat")
 	}
@@ -174,14 +173,44 @@ func (v *Codegen) genAssignStat(n *parser.AssignStat) llvm.Value {
 	return store
 }
 
-func (v *Codegen) genIfStat(n *parser.IfStat) llvm.Value {
-	var res llvm.Value
-
-	for _, expr := range n.Exprs {
-		v.genExpr(expr)
+func (v *Codegen) genIfStat(n *parser.IfStat) {
+	if !v.inFunction {
+		panic("tried to gen if stat not in function")
 	}
 
-	return res
+	end := llvm.AddBasicBlock(v.currentFunction, "")
+	//var lastIfFalse llvm.BasicBlock
+
+	for i, expr := range n.Exprs {
+		cond := v.genExpr(expr)
+
+		ifTrue := llvm.AddBasicBlock(v.currentFunction, "")
+		ifFalse := llvm.AddBasicBlock(v.currentFunction, "")
+
+		v.builder.CreateCondBr(cond, ifTrue, ifFalse)
+
+		v.builder.SetInsertPointAtEnd(ifTrue)
+		for _, node := range n.Bodies[i].Nodes {
+			v.genNode(node)
+		}
+
+		v.builder.CreateBr(end)
+
+		v.builder.SetInsertPointAtEnd(ifFalse)
+		end.MoveAfter(ifFalse)
+
+		//lastIfFalse = ifFalse
+	}
+
+	if n.Else != nil {
+		for _, node := range n.Else.Nodes {
+			v.genNode(node)
+		}
+	}
+
+	v.builder.CreateBr(end)
+
+	v.builder.SetInsertPointAtEnd(end)
 }
 
 func (v *Codegen) genLoopStat(n *parser.LoopStat) llvm.Value {
@@ -250,16 +279,17 @@ func (v *Codegen) genFunctionDecl(n *parser.FunctionDecl) llvm.Value {
 		block := llvm.AddBasicBlock(function, "entry")
 		v.builder.SetInsertPointAtEnd(block)
 
+		v.inFunction = true
+		v.currentFunction = function
 		for _, stat := range n.Function.Body.Nodes {
 			v.genNode(stat)
 		}
+		v.inFunction = false
 
 		// function returns void, lets return void...
 		if funcTypeRaw == llvm.VoidType() {
 			v.builder.CreateRetVoid()
 		}
-
-		// loop thru block and gen statements
 
 		return function
 	}
