@@ -305,7 +305,7 @@ func (v *BinaryExpr) analyze(s *semanticAnalyzer) {
 			case OP_COMPARISON:
 				v.Type = PRIMITIVE_bool
 			default:
-				panic("shouldn't happenen ever")
+				panic("shouldn't happen ever, one of the devs really fucked up, sorry!")
 			}
 		}
 
