@@ -500,6 +500,8 @@ func (v *Codegen) genUnaryExpr(n *parser.UnaryExpr) llvm.Value {
 	switch n.Op {
 	case parser.UNOP_BIT_NOT, parser.UNOP_LOG_NOT:
 		return v.builder.CreateNot(expr, "tmp")
+	case parser.UNOP_NEGATIVE:
+		return v.builder.CreateNeg(expr, "tmp")
 	case parser.UNOP_ADDRESS:
 		panic("hmmm")
 	default:

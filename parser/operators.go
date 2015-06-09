@@ -122,6 +122,8 @@ const (
 
 	UNOP_BIT_NOT
 
+	UNOP_NEGATIVE
+
 	UNOP_ADDRESS
 )
 
@@ -135,6 +137,9 @@ func stringToUnOpType(s string) UnOpType {
 
 	case "&":
 		return UNOP_ADDRESS
+
+	case "-":
+		return UNOP_NEGATIVE
 
 	default:
 		return UNOP_ERR
@@ -151,6 +156,9 @@ func (v UnOpType) OpString() string {
 
 	case UNOP_ADDRESS:
 		return "&"
+
+	case UNOP_NEGATIVE:
+		return "-"
 
 	default:
 		return "ERR"

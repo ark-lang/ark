@@ -260,6 +260,12 @@ func (v *UnaryExpr) analyze(s *semanticAnalyzer) {
 		} else {
 			s.err(v, "Used bitwise not on non-numeric type")
 		}
+	case UNOP_NEGATIVE:
+		if v.Expr.GetType().IsIntegerType() || v.Expr.GetType().IsFloatingType() {
+			v.Type = v.Expr.GetType()
+		} else {
+			s.err(v, "Used negative on non-numeric type")
+		}
 	case UNOP_ADDRESS:
 		if _, ok := v.Expr.(*AccessExpr); !ok {
 			s.err(v, "Cannot take address of non-variable")
@@ -274,7 +280,7 @@ func (v *UnaryExpr) setTypeHint(t Type) {
 	switch v.Op {
 	case UNOP_LOG_NOT:
 		v.Expr.setTypeHint(PRIMITIVE_bool)
-	case UNOP_BIT_NOT:
+	case UNOP_BIT_NOT, UNOP_NEGATIVE:
 		v.Expr.setTypeHint(t)
 	case UNOP_ADDRESS:
 	default:
