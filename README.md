@@ -20,12 +20,9 @@ Due to the name change, we've migrated the subreddit from /r/alloy_lang to [/r/a
 
 ## Installing
 
-    $ mkdir -p $GOPATH/src
-    $ cd $GOPATH/src
-
 Replace `RELEASE_360` with the version of LLVM you have installed. For example, version 3.6.1 becomes `RELEASE_361`. You can find out your version of llvm by running `llvm-config --version`.
 
-    $ svn co https://llvm.org/svn/llvm-project/llvm/tags/RELEASE_360/final llvm.org/llvm
+    $ svn co https://llvm.org/svn/llvm-project/llvm/tags/RELEASE_360/final $GOPATH/src/llvm.org/llvm
     $ export CGO_CPPFLAGS="`llvm-config --cppflags`"
     $ export CGO_LDFLAGS="`llvm-config --ldflags --libs --system-libs all`"
     $ export CGO_CXXFLAGS=-std=c++11
