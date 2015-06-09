@@ -328,8 +328,7 @@ func (v *Codegen) genExpr(n parser.Expr) llvm.Value {
 }
 
 func (v *Codegen) genRuneLiteral(n *parser.RuneLiteral) llvm.Value {
-	var res llvm.Value
-	return res
+	return llvm.ConstInt(typeToLLVMType(n.GetType()), uint64(n.Value), true)
 }
 
 func (v *Codegen) genIntegerLiteral(n *parser.IntegerLiteral) llvm.Value {
@@ -337,9 +336,7 @@ func (v *Codegen) genIntegerLiteral(n *parser.IntegerLiteral) llvm.Value {
 }
 
 func (v *Codegen) genFloatingLiteral(n *parser.FloatingLiteral) llvm.Value {
-	var res llvm.Value
-
-	return res
+	return llvm.ConstFloat(typeToLLVMType(n.Type), n.Value)
 }
 
 func (v *Codegen) genStringLiteral(n *parser.StringLiteral) llvm.Value {
