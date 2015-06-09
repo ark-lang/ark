@@ -7,5 +7,5 @@ struct Test {
 }
 
 func main(): int {
-
+    return 0;
 }
