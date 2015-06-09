@@ -236,8 +236,13 @@ type ReturnStat struct {
 func (v *ReturnStat) statNode() {}
 
 func (v *ReturnStat) String() string {
-	return "(" + util.Blue("ReturnStat") + ": " +
-		v.Value.String() + ")"
+	ret := "(" + util.Blue("ReturnStat") + ": "
+	if v.Value == nil {
+		ret += "void"
+	} else {
+		ret += v.Value.String()
+	}
+	return ret + ")"
 }
 
 func (v *ReturnStat) NodeName() string {
