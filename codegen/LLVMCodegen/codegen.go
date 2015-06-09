@@ -21,6 +21,7 @@ type Codegen struct {
 	curFile *parser.File
 
 	builder llvm.Builder
+	lookup map[string]llvm.Value
 
 	OutputName string
 }
@@ -83,6 +84,7 @@ func (v *Codegen) createBinary(files []string) {
 func (v *Codegen) Generate(input []*parser.File, verbose bool) {
 	v.input = input
 	v.builder = llvm.NewBuilder()
+	v.lookup = make(map[string]llvm.Value)
 
 	for _, infile := range input {
 		infile.Module = llvm.NewModule(infile.Name)
@@ -154,12 +156,10 @@ func (v *Codegen) genCallStat(n *parser.CallStat) llvm.Value {
 }
 
 func (v *Codegen) genAssignStat(n *parser.AssignStat) llvm.Value {
-	if n.Deref != nil {
-		v.genExpr(n.Deref)
-	} else {
-		v.genExpr(n.Access)
-	}
-	return v.genExpr(n.Assignment)
+
+	alloca := v.lookup[n.Access.Variable.MangledName(parser.MANGLE_ARK_UNSTABLE)]
+	store := v.builder.CreateStore(v.genExpr(n.Assignment), alloca)
+	return store
 }
 
 func (v *Codegen) genIfStat(n *parser.IfStat) llvm.Value {
@@ -279,6 +279,7 @@ func (v *Codegen) genVariableDecl(n *parser.VariableDecl, semicolon bool) llvm.V
 	// if n.Variable.Mutable
 
 	alloc := v.builder.CreateAlloca(typeToLLVMType(n.Variable.Type), n.Variable.Name)
+	v.lookup[n.Variable.MangledName(parser.MANGLE_ARK_UNSTABLE)] = alloc
 
 	if n.Assignment != nil {
 		if value := v.genExpr(n.Assignment); !value.IsNil() {

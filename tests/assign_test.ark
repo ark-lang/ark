@@ -1,0 +1,4 @@
+func main(): int {
+    mut x: int = 5;
+    x = 10;
+}
