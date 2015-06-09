@@ -411,7 +411,7 @@ func (v *Codegen) genBinaryExpr(n *parser.BinaryExpr) llvm.Value {
 			if n.GetType().IsFloatingType() {
 				return v.builder.CreateFCmp(comparisonOpToFloatPredicate(n.Op), lhand, rhand, "tmp")
 			} else {
-				return v.builder.CreateICmp(comparisonOpToIntPredicate(n.Op, n.Lhand.GetType().(parser.PrimitiveType).IsSigned()), lhand, rhand, "tmp")
+				return v.builder.CreateICmp(comparisonOpToIntPredicate(n.Op, n.Lhand.GetType().IsSigned()), lhand, rhand, "tmp")
 			}
 
 		// Bitwise
