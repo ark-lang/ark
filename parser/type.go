@@ -8,6 +8,7 @@ type Type interface {
 	LevelsOfIndirection() int // number of pointers you have to go through to get to the actual type
 	IsIntegerType() bool
 	IsFloatingType() bool
+	IsSigned() bool
 	CanCastTo(Type) bool
 	Attrs() []*Attr
 }
@@ -119,6 +120,10 @@ func (v *StructType) RawType() Type {
 	return v
 }
 
+func (v *StructType) IsSigned() bool {
+	return false
+}
+
 func (v *StructType) LevelsOfIndirection() int {
 	return 0
 }
@@ -193,4 +198,8 @@ func (v PointerType) CanCastTo(t Type) bool {
 
 func (v PointerType) Attrs() []*Attr {
 	return nil
+}
+
+func (v PointerType) IsSigned() bool {
+	return false
 }
