@@ -1,7 +1,7 @@
-<h1 align="center">Ark</h1>
+<h1 align="center">Ark Programming Language</h1>
 
 ## Important Notice!!
-We've ported to **Go**. We've still got the original C code, which you can find [here](https://github.com/ark-lang/ark-c).
+We've ported to *Go*. We've still got the original C code, which you can find [here](https://github.com/ark-lang/ark-c).
 
 Due to the name change, we've migrated the subreddit from /r/alloy_lang to [/r/ark_lang](http://www.reddit.com/r/ark_lang), go subscribe! Finally, our IRC channel has moved from #alloy-lang to [#ark-lang](https://webchat.freenode.net/?channels=%23ark-lang) on freenode.
 
@@ -14,7 +14,7 @@ Due to the name change, we've migrated the subreddit from /r/alloy_lang to [/r/a
 
 ## Dependencies
 * Go installed and `$GOPATH` setup
-* svn
+* subversion
 * LLVM installed, with `llvm-config` and `llc` in your `$PATH`
 * a C++ compiler
 
@@ -51,16 +51,12 @@ ark docgen tests/big_test.ark --dir some_output_dir
 If the `--dir` option is not specified, the generated documentation will be placed in `docgen`.
 
 ## `make gen` and `make fmt`
-The targets `gen` and `fmt` are included for the convenience of the developers. They runs `go generate` on all the modules in ark.
+The targets `gen` and `fmt` are included for the convenience of the developers. They run `go generate` and `go fmt` respectively on all the modules in Ark. Please run `make fmt` before creating a pull request.
 
 ### Testing
-If Ark is in your `$PATH`:
+Requires `$GOPATH/bin` to be in your `$PATH`.
 
     $ ./test.py
-
-If Ark is not in your `$PATH`:
-
-    $ PATH=$PATH:"./bin/" ./test.py
 
 ## License
 Ark is licensed under the [MIT License](/LICENSE).
