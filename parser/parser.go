@@ -437,10 +437,10 @@ func (v *parser) parseReturnStat() *ReturnStat {
 
 	v.consumeToken()
 
-	/*if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ";") {
+	if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ";") {
 		v.consumeToken()
 		return &ReturnStat{}
-	}*/
+	}
 
 	expr := v.parseExpr()
 	if expr == nil {
