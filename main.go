@@ -88,7 +88,7 @@ func build(input []string, output string) {
 			gen = &arkcodegen.Codegen{}
 		case "llvm":
 			gen = &LLVMCodegen.Codegen{
-				OutputName: "out",
+				OutputName: output,
 			}
 		default:
 			panic("whoops")

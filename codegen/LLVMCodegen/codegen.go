@@ -31,52 +31,57 @@ func (v *Codegen) err(err string, stuff ...interface{}) {
 	os.Exit(2)
 }
 
-func (v *Codegen) createBitcode() (string, bool) {
-	filename := v.curFile.Name + ".bc"
-	if err := llvm.VerifyModule(v.curFile.Module, llvm.ReturnStatusAction); err != nil {
-		fmt.Println(err)
-		return "", true
+func (v *Codegen) createBitcode(file *parser.File) string {
+	filename := file.Name + ".bc"
+	if err := llvm.VerifyModule(file.Module, llvm.ReturnStatusAction); err != nil {
+		v.err(err.Error())
 	}
 
 	fileHandle, err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
 	if err != nil {
-		v.err("Couldn't create bitcode file `%s`"+err.Error(), filename)
+		v.err("Couldn't create bitcode file "+filename+": `%s`", err.Error())
 	}
 	defer fileHandle.Close()
 
-	if res := llvm.WriteBitcodeToFile(v.curFile.Module, fileHandle); res != nil {
-		v.err("failed to write bitcode to file for " + v.curFile.Name)
+	if err := llvm.WriteBitcodeToFile(file.Module, fileHandle); err != nil {
+		v.err("failed to write bitcode to file for "+file.Name+": `%s`", err.Error())
 	}
 
-	return filename, false
+	return filename
 }
 
-func (v *Codegen) bitcodeToASM(filename string) (string, bool) {
+func (v *Codegen) bitcodeToASM(filename string) string {
 	asmName := filename + ".s"
-	toAsmCommand := filename + " -o " + asmName
-
-	if cmd := exec.Command("llc", toAsmCommand); cmd != nil {
-		v.err("failed to convert bitcode to assembly")
-		return "", true
+	cmd := exec.Command("llc", filename, "-o", filename+".s")
+	if out, err := cmd.CombinedOutput(); err != nil {
+		v.err("Failed to convert bitcode to assembly: `%s`\n%s", err.Error(), string(out))
 	}
 
-	if cmd := exec.Command("rm", filename); cmd != nil {
-		v.err("failed to remove " + filename)
-		return "", true
-	}
-
-	return asmName, false
+	return asmName
 }
 
-func (v *Codegen) createBinary(files []string) {
-	link := "cc "
-	for _, asmFile := range files {
-		link += asmFile + " "
-	}
-	link += " -o main.out"
+func (v *Codegen) createBinary() {
+	linkArgs := []string{}
 
-	if cmd := exec.Command(link); cmd != nil {
-		v.err("failed to link object files")
+	for _, file := range v.input {
+		name := v.createBitcode(file)
+		asmName := v.bitcodeToASM(name)
+
+		if err := os.Remove(name); err != nil {
+			v.err("Failed to remove "+name+": `%s`", err.Error())
+		}
+
+		linkArgs = append(linkArgs, asmName)
+	}
+
+	if v.OutputName == "" {
+		panic("OutputName is empty")
+	}
+	linkArgs = append(linkArgs, "-o", v.OutputName)
+
+	cmd := exec.Command("cc", linkArgs...)
+	if err := cmd.Run(); err != nil {
+		v.err("failed to link object files: `%s`", err.Error())
 	}
 }
 
@@ -97,13 +102,14 @@ func (v *Codegen) Generate(input []*parser.File, verbose bool) {
 			v.genNode(node)
 		}
 
+		infile.Module.Dump()
+		v.createBinary()
+
 		dur := time.Since(t)
 		if verbose {
 			fmt.Printf(util.TEXT_BOLD+util.TEXT_GREEN+"Finished codegenning"+util.TEXT_RESET+" %s (%.2fms)\n",
 				infile.Name, float32(dur.Nanoseconds())/1000000)
 		}
-
-		infile.Module.Dump()
 	}
 }
 
