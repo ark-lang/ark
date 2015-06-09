@@ -57,7 +57,7 @@ const FILE_TEMPLATE_STR = `<!DOCTYPE html>
 <html lang="en">
     <head>
 		<meta charset="UTF-8" />
-        <title>Doctype Index</title>
+        <title>{{.Name}}</title>
 
 		<link href='http://fonts.googleapis.com/css?family=Fira+Sans:300,400,500,700|Fira+Mono|Source+Serif+Pro:400,700' rel='stylesheet' type='text/css'>
 		<link rel="stylesheet" type="text/css" href="{{.RootLoc}}style.css" />
@@ -84,7 +84,7 @@ const FILE_TEMPLATE_STR = `<!DOCTYPE html>
 			<section class="doc">
 				<h2>Variables</h2>
 					{{range .VariableDecls}}
-					<h3 id="{{.Ident}}">{{.Ident}}</h3>
+					<h3 class="declname" id="{{.Ident}}">{{.Ident}}</h3>
 					<pre class="snippet"><code>{{.Snippet}}</code></pre>
 					<div class="doccomment">{{.ParsedDocs}}</div>
 				{{end}}
@@ -93,7 +93,7 @@ const FILE_TEMPLATE_STR = `<!DOCTYPE html>
 			<section class="doc">
 				<h2>Structs</h2>
 					{{range .StructDecls}}
-					<h3 id="{{.Ident}}">{{.Ident}}</h3>
+					<h3 class="declname" id="{{.Ident}}">{{.Ident}}</h3>
 					<pre class="snippet"><code>{{.Snippet}}</code></pre>
 					<div class="doccomment">{{.ParsedDocs}}</div>
 				{{end}}
@@ -102,7 +102,7 @@ const FILE_TEMPLATE_STR = `<!DOCTYPE html>
 			<section class="doc">
 				<h2>Functions</h2>
 					{{range .FunctionDecls}}
-					<h3 id="{{.Ident}}">{{.Ident}}</h3>
+					<h3 class="declname" id="{{.Ident}}">{{.Ident}}</h3>
 					<pre class="snippet"><code>{{.Snippet}}</code></pre>
 					<div class="doccomment">{{.ParsedDocs}}</div>
 				{{end}}
