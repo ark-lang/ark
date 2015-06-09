@@ -13,5 +13,5 @@ func main(): int {
 
     this_is_void(5);
 
-    return 12 % 5;
+    return ~42;
 }

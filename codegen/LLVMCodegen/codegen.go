@@ -495,9 +495,16 @@ func comparisonOpToFloatPredicate(op parser.BinOpType) llvm.FloatPredicate {
 }
 
 func (v *Codegen) genUnaryExpr(n *parser.UnaryExpr) llvm.Value {
-	var res llvm.Value
+	expr := v.genExpr(n.Expr)
 
-	return res
+	switch n.Op {
+	case parser.UNOP_BIT_NOT, parser.UNOP_LOG_NOT:
+		return v.builder.CreateNot(expr, "tmp")
+	case parser.UNOP_ADDRESS:
+		panic("hmmm")
+	default:
+		panic("unimplimented unary op")
+	}
 }
 
 func (v *Codegen) genCastExpr(n *parser.CastExpr) llvm.Value {
@@ -539,9 +546,7 @@ func (v *Codegen) genDerefExpr(n *parser.DerefExpr) llvm.Value {
 }
 
 func (v *Codegen) genBracketExpr(n *parser.BracketExpr) llvm.Value {
-	var res llvm.Value
-
-	return res
+	return v.genExpr(n.Expr)
 }
 
 func typeToLLVMType(typ parser.Type) llvm.Type {
