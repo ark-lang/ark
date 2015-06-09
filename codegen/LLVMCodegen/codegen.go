@@ -152,25 +152,21 @@ func (v *Codegen) genStat(n parser.Stat) {
 	}
 }
 
-func (v *Codegen) genReturnStat(n *parser.ReturnStat) llvm.Value {
-	var res llvm.Value
+func (v *Codegen) genReturnStat(n *parser.ReturnStat) {
 	if n.Value == nil {
-		res = v.builder.CreateRetVoid()
+		v.builder.CreateRetVoid()
 	} else {
-		res = v.builder.CreateRet(v.genExpr(n.Value))
+		v.builder.CreateRet(v.genExpr(n.Value))
 	}
-	return res
 }
 
-func (v *Codegen) genCallStat(n *parser.CallStat) llvm.Value {
-	return v.genExpr(n.Call)
+func (v *Codegen) genCallStat(n *parser.CallStat) {
+	v.genExpr(n.Call)
 }
 
-func (v *Codegen) genAssignStat(n *parser.AssignStat) llvm.Value {
-
+func (v *Codegen) genAssignStat(n *parser.AssignStat) {
 	alloca := v.variableLookup[n.Access.Variable]
-	store := v.builder.CreateStore(v.genExpr(n.Assignment), alloca)
-	return store
+	v.builder.CreateStore(v.genExpr(n.Assignment), alloca)
 }
 
 func (v *Codegen) genIfStat(n *parser.IfStat) {
@@ -213,8 +209,8 @@ func (v *Codegen) genIfStat(n *parser.IfStat) {
 	v.builder.SetInsertPointAtEnd(end)
 }
 
-func (v *Codegen) genLoopStat(n *parser.LoopStat) llvm.Value {
-	var res llvm.Value
+func (v *Codegen) genLoopStat(n *parser.LoopStat) {
+	// TODO MovingtoMars
 
 	switch n.LoopType {
 	case parser.LOOP_TYPE_INFINITE:
@@ -223,8 +219,6 @@ func (v *Codegen) genLoopStat(n *parser.LoopStat) llvm.Value {
 	default:
 		panic("invalid loop type")
 	}
-
-	return res
 }
 
 func (v *Codegen) genDecl(n parser.Decl) llvm.Value {
