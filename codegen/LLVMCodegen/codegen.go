@@ -35,7 +35,7 @@ func (v *Codegen) err(err string, stuff ...interface{}) {
 func (v *Codegen) createBitcode(file *parser.File) string {
 	filename := file.Name + ".bc"
 	if err := llvm.VerifyModule(file.Module, llvm.ReturnStatusAction); err != nil {
-		v.err(err.Error())
+		v.err("%s", err.Error())
 	}
 
 	fileHandle, err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
