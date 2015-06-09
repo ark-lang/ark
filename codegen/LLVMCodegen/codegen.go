@@ -114,7 +114,6 @@ func (v *Codegen) Generate(input []*parser.File, verbose bool) {
 		}
 
 		infile.Module.Dump()
-		v.createBinary()
 
 		dur := time.Since(t)
 		if verbose {
@@ -122,6 +121,8 @@ func (v *Codegen) Generate(input []*parser.File, verbose bool) {
 				infile.Name, float32(dur.Nanoseconds())/1000000)
 		}
 	}
+
+	v.createBinary()
 }
 
 func (v *Codegen) genNode(n parser.Node) {
