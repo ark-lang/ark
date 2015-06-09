@@ -15,34 +15,22 @@ Due to the name change, we've migrated the subreddit from /r/alloy_lang to [/r/a
 ## Installing
 Requires Go to be installed and $GOPATH setup.
 
-## Fetching LLVM
-Fetching LLVM bindings:
+Building LLVM bindings (must be done first and may take a while):
 
-    $ go get -d llvm.org/llvm/bindings/go/llvm
+    $ mkdir -p $GOPATH/src
+    $ cd $GOPATH/src
 
-### [Only do this if LLVM fails to install!](https://llvm.org/bugs/show_bug.cgi?id=22766)
-Note that this can fail! For some reason it rejects the certificate, if you're having this
-problem, try this little workaround:
+Replace `RELEASE_360` with the version of LLVM you have installed. For example, version 3.6.1 becomes `RELEASE_361`. You can find out your version of llvm by running `llvm-config --version`.
 
-    $ svn checkout https://llvm.org/svn/llvm-project/llvm/trunk 
-
-Then accept the certificate by typing `p` then pressing `enter`. Once you've done this
-cancel the checkout, and delete any files it makes... then run the following:
-
-    $ go get -d llvm.org/llvm/bindings/go/llvm
-
-## Installing Ark
-Building LLVM bindings (must be done first and may take a while).
-
+    $ svn co https://llvm.org/svn/llvm-project/llvm/tags/RELEASE_360/final llvm.org/llvm
     $ cd $GOPATH/src/llvm.org/llvm/bindings/go/
-    $ ./build.sh
+    $ ./build.sh -DLLVM_TARGETS_TO_BUILD=host
     $ go install llvm.org/llvm/bindings/go/llvm
 
 Building ark:
 
     $ go get github.com/ark-lang/ark
     $ go install github.com/ark-lang/ark
-    $ ark
 
 Make sure `$GOPATH/bin` is in your `$PATH`.
 
