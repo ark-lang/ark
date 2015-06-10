@@ -211,12 +211,37 @@ func (v *Codegen) genIfStat(n *parser.IfStat) {
 }
 
 func (v *Codegen) genLoopStat(n *parser.LoopStat) {
-	// TODO MovingtoMars
-
 	switch n.LoopType {
 	case parser.LOOP_TYPE_INFINITE:
+		loopBlock := llvm.AddBasicBlock(v.currentFunction, "")
+		v.builder.CreateBr(loopBlock)
+		v.builder.SetInsertPointAtEnd(loopBlock)
+
+		for _, node := range n.Body.Nodes {
+			v.genNode(node)
+		}
+
+		v.builder.CreateBr(loopBlock)
+		afterBlock := llvm.AddBasicBlock(v.currentFunction, "")
+		v.builder.SetInsertPointAtEnd(afterBlock)
 	case parser.LOOP_TYPE_CONDITIONAL:
-		v.genExpr(n.Condition)
+		evalBlock := llvm.AddBasicBlock(v.currentFunction, "")
+		v.builder.CreateBr(evalBlock)
+
+		loopBlock := llvm.AddBasicBlock(v.currentFunction, "")
+		afterBlock := llvm.AddBasicBlock(v.currentFunction, "")
+
+		v.builder.SetInsertPointAtEnd(evalBlock)
+		cond := v.genExpr(n.Condition)
+		v.builder.CreateCondBr(cond, loopBlock, afterBlock)
+
+		v.builder.SetInsertPointAtEnd(loopBlock)
+		for _, node := range n.Body.Nodes {
+			v.genNode(node)
+		}
+		v.builder.CreateBr(evalBlock)
+
+		v.builder.SetInsertPointAtEnd(afterBlock)
 	default:
 		panic("invalid loop type")
 	}
