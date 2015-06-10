@@ -100,29 +100,29 @@ func (v *Codegen) Generate(input []*parser.File, verbose bool) {
 	v.builder = llvm.NewBuilder()
 	v.variableLookup = make(map[*parser.Variable]llvm.Value)
 
+	if verbose {
+		fmt.Println(util.TEXT_BOLD + util.TEXT_GREEN + "Started codegenning" + util.TEXT_RESET)
+	}
+	t := time.Now()
+
 	for _, infile := range input {
 		infile.Module = llvm.NewModule(infile.Name)
 		v.curFile = infile
-
-		if verbose {
-			fmt.Println(util.TEXT_BOLD+util.TEXT_GREEN+"Started codegenning"+util.TEXT_RESET, infile.Name)
-		}
-		t := time.Now()
 
 		for _, node := range infile.Nodes {
 			v.genNode(node)
 		}
 
 		infile.Module.Dump()
-
-		dur := time.Since(t)
-		if verbose {
-			fmt.Printf(util.TEXT_BOLD+util.TEXT_GREEN+"Finished codegenning"+util.TEXT_RESET+" %s (%.2fms)\n",
-				infile.Name, float32(dur.Nanoseconds())/1000000)
-		}
 	}
 
 	v.createBinary()
+
+	dur := time.Since(t)
+	if verbose {
+		fmt.Printf(util.TEXT_BOLD+util.TEXT_GREEN+"Finished codegenning"+util.TEXT_RESET+" (%.2fms)\n",
+			float32(dur.Nanoseconds())/1000000)
+	}
 }
 
 func (v *Codegen) genNode(n parser.Node) {
