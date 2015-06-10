@@ -579,9 +579,73 @@ func (v *Codegen) genUnaryExpr(n *parser.UnaryExpr) llvm.Value {
 }
 
 func (v *Codegen) genCastExpr(n *parser.CastExpr) llvm.Value {
-	var res llvm.Value
+	if n.GetType() == n.Expr.GetType() {
+		return v.genExpr(n.Expr)
+	}
 
-	return res
+	exprType := n.Expr.GetType()
+	castType := n.GetType()
+
+	if exprType.IsIntegerType() || exprType == parser.PRIMITIVE_rune {
+		if castType.IsIntegerType() || castType == parser.PRIMITIVE_rune {
+			exprBits := typeToLLVMType(exprType).IntTypeWidth()
+			castBits := typeToLLVMType(castType).IntTypeWidth()
+			if exprBits == castBits {
+				return v.genExpr(n.Expr)
+			} else if exprBits > castBits {
+				/*shiftConst := llvm.ConstInt(typeToLLVMType(exprType), uint64(exprBits-castBits), false)
+				shl := v.builder.CreateShl(v.genExpr(n.Expr), shiftConst, "")
+				shr := v.builder.CreateAShr(shl, shiftConst, "")
+				return v.builder.CreateTrunc(shr, typeToLLVMType(castType), "")*/
+				return v.builder.CreateTrunc(v.genExpr(n.Expr), typeToLLVMType(castType), "") // TODO get this to work right!
+			} else if exprBits < castBits {
+				return v.builder.CreateSExt(v.genExpr(n.Expr), typeToLLVMType(castType), "") // TODO sext or zext?
+			}
+		} else if castType.IsFloatingType() {
+			if exprType.IsSigned() {
+				return v.builder.CreateSIToFP(v.genExpr(n.Expr), typeToLLVMType(castType), "")
+			} else {
+				return v.builder.CreateUIToFP(v.genExpr(n.Expr), typeToLLVMType(castType), "")
+			}
+		}
+	} else if exprType.IsFloatingType() {
+		if castType.IsIntegerType() || castType == parser.PRIMITIVE_rune {
+			if exprType.IsSigned() {
+				return v.builder.CreateFPToSI(v.genExpr(n.Expr), typeToLLVMType(castType), "")
+			} else {
+				return v.builder.CreateFPToUI(v.genExpr(n.Expr), typeToLLVMType(castType), "")
+			}
+		} else if castType.IsFloatingType() {
+			exprBits := floatTypeBits(exprType.(parser.PrimitiveType))
+			castBits := floatTypeBits(castType.(parser.PrimitiveType))
+			if exprBits == castBits {
+				return v.genExpr(n.Expr)
+			} else if exprBits > castBits {
+				/*shiftConst := llvm.ConstInt(typeToLLVMType(exprType), uint64(exprBits-castBits), false)
+				shl := v.builder.CreateShl(v.genExpr(n.Expr), shiftConst, "")
+				shr := v.builder.CreateAShr(shl, shiftConst, "")
+				return v.builder.CreateTrunc(shr, typeToLLVMType(castType), "")*/
+				return v.builder.CreateFPTrunc(v.genExpr(n.Expr), typeToLLVMType(castType), "") // TODO get this to work right!
+			} else if exprBits < castBits {
+				return v.builder.CreateFPExt(v.genExpr(n.Expr), typeToLLVMType(castType), "")
+			}
+		}
+	}
+
+	panic("unimplimented typecast")
+}
+
+func floatTypeBits(ty parser.PrimitiveType) int {
+	switch ty {
+	case parser.PRIMITIVE_f32:
+		return 32
+	case parser.PRIMITIVE_f64:
+		return 64
+	case parser.PRIMITIVE_f128:
+		return 128
+	default:
+		panic("this isn't a float type")
+	}
 }
 
 func (v *Codegen) genCallExpr(n *parser.CallExpr) llvm.Value {
