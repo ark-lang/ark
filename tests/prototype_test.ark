@@ -1,4 +1,4 @@
-[c, variadic]
+[c]
 func printf(fmt: str);
 
 func main(): int {
