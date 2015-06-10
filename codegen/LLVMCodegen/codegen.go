@@ -264,7 +264,7 @@ func (v *Codegen) genFunctionDecl(n *parser.FunctionDecl) llvm.Value {
 				case "c":
 					cBinding = true
 				case "variadic":
-					// isVariadic = true
+					isVariadic = true
 				default:
 					// do nothing
 				}
