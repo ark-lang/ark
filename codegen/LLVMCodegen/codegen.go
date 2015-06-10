@@ -397,34 +397,7 @@ func (v *Codegen) genFloatingLiteral(n *parser.FloatingLiteral) llvm.Value {
 }
 
 func (v *Codegen) genStringLiteral(n *parser.StringLiteral) llvm.Value {
-	// str := llvm.ConstString(n.Value, true)
-	// glob := llvm.AddGlobal(v.curFile.Module, llvm.ArrayType(llvm.Int8Type(), n.StrLen), "S_" + n.Value)
-	// glob.SetLinkage(llvm.PrivateLinkage)
-	// glob.SetInitializer(str)
-	// glob.SetGlobalConstant(true)
-
-	/**
-	strval := llvm.ConstString(n.Value, false)
-	strglob := llvm.AddGlobal(v.curFile.Module, strval.Type(), "")
-	strglob.SetGlobalConstant(true)
-	strglob.SetLinkage(llvm.InternalLinkage)
-	strglob.SetInitializer(strval)
-	strglob = llvm.ConstBitCast(strglob, llvm.PointerType(llvm.IntType(8), 0))
-
-	// idk strlen shit atm
-	strlen := llvm.ConstInt(llvm.IntType(32), uint64(len(n.Value)), false)
-	str := llvm.ConstStruct([]llvm.Value{strglob, strlen}, false)
-
-	glob := llvm.AddGlobal(v.curFile.Module, str.Type(), "")
-	glob.SetGlobalConstant(true)
-	glob.SetLinkage(llvm.InternalLinkage)
-	glob.SetInitializer(str)
-	 */
-
-	swag := v.builder.CreateGlobalStringPtr(n.Value, "str")
-	v.curFile.Module.Dump()
-
-	return swag
+	return v.builder.CreateGlobalStringPtr(n.Value, "str")
 }
 
 func (v *Codegen) genBinaryExpr(n *parser.BinaryExpr) llvm.Value {
