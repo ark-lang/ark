@@ -267,7 +267,7 @@ func (v *parser) parseCallStat() *CallStat {
 			v.consumeToken()
 			return &CallStat{Call: call}
 		}
-		v.err("Expected semicolon after function call statement, found `%s`", v.peek(0))
+		v.err("Expected semicolon after function call statement, found `%s`", v.peek(0).Contents)
 	}
 	return nil
 }
