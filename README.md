@@ -12,14 +12,17 @@ Due to the name change, we've migrated the subreddit from /r/alloy_lang to [/r/a
 * [Contributing](/CONTRIBUTING.md)
 * [Ark Style Guide](https://github.com/ark-lang/ark-docs/blob/master/STYLEGUIDE.md)
 
-## Dependencies
+## Installing
+Installing Ark should be relatively easy, you'll need a few dependencies before
+you get started:
+
+### Dependencies
 * Go installed and `$GOPATH` setup
 * subversion
 * LLVM installed, with `llvm-config` and `llc` in your `$PATH`
 * a C++ compiler
 
-## Installing
-
+## Building
 Replace `RELEASE_360` with the version of LLVM you have installed. For example, version 3.6.1 becomes `RELEASE_361`. You can find out your version of llvm by running `llvm-config --version`.
 
     $ svn co https://llvm.org/svn/llvm-project/llvm/tags/RELEASE_360/final $GOPATH/src/llvm.org/llvm
@@ -35,7 +38,7 @@ Make sure `$GOPATH/bin` is in your `$PATH`.
 ## Usage
 For detailed usage information, run `ark help`. For information on specific commands, use `ark help <command>`.
 
-### Building
+### Compiling Ark Code
 ```
 ark build tests/big_test.ark -o out_name
 ```
@@ -47,7 +50,8 @@ ark docgen tests/big_test.ark --dir some_output_dir
 ```
 If the `--dir` option is not specified, the generated documentation will be placed in `docgen`.
 
-## `make gen` and `make fmt`
+## Utilities
+### `make gen` and `make fmt`
 The targets `gen` and `fmt` are included for the convenience of the developers. They run `go generate` and `go fmt` respectively on all the modules in Ark. Please run `make fmt` before creating a pull request.
 
 ### Testing
