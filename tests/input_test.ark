@@ -1,9 +1,0 @@
-[c, variadic] func scanf(fmt: str);
-[c, variadic] func printf(fmt: str);
-
-func main(): int {
-    faggot: str;
-    scanf("%s", &faggot);
-    printf("Hi your name is %s\n", faggot);
-    return 0;
-}
