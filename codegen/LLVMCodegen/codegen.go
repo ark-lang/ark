@@ -65,7 +65,7 @@ func (v *Codegen) bitcodeToASM(filename string) string {
 }
 
 func (v *Codegen) createBinary() {
-	linkArgs := []string{"-static"}
+	linkArgs := []string{} // static breaks for me
 	asmFiles := []string{}
 
 	for _, file := range v.input {
@@ -572,7 +572,7 @@ func (v *Codegen) genUnaryExpr(n *parser.UnaryExpr) llvm.Value {
 	case parser.UNOP_NEGATIVE:
 		return v.builder.CreateNeg(expr, "")
 	case parser.UNOP_ADDRESS:
-		panic("hmmm")
+		// fuck knows
 	default:
 		panic("unimplimented unary op")
 	}
