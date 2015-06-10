@@ -1,0 +1,7 @@
+[c, variadic]
+func printf(fmt: str);
+
+func main(): int {
+    [c] printf("finally, it fucking works!");
+    return 0;
+}

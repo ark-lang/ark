@@ -205,6 +205,7 @@ func (v *StructDecl) DocComments() []*DocComment {
 type FunctionDecl struct {
 	nodePos
 	Function *Function
+	Prototype bool
 	docs     []*DocComment
 }
 
