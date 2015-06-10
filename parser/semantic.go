@@ -312,7 +312,7 @@ func (v *BinaryExpr) analyze(s *semanticAnalyzer) {
 		if v.Lhand.GetType() != v.Rhand.GetType() {
 			s.err(v, "Operands for binary operator `%s` must have the same type, have `%s` and `%s`",
 				v.Op.OpString(), v.Lhand.GetType().TypeName(), v.Rhand.GetType().TypeName())
-		} else if lht := v.Lhand.GetType(); !(lht.IsIntegerType() || lht.IsFloatingType() || lht.LevelsOfIndirection() > 0) {
+		} else if lht := v.Lhand.GetType(); !(lht == PRIMITIVE_rune || lht.IsIntegerType() || lht.IsFloatingType() || lht.LevelsOfIndirection() > 0) {
 			s.err(v, "Operands for binary operator `%s` must be numeric or pointers, have `%s`",
 				v.Op.OpString(), v.Lhand.GetType().TypeName())
 		} else {
@@ -448,6 +448,7 @@ func (v *CallExpr) analyze(s *semanticAnalyzer) {
 
 	// attributes defaults
 	isVariadic := false
+	c := false // if we're calling a C function
 
 	// find them attributes yo
 	if v.Function.Attrs != nil {
@@ -458,6 +459,8 @@ func (v *CallExpr) analyze(s *semanticAnalyzer) {
 			switch attr.Key {
 			case "variadic":
 				isVariadic = true
+			case "c":
+				c = true
 			default:
 				// do nothing
 			}
@@ -475,11 +478,38 @@ func (v *CallExpr) analyze(s *semanticAnalyzer) {
 
 	for i, arg := range v.Arguments {
 		if i >= len(v.Function.Parameters) { // we have a variadic arg
+			if !isVariadic {
+				panic("woah")
+			}
 			arg.setTypeHint(nil)
+			arg.analyze(s)
+
+			if !c {
+				panic("The `variadic` attribute should only be used on calls to C functions")
+			}
+
+			// varargs take type promotions. If we don't do these, the whole thing fucks up.
+			switch arg.GetType() {
+			case PRIMITIVE_f32:
+				v.Arguments[i] = &CastExpr{
+					Expr: arg,
+					Type: PRIMITIVE_f64,
+				}
+			case PRIMITIVE_i8, PRIMITIVE_i16:
+				v.Arguments[i] = &CastExpr{
+					Expr: arg,
+					Type: PRIMITIVE_int,
+				}
+			case PRIMITIVE_u8, PRIMITIVE_u16:
+				v.Arguments[i] = &CastExpr{
+					Expr: arg,
+					Type: PRIMITIVE_uint,
+				}
+			}
 		} else {
 			arg.setTypeHint(v.Function.Parameters[i].Variable.Type)
+			arg.analyze(s)
 		}
-		arg.analyze(s)
 	}
 
 	if dep := getAttr(v.Function.Attrs, "deprecated"); dep != nil {

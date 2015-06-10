@@ -40,7 +40,7 @@ num_of_files_passed = 0
 num_of_files_failed = 0
 
 # if we show the ouput to the console
-# TODO maybe print out summary even if 
+# TODO maybe print out summary even if
 # no output is shown?
 show_output = False
 
@@ -61,36 +61,36 @@ files = [x for x in os.listdir("tests") if x.endswith("_test.ark")]
 sort_nicely(files)
 for name in files:
 	output_file = name + ".test"
-	
-	if show_output: 
-		print(bold("Compiling ") + name + "...")
-	
+
 	if show_output:
-		compile_result = subprocess.call(["ark", "tests/" + name, "-o", "tests/" + output_file])
+		print(bold("Compiling ") + name + "...")
+
+	if show_output:
+		compile_result = subprocess.call(["ark", "build", "tests/" + name, "-o", "tests/" + output_file])
 	else:
-		compile_result = subprocess.call(["ark", "tests/" + name, "-o", "tests/" + output_file], stdout=FNULL, stderr=subprocess.STDOUT)
+		compile_result = subprocess.call(["ark", "build", "tests/" + name, "-o", "tests/" + output_file], stdout=FNULL, stderr=subprocess.STDOUT)
 
 	if compile_result != 0:
-		if show_output: 
+		if show_output:
 			print(red(bold("Compilation failed:")) + " returned with " + str(compile_result))
 		files_tested.append(TestFile(name, True, str(compile_result)))
 		num_of_files_failed += 1
 		if show_output: print("")
 		continue
-	
-	if show_output: 
+
+	if show_output:
 		print(bold("Running ") + name + "...")
-	
+
 	try:
 		if show_output:
 			run_result = subprocess.call(["./tests/" + output_file])
 		else:
 			run_result = subprocess.call(["./tests/" + output_file], stdout=FNULL, stderr=subprocess.STDOUT)
-		
+
 		os.remove("tests/" + output_file)
 	except FileNotFoundError:
 		print(red(bold("File not found: " + output_file)))
-	
+
 	if run_result != 0:
 		if show_output: print(red(bold("Running failed:")) + " returned with " + str(run_result))
 		files_tested.append(TestFile(name, True, str(compile_result)))
@@ -98,7 +98,7 @@ for name in files:
 	else:
 		files_tested.append(TestFile(name, False, str(compile_result)))
 		num_of_files_passed += 1
-		
+
 	if show_output: print("")
 
 # print results
