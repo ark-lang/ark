@@ -26,6 +26,7 @@ main.exe
 _gen_*.c
 _gen_*.h
 main
+ark_run_tmp
 tests/*.test
 *.s
 
