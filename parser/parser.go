@@ -392,11 +392,19 @@ func (v *parser) parseFunctionDecl() *FunctionDecl {
 		}
 	}
 
+	if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ";") {
+		v.consumeToken()
+		funcDecl.Prototype = true
+	}
+
 	// block
 	if block := v.parseBlock(); block != nil {
+		if funcDecl.Prototype {
+			v.err("Function prototype cannot have a block")
+		}
 		funcDecl.Function.Body = block
-	} else {
-		v.err("Expecting block after function decl even though some point prototypes should be support lol whatever")
+	} else if !funcDecl.Prototype {
+		v.err("Expecting block or semi-colon (prototype) after function signature")
 	}
 
 	v.popScope()
