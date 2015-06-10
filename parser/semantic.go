@@ -69,6 +69,10 @@ func (v *Function) analyze(s *semanticAnalyzer) {
 		switch attr.Key {
 		case "deprecated":
 			// value is optional, nothing to check
+		case "c":
+			// idk yet who cares
+		case "variadic":
+			// idk yet who cares
 		default:
 			s.err(attr, "Invalid function attribute key `%s`", attr.Key)
 		}
