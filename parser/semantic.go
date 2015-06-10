@@ -474,11 +474,11 @@ func (v *CallExpr) analyze(s *semanticAnalyzer) {
 	}
 
 	for i, arg := range v.Arguments {
-		// this fucks up when something is variadic
-		// presumably because it has to infer the type
-		// but there is no type to look at?
-		// @MovingToMars
-		arg.setTypeHint(v.Function.Parameters[i].Variable.Type)
+		if i >= len(v.Function.Parameters) { // we have a variadic arg
+			arg.setTypeHint(nil)
+		} else {
+			arg.setTypeHint(v.Function.Parameters[i].Variable.Type)
+		}
 		arg.analyze(s)
 	}
 
