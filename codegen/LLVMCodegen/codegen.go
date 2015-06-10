@@ -65,7 +65,7 @@ func (v *Codegen) bitcodeToASM(filename string) string {
 }
 
 func (v *Codegen) createBinary() {
-	linkArgs := []string{}
+	linkArgs := []string{"-static"}
 	asmFiles := []string{}
 
 	for _, file := range v.input {
@@ -86,8 +86,8 @@ func (v *Codegen) createBinary() {
 	linkArgs = append(linkArgs, "-o", v.OutputName)
 
 	cmd := exec.Command("cc", linkArgs...)
-	if err := cmd.Run(); err != nil {
-		v.err("failed to link object files: `%s`", err.Error())
+	if out, err := cmd.CombinedOutput(); err != nil {
+		v.err("failed to link object files: `%s`\n%s", err.Error(), string(out))
 	}
 
 	for _, asmFile := range asmFiles {
