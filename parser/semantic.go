@@ -443,12 +443,41 @@ func (v *CastExpr) setTypeHint(t Type) {}
 // CallExpr
 
 func (v *CallExpr) analyze(s *semanticAnalyzer) {
-	if len(v.Arguments) != len(v.Function.Parameters) {
-		s.err(v, "Call to `%s` expects %d arguments, have %d",
-			v.Function.Name, len(v.Function.Parameters), len(v.Arguments))
+	argLen := len(v.Arguments)
+	paramLen := len(v.Function.Parameters)
+
+	// attributes defaults
+	isVariadic := false
+
+	// find them attributes yo
+	if v.Function.Attrs != nil {
+		attributes := v.Function.Attrs
+
+		// todo hashmap or some shit
+		for _, attr := range attributes {
+			switch attr.Key {
+			case "variadic":
+				isVariadic = true
+			default:
+				// do nothing
+			}
+		}
+	}
+
+	if argLen < paramLen {
+		s.err(v, "Call to `%s` has too few arguments, expects %d, have %d",
+			v.Function.Name, paramLen, argLen)
+	} else if !isVariadic && argLen > paramLen {
+		// we only care if it's not variadic
+		s.err(v, "Call to `%s` has too many arguments, expects %d, have %d",
+			v.Function.Name, paramLen, argLen)
 	}
 
 	for i, arg := range v.Arguments {
+		// this fucks up when something is variadic
+		// presumably because it has to infer the type
+		// but there is no type to look at?
+		// @MovingToMars
 		arg.setTypeHint(v.Function.Parameters[i].Variable.Type)
 		arg.analyze(s)
 	}

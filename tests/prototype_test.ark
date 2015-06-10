@@ -1,7 +1,7 @@
-[c]
-func printf(fmt: str);
+[c, variadic] func printf(fmt: str);
 
 func main(): int {
-    [c] printf("finally, it fucking works!");
+    [c] printf("finally, it fucking works!\n");
+    [c] printf("we have to specify the c attribute so it doesn't mangle the name %d\n", 5);
     return 0;
 }
