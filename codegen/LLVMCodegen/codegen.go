@@ -250,6 +250,27 @@ func (v *Codegen) genFunctionDecl(n *parser.FunctionDecl) llvm.Value {
 			params[i] = typeToLLVMType(par.Variable.Type)
 		}
 
+		// attributes defaults
+		cBinding := false
+		isVariadic := false
+
+		// find them attributes yo
+		if n.Function.Attrs != nil {
+			attributes := n.Function.Attrs
+
+			// todo hashmap or some shit
+			for _, attr := range attributes {
+				switch attr.Key {
+				case "c":
+					cBinding = true
+				case "variadic":
+					// isVariadic = true
+				default:
+					// do nothing
+				}
+			}
+		}
+
 		// assume it's void
 		funcTypeRaw := llvm.VoidType()
 
@@ -259,30 +280,41 @@ func (v *Codegen) genFunctionDecl(n *parser.FunctionDecl) llvm.Value {
 		}
 
 		// create the function type
-		funcType := llvm.FunctionType(funcTypeRaw, params, false)
+		funcType := llvm.FunctionType(funcTypeRaw, params, isVariadic)
+
+		functionName := mangledName
+		if cBinding {
+			functionName = n.Function.Name
+		}
 
 		// add that shit
-		function = llvm.AddFunction(v.curFile.Module, mangledName, funcType)
+		function = llvm.AddFunction(v.curFile.Module, functionName, funcType)
 
 		// do some magical shit for later
 		for i := 0; i < numOfParams; i++ {
 			funcParam := function.Param(i)
 			funcParam.SetName(n.Function.Parameters[i].Variable.MangledName(parser.MANGLE_ARK_UNSTABLE))
-			// maybe store it in a hashmap somewhere?
 		}
 
-		block := llvm.AddBasicBlock(function, "entry")
-		v.builder.SetInsertPointAtEnd(block)
+		if !n.Prototype {
+			block := llvm.AddBasicBlock(function, "entry")
+			v.builder.SetInsertPointAtEnd(block)
 
-		v.inFunction = true
-		v.currentFunction = function
-		for _, stat := range n.Function.Body.Nodes {
-			v.genNode(stat)
+			v.inFunction = true
+			v.currentFunction = function
+			for _, stat := range n.Function.Body.Nodes {
+				v.genNode(stat)
+			}
+			v.inFunction = false
 		}
-		v.inFunction = false
 
-		// function returns void, lets return void...
-		if funcTypeRaw == llvm.VoidType() {
+		if cBinding {
+			function.SetFunctionCallConv(llvm.CCallConv)
+		}
+
+		// function returns void, lets return void
+		// unless its a prototype obviously...
+		if funcTypeRaw == llvm.VoidType() && !n.Prototype {
 			v.builder.CreateRetVoid()
 		}
 
@@ -365,17 +397,34 @@ func (v *Codegen) genFloatingLiteral(n *parser.FloatingLiteral) llvm.Value {
 }
 
 func (v *Codegen) genStringLiteral(n *parser.StringLiteral) llvm.Value {
-	val := llvm.ConstString(n.Value, true)
-	str := llvm.AddGlobal(v.curFile.Module, val.Type(), "")
-	str.SetLinkage(llvm.InternalLinkage)
-	str.SetGlobalConstant(true)
-	str.SetInitializer(val)
-	str = llvm.ConstBitCast(str, llvm.PointerType(llvm.IntType(32), 0))
-	global := llvm.AddGlobal(v.curFile.Module, val.Type(), "")
-	global.SetGlobalConstant(true)
-	global.SetLinkage(llvm.InternalLinkage)
-	global.SetInitializer(str)
-	return global
+	// str := llvm.ConstString(n.Value, true)
+	// glob := llvm.AddGlobal(v.curFile.Module, llvm.ArrayType(llvm.Int8Type(), n.StrLen), "S_" + n.Value)
+	// glob.SetLinkage(llvm.PrivateLinkage)
+	// glob.SetInitializer(str)
+	// glob.SetGlobalConstant(true)
+
+	/**
+	strval := llvm.ConstString(n.Value, false)
+	strglob := llvm.AddGlobal(v.curFile.Module, strval.Type(), "")
+	strglob.SetGlobalConstant(true)
+	strglob.SetLinkage(llvm.InternalLinkage)
+	strglob.SetInitializer(strval)
+	strglob = llvm.ConstBitCast(strglob, llvm.PointerType(llvm.IntType(8), 0))
+
+	// idk strlen shit atm
+	strlen := llvm.ConstInt(llvm.IntType(32), uint64(len(n.Value)), false)
+	str := llvm.ConstStruct([]llvm.Value{strglob, strlen}, false)
+
+	glob := llvm.AddGlobal(v.curFile.Module, str.Type(), "")
+	glob.SetGlobalConstant(true)
+	glob.SetLinkage(llvm.InternalLinkage)
+	glob.SetInitializer(str)
+	 */
+
+	swag := v.builder.CreateGlobalStringPtr(n.Value, "str")
+	v.curFile.Module.Dump()
+
+	return swag
 }
 
 func (v *Codegen) genBinaryExpr(n *parser.BinaryExpr) llvm.Value {
@@ -538,8 +587,24 @@ func (v *Codegen) genCastExpr(n *parser.CastExpr) llvm.Value {
 }
 
 func (v *Codegen) genCallExpr(n *parser.CallExpr) llvm.Value {
+	// todo dont use attributes, use that C:: shit
+	cBinding := false
+	for _, attr := range n.Function.Attrs {
+		switch attr.Key {
+		case "c":
+			cBinding = true
+		default:
+			// whatever
+		}
+	}
+
+	// eww
 	mangledName := n.Function.MangledName(parser.MANGLE_ARK_UNSTABLE)
-	function := v.curFile.Module.NamedFunction(mangledName)
+	functionName := mangledName
+	if cBinding {
+		functionName = n.Function.Name
+	}
+	function := v.curFile.Module.NamedFunction(functionName)
 	if function.IsNil() {
 		v.err("function does not exist in current module")
 	}
@@ -623,8 +688,7 @@ func primitiveTypeToLLVMType(typ parser.PrimitiveType) llvm.Type {
 	case parser.PRIMITIVE_bool:
 		return llvm.IntType(1)
 	case parser.PRIMITIVE_str:
-		// maybe this?
-		return llvm.PointerType(llvm.IntType(32), 0)
+		return llvm.PointerType(llvm.IntType(8), 0)
 
 	default:
 		panic("Unimplemented primitive type in LLVM codegen")
