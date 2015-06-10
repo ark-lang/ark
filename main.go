@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
+	"os/exec"
 	"time"
 
 	"gopkg.in/alecthomas/kingpin.v2"
@@ -32,9 +34,12 @@ func main() {
 
 	switch kingpin.MustParse(app.Parse(os.Args[1:])) {
 	case buildCom.FullCommand():
-		build(*buildInputs, *buildOutput)
+		build(*buildInputs, *buildOutput, *buildCodegen)
 		numFiles = len(*buildInputs)
 		command = buildCom.FullCommand()
+
+	case runCom.FullCommand():
+		run(*runInputs)
 
 	case docgenCom.FullCommand():
 		docgen(*docgenInputs, *docgenDir)
@@ -77,13 +82,13 @@ func parseFiles(files []string) []*parser.File {
 	return parsedFiles
 }
 
-func build(input []string, output string) {
+func build(input []string, output string, cg string) {
 	parsedFiles := parseFiles(input)
 
-	if *buildCodegen != "none" {
+	if cg != "none" {
 		var gen codegen.Codegen
 
-		switch *buildCodegen {
+		switch cg {
 		case "ark":
 			gen = &arkcodegen.Codegen{}
 		case "llvm":
@@ -95,6 +100,21 @@ func build(input []string, output string) {
 		}
 
 		gen.Generate(parsedFiles, *verbose)
+	}
+}
+
+func run(input []string) {
+	outputName := "ark_run_tmp"
+	build(input, outputName, "llvm")
+	runCom := exec.Command("./" + outputName)
+	fmt.Println("### RUNNING")
+	runCom.Stdin = os.Stdin
+	runCom.Stdout = os.Stdout
+	runCom.Stderr = os.Stderr
+	runCom.Run()
+	err := os.Remove(outputName)
+	if err != nil {
+		log.Fatal(err)
 	}
 }
 
