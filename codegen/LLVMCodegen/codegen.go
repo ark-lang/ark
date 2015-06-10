@@ -583,10 +583,6 @@ func (v *Codegen) genCallExpr(n *parser.CallExpr) llvm.Value {
 	}
 
 	numOfArguments := len(n.Arguments)
-	if function.ParamsCount() != numOfArguments {
-		v.err("invalid amount of arguments given to function %s", n.Function.Name)
-	}
-
 	args := make([]llvm.Value, numOfArguments)
 	for i, arg := range n.Arguments {
 		args[i] = v.genExpr(arg)
