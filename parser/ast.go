@@ -83,6 +83,7 @@ type Function struct {
 	Parameters []*VariableDecl
 	ReturnType Type
 	Mutable    bool
+	IsVariadic bool
 	Attrs      []*Attr
 	Body       *Block
 	scope      *Scope

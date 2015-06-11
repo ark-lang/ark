@@ -1,0 +1,6 @@
+[c] func printf(fmt: str, ...);
+
+func main(): int {
+    printf("hi");
+    return 0;
+}
