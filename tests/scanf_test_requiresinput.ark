@@ -1,0 +1,12 @@
+[c, variadic] func printf(fmt: str);
+[c, variadic] func scanf(fmt: str): int;
+
+func main(): int {
+    mut x: i32 = 0;
+
+    printf("Input a number: ");
+    scanf("%d", &x);
+    printf("Your number:    %d\n", x);
+
+    return 0;
+}
