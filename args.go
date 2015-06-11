@@ -26,10 +26,7 @@ var (
 	buildOutput  = buildCom.Flag("output", "Output binary name.").Short('o').Default("main").String()
 	buildInputs  = newInputList(buildCom.Arg("input", "Ark source files."))
 	buildCodegen = buildCom.Flag("codegen", "Codegen backend to use").Default("llvm").Enum("none", "llvm", "ark")
-
-	runCom    = app.Command("run", "Run Ark source files.")
-	runInputs = newInputList(runCom.Arg("input", "Ark source files."))
-	//buildCodegen = buildCom.Flag("codegen", "Codegen backend to use").Default("llvm").Enum("none", "llvm", "ark")
+	buildStatic  = buildCom.Flag("static", "Pass the -static option to cc.").Bool()
 
 	docgenCom    = app.Command("docgen", "Generate documentation.")
 	docgenDir    = docgenCom.Flag("dir", "Directory to place generated docs in.").Default("docgen").String()
