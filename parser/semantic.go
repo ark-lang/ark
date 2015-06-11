@@ -277,11 +277,6 @@ func (v *UnaryExpr) analyze(s *semanticAnalyzer) {
 		} else {
 			s.err(v, "Used negative on non-numeric type")
 		}
-	case UNOP_ADDRESS:
-		if _, ok := v.Expr.(*AccessExpr); !ok {
-			s.err(v, "Cannot take address of non-variable")
-		}
-		v.Type = pointerTo(v.Expr.GetType())
 	default:
 		panic("whoops")
 	}
@@ -293,7 +288,6 @@ func (v *UnaryExpr) setTypeHint(t Type) {
 		v.Expr.setTypeHint(PRIMITIVE_bool)
 	case UNOP_BIT_NOT, UNOP_NEGATIVE:
 		v.Expr.setTypeHint(t)
-	case UNOP_ADDRESS:
 	default:
 		panic("whoops")
 	}
@@ -530,6 +524,20 @@ func (v *AccessExpr) analyze(s *semanticAnalyzer) {
 }
 
 func (v *AccessExpr) setTypeHint(t Type) {}
+
+// AddressOfExpr
+
+func (v *AddressOfExpr) analyze(s *semanticAnalyzer) {
+	// TODO anything to do here?
+}
+
+func (v *AddressOfExpr) setTypeHint(t Type) {
+	if ptr, ok := v.Access.GetType().(PointerType); ok {
+		v.Access.setTypeHint(ptr.Addressee)
+	} else {
+		v.Access.setTypeHint(nil)
+	}
+}
 
 // DerefExpr
 

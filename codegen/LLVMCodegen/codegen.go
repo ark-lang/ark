@@ -380,6 +380,8 @@ func (v *Codegen) genVariableDecl(n *parser.VariableDecl, semicolon bool) llvm.V
 
 func (v *Codegen) genExpr(n parser.Expr) llvm.Value {
 	switch n.(type) {
+	case *parser.AddressOfExpr:
+		return v.genAddressOfExpr(n.(*parser.AddressOfExpr))
 	case *parser.RuneLiteral:
 		return v.genRuneLiteral(n.(*parser.RuneLiteral))
 	case *parser.IntegerLiteral:
@@ -405,6 +407,14 @@ func (v *Codegen) genExpr(n parser.Expr) llvm.Value {
 	default:
 		panic("unimplemented expr")
 	}
+}
+
+func (v *Codegen) genAddressOfExpr(n *parser.AddressOfExpr) llvm.Value {
+	if len(n.Access.StructVariables) > 0 {
+		panic("struct member address-of unimplemented")
+	}
+
+	return v.variableLookup[n.Access.Variable]
 }
 
 func (v *Codegen) genRuneLiteral(n *parser.RuneLiteral) llvm.Value {
@@ -569,8 +579,6 @@ func (v *Codegen) genUnaryExpr(n *parser.UnaryExpr) llvm.Value {
 		return v.builder.CreateNot(expr, "")
 	case parser.UNOP_NEGATIVE:
 		return v.builder.CreateNeg(expr, "")
-	case parser.UNOP_ADDRESS:
-		panic("")
 	default:
 		panic("unimplimented unary op")
 	}
