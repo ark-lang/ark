@@ -353,7 +353,22 @@ func (v *parser) parseFunctionDecl() *FunctionDecl {
 		v.consumeToken()
 	} else {
 		for {
-			if decl := v.parseVariableDecl(false); decl != nil {
+
+			// either I'm just really sleep deprived,
+			// or this is the best way to do this?
+			if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ".") {
+				weird_counter := 0;
+				for i := 0; i < 2; i++ {
+					if v.tokenMatches(i, lexer.TOKEN_SEPARATOR, ".") {
+						v.consumeToken()
+						weird_counter = weird_counter + i + 1;
+					}
+				}
+				if weird_counter == 3 {
+					v.consumeToken() // last .
+					function.IsVariadic = true
+				}
+			} else if decl := v.parseVariableDecl(false); decl != nil {
 				if decl.Assignment != nil {
 					v.err("Assignment in function parameter `%s`", decl.Variable.Name)
 				}

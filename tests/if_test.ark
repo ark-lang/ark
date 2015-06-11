@@ -1,7 +1,10 @@
+[c, variadic] func printf(fmt: str);
+
 func main(): int {
 	mut x: int = 5;
 	if x == 5 {
-		x = 5;
+		printf("this is a test\n");
 	}
+	printf("always printed\n");
 	return 0;
 }
