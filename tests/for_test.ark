@@ -1,4 +1,4 @@
-[c, variadic] func printf(fmt: str);
+[c] func printf(fmt: str, ...);
 
 func main(): int {
     mut i := 0;

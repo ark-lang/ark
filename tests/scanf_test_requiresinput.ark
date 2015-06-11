@@ -1,5 +1,5 @@
-[c, variadic] func printf(fmt: str);
-[c, variadic] func scanf(fmt: str): int;
+[c] func printf(fmt: str, ...);
+[c] func scanf(fmt: str, ...): int;
 
 func main(): int {
     mut x: i32 = 0;
