@@ -24,6 +24,7 @@ type Codegen struct {
 	variableLookup map[*parser.Variable]llvm.Value
 
 	OutputName string
+	CCArgs     []string
 
 	inFunction      bool
 	currentFunction llvm.Value
@@ -65,7 +66,7 @@ func (v *Codegen) bitcodeToASM(filename string) string {
 }
 
 func (v *Codegen) createBinary() {
-	linkArgs := []string{} // static breaks for me
+	linkArgs := v.CCArgs
 	asmFiles := []string{}
 
 	for _, file := range v.input {
@@ -176,7 +177,6 @@ func (v *Codegen) genIfStat(n *parser.IfStat) {
 	}
 
 	end := llvm.AddBasicBlock(v.currentFunction, "")
-	//var lastIfFalse llvm.BasicBlock
 
 	for i, expr := range n.Exprs {
 		cond := v.genExpr(expr)
@@ -195,8 +195,6 @@ func (v *Codegen) genIfStat(n *parser.IfStat) {
 
 		v.builder.SetInsertPointAtEnd(ifFalse)
 		end.MoveAfter(ifFalse)
-
-		//lastIfFalse = ifFalse
 	}
 
 	if n.Else != nil {
@@ -571,8 +569,8 @@ func (v *Codegen) genUnaryExpr(n *parser.UnaryExpr) llvm.Value {
 		return v.builder.CreateNot(expr, "")
 	case parser.UNOP_NEGATIVE:
 		return v.builder.CreateNeg(expr, "")
-	// case parser.UNOP_ADDRESS:
-		// fuck knows
+	case parser.UNOP_ADDRESS:
+		panic("")
 	default:
 		panic("unimplimented unary op")
 	}
