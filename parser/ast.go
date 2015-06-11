@@ -204,9 +204,9 @@ func (v *StructDecl) DocComments() []*DocComment {
 
 type FunctionDecl struct {
 	nodePos
-	Function *Function
+	Function  *Function
 	Prototype bool
-	docs     []*DocComment
+	docs      []*DocComment
 }
 
 func (v *FunctionDecl) declNode() {}
@@ -584,6 +584,27 @@ func (v *AccessExpr) GetType() Type {
 
 func (v *AccessExpr) NodeName() string {
 	return "access expression"
+}
+
+// AddressOfExpr
+
+type AddressOfExpr struct {
+	nodePos
+	Access *AccessExpr
+}
+
+func (v *AddressOfExpr) exprNode() {}
+
+func (v *AddressOfExpr) String() string {
+	return "(" + util.Blue("AddressOfExpr") + ": " + v.Access.String() + " " + util.Green(v.GetType().TypeName()) + ")"
+}
+
+func (v *AddressOfExpr) GetType() Type {
+	return pointerTo(v.Access.GetType())
+}
+
+func (v *AddressOfExpr) NodeName() string {
+	return "address-of expression"
 }
 
 // DerefExpr

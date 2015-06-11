@@ -712,6 +712,8 @@ func (v *parser) parseBinaryOperator(upperPrecedence int, lhand Expr) Expr {
 func (v *parser) parsePrimaryExpr() Expr {
 	if bracketExpr := v.parseBracketExpr(); bracketExpr != nil {
 		return bracketExpr
+	} else if addressOfExpr := v.parseAddressOfExpr(); addressOfExpr != nil {
+		return addressOfExpr
 	} else if litExpr := v.parseLiteral(); litExpr != nil {
 		return litExpr
 	} else if derefExpr := v.parseDerefExpr(); derefExpr != nil {
@@ -884,6 +886,24 @@ func (v *parser) parseDerefExpr() *DerefExpr {
 	}
 
 	return &DerefExpr{Expr: e}
+}
+
+func (v *parser) parseAddressOfExpr() *AddressOfExpr {
+	if !v.tokenMatches(0, lexer.TOKEN_OPERATOR, "&") {
+		return nil
+	}
+	v.consumeToken()
+
+	line, char := v.peek(0).LineNumber, v.peek(0).CharNumber
+	access := v.parseAccessExpr()
+	if access == nil {
+		v.err("Expected variable access after `&` operator, found `%s`", v.peek(0).Contents)
+	}
+	access.setPos(line, char)
+
+	return &AddressOfExpr{
+		Access: access,
+	}
 }
 
 func (v *parser) parseLiteral() Expr {
