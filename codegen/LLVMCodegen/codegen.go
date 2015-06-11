@@ -571,7 +571,7 @@ func (v *Codegen) genUnaryExpr(n *parser.UnaryExpr) llvm.Value {
 		return v.builder.CreateNot(expr, "")
 	case parser.UNOP_NEGATIVE:
 		return v.builder.CreateNeg(expr, "")
-	case parser.UNOP_ADDRESS:
+	// case parser.UNOP_ADDRESS:
 		// fuck knows
 	default:
 		panic("unimplimented unary op")
