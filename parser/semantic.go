@@ -71,8 +71,6 @@ func (v *Function) analyze(s *semanticAnalyzer) {
 			// value is optional, nothing to check
 		case "c":
 			// idk yet who cares
-		case "variadic":
-			// idk yet who cares
 		default:
 			s.err(attr, "Invalid function attribute key `%s`", attr.Key)
 		}
@@ -441,7 +439,7 @@ func (v *CallExpr) analyze(s *semanticAnalyzer) {
 	paramLen := len(v.Function.Parameters)
 
 	// attributes defaults
-	isVariadic := false
+	isVariadic := v.Function.IsVariadic
 	c := false // if we're calling a C function
 
 	// find them attributes yo
@@ -451,8 +449,6 @@ func (v *CallExpr) analyze(s *semanticAnalyzer) {
 		// todo hashmap or some shit
 		for _, attr := range attributes {
 			switch attr.Key {
-			case "variadic":
-				isVariadic = true
 			case "c":
 				c = true
 			default:
