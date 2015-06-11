@@ -275,7 +275,6 @@ func (v *Codegen) genFunctionDecl(n *parser.FunctionDecl) llvm.Value {
 
 		// attributes defaults
 		cBinding := false
-		isVariadic := false
 
 		// find them attributes yo
 		if n.Function.Attrs != nil {
@@ -286,8 +285,6 @@ func (v *Codegen) genFunctionDecl(n *parser.FunctionDecl) llvm.Value {
 				switch attr.Key {
 				case "c":
 					cBinding = true
-				case "variadic":
-					isVariadic = true
 				default:
 					// do nothing
 				}
@@ -303,7 +300,7 @@ func (v *Codegen) genFunctionDecl(n *parser.FunctionDecl) llvm.Value {
 		}
 
 		// create the function type
-		funcType := llvm.FunctionType(funcTypeRaw, params, isVariadic)
+		funcType := llvm.FunctionType(funcTypeRaw, params, n.Function.IsVariadic)
 
 		functionName := mangledName
 		if cBinding {
