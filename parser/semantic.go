@@ -23,7 +23,7 @@ func (v *semanticAnalyzer) err(thing Locatable, err string, stuff ...interface{}
 	line, char := thing.Pos()
 	fmt.Printf(util.TEXT_RED+util.TEXT_BOLD+"Semantic error:"+util.TEXT_RESET+" [%s:%d:%d] %s\n",
 		v.file.Name, line, char, fmt.Sprintf(err, stuff...))
-	os.Exit(2)
+	os.Exit(util.EXIT_FAILURE_SEMANTIC)
 }
 
 func (v *semanticAnalyzer) warn(thing Locatable, err string, stuff ...interface{}) {
