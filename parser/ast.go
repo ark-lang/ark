@@ -535,8 +535,9 @@ func (v *CastExpr) NodeName() string {
 
 type CallExpr struct {
 	nodePos
-	Function  *Function
-	Arguments []Expr
+	Function     *Function
+	functionName string // used until resolved
+	Arguments    []Expr
 }
 
 func (v *CallExpr) exprNode() {}
