@@ -12,7 +12,7 @@ import (
 func (v *Codegen) err(err string, stuff ...interface{}) {
 	fmt.Printf(util.TEXT_RED+util.TEXT_BOLD+"Ark codegen error:"+util.TEXT_RESET+" %s\n",
 		fmt.Sprintf(err, stuff...))
-	os.Exit(2)
+	os.Exit(util.EXIT_FAILURE_CODEGEN)
 }
 
 func (v *Codegen) write(format string, stuff ...interface{}) {
