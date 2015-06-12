@@ -357,11 +357,11 @@ func (v *parser) parseFunctionDecl() *FunctionDecl {
 			// either I'm just really sleep deprived,
 			// or this is the best way to do this?
 			if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ".") {
-				weird_counter := 0;
+				weird_counter := 0
 				for i := 0; i < 2; i++ {
 					if v.tokenMatches(i, lexer.TOKEN_SEPARATOR, ".") {
 						v.consumeToken()
-						weird_counter = weird_counter + i + 1;
+						weird_counter = weird_counter + i + 1
 					}
 				}
 				if weird_counter == 3 {
