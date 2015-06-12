@@ -111,6 +111,12 @@ func (v *Codegen) Generate(input []*parser.File, verbose bool) {
 		v.curFile = infile
 
 		for _, node := range infile.Nodes {
+			if decl, ok := node.(parser.Decl); ok {
+				v.declareDecl(decl)
+			}
+		}
+
+		for _, node := range infile.Nodes {
 			v.genNode(node)
 		}
 
@@ -123,6 +129,81 @@ func (v *Codegen) Generate(input []*parser.File, verbose bool) {
 	if verbose {
 		fmt.Printf(util.TEXT_BOLD+util.TEXT_GREEN+"Finished codegenning"+util.TEXT_RESET+" (%.2fms)\n",
 			float32(dur.Nanoseconds())/1000000)
+	}
+}
+
+func (v *Codegen) declareDecl(n parser.Decl) {
+	switch n.(type) {
+	case *parser.FunctionDecl:
+		v.declareFunctionDecl(n.(*parser.FunctionDecl))
+	case *parser.StructDecl:
+		//v.declareStructDecl(n.(*parser.StructDecl))
+	case *parser.VariableDecl:
+		//v.declareVariableDecl(n.(*parser.VariableDecl), true)
+	default:
+		panic("unimplimented decl")
+	}
+}
+
+func (v *Codegen) declareFunctionDecl(n *parser.FunctionDecl) {
+	mangledName := n.Function.MangledName(parser.MANGLE_ARK_UNSTABLE)
+	function := v.curFile.Module.NamedFunction(mangledName)
+	if !function.IsNil() {
+		v.err("function `%s` already exists in module", n.Function.Name)
+	} else {
+		numOfParams := len(n.Function.Parameters)
+		params := make([]llvm.Type, numOfParams)
+		for i, par := range n.Function.Parameters {
+			params[i] = typeToLLVMType(par.Variable.Type)
+		}
+
+		// attributes defaults
+		cBinding := false
+
+		// find them attributes yo
+		if n.Function.Attrs != nil {
+			attributes := n.Function.Attrs
+
+			// todo hashmap or some shit
+			for _, attr := range attributes {
+				switch attr.Key {
+				case "c":
+					cBinding = true
+				default:
+					// do nothing
+				}
+			}
+		}
+
+		// assume it's void
+		funcTypeRaw := llvm.VoidType()
+
+		// oo theres a type, let's try figure it out
+		if n.Function.ReturnType != nil {
+			funcTypeRaw = typeToLLVMType(n.Function.ReturnType)
+		}
+
+		// create the function type
+		funcType := llvm.FunctionType(funcTypeRaw, params, n.Function.IsVariadic)
+
+		functionName := mangledName
+		if cBinding {
+			functionName = n.Function.Name
+		}
+
+		// add that shit
+		function = llvm.AddFunction(v.curFile.Module, functionName, funcType)
+		fmt.Println("added")
+
+		// do some magical shit for later
+		for i := 0; i < numOfParams; i++ {
+			funcParam := function.Param(i)
+			funcParam.SetName(n.Function.Parameters[i].Variable.MangledName(parser.MANGLE_ARK_UNSTABLE))
+		}
+
+		if cBinding {
+			function.SetFunctionCallConv(llvm.CCallConv)
+		}
 	}
 }
 
@@ -263,58 +344,10 @@ func (v *Codegen) genFunctionDecl(n *parser.FunctionDecl) llvm.Value {
 
 	mangledName := n.Function.MangledName(parser.MANGLE_ARK_UNSTABLE)
 	function := v.curFile.Module.NamedFunction(mangledName)
-	if !function.IsNil() {
-		v.err("function `%s` already exists in module", n.Function.Name)
-		return res
+	if function.IsNil() {
+		//v.err("genning function `%s` doesn't exist in module", n.Function.Name)
+		// hmmmm seems we just ignore this here
 	} else {
-		numOfParams := len(n.Function.Parameters)
-		params := make([]llvm.Type, numOfParams)
-		for i, par := range n.Function.Parameters {
-			params[i] = typeToLLVMType(par.Variable.Type)
-		}
-
-		// attributes defaults
-		cBinding := false
-
-		// find them attributes yo
-		if n.Function.Attrs != nil {
-			attributes := n.Function.Attrs
-
-			// todo hashmap or some shit
-			for _, attr := range attributes {
-				switch attr.Key {
-				case "c":
-					cBinding = true
-				default:
-					// do nothing
-				}
-			}
-		}
-
-		// assume it's void
-		funcTypeRaw := llvm.VoidType()
-
-		// oo theres a type, let's try figure it out
-		if n.Function.ReturnType != nil {
-			funcTypeRaw = typeToLLVMType(n.Function.ReturnType)
-		}
-
-		// create the function type
-		funcType := llvm.FunctionType(funcTypeRaw, params, n.Function.IsVariadic)
-
-		functionName := mangledName
-		if cBinding {
-			functionName = n.Function.Name
-		}
-
-		// add that shit
-		function = llvm.AddFunction(v.curFile.Module, functionName, funcType)
-
-		// do some magical shit for later
-		for i := 0; i < numOfParams; i++ {
-			funcParam := function.Param(i)
-			funcParam.SetName(n.Function.Parameters[i].Variable.MangledName(parser.MANGLE_ARK_UNSTABLE))
-		}
 
 		if !n.Prototype {
 			block := llvm.AddBasicBlock(function, "entry")
@@ -328,18 +361,19 @@ func (v *Codegen) genFunctionDecl(n *parser.FunctionDecl) llvm.Value {
 			v.inFunction = false
 		}
 
-		if cBinding {
-			function.SetFunctionCallConv(llvm.CCallConv)
+		retType := llvm.VoidType()
+		if n.Function.ReturnType != nil {
+			retType = typeToLLVMType(n.Function.ReturnType)
 		}
 
 		// function returns void, lets return void
 		// unless its a prototype obviously...
-		if funcTypeRaw == llvm.VoidType() && !n.Prototype {
+		if retType == llvm.VoidType() && !n.Prototype {
 			v.builder.CreateRetVoid()
 		}
-
-		return function
 	}
+
+	return res
 }
 
 func (v *Codegen) genStructDecl(n *parser.StructDecl) llvm.Value {
@@ -361,6 +395,8 @@ func (v *Codegen) genVariableDecl(n *parser.VariableDecl, semicolon bool) llvm.V
 	var res llvm.Value
 
 	// if n.Variable.Mutable
+
+	// TODO global vars
 
 	mangledName := n.Variable.MangledName(parser.MANGLE_ARK_UNSTABLE)
 	alloc := v.builder.CreateAlloca(typeToLLVMType(n.Variable.Type), mangledName)
@@ -671,7 +707,7 @@ func (v *Codegen) genCallExpr(n *parser.CallExpr) llvm.Value {
 	}
 	function := v.curFile.Module.NamedFunction(functionName)
 	if function.IsNil() {
-		v.err("function does not exist in current module")
+		v.err("function `%s` does not exist in current module", functionName)
 	}
 
 	numOfArguments := len(n.Arguments)

@@ -22,6 +22,7 @@ type parser struct {
 	verbose      bool
 
 	scope             *Scope
+	globalScope       *Scope
 	binOpPrecedences  map[BinOpType]int
 	attrs             []*Attr
 	curNodeTokenStart int
@@ -115,13 +116,14 @@ func Parse(input *common.Sourcefile, verbose bool) *File {
 		scope:            newGlobalScope(),
 		binOpPrecedences: newBinOpPrecedenceMap(),
 	}
+	p.globalScope = p.scope
 
 	if verbose {
 		fmt.Println(util.TEXT_BOLD+util.TEXT_GREEN+"Started parsing"+util.TEXT_RESET, input.Filename)
 	}
 	t := time.Now()
 	p.parse()
-	sem := &semanticAnalyzer{file: p.file}
+	sem := &semanticAnalyzer{file: p.file, globalScope: p.globalScope}
 	sem.analyze()
 	dur := time.Since(t)
 	if verbose {
@@ -805,10 +807,8 @@ func (v *parser) parseCallExpr() *CallExpr {
 		return nil
 	}
 
-	function := v.scope.GetFunction(v.peek(0).Contents)
-	if function == nil {
-		v.err("Call to undefined function `%s`", v.peek(0).Contents)
-	}
+	ident := v.peek(0).Contents
+	function := v.scope.GetFunction(ident)
 	v.consumeToken()
 	v.consumeToken()
 
@@ -835,8 +835,9 @@ func (v *parser) parseCallExpr() *CallExpr {
 	}
 
 	return &CallExpr{
-		Arguments: args,
-		Function:  function,
+		Arguments:    args,
+		Function:     function,
+		functionName: ident,
 	}
 }
 
