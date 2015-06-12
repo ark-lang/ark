@@ -14,8 +14,9 @@ import (
 // Expr(s) then return.
 
 type semanticAnalyzer struct {
-	file     *File
-	function *Function // the function we're in, or nil if we aren't
+	file        *File
+	function    *Function // the function we're in, or nil if we aren't
+	globalScope *Scope
 }
 
 func (v *semanticAnalyzer) err(thing Locatable, err string, stuff ...interface{}) {
@@ -435,6 +436,13 @@ func (v *CastExpr) setTypeHint(t Type) {}
 // CallExpr
 
 func (v *CallExpr) analyze(s *semanticAnalyzer) {
+	if v.Function == nil {
+		v.Function = s.globalScope.GetFunction(v.functionName)
+		if v.Function == nil {
+			s.err(v, "Call to undefined function `%s`", v.functionName)
+		}
+	}
+
 	argLen := len(v.Arguments)
 	paramLen := len(v.Function.Parameters)
 
@@ -527,13 +535,7 @@ func (v *AddressOfExpr) analyze(s *semanticAnalyzer) {
 	// TODO anything to do here?
 }
 
-func (v *AddressOfExpr) setTypeHint(t Type) {
-	if ptr, ok := v.Access.GetType().(PointerType); ok {
-		v.Access.setTypeHint(ptr.Addressee)
-	} else {
-		v.Access.setTypeHint(nil)
-	}
-}
+func (v *AddressOfExpr) setTypeHint(t Type) {}
 
 // DerefExpr
 
