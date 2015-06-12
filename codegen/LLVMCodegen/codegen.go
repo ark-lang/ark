@@ -66,7 +66,7 @@ func (v *Codegen) bitcodeToASM(filename string) string {
 }
 
 func (v *Codegen) createBinary() {
-	linkArgs := v.CCArgs
+	linkArgs := append(v.CCArgs, "-fno-PIE")
 	asmFiles := []string{}
 
 	for _, file := range v.input {
