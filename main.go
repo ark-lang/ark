@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"time"
 
 	"gopkg.in/alecthomas/kingpin.v2"
@@ -27,9 +28,6 @@ var startTime time.Time
 func main() {
 	startTime = time.Now()
 
-	var command string
-	var numFiles int
-
 	switch kingpin.MustParse(app.Parse(os.Args[1:])) {
 	case buildCom.FullCommand():
 		ccArgs := []string{}
@@ -37,21 +35,22 @@ func main() {
 			ccArgs = append(ccArgs, "-static")
 		}
 		build(*buildInputs, *buildOutput, *buildCodegen, ccArgs)
-		numFiles = len(*buildInputs)
-		command = buildCom.FullCommand()
+		printFinishedMessage(startTime, buildCom.FullCommand(), len(*buildInputs))
+		if *buildRun {
+			run(*buildOutput)
+		}
 
 	case docgenCom.FullCommand():
 		docgen(*docgenInputs, *docgenDir)
-		numFiles = len(*docgenInputs)
-		command = docgenCom.FullCommand()
+		printFinishedMessage(startTime, docgenCom.FullCommand(), len(*docgenInputs))
 	}
+}
 
-	if command != "" {
-		dur := time.Since(startTime)
-		fmt.Printf("%s (%d file(s), %.2fms)\n",
-			util.TEXT_GREEN+util.TEXT_BOLD+fmt.Sprintf("Finished %s", command)+util.TEXT_RESET,
-			numFiles, float32(dur.Nanoseconds())/1000000)
-	}
+func printFinishedMessage(startTime time.Time, command string, numFiles int) {
+	dur := time.Since(startTime)
+	fmt.Printf("%s (%d file(s), %.2fms)\n",
+		util.TEXT_GREEN+util.TEXT_BOLD+fmt.Sprintf("Finished %s", command)+util.TEXT_RESET,
+		numFiles, float32(dur.Nanoseconds())/1000000)
 }
 
 func check(err error) {
@@ -101,6 +100,14 @@ func build(input []string, output string, cg string, ccArgs []string) {
 
 		gen.Generate(parsedFiles, *verbose)
 	}
+}
+
+func run(output string) {
+	cmd := exec.Command("./" + output)
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Run()
 }
 
 func docgen(input []string, dir string) {
