@@ -53,10 +53,10 @@ func printFinishedMessage(startTime time.Time, command string, numFiles int) {
 		numFiles, float32(dur.Nanoseconds())/1000000)
 }
 
-func check(err error) {
-	if err != nil {
-		panic(err)
-	}
+func setupErr(err string, stuff ...interface{}) {
+	fmt.Printf(util.TEXT_RED+util.TEXT_BOLD+"Setup error:"+util.TEXT_RESET+" %s\n",
+		fmt.Sprintf(err, stuff...))
+	os.Exit(util.EXIT_FAILURE_SETUP)
 }
 
 func parseFiles(files []string) []*parser.File {
@@ -64,7 +64,9 @@ func parseFiles(files []string) []*parser.File {
 
 	for _, file := range files {
 		input, err := common.NewSourcefile(file)
-		check(err) // TODO nice error
+		if err != nil {
+			setupErr("%s", err.Error())
+		}
 		sourcefiles = append(sourcefiles, input)
 	}
 
