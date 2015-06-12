@@ -27,6 +27,7 @@ var (
 	buildInputs  = newInputList(buildCom.Arg("input", "Ark source files."))
 	buildCodegen = buildCom.Flag("codegen", "Codegen backend to use").Default("llvm").Enum("none", "llvm", "ark")
 	buildStatic  = buildCom.Flag("static", "Pass the -static option to cc.").Bool()
+	buildRun     = buildCom.Flag("run", "Run the executable.").Bool()
 
 	docgenCom    = app.Command("docgen", "Generate documentation.")
 	docgenDir    = docgenCom.Flag("dir", "Directory to place generated docs in.").Default("docgen").String()
