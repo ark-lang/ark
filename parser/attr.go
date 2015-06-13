@@ -6,9 +6,9 @@ import (
 )
 
 type Attr struct {
-	Key                    string
-	Value                  string
-	lineNumber, charNumber int
+	Key   string
+	Value string
+	nodePos
 }
 
 func (v *Attr) String() string {
@@ -30,14 +30,6 @@ func getAttr(attrs []*Attr, s string) *Attr {
 	return nil
 }
 
-func (v *Attr) Pos() (line, char int) {
-	return v.lineNumber, v.charNumber
-}
-
-func (v *Attr) setPos(line, char int) {
-	panic("don't call this")
-}
-
 func (v *semanticAnalyzer) checkAttrsDistanceFromLine(attrs []*Attr, line int, declType, declName string) {
 	for i := len(attrs) - 1; i >= 0; i-- {
 		if attrs[i].lineNumber < line-1 {
@@ -54,10 +46,9 @@ func (v *parser) parseAttrs() []*Attr {
 		v.consumeToken()
 	thing:
 		attr := &Attr{
-			lineNumber: v.peek(0).LineNumber,
-			charNumber: v.peek(0).CharNumber,
-			Key:        v.consumeToken().Contents,
+			Key: v.consumeToken().Contents,
 		}
+		attr.setPos(v.peek(0).Filename, v.peek(0).LineNumber, v.peek(0).CharNumber)
 
 		if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "=") {
 			v.consumeToken() // eat =

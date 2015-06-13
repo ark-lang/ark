@@ -10,23 +10,26 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ark-lang/ark/common"
 	"github.com/ark-lang/ark/lexer"
 	"github.com/ark-lang/ark/util"
 )
 
 type parser struct {
-	file         *File
+	module       *Module
 	input        []*lexer.Token
 	currentToken int
 	verbose      bool
 
 	scope             *Scope
-	globalScope       *Scope
 	binOpPrecedences  map[BinOpType]int
 	attrs             []*Attr
 	curNodeTokenStart int
 	docCommentsBuf    []*DocComment
+	unresolvedNodes   []Node // nodes with unresolved references to vars/types/funcs etc
+}
+
+func (v *parser) addUnresolvedNode(n Node) {
+	v.unresolvedNodes = append(v.unresolvedNodes, n)
 }
 
 func (v *parser) err(err string, stuff ...interface{}) {
@@ -54,7 +57,7 @@ func (v *parser) consumeToken() *lexer.Token {
 }
 
 func (v *parser) pushNode(node Node) {
-	v.file.Nodes = append(v.file.Nodes, node)
+	v.module.Nodes = append(v.module.Nodes, node)
 }
 
 func (v *parser) pushScope() {
@@ -105,9 +108,9 @@ func (v *parser) getPrecedence(op BinOpType) int {
 	return -1
 }
 
-func Parse(input *common.Sourcefile, verbose bool) *File {
+func Parse(input *lexer.Sourcefile, verbose bool) *Module {
 	p := &parser{
-		file: &File{
+		module: &Module{
 			Nodes: make([]Node, 0),
 			Name:  input.Filename,
 		},
@@ -116,25 +119,25 @@ func Parse(input *common.Sourcefile, verbose bool) *File {
 		scope:            newGlobalScope(),
 		binOpPrecedences: newBinOpPrecedenceMap(),
 	}
-	p.globalScope = p.scope
+	p.module.GlobalScope = p.scope
 
 	if verbose {
 		fmt.Println(util.TEXT_BOLD+util.TEXT_GREEN+"Started parsing"+util.TEXT_RESET, input.Filename)
 	}
 	t := time.Now()
 	p.parse()
-	sem := &semanticAnalyzer{file: p.file, globalScope: p.globalScope}
+	sem := &semanticAnalyzer{module: p.module, unresolvedNodes: p.unresolvedNodes}
 	sem.analyze()
 	dur := time.Since(t)
 	if verbose {
-		for _, n := range p.file.Nodes {
+		for _, n := range p.module.Nodes {
 			fmt.Println(n.String())
 		}
 		fmt.Printf(util.TEXT_BOLD+util.TEXT_GREEN+"Finished parsing"+util.TEXT_RESET+" %s (%.2fms)\n",
 			input.Filename, float32(dur.Nanoseconds())/1000000)
 	}
 
-	return p.file
+	return p.module
 }
 
 func (v *parser) parse() {
@@ -201,7 +204,8 @@ func (v *parser) parseNode() Node {
 
 func (v *parser) parseStat() Stat {
 	var ret Stat
-	line, char := v.peek(0).LineNumber, v.peek(0).CharNumber
+	locationToken := v.peek(0)
+	filename, line, char := locationToken.Filename, locationToken.LineNumber, locationToken.CharNumber
 
 	if ifStat := v.parseIfStat(); ifStat != nil {
 		ret = ifStat
@@ -217,7 +221,7 @@ func (v *parser) parseStat() Stat {
 		return nil
 	}
 
-	ret.setPos(line, char)
+	ret.setPos(filename, line, char)
 	return ret
 }
 
@@ -231,13 +235,15 @@ func (v *parser) parseAssignStat() *AssignStat {
 	}
 
 	assign := &AssignStat{}
-	line, char := v.peek(0).LineNumber, v.peek(0).CharNumber
+
+	locationToken := v.peek(0)
+	filename, line, char := locationToken.Filename, locationToken.LineNumber, locationToken.CharNumber
 
 	if deref := v.parseDerefExpr(); deref != nil {
-		deref.setPos(line, char)
+		deref.setPos(filename, line, char)
 		assign.Deref = deref
 	} else if access := v.parseAccessExpr(); access != nil {
-		access.setPos(line, char)
+		access.setPos(filename, line, char)
 		assign.Access = access
 	} else {
 		v.err("Malformed assignment statement")
@@ -276,7 +282,10 @@ func (v *parser) parseCallStat() *CallStat {
 
 func (v *parser) parseDecl() Decl {
 	var ret Decl
-	line, char := v.peek(0).LineNumber, v.peek(0).CharNumber
+
+	locationToken := v.peek(0)
+	filename, line, char := locationToken.Filename, locationToken.LineNumber, locationToken.CharNumber
+
 	if structureDecl := v.parseStructDecl(); structureDecl != nil {
 		ret = structureDecl
 	} else if functionDecl := v.parseFunctionDecl(); functionDecl != nil {
@@ -286,31 +295,35 @@ func (v *parser) parseDecl() Decl {
 	} else {
 		return nil
 	}
-	ret.setPos(line, char)
+
+	ret.setPos(filename, line, char)
+
 	return ret
 }
 
-func (v *parser) parseType() Type {
+func getTypeFromString(scope *Scope, s string) Type {
+	if []rune(s)[0] == '^' {
+		return pointerTo(getTypeFromString(scope, string([]rune(s)[1:])))
+	}
+
+	return scope.GetType(s)
+}
+
+func (v *parser) parseTypeToString() string {
 	if !(v.peek(0).Type == lexer.TOKEN_IDENTIFIER || v.tokenMatches(0, lexer.TOKEN_OPERATOR, "^")) {
-		return nil
+		panic("expected type")
 	}
 
 	if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "^") {
 		v.consumeToken()
-		if innerType := v.parseType(); innerType != nil {
-			return pointerTo(innerType)
+		if innerType := v.parseTypeToString(); innerType != "" {
+			return "^" + innerType
 		} else {
 			v.err("Expected type name")
 		}
 	}
 
-	typeName := v.consumeToken().Contents // consume type
-
-	typ := v.scope.GetType(typeName)
-	if typ == nil {
-		v.err("Unrecognized type `%s`", typeName)
-	}
-	return typ
+	return v.consumeToken().Contents
 }
 
 func (v *parser) parseFunctionDecl() *FunctionDecl {
@@ -401,9 +414,11 @@ func (v *parser) parseFunctionDecl() *FunctionDecl {
 			function.Mutable = true
 		}
 
-		// actual return type
-		if typ := v.parseType(); typ != nil {
-			function.ReturnType = typ
+		if function.returnTypeName = v.parseTypeToString(); function.returnTypeName != "" {
+			function.ReturnType = getTypeFromString(v.scope, function.returnTypeName)
+			if function.ReturnType == nil {
+				v.addUnresolvedNode(funcDecl)
+			}
 		} else {
 			v.err("Expected function return type after colon for function `%s`", function.Name)
 		}
@@ -595,13 +610,15 @@ func (v *parser) parseStructDecl() *StructDecl {
 				break
 			}
 
-			line, char := v.peek(0).LineNumber, v.peek(0).CharNumber
+			locationToken := v.peek(0)
+			filename, line, char := locationToken.Filename, locationToken.LineNumber, locationToken.CharNumber
+
 			if variable := v.parseVariableDecl(false); variable != nil {
 				if variable.Variable.Mutable {
 					v.err("Cannot specify `mut` keyword on struct member: `%s`", variable.Variable.Name)
 				}
 				struc.addVariableDecl(variable)
-				variable.setPos(line, char)
+				variable.setPos(filename, line, char)
 				itemCount++
 			} else {
 				v.err("Invalid structure item in structure `%s`", struc.Name)
@@ -640,10 +657,15 @@ func (v *parser) parseVariableDecl(needSemicolon bool) *VariableDecl {
 
 	v.consumeToken() // consume :
 
-	if typ := v.parseType(); typ != nil {
-		variable.Type = typ
-	} else if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "=") {
+	if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "=") {
+		// type is inferred
 		variable.Type = nil
+	} else {
+		variable.typeName = v.parseTypeToString()
+		variable.Type = getTypeFromString(v.scope, variable.typeName)
+		if variable.Type == nil {
+			v.addUnresolvedNode(varDecl)
+		}
 	}
 
 	if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "=") {
@@ -673,14 +695,17 @@ func (v *parser) parseVariableDecl(needSemicolon bool) *VariableDecl {
 
 func (v *parser) parseExpr() Expr {
 	pri := v.parsePrimaryExpr()
-	line, char := v.peek(0).LineNumber, v.peek(0).CharNumber
+
+	locationToken := v.peek(0)
+	filename, line, char := locationToken.Filename, locationToken.LineNumber, locationToken.CharNumber
+
 	if pri == nil {
 		return nil
 	}
-	pri.setPos(line, char)
+	pri.setPos(filename, line, char)
 
 	if bin := v.parseBinaryOperator(0, pri); bin != nil {
-		bin.setPos(line, char)
+		bin.setPos(filename, line, char)
 		return bin
 	}
 	return pri
@@ -733,12 +758,12 @@ func (v *parser) parsePrimaryExpr() Expr {
 		return addressOfExpr
 	} else if litExpr := v.parseLiteral(); litExpr != nil {
 		return litExpr
+	} else if castExpr := v.parseCastExpr(); castExpr != nil {
+		return castExpr
 	} else if derefExpr := v.parseDerefExpr(); derefExpr != nil {
 		return derefExpr
 	} else if unaryExpr := v.parseUnaryExpr(); unaryExpr != nil {
 		return unaryExpr
-	} else if castExpr := v.parseCastExpr(); castExpr != nil {
-		return castExpr
 	} else if callExpr := v.parseCallExpr(); callExpr != nil {
 		return callExpr
 	} else if accessExpr := v.parseAccessExpr(); accessExpr != nil {
@@ -768,6 +793,7 @@ func (v *parser) parseBracketExpr() *BracketExpr {
 }
 
 func (v *parser) parseAccessExpr() *AccessExpr {
+	// TODO add accessexpr to resolve.go
 	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, "") {
 		return nil
 	}
@@ -807,18 +833,22 @@ func (v *parser) parseCallExpr() *CallExpr {
 		return nil
 	}
 
-	ident := v.peek(0).Contents
-	function := v.scope.GetFunction(ident)
+	callExpr := &CallExpr{}
+
+	callExpr.functionName = v.peek(0).Contents
+	callExpr.Function = v.scope.GetFunction(callExpr.functionName)
+	if callExpr.Function == nil {
+		v.addUnresolvedNode(callExpr)
+	}
 	v.consumeToken()
 	v.consumeToken()
 
-	args := make([]Expr, 0)
 	if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ")") {
 		v.consumeToken()
 	} else {
 		for {
 			if expr := v.parseExpr(); expr != nil {
-				args = append(args, expr)
+				callExpr.Arguments = append(callExpr.Arguments, expr)
 			} else {
 				v.err("Expected function argument, found `%s`", v.peek(0).Contents)
 			}
@@ -834,39 +864,43 @@ func (v *parser) parseCallExpr() *CallExpr {
 		}
 	}
 
-	return &CallExpr{
-		Arguments:    args,
-		Function:     function,
-		functionName: ident,
-	}
+	return callExpr
 }
 
 func (v *parser) parseCastExpr() *CastExpr {
-	if !v.tokensMatch(lexer.TOKEN_IDENTIFIER, "", lexer.TOKEN_SEPARATOR, "(") {
-		return nil
-	}
-
-	typ := v.scope.GetType(v.peek(0).Contents)
-	if typ == nil {
+	if !v.tokensMatch(lexer.TOKEN_IDENTIFIER, KEYWORD_CAST, lexer.TOKEN_SEPARATOR, "(") {
 		return nil
 	}
 	v.consumeToken()
 	v.consumeToken()
 
-	expr := v.parseExpr()
-	if expr == nil {
+	castExpr := &CastExpr{}
+
+	if castExpr.typeName = v.parseTypeToString(); castExpr.typeName != "" {
+		castExpr.Type = getTypeFromString(v.scope, castExpr.typeName)
+		if castExpr.Type == nil {
+			v.addUnresolvedNode(castExpr)
+		}
+	} else {
+		v.err("Expected type")
+	}
+
+	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ",") {
+		v.err("Expected `,`, found `%s`", v.peek(0).Contents)
+	}
+	v.consumeToken()
+
+	castExpr.Expr = v.parseExpr()
+	if castExpr.Expr == nil {
 		v.err("Expected expression in typecast, found `%s`", v.peek(0))
 	}
 
 	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ")") {
-		v.err("Exprected `)` at the end of typecase, found `%s`", v.peek(0))
+		v.err("Exprected `)` at the end of typecast, found `%s`", v.peek(0))
 	}
 	v.consumeToken()
 
-	return &CastExpr{
-		Type: typ,
-		Expr: expr,
-	}
+	return castExpr
 }
 
 func (v *parser) parseUnaryExpr() *UnaryExpr {
@@ -910,12 +944,14 @@ func (v *parser) parseAddressOfExpr() *AddressOfExpr {
 	}
 	v.consumeToken()
 
-	line, char := v.peek(0).LineNumber, v.peek(0).CharNumber
+	locationToken := v.peek(0)
+	filename, line, char := locationToken.Filename, locationToken.LineNumber, locationToken.CharNumber
+
 	access := v.parseAccessExpr()
 	if access == nil {
 		v.err("Expected variable access after `&` operator, found `%s`", v.peek(0).Contents)
 	}
-	access.setPos(line, char)
+	access.setPos(filename, line, char)
 
 	return &AddressOfExpr{
 		Access: access,
