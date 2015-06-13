@@ -38,9 +38,6 @@ func (v *Codegen) err(err string, stuff ...interface{}) {
 
 func (v *Codegen) createBitcode(file *parser.File) string {
 	filename := file.Name + ".bc"
-	if err := llvm.VerifyModule(file.Module, llvm.ReturnStatusAction); err != nil {
-		v.err("%s", err.Error())
-	}
 
 	fileHandle, err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
 	if err != nil {
@@ -106,6 +103,11 @@ func (v *Codegen) Generate(input []*parser.File, verbose bool) {
 	}
 	t := time.Now()
 
+	passManager := llvm.NewPassManager()
+	passBuilder := llvm.NewPassManagerBuilder()
+	passBuilder.SetOptLevel(1)
+	//passBuilder.Populate(passManager) leave this off until the compiler is better
+
 	for _, infile := range input {
 		infile.Module = llvm.NewModule(infile.Name)
 		v.curFile = infile
@@ -120,8 +122,16 @@ func (v *Codegen) Generate(input []*parser.File, verbose bool) {
 			v.genNode(node)
 		}
 
+		if err := llvm.VerifyModule(infile.Module, llvm.ReturnStatusAction); err != nil {
+			v.err("%s", err.Error())
+		}
+
+		passManager.Run(infile.Module)
+
 		infile.Module.Dump()
 	}
+
+	passManager.Dispose()
 
 	v.createBinary()
 
