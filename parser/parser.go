@@ -648,16 +648,6 @@ func (v *parser) parseVariableDecl(needSemicolon bool) *VariableDecl {
 
 	v.consumeToken() // consume :
 
-	/*if typ := v.parseType(); typ != nil {
-		variable.Type = typ
-		variable.typeResolved = true
-	} else if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "=") {
-		variable.Type = nil
-		variable.typeResolved = true
-	} else {
-		variable.typeName = v.consumeToken().Contents
-	}*/
-
 	if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "=") {
 		// type is inferred
 		variable.Type = nil
@@ -791,6 +781,7 @@ func (v *parser) parseBracketExpr() *BracketExpr {
 }
 
 func (v *parser) parseAccessExpr() *AccessExpr {
+	// TODO add accessexpr to resolve.go
 	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, "") {
 		return nil
 	}
