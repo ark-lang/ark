@@ -202,6 +202,8 @@ func (v *Codegen) declareFunctionDecl(n *parser.FunctionDecl) {
 
 		if cBinding {
 			function.SetFunctionCallConv(llvm.CCallConv)
+		} else {
+			function.SetFunctionCallConv(llvm.FastCallConv)
 		}
 	}
 }
@@ -352,23 +354,30 @@ func (v *Codegen) genFunctionDecl(n *parser.FunctionDecl) llvm.Value {
 			block := llvm.AddBasicBlock(function, "entry")
 			v.builder.SetInsertPointAtEnd(block)
 
+			for i, par := range n.Function.Parameters {
+				alloc := v.builder.CreateAlloca(typeToLLVMType(par.Variable.Type), par.Variable.MangledName(parser.MANGLE_ARK_UNSTABLE))
+				v.variableLookup[par.Variable] = alloc
+
+				v.builder.CreateStore(function.Params()[i], alloc)
+			}
+
 			v.inFunction = true
 			v.currentFunction = function
 			for _, stat := range n.Function.Body.Nodes {
 				v.genNode(stat)
 			}
 			v.inFunction = false
-		}
 
-		retType := llvm.VoidType()
-		if n.Function.ReturnType != nil {
-			retType = typeToLLVMType(n.Function.ReturnType)
-		}
+			retType := llvm.VoidType()
+			if n.Function.ReturnType != nil {
+				retType = typeToLLVMType(n.Function.ReturnType)
+			}
 
-		// function returns void, lets return void
-		// unless its a prototype obviously...
-		if retType == llvm.VoidType() && !n.Prototype {
-			v.builder.CreateRetVoid()
+			// function returns void, lets return void
+			// unless its a prototype obviously...
+			if retType == llvm.VoidType() && !n.Prototype {
+				v.builder.CreateRetVoid()
+			}
 		}
 	}
 
