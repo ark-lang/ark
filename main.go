@@ -11,7 +11,6 @@ import (
 	"github.com/ark-lang/ark/codegen"
 	"github.com/ark-lang/ark/codegen/LLVMCodegen"
 	"github.com/ark-lang/ark/codegen/arkcodegen"
-	"github.com/ark-lang/ark/common"
 	"github.com/ark-lang/ark/doc"
 	"github.com/ark-lang/ark/lexer"
 	"github.com/ark-lang/ark/parser"
@@ -60,10 +59,10 @@ func setupErr(err string, stuff ...interface{}) {
 }
 
 func parseFiles(files []string) []*parser.File {
-	sourcefiles := make([]*common.Sourcefile, 0)
+	sourcefiles := make([]*lexer.Sourcefile, 0)
 
 	for _, file := range files {
-		input, err := common.NewSourcefile(file)
+		input, err := lexer.NewSourcefile(file)
 		if err != nil {
 			setupErr("%s", err.Error())
 		}
