@@ -17,8 +17,8 @@ import (
 const intSize = int(unsafe.Sizeof(C.int(0)))
 
 type Codegen struct {
-	input   []*parser.File
-	curFile *parser.File
+	input   []*parser.Module
+	curFile *parser.Module
 
 	builder        llvm.Builder
 	variableLookup map[*parser.Variable]llvm.Value
@@ -36,7 +36,7 @@ func (v *Codegen) err(err string, stuff ...interface{}) {
 	os.Exit(util.EXIT_FAILURE_CODEGEN)
 }
 
-func (v *Codegen) createBitcode(file *parser.File) string {
+func (v *Codegen) createBitcode(file *parser.Module) string {
 	filename := file.Name + ".bc"
 
 	fileHandle, err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
@@ -93,7 +93,7 @@ func (v *Codegen) createBinary() {
 	}
 }
 
-func (v *Codegen) Generate(input []*parser.File, verbose bool) {
+func (v *Codegen) Generate(input []*parser.Module, verbose bool) {
 	v.input = input
 	v.builder = llvm.NewBuilder()
 	v.variableLookup = make(map[*parser.Variable]llvm.Value)
