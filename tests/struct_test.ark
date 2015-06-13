@@ -1,12 +1,12 @@
+func main(): Test {
+    thing: Test;
+    return thing;
+}
+
 struct Test {
     x: int = 1,
     y: int,
     z: f64,
     a: f32,
     e: str,
-}
-
-func main(): int {
-    thing: Test;
-    return 0;
 }

@@ -4,6 +4,7 @@ const (
 	KEYWORD_ALLOC    string = "alloc"
 	KEYWORD_AS       string = "as"
 	KEYWORD_BREAK    string = "break"
+	KEYWORD_CAST     string = "cast"
 	KEYWORD_CONTINUE string = "continue"
 	KEYWORD_ELSE     string = "else"
 	KEYWORD_ENUM     string = "enum"
@@ -32,6 +33,7 @@ func init() {
 	keywordMap[KEYWORD_ALLOC] = true
 	keywordMap[KEYWORD_AS] = true
 	keywordMap[KEYWORD_BREAK] = true
+	keywordMap[KEYWORD_CAST] = true
 	keywordMap[KEYWORD_CONTINUE] = true
 	keywordMap[KEYWORD_ELSE] = true
 	keywordMap[KEYWORD_ENUM] = true
@@ -56,7 +58,7 @@ func isReservedKeyword(s string) bool {
 		return true
 	}
 
-	if len(s) >= 2 && s[0] == '_' && s[1] == 'Z' {
+	if len(s) >= 2 && s[0] == '_' && (s[1] >= 'A' && s[1] <= 'Z') {
 		return true
 	}
 
