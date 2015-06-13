@@ -4,7 +4,7 @@ import (
 	"llvm.org/llvm/bindings/go/llvm"
 )
 
-type File struct {
+type Module struct {
 	Nodes       []Node
 	Name        string
 	GlobalScope *Scope

@@ -7,8 +7,8 @@ import (
 )
 
 type Locatable interface {
-	Pos() (line, char int)
-	setPos(line, char int)
+	Pos() (filename string, line, char int)
+	setPos(filename string, line, char int)
 }
 
 type Node interface {
@@ -37,14 +37,16 @@ type Decl interface {
 }
 
 type nodePos struct {
+	filename               string
 	lineNumber, charNumber int
 }
 
-func (v nodePos) Pos() (line, char int) {
-	return v.lineNumber, v.charNumber
+func (v nodePos) Pos() (filename string, line, char int) {
+	return v.filename, v.lineNumber, v.charNumber
 }
 
-func (v *nodePos) setPos(line, char int) {
+func (v *nodePos) setPos(filename string, line, char int) {
+	v.filename = filename
 	v.lineNumber = line
 	v.charNumber = char
 }

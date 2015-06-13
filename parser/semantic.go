@@ -14,22 +14,22 @@ import (
 // Expr(s) then return.
 
 type semanticAnalyzer struct {
-	file            *File
+	module          *Module
 	function        *Function // the function we're in, or nil if we aren't
 	unresolvedNodes []Node
 }
 
 func (v *semanticAnalyzer) err(thing Locatable, err string, stuff ...interface{}) {
-	line, char := thing.Pos()
+	filename, line, char := thing.Pos()
 	fmt.Printf(util.TEXT_RED+util.TEXT_BOLD+"Semantic error:"+util.TEXT_RESET+" [%s:%d:%d] %s\n",
-		v.file.Name, line, char, fmt.Sprintf(err, stuff...))
+		filename, line, char, fmt.Sprintf(err, stuff...))
 	os.Exit(util.EXIT_FAILURE_SEMANTIC)
 }
 
 func (v *semanticAnalyzer) warn(thing Locatable, err string, stuff ...interface{}) {
-	line, char := thing.Pos()
+	filename, line, char := thing.Pos()
 	fmt.Printf(util.TEXT_YELLOW+util.TEXT_BOLD+"Semantic warning:"+util.TEXT_RESET+" [%s:%d:%d] %s\n",
-		v.file.Name, line, char, fmt.Sprintf(err, stuff...))
+		filename, line, char, fmt.Sprintf(err, stuff...))
 }
 
 func (v *semanticAnalyzer) warnDeprecated(thing Locatable, typ, name, message string) {
@@ -54,7 +54,7 @@ func (v *semanticAnalyzer) checkDuplicateAttrs(attrs []*Attr) {
 func (v *semanticAnalyzer) analyze() {
 	v.resolveAll()
 
-	for _, node := range v.file.Nodes {
+	for _, node := range v.module.Nodes {
 		node.analyze(v)
 	}
 }
@@ -502,6 +502,10 @@ func (v *CallExpr) analyze(s *semanticAnalyzer) {
 		} else {
 			arg.setTypeHint(v.Function.Parameters[i].Variable.Type)
 			arg.analyze(s)
+
+			if arg.GetType() != v.Function.Parameters[i].Variable.Type {
+				s.err(arg, "Mismatched types in function call: `%s` and `%s`", arg.GetType(), v.Function.Parameters[i].Variable.Type)
+			}
 		}
 	}
 
