@@ -273,7 +273,7 @@ func (v *CallStat) NodeName() string {
 
 type AssignStat struct {
 	nodePos
-	Deref      *DerefExpr // one of these should be nil, not neither or both
+	Deref      *DerefExpr // one of these should be nil, not neither or both. felix: what even for x = 5?
 	Access     *AccessExpr
 	Assignment Expr
 }

@@ -249,6 +249,7 @@ func (v *Codegen) genCallStat(n *parser.CallStat) {
 
 func (v *Codegen) genAssignStat(n *parser.AssignStat) {
 	alloca := v.variableLookup[n.Access.Variable]
+
 	v.builder.CreateStore(v.genExpr(n.Assignment), alloca)
 }
 
@@ -721,10 +722,6 @@ func (v *Codegen) genCallExpr(n *parser.CallExpr) llvm.Value {
 
 func (v *Codegen) genAccessExpr(n *parser.AccessExpr) llvm.Value {
 	var load llvm.Value
-
-	if len(n.StructVariables) > 0 {
-		panic("struct access unimplimented")
-	}
 
 	load = v.builder.CreateLoad(v.variableLookup[n.Variable], n.Variable.MangledName(parser.MANGLE_ARK_UNSTABLE))
 
