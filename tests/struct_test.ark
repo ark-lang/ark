@@ -1,5 +1,6 @@
 func main(): Test {
     thing: Test;
+    thing2: Test;
     return thing;
 }
 
