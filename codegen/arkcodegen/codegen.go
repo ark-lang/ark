@@ -36,14 +36,14 @@ func (v *Codegen) nl() {
 type Codegen struct {
 	Minify bool
 
-	input     []*parser.File
+	input     []*parser.Module
 	curOutput *os.File
 
 	indent    int // number of tabs indented
 	lastWasNl bool
 }
 
-func (v *Codegen) Generate(input []*parser.File, verbose bool) {
+func (v *Codegen) Generate(input []*parser.Module, verbose bool) {
 	v.input = input
 
 	for _, infile := range input {

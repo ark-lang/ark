@@ -1,11 +1,12 @@
 func main(): int {
     [c] printf("finally, it fucking works!\n");
     [c] printf("we have to specify the c attribute so it doesn't mangle the name %d\n", 5);
+    puts("test fast calling convention\n");
     return 0;
 }
 
 [c] func printf(fmt: str, ...);
 
-func thing() {
-
+func puts(message: str) {
+    [c] printf(message);
 }
