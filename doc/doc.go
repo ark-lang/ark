@@ -10,7 +10,7 @@ import (
 )
 
 type Docgen struct {
-	Input []*parser.File
+	Input []*parser.Module
 	Dir   string
 
 	output    []*File

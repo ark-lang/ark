@@ -14,22 +14,22 @@ import (
 // Expr(s) then return.
 
 type semanticAnalyzer struct {
-	file        *File
-	function    *Function // the function we're in, or nil if we aren't
-	globalScope *Scope
+	module          *Module
+	function        *Function // the function we're in, or nil if we aren't
+	unresolvedNodes []Node
 }
 
 func (v *semanticAnalyzer) err(thing Locatable, err string, stuff ...interface{}) {
-	line, char := thing.Pos()
+	filename, line, char := thing.Pos()
 	fmt.Printf(util.TEXT_RED+util.TEXT_BOLD+"Semantic error:"+util.TEXT_RESET+" [%s:%d:%d] %s\n",
-		v.file.Name, line, char, fmt.Sprintf(err, stuff...))
+		filename, line, char, fmt.Sprintf(err, stuff...))
 	os.Exit(util.EXIT_FAILURE_SEMANTIC)
 }
 
 func (v *semanticAnalyzer) warn(thing Locatable, err string, stuff ...interface{}) {
-	line, char := thing.Pos()
+	filename, line, char := thing.Pos()
 	fmt.Printf(util.TEXT_YELLOW+util.TEXT_BOLD+"Semantic warning:"+util.TEXT_RESET+" [%s:%d:%d] %s\n",
-		v.file.Name, line, char, fmt.Sprintf(err, stuff...))
+		filename, line, char, fmt.Sprintf(err, stuff...))
 }
 
 func (v *semanticAnalyzer) warnDeprecated(thing Locatable, typ, name, message string) {
@@ -52,7 +52,9 @@ func (v *semanticAnalyzer) checkDuplicateAttrs(attrs []*Attr) {
 }
 
 func (v *semanticAnalyzer) analyze() {
-	for _, node := range v.file.Nodes {
+	v.resolveAll()
+
+	for _, node := range v.module.Nodes {
 		node.analyze(v)
 	}
 }
@@ -436,13 +438,6 @@ func (v *CastExpr) setTypeHint(t Type) {}
 // CallExpr
 
 func (v *CallExpr) analyze(s *semanticAnalyzer) {
-	if v.Function == nil {
-		v.Function = s.globalScope.GetFunction(v.functionName)
-		if v.Function == nil {
-			s.err(v, "Call to undefined function `%s`", v.functionName)
-		}
-	}
-
 	argLen := len(v.Arguments)
 	paramLen := len(v.Function.Parameters)
 
@@ -507,6 +502,10 @@ func (v *CallExpr) analyze(s *semanticAnalyzer) {
 		} else {
 			arg.setTypeHint(v.Function.Parameters[i].Variable.Type)
 			arg.analyze(s)
+
+			if arg.GetType() != v.Function.Parameters[i].Variable.Type {
+				s.err(arg, "Mismatched types in function call: `%s` and `%s`", arg.GetType(), v.Function.Parameters[i].Variable.Type)
+			}
 		}
 	}
 
