@@ -5,7 +5,8 @@ import (
 )
 
 type File struct {
-	Nodes  []Node
-	Name   string
-	Module llvm.Module
+	Nodes       []Node
+	Name        string
+	GlobalScope *Scope
+	Module      llvm.Module
 }

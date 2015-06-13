@@ -14,9 +14,9 @@ import (
 // Expr(s) then return.
 
 type semanticAnalyzer struct {
-	file        *File
-	function    *Function // the function we're in, or nil if we aren't
-	globalScope *Scope
+	file            *File
+	function        *Function // the function we're in, or nil if we aren't
+	unresolvedNodes []Node
 }
 
 func (v *semanticAnalyzer) err(thing Locatable, err string, stuff ...interface{}) {
@@ -52,6 +52,8 @@ func (v *semanticAnalyzer) checkDuplicateAttrs(attrs []*Attr) {
 }
 
 func (v *semanticAnalyzer) analyze() {
+	v.resolveAll()
+
 	for _, node := range v.file.Nodes {
 		node.analyze(v)
 	}
@@ -436,13 +438,6 @@ func (v *CastExpr) setTypeHint(t Type) {}
 // CallExpr
 
 func (v *CallExpr) analyze(s *semanticAnalyzer) {
-	if v.Function == nil {
-		v.Function = s.globalScope.GetFunction(v.functionName)
-		if v.Function == nil {
-			s.err(v, "Call to undefined function `%s`", v.functionName)
-		}
-	}
-
 	argLen := len(v.Arguments)
 	paramLen := len(v.Function.Parameters)
 
