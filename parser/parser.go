@@ -654,7 +654,7 @@ func (v *parser) parseVariableDecl(needSemicolon bool) *VariableDecl {
 	} else {
 		variable.typeName = v.parseTypeToString()
 		variable.Type = getTypeFromString(v.scope, variable.typeName)
-		if variable.Type != nil {
+		if variable.Type == nil {
 			v.addUnresolvedNode(varDecl)
 		}
 	}
