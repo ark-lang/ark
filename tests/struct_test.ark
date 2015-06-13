@@ -1,3 +1,9 @@
+func main(): Test {
+    thing: Test;
+    thing2: Test;
+    return thing;
+}
+
 struct Test {
     x: int = 1,
     y: int,
@@ -5,6 +11,7 @@ struct Test {
     a: f32,
     e: str,
 }
+<<<<<<< HEAD
 
 func printf(fmt: str, ...): int;
 
@@ -12,3 +19,5 @@ func main(): int {
     mut thing: Test;
     return 0;
 }
+=======
+>>>>>>> 09ffccf3b30e3e2a630577963483136f61785b68

@@ -17,8 +17,8 @@ import (
 const intSize = int(unsafe.Sizeof(C.int(0)))
 
 type Codegen struct {
-	input   []*parser.File
-	curFile *parser.File
+	input   []*parser.Module
+	curFile *parser.Module
 
 	builder        llvm.Builder
 	variableLookup map[*parser.Variable]llvm.Value
@@ -36,11 +36,8 @@ func (v *Codegen) err(err string, stuff ...interface{}) {
 	os.Exit(util.EXIT_FAILURE_CODEGEN)
 }
 
-func (v *Codegen) createBitcode(file *parser.File) string {
+func (v *Codegen) createBitcode(file *parser.Module) string {
 	filename := file.Name + ".bc"
-	if err := llvm.VerifyModule(file.Module, llvm.ReturnStatusAction); err != nil {
-		v.err("%s", err.Error())
-	}
 
 	fileHandle, err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
 	if err != nil {
@@ -96,7 +93,7 @@ func (v *Codegen) createBinary() {
 	}
 }
 
-func (v *Codegen) Generate(input []*parser.File, verbose bool) {
+func (v *Codegen) Generate(input []*parser.Module, verbose bool) {
 	v.input = input
 	v.builder = llvm.NewBuilder()
 	v.variableLookup = make(map[*parser.Variable]llvm.Value)
@@ -105,6 +102,11 @@ func (v *Codegen) Generate(input []*parser.File, verbose bool) {
 		fmt.Println(util.TEXT_BOLD + util.TEXT_GREEN + "Started codegenning" + util.TEXT_RESET)
 	}
 	t := time.Now()
+
+	passManager := llvm.NewPassManager()
+	passBuilder := llvm.NewPassManagerBuilder()
+	passBuilder.SetOptLevel(1)
+	//passBuilder.Populate(passManager) leave this off until the compiler is better
 
 	for _, infile := range input {
 		infile.Module = llvm.NewModule(infile.Name)
@@ -120,8 +122,16 @@ func (v *Codegen) Generate(input []*parser.File, verbose bool) {
 			v.genNode(node)
 		}
 
+		if err := llvm.VerifyModule(infile.Module, llvm.ReturnStatusAction); err != nil {
+			v.err("%s", err.Error())
+		}
+
+		passManager.Run(infile.Module)
+
 		infile.Module.Dump()
 	}
+
+	passManager.Dispose()
 
 	v.createBinary()
 
@@ -193,7 +203,6 @@ func (v *Codegen) declareFunctionDecl(n *parser.FunctionDecl) {
 
 		// add that shit
 		function = llvm.AddFunction(v.curFile.Module, functionName, funcType)
-		fmt.Println("added")
 
 		// do some magical shit for later
 		for i := 0; i < numOfParams; i++ {
@@ -203,6 +212,8 @@ func (v *Codegen) declareFunctionDecl(n *parser.FunctionDecl) {
 
 		if cBinding {
 			function.SetFunctionCallConv(llvm.CCallConv)
+		} else {
+			function.SetFunctionCallConv(llvm.FastCallConv)
 		}
 	}
 }
@@ -354,23 +365,30 @@ func (v *Codegen) genFunctionDecl(n *parser.FunctionDecl) llvm.Value {
 			block := llvm.AddBasicBlock(function, "entry")
 			v.builder.SetInsertPointAtEnd(block)
 
+			for i, par := range n.Function.Parameters {
+				alloc := v.builder.CreateAlloca(typeToLLVMType(par.Variable.Type), par.Variable.MangledName(parser.MANGLE_ARK_UNSTABLE))
+				v.variableLookup[par.Variable] = alloc
+
+				v.builder.CreateStore(function.Params()[i], alloc)
+			}
+
 			v.inFunction = true
 			v.currentFunction = function
 			for _, stat := range n.Function.Body.Nodes {
 				v.genNode(stat)
 			}
 			v.inFunction = false
-		}
 
-		retType := llvm.VoidType()
-		if n.Function.ReturnType != nil {
-			retType = typeToLLVMType(n.Function.ReturnType)
-		}
+			retType := llvm.VoidType()
+			if n.Function.ReturnType != nil {
+				retType = typeToLLVMType(n.Function.ReturnType)
+			}
 
-		// function returns void, lets return void
-		// unless its a prototype obviously...
-		if retType == llvm.VoidType() && !n.Prototype {
-			v.builder.CreateRetVoid()
+			// function returns void, lets return void
+			// unless its a prototype obviously...
+			if retType == llvm.VoidType() && !n.Prototype {
+				v.builder.CreateRetVoid()
+			}
 		}
 	}
 

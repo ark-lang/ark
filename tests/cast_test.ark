@@ -4,29 +4,29 @@ func main(): int {
     mut ret: int = 0;
 
     a: int = 0;
-    printf("%f\n", f32(a));
+    printf("%f\n", cast(f32, a));
 
     b: f32 = 6.789;
-    printf("%d\n", int(b));
+    printf("%d\n", cast(int, b));
 
     c: i8 = 66;
-    printf("%d\n", i32(c));
+    printf("%d\n", cast(i32, c));
 
     d: i32 = 500;
-    printf("%d\n", i8(d));
+    printf("%d\n", cast(i8, d));
 
     e: f64 = 1.2;
-    printf("%f\n", f32(e));
+    printf("%f\n", cast(f32, e));
 
     f: rune = 'f';
-    printf("%d\n", int(f));
-    if int(f) != 102 {
+    printf("%d\n", cast(int, f));
+    if cast(int, f) != 102 {
         ret = 1;
     }
 
     g: int = 99;
-    printf("%c\n", rune(g));
-    if rune(g) != 'c' {
+    printf("%c\n", cast(rune, g));
+    if cast(rune, g) != 'c' {
         ret = 1; // workaround for not being able to return inside if stats
     }
 

@@ -1,0 +1,33 @@
+// Fizzbuzz
+// %3 -> Fizz
+// %5 -> Buzz
+
+[c] func printf(fmt: str, ...);
+[c] func putchar(c: i8);
+
+func main(): int {
+    mut i := 1;
+
+    for i <= 100 {
+        div3 := i % 3 == 0;
+        div5 := i % 5 == 0;
+
+        if div3 {
+            [c] printf("Fizz");
+        }
+
+        if div5 {
+            [c] printf("Buzz");
+        }
+
+        if !(div3 || div5) {
+            [c] printf("%d", i);
+        }
+
+        [c] putchar(cast(i8, '\n'));
+
+        i = i + 1;
+    }
+
+    return 0;
+}
