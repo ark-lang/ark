@@ -56,6 +56,7 @@ type DocComment struct {
 
 type Variable struct {
 	Type         Type
+	typeName     string
 	Name         string
 	Mutable      bool
 	Attrs        []*Attr
@@ -79,14 +80,15 @@ func (v *Variable) Scope() *Scope {
 }
 
 type Function struct {
-	Name       string
-	Parameters []*VariableDecl
-	ReturnType Type
-	Mutable    bool
-	IsVariadic bool
-	Attrs      []*Attr
-	Body       *Block
-	scope      *Scope
+	Name           string
+	Parameters     []*VariableDecl
+	ReturnType     Type
+	returnTypeName string
+	Mutable        bool
+	IsVariadic     bool
+	Attrs          []*Attr
+	Body           *Block
+	scope          *Scope
 }
 
 func (v *Function) Scope() *Scope {
@@ -513,8 +515,9 @@ func (v *UnaryExpr) NodeName() string {
 
 type CastExpr struct {
 	nodePos
-	Expr Expr
-	Type Type
+	Expr     Expr
+	Type     Type
+	typeName string
 }
 
 func (v *CastExpr) exprNode() {}

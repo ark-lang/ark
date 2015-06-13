@@ -22,11 +22,15 @@ type parser struct {
 	verbose      bool
 
 	scope             *Scope
-	globalScope       *Scope
 	binOpPrecedences  map[BinOpType]int
 	attrs             []*Attr
 	curNodeTokenStart int
 	docCommentsBuf    []*DocComment
+	unresolvedNodes   []Node // nodes with unresolved references to vars/types/funcs etc
+}
+
+func (v *parser) addUnresolvedNode(n Node) {
+	v.unresolvedNodes = append(v.unresolvedNodes, n)
 }
 
 func (v *parser) err(err string, stuff ...interface{}) {
@@ -116,14 +120,14 @@ func Parse(input *common.Sourcefile, verbose bool) *File {
 		scope:            newGlobalScope(),
 		binOpPrecedences: newBinOpPrecedenceMap(),
 	}
-	p.globalScope = p.scope
+	p.file.GlobalScope = p.scope
 
 	if verbose {
 		fmt.Println(util.TEXT_BOLD+util.TEXT_GREEN+"Started parsing"+util.TEXT_RESET, input.Filename)
 	}
 	t := time.Now()
 	p.parse()
-	sem := &semanticAnalyzer{file: p.file, globalScope: p.globalScope}
+	sem := &semanticAnalyzer{file: p.file, unresolvedNodes: p.unresolvedNodes}
 	sem.analyze()
 	dur := time.Since(t)
 	if verbose {
@@ -290,27 +294,29 @@ func (v *parser) parseDecl() Decl {
 	return ret
 }
 
-func (v *parser) parseType() Type {
+func getTypeFromString(scope *Scope, s string) Type {
+	if []rune(s)[0] == '^' {
+		return pointerTo(getTypeFromString(scope, string([]rune(s)[1:])))
+	}
+
+	return scope.GetType(s)
+}
+
+func (v *parser) parseTypeToString() string {
 	if !(v.peek(0).Type == lexer.TOKEN_IDENTIFIER || v.tokenMatches(0, lexer.TOKEN_OPERATOR, "^")) {
-		return nil
+		panic("expected type")
 	}
 
 	if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "^") {
 		v.consumeToken()
-		if innerType := v.parseType(); innerType != nil {
-			return pointerTo(innerType)
+		if innerType := v.parseTypeToString(); innerType != "" {
+			return "^" + innerType
 		} else {
 			v.err("Expected type name")
 		}
 	}
 
-	typeName := v.consumeToken().Contents // consume type
-
-	typ := v.scope.GetType(typeName)
-	if typ == nil {
-		v.err("Unrecognized type `%s`", typeName)
-	}
-	return typ
+	return v.consumeToken().Contents
 }
 
 func (v *parser) parseFunctionDecl() *FunctionDecl {
@@ -401,9 +407,11 @@ func (v *parser) parseFunctionDecl() *FunctionDecl {
 			function.Mutable = true
 		}
 
-		// actual return type
-		if typ := v.parseType(); typ != nil {
-			function.ReturnType = typ
+		if function.returnTypeName = v.parseTypeToString(); function.returnTypeName != "" {
+			function.ReturnType = getTypeFromString(v.scope, function.returnTypeName)
+			if function.ReturnType == nil {
+				v.addUnresolvedNode(funcDecl)
+			}
 		} else {
 			v.err("Expected function return type after colon for function `%s`", function.Name)
 		}
@@ -640,10 +648,25 @@ func (v *parser) parseVariableDecl(needSemicolon bool) *VariableDecl {
 
 	v.consumeToken() // consume :
 
-	if typ := v.parseType(); typ != nil {
+	/*if typ := v.parseType(); typ != nil {
 		variable.Type = typ
+		variable.typeResolved = true
 	} else if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "=") {
 		variable.Type = nil
+		variable.typeResolved = true
+	} else {
+		variable.typeName = v.consumeToken().Contents
+	}*/
+
+	if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "=") {
+		// type is inferred
+		variable.Type = nil
+	} else {
+		variable.typeName = v.parseTypeToString()
+		variable.Type = getTypeFromString(v.scope, variable.typeName)
+		if variable.Type != nil {
+			v.addUnresolvedNode(varDecl)
+		}
 	}
 
 	if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "=") {
@@ -733,12 +756,12 @@ func (v *parser) parsePrimaryExpr() Expr {
 		return addressOfExpr
 	} else if litExpr := v.parseLiteral(); litExpr != nil {
 		return litExpr
+	} else if castExpr := v.parseCastExpr(); castExpr != nil {
+		return castExpr
 	} else if derefExpr := v.parseDerefExpr(); derefExpr != nil {
 		return derefExpr
 	} else if unaryExpr := v.parseUnaryExpr(); unaryExpr != nil {
 		return unaryExpr
-	} else if castExpr := v.parseCastExpr(); castExpr != nil {
-		return castExpr
 	} else if callExpr := v.parseCallExpr(); callExpr != nil {
 		return callExpr
 	} else if accessExpr := v.parseAccessExpr(); accessExpr != nil {
@@ -807,18 +830,22 @@ func (v *parser) parseCallExpr() *CallExpr {
 		return nil
 	}
 
-	ident := v.peek(0).Contents
-	function := v.scope.GetFunction(ident)
+	callExpr := &CallExpr{}
+
+	callExpr.functionName = v.peek(0).Contents
+	callExpr.Function = v.scope.GetFunction(callExpr.functionName)
+	if callExpr.Function == nil {
+		v.addUnresolvedNode(callExpr)
+	}
 	v.consumeToken()
 	v.consumeToken()
 
-	args := make([]Expr, 0)
 	if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ")") {
 		v.consumeToken()
 	} else {
 		for {
 			if expr := v.parseExpr(); expr != nil {
-				args = append(args, expr)
+				callExpr.Arguments = append(callExpr.Arguments, expr)
 			} else {
 				v.err("Expected function argument, found `%s`", v.peek(0).Contents)
 			}
@@ -834,39 +861,43 @@ func (v *parser) parseCallExpr() *CallExpr {
 		}
 	}
 
-	return &CallExpr{
-		Arguments:    args,
-		Function:     function,
-		functionName: ident,
-	}
+	return callExpr
 }
 
 func (v *parser) parseCastExpr() *CastExpr {
-	if !v.tokensMatch(lexer.TOKEN_IDENTIFIER, "", lexer.TOKEN_SEPARATOR, "(") {
-		return nil
-	}
-
-	typ := v.scope.GetType(v.peek(0).Contents)
-	if typ == nil {
+	if !v.tokensMatch(lexer.TOKEN_IDENTIFIER, KEYWORD_CAST, lexer.TOKEN_SEPARATOR, "(") {
 		return nil
 	}
 	v.consumeToken()
 	v.consumeToken()
 
-	expr := v.parseExpr()
-	if expr == nil {
+	castExpr := &CastExpr{}
+
+	if castExpr.typeName = v.parseTypeToString(); castExpr.typeName != "" {
+		castExpr.Type = getTypeFromString(v.scope, castExpr.typeName)
+		if castExpr.Type == nil {
+			v.addUnresolvedNode(castExpr)
+		}
+	} else {
+		v.err("Expected type")
+	}
+
+	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ",") {
+		v.err("Expected `,`, found `%s`", v.peek(0).Contents)
+	}
+	v.consumeToken()
+
+	castExpr.Expr = v.parseExpr()
+	if castExpr.Expr == nil {
 		v.err("Expected expression in typecast, found `%s`", v.peek(0))
 	}
 
 	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ")") {
-		v.err("Exprected `)` at the end of typecase, found `%s`", v.peek(0))
+		v.err("Exprected `)` at the end of typecast, found `%s`", v.peek(0))
 	}
 	v.consumeToken()
 
-	return &CastExpr{
-		Type: typ,
-		Expr: expr,
-	}
+	return castExpr
 }
 
 func (v *parser) parseUnaryExpr() *UnaryExpr {
