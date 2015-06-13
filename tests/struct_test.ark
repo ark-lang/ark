@@ -6,7 +6,9 @@ struct Test {
     e: str,
 }
 
+func printf(fmt: str, ...): int;
+
 func main(): int {
-    thing: Test;
+    mut thing: Test;
     return 0;
 }
