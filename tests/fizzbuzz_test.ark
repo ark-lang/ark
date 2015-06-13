@@ -3,6 +3,7 @@
 // %5 -> Buzz
 
 [c] func printf(fmt: str, ...);
+[c] func putchar(c: i8);
 
 func main(): int {
     mut i := 1;
@@ -23,7 +24,7 @@ func main(): int {
             [c] printf("%d", i);
         }
 
-        [c] printf("\n");
+        [c] putchar(cast(i8, '\n'));
 
         i = i + 1;
     }

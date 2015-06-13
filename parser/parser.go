@@ -15,7 +15,7 @@ import (
 )
 
 type parser struct {
-	file         *File
+	module       *Module
 	input        []*lexer.Token
 	currentToken int
 	verbose      bool
@@ -57,7 +57,7 @@ func (v *parser) consumeToken() *lexer.Token {
 }
 
 func (v *parser) pushNode(node Node) {
-	v.file.Nodes = append(v.file.Nodes, node)
+	v.module.Nodes = append(v.module.Nodes, node)
 }
 
 func (v *parser) pushScope() {
@@ -108,9 +108,9 @@ func (v *parser) getPrecedence(op BinOpType) int {
 	return -1
 }
 
-func Parse(input *lexer.Sourcefile, verbose bool) *File {
+func Parse(input *lexer.Sourcefile, verbose bool) *Module {
 	p := &parser{
-		file: &File{
+		module: &Module{
 			Nodes: make([]Node, 0),
 			Name:  input.Filename,
 		},
@@ -119,25 +119,25 @@ func Parse(input *lexer.Sourcefile, verbose bool) *File {
 		scope:            newGlobalScope(),
 		binOpPrecedences: newBinOpPrecedenceMap(),
 	}
-	p.file.GlobalScope = p.scope
+	p.module.GlobalScope = p.scope
 
 	if verbose {
 		fmt.Println(util.TEXT_BOLD+util.TEXT_GREEN+"Started parsing"+util.TEXT_RESET, input.Filename)
 	}
 	t := time.Now()
 	p.parse()
-	sem := &semanticAnalyzer{file: p.file, unresolvedNodes: p.unresolvedNodes}
+	sem := &semanticAnalyzer{module: p.module, unresolvedNodes: p.unresolvedNodes}
 	sem.analyze()
 	dur := time.Since(t)
 	if verbose {
-		for _, n := range p.file.Nodes {
+		for _, n := range p.module.Nodes {
 			fmt.Println(n.String())
 		}
 		fmt.Printf(util.TEXT_BOLD+util.TEXT_GREEN+"Finished parsing"+util.TEXT_RESET+" %s (%.2fms)\n",
 			input.Filename, float32(dur.Nanoseconds())/1000000)
 	}
 
-	return p.file
+	return p.module
 }
 
 func (v *parser) parse() {
@@ -204,7 +204,8 @@ func (v *parser) parseNode() Node {
 
 func (v *parser) parseStat() Stat {
 	var ret Stat
-	line, char := v.peek(0).LineNumber, v.peek(0).CharNumber
+	locationToken := v.peek(0)
+	filename, line, char := locationToken.Filename, locationToken.LineNumber, locationToken.CharNumber
 
 	if ifStat := v.parseIfStat(); ifStat != nil {
 		ret = ifStat
@@ -220,7 +221,7 @@ func (v *parser) parseStat() Stat {
 		return nil
 	}
 
-	ret.setPos(line, char)
+	ret.setPos(filename, line, char)
 	return ret
 }
 
@@ -234,13 +235,15 @@ func (v *parser) parseAssignStat() *AssignStat {
 	}
 
 	assign := &AssignStat{}
-	line, char := v.peek(0).LineNumber, v.peek(0).CharNumber
+
+	locationToken := v.peek(0)
+	filename, line, char := locationToken.Filename, locationToken.LineNumber, locationToken.CharNumber
 
 	if deref := v.parseDerefExpr(); deref != nil {
-		deref.setPos(line, char)
+		deref.setPos(filename, line, char)
 		assign.Deref = deref
 	} else if access := v.parseAccessExpr(); access != nil {
-		access.setPos(line, char)
+		access.setPos(filename, line, char)
 		assign.Access = access
 	} else {
 		v.err("Malformed assignment statement")
@@ -279,7 +282,10 @@ func (v *parser) parseCallStat() *CallStat {
 
 func (v *parser) parseDecl() Decl {
 	var ret Decl
-	line, char := v.peek(0).LineNumber, v.peek(0).CharNumber
+
+	locationToken := v.peek(0)
+	filename, line, char := locationToken.Filename, locationToken.LineNumber, locationToken.CharNumber
+
 	if structureDecl := v.parseStructDecl(); structureDecl != nil {
 		ret = structureDecl
 	} else if functionDecl := v.parseFunctionDecl(); functionDecl != nil {
@@ -289,7 +295,9 @@ func (v *parser) parseDecl() Decl {
 	} else {
 		return nil
 	}
-	ret.setPos(line, char)
+
+	ret.setPos(filename, line, char)
+
 	return ret
 }
 
@@ -602,13 +610,15 @@ func (v *parser) parseStructDecl() *StructDecl {
 				break
 			}
 
-			line, char := v.peek(0).LineNumber, v.peek(0).CharNumber
+			locationToken := v.peek(0)
+			filename, line, char := locationToken.Filename, locationToken.LineNumber, locationToken.CharNumber
+
 			if variable := v.parseVariableDecl(false); variable != nil {
 				if variable.Variable.Mutable {
 					v.err("Cannot specify `mut` keyword on struct member: `%s`", variable.Variable.Name)
 				}
 				struc.addVariableDecl(variable)
-				variable.setPos(line, char)
+				variable.setPos(filename, line, char)
 				itemCount++
 			} else {
 				v.err("Invalid structure item in structure `%s`", struc.Name)
@@ -685,14 +695,17 @@ func (v *parser) parseVariableDecl(needSemicolon bool) *VariableDecl {
 
 func (v *parser) parseExpr() Expr {
 	pri := v.parsePrimaryExpr()
-	line, char := v.peek(0).LineNumber, v.peek(0).CharNumber
+
+	locationToken := v.peek(0)
+	filename, line, char := locationToken.Filename, locationToken.LineNumber, locationToken.CharNumber
+
 	if pri == nil {
 		return nil
 	}
-	pri.setPos(line, char)
+	pri.setPos(filename, line, char)
 
 	if bin := v.parseBinaryOperator(0, pri); bin != nil {
-		bin.setPos(line, char)
+		bin.setPos(filename, line, char)
 		return bin
 	}
 	return pri
@@ -931,12 +944,14 @@ func (v *parser) parseAddressOfExpr() *AddressOfExpr {
 	}
 	v.consumeToken()
 
-	line, char := v.peek(0).LineNumber, v.peek(0).CharNumber
+	locationToken := v.peek(0)
+	filename, line, char := locationToken.Filename, locationToken.LineNumber, locationToken.CharNumber
+
 	access := v.parseAccessExpr()
 	if access == nil {
 		v.err("Expected variable access after `&` operator, found `%s`", v.peek(0).Contents)
 	}
-	access.setPos(line, char)
+	access.setPos(filename, line, char)
 
 	return &AddressOfExpr{
 		Access: access,
