@@ -10,7 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ark-lang/ark/common"
 	"github.com/ark-lang/ark/lexer"
 	"github.com/ark-lang/ark/util"
 )
@@ -109,7 +108,7 @@ func (v *parser) getPrecedence(op BinOpType) int {
 	return -1
 }
 
-func Parse(input *common.Sourcefile, verbose bool) *File {
+func Parse(input *lexer.Sourcefile, verbose bool) *File {
 	p := &parser{
 		file: &File{
 			Nodes: make([]Node, 0),
