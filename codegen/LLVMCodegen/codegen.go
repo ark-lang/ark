@@ -193,7 +193,6 @@ func (v *Codegen) declareFunctionDecl(n *parser.FunctionDecl) {
 
 		// add that shit
 		function = llvm.AddFunction(v.curFile.Module, functionName, funcType)
-		fmt.Println("added")
 
 		// do some magical shit for later
 		for i := 0; i < numOfParams; i++ {
