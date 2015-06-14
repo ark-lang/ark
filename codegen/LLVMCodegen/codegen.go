@@ -20,8 +20,9 @@ type Codegen struct {
 	input   []*parser.Module
 	curFile *parser.Module
 
-	builder        llvm.Builder
-	variableLookup map[*parser.Variable]llvm.Value
+	builder                        llvm.Builder
+	variableLookup                 map[*parser.Variable]llvm.Value
+	structLookup_UseHelperFunction map[*parser.StructType]llvm.Type // use getStructDecl
 
 	OutputName string
 	CCArgs     []string
@@ -97,6 +98,7 @@ func (v *Codegen) Generate(input []*parser.Module, verbose bool) {
 	v.input = input
 	v.builder = llvm.NewBuilder()
 	v.variableLookup = make(map[*parser.Variable]llvm.Value)
+	v.structLookup_UseHelperFunction = make(map[*parser.StructType]llvm.Type)
 
 	if verbose {
 		fmt.Println(util.TEXT_BOLD + util.TEXT_GREEN + "Started codegenning" + util.TEXT_RESET)
@@ -147,7 +149,6 @@ func (v *Codegen) declareDecl(n parser.Decl) {
 	case *parser.FunctionDecl:
 		v.declareFunctionDecl(n.(*parser.FunctionDecl))
 	case *parser.StructDecl:
-		//v.declareStructDecl(n.(*parser.StructDecl))
 	case *parser.VariableDecl:
 		//v.declareVariableDecl(n.(*parser.VariableDecl), true)
 	default:
@@ -164,7 +165,7 @@ func (v *Codegen) declareFunctionDecl(n *parser.FunctionDecl) {
 		numOfParams := len(n.Function.Parameters)
 		params := make([]llvm.Type, numOfParams)
 		for i, par := range n.Function.Parameters {
-			params[i] = typeToLLVMType(par.Variable.Type)
+			params[i] = v.typeToLLVMType(par.Variable.Type)
 		}
 
 		// attributes defaults
@@ -190,7 +191,7 @@ func (v *Codegen) declareFunctionDecl(n *parser.FunctionDecl) {
 
 		// oo theres a type, let's try figure it out
 		if n.Function.ReturnType != nil {
-			funcTypeRaw = typeToLLVMType(n.Function.ReturnType)
+			funcTypeRaw = v.typeToLLVMType(n.Function.ReturnType)
 		}
 
 		// create the function type
@@ -338,14 +339,14 @@ func (v *Codegen) genLoopStat(n *parser.LoopStat) {
 	}
 }
 
-func (v *Codegen) genDecl(n parser.Decl) llvm.Value {
+func (v *Codegen) genDecl(n parser.Decl) {
 	switch n.(type) {
 	case *parser.FunctionDecl:
-		return v.genFunctionDecl(n.(*parser.FunctionDecl))
+		v.genFunctionDecl(n.(*parser.FunctionDecl))
 	case *parser.StructDecl:
-		return v.genStructDecl(n.(*parser.StructDecl))
+		//return v.genStructDecl(n.(*parser.StructDecl)) not used
 	case *parser.VariableDecl:
-		return v.genVariableDecl(n.(*parser.VariableDecl), true)
+		v.genVariableDecl(n.(*parser.VariableDecl), true)
 	default:
 		panic("unimplimented decl")
 	}
@@ -366,7 +367,7 @@ func (v *Codegen) genFunctionDecl(n *parser.FunctionDecl) llvm.Value {
 			v.builder.SetInsertPointAtEnd(block)
 
 			for i, par := range n.Function.Parameters {
-				alloc := v.builder.CreateAlloca(typeToLLVMType(par.Variable.Type), par.Variable.MangledName(parser.MANGLE_ARK_UNSTABLE))
+				alloc := v.builder.CreateAlloca(v.typeToLLVMType(par.Variable.Type), par.Variable.MangledName(parser.MANGLE_ARK_UNSTABLE))
 				v.variableLookup[par.Variable] = alloc
 
 				v.builder.CreateStore(function.Params()[i], alloc)
@@ -381,7 +382,7 @@ func (v *Codegen) genFunctionDecl(n *parser.FunctionDecl) llvm.Value {
 
 			retType := llvm.VoidType()
 			if n.Function.ReturnType != nil {
-				retType = typeToLLVMType(n.Function.ReturnType)
+				retType = v.typeToLLVMType(n.Function.ReturnType)
 			}
 
 			// function returns void, lets return void
@@ -395,21 +396,6 @@ func (v *Codegen) genFunctionDecl(n *parser.FunctionDecl) llvm.Value {
 	return res
 }
 
-func (v *Codegen) genStructDecl(n *parser.StructDecl) llvm.Value {
-	numOfFields := len(n.Struct.Variables)
-	fields := make([]llvm.Type, numOfFields)
-	packed := false
-
-	for i, member := range n.Struct.Variables {
-		memberType := typeToLLVMType(member.Variable.Type)
-		fields[i] = memberType
-	}
-
-	structure := llvm.StructType(fields, packed)
-	result := llvm.AddGlobal(v.curFile.Module, structure, n.Struct.MangledName(parser.MANGLE_ARK_UNSTABLE))
-	return result
-}
-
 func (v *Codegen) genVariableDecl(n *parser.VariableDecl, semicolon bool) llvm.Value {
 	var res llvm.Value
 
@@ -418,7 +404,7 @@ func (v *Codegen) genVariableDecl(n *parser.VariableDecl, semicolon bool) llvm.V
 	// TODO global vars
 
 	mangledName := n.Variable.MangledName(parser.MANGLE_ARK_UNSTABLE)
-	alloc := v.builder.CreateAlloca(typeToLLVMType(n.Variable.Type), mangledName)
+	alloc := v.builder.CreateAlloca(v.typeToLLVMType(n.Variable.Type), mangledName)
 	v.variableLookup[n.Variable] = alloc
 
 	if n.Assignment != nil {
@@ -470,15 +456,15 @@ func (v *Codegen) genAddressOfExpr(n *parser.AddressOfExpr) llvm.Value {
 }
 
 func (v *Codegen) genRuneLiteral(n *parser.RuneLiteral) llvm.Value {
-	return llvm.ConstInt(typeToLLVMType(n.GetType()), uint64(n.Value), true)
+	return llvm.ConstInt(v.typeToLLVMType(n.GetType()), uint64(n.Value), true)
 }
 
 func (v *Codegen) genIntegerLiteral(n *parser.IntegerLiteral) llvm.Value {
-	return llvm.ConstInt(typeToLLVMType(n.Type), n.Value, false)
+	return llvm.ConstInt(v.typeToLLVMType(n.Type), n.Value, false)
 }
 
 func (v *Codegen) genFloatingLiteral(n *parser.FloatingLiteral) llvm.Value {
-	return llvm.ConstFloat(typeToLLVMType(n.Type), n.Value)
+	return llvm.ConstFloat(v.typeToLLVMType(n.Type), n.Value)
 }
 
 func (v *Codegen) genStringLiteral(n *parser.StringLiteral) llvm.Value {
@@ -646,32 +632,32 @@ func (v *Codegen) genCastExpr(n *parser.CastExpr) llvm.Value {
 
 	if exprType.IsIntegerType() || exprType == parser.PRIMITIVE_rune {
 		if castType.IsIntegerType() || castType == parser.PRIMITIVE_rune {
-			exprBits := typeToLLVMType(exprType).IntTypeWidth()
-			castBits := typeToLLVMType(castType).IntTypeWidth()
+			exprBits := v.typeToLLVMType(exprType).IntTypeWidth()
+			castBits := v.typeToLLVMType(castType).IntTypeWidth()
 			if exprBits == castBits {
 				return v.genExpr(n.Expr)
 			} else if exprBits > castBits {
-				/*shiftConst := llvm.ConstInt(typeToLLVMType(exprType), uint64(exprBits-castBits), false)
+				/*shiftConst := llvm.ConstInt(v.typeToLLVMType(exprType), uint64(exprBits-castBits), false)
 				shl := v.builder.CreateShl(v.genExpr(n.Expr), shiftConst, "")
 				shr := v.builder.CreateAShr(shl, shiftConst, "")
-				return v.builder.CreateTrunc(shr, typeToLLVMType(castType), "")*/
-				return v.builder.CreateTrunc(v.genExpr(n.Expr), typeToLLVMType(castType), "") // TODO get this to work right!
+				return v.builder.CreateTrunc(shr, v.typeToLLVMType(castType), "")*/
+				return v.builder.CreateTrunc(v.genExpr(n.Expr), v.typeToLLVMType(castType), "") // TODO get this to work right!
 			} else if exprBits < castBits {
-				return v.builder.CreateSExt(v.genExpr(n.Expr), typeToLLVMType(castType), "") // TODO sext or zext?
+				return v.builder.CreateSExt(v.genExpr(n.Expr), v.typeToLLVMType(castType), "") // TODO sext or zext?
 			}
 		} else if castType.IsFloatingType() {
 			if exprType.IsSigned() {
-				return v.builder.CreateSIToFP(v.genExpr(n.Expr), typeToLLVMType(castType), "")
+				return v.builder.CreateSIToFP(v.genExpr(n.Expr), v.typeToLLVMType(castType), "")
 			} else {
-				return v.builder.CreateUIToFP(v.genExpr(n.Expr), typeToLLVMType(castType), "")
+				return v.builder.CreateUIToFP(v.genExpr(n.Expr), v.typeToLLVMType(castType), "")
 			}
 		}
 	} else if exprType.IsFloatingType() {
 		if castType.IsIntegerType() || castType == parser.PRIMITIVE_rune {
 			if exprType.IsSigned() {
-				return v.builder.CreateFPToSI(v.genExpr(n.Expr), typeToLLVMType(castType), "")
+				return v.builder.CreateFPToSI(v.genExpr(n.Expr), v.typeToLLVMType(castType), "")
 			} else {
-				return v.builder.CreateFPToUI(v.genExpr(n.Expr), typeToLLVMType(castType), "")
+				return v.builder.CreateFPToUI(v.genExpr(n.Expr), v.typeToLLVMType(castType), "")
 			}
 		} else if castType.IsFloatingType() {
 			exprBits := floatTypeBits(exprType.(parser.PrimitiveType))
@@ -679,13 +665,9 @@ func (v *Codegen) genCastExpr(n *parser.CastExpr) llvm.Value {
 			if exprBits == castBits {
 				return v.genExpr(n.Expr)
 			} else if exprBits > castBits {
-				/*shiftConst := llvm.ConstInt(typeToLLVMType(exprType), uint64(exprBits-castBits), false)
-				shl := v.builder.CreateShl(v.genExpr(n.Expr), shiftConst, "")
-				shr := v.builder.CreateAShr(shl, shiftConst, "")
-				return v.builder.CreateTrunc(shr, typeToLLVMType(castType), "")*/
-				return v.builder.CreateFPTrunc(v.genExpr(n.Expr), typeToLLVMType(castType), "") // TODO get this to work right!
+				return v.builder.CreateFPTrunc(v.genExpr(n.Expr), v.typeToLLVMType(castType), "") // TODO get this to work right!
 			} else if exprBits < castBits {
-				return v.builder.CreateFPExt(v.genExpr(n.Expr), typeToLLVMType(castType), "")
+				return v.builder.CreateFPExt(v.genExpr(n.Expr), v.typeToLLVMType(castType), "")
 			}
 		}
 	}
@@ -756,21 +738,37 @@ func (v *Codegen) genBracketExpr(n *parser.BracketExpr) llvm.Value {
 	return v.genExpr(n.Expr)
 }
 
-func typeToLLVMType(typ parser.Type) llvm.Type {
+func (v *Codegen) typeToLLVMType(typ parser.Type) llvm.Type {
 	switch typ.(type) {
 	case parser.PrimitiveType:
 		return primitiveTypeToLLVMType(typ.(parser.PrimitiveType))
 	case *parser.StructType:
-		return structTypeToLLVMType(typ.(*parser.StructType))
+		return v.structTypeToLLVMType(typ.(*parser.StructType))
 	case parser.PointerType:
-		return llvm.PointerType(typeToLLVMType(typ.(parser.PointerType).Addressee), 0)
+		return llvm.PointerType(v.typeToLLVMType(typ.(parser.PointerType).Addressee), 0)
 	default:
 		panic("Unimplemented type category in LLVM codegen")
 	}
 }
 
-func structTypeToLLVMType(typ *parser.StructType) llvm.Type {
-	return llvm.IntType(1)
+func (v *Codegen) structTypeToLLVMType(typ *parser.StructType) llvm.Type {
+	if val, ok := v.structLookup_UseHelperFunction[typ]; ok {
+		return val
+	}
+
+	numOfFields := len(typ.Variables)
+	fields := make([]llvm.Type, numOfFields)
+	packed := false
+
+	for i, member := range typ.Variables {
+		memberType := v.typeToLLVMType(member.Variable.Type)
+		fields[i] = memberType
+	}
+
+	structure := llvm.StructType(fields, packed)
+	llvm.AddGlobal(v.curFile.Module, structure, typ.MangledName(parser.MANGLE_ARK_UNSTABLE))
+	v.structLookup_UseHelperFunction[typ] = structure
+	return structure
 }
 
 func primitiveTypeToLLVMType(typ parser.PrimitiveType) llvm.Type {
