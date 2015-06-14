@@ -114,23 +114,19 @@ func (v *Codegen) Generate(input []*parser.Module, verbose bool) {
 		infile.Module = llvm.NewModule(infile.Name)
 		v.curFile = infile
 
-		for _, node := range infile.Nodes {
-			if decl, ok := node.(parser.Decl); ok {
-				v.declareDecl(decl)
-			}
-		}
+		v.declareDecls(infile.Nodes)
 
 		for _, node := range infile.Nodes {
 			v.genNode(node)
 		}
+
+		infile.Module.Dump()
 
 		if err := llvm.VerifyModule(infile.Module, llvm.ReturnStatusAction); err != nil {
 			v.err("%s", err.Error())
 		}
 
 		passManager.Run(infile.Module)
-
-		infile.Module.Dump()
 	}
 
 	passManager.Dispose()
@@ -144,16 +140,23 @@ func (v *Codegen) Generate(input []*parser.Module, verbose bool) {
 	}
 }
 
-func (v *Codegen) declareDecl(n parser.Decl) {
-	switch n.(type) {
-	case *parser.FunctionDecl:
-		v.declareFunctionDecl(n.(*parser.FunctionDecl))
-	case *parser.StructDecl:
-		v.declareStructDecl(n.(*parser.StructDecl))
-	case *parser.VariableDecl:
-		//v.declareVariableDecl(n.(*parser.VariableDecl), true)
-	default:
-		panic("unimplimented decl")
+func (v *Codegen) declareDecls(nodes []parser.Node) {
+	for _, node := range nodes {
+		if n, ok := node.(parser.Decl); ok {
+			switch n.(type) {
+			case *parser.StructDecl:
+				v.declareStructDecl(n.(*parser.StructDecl))
+			}
+		}
+	}
+
+	for _, node := range nodes {
+		if n, ok := node.(parser.Decl); ok {
+			switch n.(type) {
+			case *parser.FunctionDecl:
+				v.declareFunctionDecl(n.(*parser.FunctionDecl))
+			}
+		}
 	}
 }
 
@@ -293,7 +296,29 @@ func (v *Codegen) genCallStat(n *parser.CallStat) {
 func (v *Codegen) genAssignStat(n *parser.AssignStat) {
 	alloca := v.variableLookup[n.Access.Variable]
 
-	v.builder.CreateStore(v.genExpr(n.Assignment), alloca)
+	if n.Access != nil {
+		if len(n.Access.StructVariables) > 0 {
+			/*gepIndexes := []llvm.Value{llvm.ConstInt(llvm.Int32Type(), 0, false)}
+
+			var variable *parser.Variable
+			for _, structVar := range n.Access.StructVariables {
+				if variable == nil {
+					variable = structVar
+				} else
+				fieldIndex := structVar.Type.(*parser.StructType).VariableIndex(n.Access.Variable)
+				if fieldIndex < 0 {
+					panic("weird field index")
+				}
+			}
+
+			gep := v.builder.CreateGEP(v.variableLookup[n.Access.StructVariables[0]], []llvm.Value{llvm.ConstInt(llvm.Int32Type(), uint64(fieldIndex), false)}, "")
+			v.builder.CreateStore(v.genExpr(n.Assignment), gep)*/
+		} else {
+			v.builder.CreateStore(v.genExpr(n.Assignment), alloca)
+		}
+	} else {
+		// TODO deref expr
+	}
 }
 
 func (v *Codegen) genIfStat(n *parser.IfStat) {
