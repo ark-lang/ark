@@ -3,11 +3,11 @@
 
 // c bindings
 
-func [c] malloc(size: usize): ^void;
-
-func [c] realloc(ptr: ^void, size: usize): ^void;
-
-func [c] free(ptr: ^void): int;
+[c] {
+    func malloc(size: usize): ^void;
+    func realloc(ptr: ^void, size: usize): ^void;
+    func free(ptr: ^void): int;
+}
 
 struct Block {
     last_alloc: usize,
