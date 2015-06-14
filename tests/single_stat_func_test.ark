@@ -1,6 +1,11 @@
 func add(a: int, b: int): int -> a + b;
 
+[c] func printf(fmt: str, ...): int;
+
+func whatever() -> printf("this is a test %d\n", add(5, 5));
+
 func main(): int {
     add(5, 5);
+    whatever();
     return 0;
 }

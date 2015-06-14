@@ -441,8 +441,12 @@ func (v *parser) parseFunctionDecl() *FunctionDecl {
 		v.consumeToken()
 
 		if stat := v.parseStat(); stat != nil {
-			v.err("it's a statement...")
+			funcDecl.Function.Body = &Block{}
+			funcDecl.Function.Body.appendNode(stat)
 		} else {
+			// messy...
+			// parses the expression appends the node to
+			// a fake "body", then checks for a semi colon
 			if expr := v.parseExpr(); expr != nil {
 				funcDecl.Function.Body = &Block{}
 				funcDecl.Function.Body.appendNode(&ReturnStat{Value: expr})
