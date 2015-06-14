@@ -156,6 +156,15 @@ func (v *StructType) addVariableDecl(decl *VariableDecl) {
 	decl.Variable.ParentStruct = v
 }
 
+func (v *StructType) VariableIndex(d *Variable) int {
+	for i, decl := range v.Variables {
+		if decl.Variable == d {
+			return i
+		}
+	}
+	return -1
+}
+
 func (v *StructType) Attrs() []*Attr {
 	return v.attrs
 }
