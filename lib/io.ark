@@ -1,6 +1,11 @@
-func getchar(): int;
-func remove(filename: str): int;
+func [c] getchar(): int;
+
+func [c] remove(filename: str): int;
+
 func rename(oldFilename: str, newFilename: str): int;
-func putchar(c: int): int;
-// func printf(format: str, _): int;
-func perror(message: str);
+
+func [c] putchar(c: int): int;
+
+func [c] printf(format: str, ...): int;
+
+func [c] perror(message: str);
