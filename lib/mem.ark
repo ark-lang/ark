@@ -1,5 +1,5 @@
 // todo
-// !use "std"
+!use "std"
 
 // c bindings
 
