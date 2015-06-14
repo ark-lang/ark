@@ -1,6 +1,7 @@
-func main(): int {
-    mut thing: Test;
-    return 0;
+[c] func printf(fmt: str, ...);
+
+struct Test2 {
+    x: int,
 }
 
 struct Test {
@@ -12,6 +13,11 @@ struct Test {
     test2: Test2,
 }
 
-struct Test2 {
-    x: int,
+func main(): int {
+    mut thing: Test;
+
+    thing.y = 9;
+    //printf("thing.y: %d\n", thing.y);
+
+    return 0;
 }
