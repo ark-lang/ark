@@ -1,12 +1,17 @@
+func main(): int {
+    mut thing: Test;
+    return 0;
+}
+
 struct Test {
     x: int = 1,
     y: int,
     z: f64,
     a: f32,
     e: str,
+    test2: Test2,
 }
 
-func main(): int {
-    mut thing: Test;
-    return 0;
+struct Test2 {
+    x: int,
 }
