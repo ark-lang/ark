@@ -437,6 +437,24 @@ func (v *parser) parseFunctionDecl() *FunctionDecl {
 			v.err("Function prototype cannot have a block")
 		}
 		funcDecl.Function.Body = block
+	} else if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "->") && !funcDecl.Prototype {
+		v.consumeToken()
+
+		if stat := v.parseStat(); stat != nil {
+			v.err("it's a statement...")
+		} else {
+			if expr := v.parseExpr(); expr != nil {
+				funcDecl.Function.Body = &Block{}
+				funcDecl.Function.Body.appendNode(&ReturnStat{Value: expr})
+				if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ";") {
+					v.consumeToken()
+				} else {
+					v.err("Expected semi-colon at the end of single line function `%s`", funcDecl.Function.Name)
+				}
+			} else {
+				v.err("Single line function `%s` expects a statement or an expression, found `%s`", funcDecl.Function.Name, v.peek(0).Contents)
+			}
+		}
 	} else if !funcDecl.Prototype {
 		v.err("Expecting block or semi-colon (prototype) after function signature")
 	}
@@ -489,6 +507,8 @@ func (v *parser) parseReturnStat() *ReturnStat {
 		v.err("Expected expression in return statement, found `%s`", v.peek(0).Contents)
 	}
 
+	// same here, you wouldn't have to do this
+	// if every statement parsed a ";" at the end??
 	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ";") {
 		v.err("Expected semicolon after return statement, found `%s`", v.peek(0).Contents)
 	}
