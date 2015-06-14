@@ -22,6 +22,7 @@ const (
 	KEYWORD_STRUCT   string = "struct"
 	KEYWORD_USE      string = "use"
 	KEYWORD_VOID     string = "void"
+	KEYWORD_MODULE   string = "mod"
 )
 
 // Contains a map with all keywords as keys, and true as values

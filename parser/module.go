@@ -9,4 +9,5 @@ type Module struct {
 	Name        string
 	GlobalScope *Scope
 	Module      llvm.Module
+    Functions []*FunctionDecl
 }
