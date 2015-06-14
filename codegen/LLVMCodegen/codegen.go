@@ -149,11 +149,42 @@ func (v *Codegen) declareDecl(n parser.Decl) {
 	case *parser.FunctionDecl:
 		v.declareFunctionDecl(n.(*parser.FunctionDecl))
 	case *parser.StructDecl:
+		v.declareStructDecl(n.(*parser.StructDecl))
 	case *parser.VariableDecl:
 		//v.declareVariableDecl(n.(*parser.VariableDecl), true)
 	default:
 		panic("unimplimented decl")
 	}
+}
+
+func (v *Codegen) declareStructDecl(n *parser.StructDecl) {
+	v.addStructType(n.Struct)
+}
+
+func (v *Codegen) addStructType(typ *parser.StructType) {
+	if _, ok := v.structLookup_UseHelperFunction[typ]; ok {
+		return
+	}
+
+	for _, field := range typ.Variables {
+		if struc, ok := field.Variable.Type.(*parser.StructType); ok {
+			v.addStructType(struc) // TODO check recursive loop
+		}
+	}
+
+	numOfFields := len(typ.Variables)
+	fields := make([]llvm.Type, numOfFields)
+	packed := false
+
+	for i, member := range typ.Variables {
+		memberType := v.typeToLLVMType(member.Variable.Type)
+		fields[i] = memberType
+	}
+
+	structure := llvm.StructType(fields, packed)
+	llvm.AddGlobal(v.curFile.Module, structure, typ.MangledName(parser.MANGLE_ARK_UNSTABLE))
+	v.structLookup_UseHelperFunction[typ] = structure
+
 }
 
 func (v *Codegen) declareFunctionDecl(n *parser.FunctionDecl) {
@@ -754,21 +785,9 @@ func (v *Codegen) typeToLLVMType(typ parser.Type) llvm.Type {
 func (v *Codegen) structTypeToLLVMType(typ *parser.StructType) llvm.Type {
 	if val, ok := v.structLookup_UseHelperFunction[typ]; ok {
 		return val
+	} else {
+		panic("why no struct type entry")
 	}
-
-	numOfFields := len(typ.Variables)
-	fields := make([]llvm.Type, numOfFields)
-	packed := false
-
-	for i, member := range typ.Variables {
-		memberType := v.typeToLLVMType(member.Variable.Type)
-		fields[i] = memberType
-	}
-
-	structure := llvm.StructType(fields, packed)
-	llvm.AddGlobal(v.curFile.Module, structure, typ.MangledName(parser.MANGLE_ARK_UNSTABLE))
-	v.structLookup_UseHelperFunction[typ] = structure
-	return structure
 }
 
 func primitiveTypeToLLVMType(typ parser.PrimitiveType) llvm.Type {
