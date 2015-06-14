@@ -2,7 +2,7 @@ func [c] getchar(): int;
 
 func [c] remove(filename: str): int;
 
-func rename(oldFilename: str, newFilename: str): int;
+func [c] rename(oldFilename: str, newFilename: str): int;
 
 func [c] putchar(c: int): int;
 
