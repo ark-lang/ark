@@ -288,6 +288,8 @@ func (v *parser) parseDecl() Decl {
 
 	if structureDecl := v.parseStructDecl(); structureDecl != nil {
 		ret = structureDecl
+	} else if moduleDecl := v.parseModuleDecl(); moduleDecl != nil {
+		ret = moduleDecl
 	} else if functionDecl := v.parseFunctionDecl(); functionDecl != nil {
 		ret = functionDecl
 	} else if variableDecl := v.parseVariableDecl(true); variableDecl != nil {
@@ -574,6 +576,44 @@ func (v *parser) parseLoopStat() *LoopStat {
 	return nil
 }
 
+func (v *parser) parseModuleDecl() *ModuleDecl {
+	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_MODULE) {
+		return nil
+	}
+	module := &Module{}
+
+	v.consumeToken()
+
+	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, "") {
+		v.err("Expected identifier after `module` keyword, found `%s`", v.peek(0).Contents)
+	}
+
+	module.Name = v.consumeToken().Contents
+	if isReservedKeyword(module.Name) {
+		v.err("Cannot name module reserved keyword `%s`", module.Name)
+	}
+
+	// scope stuff?
+	if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "{") {
+		v.consumeToken()
+
+		for {
+			if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "}") {
+				v.consumeToken()
+				break
+			}
+
+			if function := v.parseFunctionDecl(); function != nil {
+				module.Functions = append(module.Functions, function)
+			} else {
+				v.err("invalid item in module `%s`", module.Name)
+			}
+		}
+	}
+
+	return &ModuleDecl{Module: module}
+}
+
 func (v *parser) parseStructDecl() *StructDecl {
 	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_STRUCT) {
 		return nil
@@ -680,6 +720,8 @@ func (v *parser) parseVariableDecl(needSemicolon bool) *VariableDecl {
 		v.err("Illegal redeclaration of variable `%s`", variable.Name)
 	}
 
+	// might be better to just have every statement need a ";"
+	// so you would do this after parsing the statement instead?
 	if needSemicolon {
 		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ";") {
 			v.consumeToken()
