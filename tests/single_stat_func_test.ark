@@ -1,11 +1,17 @@
-func add(a: int, b: int): int -> a + b;
-
 [c] func printf(fmt: str, ...): int;
 
-func whatever() -> printf("this is a test %d\n", add(5, 5));
+func add(a: int, b: int): int -> a + b;
+
+func test(mut a: int) -> for a < 10 {
+    printf("this is a test %d\n", a);
+    a = a + 1;
+}
+
+func whatever() -> printf("testing the whatever() func\n");
 
 func main(): int {
-    add(5, 5);
     whatever();
+    z: int = 0;
+    test(z);
     return 0;
 }
