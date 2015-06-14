@@ -5,6 +5,7 @@ type Scope struct {
 	Vars  map[string]*Variable
 	Types map[string]Type
 	Funcs map[string]*Function
+	Mods map[string]*Module
 }
 
 func newScope(outer *Scope) *Scope {
@@ -13,6 +14,7 @@ func newScope(outer *Scope) *Scope {
 		Vars:  make(map[string]*Variable),
 		Types: make(map[string]Type),
 		Funcs: make(map[string]*Function),
+		Mods: make(map[string]*Module),
 	}
 }
 
