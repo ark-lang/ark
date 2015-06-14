@@ -1,26 +1,48 @@
+// todo
 // !use "std"
 
-struct Block {
+// c bindings
 
+func [c] malloc(size: usize): ^void;
+
+func [c] realloc(ptr: ^void, size: usize): ^void;
+
+func [c] free(ptr: ^void): int;
+
+struct Block {
+    last_alloc: usize,
 }
 
 impl Block {
 
-    static func new(size: usize): ^void? {
+    static func alloc(size: usize): ^void? {
         data: ^void = malloc(size);
         if !data {
-            println("failed to allocate {} bytes of memory", size);
+            printf("failed to allocate %zd bytes of memory\n", size);
+            return None;
+        }
+
+        // magical options that don't parse yet!
+        // todo tagged enums lol
+        return Some(data);
+    }
+
+    static func realloc(ptr: ^void, size: usize): ^void? {
+        data: ^void = realloc(ptr, size);
+        if !data {
+            printf("failed to reallocate %zd bytes of memory\n", size)
             return None;
         }
         return Some(data);
     }
 
-    static func delete(data: ^void): bool {
+    static func free(data: ^void): bool {
         result: int = free(data);
         if !result {
-            println("failed to de-allocate memory");
+            printf("failed to de-allocate memory\n");
             return false;
         }
+
         return true;
     }
 }
