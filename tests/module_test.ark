@@ -1,0 +1,7 @@
+mod ModuleName {
+    func whatever(): int;
+}
+
+func main(): int {
+    return 0;
+}

@@ -184,6 +184,28 @@ func (v *VariableDecl) DocComments() []*DocComment {
 	return v.docs
 }
 
+// ModuleDecl
+
+type ModuleDecl struct {
+	nodePos
+	Module *Module
+	docs       []*DocComment
+}
+
+func (v *ModuleDecl) declNode() {}
+
+func (v *ModuleDecl) String() string {
+	return "(todo mod)"
+}
+
+func (v *ModuleDecl) NodeName() string {
+	return "mod decl"
+}
+
+func (v *ModuleDecl) DocComments() []*DocComment {
+	return nil // TODO
+}
+
 // StructDecl
 
 type StructDecl struct {
