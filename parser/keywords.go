@@ -15,6 +15,7 @@ const (
 	KEYWORD_IF       string = "if"
 	KEYWORD_IMPL     string = "impl"
 	KEYWORD_MATCH    string = "match"
+	KEYWORD_MODULE   string = "module"
 	KEYWORD_MUT      string = "mut"
 	KEYWORD_RETURN   string = "return"
 	KEYWORD_SET      string = "set"
@@ -23,7 +24,6 @@ const (
 	KEYWORD_TRAIT    string = "trait"
 	KEYWORD_USE      string = "use"
 	KEYWORD_VOID     string = "void"
-	KEYWORD_MODULE   string = "mod"
 )
 
 // Contains a map with all keywords as keys, and true as values
@@ -46,6 +46,7 @@ func init() {
 	keywordMap[KEYWORD_IF] = true
 	keywordMap[KEYWORD_IMPL] = true
 	keywordMap[KEYWORD_MATCH] = true
+	keywordMap[KEYWORD_MODULE] = true
 	keywordMap[KEYWORD_MUT] = true
 	keywordMap[KEYWORD_RETURN] = true
 	keywordMap[KEYWORD_SET] = true
