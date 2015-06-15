@@ -111,6 +111,20 @@ func (v *StructType) analyze(s *semanticAnalyzer) {
 	}
 }
 
+func (v *TraitType) analyze(s *semanticAnalyzer) {
+	// make sure there are no illegal attributes
+	s.checkDuplicateAttrs(v.attrs)
+	for _, attr := range v.Attrs() {
+		if attr.Key != "deprecated" {
+			s.err(attr, "Invalid trait attribute key `%s`", attr.Key)
+		}
+	}
+
+	for _, decl := range v.Functions {
+		decl.analyze(s)
+	}
+}
+
 func (v *Variable) analyze(s *semanticAnalyzer) {
 	// make sure there are no illegal attributes
 	s.checkDuplicateAttrs(v.Attrs)
@@ -152,6 +166,11 @@ func (v *VariableDecl) analyze(s *semanticAnalyzer) {
 func (v *StructDecl) analyze(s *semanticAnalyzer) {
 	v.Struct.analyze(s)
 	s.checkAttrsDistanceFromLine(v.Struct.Attrs(), v.lineNumber, "type", v.Struct.TypeName())
+}
+
+func (v *TraitDecl) analyze(s *semanticAnalyzer) {
+	v.Trait.analyze(s)
+	s.checkAttrsDistanceFromLine(v.Trait.Attrs(), v.lineNumber, "type", v.Trait.TypeName())
 }
 
 func (v *FunctionDecl) analyze(s *semanticAnalyzer) {
