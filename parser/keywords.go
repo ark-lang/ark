@@ -20,6 +20,7 @@ const (
 	KEYWORD_SET      string = "set"
 	KEYWORD_SIZEOF   string = "sizeof"
 	KEYWORD_STRUCT   string = "struct"
+	KEYWORD_TRAIT    string = "trait"
 	KEYWORD_USE      string = "use"
 	KEYWORD_VOID     string = "void"
 	KEYWORD_MODULE   string = "mod"
@@ -50,6 +51,7 @@ func init() {
 	keywordMap[KEYWORD_SET] = true
 	keywordMap[KEYWORD_SIZEOF] = true
 	keywordMap[KEYWORD_STRUCT] = true
+	keywordMap[KEYWORD_TRAIT] = true
 	keywordMap[KEYWORD_USE] = true
 	keywordMap[KEYWORD_VOID] = true
 }
