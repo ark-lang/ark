@@ -288,6 +288,8 @@ func (v *parser) parseDecl() Decl {
 
 	if structureDecl := v.parseStructDecl(); structureDecl != nil {
 		ret = structureDecl
+	} else if traitDecl := v.parseTraitDecl(); traitDecl != nil {
+		ret = traitDecl
 	} else if moduleDecl := v.parseModuleDecl(); moduleDecl != nil {
 		ret = moduleDecl
 	} else if functionDecl := v.parseFunctionDecl(); functionDecl != nil {
@@ -699,6 +701,58 @@ func (v *parser) parseStructDecl() *StructDecl {
 	}
 
 	return &StructDecl{Struct: struc}
+}
+
+func (v *parser) parseTraitDecl() *TraitDecl {
+	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_TRAIT) {
+		return nil
+	}
+	trait := &TraitType{}
+
+	v.consumeToken()
+
+	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, "") {
+		v.err("Expected identifier after `trait` keyword, found `%s`", v.peek(0).Contents)
+	}
+	trait.Name = v.consumeToken().Contents
+
+	if isReservedKeyword(trait.Name) {
+		v.err("Cannot name trait reserved keyword `%s`", trait.Name)
+	}
+	if tname := v.scope.InsertType(trait); tname != nil {
+		v.err("Illegal redeclaration of type `%s`", trait.Name)
+	}
+
+	trait.attrs = v.fetchAttrs()
+
+	if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "{") {
+		v.consumeToken()
+
+		v.pushScope()
+
+		for {
+			if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "}") {
+				v.consumeToken()
+				break
+			}
+
+			locationToken := v.peek(0)
+			filename, line, char := locationToken.Filename, locationToken.LineNumber, locationToken.CharNumber
+
+			if fn := v.parseFunctionDecl(); fn != nil {
+				trait.addFunctionDecl(fn)
+				fn.setPos(filename, line, char)
+			} else {
+				v.err("Invalid function declaration in trait `%s`", trait.Name)
+			}
+		}
+
+		v.popScope()
+	} else {
+		v.err("Expected body after trait identifier, found `%s`", v.peek(0).Contents)
+	}
+
+	return &TraitDecl{Trait: trait}
 }
 
 func (v *parser) parseVariableDecl(needSemicolon bool) *VariableDecl {
