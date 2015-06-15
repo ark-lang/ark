@@ -17,7 +17,10 @@ func main(): int {
     mut thing: Test;
 
     thing.y = 9;
-    //printf("thing.y: %d\n", thing.y);
+    printf("thing.y: %d\n", thing.y);
+
+    thing.test2.x = 11;
+    printf("thing.test2.x: %d\n", thing.test2.x);
 
     return 0;
 }
