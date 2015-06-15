@@ -169,6 +169,71 @@ func (v *StructType) Attrs() []*Attr {
 	return v.attrs
 }
 
+// TraitType
+
+type TraitType struct {
+	Name      string
+	Functions []*FunctionDecl
+	attrs     []*Attr
+}
+
+func (v *TraitType) String() string {
+	result := "(" + util.Blue("TraitType") + ": "
+	for _, attr := range v.attrs {
+		result += attr.String() + " "
+	}
+	result += v.Name + "\n"
+	for _, decl := range v.Functions {
+		result += "\t" + decl.String() + "\n"
+	}
+	return result + util.Magenta(" <"+v.MangledName(MANGLE_ARK_UNSTABLE)+"> ") + ")"
+}
+
+func (v *TraitType) TypeName() string {
+	return v.Name
+}
+
+func (v *TraitType) RawType() Type {
+	return v
+}
+
+func (v *TraitType) IsSigned() bool {
+	return false
+}
+
+func (v *TraitType) LevelsOfIndirection() int {
+	return 0
+}
+
+func (v *TraitType) IsIntegerType() bool {
+	return false
+}
+
+func (v *TraitType) IsFloatingType() bool {
+	return false
+}
+
+func (v *TraitType) CanCastTo(t Type) bool {
+	return false
+}
+
+func (v *TraitType) getFunctionDecl(s string) *FunctionDecl {
+	for _, decl := range v.Functions {
+		if decl.Function.Name == s {
+			return decl
+		}
+	}
+	return nil
+}
+
+func (v *TraitType) addFunctionDecl(decl *FunctionDecl) {
+	v.Functions = append(v.Functions, decl)
+}
+
+func (v *TraitType) Attrs() []*Attr {
+	return v.attrs
+}
+
 // PointerType
 
 type PointerType struct {

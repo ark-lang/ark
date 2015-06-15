@@ -14,6 +14,7 @@ type File struct {
 	RootLoc       string // path from this file to the root directory (the directory containing index.html)
 	VariableDecls []*Decl
 	StructDecls   []*Decl
+	TraitDecls    []*Decl
 	FunctionDecls []*Decl
 }
 
@@ -77,6 +78,7 @@ const FILE_TEMPLATE_STR = `<!DOCTYPE html>
 				<ul>
 					{{range .VariableDecls}}<li><a href="#{{.Ident}}">{{.Snippet}}</a></li>{{end}}
 					{{range .StructDecls}}<li><a href="#{{.Ident}}">{{.Snippet}}</a></li>{{end}}
+					{{range .TraitDecls}}<li><a href="#{{.Ident}}">{{.Snippet}}</a></li>{{end}}
 					{{range .FunctionDecls}}<li><a href="#{{.Ident}}">{{.Snippet}}</a></li>{{end}}
 				</ul>
 			</section>
