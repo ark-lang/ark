@@ -189,7 +189,7 @@ func (v *VariableDecl) DocComments() []*DocComment {
 type ModuleDecl struct {
 	nodePos
 	Module *Module
-	docs       []*DocComment
+	docs   []*DocComment
 }
 
 func (v *ModuleDecl) declNode() {}
@@ -224,6 +224,27 @@ func (v *StructDecl) NodeName() string {
 }
 
 func (v *StructDecl) DocComments() []*DocComment {
+	return nil // TODO
+}
+
+// TraitDecl
+
+type TraitDecl struct {
+	nodePos
+	Trait *TraitType
+}
+
+func (v *TraitDecl) declNode() {}
+
+func (v *TraitDecl) String() string {
+	return "(" + util.Blue("TraitDecl") + ": " + v.Trait.String() + ")"
+}
+
+func (v *TraitDecl) NodeName() string {
+	return "trait declaration"
+}
+
+func (v *TraitDecl) DocComments() []*DocComment {
 	return nil // TODO
 }
 
