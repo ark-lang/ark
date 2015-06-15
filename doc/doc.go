@@ -60,6 +60,8 @@ func (v *Docgen) traverse(verbose bool) {
 					v.curOutput.FunctionDecls = append(v.curOutput.FunctionDecls, decl)
 				case *parser.StructDecl:
 					v.curOutput.StructDecls = append(v.curOutput.StructDecls, decl)
+				case *parser.TraitDecl:
+					v.curOutput.TraitDecls = append(v.curOutput.TraitDecls, decl)
 				case *parser.VariableDecl:
 					v.curOutput.VariableDecls = append(v.curOutput.VariableDecls, decl)
 				default:
