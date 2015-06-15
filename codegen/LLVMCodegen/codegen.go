@@ -293,28 +293,46 @@ func (v *Codegen) genCallStat(n *parser.CallStat) {
 	v.genExpr(n.Call)
 }
 
-func (v *Codegen) genAssignStat(n *parser.AssignStat) {
-	alloca := v.variableLookup[n.Access.Variable]
+func (v *Codegen) createGEPForStructsAndArrays(parents []*parser.Variable, member *parser.Variable) llvm.Value {
+	if len(parents) == 0 {
+		panic("shouldn't be zero")
+	}
 
+	// TODO support arrays once implimented
+	// TODO support pointers to structs
+	// TODO check in semantic that LoI to a struct is 1 at max, otherwise can't access its member
+
+	gepIndexes := []llvm.Value{llvm.ConstInt(llvm.Int32Type(), 0, false)} // first index of 0 dereferences the struct pointer
+
+	var prevParent *parser.Variable
+	for _, parentVar := range append(parents, member) {
+		var fieldIndex int
+
+		if prevParent == nil {
+			prevParent = parentVar
+			continue
+		} else {
+			fieldIndex = prevParent.Type.(*parser.StructType).VariableIndex(parentVar)
+		}
+
+		if fieldIndex < 0 {
+			panic("weird field index")
+		}
+
+		gepIndexes = append(gepIndexes, llvm.ConstInt(llvm.Int32Type(), uint64(fieldIndex), false))
+
+		prevParent = parentVar
+	}
+
+	return v.builder.CreateGEP(v.variableLookup[parents[0]], gepIndexes, "")
+}
+
+func (v *Codegen) genAssignStat(n *parser.AssignStat) {
 	if n.Access != nil {
 		if len(n.Access.StructVariables) > 0 {
-			/*gepIndexes := []llvm.Value{llvm.ConstInt(llvm.Int32Type(), 0, false)}
-
-			var variable *parser.Variable
-			for _, structVar := range n.Access.StructVariables {
-				if variable == nil {
-					variable = structVar
-				} else
-				fieldIndex := structVar.Type.(*parser.StructType).VariableIndex(n.Access.Variable)
-				if fieldIndex < 0 {
-					panic("weird field index")
-				}
-			}
-
-			gep := v.builder.CreateGEP(v.variableLookup[n.Access.StructVariables[0]], []llvm.Value{llvm.ConstInt(llvm.Int32Type(), uint64(fieldIndex), false)}, "")
-			v.builder.CreateStore(v.genExpr(n.Assignment), gep)*/
+			v.builder.CreateStore(v.genExpr(n.Assignment), v.createGEPForStructsAndArrays(n.Access.StructVariables, n.Access.Variable))
 		} else {
-			v.builder.CreateStore(v.genExpr(n.Assignment), alloca)
+			v.builder.CreateStore(v.genExpr(n.Assignment), v.variableLookup[n.Access.Variable])
 		}
 	} else {
 		// TODO deref expr
@@ -777,11 +795,13 @@ func (v *Codegen) genCallExpr(n *parser.CallExpr) llvm.Value {
 }
 
 func (v *Codegen) genAccessExpr(n *parser.AccessExpr) llvm.Value {
-	var load llvm.Value
+	//load = v.builder.CreateLoad(v.variableLookup[n.Variable], n.Variable.MangledName(parser.MANGLE_ARK_UNSTABLE))
 
-	load = v.builder.CreateLoad(v.variableLookup[n.Variable], n.Variable.MangledName(parser.MANGLE_ARK_UNSTABLE))
-
-	return load
+	if len(n.StructVariables) > 0 {
+		return v.builder.CreateLoad(v.createGEPForStructsAndArrays(n.StructVariables, n.Variable), "")
+	} else {
+		return v.builder.CreateLoad(v.variableLookup[n.Variable], "")
+	}
 }
 
 func (v *Codegen) genDerefExpr(n *parser.DerefExpr) llvm.Value {
