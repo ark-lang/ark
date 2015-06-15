@@ -35,6 +35,8 @@ Replace `RELEASE_360` with the version of LLVM you have installed. For example, 
 
 Make sure `$GOPATH/bin` is in your `$PATH`.
 
+To see the current state of the compiler, try running the [test script](#testing).
+
 ## Usage
 For detailed usage information, run `ark help`. For information on specific commands, use `ark help <command>`.
 
@@ -55,7 +57,7 @@ If the `--dir` option is not specified, the generated documentation will be plac
 The targets `gen` and `fmt` are included for the convenience of the developers. They run `go generate` and `go fmt` respectively on all the modules in Ark. Please run `make fmt` before creating a pull request.
 
 ### Testing
-Requires `$GOPATH/bin` to be in your `$PATH`.
+Requires `$GOPATH/bin` to be in your `$PATH` and Python 2.4 or newer.
 
     $ ./test.py
 
