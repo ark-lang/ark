@@ -24,6 +24,8 @@ func (v *Decl) process() {
 		v.Ident, v.Snippet = generateStructDeclSnippet(v.Node.(*parser.StructDecl))
 	case *parser.TraitDecl:
 		v.Ident, v.Snippet = generateTraitDeclSnippet(v.Node.(*parser.TraitDecl))
+	case *parser.ImplDecl:
+		v.Ident, v.Snippet = generateImplDeclSnippet(v.Node.(*parser.ImplDecl))
 	case *parser.VariableDecl:
 		v.Ident, v.Snippet = generateVariableDeclSnippet(v.Node.(*parser.VariableDecl))
 	default:
@@ -72,6 +74,21 @@ func generateTraitDeclSnippet(decl *parser.TraitDecl) (ident, snippet string) {
 	ident = decl.Trait.Name
 	snippet = "trait " + decl.Trait.Name + " {"
 	for _, member := range decl.Trait.Functions {
+		_, functionSnippet := generateFunctionDeclSnippet(member)
+		snippet += "\n    " + functionSnippet + "\n"
+	}
+	snippet += "}"
+	return
+}
+
+func generateImplDeclSnippet(decl *parser.ImplDecl) (ident, snippet string) {
+	ident = decl.StructName
+	snippet = "impl " + decl.StructName
+	if decl.TraitName != "" {
+		snippet += " for " + decl.TraitName
+	}
+	snippet += " {"
+	for _, member := range decl.Functions {
 		_, functionSnippet := generateFunctionDeclSnippet(member)
 		snippet += "\n    " + functionSnippet + "\n"
 	}

@@ -1,11 +1,23 @@
 [c] func printf(fmt: str, ...);
 
 trait ToString {
-    func to_string(): str;
+    func toString(): str;
 }
 
 struct Foo {
     x: int,
+}
+
+impl Foo {
+    func bar() {
+        printf("%s\n", "bar");
+    }
+}
+
+impl Foo for ToString {
+    func toString(): str {
+        return "foo";
+    }
 }
 
 func main(): int {
