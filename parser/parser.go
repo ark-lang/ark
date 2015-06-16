@@ -290,6 +290,8 @@ func (v *parser) parseDecl() Decl {
 		ret = structureDecl
 	} else if traitDecl := v.parseTraitDecl(); traitDecl != nil {
 		ret = traitDecl
+	} else if implDecl := v.parseImplDecl(); implDecl != nil {
+		ret = implDecl
 	} else if moduleDecl := v.parseModuleDecl(); moduleDecl != nil {
 		ret = moduleDecl
 	} else if functionDecl := v.parseFunctionDecl(); functionDecl != nil {
@@ -753,6 +755,67 @@ func (v *parser) parseTraitDecl() *TraitDecl {
 	}
 
 	return &TraitDecl{Trait: trait}
+}
+
+func (v *parser) parseImplDecl() *ImplDecl {
+	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_IMPL) {
+		return nil
+	}
+
+	v.consumeToken()
+
+	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, "") {
+		v.err("Expected identifier after `impl` keyword, found `%s`", v.peek(0).Contents)
+	}
+
+	impl := &ImplDecl{}
+	impl.StructName = v.consumeToken().Contents
+
+	if isReservedKeyword(impl.StructName) {
+		v.err("Cannot define `impl` for reserved keyword `%s`", impl.StructName)
+	}
+
+	if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_FOR) {
+		v.consumeToken()
+
+		if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, "") {
+			v.err("Expected identifier after `for` keyword, found `%s`", v.peek(0).Contents)
+		}
+		impl.TraitName = v.consumeToken().Contents
+		if isReservedKeyword(impl.TraitName) {
+			v.err("Cannot define `impl` for reserved keyword `%s`", impl.TraitName)
+		}
+
+	}
+
+	if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "{") {
+		v.consumeToken()
+
+		v.pushScope()
+
+		for {
+			if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "}") {
+				v.consumeToken()
+				break
+			}
+
+			locationToken := v.peek(0)
+			filename, line, char := locationToken.Filename, locationToken.LineNumber, locationToken.CharNumber
+
+			if fn := v.parseFunctionDecl(); fn != nil {
+				impl.Functions = append(impl.Functions, fn)
+				fn.setPos(filename, line, char)
+			} else {
+				v.err("Invalid function in `impl`")
+			}
+		}
+
+		v.popScope()
+	} else {
+		v.err("Expected body after `impl` identifier, found `%s`", v.peek(0).Contents)
+	}
+
+	return impl
 }
 
 func (v *parser) parseVariableDecl(needSemicolon bool) *VariableDecl {
