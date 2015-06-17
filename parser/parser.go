@@ -1079,12 +1079,25 @@ func (v *parser) parseAddressOfExpr() *AddressOfExpr {
 }
 
 func (v *parser) parseLiteral() Expr {
-	if numLit := v.parseNumericLiteral(); numLit != nil {
+	if boolLit := v.parseBoolLiteral(); boolLit != nil {
+		return boolLit
+	} else if numLit := v.parseNumericLiteral(); numLit != nil {
 		return numLit
 	} else if stringLit := v.parseStringLiteral(); stringLit != nil {
 		return stringLit
 	} else if runeLit := v.parseRuneLiteral(); runeLit != nil {
 		return runeLit
+	}
+	return nil
+}
+
+func (v *parser) parseBoolLiteral() *BoolLiteral {
+	if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_TRUE) {
+		v.consumeToken()
+		return &BoolLiteral{Value: true}
+	} else if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_FALSE) {
+		v.consumeToken()
+		return &BoolLiteral{Value: false}
 	}
 	return nil
 }

@@ -505,6 +505,33 @@ func (v *StringLiteral) NodeName() string {
 	return "string literal"
 }
 
+// BoolLiteral
+
+type BoolLiteral struct {
+	nodePos
+	Value bool
+}
+
+func (v *BoolLiteral) exprNode() {}
+
+func (v *BoolLiteral) String() string {
+	res := "(" + util.Blue("BoolLiteral") + ": "
+	if v.Value {
+		res += util.Yellow("true")
+	} else {
+		res += util.Yellow("false")
+	}
+	return res + ")"
+}
+
+func (v *BoolLiteral) GetType() Type {
+	return PRIMITIVE_bool
+}
+
+func (v *BoolLiteral) NodeName() string {
+	return "boolean literal"
+}
+
 // BinaryExpr
 
 type BinaryExpr struct {
