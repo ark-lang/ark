@@ -15,6 +15,7 @@ type File struct {
 	VariableDecls []*Decl
 	StructDecls   []*Decl
 	TraitDecls    []*Decl
+	ImplDecls     []*Decl
 	FunctionDecls []*Decl
 }
 
@@ -79,6 +80,7 @@ const FILE_TEMPLATE_STR = `<!DOCTYPE html>
 					{{range .VariableDecls}}<li><a href="#{{.Ident}}">{{.Snippet}}</a></li>{{end}}
 					{{range .StructDecls}}<li><a href="#{{.Ident}}">{{.Snippet}}</a></li>{{end}}
 					{{range .TraitDecls}}<li><a href="#{{.Ident}}">{{.Snippet}}</a></li>{{end}}
+					{{range .ImplDecls}}<li><a href="#{{.Ident}}">{{.Snippet}}</a></li>{{end}}
 					{{range .FunctionDecls}}<li><a href="#{{.Ident}}">{{.Snippet}}</a></li>{{end}}
 				</ul>
 			</section>
@@ -95,6 +97,24 @@ const FILE_TEMPLATE_STR = `<!DOCTYPE html>
 			<section class="doc">
 				<h2>Structs</h2>
 					{{range .StructDecls}}
+					<h3 class="declname" id="{{.Ident}}">{{.Ident}}</h3>
+					<pre class="snippet"><code>{{.Snippet}}</code></pre>
+					<div class="doccomment">{{.ParsedDocs}}</div>
+				{{end}}
+			</section>
+
+			<section class="doc">
+				<h2>Traits</h2>
+					{{range .TraitDecls}}
+					<h3 class="declname" id="{{.Ident}}">{{.Ident}}</h3>
+					<pre class="snippet"><code>{{.Snippet}}</code></pre>
+					<div class="doccomment">{{.ParsedDocs}}</div>
+				{{end}}
+			</section>
+
+			<section class="doc">
+				<h2>Implementations</h2>
+					{{range .ImplDecls}}
 					<h3 class="declname" id="{{.Ident}}">{{.Ident}}</h3>
 					<pre class="snippet"><code>{{.Snippet}}</code></pre>
 					<div class="doccomment">{{.ParsedDocs}}</div>
