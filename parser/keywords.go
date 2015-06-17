@@ -29,6 +29,7 @@ const (
 )
 
 // Contains a map with all keywords as keys, and true as values
+// Uses a map for quick lookup time when checking for reserved vars
 var keywordMap map[string]bool
 
 func init() {
@@ -66,6 +67,7 @@ func isReservedKeyword(s string) bool {
 		return true
 	}
 
+	// names starting with a _ followed by an uppercase letter are reserved as then can interfere with name mangling
 	if len(s) >= 2 && s[0] == '_' && (s[1] >= 'A' && s[1] <= 'Z') {
 		return true
 	}
