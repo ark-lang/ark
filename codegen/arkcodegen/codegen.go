@@ -175,6 +175,10 @@ func (v *Codegen) genDecl(n parser.Decl) {
 	case *parser.StructDecl:
 		v.nl()
 		v.genStructDecl(n.(*parser.StructDecl))
+	case *parser.TraitDecl:
+		// nothing to gen
+	case *parser.ImplDecl:
+		// TODO
 	case *parser.VariableDecl:
 		v.genVariableDecl(n.(*parser.VariableDecl), true)
 	default:

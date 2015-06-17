@@ -173,6 +173,10 @@ func (v *TraitDecl) analyze(s *semanticAnalyzer) {
 	s.checkAttrsDistanceFromLine(v.Trait.Attrs(), v.lineNumber, "type", v.Trait.TypeName())
 }
 
+func (v *ImplDecl) analyze(s *semanticAnalyzer) {
+	// TODO
+}
+
 func (v *FunctionDecl) analyze(s *semanticAnalyzer) {
 	v.Function.analyze(s)
 	s.checkAttrsDistanceFromLine(v.Function.Attrs, v.lineNumber, "function", v.Function.Name)

@@ -250,6 +250,33 @@ func (v *TraitDecl) DocComments() []*DocComment {
 	return nil // TODO
 }
 
+// ImplDecl
+
+type ImplDecl struct {
+	nodePos
+	StructName string
+	TraitName  string
+	Functions  []*FunctionDecl
+}
+
+func (v *ImplDecl) declNode() {}
+
+func (v *ImplDecl) String() string {
+	var result string
+	for _, decl := range v.Functions {
+		result += "\t" + decl.String() + "\n"
+	}
+	return "(" + util.Blue("ImplDecl") + ": " + result + ")"
+}
+
+func (v *ImplDecl) NodeName() string {
+	return "impl declaration"
+}
+
+func (v *ImplDecl) DocComments() []*DocComment {
+	return nil // TODO
+}
+
 // FunctionDecl
 
 type FunctionDecl struct {
