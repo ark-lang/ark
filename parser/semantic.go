@@ -324,8 +324,19 @@ func (v *BinaryExpr) analyze(s *semanticAnalyzer) {
 	v.Rhand.analyze(s)
 
 	switch v.Op {
+	case BINOP_EQ, BINOP_NOT_EQ:
+		if v.Lhand.GetType() != v.Rhand.GetType() {
+			s.err(v, "Operands for binary operator `%s` must have the same type, have `%s` and `%s`",
+				v.Op.OpString(), v.Lhand.GetType().TypeName(), v.Rhand.GetType().TypeName())
+		} else if lht := v.Lhand.GetType(); !(lht == PRIMITIVE_bool || lht == PRIMITIVE_rune || lht.IsIntegerType() || lht.IsFloatingType() || lht.LevelsOfIndirection() > 0) {
+			s.err(v, "Operands for binary operator `%s` must be numeric, or pointers or booleans, have `%s`",
+				v.Op.OpString(), v.Lhand.GetType().TypeName())
+		} else {
+			v.Type = PRIMITIVE_bool
+		}
+
 	case BINOP_ADD, BINOP_SUB, BINOP_MUL, BINOP_DIV, BINOP_MOD,
-		BINOP_GREATER, BINOP_LESS, BINOP_GREATER_EQ, BINOP_LESS_EQ, BINOP_EQ, BINOP_NOT_EQ,
+		BINOP_GREATER, BINOP_LESS, BINOP_GREATER_EQ, BINOP_LESS_EQ,
 		BINOP_BIT_AND, BINOP_BIT_OR, BINOP_BIT_XOR:
 		if v.Lhand.GetType() != v.Rhand.GetType() {
 			s.err(v, "Operands for binary operator `%s` must have the same type, have `%s` and `%s`",
@@ -441,6 +452,11 @@ func (v *StringLiteral) setTypeHint(t Type)          {}
 
 func (v *RuneLiteral) analyze(s *semanticAnalyzer) {}
 func (v *RuneLiteral) setTypeHint(t Type)          {}
+
+// BoolLiteral
+
+func (v *BoolLiteral) analyze(s *semanticAnalyzer) {}
+func (v *BoolLiteral) setTypeHint(t Type)          {}
 
 // CastExpr
 

@@ -9,6 +9,7 @@ const (
 	KEYWORD_ELSE     string = "else"
 	KEYWORD_ENUM     string = "enum"
 	KEYWORD_EXT      string = "ext"
+	KEYWORD_FALSE    string = "false"
 	KEYWORD_FOR      string = "for"
 	KEYWORD_FREE     string = "free"
 	KEYWORD_FUNC     string = "func"
@@ -22,6 +23,7 @@ const (
 	KEYWORD_SIZEOF   string = "sizeof"
 	KEYWORD_STRUCT   string = "struct"
 	KEYWORD_TRAIT    string = "trait"
+	KEYWORD_TRUE     string = "true"
 	KEYWORD_USE      string = "use"
 	KEYWORD_VOID     string = "void"
 )
@@ -40,6 +42,7 @@ func init() {
 	keywordMap[KEYWORD_ELSE] = true
 	keywordMap[KEYWORD_ENUM] = true
 	keywordMap[KEYWORD_EXT] = true
+	keywordMap[KEYWORD_FALSE] = true
 	keywordMap[KEYWORD_FOR] = true
 	keywordMap[KEYWORD_FREE] = true
 	keywordMap[KEYWORD_FUNC] = true
@@ -53,6 +56,7 @@ func init() {
 	keywordMap[KEYWORD_SIZEOF] = true
 	keywordMap[KEYWORD_STRUCT] = true
 	keywordMap[KEYWORD_TRAIT] = true
+	keywordMap[KEYWORD_TRUE] = true
 	keywordMap[KEYWORD_USE] = true
 	keywordMap[KEYWORD_VOID] = true
 }
