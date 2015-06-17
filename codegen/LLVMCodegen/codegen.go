@@ -504,6 +504,8 @@ func (v *Codegen) genExpr(n parser.Expr) llvm.Value {
 		return v.genFloatingLiteral(n.(*parser.FloatingLiteral))
 	case *parser.StringLiteral:
 		return v.genStringLiteral(n.(*parser.StringLiteral))
+	case *parser.BoolLiteral:
+		return v.genBoolLiteral(n.(*parser.BoolLiteral))
 	case *parser.BinaryExpr:
 		return v.genBinaryExpr(n.(*parser.BinaryExpr))
 	case *parser.UnaryExpr:
@@ -529,6 +531,16 @@ func (v *Codegen) genAddressOfExpr(n *parser.AddressOfExpr) llvm.Value {
 	}
 
 	return v.variableLookup[n.Access.Variable]
+}
+
+func (v *Codegen) genBoolLiteral(n *parser.BoolLiteral) llvm.Value {
+	var num uint64
+
+	if n.Value {
+		num = 1
+	}
+
+	return llvm.ConstInt(v.typeToLLVMType(n.GetType()), num, true)
 }
 
 func (v *Codegen) genRuneLiteral(n *parser.RuneLiteral) llvm.Value {

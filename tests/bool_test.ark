@@ -1,0 +1,16 @@
+func main(): int {
+    trueTest := true;
+    falseTest: bool = false;
+
+    mut ret := 0;
+
+    if true != (1 == 1) {
+        ret = 1;
+    }
+
+    if false != 4 > 6 {
+        ret = 2;
+    }
+
+    return ret;
+}
