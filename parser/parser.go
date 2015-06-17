@@ -987,6 +987,7 @@ func (v *parser) parseCallExpr() *CallExpr {
 	return callExpr
 }
 
+// TODO: move cast exprs into CallExpr
 func (v *parser) parseCastExpr() *CastExpr {
 	if !v.tokensMatch(lexer.TOKEN_IDENTIFIER, KEYWORD_CAST, lexer.TOKEN_SEPARATOR, "(") {
 		return nil
