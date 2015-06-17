@@ -5,6 +5,8 @@ We've ported to *Go*. We've still got the original C code, which you can find [h
 
 Due to the name change, we've migrated the subreddit from /r/alloy_lang to [/r/ark_lang](http://www.reddit.com/r/ark_lang), go subscribe! Finally, our IRC channel has moved from #alloy-lang to [#ark-lang](https://webchat.freenode.net/?channels=%23ark-lang) on freenode.
 
+Feel free to participate in discussion! Also, you can email [felixangell](https://github.com/felixangell/) or [MovingtoMars](https://github.com/MovingtoMars).
+
 ## Resources
 * [Reference](https://github.com/ark-lang/ark-docs/blob/master/REFERENCE.md)
 * [Tests](/tests/)
