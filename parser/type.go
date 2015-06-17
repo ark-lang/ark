@@ -6,11 +6,11 @@ type Type interface {
 	TypeName() string
 	RawType() Type            // type disregarding pointers
 	LevelsOfIndirection() int // number of pointers you have to go through to get to the actual type
-	IsIntegerType() bool
-	IsFloatingType() bool
-	IsSigned() bool
-	CanCastTo(Type) bool
-	Attrs() []*Attr
+	IsIntegerType() bool      // true for all int types
+	IsFloatingType() bool     // true for all floating-point types
+	IsSigned() bool           // true for all signed integer types
+	CanCastTo(Type) bool      // true if the receiver can be typecast to the parameter
+	Attrs() []*Attr           // fetches the attributes associated with the type
 }
 
 //go:generate stringer -type=PrimitiveType
@@ -41,7 +41,7 @@ const (
 
 	PRIMITIVE_bool
 
-	PRIMTIVE_void
+	PRIMITIVE_void
 )
 
 func (v PrimitiveType) IsIntegerType() bool {

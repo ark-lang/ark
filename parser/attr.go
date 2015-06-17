@@ -5,6 +5,17 @@ import (
 	"github.com/ark-lang/ark/util"
 )
 
+/*
+TODO replace with map
+
+type AttrGroup struct {
+	members map[string]*Attr
+}
+
+func Contains(s string) bool {}
+func Get(s string) *Attr {}
+*/
+
 type Attr struct {
 	Key   string
 	Value string
