@@ -6,6 +6,7 @@ import (
 	"github.com/ark-lang/ark/util"
 )
 
+//
 type Locatable interface {
 	Pos() (filename string, line, char int)
 	setPos(filename string, line, char int)
@@ -36,6 +37,7 @@ type Decl interface {
 	DocComments() []*DocComment
 }
 
+// an implementation of Locatable that is used for Nodes
 type nodePos struct {
 	filename               string
 	lineNumber, charNumber int
