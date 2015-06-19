@@ -373,7 +373,16 @@ func (v *Codegen) genIfStat(n *parser.IfStat) {
 			v.genNode(node)
 		}
 
-		v.builder.CreateBr(end)
+		if len(n.Bodies[i].Nodes) == 0 {
+
+			v.builder.CreateBr(end)
+		} else {
+			switch n.Bodies[i].Nodes[len(n.Bodies[i].Nodes)-1].(type) {
+			case *parser.ReturnStat:
+			default:
+				v.builder.CreateBr(end)
+			}
+		}
 
 		v.builder.SetInsertPointAtEnd(ifFalse)
 		end.MoveAfter(ifFalse)
