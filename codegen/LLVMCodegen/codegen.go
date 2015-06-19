@@ -107,8 +107,8 @@ func (v *Codegen) Generate(input []*parser.Module, verbose bool) {
 
 	passManager := llvm.NewPassManager()
 	passBuilder := llvm.NewPassManagerBuilder()
-	passBuilder.SetOptLevel(1)
-	//passBuilder.Populate(passManager) leave this off until the compiler is better
+	passBuilder.SetOptLevel(3)
+	//passBuilder.Populate(passManager) //leave this off until the compiler is better
 
 	for _, infile := range input {
 		infile.Module = llvm.NewModule(infile.Name)
@@ -843,9 +843,7 @@ func (v *Codegen) genAccessExpr(n *parser.AccessExpr) llvm.Value {
 }
 
 func (v *Codegen) genDerefExpr(n *parser.DerefExpr) llvm.Value {
-	var res llvm.Value
-
-	return res
+	return v.builder.CreateLoad(v.genExpr(n.Expr), "")
 }
 
 func (v *Codegen) genBracketExpr(n *parser.BracketExpr) llvm.Value {

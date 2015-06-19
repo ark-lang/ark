@@ -588,6 +588,7 @@ func (v *AddressOfExpr) setTypeHint(t Type) {}
 // DerefExpr
 
 func (v *DerefExpr) analyze(s *semanticAnalyzer) {
+	v.Expr.analyze(s)
 	if ptr, ok := v.Expr.GetType().(PointerType); !ok {
 		s.err(v, "Cannot dereference expression of type `%s`", v.Expr.GetType().TypeName())
 	} else {
