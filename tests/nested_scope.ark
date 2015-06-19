@@ -1,0 +1,17 @@
+[c] func printf(fmt: str, ...);
+
+func main(): int {
+    mut x: int = 5;
+
+    {
+        mut x: f32 = 4.321;
+        {
+            mut x: str = "foo";
+            printf("x = %s\n", x);
+        }
+        printf("x = %f\n", x);
+    }
+    printf("x = %d\n", x);
+
+    return 0;
+}
