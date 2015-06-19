@@ -1,8 +1,6 @@
 [c] func printf(fmt: str, ...);
 
 func main(): int {
-    mut ret: int = 0;
-
     a: int = 0;
     printf("%f\n", cast(f32, a));
 
@@ -21,14 +19,14 @@ func main(): int {
     f: rune = 'f';
     printf("%d\n", cast(int, f));
     if cast(int, f) != 102 {
-        ret = 1;
+        return 1;
     }
 
     g: int = 99;
     printf("%c\n", cast(rune, g));
     if cast(rune, g) != 'c' {
-        ret = 1; // workaround for not being able to return inside if stats
+        return 2;
     }
 
-    return ret;
+    return 0;
 }
