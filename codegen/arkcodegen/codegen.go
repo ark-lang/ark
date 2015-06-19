@@ -88,6 +88,8 @@ func (v *Codegen) genStat(n parser.Stat) {
 	switch n.(type) {
 	case *parser.ReturnStat:
 		v.genReturnStat(n.(*parser.ReturnStat))
+	case *parser.BlockStat:
+		v.genBlockStat(n.(*parser.BlockStat))
 	case *parser.CallStat:
 		v.genCallStat(n.(*parser.CallStat))
 	case *parser.AssignStat:
@@ -106,6 +108,10 @@ func (v *Codegen) genReturnStat(n *parser.ReturnStat) {
 	v.genExpr(n.Value)
 	v.write(";")
 	v.nl()
+}
+
+func (v *Codegen) genBlockStat(n *parser.BlockStat) {
+	v.genBlock(n.Block)
 }
 
 func (v *Codegen) genCallStat(n *parser.CallStat) {

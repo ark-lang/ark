@@ -213,6 +213,8 @@ func (v *parser) parseStat() Stat {
 		ret = loopStat
 	} else if returnStat := v.parseReturnStat(); returnStat != nil {
 		ret = returnStat
+	} else if blockStat := v.parseBlockStat(); blockStat != nil {
+		ret = blockStat
 	} else if callStat := v.parseCallStat(); callStat != nil {
 		ret = callStat
 	} else if assignStat := v.parseAssignStat(); assignStat != nil {
@@ -267,6 +269,16 @@ func (v *parser) parseAssignStat() *AssignStat {
 
 	return assign
 
+}
+
+func (v *parser) parseBlockStat() *BlockStat {
+	v.pushScope()
+	var blockStat *BlockStat
+	if block := v.parseBlock(); block != nil {
+		blockStat = &BlockStat{Block: block}
+	}
+	v.popScope()
+	return blockStat
 }
 
 func (v *parser) parseCallStat() *CallStat {
