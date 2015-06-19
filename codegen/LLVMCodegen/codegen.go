@@ -374,11 +374,10 @@ func (v *Codegen) genIfStat(n *parser.IfStat) {
 		}
 
 		if len(n.Bodies[i].Nodes) == 0 {
-
 			v.builder.CreateBr(end)
 		} else {
 			switch n.Bodies[i].Nodes[len(n.Bodies[i].Nodes)-1].(type) {
-			case *parser.ReturnStat:
+			case *parser.ReturnStat: // do nothing
 			default:
 				v.builder.CreateBr(end)
 			}
