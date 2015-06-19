@@ -1,0 +1,25 @@
+[c] func printf(fmt: str, ...);
+
+func main(): int {
+    mut x := 9;
+    y := &x;
+
+    printf("%d\n", ^y);
+
+    x = 15;
+    z := &y;
+
+    printf("%d\n", ^^z);
+
+    x = 9000;
+
+    a := &z;
+    b := &a;
+    c := &b;
+    d := &c;
+    e := &d;
+
+    printf("%d\n", ^^^^^^^e);
+
+    return 0;
+}
