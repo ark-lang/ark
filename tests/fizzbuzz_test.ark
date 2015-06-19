@@ -13,18 +13,18 @@ func main(): int {
         div5 := i % 5 == 0;
 
         if div3 {
-            [c] printf("Fizz");
+            printf("Fizz");
         }
 
         if div5 {
-            [c] printf("Buzz");
+            printf("Buzz");
         }
 
         if !(div3 || div5) {
-            [c] printf("%d", i);
+            printf("%d", i);
         }
 
-        [c] putchar(cast(i8, '\n'));
+        putchar(cast(i8, '\n'));
 
         i = i + 1;
     }
