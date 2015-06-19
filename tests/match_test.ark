@@ -1,0 +1,23 @@
+[c] func printf(fmt: str, ...);
+
+func main(): int {
+    valid: bool = true;
+
+    match valid {
+        true -> printf("%s\n", "true");
+        false -> printf("%s\n", "false");
+    }
+
+
+    foo := "bar";
+
+    match foo {
+        "hello" -> printf("foo matches hello");
+        "world" -> {}
+        "bar" -> { award := "baz";
+            printf("correct! you win %s\n", award); }
+        _ -> printf("default\n");
+    }
+
+    return 0;
+}
