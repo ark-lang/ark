@@ -1,8 +1,13 @@
+PACKAGES = {codegen{/LLVMCodegen,/arkcodegen,},lexer,parser,util}
+
 all:
 	@go install github.com/ark-lang/ark
 
 fmt:
-	go fmt github.com/ark-lang/ark/{codegen{/LLVMCodegen,/arkcodegen,},lexer,parser,util}
+	go fmt github.com/ark-lang/ark/${PACKAGES}
 
 gen:
-	go generate ./{codegen{/LLVMCodegen,/arkcodegen,},lexer,parser,util}
+	go generate ./${PACKAGES}
+
+wc:
+	wc ./${PACKAGES}/*.go
