@@ -304,6 +304,24 @@ func (v *FunctionDecl) DocComments() []*DocComment {
  * Statements
  */
 
+// BlockStat
+
+type BlockStat struct {
+	nodePos
+	Block *Block
+}
+
+func (v *BlockStat) statNode() {}
+
+func (v *BlockStat) String() string {
+	return "(" + util.Blue("BlockStat") + ": " +
+		v.Block.String() + ")"
+}
+
+func (v *BlockStat) NodeName() string {
+	return "block statement"
+}
+
 // ReturnStat
 
 type ReturnStat struct {

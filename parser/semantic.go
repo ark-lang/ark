@@ -225,6 +225,12 @@ func (v *IfStat) analyze(s *semanticAnalyzer) {
 
 }
 
+// BlockStat
+
+func (v *BlockStat) analyze(s *semanticAnalyzer) {
+	v.Block.analyze(s)
+}
+
 // CallStat
 
 func (v *CallStat) analyze(s *semanticAnalyzer) {
