@@ -261,6 +261,8 @@ func (v *Codegen) genNode(n parser.Node) {
 		v.genExpr(n.(parser.Expr))
 	case parser.Stat:
 		v.genStat(n.(parser.Stat))
+	case *parser.Block:
+		v.genBlock(n.(*parser.Block))
 	}
 }
 
@@ -268,6 +270,8 @@ func (v *Codegen) genStat(n parser.Stat) {
 	switch n.(type) {
 	case *parser.ReturnStat:
 		v.genReturnStat(n.(*parser.ReturnStat))
+	case *parser.BlockStat:
+		v.genBlockStat(n.(*parser.BlockStat))
 	case *parser.CallStat:
 		v.genCallStat(n.(*parser.CallStat))
 	case *parser.AssignStat:
@@ -281,12 +285,22 @@ func (v *Codegen) genStat(n parser.Stat) {
 	}
 }
 
+func (v *Codegen) genBlock(n *parser.Block) {
+	for _, x := range n.Nodes {
+		v.genNode(x)
+	}
+}
+
 func (v *Codegen) genReturnStat(n *parser.ReturnStat) {
 	if n.Value == nil {
 		v.builder.CreateRetVoid()
 	} else {
 		v.builder.CreateRet(v.genExpr(n.Value))
 	}
+}
+
+func (v *Codegen) genBlockStat(n *parser.BlockStat) {
+	v.genBlock(n.Block)
 }
 
 func (v *Codegen) genCallStat(n *parser.CallStat) {
