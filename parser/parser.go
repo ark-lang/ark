@@ -239,6 +239,8 @@ func (v *parser) parseStat() Stat {
 
 	if ifStat := v.parseIfStat(); ifStat != nil {
 		ret = ifStat
+	} else if matchStat := v.parseMatchStat(); matchStat != nil {
+		ret = matchStat
 	} else if loopStat := v.parseLoopStat(); loopStat != nil {
 		ret = loopStat
 	} else if returnStat := v.parseReturnStat(); returnStat != nil {
@@ -541,7 +543,7 @@ func (v *parser) parseBlock(pushNewScope bool) *Block {
 		if s := v.parseNode(); s != nil {
 			block.appendNode(s)
 		} else {
-			v.err("Expected statment, found something else")
+			v.err("Expected statement, found something else")
 		}
 	}
 
@@ -618,6 +620,66 @@ func (v *parser) parseIfStat() *IfStat {
 			return ifStat
 		}
 	}
+}
+
+func (v *parser) parseMatchStat() *MatchStat {
+	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_MATCH) {
+		return nil
+	}
+	v.consumeToken()
+
+	match := newMatch()
+
+	if target := v.parseExpr(); target != nil {
+		match.Target = target
+	} else {
+		v.err("Expected match target, found `%s`", v.peek(0).Contents)
+	}
+
+	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "{") {
+		v.err("Expected body after match target, found `%s`", v.peek(0).Contents)
+	}
+	v.consumeToken()
+
+	var parsedDefaultMatch bool
+	for {
+		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "}") {
+			v.consumeToken()
+			break
+		}
+
+		// a "pattern" is currently either the default branch "_" or an expression
+		var pattern Expr
+		if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, "_") {
+			v.consumeToken()
+			if parsedDefaultMatch {
+				v.err("Duplicate \"default\" branch in match statement")
+			}
+			pattern = &DefaultMatchBranch{}
+			parsedDefaultMatch = true
+		} else if pattern = v.parseExpr(); pattern == nil {
+			v.err("Expected pattern in match body, found `%s`", v.peek(0).Contents)
+		}
+
+		if !v.tokenMatches(0, lexer.TOKEN_OPERATOR, "->") {
+			v.err("Expected \"->\" between pattern and statement "+
+				"in match body, found `%s`", v.peek(0).Contents)
+
+		}
+		v.consumeToken() // consume "->"
+
+		v.pushScope()
+		var stmt Stat
+		if stmt = v.parseStat(); stmt == nil {
+			v.err("Expected statement or block in match body, "+
+				"found `%s`", v.peek(0).Contents)
+		}
+		v.popScope()
+
+		match.Branches[pattern] = stmt
+	}
+
+	return match
 }
 
 func (v *parser) parseLoopStat() *LoopStat {
