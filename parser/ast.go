@@ -494,6 +494,36 @@ func (v *LoopStat) NodeName() string {
 	return "loop statement"
 }
 
+// MatchStat
+
+type MatchStat struct {
+	nodePos
+
+	Target Expr
+
+	Branches map[Expr]Node
+}
+
+func newMatch() *MatchStat {
+	return &MatchStat{Branches: make(map[Expr]Node)}
+}
+
+func (v *MatchStat) statNode() {}
+
+func (v *MatchStat) String() string {
+	result := "(" + util.Blue("MatchStat") + ": " + v.Target.String() + ":\n"
+
+	for pattern, stmt := range v.Branches {
+		result += "\t" + pattern.String() + " -> " + stmt.String() + "\n"
+	}
+
+	return result + ")"
+}
+
+func (v *MatchStat) NodeName() string {
+	return "match statement"
+}
+
 /**
  * Expressions
  */
@@ -882,4 +912,24 @@ func (v *BracketExpr) GetType() Type {
 
 func (v *BracketExpr) NodeName() string {
 	return "bracketed expression"
+}
+
+// DefaultMatchBranch
+
+type DefaultMatchBranch struct {
+	nodePos
+}
+
+func (v *DefaultMatchBranch) exprNode() {}
+
+func (v *DefaultMatchBranch) String() string {
+	return "(" + util.Blue("DefaultMatchBranch") + ")"
+}
+
+func (v *DefaultMatchBranch) GetType() Type {
+	return nil
+}
+
+func (v *DefaultMatchBranch) NodeName() string {
+	return "default match branch"
 }
