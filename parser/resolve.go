@@ -165,7 +165,7 @@ func (v *CallExpr) resolve(sem *semanticAnalyzer, s *Scope) {
 
 func (v *AccessExpr) resolve(sem *semanticAnalyzer, s *Scope) {
 	if len(v.structVariableNames) > 0 {
-
+		panic("todo")
 	} else {
 		v.Variable = s.GetVariable(v.variableName)
 		if v.Variable == nil {
