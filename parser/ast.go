@@ -15,6 +15,7 @@ type Locatable interface {
 type Node interface {
 	String() string
 	NodeName() string
+	resolve(*semanticAnalyzer, *Scope)
 	analyze(*semanticAnalyzer)
 	Locatable
 }
@@ -128,10 +129,7 @@ func (v *Function) String() string {
 type Block struct {
 	nodePos
 	Nodes []Node
-}
-
-func newBlock() *Block {
-	return &Block{Nodes: make([]Node, 0)}
+	scope *Scope
 }
 
 func (v *Block) String() string {
@@ -684,7 +682,7 @@ func (v *CastExpr) NodeName() string {
 type CallExpr struct {
 	nodePos
 	Function     *Function
-	functionName string // used until resolved
+	functionName unresolvedName
 	Arguments    []Expr
 }
 
@@ -713,8 +711,10 @@ func (v *CallExpr) NodeName() string {
 
 type AccessExpr struct {
 	nodePos
-	StructVariables []*Variable
-	Variable        *Variable
+	StructVariables     []*Variable
+	structVariableNames []unresolvedName
+	Variable            *Variable
+	variableName        unresolvedName
 }
 
 func (v *AccessExpr) exprNode() {}
