@@ -163,31 +163,45 @@ func (v *CallExpr) resolve(sem *semanticAnalyzer, s *Scope) {
 	}
 }
 
+// this whole function is so bad
+// why does this even exist
+// please get around to rewriting this in a way that doesn't suck
+// good luck changing anything here without rewriting everything
+// at least it works
+// - MovingtoMars
 func (v *AccessExpr) resolve(sem *semanticAnalyzer, s *Scope) {
-	if len(v.structVariableNames) > 0 {
-		panic("todo")
-	} else {
-		v.Variable = s.GetVariable(v.variableName)
-		if v.Variable == nil {
-			sem.errResolve(v, v.variableName)
-		}
+	// resolve the first name
+	firstVar := v.Accesses[0]
+	firstVar.Variable = s.GetVariable(firstVar.variableName)
+
+	if v.Accesses[0].Variable == nil {
+		sem.errResolve(v, firstVar.variableName)
 	}
 
-	/*for {
-		structType, ok := v.Variable.Type.(*StructType)
-		if !ok {
-			v.err("Cannot access member of `%s`, type `%s`", v.Variable.Name, v.Variable.Type.TypeName())
-		}
+	// resolve everything else
+	for i := 0; i < len(v.Accesses); i++ {
+		switch v.Accesses[i].AccessType {
+		case ACCESS_ARRAY:
+			v.Accesses[i].Subscript.resolve(sem, s)
 
-		memberName
-		decl := structType.getVariableDecl(memberName)
-		if decl == nil {
-			v.err("Struct `%s` does not contain member `%s`", structType.TypeName(), memberName)
-		}
+		case ACCESS_STRUCT:
+			structType, ok := v.Accesses[i].Variable.Type.(*StructType)
+			if !ok {
+				sem.err(v, "Cannot access member of `%s`, type `%s`", v.Accesses[i].Variable.Name, v.Accesses[i].Variable.Type.TypeName())
+			}
 
-		v.StructVariables = append(v.StructVariables, v.Variable)
-		v.Variable = decl.Variable
-	}*/
+			memberName := v.Accesses[i+1].variableName.name // TODO check no mod access
+			decl := structType.getVariableDecl(memberName)
+			if decl == nil {
+				sem.err(v, "Struct `%s` does not contain member `%s`", structType.TypeName(), memberName)
+			}
+			v.Accesses[i+1].Variable = decl.Variable
+		case ACCESS_VARIABLE:
+			// nothing to do
+		default:
+			panic("")
+		}
+	}
 }
 
 func (v *AddressOfExpr) resolve(sem *semanticAnalyzer, s *Scope) {

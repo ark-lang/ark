@@ -1,5 +1,7 @@
+[c] func printf(fmt: str, ...);
+
 func main() {
     arrayLitTest := [1, 2, 3, 4, 5];
 
-
+    printf("%d\n", arrayLitTest[0]);
 }

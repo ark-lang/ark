@@ -248,15 +248,17 @@ func (v *AssignStat) analyze(s *semanticAnalyzer) {
 	if v.Deref != nil {
 		lhs = v.Deref
 	} else if v.Access != nil {
-		var variable *Variable
-		if len(v.Access.StructVariables) > 0 {
+		//var variable *Variable
+
+		/*if len(v.Access.StructVariables) > 0 { TODO
 			variable = v.Access.StructVariables[0]
 		} else {
 			variable = v.Access.Variable
-		}
-		if !variable.Mutable {
+		}*/
+
+		/*if !variable.Mutable {
 			s.err(v, "Cannot assign value to immutable variable `%s`", variable.Name)
-		}
+		}*/
 		lhs = v.Access
 	}
 
@@ -618,9 +620,18 @@ func (v *CallExpr) setTypeHint(t Type) {}
 // AccessExpr
 
 func (v *AccessExpr) analyze(s *semanticAnalyzer) {
-	for _, variable := range append(v.StructVariables, v.Variable) {
-		if dep := getAttr(variable.Attrs, "deprecated"); dep != nil {
-			s.warnDeprecated(v, "variable", variable.Name, dep.Value)
+	for _, access := range v.Accesses {
+		if dep := getAttr(access.Variable.Attrs, "deprecated"); dep != nil {
+			s.warnDeprecated(v, "variable", access.Variable.Name, dep.Value)
+		}
+
+		if access.AccessType == ACCESS_ARRAY {
+			access.Subscript.setTypeHint(PRIMITIVE_int)
+			access.Subscript.analyze(s)
+
+			if !access.Subscript.GetType().IsIntegerType() {
+				s.err(v, "Array subscript must be an integer type, have `%s`", access.Subscript.GetType().TypeName())
+			}
 		}
 	}
 }
