@@ -22,9 +22,6 @@ impl Foo for ToString {
 
 func main(): int {
     mut thing: Foo;
-    thing.x = 42;
-
-    printf("thing.x: %d\n", thing.x);
 
     return 0;
 }

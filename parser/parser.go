@@ -56,6 +56,12 @@ func (v *parser) consumeToken() *lexer.Token {
 	return ret
 }
 
+func (v *parser) consumeTokens(num int) {
+	for i := 0; i < num; i++ {
+		v.consumeToken()
+	}
+}
+
 func (v *parser) pushNode(node Node) {
 	v.module.Nodes = append(v.module.Nodes, node)
 }
@@ -146,6 +152,31 @@ func (v *parser) parse() {
 			v.pushNode(n)
 		} else {
 			panic("what's this over here?")
+		}
+	}
+}
+
+// reads an identifier, with module access, without consuming it
+// returns the name and the number of tokens it takes up
+func (v *parser) peekName() (unresolvedName, int) {
+	var name unresolvedName
+
+	numTok := 0
+
+	for {
+		if v.tokenMatches(numTok, lexer.TOKEN_IDENTIFIER, "") {
+			ident := v.peek(numTok).Contents
+			fmt.Println(ident)
+			numTok++
+			if v.tokenMatches(numTok, lexer.TOKEN_OPERATOR, "::") {
+				numTok++
+				name.moduleNames = append(name.moduleNames, ident)
+			} else {
+				name.name = ident
+				return name, numTok
+			}
+		} else {
+			v.err("Expected identifier, found `%s`", v.peek(0).Contents)
 		}
 	}
 }
@@ -272,12 +303,10 @@ func (v *parser) parseAssignStat() *AssignStat {
 }
 
 func (v *parser) parseBlockStat() *BlockStat {
-	v.pushScope()
 	var blockStat *BlockStat
 	if block := v.parseBlock(); block != nil {
 		blockStat = &BlockStat{Block: block}
 	}
-	v.popScope()
 	return blockStat
 }
 
@@ -372,8 +401,6 @@ func (v *parser) parseFunctionDecl() *FunctionDecl {
 		Function: function,
 		docs:     v.fetchDocComments(),
 	}
-
-	v.pushScope()
 
 	// Arguments
 	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "(") {
@@ -479,7 +506,13 @@ func (v *parser) parseFunctionDecl() *FunctionDecl {
 		v.err("Expecting block or semi-colon (prototype) after function signature")
 	}
 
-	v.popScope()
+	if !funcDecl.Prototype {
+		for _, par := range funcDecl.Function.Parameters {
+			if existingVar := funcDecl.Function.Body.scope.InsertVariable(par.Variable); existingVar != nil {
+				v.err("Cannot redefine parameter `%s` to function `%s`", par.Variable.Name, funcDecl.Function.Name)
+			}
+		}
+	}
 
 	return funcDecl
 }
@@ -491,7 +524,9 @@ func (v *parser) parseBlock() *Block {
 
 	v.consumeToken()
 
-	block := newBlock()
+	v.pushScope()
+
+	block := &Block{scope: v.scope}
 
 	for {
 		for v.tokenMatches(0, lexer.TOKEN_COMMENT, "") || v.tokenMatches(0, lexer.TOKEN_DOCCOMMENT, "") {
@@ -499,7 +534,7 @@ func (v *parser) parseBlock() *Block {
 		}
 		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "}") {
 			v.consumeToken()
-			return block
+			break
 		}
 
 		if s := v.parseNode(); s != nil {
@@ -508,6 +543,9 @@ func (v *parser) parseBlock() *Block {
 			v.err("Expected statment, found something else")
 		}
 	}
+
+	v.popScope()
+	return block
 }
 
 func (v *parser) parseReturnStat() *ReturnStat {
@@ -554,9 +592,7 @@ func (v *parser) parseIfStat() *IfStat {
 		}
 		ifStat.Exprs = append(ifStat.Exprs, expr)
 
-		v.pushScope()
 		body := v.parseBlock()
-		v.popScope()
 		if body == nil {
 			v.err("Expected body after if condition, found `%s`", v.peek(0).Contents)
 		}
@@ -568,9 +604,7 @@ func (v *parser) parseIfStat() *IfStat {
 				v.consumeToken()
 				continue
 			} else {
-				v.pushScope()
 				body := v.parseBlock()
-				v.popScope()
 				if body == nil {
 					v.err("Expected else body, found `%s`", v.peek(0).Contents)
 				}
@@ -992,20 +1026,36 @@ func (v *parser) parseBracketExpr() *BracketExpr {
 }
 
 func (v *parser) parseAccessExpr() *AccessExpr {
-	// TODO add accessexpr to resolve.go
-	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, "") {
+	access := &AccessExpr{}
+
+	if firstName, numNameToks := v.peekName(); numNameToks > 0 {
+		v.consumeTokens(numNameToks)
+		access.variableName = firstName
+	} else {
 		return nil
 	}
 
-	access := &AccessExpr{}
+	for {
+		if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ".") {
+			return access
+		}
+		v.consumeToken()
 
-	ident := v.consumeToken().Contents
-	access.Variable = v.scope.GetVariable(ident)
-	if access.Variable == nil {
-		v.err("Unresolved variable `%s`", ident)
+		if name, numNameToks := v.peekName(); numNameToks > 0 {
+			// make sure we can't go thing.a::otherThing
+			if len(access.variableName.moduleNames) > 0 {
+				v.err("Can't use module access here")
+			}
+
+			access.structVariableNames = append(access.structVariableNames, name)
+			access.variableName = name
+			v.consumeTokens(numNameToks)
+		} else {
+			v.err("Malformed access expr")
+		}
 	}
 
-	for {
+	/*for {
 		if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ".") {
 			return access
 		}
@@ -1024,23 +1074,20 @@ func (v *parser) parseAccessExpr() *AccessExpr {
 
 		access.StructVariables = append(access.StructVariables, access.Variable)
 		access.Variable = decl.Variable
-	}
+	}*/
 }
 
 func (v *parser) parseCallExpr() *CallExpr {
-	if !v.tokensMatch(lexer.TOKEN_IDENTIFIER, "", lexer.TOKEN_SEPARATOR, "(") {
+	callExpr := &CallExpr{}
+
+	numNameToks := 0
+	if callExpr.functionName, numNameToks = v.peekName(); v.tokenMatches(numNameToks, lexer.TOKEN_SEPARATOR, "(") && numNameToks > 0 {
+		v.consumeTokens(numNameToks)
+	} else {
 		return nil
 	}
 
-	callExpr := &CallExpr{}
-
-	callExpr.functionName = v.peek(0).Contents
-	callExpr.Function = v.scope.GetFunction(callExpr.functionName)
-	if callExpr.Function == nil {
-		v.addUnresolvedNode(callExpr)
-	}
-	v.consumeToken()
-	v.consumeToken()
+	v.consumeToken() // consume (
 
 	if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ")") {
 		v.consumeToken()
