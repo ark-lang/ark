@@ -1155,7 +1155,9 @@ func (v *parser) parseAddressOfExpr() *AddressOfExpr {
 }
 
 func (v *parser) parseLiteral() Expr {
-	if boolLit := v.parseBoolLiteral(); boolLit != nil {
+	if arrayLit := v.parseArrayLiteral(); arrayLit != nil {
+		return arrayLit
+	} else if boolLit := v.parseBoolLiteral(); boolLit != nil {
 		return boolLit
 	} else if numLit := v.parseNumericLiteral(); numLit != nil {
 		return numLit
@@ -1165,6 +1167,36 @@ func (v *parser) parseLiteral() Expr {
 		return runeLit
 	}
 	return nil
+}
+
+func (v *parser) parseArrayLiteral() *ArrayLiteral {
+	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "[") {
+		return nil
+	}
+	v.consumeToken()
+
+	if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "]") {
+		v.err("Empty array literal")
+	}
+
+	arrayLit := &ArrayLiteral{}
+
+	for {
+		if expr := v.parseExpr(); expr != nil {
+			arrayLit.Members = append(arrayLit.Members, expr)
+
+			if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "]") {
+				v.consumeToken()
+				return arrayLit
+			} else if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ",") {
+				v.consumeToken()
+			} else {
+				v.err("Expected `,` after array literal member, found `%s`", v.peek(0).Contents)
+			}
+		} else {
+			v.err("Expected expression in array literal, found `%s`", v.peek(0).Contents)
+		}
+	}
 }
 
 func (v *parser) parseBoolLiteral() *BoolLiteral {

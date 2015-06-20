@@ -118,7 +118,7 @@ func (v *Function) String() string {
 	if v.Body != nil {
 		result += v.Body.String()
 	}
-	return result + util.Magenta(" <"+v.MangledName(MANGLE_ARK_UNSTABLE)) + "> " + ")"
+	return result + util.Magenta(" <"+v.MangledName(MANGLE_ARK_UNSTABLE)+">") + ")"
 }
 
 //
@@ -577,6 +577,32 @@ func (v *BoolLiteral) GetType() Type {
 
 func (v *BoolLiteral) NodeName() string {
 	return "boolean literal"
+}
+
+// ArrayLiteral
+
+type ArrayLiteral struct {
+	nodePos
+	Members []Expr
+	Type    Type
+}
+
+func (v *ArrayLiteral) exprNode() {}
+
+func (v *ArrayLiteral) String() string {
+	res := "(" + util.Blue("ArrayLiteral") + ":"
+	for _, mem := range v.Members {
+		res += " " + mem.String()
+	}
+	return res + ")"
+}
+
+func (v *ArrayLiteral) GetType() Type {
+	return v.Type
+}
+
+func (v *ArrayLiteral) NodeName() string {
+	return "array literal"
 }
 
 // BinaryExpr
