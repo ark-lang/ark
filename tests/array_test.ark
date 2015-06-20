@@ -3,5 +3,7 @@
 func main() {
     arrayLitTest := [1, 2, 3, 4, 5];
 
+    arrayLitTest[0] = 6;
+
     //printf("%d\n", arrayLitTest[0]);
 }
