@@ -742,7 +742,11 @@ func (v *AccessExpr) String() string {
 }
 
 func (v *AccessExpr) GetType() Type {
-	return v.Accesses[len(v.Accesses)-1].Variable.Type
+	acc := v.Accesses[len(v.Accesses)-1]
+	if acc.AccessType == ACCESS_ARRAY {
+		return acc.Variable.Type.(ArrayType).MemberType
+	}
+	return acc.Variable.Type
 }
 
 func (v *AccessExpr) NodeName() string {

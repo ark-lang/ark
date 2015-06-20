@@ -514,44 +514,13 @@ func (v *Codegen) genExpr(n parser.Expr) llvm.Value {
 }
 
 func (v *Codegen) genAddressOfExpr(n *parser.AddressOfExpr) llvm.Value {
-	/*if len(n.Access.StructVariables) > 0 {
-		panic("struct member address-of unimplemented")
-	}
-
-	return v.variableLookup[n.Access.Variable]*/
-
-	/*gepIndexes := []llvm.Value{llvm.ConstInt(llvm.Int32Type(), 0, false)} // first index of 0 dereferences the struct pointer
-
-	var prevParent *parser.Variable
-	for _, parentVar := range append(parents, member) {
-		var fieldIndex int
-
-		if prevParent == nil {
-			prevParent = parentVar
-			continue
-		} else {
-			fieldIndex = prevParent.Type.(*parser.StructType).VariableIndex(parentVar)
-		}
-
-		if fieldIndex < 0 {
-			panic("weird field index")
-		}
-
-		gepIndexes = append(gepIndexes, llvm.ConstInt(llvm.Int32Type(), uint64(fieldIndex), false))
-
-		prevParent = parentVar
-	}
-
-	return v.builder.CreateGEP(v.variableLookup[parents[0]], gepIndexes, "")*/
-
 	gepIndexes := []llvm.Value{llvm.ConstInt(llvm.Int32Type(), 0, false)}
 
 	for i := 0; i < len(n.Access.Accesses); i++ {
 
 		switch n.Access.Accesses[i].AccessType {
 		case parser.ACCESS_ARRAY:
-			//gepIndexes = append(gepIndexes, v.genExpr(n.Access.Accesses[i].Subscript))
-			panic("todo array access")
+			gepIndexes = append(gepIndexes, llvm.ConstInt(llvm.Int32Type(), 1, false), llvm.ConstInt(llvm.Int32Type(), 0, false)) //, v.genExpr(n.Access.Accesses[i].Subscript))
 
 		case parser.ACCESS_VARIABLE:
 			// nothing to do
@@ -583,7 +552,7 @@ func (v *Codegen) genRuneLiteral(n *parser.RuneLiteral) llvm.Value {
 }
 
 func (v *Codegen) genArrayLiteral(n *parser.ArrayLiteral) llvm.Value {
-	rawArrType := llvm.ArrayType(v.typeToLLVMType(n.Type.(parser.ArrayType).MemberType), len(n.Members))
+	/*rawArrType := llvm.ArrayType(, len(n.Members))
 	vals := []llvm.Value{}
 
 	for _, mem := range n.Members {
@@ -592,11 +561,28 @@ func (v *Codegen) genArrayLiteral(n *parser.ArrayLiteral) llvm.Value {
 
 	constArr := llvm.ConstArray(rawArrType, vals)
 
-	// use bitcast to set the length to 0
-	gep := v.builder.CreateBitCast(constArr, llvm.ArrayType(v.typeToLLVMType(n.Type.(parser.ArrayType).MemberType), 0), "")
+	bc := v.builder.CreateBitCast(constArr, llvm.PointerType(v.typeToLLVMType(n.Type.(parser.ArrayType).MemberType), 0), "")
 
-	return llvm.ConstStruct([]llvm.Value{llvm.ConstInt(llvm.IntType(32), uint64(len(n.Members)), false), gep}, false)
+	return llvm.ConstStruct([]llvm.Value{llvm.ConstInt(llvm.IntType(32), uint64(len(n.Members)), false), bc}, false)*/
+
+	/*memberLLVMType := v.typeToLLVMType(n.Type.(parser.ArrayType).MemberType)
+
+	ptr := v.builder.CreateArrayAlloca(memberLLVMType, llvm.ConstInt(llvm.IntType(32), uint64(len(n.Members)), false), "ptr")
+
+	structAlloca := v.builder.CreateAlloca(v.typeToLLVMType(n.GetType()), "")
+	lenGEP := v.builder.CreateGEP(structAlloca, []llvm.Value{llvm.ConstInt(llvm.IntType(32), 0, false), llvm.ConstInt(llvm.IntType(32), 0, false)}, "")
+	v.builder.CreateStore(llvm.ConstInt(llvm.IntType(32), 0, false), lenGEP)
+
+	arrGEP := v.builder.CreateGEP(structAlloca, []llvm.Value{llvm.ConstInt(llvm.IntType(32), 0, false), llvm.ConstInt(llvm.IntType(32), 1, false)}, "")
+	v.builder.CreateStore(arrGEP, v.builder.CreateBitCast(ptr, llvm.ArrayType(memberLLVMType, 0), ""))
+
+	return v.builder.CreateLoad(structAlloca, "")*/
+	panic("")
+
+	//return llvm.ConstStruct([]llvm.Value{llvm.ConstInt(llvm.IntType(32), uint64(len(n.Members)), false), ptr}, false)
 }
+
+func createArrayMemcpyFunc()
 
 func (v *Codegen) genIntegerLiteral(n *parser.IntegerLiteral) llvm.Value {
 	return llvm.ConstInt(v.typeToLLVMType(n.Type), n.Value, false)
@@ -860,14 +846,6 @@ func (v *Codegen) genCallExpr(n *parser.CallExpr) llvm.Value {
 }
 
 func (v *Codegen) genAccessExpr(n *parser.AccessExpr) llvm.Value {
-	//load = v.builder.CreateLoad(v.variableLookup[n.Variable], n.Variable.MangledName(parser.MANGLE_ARK_UNSTABLE))
-
-	/*if len(n.StructVariables) > 0 {
-		return v.builder.CreateLoad(v.createGEPForStructsAndArrays(n.StructVariables, n.Variable), "")
-	} else {
-		return v.builder.CreateLoad(v.variableLookup[n.Variable], "")
-	}*/
-
 	return v.builder.CreateLoad(v.genAddressOfExpr(&parser.AddressOfExpr{Access: n}), "") // TODO do this better
 }
 
