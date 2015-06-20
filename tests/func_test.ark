@@ -29,5 +29,5 @@ func main(): int {
         duh4: int = 8;
     }
 
-    return x;
+    return 0;
 }

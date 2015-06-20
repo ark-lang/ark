@@ -58,8 +58,13 @@ func (v *Scope) InsertVariable(t *Variable) *Variable {
 	return c
 }
 
-func (v *Scope) GetVariable(name string) *Variable {
-	if r := v.Vars[name]; r != nil {
+func (v *Scope) GetVariable(name unresolvedName) *Variable {
+	// TODO modules
+	if len(name.moduleNames) > 0 {
+		panic("todo module access")
+	}
+
+	if r := v.Vars[name.name]; r != nil {
 		return r
 	} else if v.Outer != nil {
 		return v.Outer.GetVariable(name)
@@ -76,8 +81,13 @@ func (v *Scope) InsertFunction(t *Function) *Function {
 	return c
 }
 
-func (v *Scope) GetFunction(name string) *Function {
-	if r := v.Funcs[name]; r != nil {
+func (v *Scope) GetFunction(name unresolvedName) *Function {
+	// TODO modules
+	if len(name.moduleNames) > 0 {
+		panic("todo module access")
+	}
+
+	if r := v.Funcs[name.name]; r != nil {
 		return r
 	} else if v.Outer != nil {
 		return v.Outer.GetFunction(name)
