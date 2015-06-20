@@ -166,7 +166,6 @@ func (v *parser) peekName() (unresolvedName, int) {
 	for {
 		if v.tokenMatches(numTok, lexer.TOKEN_IDENTIFIER, "") {
 			ident := v.peek(numTok).Contents
-			fmt.Println(ident)
 			numTok++
 			if v.tokenMatches(numTok, lexer.TOKEN_OPERATOR, "::") {
 				numTok++
@@ -304,7 +303,7 @@ func (v *parser) parseAssignStat() *AssignStat {
 
 func (v *parser) parseBlockStat() *BlockStat {
 	var blockStat *BlockStat
-	if block := v.parseBlock(); block != nil {
+	if block := v.parseBlock(true); block != nil {
 		blockStat = &BlockStat{Block: block}
 	}
 	return blockStat
@@ -408,6 +407,8 @@ func (v *parser) parseFunctionDecl() *FunctionDecl {
 	}
 	v.consumeToken()
 
+	v.pushScope()
+
 	function.Parameters = make([]*VariableDecl, 0)
 	if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ")") {
 		v.consumeToken()
@@ -475,7 +476,7 @@ func (v *parser) parseFunctionDecl() *FunctionDecl {
 	}
 
 	// block
-	if block := v.parseBlock(); block != nil {
+	if block := v.parseBlock(false); block != nil {
 		if funcDecl.Prototype {
 			v.err("Function prototype cannot have a block")
 		}
@@ -483,15 +484,15 @@ func (v *parser) parseFunctionDecl() *FunctionDecl {
 	} else if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "->") && !funcDecl.Prototype {
 		v.consumeToken()
 
+		v.pushScope()
+		funcDecl.Function.Body = &Block{scope: v.scope}
 		if stat := v.parseStat(); stat != nil {
-			funcDecl.Function.Body = &Block{}
 			funcDecl.Function.Body.appendNode(stat)
 		} else {
 			// messy...
 			// parses the expression appends the node to
 			// a fake "body", then checks for a semi colon
 			if expr := v.parseExpr(); expr != nil {
-				funcDecl.Function.Body = &Block{}
 				funcDecl.Function.Body.appendNode(&ReturnStat{Value: expr})
 				if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ";") {
 					v.consumeToken()
@@ -501,30 +502,28 @@ func (v *parser) parseFunctionDecl() *FunctionDecl {
 			} else {
 				v.err("Single line function `%s` expects a statement or an expression, found `%s`", funcDecl.Function.Name, v.peek(0).Contents)
 			}
+
+			v.popScope()
 		}
 	} else if !funcDecl.Prototype {
 		v.err("Expecting block or semi-colon (prototype) after function signature")
 	}
 
-	if !funcDecl.Prototype {
-		for _, par := range funcDecl.Function.Parameters {
-			if existingVar := funcDecl.Function.Body.scope.InsertVariable(par.Variable); existingVar != nil {
-				v.err("Cannot redefine parameter `%s` to function `%s`", par.Variable.Name, funcDecl.Function.Name)
-			}
-		}
-	}
+	v.popScope()
 
 	return funcDecl
 }
 
-func (v *parser) parseBlock() *Block {
+func (v *parser) parseBlock(pushNewScope bool) *Block {
 	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "{") {
 		return nil
 	}
 
 	v.consumeToken()
 
-	v.pushScope()
+	if pushNewScope {
+		v.pushScope()
+	}
 
 	block := &Block{scope: v.scope}
 
@@ -544,7 +543,9 @@ func (v *parser) parseBlock() *Block {
 		}
 	}
 
-	v.popScope()
+	if pushNewScope {
+		v.popScope()
+	}
 	return block
 }
 
@@ -592,7 +593,7 @@ func (v *parser) parseIfStat() *IfStat {
 		}
 		ifStat.Exprs = append(ifStat.Exprs, expr)
 
-		body := v.parseBlock()
+		body := v.parseBlock(true)
 		if body == nil {
 			v.err("Expected body after if condition, found `%s`", v.peek(0).Contents)
 		}
@@ -604,7 +605,7 @@ func (v *parser) parseIfStat() *IfStat {
 				v.consumeToken()
 				continue
 			} else {
-				body := v.parseBlock()
+				body := v.parseBlock(true)
 				if body == nil {
 					v.err("Expected else body, found `%s`", v.peek(0).Contents)
 				}
@@ -628,7 +629,7 @@ func (v *parser) parseLoopStat() *LoopStat {
 	if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "{") { // infinite loop
 		loop.LoopType = LOOP_TYPE_INFINITE
 
-		loop.Body = v.parseBlock()
+		loop.Body = v.parseBlock(true)
 		if loop.Body == nil {
 			v.err("Malformed infinite loop body")
 		}
@@ -639,7 +640,7 @@ func (v *parser) parseLoopStat() *LoopStat {
 		loop.LoopType = LOOP_TYPE_CONDITIONAL
 		loop.Condition = cond
 
-		loop.Body = v.parseBlock()
+		loop.Body = v.parseBlock(true)
 		if loop.Body == nil {
 			v.err("Malformed infinite loop body")
 		}
@@ -1028,7 +1029,49 @@ func (v *parser) parseBracketExpr() *BracketExpr {
 func (v *parser) parseAccessExpr() *AccessExpr {
 	access := &AccessExpr{}
 
-	if firstName, numNameToks := v.peekName(); numNameToks > 0 {
+	if _, numNameToks := v.peekName(); numNameToks > 0 {
+
+	} else {
+		return nil
+	}
+
+	for {
+		if name, numNameToks := v.peekName(); numNameToks > 0 {
+			v.consumeTokens(numNameToks)
+
+			if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ".") {
+				// struct access
+				v.consumeToken()
+				access.Accesses = append(access.Accesses, &Access{AccessType: ACCESS_STRUCT, variableName: name})
+			} else if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "[") {
+				// array access
+				v.consumeToken()
+
+				subscript := v.parseExpr()
+				if subscript == nil {
+					v.err("Expected expression for array subscript, found `%s`", v.peek(0).Contents)
+				}
+
+				if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "]") {
+					v.err("Expected `]` after array subscript, found `%s`", v.peek(0).Contents)
+				}
+				v.consumeToken()
+
+				access.Accesses = append(access.Accesses, &Access{AccessType: ACCESS_ARRAY, variableName: name, Subscript: subscript})
+
+				if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ".") {
+					return access
+				}
+			} else {
+				access.Accesses = append(access.Accesses, &Access{AccessType: ACCESS_VARIABLE, variableName: name})
+				return access
+			}
+		} else {
+			panic("shit")
+		}
+	}
+
+	/*if firstName, numNameToks := v.peekName(); numNameToks > 0 {
 		v.consumeTokens(numNameToks)
 		access.variableName = firstName
 	} else {
@@ -1053,7 +1096,7 @@ func (v *parser) parseAccessExpr() *AccessExpr {
 		} else {
 			v.err("Malformed access expr")
 		}
-	}
+	}*/
 
 	/*for {
 		if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ".") {
