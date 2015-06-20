@@ -468,6 +468,56 @@ func (v *RuneLiteral) setTypeHint(t Type)          {}
 func (v *BoolLiteral) analyze(s *semanticAnalyzer) {}
 func (v *BoolLiteral) setTypeHint(t Type)          {}
 
+// ArrayLiteral
+
+func (v *ArrayLiteral) analyze(s *semanticAnalyzer) {
+	// TODO make type inferring stuff actually work well
+
+	var memType Type // type of each member of the array
+
+	if v.Type == nil {
+		memType = nil
+	} else {
+		arrayType, ok := v.Type.(ArrayType)
+		if !ok {
+			s.err(v, "Invalid type")
+		}
+		memType = arrayType.MemberType
+	}
+
+	for _, mem := range v.Members {
+		mem.setTypeHint(memType)
+	}
+
+	for _, mem := range v.Members {
+		mem.analyze(s)
+	}
+
+	if v.Type == nil {
+		// now we work out the type of the whole array be checking the member types
+		for i := 1; i < len(v.Members); i++ {
+			if v.Members[i-1].GetType() != v.Members[i].GetType() {
+				s.err(v, "Array member type mismatch: `%s` and `%s`", v.Members[i-1].GetType().TypeName(), v.Members[i].GetType().TypeName())
+			}
+		}
+
+		if v.Members[0].GetType() == nil {
+			s.err(v, "Couldn't infer type of array members") // don't think this can ever happen
+		}
+		v.Type = arrayOf(v.Members[0].GetType())
+	} else {
+		for _, mem := range v.Members {
+			if mem.GetType() != memType {
+				s.err(v, "Cannot use element of type `%s` in array of type `%s`", mem.GetType().TypeName(), memType.TypeName())
+			}
+		}
+	}
+}
+
+func (v *ArrayLiteral) setTypeHint(t Type) {
+	v.Type = t
+}
+
 // CastExpr
 
 func (v *CastExpr) analyze(s *semanticAnalyzer) {
