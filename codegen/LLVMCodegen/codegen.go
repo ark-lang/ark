@@ -583,7 +583,19 @@ func (v *Codegen) genRuneLiteral(n *parser.RuneLiteral) llvm.Value {
 }
 
 func (v *Codegen) genArrayLiteral(n *parser.ArrayLiteral) llvm.Value {
-	panic("todo")
+	rawArrType := llvm.ArrayType(v.typeToLLVMType(n.Type.(parser.ArrayType).MemberType), len(n.Members))
+	vals := []llvm.Value{}
+
+	for _, mem := range n.Members {
+		vals = append(vals, v.genExpr(mem))
+	}
+
+	constArr := llvm.ConstArray(rawArrType, vals)
+
+	// use bitcast to set the length to 0
+	gep := v.builder.CreateBitCast(constArr, llvm.ArrayType(v.typeToLLVMType(n.Type.(parser.ArrayType).MemberType), 0), "")
+
+	return llvm.ConstStruct([]llvm.Value{llvm.ConstInt(llvm.IntType(32), uint64(len(n.Members)), false), gep}, false)
 }
 
 func (v *Codegen) genIntegerLiteral(n *parser.IntegerLiteral) llvm.Value {
@@ -876,11 +888,16 @@ func (v *Codegen) typeToLLVMType(typ parser.Type) llvm.Type {
 	case parser.PointerType:
 		return llvm.PointerType(v.typeToLLVMType(typ.(parser.PointerType).Addressee), 0)
 	case parser.ArrayType:
-		//return llvm.ArrayType(v.typeToLLVMType(typ.(parser.ArrayType).MemberType), 0)
-		panic("todo array type")
+		return v.arrayTypeToLLVMType(typ.(parser.ArrayType))
 	default:
 		panic("Unimplemented type category in LLVM codegen")
 	}
+}
+
+func (v *Codegen) arrayTypeToLLVMType(typ parser.ArrayType) llvm.Type {
+	fields := []llvm.Type{llvm.IntType(32), llvm.ArrayType(v.typeToLLVMType(typ.MemberType), 0)} //llvm.PointerType(v.typeToLLVMType(typ.MemberType), 0)} // TODO use 64 on 64-bit platform?
+
+	return llvm.StructType(fields, false)
 }
 
 func (v *Codegen) structTypeToLLVMType(typ *parser.StructType) llvm.Type {
