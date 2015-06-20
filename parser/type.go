@@ -169,6 +169,61 @@ func (v *StructType) Attrs() []*Attr {
 	return v.attrs
 }
 
+// ArrayType
+
+type ArrayType struct {
+	MemberType Type
+	attrs      []*Attr
+}
+
+// IMPORTANT:
+// Use this method to make ArrayTypes. Most importantly, NEVER take the
+// address of a ArrayType! ie, using &ArrayType{}. This would make two
+// ArrayTypes to the same PrimitiveType inequal, when they should be equal.
+func arrayOf(t Type) ArrayType {
+	return ArrayType{MemberType: t}
+}
+
+func (v ArrayType) String() string {
+	result := "(" + util.Blue("ArrayType") + ": "
+	for _, attr := range v.attrs {
+		result += attr.String() + " "
+	}
+	return result + v.TypeName() + ")" //+ util.Magenta(" <"+v.MangledName(MANGLE_ARK_UNSTABLE)+"> ") + ")"
+}
+
+func (v ArrayType) TypeName() string {
+	return "[]" + v.MemberType.TypeName()
+}
+
+func (v ArrayType) RawType() Type {
+	return v
+}
+
+func (v ArrayType) IsSigned() bool {
+	return false
+}
+
+func (v ArrayType) LevelsOfIndirection() int {
+	return 0
+}
+
+func (v ArrayType) IsIntegerType() bool {
+	return false
+}
+
+func (v ArrayType) IsFloatingType() bool {
+	return false
+}
+
+func (v ArrayType) CanCastTo(t Type) bool {
+	return false
+}
+
+func (v ArrayType) Attrs() []*Attr {
+	return v.attrs
+}
+
 // TraitType
 
 type TraitType struct {
