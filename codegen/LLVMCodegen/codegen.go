@@ -580,6 +580,23 @@ func (v *Codegen) genArrayLiteral(n *parser.ArrayLiteral) llvm.Value {
 	panic("")
 
 	//return llvm.ConstStruct([]llvm.Value{llvm.ConstInt(llvm.IntType(32), uint64(len(n.Members)), false), ptr}, false)
+
+	/*
+		This is what I first used:
+		rawArrType := llvm.ArrayType(v.typeToLLVMType(n.Type.(parser.ArrayType).MemberType), len(n.Members))
+		vals := []llvm.Value{}
+
+		for _, mem := range n.Members {
+			vals = append(vals, v.genExpr(mem))
+		}
+
+		constArr := llvm.ConstArray(rawArrType, vals)
+
+		// use bitcast to set the length to 0
+		gep := v.builder.CreateBitCast(constArr, llvm.ArrayType(v.typeToLLVMType(n.Type.(parser.ArrayType).MemberType), 0), "")
+
+		return llvm.ConstStruct([]llvm.Value{llvm.ConstInt(llvm.IntType(32), uint64(len(n.Members)), false), gep}, false)
+	*/
 }
 
 func createArrayMemcpyFunc()
