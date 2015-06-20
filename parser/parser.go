@@ -925,7 +925,11 @@ func (v *parser) parseBinaryOperator(upperPrecedence int, lhand Expr) Expr {
 
 		v.consumeToken()
 
+		locationToken := v.peek(0)
+		filename, line, char := locationToken.Filename, locationToken.LineNumber, locationToken.CharNumber
 		rhand := v.parsePrimaryExpr()
+		rhand.setPos(filename, line, char)
+
 		if rhand == nil {
 			return nil
 		}
