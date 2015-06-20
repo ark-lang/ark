@@ -345,10 +345,6 @@ func isOperator(r rune) bool {
 	return strings.ContainsRune("+-*/=><!~?:|&%^", r)
 }
 
-func isExpressionOperator(r rune) bool {
-	return strings.ContainsRune("+-*/=><!~?:|&%^()", r) // this is unused?
-}
-
 func isSeparator(r rune) bool {
 	return strings.ContainsRune(" ;,.`@(){}[]", r)
 }
