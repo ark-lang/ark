@@ -709,27 +709,40 @@ func (v *CallExpr) NodeName() string {
 
 // AccessExpr
 
+type AccessType int
+
+const (
+	ACCESS_VARIABLE AccessType = iota // means this element is either a var on its own or the last var of a struct access
+	ACCESS_STRUCT                     // means the element is a struct being accessed
+	ACCESS_ARRAY                      // means the element is an array member being accessed, ie thing[1]
+)
+
+type Access struct {
+	AccessType   AccessType
+	Variable     *Variable
+	variableName unresolvedName
+
+	Subscript Expr // only used with ACCESS_ARRAY
+}
+
 type AccessExpr struct {
 	nodePos
-	StructVariables     []*Variable
-	structVariableNames []unresolvedName
-	Variable            *Variable
-	variableName        unresolvedName
+	Accesses []*Access
 }
 
 func (v *AccessExpr) exprNode() {}
 
 func (v *AccessExpr) String() string {
 	result := "(" + util.Blue("AccessExpr") + ": "
-	for _, struc := range v.StructVariables {
+	/*for _, struc := range v.StructVariables {
 		result += struc.Name + "."
 	}
-	result += v.Variable.Name
+	result += v.Variable.Name*/
 	return result + ")"
 }
 
 func (v *AccessExpr) GetType() Type {
-	return v.Variable.Type
+	return v.Accesses[len(v.Accesses)-1].Variable.Type
 }
 
 func (v *AccessExpr) NodeName() string {
