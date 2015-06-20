@@ -307,49 +307,11 @@ func (v *Codegen) genCallStat(n *parser.CallStat) {
 	v.genExpr(n.Call)
 }
 
-func (v *Codegen) createGEPForStructsAndArrays(parents []*parser.Variable, member *parser.Variable) llvm.Value {
-	if len(parents) == 0 {
-		panic("shouldn't be zero")
-	}
-
-	// TODO support arrays once implimented
-	// TODO support pointers to structs
-	// TODO check in semantic that LoI to a struct is 1 at max, otherwise can't access its member
-
-	gepIndexes := []llvm.Value{llvm.ConstInt(llvm.Int32Type(), 0, false)} // first index of 0 dereferences the struct pointer
-
-	var prevParent *parser.Variable
-	for _, parentVar := range append(parents, member) {
-		var fieldIndex int
-
-		if prevParent == nil {
-			prevParent = parentVar
-			continue
-		} else {
-			fieldIndex = prevParent.Type.(*parser.StructType).VariableIndex(parentVar)
-		}
-
-		if fieldIndex < 0 {
-			panic("weird field index")
-		}
-
-		gepIndexes = append(gepIndexes, llvm.ConstInt(llvm.Int32Type(), uint64(fieldIndex), false))
-
-		prevParent = parentVar
-	}
-
-	return v.builder.CreateGEP(v.variableLookup[parents[0]], gepIndexes, "")
-}
-
 func (v *Codegen) genAssignStat(n *parser.AssignStat) {
 	if n.Access != nil {
-		if len(n.Access.StructVariables) > 0 {
-			v.builder.CreateStore(v.genExpr(n.Assignment), v.createGEPForStructsAndArrays(n.Access.StructVariables, n.Access.Variable))
-		} else {
-			v.builder.CreateStore(v.genExpr(n.Assignment), v.variableLookup[n.Access.Variable])
-		}
+		v.builder.CreateStore(v.genExpr(n.Assignment), v.genAddressOfExpr(&parser.AddressOfExpr{Access: n.Access})) // TODO do this better
 	} else {
-		// TODO deref expr
+		v.genDerefExpr(n.Deref)
 	}
 }
 
@@ -530,6 +492,8 @@ func (v *Codegen) genExpr(n parser.Expr) llvm.Value {
 		return v.genStringLiteral(n.(*parser.StringLiteral))
 	case *parser.BoolLiteral:
 		return v.genBoolLiteral(n.(*parser.BoolLiteral))
+	case *parser.ArrayLiteral:
+		return v.genArrayLiteral(n.(*parser.ArrayLiteral))
 	case *parser.BinaryExpr:
 		return v.genBinaryExpr(n.(*parser.BinaryExpr))
 	case *parser.UnaryExpr:
@@ -550,11 +514,58 @@ func (v *Codegen) genExpr(n parser.Expr) llvm.Value {
 }
 
 func (v *Codegen) genAddressOfExpr(n *parser.AddressOfExpr) llvm.Value {
-	if len(n.Access.StructVariables) > 0 {
+	/*if len(n.Access.StructVariables) > 0 {
 		panic("struct member address-of unimplemented")
 	}
 
-	return v.variableLookup[n.Access.Variable]
+	return v.variableLookup[n.Access.Variable]*/
+
+	/*gepIndexes := []llvm.Value{llvm.ConstInt(llvm.Int32Type(), 0, false)} // first index of 0 dereferences the struct pointer
+
+	var prevParent *parser.Variable
+	for _, parentVar := range append(parents, member) {
+		var fieldIndex int
+
+		if prevParent == nil {
+			prevParent = parentVar
+			continue
+		} else {
+			fieldIndex = prevParent.Type.(*parser.StructType).VariableIndex(parentVar)
+		}
+
+		if fieldIndex < 0 {
+			panic("weird field index")
+		}
+
+		gepIndexes = append(gepIndexes, llvm.ConstInt(llvm.Int32Type(), uint64(fieldIndex), false))
+
+		prevParent = parentVar
+	}
+
+	return v.builder.CreateGEP(v.variableLookup[parents[0]], gepIndexes, "")*/
+
+	gepIndexes := []llvm.Value{llvm.ConstInt(llvm.Int32Type(), 0, false)}
+
+	for i := 0; i < len(n.Access.Accesses); i++ {
+
+		switch n.Access.Accesses[i].AccessType {
+		case parser.ACCESS_ARRAY:
+			//gepIndexes = append(gepIndexes, v.genExpr(n.Access.Accesses[i].Subscript))
+			panic("todo array access")
+
+		case parser.ACCESS_VARIABLE:
+			// nothing to do
+
+		case parser.ACCESS_STRUCT:
+			index := n.Access.Accesses[i].Variable.Type.(*parser.StructType).VariableIndex(n.Access.Accesses[i+1].Variable)
+			gepIndexes = append(gepIndexes, llvm.ConstInt(llvm.Int32Type(), uint64(index), false))
+
+		default:
+			panic("")
+		}
+	}
+
+	return v.builder.CreateGEP(v.variableLookup[n.Access.Accesses[0].Variable], gepIndexes, "")
 }
 
 func (v *Codegen) genBoolLiteral(n *parser.BoolLiteral) llvm.Value {
@@ -569,6 +580,10 @@ func (v *Codegen) genBoolLiteral(n *parser.BoolLiteral) llvm.Value {
 
 func (v *Codegen) genRuneLiteral(n *parser.RuneLiteral) llvm.Value {
 	return llvm.ConstInt(v.typeToLLVMType(n.GetType()), uint64(n.Value), true)
+}
+
+func (v *Codegen) genArrayLiteral(n *parser.ArrayLiteral) llvm.Value {
+	panic("todo")
 }
 
 func (v *Codegen) genIntegerLiteral(n *parser.IntegerLiteral) llvm.Value {
@@ -835,11 +850,13 @@ func (v *Codegen) genCallExpr(n *parser.CallExpr) llvm.Value {
 func (v *Codegen) genAccessExpr(n *parser.AccessExpr) llvm.Value {
 	//load = v.builder.CreateLoad(v.variableLookup[n.Variable], n.Variable.MangledName(parser.MANGLE_ARK_UNSTABLE))
 
-	if len(n.StructVariables) > 0 {
+	/*if len(n.StructVariables) > 0 {
 		return v.builder.CreateLoad(v.createGEPForStructsAndArrays(n.StructVariables, n.Variable), "")
 	} else {
 		return v.builder.CreateLoad(v.variableLookup[n.Variable], "")
-	}
+	}*/
+
+	return v.builder.CreateLoad(v.genAddressOfExpr(&parser.AddressOfExpr{Access: n}), "") // TODO do this better
 }
 
 func (v *Codegen) genDerefExpr(n *parser.DerefExpr) llvm.Value {
@@ -858,6 +875,9 @@ func (v *Codegen) typeToLLVMType(typ parser.Type) llvm.Type {
 		return v.structTypeToLLVMType(typ.(*parser.StructType))
 	case parser.PointerType:
 		return llvm.PointerType(v.typeToLLVMType(typ.(parser.PointerType).Addressee), 0)
+	case parser.ArrayType:
+		//return llvm.ArrayType(v.typeToLLVMType(typ.(parser.ArrayType).MemberType), 0)
+		panic("todo array type")
 	default:
 		panic("Unimplemented type category in LLVM codegen")
 	}

@@ -10,7 +10,6 @@ import (
 
 	"github.com/ark-lang/ark/codegen"
 	"github.com/ark-lang/ark/codegen/LLVMCodegen"
-	"github.com/ark-lang/ark/codegen/arkcodegen"
 	"github.com/ark-lang/ark/doc"
 	"github.com/ark-lang/ark/lexer"
 	"github.com/ark-lang/ark/parser"
@@ -88,8 +87,6 @@ func build(input []string, output string, cg string, ccArgs []string) {
 		var gen codegen.Codegen
 
 		switch cg {
-		case "ark":
-			gen = &arkcodegen.Codegen{}
 		case "llvm":
 			gen = &LLVMCodegen.Codegen{
 				OutputName: output,
