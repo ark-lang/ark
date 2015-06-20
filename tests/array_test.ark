@@ -3,5 +3,5 @@
 func main() {
     arrayLitTest := [1, 2, 3, 4, 5];
 
-    printf("%d\n", arrayLitTest[0]);
+    //printf("%d\n", arrayLitTest[0]);
 }
