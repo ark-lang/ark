@@ -52,7 +52,7 @@ func (v *semanticAnalyzer) checkDuplicateAttrs(attrs []*Attr) {
 }
 
 func (v *semanticAnalyzer) analyze() {
-	v.resolveAll()
+	v.resolve()
 
 	for _, node := range v.module.Nodes {
 		node.analyze(v)
@@ -630,7 +630,7 @@ func (v *AccessExpr) setTypeHint(t Type) {}
 // AddressOfExpr
 
 func (v *AddressOfExpr) analyze(s *semanticAnalyzer) {
-	// TODO anything to do here?
+	v.Access.analyze(s)
 }
 
 func (v *AddressOfExpr) setTypeHint(t Type) {}
