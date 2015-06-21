@@ -520,7 +520,7 @@ func (v *Codegen) genAddressOfExpr(n *parser.AddressOfExpr) llvm.Value {
 
 		switch n.Access.Accesses[i].AccessType {
 		case parser.ACCESS_ARRAY:
-			gepIndexes = append(gepIndexes, llvm.ConstInt(llvm.Int32Type(), 1, false), llvm.ConstInt(llvm.Int32Type(), 0, false)) //, v.genExpr(n.Access.Accesses[i].Subscript))
+			gepIndexes = append(gepIndexes, llvm.ConstInt(llvm.Int32Type(), 1, false), v.genExpr(n.Access.Accesses[i].Subscript))
 
 		case parser.ACCESS_VARIABLE:
 			// nothing to do
