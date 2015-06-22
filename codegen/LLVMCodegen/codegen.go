@@ -565,7 +565,7 @@ func (v *Codegen) genArrayLiteral(n *parser.ArrayLiteral) llvm.Value {
 
 	return llvm.ConstStruct([]llvm.Value{llvm.ConstInt(llvm.IntType(32), uint64(len(n.Members)), false), bc}, false)*/
 
-	/*memberLLVMType := v.typeToLLVMType(n.Type.(parser.ArrayType).MemberType)
+	memberLLVMType := v.typeToLLVMType(n.Type.(parser.ArrayType).MemberType)
 
 	ptr := v.builder.CreateArrayAlloca(memberLLVMType, llvm.ConstInt(llvm.IntType(32), uint64(len(n.Members)), false), "ptr")
 
@@ -573,13 +573,13 @@ func (v *Codegen) genArrayLiteral(n *parser.ArrayLiteral) llvm.Value {
 	lenGEP := v.builder.CreateGEP(structAlloca, []llvm.Value{llvm.ConstInt(llvm.IntType(32), 0, false), llvm.ConstInt(llvm.IntType(32), 0, false)}, "")
 	v.builder.CreateStore(llvm.ConstInt(llvm.IntType(32), 0, false), lenGEP)
 
-	arrGEP := v.builder.CreateGEP(structAlloca, []llvm.Value{llvm.ConstInt(llvm.IntType(32), 0, false), llvm.ConstInt(llvm.IntType(32), 1, false)}, "")
-	v.builder.CreateStore(arrGEP, v.builder.CreateBitCast(ptr, llvm.ArrayType(memberLLVMType, 0), ""))
-
+	// arrGEP := v.builder.CreateGEP(structAlloca, []llvm.Value{llvm.ConstInt(llvm.IntType(32), 0, false), llvm.ConstInt(llvm.IntType(32), 1, false)}, "")
+	// v.builder.CreateStore(arrGEP, v.builder.CreateBitCast(ptr, llvm.ArrayType(memberLLVMType, 0), ""))
+/*
 	return v.builder.CreateLoad(structAlloca, "")*/
-	panic("")
+	// panic("")
 
-	//return llvm.ConstStruct([]llvm.Value{llvm.ConstInt(llvm.IntType(32), uint64(len(n.Members)), false), ptr}, false)
+	return llvm.ConstStruct([]llvm.Value{llvm.ConstInt(llvm.IntType(32), uint64(len(n.Members)), false), ptr}, false)
 
 	/*
 		This is what I first used:
