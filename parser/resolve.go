@@ -50,6 +50,10 @@ func (v *StructDecl) resolve(sem *semanticAnalyzer, s *Scope) {
 
 }
 
+func (v *EnumDecl) resolve(sem *semanticAnalyzer, s *Scope) {
+
+}
+
 func (v *TraitDecl) resolve(sem *semanticAnalyzer, s *Scope) {
 
 }
