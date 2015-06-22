@@ -1,11 +1,18 @@
-<h1 align="center">Ark Programming Language</h1>
+## Ark Programming Language
+[Ark](//www.ark-lang.org) is a systems programming language somewhere inbetween C and C++.
 
-## Important Notice!!
-We've ported to *Go*. We've still got the original C code, which you can find [here](https://github.com/ark-lang/ark-c).
+## Example
+A small example program written in Ark.
 
-Due to the name change, we've migrated the subreddit from /r/alloy_lang to [/r/ark_lang](http://www.reddit.com/r/ark_lang), go subscribe! Finally, our IRC channel has moved from #alloy-lang to [#ark-lang](https://webchat.freenode.net/?channels=%23ark-lang) on freenode.
-
-Feel free to participate in discussion! Also, you can email [felixangell](https://github.com/felixangell/) or [MovingtoMars](https://github.com/MovingtoMars).
+    [c] func printf(fmt: str, ...);
+    func main(): int {
+        mut i := 0;
+        for i < 5 {
+            printf("i: %d\n", i);
+            i = i + 1;
+        }
+        return 0;
+    }
 
 ## Resources
 * [Reference](https://github.com/ark-lang/ark-docs/blob/master/REFERENCE.md)
