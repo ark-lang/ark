@@ -3,3 +3,7 @@ enum Test {
 	ANOTHER = 4,
 	GG,
 }
+
+func main() {
+	
+}

@@ -250,13 +250,12 @@ func (v *TraitDecl) DocComments() []*DocComment {
 
 // EnumDecl
 type EnumVal struct {
-	Name string
+	Name  string
 	Value Expr
 }
 
 func (v *EnumVal) String() string {
-	if (v.Value != nil) {
-		panic("expressions are broke")
+	if v.Value != nil {
 		return "(" + util.Blue("EnumVal") + ": " + v.Name + " = " + v.Value.String() + ")"
 	}
 	return "(" + util.Blue("EnumVal") + ": " + v.Name + ")"
@@ -264,8 +263,8 @@ func (v *EnumVal) String() string {
 
 type EnumDecl struct {
 	nodePos
-	Name string
-	Body []*EnumVal
+	Name        string
+	Body        []*EnumVal
 	IsAnonymous bool
 }
 
@@ -279,7 +278,7 @@ func (v *EnumDecl) String() string {
 	return "(" + util.Blue("EnumDecl") + ": " + result + ")"
 }
 
-func (v *EnumDecl)  NodeName() string {
+func (v *EnumDecl) NodeName() string {
 	return "enum declaration"
 }
 
