@@ -90,6 +90,10 @@ func (v *ModuleDecl) analyze(s *semanticAnalyzer) {
 
 }
 
+func (v *EnumDecl) analyze(s *semanticAnalyzer) {
+
+}
+
 func (v *StructType) analyze(s *semanticAnalyzer) {
 	// make sure there are no illegal attributes
 	s.checkDuplicateAttrs(v.attrs)
