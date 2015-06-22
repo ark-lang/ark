@@ -818,12 +818,10 @@ func (v *parser) parseEnumDecl() *EnumDecl {
 	}
 
 
-	//enum := &EnumDecl{}
-	name := v.consumeToken().Contents
-	var items []*EnumVal
+	enum := &EnumDecl{Name: v.consumeToken().Contents, Body: make([]*EnumVal, 0)}
 
-	if isReservedKeyword(name) {
-		v.err("Cannot define `enum` for reserved keyword `%s`", name)
+	if isReservedKeyword(enum.Name) {
+		v.err("Cannot define `enum` for reserved keyword `%s`", enum.Name)
 	}
 
 	if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "{") {
@@ -834,25 +832,31 @@ func (v *parser) parseEnumDecl() *EnumDecl {
 				break
 			}
 			if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, "") {
-				temp := &EnumVal{}
-				temp.ValueName = v.consumeToken().Contents
+				name := v.consumeToken().Contents
+				var value Expr
+
 				if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "=") {
 					v.consumeToken()
-					if expr:= v.parseExpr(); expr != nil {
-						temp.Value = expr
+
+					if expr := v.parseExpr(); expr != nil {
+						value = expr
+					} else {
+						v.err("expecting expression in enum item")
 					}
 				}
+
 				if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ",") {
 					v.consumeToken()
 				} else if !v.tokenMatches(1, lexer.TOKEN_SEPARATOR, "}") {
-					v.err("Missing comma in `enum` %s", name)
+					v.err("Missing comma in `enum` %s", enum.Name)
 				}
-				items = append(items, temp)
+				
+				enum.Body = append(enum.Body, &EnumVal{Name: name, Value: value})
 			}
 		}
 
 	}
-	return &EnumDecl{ Name: name, Body: items }
+	return enum
 }
 
 
