@@ -248,6 +248,44 @@ func (v *TraitDecl) DocComments() []*DocComment {
 	return nil // TODO
 }
 
+// EnumDecl
+type EnumVal struct {
+	ValueName string
+	Value Expr
+}
+
+type EnumDecl struct {
+	nodePos
+	Name string
+	Body []*EnumVal
+	IsAnonymous bool
+}
+
+func (v *EnumDecl) declNode() {}
+
+func (v *EnumDecl) String() string {
+	var result string
+	for _, val := range v.Body {
+		result += "\t" + val.String() + "\n"
+	}
+	return "(" + util.Blue("EnumDecl") + ": " + result + ")"
+}
+
+func (v *EnumVal) String() string {
+	if value := v.Value.String(); value != nil {
+		return v.ValueName + " = " + value
+	}
+	return v.ValueName
+}
+
+func (v *EnumDecl)  NodeName() string {
+	return "enum declaration"
+}
+
+func (v *EnumDecl) DocComments() []*DocComment {
+	return nil // TODO
+}
+
 // ImplDecl
 
 type ImplDecl struct {
