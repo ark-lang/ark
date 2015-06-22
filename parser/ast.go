@@ -616,6 +616,35 @@ func (v *BoolLiteral) NodeName() string {
 	return "boolean literal"
 }
 
+// TupleLiteral
+
+type TupleLiteral struct {
+	nodePos
+	Members []Expr
+
+	// TODO
+	// this should probably have a type for each member
+	// in the tuple, since that's what differentiates
+	// a tuple from array, after all! Till then I can't
+	// do any codegen for this, but it generates to a structure
+	// with X amount of values and their respective types.
+	Type Type
+}
+
+func (v *TupleLiteral) exprNode() {}
+
+func (v *TupleLiteral) String() string {
+	return "tuple"
+}
+
+func (v *TupleLiteral) GetType() Type {
+	return v.Type
+}
+
+func (v *TupleLiteral) NodeName() string {
+	return "tuple literal"
+}
+
 // ArrayLiteral
 
 type ArrayLiteral struct {
