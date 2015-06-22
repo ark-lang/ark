@@ -219,3 +219,7 @@ func (v *DerefExpr) resolve(sem *semanticAnalyzer, s *Scope) {
 func (v *BracketExpr) resolve(sem *semanticAnalyzer, s *Scope) {
 	v.Expr.resolve(sem, s)
 }
+
+func (v *TupleLiteral) resolve(sem *semanticAnalyzer, s *Scope) {
+	// do it later cba
+}

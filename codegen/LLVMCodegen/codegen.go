@@ -494,6 +494,8 @@ func (v *Codegen) genExpr(n parser.Expr) llvm.Value {
 		return v.genStringLiteral(n.(*parser.StringLiteral))
 	case *parser.BoolLiteral:
 		return v.genBoolLiteral(n.(*parser.BoolLiteral))
+	case *parser.TupleLiteral:
+		return v.genTupleLiteral(n.(*parser.TupleLiteral))
 	case *parser.ArrayLiteral:
 		return v.genArrayLiteral(n.(*parser.ArrayLiteral))
 	case *parser.BinaryExpr:
@@ -553,20 +555,8 @@ func (v *Codegen) genRuneLiteral(n *parser.RuneLiteral) llvm.Value {
 	return llvm.ConstInt(v.typeToLLVMType(n.GetType()), uint64(n.Value), true)
 }
 
+// TODO FIXME
 func (v *Codegen) genArrayLiteral(n *parser.ArrayLiteral) llvm.Value {
-	/*rawArrType := llvm.ArrayType(, len(n.Members))
-	vals := []llvm.Value{}
-
-	for _, mem := range n.Members {
-		vals = append(vals, v.genExpr(mem))
-	}
-
-	constArr := llvm.ConstArray(rawArrType, vals)
-
-	bc := v.builder.CreateBitCast(constArr, llvm.PointerType(v.typeToLLVMType(n.Type.(parser.ArrayType).MemberType), 0), "")
-
-	return llvm.ConstStruct([]llvm.Value{llvm.ConstInt(llvm.IntType(32), uint64(len(n.Members)), false), bc}, false)*/
-
 	memberLLVMType := v.typeToLLVMType(n.Type.(parser.ArrayType).MemberType)
 
 	ptr := v.builder.CreateArrayAlloca(memberLLVMType, llvm.ConstInt(llvm.IntType(32), uint64(len(n.Members)), false), "ptr")
@@ -575,33 +565,16 @@ func (v *Codegen) genArrayLiteral(n *parser.ArrayLiteral) llvm.Value {
 	lenGEP := v.builder.CreateGEP(structAlloca, []llvm.Value{llvm.ConstInt(llvm.IntType(32), 0, false), llvm.ConstInt(llvm.IntType(32), 0, false)}, "")
 	v.builder.CreateStore(llvm.ConstInt(llvm.IntType(32), 0, false), lenGEP)
 
-	// arrGEP := v.builder.CreateGEP(structAlloca, []llvm.Value{llvm.ConstInt(llvm.IntType(32), 0, false), llvm.ConstInt(llvm.IntType(32), 1, false)}, "")
-	// v.builder.CreateStore(arrGEP, v.builder.CreateBitCast(ptr, llvm.ArrayType(memberLLVMType, 0), ""))
-/*
-	return v.builder.CreateLoad(structAlloca, "")*/
-	// panic("")
-
 	return llvm.ConstStruct([]llvm.Value{llvm.ConstInt(llvm.IntType(32), uint64(len(n.Members)), false), ptr}, false)
-
-	/*
-		This is what I first used:
-		rawArrType := llvm.ArrayType(v.typeToLLVMType(n.Type.(parser.ArrayType).MemberType), len(n.Members))
-		vals := []llvm.Value{}
-
-		for _, mem := range n.Members {
-			vals = append(vals, v.genExpr(mem))
-		}
-
-		constArr := llvm.ConstArray(rawArrType, vals)
-
-		// use bitcast to set the length to 0
-		gep := v.builder.CreateBitCast(constArr, llvm.ArrayType(v.typeToLLVMType(n.Type.(parser.ArrayType).MemberType), 0), "")
-
-		return llvm.ConstStruct([]llvm.Value{llvm.ConstInt(llvm.IntType(32), uint64(len(n.Members)), false), gep}, false)
-	*/
 }
 
-func createArrayMemcpyFunc()
+func (v *Codegen) genTupleLiteral(n *parser.TupleLiteral) llvm.Value {
+	panic("not done yet")
+}
+
+func createArrayMemcpyFunc() {
+
+}
 
 func (v *Codegen) genIntegerLiteral(n *parser.IntegerLiteral) llvm.Value {
 	return llvm.ConstInt(v.typeToLLVMType(n.Type), n.Value, false)
