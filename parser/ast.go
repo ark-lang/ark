@@ -255,7 +255,11 @@ type EnumVal struct {
 }
 
 func (v *EnumVal) String() string {
-	return "(" + util.Blue("EnumVal") + ": " + v.Name + ") PS EXPRESSIONS ARE FUCKED??"
+	if (v.Value != nil) {
+		panic("expressions are broke")
+		return "(" + util.Blue("EnumVal") + ": " + v.Name + " = " + v.Value.String() + ")"
+	}
+	return "(" + util.Blue("EnumVal") + ": " + v.Name + ")"
 }
 
 type EnumDecl struct {
