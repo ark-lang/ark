@@ -999,7 +999,7 @@ func (v *parser) parseExpr() Expr {
 
 func (v *parser) parseBinaryOperator(upperPrecedence int, lhand Expr) Expr {
 	tok := v.peek(0)
-	if tok.Type != lexer.TOKEN_OPERATOR {
+	if tok.Type != lexer.TOKEN_OPERATOR || v.peek(1).Contents == ";" {
 		return nil
 	}
 
@@ -1061,6 +1061,36 @@ func (v *parser) parsePrimaryExpr() Expr {
 	}
 
 	return nil
+}
+
+func (v *parser) parseTupleLiteral() *TupleLiteral {
+	if !v.tokenMatches(0, lexer.TOKEN_OPERATOR, "|") {
+		return nil
+	}
+	v.consumeToken()
+
+	if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "|") {
+		v.err("Empty tuple literal")
+	}
+
+	tupleLit := &TupleLiteral{}
+
+	for {
+		if expr := v.parseExpr(); expr != nil {
+			tupleLit.Members = append(tupleLit.Members, expr)
+
+			if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "|") {
+				v.consumeToken()
+				return tupleLit
+			} else if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ",") {
+				v.consumeToken()
+			} else {
+				v.err("Expected `,` after tuple literal member, found `%s`", v.peek(0).Contents)
+			}
+		} else {
+			v.err("Expected expression in tuple literal, found `%s`", v.peek(0).Contents)
+		}
+	}
 }
 
 func (v *parser) parseBracketExpr() *BracketExpr {
@@ -1126,54 +1156,6 @@ func (v *parser) parseAccessExpr() *AccessExpr {
 			panic("shit")
 		}
 	}
-
-	/*if firstName, numNameToks := v.peekName(); numNameToks > 0 {
-		v.consumeTokens(numNameToks)
-		access.variableName = firstName
-	} else {
-		return nil
-	}
-
-	for {
-		if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ".") {
-			return access
-		}
-		v.consumeToken()
-
-		if name, numNameToks := v.peekName(); numNameToks > 0 {
-			// make sure we can't go thing.a::otherThing
-			if len(access.variableName.moduleNames) > 0 {
-				v.err("Can't use module access here")
-			}
-
-			access.structVariableNames = append(access.structVariableNames, name)
-			access.variableName = name
-			v.consumeTokens(numNameToks)
-		} else {
-			v.err("Malformed access expr")
-		}
-	}*/
-
-	/*for {
-		if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ".") {
-			return access
-		}
-		v.consumeToken()
-
-		structType, ok := access.Variable.Type.(*StructType)
-		if !ok {
-			v.err("Cannot access member of `%s`, type `%s`", access.Variable.Name, access.Variable.Type.TypeName())
-		}
-
-		memberName := v.consumeToken().Contents
-		decl := structType.getVariableDecl(memberName)
-		if decl == nil {
-			v.err("Struct `%s` does not contain member `%s`", structType.TypeName(), memberName)
-		}
-
-		access.StructVariables = append(access.StructVariables, access.Variable)
-		access.Variable = decl.Variable
-	}*/
 }
 
 func (v *parser) parseCallExpr() *CallExpr {
@@ -1307,6 +1289,8 @@ func (v *parser) parseAddressOfExpr() *AddressOfExpr {
 func (v *parser) parseLiteral() Expr {
 	if arrayLit := v.parseArrayLiteral(); arrayLit != nil {
 		return arrayLit
+	} else if tupleLit := v.parseTupleLiteral(); tupleLit != nil {
+		return tupleLit
 	} else if boolLit := v.parseBoolLiteral(); boolLit != nil {
 		return boolLit
 	} else if numLit := v.parseNumericLiteral(); numLit != nil {
