@@ -4,15 +4,17 @@
 ## Example
 A small example program written in Ark.
 
-    [c] func printf(fmt: str, ...);
-    func main(): int {
-        mut i := 0;
-        for i < 5 {
-            printf("i: %d\n", i);
-            i = i + 1;
-        }
-        return 0;
+```rust
+[c] func printf(fmt: str, ...);
+func main(): int {
+    mut i := 0;
+    for i < 5 {
+        printf("i: %d\n", i);
+        i = i + 1;
     }
+    return 0;
+}
+```
 
 ## Resources
 * [Reference](https://github.com/ark-lang/ark-docs/blob/master/REFERENCE.md)
