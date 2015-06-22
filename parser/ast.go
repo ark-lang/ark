@@ -250,8 +250,12 @@ func (v *TraitDecl) DocComments() []*DocComment {
 
 // EnumDecl
 type EnumVal struct {
-	ValueName string
+	Name string
 	Value Expr
+}
+
+func (v *EnumVal) String() string {
+	return "(" + util.Blue("EnumVal") + ": " + v.Name + ") PS EXPRESSIONS ARE FUCKED??"
 }
 
 type EnumDecl struct {
@@ -264,18 +268,11 @@ type EnumDecl struct {
 func (v *EnumDecl) declNode() {}
 
 func (v *EnumDecl) String() string {
-	var result string
+	result := "\n"
 	for _, val := range v.Body {
 		result += "\t" + val.String() + "\n"
 	}
 	return "(" + util.Blue("EnumDecl") + ": " + result + ")"
-}
-
-func (v *EnumVal) String() string {
-	if value := v.Value.String(); value != nil {
-		return v.ValueName + " = " + value
-	}
-	return v.ValueName
 }
 
 func (v *EnumDecl)  NodeName() string {

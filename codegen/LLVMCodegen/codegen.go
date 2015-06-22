@@ -407,6 +407,8 @@ func (v *Codegen) genDecl(n parser.Decl) {
 		// nothing to gen
 	case *parser.ImplDecl:
 		// TODO
+	case *parser.EnumDecl:
+		// todo
 	case *parser.VariableDecl:
 		v.genVariableDecl(n.(*parser.VariableDecl), true)
 	default:
