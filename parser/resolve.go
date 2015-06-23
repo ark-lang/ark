@@ -127,6 +127,15 @@ func (v *LoopStat) resolve(sem *semanticAnalyzer, s *Scope) {
 	}
 }
 
+func (v *MatchStat) resolve(sem *semanticAnalyzer, s *Scope) {
+	v.Target.resolve(sem, s)
+
+	for pattern, stmt := range v.Branches {
+		pattern.resolve(sem, s)
+		stmt.resolve(sem, s)
+	}
+}
+
 /*
  * Expressions
  */
@@ -223,3 +232,5 @@ func (v *BracketExpr) resolve(sem *semanticAnalyzer, s *Scope) {
 func (v *TupleLiteral) resolve(sem *semanticAnalyzer, s *Scope) {
 	// do it later cba
 }
+
+func (v *DefaultMatchBranch) resolve(sem *semanticAnalyzer, s *Scope) {}
