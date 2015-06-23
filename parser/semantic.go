@@ -336,6 +336,17 @@ func (v *LoopStat) analyze(s *semanticAnalyzer) {
 	}
 }
 
+// MatchStat
+
+func (v *MatchStat) analyze(s *semanticAnalyzer) {
+	v.Target.analyze(s)
+
+	for pattern, stmt := range v.Branches {
+		pattern.analyze(s)
+		stmt.analyze(s)
+	}
+}
+
 /*
  * Expressions
  */
@@ -728,4 +739,14 @@ func (v *TupleLiteral) analyze(s *semanticAnalyzer) {
 
 func (v *TupleLiteral) setTypeHint(t Type) {
 	v.Type = t
+}
+
+// DefaultMatchBranch
+
+func (v *DefaultMatchBranch) analyze(s *semanticAnalyzer) {
+
+}
+
+func (v *DefaultMatchBranch) setTypeHint(t Type) {
+
 }

@@ -280,6 +280,8 @@ func (v *Codegen) genStat(n parser.Stat) {
 		v.genIfStat(n.(*parser.IfStat))
 	case *parser.LoopStat:
 		v.genLoopStat(n.(*parser.LoopStat))
+	case *parser.MatchStat:
+		v.genMatchStat(n.(*parser.MatchStat))
 	default:
 		panic("unimplimented stat")
 	}
@@ -395,6 +397,10 @@ func (v *Codegen) genLoopStat(n *parser.LoopStat) {
 	default:
 		panic("invalid loop type")
 	}
+}
+
+func (v *Codegen) genMatchStat(n *parser.MatchStat) {
+	// TODO: implement
 }
 
 func (v *Codegen) genDecl(n parser.Decl) {
