@@ -1,0 +1,12 @@
+language: go
+
+# probably wont work
+script:
+ - svn co https://llvm.org/svn/llvm-project/llvm/tags/RELEASE_360/final $GOPATH/src/llvm.org/llvm
+ - export CGO_CPPFLAGS="`llvm-config --cppflags`"
+ - export CGO_LDFLAGS="`llvm-config --ldflags --libs --system-libs all`"
+ - export CGO_CXXFLAGS=-std=c++11
+ - go install -tags byollvm llvm.org/llvm/bindings/go/llvm
+ - go get github.com/ark-lang/ark
+ - go install github.com/ark-lang/ark
+ - ./test.py
