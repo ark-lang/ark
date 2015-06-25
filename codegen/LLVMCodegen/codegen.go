@@ -27,6 +27,8 @@ type Codegen struct {
 	OutputName string
 	CCArgs     []string
 
+	modules		map[string]*parser.Module
+
 	inFunction      bool
 	currentFunction llvm.Value
 }
@@ -110,9 +112,14 @@ func (v *Codegen) Generate(input []*parser.Module, verbose bool) {
 	passBuilder.SetOptLevel(3)
 	//passBuilder.Populate(passManager) //leave this off until the compiler is better
 
+	v.modules = make(map[string]*parser.Module)
+
 	for _, infile := range input {
 		infile.Module = llvm.NewModule(infile.Name)
 		v.curFile = infile
+
+		fmt.Println("adding module " + v.curFile.Name)
+		v.modules[v.curFile.Name] = v.curFile
 
 		v.declareDecls(infile.Nodes)
 
@@ -120,7 +127,9 @@ func (v *Codegen) Generate(input []*parser.Module, verbose bool) {
 			v.genNode(node)
 		}
 
-		infile.Module.Dump()
+		if verbose {
+			infile.Module.Dump()
+		}
 
 		if err := llvm.VerifyModule(infile.Module, llvm.ReturnStatusAction); err != nil {
 			v.err("%s", err.Error())
