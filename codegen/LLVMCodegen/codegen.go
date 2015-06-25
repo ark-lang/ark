@@ -416,6 +416,8 @@ func (v *Codegen) genDecl(n parser.Decl) {
 	switch n.(type) {
 	case *parser.FunctionDecl:
 		v.genFunctionDecl(n.(*parser.FunctionDecl))
+	case *parser.UseDecl:
+		v.genUseDecl(n.(*parser.UseDecl))
 	case *parser.StructDecl:
 		//return v.genStructDecl(n.(*parser.StructDecl)) not used
 	case *parser.TraitDecl:
@@ -428,6 +430,16 @@ func (v *Codegen) genDecl(n parser.Decl) {
 		v.genVariableDecl(n.(*parser.VariableDecl), true)
 	default:
 		panic("unimplimented decl")
+	}
+}
+
+func (v *Codegen) genUseDecl(n *parser.UseDecl) {
+	// check if the module exists in the modules that are
+	// parsed to avoid any weird errors
+	if moduleToUse, ok := v.modules[n.ModuleName]; ok {
+		v.modules[v.curFile.Name].UsedModules[n.ModuleName] = moduleToUse
+	} else {
+		v.err("Attempting to use a module that doesn't exist `%s`", n.ModuleName)
 	}
 }
 

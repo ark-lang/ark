@@ -68,6 +68,10 @@ func (v *FunctionDecl) resolve(sem *semanticAnalyzer, s *Scope) {
 	}
 }
 
+func (v *UseDecl) resolve(sem *semanticAnalyzer, s *Scope) {
+	// later...
+}
+
 func (v *ModuleDecl) resolve(sem *semanticAnalyzer, s *Scope) {
 
 }
