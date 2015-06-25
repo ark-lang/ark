@@ -228,6 +228,10 @@ func (v *ImplDecl) analyze(s *semanticAnalyzer) {
 	// TODO
 }
 
+func (v *UseDecl) analyze(s *semanticAnalyzer) {
+	// todo
+}
+
 func (v *FunctionDecl) analyze(s *semanticAnalyzer) {
 	v.Function.analyze(s)
 	s.checkAttrsDistanceFromLine(v.Function.Attrs, v.lineNumber, "function", v.Function.Name)
