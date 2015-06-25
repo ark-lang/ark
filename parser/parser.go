@@ -322,6 +322,27 @@ func (v *parser) parseCallStat() *CallStat {
 	return nil
 }
 
+func (v *parser) parseUseDecl() Decl {
+	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_USE) {
+		return nil
+	}
+
+	// consume use, since we know it's
+	// already there due to the previous check
+	v.consumeToken()
+
+	if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, "") {
+		moduleName := v.consumeToken().Contents
+		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ";") {
+			v.consumeToken()
+			return &UseDecl{ModuleName: moduleName}
+		}
+		v.err("Expected semicolon after use declaration, found `%s`", v.peek(0).Contents)
+	}
+
+	return nil
+}
+
 func (v *parser) parseDecl() Decl {
 	var ret Decl
 
@@ -342,6 +363,8 @@ func (v *parser) parseDecl() Decl {
 		ret = enumDecl
 	} else if variableDecl := v.parseVariableDecl(true); variableDecl != nil {
 		ret = variableDecl
+	} else if useDecl := v.parseUseDecl(); useDecl != nil {
+		ret = useDecl
 	} else {
 		return nil
 	}
