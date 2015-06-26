@@ -17,6 +17,7 @@ type semanticAnalyzer struct {
 	module          *Module
 	function        *Function // the function we're in, or nil if we aren't
 	unresolvedNodes []Node
+	modules			map[string]*Module
 }
 
 func (v *semanticAnalyzer) err(thing Locatable, err string, stuff ...interface{}) {
@@ -51,7 +52,10 @@ func (v *semanticAnalyzer) checkDuplicateAttrs(attrs []*Attr) {
 	}
 }
 
-func (v *semanticAnalyzer) analyze() {
+func (v *semanticAnalyzer) analyze(modules map[string]*Module) {
+	v.modules = modules
+
+	// pass modules to resolve
 	v.resolve()
 
 	for _, node := range v.module.Nodes {
@@ -229,7 +233,16 @@ func (v *ImplDecl) analyze(s *semanticAnalyzer) {
 }
 
 func (v *UseDecl) analyze(s *semanticAnalyzer) {
-	// todo
+	// check if the module exists in the modules that are
+	// parsed to avoid any weird errors
+	if moduleToUse, ok := s.modules[v.ModuleName]; ok {
+		// store the current module for later
+		currentModule := s.modules[v.module.Name]
+
+		currentModule.UsedModules[n.ModuleName] = moduleToUse
+	} else {
+		v.err("Attempting to use a module that doesn't exist `%s`", n.ModuleName)
+	}
 }
 
 func (v *FunctionDecl) analyze(s *semanticAnalyzer) {

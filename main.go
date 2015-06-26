@@ -57,7 +57,7 @@ func setupErr(err string, stuff ...interface{}) {
 	os.Exit(util.EXIT_FAILURE_SETUP)
 }
 
-func parseFiles(files []string) []*parser.Module {
+func parseFiles(files []string) ([]*parser.Module, map[string]*parser.Module) {
 	sourcefiles := make([]*lexer.Sourcefile, 0)
 
 	for _, file := range files {
@@ -73,15 +73,16 @@ func parseFiles(files []string) []*parser.Module {
 	}
 
 	parsedFiles := make([]*parser.Module, 0)
+	modules := make(map[string]*parser.Module, 0)
 	for _, file := range sourcefiles {
-		parsedFiles = append(parsedFiles, parser.Parse(file, *verbose))
+		parsedFiles = append(parsedFiles, parser.Parse(file, modules, *verbose))
 	}
 
-	return parsedFiles
+	return parsedFiles, modules
 }
 
 func build(input []string, output string, cg string, ccArgs []string) {
-	parsedFiles := parseFiles(input)
+	parsedFiles, modules := parseFiles(input)
 
 	if cg != "none" {
 		var gen codegen.Codegen
@@ -96,7 +97,7 @@ func build(input []string, output string, cg string, ccArgs []string) {
 			panic("whoops")
 		}
 
-		gen.Generate(parsedFiles, *verbose)
+		gen.Generate(parsedFiles, modules, *verbose)
 	}
 }
 
@@ -109,8 +110,10 @@ func run(output string) {
 }
 
 func docgen(input []string, dir string) {
+	files, _ := parseFiles(input)
+
 	gen := &doc.Docgen{
-		Input: parseFiles(input),
+		Input: files,
 		Dir:   dir,
 	}
 
