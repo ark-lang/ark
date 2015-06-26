@@ -144,7 +144,7 @@ func Parse(input *lexer.Sourcefile, verbose bool) *Module {
 	}
 
 	return p.module
-}
+} 
 
 func (v *parser) parse() {
 	for v.peek(0) != nil {
@@ -351,6 +351,8 @@ func (v *parser) parseDecl() Decl {
 
 	if structureDecl := v.parseStructDecl(); structureDecl != nil {
 		ret = structureDecl
+	} else if useDecl := v.parseUseDecl(); useDecl != nil {
+		ret = useDecl
 	} else if traitDecl := v.parseTraitDecl(); traitDecl != nil {
 		ret = traitDecl
 	} else if implDecl := v.parseImplDecl(); implDecl != nil {
@@ -363,8 +365,6 @@ func (v *parser) parseDecl() Decl {
 		ret = enumDecl
 	} else if variableDecl := v.parseVariableDecl(true); variableDecl != nil {
 		ret = variableDecl
-	} else if useDecl := v.parseUseDecl(); useDecl != nil {
-		ret = useDecl
 	} else {
 		return nil
 	}
