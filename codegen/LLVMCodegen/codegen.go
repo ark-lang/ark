@@ -27,7 +27,7 @@ type Codegen struct {
 	OutputName string
 	CCArgs     []string
 
-	modules		map[string]*parser.Module
+	modules map[string]*parser.Module
 
 	inFunction      bool
 	currentFunction llvm.Value
@@ -437,12 +437,15 @@ func (v *Codegen) genUseDecl(n *parser.UseDecl) {
 	// check if the module exists in the modules that are
 	// parsed to avoid any weird errors
 	if moduleToUse, ok := v.modules[n.ModuleName]; ok {
+		// store the current module for later
 		currentModule := v.modules[v.curFile.Name]
 
+		// we want to check if the usedmodules is null
+		// and initialize it later,
 		if currentModule.UsedModules == nil {
 			currentModule.UsedModules = make(map[string]*parser.Module)
 		}
-		
+
 		currentModule.UsedModules[n.ModuleName] = moduleToUse
 	} else {
 		v.err("Attempting to use a module that doesn't exist `%s`", n.ModuleName)
@@ -856,6 +859,7 @@ func (v *Codegen) genCallExpr(n *parser.CallExpr) llvm.Value {
 	if cBinding {
 		functionName = n.Function.Name
 	}
+
 	function := v.curFile.Module.NamedFunction(functionName)
 	if function.IsNil() {
 		v.err("function `%s` does not exist in current module", functionName)
