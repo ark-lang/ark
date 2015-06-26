@@ -2,7 +2,7 @@
 [c] func scanf(fmt: str, ...): int;
 
 func main(): int {
-    mut x: i32 = 0;
+    mut x: s32 = 0;
 
     printf("Input a number: ");
     scanf("%d", &x);

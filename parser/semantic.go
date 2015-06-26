@@ -496,7 +496,7 @@ func (v *IntegerLiteral) analyze(s *semanticAnalyzer) {}
 func (v *IntegerLiteral) setTypeHint(t Type) {
 	switch t {
 	case PRIMITIVE_int, PRIMITIVE_uint,
-		PRIMITIVE_i8, PRIMITIVE_i16, PRIMITIVE_i32, PRIMITIVE_i64, PRIMITIVE_i128,
+		PRIMITIVE_s8, PRIMITIVE_s16, PRIMITIVE_s32, PRIMITIVE_s64, PRIMITIVE_i128,
 		PRIMITIVE_u8, PRIMITIVE_u16, PRIMITIVE_u32, PRIMITIVE_u64, PRIMITIVE_u128:
 		v.Type = t
 	default:
@@ -651,7 +651,7 @@ func (v *CallExpr) analyze(s *semanticAnalyzer) {
 					Expr: arg,
 					Type: PRIMITIVE_f64,
 				}
-			case PRIMITIVE_i8, PRIMITIVE_i16:
+			case PRIMITIVE_s8, PRIMITIVE_s16:
 				v.Arguments[i] = &CastExpr{
 					Expr: arg,
 					Type: PRIMITIVE_int,
