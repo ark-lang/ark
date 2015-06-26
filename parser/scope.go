@@ -10,6 +10,7 @@ type Scope struct {
 	Types map[string]Type
 	Funcs map[string]*Function
 	Mods  map[string]*Module
+	UsedModules map[string]*Module
 }
 
 func newScope(outer *Scope) *Scope {
@@ -19,6 +20,7 @@ func newScope(outer *Scope) *Scope {
 		Types: make(map[string]Type),
 		Funcs: make(map[string]*Function),
 		Mods:  make(map[string]*Module),
+		UsedModules: make(map[string]*Module),
 	}
 }
 
@@ -87,8 +89,23 @@ func (v *Scope) InsertFunction(t *Function) *Function {
 
 func (v *Scope) GetFunction(name unresolvedName) *Function {
 	if len(name.moduleNames) > 0 {
-		for _, moduleName := range name.moduleNames {
-			fmt.Println("module name: " + moduleName)
+		moduleName := name.moduleNames[0]
+		if module, ok := v.UsedModules[moduleName]; ok {
+			if r := module.GlobalScope.Funcs[name.name]; r != nil {
+				return r;
+			} else {
+				fmt.Println("can't find the function in the module yo")
+			}
+		} else if v.Outer != nil {
+			if module, ok := v.Outer.UsedModules[moduleName]; ok {
+				if r := module.GlobalScope.Funcs[name.name]; r != nil {
+					return r;
+				} else {
+					fmt.Println("can't find the function in the module yo")
+				}
+			}
+		} else {
+			fmt.Println("no module " + moduleName + " found in used modules")
 		}
 	}
 
