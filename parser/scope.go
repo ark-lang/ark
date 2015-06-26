@@ -1,5 +1,9 @@
 package parser
 
+import (
+	"fmt"
+)
+
 type Scope struct {
 	Outer *Scope
 	Vars  map[string]*Variable
@@ -82,9 +86,10 @@ func (v *Scope) InsertFunction(t *Function) *Function {
 }
 
 func (v *Scope) GetFunction(name unresolvedName) *Function {
-	// TODO modules
 	if len(name.moduleNames) > 0 {
-		panic("todo module access")
+		for _, moduleName := range name.moduleNames {
+			fmt.Println("module name: " + moduleName)
+		}
 	}
 
 	if r := v.Funcs[name.name]; r != nil {
