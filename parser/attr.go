@@ -17,8 +17,9 @@ func Get(s string) *Attr {}
 */
 
 type Attr struct {
-	Key   string
-	Value string
+	Key       string
+	Value     string
+	FromBlock bool
 	nodePos
 }
 
@@ -44,7 +45,10 @@ func getAttr(attrs []*Attr, s string) *Attr {
 func (v *semanticAnalyzer) checkAttrsDistanceFromLine(attrs []*Attr, line int, declType, declName string) {
 	for i := len(attrs) - 1; i >= 0; i-- {
 		if attrs[i].lineNumber < line-1 {
-			v.warn(attrs[i], "Gap of %d lines between declaration of %s `%s` and `%s` attribute", line-attrs[i].lineNumber, declType, declName, attrs[i].Key)
+			// mute warnings from attribute blocks
+			if !attrs[i].FromBlock {
+				v.warn(attrs[i], "Gap of %d lines between declaration of %s `%s` and `%s` attribute", line-attrs[i].lineNumber, declType, declName, attrs[i].Key)
+			}
 		}
 		line = attrs[i].lineNumber
 	}
