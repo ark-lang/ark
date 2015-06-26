@@ -119,7 +119,7 @@ func Parse(input *lexer.Sourcefile, verbose bool) *Module {
 		module: &Module{
 			Nodes: make([]Node, 0),
 			Path:  input.Path,
-			Name: input.Name,
+			Name:  input.Name,
 		},
 		input:            input.Tokens,
 		verbose:          verbose,
@@ -145,7 +145,7 @@ func Parse(input *lexer.Sourcefile, verbose bool) *Module {
 	}
 
 	return p.module
-} 
+}
 
 func (v *parser) parse() {
 	for v.peek(0) != nil {
@@ -903,7 +903,6 @@ func (v *parser) parseEnumDecl() *EnumDecl {
 		v.err("Expected identifier after `enum` keyword, found `%s`", v.peek(0).Contents)
 	}
 
-
 	enum := &EnumDecl{Name: v.consumeToken().Contents, Body: make([]*EnumVal, 0)}
 
 	if isReservedKeyword(enum.Name) {
@@ -936,7 +935,7 @@ func (v *parser) parseEnumDecl() *EnumDecl {
 				} else if !v.tokenMatches(1, lexer.TOKEN_SEPARATOR, "}") {
 					v.err("Missing comma in `enum` %s", enum.Name)
 				}
-				
+
 				enum.Body = append(enum.Body, &EnumVal{Name: name, Value: value})
 			}
 		}
@@ -944,7 +943,6 @@ func (v *parser) parseEnumDecl() *EnumDecl {
 	}
 	return enum
 }
-
 
 func (v *parser) parseImplDecl() *ImplDecl {
 	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_IMPL) {
