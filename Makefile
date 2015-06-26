@@ -1,4 +1,4 @@
-PACKAGES = {codegen{/LLVMCodegen,/arkcodegen,},lexer,parser,util}
+PACKAGES = {codegen{/LLVMCodegen,},lexer,parser,util}
 
 all:
 	@go install github.com/ark-lang/ark

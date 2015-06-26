@@ -17,10 +17,10 @@ type Type interface {
 type PrimitiveType int
 
 const (
-	PRIMITIVE_i8 PrimitiveType = iota
-	PRIMITIVE_i16
-	PRIMITIVE_i32
-	PRIMITIVE_i64
+	PRIMITIVE_s8 PrimitiveType = iota
+	PRIMITIVE_s16
+	PRIMITIVE_s32
+	PRIMITIVE_s64
 	PRIMITIVE_i128
 
 	PRIMITIVE_u8
@@ -46,7 +46,7 @@ const (
 
 func (v PrimitiveType) IsIntegerType() bool {
 	switch v {
-	case PRIMITIVE_i8, PRIMITIVE_i16, PRIMITIVE_i32, PRIMITIVE_i64, PRIMITIVE_i128,
+	case PRIMITIVE_s8, PRIMITIVE_s16, PRIMITIVE_s32, PRIMITIVE_s64, PRIMITIVE_i128,
 		PRIMITIVE_u8, PRIMITIVE_u16, PRIMITIVE_u32, PRIMITIVE_u64, PRIMITIVE_u128,
 		PRIMITIVE_int, PRIMITIVE_uint:
 		return true
@@ -66,7 +66,7 @@ func (v PrimitiveType) IsFloatingType() bool {
 
 func (v PrimitiveType) IsSigned() bool {
 	switch v {
-	case PRIMITIVE_i8, PRIMITIVE_i16, PRIMITIVE_i32, PRIMITIVE_i64, PRIMITIVE_i128, PRIMITIVE_int:
+	case PRIMITIVE_s8, PRIMITIVE_s16, PRIMITIVE_s32, PRIMITIVE_s64, PRIMITIVE_i128, PRIMITIVE_int:
 		return true
 	default:
 		return false

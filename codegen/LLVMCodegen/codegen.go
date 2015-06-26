@@ -888,13 +888,13 @@ func primitiveTypeToLLVMType(typ parser.PrimitiveType) llvm.Type {
 	switch typ {
 	case parser.PRIMITIVE_int, parser.PRIMITIVE_uint:
 		return llvm.IntType(intSize * 8)
-	case parser.PRIMITIVE_i8, parser.PRIMITIVE_u8:
+	case parser.PRIMITIVE_s8, parser.PRIMITIVE_u8:
 		return llvm.IntType(8)
-	case parser.PRIMITIVE_i16, parser.PRIMITIVE_u16:
+	case parser.PRIMITIVE_s16, parser.PRIMITIVE_u16:
 		return llvm.IntType(16)
-	case parser.PRIMITIVE_i32, parser.PRIMITIVE_u32:
+	case parser.PRIMITIVE_s32, parser.PRIMITIVE_u32:
 		return llvm.IntType(32)
-	case parser.PRIMITIVE_i64, parser.PRIMITIVE_u64:
+	case parser.PRIMITIVE_s64, parser.PRIMITIVE_u64:
 		return llvm.IntType(64)
 	case parser.PRIMITIVE_i128, parser.PRIMITIVE_u128:
 		return llvm.IntType(128)
