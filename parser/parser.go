@@ -118,7 +118,8 @@ func Parse(input *lexer.Sourcefile, verbose bool) *Module {
 	p := &parser{
 		module: &Module{
 			Nodes: make([]Node, 0),
-			Name:  input.Filename,
+			Path:  input.Path,
+			Name: input.Name,
 		},
 		input:            input.Tokens,
 		verbose:          verbose,
@@ -128,7 +129,7 @@ func Parse(input *lexer.Sourcefile, verbose bool) *Module {
 	p.module.GlobalScope = p.scope
 
 	if verbose {
-		fmt.Println(util.TEXT_BOLD+util.TEXT_GREEN+"Started parsing"+util.TEXT_RESET, input.Filename)
+		fmt.Println(util.TEXT_BOLD+util.TEXT_GREEN+"Started parsing"+util.TEXT_RESET, input.Name)
 	}
 	t := time.Now()
 	p.parse()
@@ -140,7 +141,7 @@ func Parse(input *lexer.Sourcefile, verbose bool) *Module {
 			fmt.Println(n.String())
 		}
 		fmt.Printf(util.TEXT_BOLD+util.TEXT_GREEN+"Finished parsing"+util.TEXT_RESET+" %s (%.2fms)\n",
-			input.Filename, float32(dur.Nanoseconds())/1000000)
+			input.Name, float32(dur.Nanoseconds())/1000000)
 	}
 
 	return p.module
