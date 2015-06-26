@@ -337,7 +337,7 @@ func (v *parser) parseUseDecl() Decl {
 		moduleName := v.consumeToken().Contents
 		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ";") {
 			v.consumeToken()
-			return &UseDecl{ModuleName: moduleName}
+			return &UseDecl{ModuleName: moduleName, Scope: v.scope}
 		}
 		v.err("Expected semicolon after use declaration, found `%s`", v.peek(0).Contents)
 	}

@@ -318,6 +318,7 @@ func (v *ImplDecl) DocComments() []*DocComment {
 type UseDecl struct {
 	nodePos
 	ModuleName string
+	Scope *Scope
 }
 
 func (v *UseDecl) declNode() {}
