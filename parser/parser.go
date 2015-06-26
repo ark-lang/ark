@@ -114,7 +114,7 @@ func (v *parser) getPrecedence(op BinOpType) int {
 	return -1
 }
 
-func Parse(input *lexer.Sourcefile, verbose bool) *Module {
+func Parse(input *lexer.Sourcefile, modules map[string]*Module, verbose bool) *Module {
 	p := &parser{
 		module: &Module{
 			Nodes: make([]Node, 0),
@@ -127,6 +127,7 @@ func Parse(input *lexer.Sourcefile, verbose bool) *Module {
 		binOpPrecedences: newBinOpPrecedenceMap(),
 	}
 	p.module.GlobalScope = p.scope
+	modules[input.Name] = p.module
 
 	if verbose {
 		fmt.Println(util.TEXT_BOLD+util.TEXT_GREEN+"Started parsing"+util.TEXT_RESET, input.Name)
@@ -134,7 +135,7 @@ func Parse(input *lexer.Sourcefile, verbose bool) *Module {
 	t := time.Now()
 	p.parse()
 	sem := &semanticAnalyzer{module: p.module, unresolvedNodes: p.unresolvedNodes}
-	sem.analyze()
+	sem.analyze(modules)
 	dur := time.Since(t)
 	if verbose {
 		for _, n := range p.module.Nodes {
