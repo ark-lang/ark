@@ -7,11 +7,11 @@ func main(): int {
     b: f32 = 6.789;
     printf("%d\n", cast(int, b));
 
-    c: i8 = 66;
-    printf("%d\n", cast(i32, c));
+    c: s8 = 66;
+    printf("%d\n", cast(s32, c));
 
-    d: i32 = 500;
-    printf("%d\n", cast(i8, d));
+    d: s32 = 500;
+    printf("%d\n", cast(s8, d));
 
     e: f64 = 1.2;
     printf("%f\n", cast(f32, e));
