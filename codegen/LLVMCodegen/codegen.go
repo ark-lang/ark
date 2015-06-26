@@ -437,7 +437,13 @@ func (v *Codegen) genUseDecl(n *parser.UseDecl) {
 	// check if the module exists in the modules that are
 	// parsed to avoid any weird errors
 	if moduleToUse, ok := v.modules[n.ModuleName]; ok {
-		v.modules[v.curFile.Name].UsedModules[n.ModuleName] = moduleToUse
+		currentModule := v.modules[v.curFile.Name]
+
+		if currentModule.UsedModules == nil {
+			currentModule.UsedModules = make(map[string]*parser.Module)
+		}
+		
+		currentModule.UsedModules[n.ModuleName] = moduleToUse
 	} else {
 		v.err("Attempting to use a module that doesn't exist `%s`", n.ModuleName)
 	}

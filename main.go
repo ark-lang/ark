@@ -69,7 +69,7 @@ func parseFiles(files []string) []*parser.Module {
 	}
 
 	for _, file := range sourcefiles {
-		file.Tokens = lexer.Lex(file.Contents, file.Filename, *verbose)
+		file.Tokens = lexer.Lex(file.Contents, file.Name, *verbose)
 	}
 
 	parsedFiles := make([]*parser.Module, 0)

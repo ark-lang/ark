@@ -6,8 +6,8 @@ import (
 
 type Module struct {
 	Nodes       []Node
-	Name        string         // this stores the path too, e.g src/main
-    ModuleName  string         // this stores the name, so just main
+	Path        string         // this stores the path too, e.g src/main
+    Name  string         // this stores the name, so just main
 	GlobalScope *Scope
 	Module      llvm.Module
 	Functions   []*FunctionDecl
