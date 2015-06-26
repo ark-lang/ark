@@ -211,7 +211,8 @@ func (v *parser) parseNode() Node {
 		}
 	}
 
-	v.attrs = v.parseAttrs()
+	// this is a little dirty, but allows for attribute block without reflection (part 1 / 2)
+	v.attrs = append(v.attrs, v.parseAttrs()...)
 	var ret Node
 	if decl := v.parseDecl(); decl != nil {
 		ret = decl
@@ -530,6 +531,10 @@ func (v *parser) parseBlock(pushNewScope bool) *Block {
 	}
 
 	block := &Block{scope: v.scope}
+	attrs := v.fetchAttrs()
+	for _, attr := range attrs {
+		attr.FromBlock = true
+	}
 
 	for {
 		for v.tokenMatches(0, lexer.TOKEN_COMMENT, "") || v.tokenMatches(0, lexer.TOKEN_DOCCOMMENT, "") {
@@ -540,6 +545,8 @@ func (v *parser) parseBlock(pushNewScope bool) *Block {
 			break
 		}
 
+		// this is a little dirty, but allows for attribute block without reflection (part 2 / 2)
+		v.attrs = attrs
 		if s := v.parseNode(); s != nil {
 			block.appendNode(s)
 		} else {
@@ -879,7 +886,6 @@ func (v *parser) parseEnumDecl() *EnumDecl {
 		v.err("Expected identifier after `enum` keyword, found `%s`", v.peek(0).Contents)
 	}
 
-
 	enum := &EnumDecl{Name: v.consumeToken().Contents, Body: make([]*EnumVal, 0)}
 
 	if isReservedKeyword(enum.Name) {
@@ -912,7 +918,7 @@ func (v *parser) parseEnumDecl() *EnumDecl {
 				} else if !v.tokenMatches(1, lexer.TOKEN_SEPARATOR, "}") {
 					v.err("Missing comma in `enum` %s", enum.Name)
 				}
-				
+
 				enum.Body = append(enum.Body, &EnumVal{Name: name, Value: value})
 			}
 		}
@@ -920,7 +926,6 @@ func (v *parser) parseEnumDecl() *EnumDecl {
 	}
 	return enum
 }
-
 
 func (v *parser) parseImplDecl() *ImplDecl {
 	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_IMPL) {
@@ -984,7 +989,7 @@ func (v *parser) parseImplDecl() *ImplDecl {
 }
 
 func (v *parser) parseVariableDecl(needSemicolon bool) *VariableDecl {
-	variable := &Variable{Attrs: v.fetchAttrs()}
+	variable := &Variable{}
 	varDecl := &VariableDecl{Variable: variable}
 
 	if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_MUT) {
@@ -996,6 +1001,7 @@ func (v *parser) parseVariableDecl(needSemicolon bool) *VariableDecl {
 		return nil
 	}
 	variable.Name = v.consumeToken().Contents // consume name
+	variable.Attrs = v.fetchAttrs()
 
 	if isReservedKeyword(variable.Name) {
 		v.err("Cannot name variable reserved keyword `%s`", variable.Name)
