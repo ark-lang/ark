@@ -56,7 +56,7 @@ func (v *semanticAnalyzer) analyze(modules map[string]*Module) {
 	v.modules = modules
 
 	// pass modules to resolve
-	v.resolve()
+	v.resolve(modules)
 
 	for _, node := range v.module.Nodes {
 		node.analyze(v)
@@ -236,12 +236,13 @@ func (v *UseDecl) analyze(s *semanticAnalyzer) {
 	// check if the module exists in the modules that are
 	// parsed to avoid any weird errors
 	if moduleToUse, ok := s.modules[v.ModuleName]; ok {
-		// store the current module for later
-		currentModule := s.modules[v.module.Name]
-
-		currentModule.UsedModules[n.ModuleName] = moduleToUse
+		if v.Scope.Outer != nil {
+			v.Scope.Outer.UsedModules[moduleToUse.Name] = moduleToUse
+		} else {
+			v.Scope.UsedModules[moduleToUse.Name] = moduleToUse
+		}
 	} else {
-		v.err("Attempting to use a module that doesn't exist `%s`", n.ModuleName)
+		fmt.Printf("couldn't find module %s\n", v.ModuleName)
 	}
 }
 
