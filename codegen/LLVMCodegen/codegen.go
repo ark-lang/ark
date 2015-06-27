@@ -860,7 +860,11 @@ func (v *Codegen) genCallExpr(n *parser.CallExpr) llvm.Value {
 		args[i] = v.genExpr(arg)
 	}
 
-	return v.builder.CreateCall(function, args, "")
+	call := v.builder.CreateCall(function, args, "")
+
+	call.SetInstructionCallConv(function.FunctionCallConv())
+
+	return call
 }
 
 func (v *Codegen) genAccessExpr(n *parser.AccessExpr) llvm.Value {
