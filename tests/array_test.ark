@@ -1,11 +1,20 @@
 [c] func printf(fmt: str, ...);
 
-func main() {
-    arrayLitTest := [1, 2, 3, 4, 5];
+func main(): int {
+    arrayLitTest := [100, 101, 102, 103, 104];
 
-    printf("%d\n", arrayLitTest[0]);
+    if arrayLitTest[1] != 101 {
+        return 1;
+    }
 
-    arrayLitTest[0] = 6;
+    if arrayLitTest[2] != 102 {
+        return 2;
+    }
 
-    printf("%d\n", arrayLitTest[0]);
+    arrayLitTest[3] = 9999;
+    if arrayLitTest[3] != 9999 {
+        return 3;
+    }
+
+    return 0;
 }
