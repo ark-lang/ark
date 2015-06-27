@@ -11,8 +11,14 @@
 		func fourth_func();
 	}
 	func fifth_func();
+
+	func other_func() {
+
+	}
 }
 
-func main() {
-	
+func main(): int {
+	other_func();
+
+	return 0;
 }
