@@ -524,27 +524,35 @@ func (v *Codegen) genExpr(n parser.Expr) llvm.Value {
 }
 
 func (v *Codegen) genAddressOfExpr(n *parser.AddressOfExpr) llvm.Value {
-	gepIndexes := []llvm.Value{llvm.ConstInt(llvm.Int32Type(), 0, false)}
+	gep := v.builder.CreateGEP(v.variableLookup[n.Access.Accesses[0].Variable], []llvm.Value{llvm.ConstInt(llvm.Int32Type(), 0, false)}, "")
 
 	for i := 0; i < len(n.Access.Accesses); i++ {
 
 		switch n.Access.Accesses[i].AccessType {
 		case parser.ACCESS_ARRAY:
-			gepIndexes = append(gepIndexes, llvm.ConstInt(llvm.Int32Type(), 1, false), v.genExpr(n.Access.Accesses[i].Subscript))
+			gepIndexes := []llvm.Value{llvm.ConstInt(llvm.Int32Type(), 0, false), llvm.ConstInt(llvm.Int32Type(), 1, false)}
+			gep = v.builder.CreateGEP(gep, gepIndexes, "")
+
+			load := v.builder.CreateLoad(gep, "")
+
+			// TODO check that access is in bounds!
+
+			gepIndexes = []llvm.Value{llvm.ConstInt(llvm.Int32Type(), 0, false), v.genExpr(n.Access.Accesses[i].Subscript)}
+			gep = v.builder.CreateGEP(load, gepIndexes, "")
 
 		case parser.ACCESS_VARIABLE:
 			// nothing to do
 
 		case parser.ACCESS_STRUCT:
 			index := n.Access.Accesses[i].Variable.Type.(*parser.StructType).VariableIndex(n.Access.Accesses[i+1].Variable)
-			gepIndexes = append(gepIndexes, llvm.ConstInt(llvm.Int32Type(), uint64(index), false))
+			gep = v.builder.CreateGEP(gep, []llvm.Value{llvm.ConstInt(llvm.Int32Type(), 0, false), llvm.ConstInt(llvm.Int32Type(), uint64(index), false)}, "")
 
 		default:
 			panic("")
 		}
 	}
 
-	return v.builder.CreateGEP(v.variableLookup[n.Access.Accesses[0].Variable], gepIndexes, "")
+	return gep
 }
 
 func (v *Codegen) genBoolLiteral(n *parser.BoolLiteral) llvm.Value {
@@ -561,25 +569,37 @@ func (v *Codegen) genRuneLiteral(n *parser.RuneLiteral) llvm.Value {
 	return llvm.ConstInt(v.typeToLLVMType(n.GetType()), uint64(n.Value), true)
 }
 
-// TODO FIXME
+// Allocates a literal array on the stack
 func (v *Codegen) genArrayLiteral(n *parser.ArrayLiteral) llvm.Value {
 	memberLLVMType := v.typeToLLVMType(n.Type.(parser.ArrayType).MemberType)
 
-	ptr := v.builder.CreateArrayAlloca(memberLLVMType, llvm.ConstInt(llvm.IntType(32), uint64(len(n.Members)), false), "ptr")
+	// allocate backing array
+	arrAlloca := v.builder.CreateArrayAlloca(llvm.ArrayType(memberLLVMType, len(n.Members)), llvm.ConstInt(llvm.IntType(32), uint64(len(n.Members)), false), "")
 
-	structAlloca := v.builder.CreateAlloca(v.typeToLLVMType(n.GetType()), "")
+	// allocate the array object
+	structAlloca := v.builder.CreateAlloca(v.typeToLLVMType(n.Type), "")
+
+	// set the length of the array
 	lenGEP := v.builder.CreateGEP(structAlloca, []llvm.Value{llvm.ConstInt(llvm.IntType(32), 0, false), llvm.ConstInt(llvm.IntType(32), 0, false)}, "")
-	v.builder.CreateStore(llvm.ConstInt(llvm.IntType(32), 0, false), lenGEP)
+	v.builder.CreateStore(llvm.ConstInt(llvm.IntType(32), uint64(len(n.Members)), false), lenGEP)
 
-	return llvm.ConstStruct([]llvm.Value{llvm.ConstInt(llvm.IntType(32), uint64(len(n.Members)), false), ptr}, false)
+	// set the array pointer to the backing array we allocated
+	arrGEP := v.builder.CreateGEP(structAlloca, []llvm.Value{llvm.ConstInt(llvm.IntType(32), 0, false), llvm.ConstInt(llvm.IntType(32), 1, false)}, "")
+	v.builder.CreateStore(v.builder.CreateBitCast(arrAlloca, llvm.PointerType(llvm.ArrayType(memberLLVMType, 0), 0), ""), arrGEP)
+
+	// copy the constant array to the backing array
+	arrConstVals := make([]llvm.Value, 0, len(n.Members))
+	for _, mem := range n.Members {
+		arrConstVals = append(arrConstVals, v.genExpr(mem))
+	}
+	arrConst := llvm.ConstArray(llvm.ArrayType(memberLLVMType, len(n.Members)), arrConstVals)
+	v.builder.CreateStore(arrConst, arrAlloca)
+
+	return v.builder.CreateLoad(structAlloca, "")
 }
 
 func (v *Codegen) genTupleLiteral(n *parser.TupleLiteral) llvm.Value {
 	panic("not done yet")
-}
-
-func createArrayMemcpyFunc() {
-
 }
 
 func (v *Codegen) genIntegerLiteral(n *parser.IntegerLiteral) llvm.Value {
@@ -871,7 +891,7 @@ func (v *Codegen) typeToLLVMType(typ parser.Type) llvm.Type {
 }
 
 func (v *Codegen) arrayTypeToLLVMType(typ parser.ArrayType) llvm.Type {
-	fields := []llvm.Type{llvm.IntType(32), llvm.ArrayType(v.typeToLLVMType(typ.MemberType), 0)} //llvm.PointerType(v.typeToLLVMType(typ.MemberType), 0)} // TODO use 64 on 64-bit platform?
+	fields := []llvm.Type{llvm.IntType(32), llvm.PointerType(llvm.ArrayType(v.typeToLLVMType(typ.MemberType), 0), 0)}
 
 	return llvm.StructType(fields, false)
 }

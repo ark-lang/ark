@@ -18,9 +18,20 @@ func main(): int {
 
     thing.y = 9;
     printf("thing.y: %d\n", thing.y);
+    if thing.y != 9 {
+        return 1;
+    }
 
     thing.test2.x = 11;
     printf("thing.test2.x: %d\n", thing.test2.x);
+    if thing.test2.x != 11 {
+        return 2;
+    }
+
+    thing.test2.x = thing.test2.x + 9;
+    if thing.test2.x != 20 {
+        return 3;
+    }
 
     return 0;
 }
