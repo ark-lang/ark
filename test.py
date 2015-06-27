@@ -23,12 +23,14 @@ def green(s):
 class TestFile:
 	name = "?"
 	failed = True
-	result = ""
+	compile_result = ""
+	run_result = ""
 
-	def __init__(self, name, failed, result):
+	def __init__(self, name, failed, compile_result, run_result):
 		self.name = name
 		self.failed = failed
-		self.result = result
+		self.compile_result = compile_result
+		self.run_result = run_result
 
 # all of the files tested go here
 files_tested = []
@@ -73,7 +75,7 @@ for name in files:
 	if compile_result != 0:
 		if show_output:
 			print(red(bold("Compilation failed:")) + " returned with " + str(compile_result))
-		files_tested.append(TestFile(name, True, str(compile_result)))
+		files_tested.append(TestFile(name, True, str(compile_result), "-"))
 		num_of_files_failed += 1
 		if show_output: print("")
 		continue
@@ -93,10 +95,10 @@ for name in files:
 
 	if run_result != 0:
 		if show_output: print(red(bold("Running failed:")) + " returned with " + str(run_result))
-		files_tested.append(TestFile(name, True, str(compile_result)))
+		files_tested.append(TestFile(name, True, "0", str(run_result)))
 		num_of_files_failed += 1
 	else:
-		files_tested.append(TestFile(name, False, str(compile_result)))
+		files_tested.append(TestFile(name, False, "0", str(run_result)))
 		num_of_files_passed += 1
 
 	if show_output: print("")
@@ -104,11 +106,12 @@ for name in files:
 # print results
 total_num_of_files = num_of_files_passed + num_of_files_failed
 print(bold("Results: " + str(num_of_files_passed) + "/" + str(total_num_of_files) + " files passed")) # some margin
+print("   pass comp  run\t  filename")
 
 for file in files_tested:
 	if file.failed:
-		print(red(bold("    [-](" + file.result + ")\t " + file.name)))
+		print(red(bold("    [-]%5s %4s\t  %s")) % (file.compile_result, file.run_result, file.name))
 	else:
-		print(green(bold("    [+](" + file.result + ")\t " + file.name)))
+		print(green(bold("    [+]%5s %4s\t  %s")) % (file.compile_result, file.run_result, file.name))
 
 exit(num_of_files_failed)
