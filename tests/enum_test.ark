@@ -4,6 +4,6 @@ enum Test {
 	GG,
 }
 
-func main() {
-	
+func main(): int {
+	return 0;
 }
