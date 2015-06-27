@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode"
 
 	"github.com/ark-lang/ark/lexer"
 	"github.com/ark-lang/ark/util"
@@ -1465,18 +1466,32 @@ func (v *parser) parseNumericLiteral() Expr {
 			}
 		}
 		return oct
-	} else if strings.ContainsRune(num, '.') || strings.HasSuffix(num, "f") || strings.HasSuffix(num, "d") {
+	} else if lastRune := unicode.ToLower([]rune(num)[len([]rune(num))-1]); strings.ContainsRune(num, '.') || lastRune == 'f' || lastRune == 'd' || lastRune == 'q' {
 		if strings.Count(num, ".") > 1 {
 			v.err("Floating-point cannot have multiple periods: `%s`", num)
 			return nil
 		}
 
+		f := &FloatingLiteral{}
+
 		fnum := num
-		if strings.HasSuffix(num, "f") || strings.HasSuffix(num, "d") {
+		hasSuffix := true
+
+		switch lastRune {
+		case 'f':
+			f.Type = PRIMITIVE_f32
+		case 'd':
+			f.Type = PRIMITIVE_f64
+		case 'q':
+			f.Type = PRIMITIVE_f128
+		default:
+			hasSuffix = false
+		}
+
+		if hasSuffix {
 			fnum = fnum[:len(fnum)-1]
 		}
 
-		f := &FloatingLiteral{}
 		f.Value, err = strconv.ParseFloat(fnum, 64)
 
 		if err != nil {
