@@ -2,6 +2,7 @@ language: go
 
 # probably wont work
 script:
+ - llvm-config --version
  - svn co https://llvm.org/svn/llvm-project/llvm/tags/RELEASE_360/final $GOPATH/src/llvm.org/llvm
  - export CGO_CPPFLAGS="`llvm-config --cppflags`"
  - export CGO_LDFLAGS="`llvm-config --ldflags --libs --system-libs all`"
