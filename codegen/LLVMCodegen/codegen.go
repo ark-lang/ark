@@ -25,6 +25,7 @@ type Codegen struct {
 	structLookup_UseHelperFunction map[*parser.StructType]llvm.Type // use getStructDecl
 
 	OutputName string
+	OutputAsm  bool
 	CCArgs     []string
 
 	inFunction      bool
@@ -77,6 +78,10 @@ func (v *Codegen) createBinary() {
 		}
 
 		linkArgs = append(linkArgs, asmName)
+	}
+
+	if v.OutputAsm {
+		return
 	}
 
 	if v.OutputName == "" {
