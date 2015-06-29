@@ -306,10 +306,19 @@ func (v *parser) parseAssignStat() *AssignStat {
 }
 
 func (v *parser) parseBlockStat() *BlockStat {
+	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_DO) {
+		return nil
+	}
+
+	v.consumeToken()
+
 	var blockStat *BlockStat
 	if block := v.parseBlock(true); block != nil {
 		blockStat = &BlockStat{Block: block}
+	} else {
+		v.err("Expected block after `%d` keyword, found `%s`", KEYWORD_DO, v.peek(0).Contents)
 	}
+
 	return blockStat
 }
 
