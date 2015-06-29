@@ -91,3 +91,30 @@ func (v *parser) parseAttrs() []*Attr {
 	}
 	return ret
 }
+
+func equalAttributes(one, other []*Attr) bool {
+	if len(one) != len(other) {
+		return false
+	}
+
+	oneMap := make(map[string]*Attr)
+	otherMap := make(map[string]*Attr)
+	for _, attr := range one {
+		oneMap[attr.Key] = attr
+	}
+	for _, attr := range other {
+		otherMap[attr.Key] = attr
+	}
+
+	for key, oneAttr := range oneMap {
+		otherAttr, ok := otherMap[key]
+		if !ok {
+			return false
+		}
+		if oneAttr.Value != otherAttr.Value {
+			return false
+		}
+	}
+
+	return true
+}
