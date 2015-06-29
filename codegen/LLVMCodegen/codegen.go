@@ -689,8 +689,12 @@ func (v *Codegen) genBinaryExpr(n *parser.BinaryExpr) llvm.Value {
 		case parser.BINOP_BIT_RIGHT:
 			// TODO make sure both operands are same type (create type cast here?)
 			// TODO in semantic.go, make sure rhand is *unsigned* (LLVM always treats it that way)
-			// TODO logical shift right?
-			return v.builder.CreateAShr(lhand, rhand, "")
+			// TODO doc this
+			if n.Lhand.GetType().IsSigned() {
+				return v.builder.CreateAShr(lhand, rhand, "")
+			} else {
+				return v.builder.CreateLShr(lhand, rhand, "")
+			}
 
 		// Logical
 		case parser.BINOP_LOG_AND:
@@ -791,7 +795,11 @@ func (v *Codegen) genCastExpr(n *parser.CastExpr) llvm.Value {
 				return v.builder.CreateTrunc(shr, v.typeToLLVMType(castType), "")*/
 				return v.builder.CreateTrunc(v.genExpr(n.Expr), v.typeToLLVMType(castType), "") // TODO get this to work right!
 			} else if exprBits < castBits {
-				return v.builder.CreateSExt(v.genExpr(n.Expr), v.typeToLLVMType(castType), "") // TODO sext or zext?
+				if exprType.IsSigned() {
+					return v.builder.CreateSExt(v.genExpr(n.Expr), v.typeToLLVMType(castType), "") // TODO doc this
+				} else {
+					return v.builder.CreateZExt(v.genExpr(n.Expr), v.typeToLLVMType(castType), "")
+				}
 			}
 		} else if castType.IsFloatingType() {
 			if exprType.IsSigned() {
