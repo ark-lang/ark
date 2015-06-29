@@ -681,14 +681,7 @@ func (v *BoolLiteral) NodeName() string {
 type TupleLiteral struct {
 	nodePos
 	Members []Expr
-
-	// TODO
-	// this should probably have a type for each member
-	// in the tuple, since that's what differentiates
-	// a tuple from array, after all! Till then I can't
-	// do any codegen for this, but it generates to a structure
-	// with X amount of values and their respective types.
-	Type Type
+	Type    *TupleType
 }
 
 func (v *TupleLiteral) exprNode() {}
