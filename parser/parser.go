@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode"
 
 	"github.com/ark-lang/ark/lexer"
 	"github.com/ark-lang/ark/util"
@@ -213,7 +214,8 @@ func (v *parser) parseNode() Node {
 		}
 	}
 
-	v.attrs = v.parseAttrs()
+	// this is a little dirty, but allows for attribute block without reflection (part 1 / 2)
+	v.attrs = append(v.attrs, v.parseAttrs()...)
 	var ret Node
 	if decl := v.parseDecl(); decl != nil {
 		ret = decl
@@ -306,10 +308,19 @@ func (v *parser) parseAssignStat() *AssignStat {
 }
 
 func (v *parser) parseBlockStat() *BlockStat {
+	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_DO) {
+		return nil
+	}
+
+	v.consumeToken()
+
 	var blockStat *BlockStat
 	if block := v.parseBlock(true); block != nil {
 		blockStat = &BlockStat{Block: block}
+	} else {
+		v.err("Expected block after `%d` keyword, found `%s`", KEYWORD_DO, v.peek(0).Contents)
 	}
+
 	return blockStat
 }
 
@@ -555,6 +566,10 @@ func (v *parser) parseBlock(pushNewScope bool) *Block {
 	}
 
 	block := &Block{scope: v.scope}
+	attrs := v.fetchAttrs()
+	for _, attr := range attrs {
+		attr.FromBlock = true
+	}
 
 	for {
 		for v.tokenMatches(0, lexer.TOKEN_COMMENT, "") || v.tokenMatches(0, lexer.TOKEN_DOCCOMMENT, "") {
@@ -565,6 +580,8 @@ func (v *parser) parseBlock(pushNewScope bool) *Block {
 			break
 		}
 
+		// this is a little dirty, but allows for attribute block without reflection (part 2 / 2)
+		v.attrs = attrs
 		if s := v.parseNode(); s != nil {
 			block.appendNode(s)
 		} else {
@@ -1007,7 +1024,7 @@ func (v *parser) parseImplDecl() *ImplDecl {
 }
 
 func (v *parser) parseVariableDecl(needSemicolon bool) *VariableDecl {
-	variable := &Variable{Attrs: v.fetchAttrs()}
+	variable := &Variable{}
 	varDecl := &VariableDecl{Variable: variable}
 
 	if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_MUT) {
@@ -1019,6 +1036,7 @@ func (v *parser) parseVariableDecl(needSemicolon bool) *VariableDecl {
 		return nil
 	}
 	variable.Name = v.consumeToken().Contents // consume name
+	variable.Attrs = v.fetchAttrs()
 
 	if isReservedKeyword(variable.Name) {
 		v.err("Cannot name variable reserved keyword `%s`", variable.Name)
@@ -1482,18 +1500,32 @@ func (v *parser) parseNumericLiteral() Expr {
 			}
 		}
 		return oct
-	} else if strings.ContainsRune(num, '.') || strings.HasSuffix(num, "f") || strings.HasSuffix(num, "d") {
+	} else if lastRune := unicode.ToLower([]rune(num)[len([]rune(num))-1]); strings.ContainsRune(num, '.') || lastRune == 'f' || lastRune == 'd' || lastRune == 'q' {
 		if strings.Count(num, ".") > 1 {
 			v.err("Floating-point cannot have multiple periods: `%s`", num)
 			return nil
 		}
 
+		f := &FloatingLiteral{}
+
 		fnum := num
-		if strings.HasSuffix(num, "f") || strings.HasSuffix(num, "d") {
+		hasSuffix := true
+
+		switch lastRune {
+		case 'f':
+			f.Type = PRIMITIVE_f32
+		case 'd':
+			f.Type = PRIMITIVE_f64
+		case 'q':
+			f.Type = PRIMITIVE_f128
+		default:
+			hasSuffix = false
+		}
+
+		if hasSuffix {
 			fnum = fnum[:len(fnum)-1]
 		}
 
-		f := &FloatingLiteral{}
 		f.Value, err = strconv.ParseFloat(fnum, 64)
 
 		if err != nil {

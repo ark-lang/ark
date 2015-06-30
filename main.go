@@ -32,9 +32,12 @@ func main() {
 		if *buildStatic {
 			ccArgs = append(ccArgs, "-static")
 		}
-		build(*buildInputs, *buildOutput, *buildCodegen, ccArgs)
+		build(*buildInputs, *buildOutput, *buildCodegen, ccArgs, *buildAsm)
 		printFinishedMessage(startTime, buildCom.FullCommand(), len(*buildInputs))
 		if *buildRun {
+			if *buildAsm {
+				setupErr("Cannot use --run flag with -S flag")
+			}
 			run(*buildOutput)
 		}
 
@@ -81,7 +84,7 @@ func parseFiles(files []string) ([]*parser.Module, map[string]*parser.Module) {
 	return parsedFiles, modules
 }
 
-func build(input []string, output string, cg string, ccArgs []string) {
+func build(input []string, output string, cg string, ccArgs []string, outputAsm bool) {
 	parsedFiles, modules := parseFiles(input)
 
 	if cg != "none" {
@@ -92,6 +95,7 @@ func build(input []string, output string, cg string, ccArgs []string) {
 			gen = &LLVMCodegen.Codegen{
 				OutputName: output,
 				CCArgs:     ccArgs,
+				OutputAsm:  outputAsm,
 			}
 		default:
 			panic("whoops")
