@@ -878,9 +878,11 @@ func (v *Codegen) genCallExpr(n *parser.CallExpr) llvm.Value {
 		functionName = n.Function.Name
 	}
 
+	swag:
 	function := v.curFile.Module.NamedFunction(functionName)
 	if function.IsNil() {
-		v.err("function `%s` does not exist in current module", functionName)
+		v.declareFunctionDecl(&parser.FunctionDecl{Function: n.Function, Prototype: true})
+		goto swag
 	}
 
 	numOfArguments := len(n.Arguments)
