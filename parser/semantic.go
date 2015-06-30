@@ -233,17 +233,7 @@ func (v *ImplDecl) analyze(s *semanticAnalyzer) {
 }
 
 func (v *UseDecl) analyze(s *semanticAnalyzer) {
-	// check if the module exists in the modules that are
-	// parsed to avoid any weird errors
-	if moduleToUse, ok := s.modules[v.ModuleName]; ok {
-		if v.Scope.Outer != nil {
-			v.Scope.Outer.UsedModules[moduleToUse.Name] = moduleToUse
-		} else {
-			v.Scope.UsedModules[moduleToUse.Name] = moduleToUse
-		}
-	} else {
-		fmt.Printf("couldn't find module %s\n", v.ModuleName)
-	}
+	
 }
 
 func (v *FunctionDecl) analyze(s *semanticAnalyzer) {

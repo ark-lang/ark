@@ -81,6 +81,10 @@ func parseFiles(files []string) ([]*parser.Module, map[string]*parser.Module) {
 		parsedFiles = append(parsedFiles, parser.Parse(file, modules, *verbose))
 	}
 
+	for module := range modules {
+		fmt.Println("module: " + module)
+	}
+
 	return parsedFiles, modules
 }
 
