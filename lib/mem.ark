@@ -1,7 +1,4 @@
-// todo
-!use "std"
-
-// c bindings
+use std;
 
 [c] {
     func malloc(size: usize): ^void;
@@ -9,40 +6,21 @@
     func free(ptr: ^void): int;
 }
 
-struct Block {
-    last_alloc: usize,
+func alloc(size: usize): ^void? {
+    data: ^void = malloc(size);
+    return data;
 }
 
-impl Block {
+func realloc(ptr: ^void, size: usize): ^void {
+    data: ^void = realloc(ptr, size);
+    return data;
+}
 
-    static func alloc(size: usize): ^void? {
-        data: ^void = malloc(size);
-        if !data {
-            printf("failed to allocate %zd bytes of memory\n", size);
-            return None;
-        }
-
-        // magical options that don't parse yet!
-        // todo tagged enums lol
-        return Some(data);
+func free(data: ^void): bool {
+    result: int = free(data);
+    if !result {
+        std::printf("failed to de-allocate memory\n");
+        return false;
     }
-
-    static func realloc(ptr: ^void, size: usize): ^void? {
-        data: ^void = realloc(ptr, size);
-        if !data {
-            printf("failed to reallocate %zd bytes of memory\n", size)
-            return None;
-        }
-        return Some(data);
-    }
-
-    static func free(data: ^void): bool {
-        result: int = free(data);
-        if !result {
-            printf("failed to de-allocate memory\n");
-            return false;
-        }
-
-        return true;
-    }
+    return true;
 }
