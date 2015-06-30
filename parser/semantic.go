@@ -742,6 +742,21 @@ func (v *BracketExpr) setTypeHint(t Type) {
 	v.Expr.setTypeHint(t)
 }
 
+// SizeofExpr
+
+func (v *SizeofExpr) analyze(s *semanticAnalyzer) {
+	if v.Expr != nil {
+		v.Expr.setTypeHint(nil)
+		v.Expr.analyze(s)
+	}
+}
+
+func (v *SizeofExpr) setTypeHint(t Type) {
+	//v.Expr.setTypeHint(t)
+}
+
+// TupleLiteral
+
 func (v *TupleLiteral) analyze(s *semanticAnalyzer) {
 	// cba do it later
 }
