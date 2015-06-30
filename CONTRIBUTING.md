@@ -28,7 +28,7 @@ We love Pull Requests! If you are planning on contributing, please read this lis
 
 ## Fixing Bugs
 If you've found a bug when implementing a feature, or want to
-fix an existing bug; here are what we consider must do steps.
+fix an existing bug; these steps will help you out.
 
 * Run it through a debugger, e.g. `lldb` or `gdb`.
   Typically, if theres a segmentation fault, or other bug

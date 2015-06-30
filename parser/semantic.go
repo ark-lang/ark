@@ -17,6 +17,7 @@ type semanticAnalyzer struct {
 	module          *Module
 	function        *Function // the function we're in, or nil if we aren't
 	unresolvedNodes []Node
+	modules			map[string]*Module
 }
 
 func (v *semanticAnalyzer) err(thing Locatable, err string, stuff ...interface{}) {
@@ -51,8 +52,11 @@ func (v *semanticAnalyzer) checkDuplicateAttrs(attrs []*Attr) {
 	}
 }
 
-func (v *semanticAnalyzer) analyze() {
-	v.resolve()
+func (v *semanticAnalyzer) analyze(modules map[string]*Module) {
+	v.modules = modules
+
+	// pass modules to resolve
+	v.resolve(modules)
 
 	for _, node := range v.module.Nodes {
 		node.analyze(v)
@@ -226,6 +230,10 @@ func (v *TraitDecl) analyze(s *semanticAnalyzer) {
 
 func (v *ImplDecl) analyze(s *semanticAnalyzer) {
 	// TODO
+}
+
+func (v *UseDecl) analyze(s *semanticAnalyzer) {
+	
 }
 
 func (v *FunctionDecl) analyze(s *semanticAnalyzer) {
