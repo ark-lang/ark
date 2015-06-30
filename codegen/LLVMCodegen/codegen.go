@@ -523,6 +523,8 @@ func (v *Codegen) genExpr(n parser.Expr) llvm.Value {
 		return v.genDerefExpr(n.(*parser.DerefExpr))
 	case *parser.BracketExpr:
 		return v.genBracketExpr(n.(*parser.BracketExpr))
+	case *parser.SizeofExpr:
+		return v.genSizeofExpr(n.(*parser.SizeofExpr))
 	default:
 		panic("unimplemented expr")
 	}
@@ -890,6 +892,16 @@ func (v *Codegen) genDerefExpr(n *parser.DerefExpr) llvm.Value {
 
 func (v *Codegen) genBracketExpr(n *parser.BracketExpr) llvm.Value {
 	return v.genExpr(n.Expr)
+}
+
+func (v *Codegen) genSizeofExpr(n *parser.SizeofExpr) llvm.Value {
+	if n.Expr != nil {
+		gep := v.builder.CreateGEP(llvm.ConstNull(llvm.PointerType(v.typeToLLVMType(n.Expr.GetType()), 0)), []llvm.Value{llvm.ConstInt(llvm.Int32Type(), 1, false)}, "")
+		return v.builder.CreatePtrToInt(gep, v.typeToLLVMType(n.GetType()), "sizeof")
+	} else {
+		// we have a type
+		panic("can't do this yet")
+	}
 }
 
 func (v *Codegen) typeToLLVMType(typ parser.Type) llvm.Type {
