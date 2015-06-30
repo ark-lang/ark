@@ -135,7 +135,7 @@ func Parse(input *lexer.Sourcefile, modules map[string]*Module, verbose bool) *M
 	p.parse()
 
 	sem := &semanticAnalyzer{module: p.module}
-	sem.analyze()
+	sem.analyze(modules)
 
 	dur := time.Since(t)
 
