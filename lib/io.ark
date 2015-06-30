@@ -1,3 +1,5 @@
 [c] func printf(fmt: str, ...);
 
-func println(message: str) -> printf("%s\n", message);
+func println(message: str) {
+    printf("%s\n", message);
+}
