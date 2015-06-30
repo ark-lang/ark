@@ -21,6 +21,7 @@ type parser struct {
 	currentToken int
 	verbose      bool
 
+	modules map[string]*Module
 	scope             *Scope
 	binOpPrecedences  map[BinOpType]int
 	attrs             []*Attr
@@ -128,20 +129,26 @@ func Parse(input *lexer.Sourcefile, modules map[string]*Module, verbose bool) *M
 		binOpPrecedences: newBinOpPrecedenceMap(),
 	}
 	p.module.GlobalScope = p.scope
+	p.modules = modules
 	modules[input.Name] = p.module
 
 	if verbose {
 		fmt.Println(util.TEXT_BOLD+util.TEXT_GREEN+"Started parsing"+util.TEXT_RESET, input.Name)
 	}
+
 	t := time.Now()
 	p.parse()
+	
 	sem := &semanticAnalyzer{module: p.module, unresolvedNodes: p.unresolvedNodes}
 	sem.analyze(modules)
+	
 	dur := time.Since(t)
+
 	if verbose {
 		for _, n := range p.module.Nodes {
 			fmt.Println(n.String())
 		}
+
 		fmt.Printf(util.TEXT_BOLD+util.TEXT_GREEN+"Finished parsing"+util.TEXT_RESET+" %s (%.2fms)\n",
 			input.Name, float32(dur.Nanoseconds())/1000000)
 	}
@@ -344,15 +351,36 @@ func (v *parser) parseUseDecl() Decl {
 	// already there due to the previous check
 	v.consumeToken()
 
+	var useDecl *UseDecl 
+
 	if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, "") {
 		moduleName := v.consumeToken().Contents
 		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ";") {
 			v.consumeToken()
-			return &UseDecl{ModuleName: moduleName, Scope: v.scope}
+			useDecl = &UseDecl{ModuleName: moduleName, Scope: v.scope}
+		} else {
+			v.err("Expected semicolon after use declaration, found `%s`", v.peek(0).Contents)
 		}
-		v.err("Expected semicolon after use declaration, found `%s`", v.peek(0).Contents)
 	}
 
+	// fuck it WELL DO IT LIVE
+	for leModule := range v.modules {
+		fmt.Println("analyze stage, module: " + leModule)
+	}
+	fmt.Println("what?")
+
+	// check if the module exists in the modules that are
+	// parsed to avoid any weird errors
+	if moduleToUse, ok := v.modules[useDecl.ModuleName]; ok {
+		if v.scope.Outer != nil {
+			v.scope.Outer.UsedModules[moduleToUse.Name] = moduleToUse
+		} else {
+			v.scope.UsedModules[moduleToUse.Name] = moduleToUse
+		}
+		return useDecl
+	}
+
+	fmt.Printf("couldn't find module %s\n", useDecl.ModuleName)
 	return nil
 }
 
