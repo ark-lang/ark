@@ -21,6 +21,7 @@ type parser struct {
 	currentToken int
 	verbose      bool
 
+	modules map[string]*Module
 	scope             *Scope
 	binOpPrecedences  map[BinOpType]int
 	attrs             []*Attr
@@ -115,11 +116,12 @@ func (v *parser) getPrecedence(op BinOpType) int {
 	return -1
 }
 
-func Parse(input *lexer.Sourcefile, verbose bool) *Module {
+func Parse(input *lexer.Sourcefile, modules map[string]*Module, verbose bool) *Module {
 	p := &parser{
 		module: &Module{
 			Nodes: make([]Node, 0),
-			Name:  input.Filename,
+			Path:  input.Path,
+			Name:  input.Name,
 		},
 		input:            input.Tokens,
 		verbose:          verbose,
@@ -127,21 +129,28 @@ func Parse(input *lexer.Sourcefile, verbose bool) *Module {
 		binOpPrecedences: newBinOpPrecedenceMap(),
 	}
 	p.module.GlobalScope = p.scope
+	p.modules = modules
+	modules[input.Name] = p.module
 
 	if verbose {
-		fmt.Println(util.TEXT_BOLD+util.TEXT_GREEN+"Started parsing"+util.TEXT_RESET, input.Filename)
+		fmt.Println(util.TEXT_BOLD+util.TEXT_GREEN+"Started parsing"+util.TEXT_RESET, input.Name)
 	}
+
 	t := time.Now()
 	p.parse()
+	
 	sem := &semanticAnalyzer{module: p.module, unresolvedNodes: p.unresolvedNodes}
-	sem.analyze()
+	sem.analyze(modules)
+	
 	dur := time.Since(t)
+
 	if verbose {
 		for _, n := range p.module.Nodes {
 			fmt.Println(n.String())
 		}
+
 		fmt.Printf(util.TEXT_BOLD+util.TEXT_GREEN+"Finished parsing"+util.TEXT_RESET+" %s (%.2fms)\n",
-			input.Filename, float32(dur.Nanoseconds())/1000000)
+			input.Name, float32(dur.Nanoseconds())/1000000)
 	}
 
 	return p.module
@@ -333,6 +342,48 @@ func (v *parser) parseCallStat() *CallStat {
 	return nil
 }
 
+func (v *parser) parseUseDecl() Decl {
+	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_USE) {
+		return nil
+	}
+
+	// consume use, since we know it's
+	// already there due to the previous check
+	v.consumeToken()
+
+	var useDecl *UseDecl 
+
+	if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, "") {
+		moduleName := v.consumeToken().Contents
+		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ";") {
+			v.consumeToken()
+			useDecl = &UseDecl{ModuleName: moduleName, Scope: v.scope}
+		} else {
+			v.err("Expected semicolon after use declaration, found `%s`", v.peek(0).Contents)
+		}
+	}
+
+	// fuck it WELL DO IT LIVE
+	for leModule := range v.modules {
+		fmt.Println("analyze stage, module: " + leModule)
+	}
+	fmt.Println("what?")
+
+	// check if the module exists in the modules that are
+	// parsed to avoid any weird errors
+	if moduleToUse, ok := v.modules[useDecl.ModuleName]; ok {
+		if v.scope.Outer != nil {
+			v.scope.Outer.UsedModules[moduleToUse.Name] = moduleToUse
+		} else {
+			v.scope.UsedModules[moduleToUse.Name] = moduleToUse
+		}
+		return useDecl
+	}
+
+	fmt.Printf("couldn't find module %s\n", useDecl.ModuleName)
+	return nil
+}
+
 func (v *parser) parseDecl() Decl {
 	var ret Decl
 
@@ -341,6 +392,8 @@ func (v *parser) parseDecl() Decl {
 
 	if structureDecl := v.parseStructDecl(); structureDecl != nil {
 		ret = structureDecl
+	} else if useDecl := v.parseUseDecl(); useDecl != nil {
+		ret = useDecl
 	} else if traitDecl := v.parseTraitDecl(); traitDecl != nil {
 		ret = traitDecl
 	} else if implDecl := v.parseImplDecl(); implDecl != nil {
