@@ -234,7 +234,7 @@ func (v *lexer) recognizeNumberToken() {
 			if isDecimalDigit(v.peek(0)) || v.peek(0) == '_' || v.peek(0) == '.' {
 				v.consume()
 				continue
-			} else if v.peek(0) == 'f' || v.peek(0) == 'd' {
+			} else if peek := unicode.ToLower(v.peek(0)); peek == 'f' || peek == 'd' || peek == 'q' {
 				v.consume()
 			}
 			v.pushToken(TOKEN_NUMBER)

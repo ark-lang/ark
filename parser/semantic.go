@@ -266,11 +266,15 @@ func (v *ReturnStat) analyze(s *semanticAnalyzer) {
 				s.function.Name, s.function.ReturnType.TypeName())
 		}
 	} else {
-		v.Value.setTypeHint(s.function.ReturnType)
-		v.Value.analyze(s)
-		if v.Value.GetType() != s.function.ReturnType {
-			s.err(v.Value, "Cannot return expression of type `%s` from function `%s` of type `%s`",
-				v.Value.GetType().TypeName(), s.function.Name, s.function.ReturnType.TypeName())
+		if s.function.ReturnType == nil {
+			s.err(v.Value, "Cannot return expression from void function")
+		} else {
+			v.Value.setTypeHint(s.function.ReturnType)
+			v.Value.analyze(s)
+			if v.Value.GetType() != s.function.ReturnType {
+				s.err(v.Value, "Cannot return expression of type `%s` from function `%s` of type `%s`",
+					v.Value.GetType().TypeName(), s.function.Name, s.function.ReturnType.TypeName())
+			}
 		}
 	}
 }
@@ -527,11 +531,16 @@ func (v *IntegerLiteral) setTypeHint(t Type) {
 func (v *FloatingLiteral) analyze(s *semanticAnalyzer) {}
 
 func (v *FloatingLiteral) setTypeHint(t Type) {
+	if v.Type != nil {
+		// we've already figured out the type from a suffix
+		return
+	}
+
 	switch t {
 	case PRIMITIVE_f64, PRIMITIVE_f32, PRIMITIVE_f128:
 		v.Type = t
 	default:
-		v.Type = PRIMITIVE_f32
+		v.Type = PRIMITIVE_f64
 	}
 }
 
