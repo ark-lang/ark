@@ -1,0 +1,10 @@
+func main(): int {
+    mut x := 2;
+    mut y := 2;
+    for x == 2 {
+        y = x + y;
+        if y > 100 {
+            return y;
+        }
+    }
+}
