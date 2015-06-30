@@ -10,6 +10,7 @@ package parser
 type unresolvedName struct {
 	moduleNames []string
 	name        string
+	modules 	map[string]*Module
 }
 
 func (v unresolvedName) String() string {
@@ -24,7 +25,9 @@ func (v *semanticAnalyzer) errResolve(thing Locatable, name unresolvedName) {
 	v.err(thing, "Cannot resolve `%s`", name.String())
 }
 
-func (v *semanticAnalyzer) resolve() {
+func (v *semanticAnalyzer) resolve(modules map[string]*Module) {
+	v.modules = modules
+
 	for _, node := range v.module.Nodes {
 		node.resolve(v, v.module.GlobalScope)
 	}
@@ -66,6 +69,10 @@ func (v *FunctionDecl) resolve(sem *semanticAnalyzer, s *Scope) {
 	if !v.Prototype {
 		v.Function.Body.resolve(sem, s)
 	}
+}
+
+func (v *UseDecl) resolve(sem *semanticAnalyzer, s *Scope) {
+	// later...
 }
 
 func (v *ModuleDecl) resolve(sem *semanticAnalyzer, s *Scope) {
