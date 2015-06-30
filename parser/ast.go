@@ -313,6 +313,28 @@ func (v *ImplDecl) DocComments() []*DocComment {
 	return nil // TODO
 }
 
+// UseDecl
+
+type UseDecl struct {
+	nodePos
+	ModuleName string
+	Scope *Scope
+}
+
+func (v *UseDecl) declNode() {}
+
+func (v *UseDecl) String() string {
+	return "(" + util.Blue("UseDecl") + ": " + v.ModuleName + ")"
+}
+
+func (v *UseDecl) NodeName() string {
+	return "use declaration"
+}
+
+func (v *UseDecl) DocComments() []*DocComment {
+	return nil
+}
+
 // FunctionDecl
 
 type FunctionDecl struct {

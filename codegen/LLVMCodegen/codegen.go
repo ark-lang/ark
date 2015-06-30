@@ -28,6 +28,8 @@ type Codegen struct {
 	OutputAsm  bool
 	CCArgs     []string
 
+	modules map[string]*parser.Module
+
 	inFunction      bool
 	currentFunction llvm.Value
 }
@@ -99,7 +101,7 @@ func (v *Codegen) createBinary() {
 	}
 }
 
-func (v *Codegen) Generate(input []*parser.Module, verbose bool) {
+func (v *Codegen) Generate(input []*parser.Module, modules map[string]*parser.Module, verbose bool) {
 	v.input = input
 	v.builder = llvm.NewBuilder()
 	v.variableLookup = make(map[*parser.Variable]llvm.Value)
@@ -115,9 +117,14 @@ func (v *Codegen) Generate(input []*parser.Module, verbose bool) {
 	passBuilder.SetOptLevel(3)
 	//passBuilder.Populate(passManager) //leave this off until the compiler is better
 
+	v.modules = make(map[string]*parser.Module)
+
 	for _, infile := range input {
 		infile.Module = llvm.NewModule(infile.Name)
 		v.curFile = infile
+
+		fmt.Println("adding module " + v.curFile.Name)
+		v.modules[v.curFile.Name] = v.curFile
 
 		v.declareDecls(infile.Nodes)
 
@@ -125,7 +132,9 @@ func (v *Codegen) Generate(input []*parser.Module, verbose bool) {
 			v.genNode(node)
 		}
 
-		infile.Module.Dump()
+		if verbose {
+			infile.Module.Dump()
+		}
 
 		if err := llvm.VerifyModule(infile.Module, llvm.ReturnStatusAction); err != nil {
 			v.err("%s", err.Error())
@@ -412,6 +421,8 @@ func (v *Codegen) genDecl(n parser.Decl) {
 	switch n.(type) {
 	case *parser.FunctionDecl:
 		v.genFunctionDecl(n.(*parser.FunctionDecl))
+	case *parser.UseDecl:
+		v.genUseDecl(n.(*parser.UseDecl))
 	case *parser.StructDecl:
 		//return v.genStructDecl(n.(*parser.StructDecl)) not used
 	case *parser.TraitDecl:
@@ -425,6 +436,10 @@ func (v *Codegen) genDecl(n parser.Decl) {
 	default:
 		panic("unimplimented decl")
 	}
+}
+
+func (v *Codegen) genUseDecl(n *parser.UseDecl) {
+	// later
 }
 
 func (v *Codegen) genFunctionDecl(n *parser.FunctionDecl) llvm.Value {
@@ -864,9 +879,12 @@ func (v *Codegen) genCallExpr(n *parser.CallExpr) llvm.Value {
 	if cBinding {
 		functionName = n.Function.Name
 	}
+
+	swag:
 	function := v.curFile.Module.NamedFunction(functionName)
 	if function.IsNil() {
-		v.err("function `%s` does not exist in current module", functionName)
+		v.declareFunctionDecl(&parser.FunctionDecl{Function: n.Function, Prototype: true})
+		goto swag
 	}
 
 	numOfArguments := len(n.Arguments)
