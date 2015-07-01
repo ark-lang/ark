@@ -1,7 +1,6 @@
 func fib(n: int): int {
-    match n {
-        0 -> return 0;
-        1 -> return 1;
+    if n < 2 {
+        return n;
     }
     return fib(n - 1) + fib(n - 2);
 }
