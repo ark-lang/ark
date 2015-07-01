@@ -310,17 +310,24 @@ func (v *parser) parseAssignStat() *AssignStat {
 }
 
 func (v *parser) parseBlockStat() *BlockStat {
-	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_DO) {
+	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_DO) && !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "{") {
 		return nil
 	}
 
-	v.consumeToken()
+	// messy but fuck it
+	hasDo := false
+	if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_DO) {
+		v.consumeToken()
+		hasDo = true
+	}
 
 	var blockStat *BlockStat
 	if block := v.parseBlock(true); block != nil {
 		blockStat = &BlockStat{Block: block}
-	} else {
+	} else if hasDo {
 		v.err("Expected block after `%d` keyword, found `%s`", KEYWORD_DO, v.peek(0).Contents)
+	} else {
+		v.err("Expected block, found `%s`", v.peek(0).Contents)
 	}
 
 	return blockStat
@@ -807,8 +814,14 @@ func (v *parser) parseModuleDecl() *ModuleDecl {
 				break
 			}
 
+			// maybe decl for this instead?
+			// also refactor how it's stored in the
+			// module and just store Decl?
+			// idk might be cleaner
 			if function := v.parseFunctionDecl(); function != nil {
 				module.Functions = append(module.Functions, function)
+			} else if variable := v.parseVariableDecl(true); variable != nil {
+				module.Variables = append(module.Variables, variable)
 			} else {
 				v.err("invalid item in module `%s`", module.Name)
 			}
@@ -1074,7 +1087,7 @@ func (v *parser) parseVariableDecl(needSemicolon bool) *VariableDecl {
 		variable.typeName = v.parseTypeToString()
 		variable.Type = getTypeFromString(v.scope, variable.typeName)
 		if variable.Type == nil {
-			v.err("nope")
+			v.err("Could not decipher type from string `%s` for variable `%s`", variable.typeName, variable.Name)
 		}
 	}
 

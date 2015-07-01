@@ -433,8 +433,10 @@ func (v *Codegen) genDecl(n parser.Decl) {
 		// todo
 	case *parser.VariableDecl:
 		v.genVariableDecl(n.(*parser.VariableDecl), true)
+	case *parser.ModuleDecl:
+		// TODO!!
 	default:
-		panic("unimplimented decl")
+		v.err("unimplimented decl found: `%s`", n.NodeName())
 	}
 }
 
