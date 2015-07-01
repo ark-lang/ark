@@ -10,7 +10,7 @@ package parser
 type unresolvedName struct {
 	moduleNames []string
 	name        string
-	modules 	map[string]*Module
+	modules     map[string]*Module
 }
 
 func (v unresolvedName) String() string {
