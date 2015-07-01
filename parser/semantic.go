@@ -17,7 +17,7 @@ type semanticAnalyzer struct {
 	module          *Module
 	function        *Function // the function we're in, or nil if we aren't
 	unresolvedNodes []Node
-	modules			map[string]*Module
+	modules         map[string]*Module
 }
 
 func (v *semanticAnalyzer) err(thing Locatable, err string, stuff ...interface{}) {
@@ -233,7 +233,7 @@ func (v *ImplDecl) analyze(s *semanticAnalyzer) {
 }
 
 func (v *UseDecl) analyze(s *semanticAnalyzer) {
-	
+
 }
 
 func (v *FunctionDecl) analyze(s *semanticAnalyzer) {
