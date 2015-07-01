@@ -11,6 +11,6 @@ type Module struct {
 	GlobalScope *Scope
 	Module      llvm.Module
 	Functions   []*FunctionDecl
-    Variables   []*VariableDecl
+	Variables   []*VariableDecl
 	UsedModules map[string]*Module
 }
