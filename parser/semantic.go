@@ -437,7 +437,7 @@ func (v *BinaryExpr) analyze(s *semanticAnalyzer) {
 			case OP_COMPARISON:
 				v.Type = PRIMITIVE_bool
 			default:
-				panic("shouldn't happen ever, one of the devs really fucked up, sorry!")
+				s.err(v, "invalid operands specified `%s`", v.Op.String())
 			}
 		}
 
