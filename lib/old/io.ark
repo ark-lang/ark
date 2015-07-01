@@ -1,0 +1,10 @@
+
+// c attribute applies to all of these functions
+[c] {
+    func getchar(): int;
+    func remove(filename: str): int;
+    func rename(oldFilename: str, newFilename: str): int;
+    func putchar(c: int): int;
+    func printf(format: str, ...): int;
+    func perror(message: str);
+}

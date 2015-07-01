@@ -936,6 +936,37 @@ func (v *BracketExpr) NodeName() string {
 	return "bracketed expression"
 }
 
+// SizeofExpr
+
+type SizeofExpr struct {
+	nodePos
+	// oneither Expr or Type is nil, not neither or both
+
+	Expr Expr
+
+	Type Type
+}
+
+func (v *SizeofExpr) exprNode() {}
+
+func (v *SizeofExpr) String() string {
+	ret := "(" + util.Blue("SizeofExpr") + ": "
+	if v.Expr != nil {
+		ret += v.Expr.String()
+	} else {
+		ret += v.Type.TypeName()
+	}
+	return ret + ")"
+}
+
+func (v *SizeofExpr) GetType() Type {
+	return PRIMITIVE_uint
+}
+
+func (v *SizeofExpr) NodeName() string {
+	return "sizeof expression"
+}
+
 // DefaultMatchBranch
 
 type DefaultMatchBranch struct {
