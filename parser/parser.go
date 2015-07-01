@@ -1087,7 +1087,7 @@ func (v *parser) parseVariableDecl(needSemicolon bool) *VariableDecl {
 		variable.typeName = v.parseTypeToString()
 		variable.Type = getTypeFromString(v.scope, variable.typeName)
 		if variable.Type == nil {
-			v.err("nope")
+			v.err("Could not decipher type from string `%s` for variable `%s`", variable.typeName, variable.Name)
 		}
 	}
 
