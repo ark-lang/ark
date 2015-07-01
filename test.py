@@ -83,6 +83,7 @@ for name in files:
 	if show_output:
 		print(bold("Running ") + name + "...")
 
+	run_result = 63 # this is 00111111 which is ? in base 10 lol idk
 	try:
 		if show_output:
 			run_result = subprocess.call(["./tests/" + output_file])
@@ -90,7 +91,7 @@ for name in files:
 			run_result = subprocess.call(["./tests/" + output_file], stdout=FNULL, stderr=subprocess.STDOUT)
 
 		os.remove("tests/" + output_file)
-	except FileNotFoundError:
+	except (OSError, IOError) as e:
 		print(red(bold("File not found: " + output_file)))
 
 	if run_result != 0:
