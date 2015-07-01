@@ -882,7 +882,7 @@ func (v *Codegen) genCallExpr(n *parser.CallExpr) llvm.Value {
 		functionName = n.Function.Name
 	}
 
-	swag:
+swag:
 	function := v.curFile.Module.NamedFunction(functionName)
 	if function.IsNil() {
 		v.declareFunctionDecl(&parser.FunctionDecl{Function: n.Function, Prototype: true})

@@ -5,21 +5,21 @@ import (
 )
 
 type Scope struct {
-	Outer *Scope
-	Vars  map[string]*Variable
-	Types map[string]Type
-	Funcs map[string]*Function
-	Mods  map[string]*Module
+	Outer       *Scope
+	Vars        map[string]*Variable
+	Types       map[string]Type
+	Funcs       map[string]*Function
+	Mods        map[string]*Module
 	UsedModules map[string]*Module
 }
 
 func newScope(outer *Scope) *Scope {
 	return &Scope{
-		Outer: outer,
-		Vars:  make(map[string]*Variable),
-		Types: make(map[string]Type),
-		Funcs: make(map[string]*Function),
-		Mods:  make(map[string]*Module),
+		Outer:       outer,
+		Vars:        make(map[string]*Variable),
+		Types:       make(map[string]Type),
+		Funcs:       make(map[string]*Function),
+		Mods:        make(map[string]*Module),
 		UsedModules: make(map[string]*Module),
 	}
 }
@@ -96,7 +96,7 @@ func (v *Scope) GetFunction(name unresolvedName) *Function {
 			fmt.Println("FOUND THE MODULE " + moduleName)
 
 			if r := module.GlobalScope.Funcs[name.name]; r != nil {
-				return r;
+				return r
 			} else {
 				fmt.Println("can't find the function in the module yo")
 			}
@@ -106,7 +106,7 @@ func (v *Scope) GetFunction(name unresolvedName) *Function {
 			if module, ok := v.Outer.UsedModules[moduleName]; ok {
 				if r := module.GlobalScope.Funcs[name.name]; r != nil {
 					fmt.Println("Found function " + name.name + " in the global scope funcs thing!")
-					return r;
+					return r
 				} else {
 					fmt.Println("can't find the function in the module yo")
 				}
