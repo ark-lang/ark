@@ -814,8 +814,14 @@ func (v *parser) parseModuleDecl() *ModuleDecl {
 				break
 			}
 
+			// maybe decl for this instead?
+			// also refactor how it's stored in the
+			// module and just store Decl?
+			// idk might be cleaner
 			if function := v.parseFunctionDecl(); function != nil {
 				module.Functions = append(module.Functions, function)
+			} else if variable := v.parseVariableDecl(true); variable != nil {
+				module.Variables = append(module.Variables, variable)
 			} else {
 				v.err("invalid item in module `%s`", module.Name)
 			}
