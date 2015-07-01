@@ -21,17 +21,12 @@ type parser struct {
 	currentToken int
 	verbose      bool
 
-	modules map[string]*Module
+	modules           map[string]*Module
 	scope             *Scope
 	binOpPrecedences  map[BinOpType]int
 	attrs             []*Attr
 	curNodeTokenStart int
 	docCommentsBuf    []*DocComment
-	unresolvedNodes   []Node // nodes with unresolved references to vars/types/funcs etc
-}
-
-func (v *parser) addUnresolvedNode(n Node) {
-	v.unresolvedNodes = append(v.unresolvedNodes, n)
 }
 
 func (v *parser) err(err string, stuff ...interface{}) {
@@ -138,10 +133,10 @@ func Parse(input *lexer.Sourcefile, modules map[string]*Module, verbose bool) *M
 
 	t := time.Now()
 	p.parse()
-	
-	sem := &semanticAnalyzer{module: p.module, unresolvedNodes: p.unresolvedNodes}
+
+	sem := &semanticAnalyzer{module: p.module}
 	sem.analyze(modules)
-	
+
 	dur := time.Since(t)
 
 	if verbose {
@@ -351,7 +346,7 @@ func (v *parser) parseUseDecl() Decl {
 	// already there due to the previous check
 	v.consumeToken()
 
-	var useDecl *UseDecl 
+	var useDecl *UseDecl
 
 	if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, "") {
 		moduleName := v.consumeToken().Contents
@@ -531,7 +526,7 @@ func (v *parser) parseFunctionDecl() *FunctionDecl {
 		if function.returnTypeName = v.parseTypeToString(); function.returnTypeName != "" {
 			function.ReturnType = getTypeFromString(v.scope, function.returnTypeName)
 			if function.ReturnType == nil {
-				v.addUnresolvedNode(funcDecl)
+				v.err("nope")
 			}
 		} else {
 			v.err("Expected function return type after colon for function `%s`", function.Name)
@@ -1079,7 +1074,7 @@ func (v *parser) parseVariableDecl(needSemicolon bool) *VariableDecl {
 		variable.typeName = v.parseTypeToString()
 		variable.Type = getTypeFromString(v.scope, variable.typeName)
 		if variable.Type == nil {
-			v.addUnresolvedNode(varDecl)
+			v.err("nope")
 		}
 	}
 
@@ -1173,7 +1168,9 @@ func (v *parser) parseBinaryOperator(upperPrecedence int, lhand Expr) Expr {
 }
 
 func (v *parser) parsePrimaryExpr() Expr {
-	if bracketExpr := v.parseBracketExpr(); bracketExpr != nil {
+	if sizeofExpr := v.parseSizeofExpr(); sizeofExpr != nil {
+		return sizeofExpr
+	} else if bracketExpr := v.parseBracketExpr(); bracketExpr != nil {
 		return bracketExpr
 	} else if addressOfExpr := v.parseAddressOfExpr(); addressOfExpr != nil {
 		return addressOfExpr
@@ -1192,6 +1189,42 @@ func (v *parser) parsePrimaryExpr() Expr {
 	}
 
 	return nil
+}
+
+func (v *parser) parseSizeofExpr() *SizeofExpr {
+	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_SIZEOF) {
+		return nil
+	}
+	v.consumeToken()
+
+	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "(") {
+		v.err("Expected `()` in sizeof expression, found `%s`", v.peek(0).Contents)
+	}
+	v.consumeToken()
+
+	sizeof := &SizeofExpr{}
+
+	// TODO types
+	/*if castExpr.typeName = v.parseTypeToString(); castExpr.typeName != "" {
+		castExpr.Type = getTypeFromString(v.scope, castExpr.typeName)
+		if castExpr.Type == nil {
+			v.err("nope")
+		}
+
+	}*/
+
+	if expr := v.parseExpr(); expr != nil {
+		sizeof.Expr = expr
+	} else {
+		v.err("Expected expression in sizeof expression, found `%s`", v.peek(0).Contents)
+	}
+
+	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ")") {
+		v.err("Expected `)` in sizeof expression, found `%s`", v.peek(0).Contents)
+	}
+	v.consumeToken()
+
+	return sizeof
 }
 
 func (v *parser) parseTupleLiteral() *TupleLiteral {
@@ -1338,7 +1371,7 @@ func (v *parser) parseCastExpr() *CastExpr {
 	if castExpr.typeName = v.parseTypeToString(); castExpr.typeName != "" {
 		castExpr.Type = getTypeFromString(v.scope, castExpr.typeName)
 		if castExpr.Type == nil {
-			v.addUnresolvedNode(castExpr)
+			v.err("nope")
 		}
 	} else {
 		v.err("Expected type")

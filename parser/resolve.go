@@ -236,6 +236,14 @@ func (v *BracketExpr) resolve(sem *semanticAnalyzer, s *Scope) {
 	v.Expr.resolve(sem, s)
 }
 
+func (v *SizeofExpr) resolve(sem *semanticAnalyzer, s *Scope) {
+	if v.Expr != nil {
+		v.Expr.resolve(sem, s)
+	} else {
+		// todo types
+	}
+}
+
 func (v *TupleLiteral) resolve(sem *semanticAnalyzer, s *Scope) {
 	// do it later cba
 }
