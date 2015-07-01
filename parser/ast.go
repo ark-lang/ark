@@ -195,7 +195,16 @@ type ModuleDecl struct {
 func (v *ModuleDecl) declNode() {}
 
 func (v *ModuleDecl) String() string {
-	return "(todo mod)"
+	result := "(" + util.Blue(v.Module.Name) + " (in " + util.Green(v.Module.Path) + "): \n"
+	// todo interfaces for this shit
+	for _, function := range v.Module.Functions {
+		result += "\t" + function.String() + "\n"
+	}
+	for _, variable := range v.Module.Variables {
+		result += "\t" + variable.String() + "\n"
+	}
+	result += ")"
+	return result
 }
 
 func (v *ModuleDecl) NodeName() string {
