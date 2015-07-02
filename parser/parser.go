@@ -376,7 +376,7 @@ func (v *parser) parseUseDecl() Decl {
 		return useDecl
 	}
 
-	v.err("couldn't find module %s\n", useDecl.ModuleName)
+	v.err("attempting to use undefined module `%s`", useDecl.ModuleName)
 	return nil
 }
 
@@ -730,7 +730,6 @@ func (v *parser) parseMatchStat() *MatchStat {
 		if !v.tokenMatches(0, lexer.TOKEN_OPERATOR, "->") {
 			v.err("Expected \"->\" between pattern and statement "+
 				"in match body, found `%s`", v.peek(0).Contents)
-
 		}
 		v.consumeToken() // consume "->"
 
@@ -756,6 +755,8 @@ func (v *parser) parseLoopStat() *LoopStat {
 
 	loop := &LoopStat{}
 
+	// matches for {} which is
+	// an infinite loop
 	if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "{") { // infinite loop
 		loop.LoopType = LOOP_TYPE_INFINITE
 
@@ -766,6 +767,9 @@ func (v *parser) parseLoopStat() *LoopStat {
 		return loop
 	}
 
+	// matches for condition {}
+	// basically a white loop
+	// or a "conditional for loop"
 	if cond := v.parseExpr(); cond != nil {
 		loop.LoopType = LOOP_TYPE_CONDITIONAL
 		loop.Condition = cond
@@ -798,7 +802,6 @@ func (v *parser) parseModuleDecl() *ModuleDecl {
 		v.err("Cannot name module reserved keyword `%s`", module.Name)
 	}
 
-	// scope stuff?
 	if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "{") {
 		v.consumeToken()
 
@@ -848,7 +851,6 @@ func (v *parser) parseStructDecl() *StructDecl {
 
 	struc.attrs = v.fetchAttrs()
 
-	// TODO semi colons i.e. struct with no body?
 	var itemCount = 0
 	if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "{") {
 		v.consumeToken()
