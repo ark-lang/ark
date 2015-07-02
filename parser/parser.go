@@ -365,12 +365,6 @@ func (v *parser) parseUseDecl() Decl {
 		}
 	}
 
-	// fuck it WELL DO IT LIVE
-	for leModule := range v.modules {
-		fmt.Println("analyze stage, module: " + leModule)
-	}
-	fmt.Println("what?")
-
 	// check if the module exists in the modules that are
 	// parsed to avoid any weird errors
 	if moduleToUse, ok := v.modules[useDecl.ModuleName]; ok {
@@ -382,7 +376,7 @@ func (v *parser) parseUseDecl() Decl {
 		return useDecl
 	}
 
-	fmt.Printf("couldn't find module %s\n", useDecl.ModuleName)
+	v.err("couldn't find module %s\n", useDecl.ModuleName)
 	return nil
 }
 
