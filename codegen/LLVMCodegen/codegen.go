@@ -571,8 +571,12 @@ func (v *Codegen) genAddressOfExpr(n *parser.AddressOfExpr) llvm.Value {
 			index := n.Access.Accesses[i].Variable.Type.(*parser.StructType).VariableIndex(n.Access.Accesses[i+1].Variable)
 			gep = v.builder.CreateGEP(gep, []llvm.Value{llvm.ConstInt(llvm.Int32Type(), 0, false), llvm.ConstInt(llvm.Int32Type(), uint64(index), false)}, "")
 
+		case parser.ACCESS_TUPLE:
+			index := n.Access.Accesses[i].Index
+			gep = v.builder.CreateGEP(gep, []llvm.Value{llvm.ConstInt(llvm.Int32Type(), 0, false), llvm.ConstInt(llvm.Int32Type(), index, false)}, "")
+
 		default:
-			panic("")
+			panic("unhandled access type")
 		}
 	}
 

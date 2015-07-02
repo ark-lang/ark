@@ -1,9 +1,13 @@
 func something(): |int, f32| {
     x := |4, 2.3|; // inferred
-    y: |int, f32| = |3, 2.4|;
-    return |0, 3.4|;
+    y: |int, f32| = |0, 2.4|;
+    return y;
 }
 
-func main() {
+func main(): int {
     x := something();
+    y := x|0|;
+    z := x|1|;
+
+    return y;
 }
