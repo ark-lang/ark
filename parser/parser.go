@@ -832,31 +832,33 @@ func (v *parser) parseStructDecl() *StructDecl {
 	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_STRUCT) {
 		return nil
 	}
-	struc := &StructType{}
+	structure := &StructType{}
 
 	v.consumeToken()
 
 	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, "") {
 		v.err("Expected identifier after `struct` keyword, found `%s`", v.peek(0).Contents)
 	}
-	struc.Name = v.consumeToken().Contents
+	structure.Name = v.consumeToken().Contents
 
-	if isReservedKeyword(struc.Name) {
-		v.err("Cannot name struct reserved keyword `%s`", struc.Name)
+	if isReservedKeyword(structure.Name) {
+		v.err("Cannot name struct reserved keyword `%s`", structure.Name)
 	}
 
-	if sname := v.scope.InsertType(struc); sname != nil {
-		v.err("Illegal redeclaration of type `%s`", struc.Name)
+	if sname := v.scope.InsertType(structure); sname != nil {
+		v.err("Illegal redeclaration of type `%s`", structure.Name)
 	}
 
-	struc.attrs = v.fetchAttrs()
+	structure.attrs = v.fetchAttrs()
 
-	var itemCount = 0
-	if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "{") {
+	if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ";") {
+		v.consumeToken()
+	} else if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "{") {
 		v.consumeToken()
 
 		v.pushScope()
 
+		var itemCount = 0
 		for {
 			if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "}") {
 				v.consumeToken()
@@ -870,11 +872,11 @@ func (v *parser) parseStructDecl() *StructDecl {
 				if variable.Variable.Mutable {
 					v.err("Cannot specify `mut` keyword on struct member: `%s`", variable.Variable.Name)
 				}
-				struc.addVariableDecl(variable)
+				structure.addVariableDecl(variable)
 				variable.setPos(filename, line, char)
 				itemCount++
 			} else {
-				v.err("Invalid structure item in structure `%s`", struc.Name)
+				v.err("Invalid structure item in structure `%s`", structure.Name)
 			}
 
 			if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ",") {
@@ -884,10 +886,10 @@ func (v *parser) parseStructDecl() *StructDecl {
 
 		v.popScope()
 	} else {
-		v.err("Expected body after struct identifier, found `%s`", v.peek(0).Contents)
+		v.err("Expected block or semi-colon after structure declaration, found `%s`", v.peek(0).Contents)
 	}
 
-	return &StructDecl{Struct: struc}
+	return &StructDecl{Struct: structure}
 }
 
 func (v *parser) parseTraitDecl() *TraitDecl {
