@@ -571,8 +571,12 @@ func (v *Codegen) genAddressOfExpr(n *parser.AddressOfExpr) llvm.Value {
 			index := n.Access.Accesses[i].Variable.Type.(*parser.StructType).VariableIndex(n.Access.Accesses[i+1].Variable)
 			gep = v.builder.CreateGEP(gep, []llvm.Value{llvm.ConstInt(llvm.Int32Type(), 0, false), llvm.ConstInt(llvm.Int32Type(), uint64(index), false)}, "")
 
+		case parser.ACCESS_TUPLE:
+			index := n.Access.Accesses[i].Index
+			gep = v.builder.CreateGEP(gep, []llvm.Value{llvm.ConstInt(llvm.Int32Type(), 0, false), llvm.ConstInt(llvm.Int32Type(), index, false)}, "")
+
 		default:
-			panic("")
+			panic("unhandled access type")
 		}
 	}
 
@@ -623,7 +627,13 @@ func (v *Codegen) genArrayLiteral(n *parser.ArrayLiteral) llvm.Value {
 }
 
 func (v *Codegen) genTupleLiteral(n *parser.TupleLiteral) llvm.Value {
-	panic("not done yet")
+	// TODO: Is this optimal?
+	var values []llvm.Value
+	for _, mem := range n.Members {
+		values = append(values, v.genExpr(mem))
+	}
+
+	return llvm.ConstStruct(values, false)
 }
 
 func (v *Codegen) genIntegerLiteral(n *parser.IntegerLiteral) llvm.Value {
@@ -934,9 +944,21 @@ func (v *Codegen) typeToLLVMType(typ parser.Type) llvm.Type {
 		return llvm.PointerType(v.typeToLLVMType(typ.(parser.PointerType).Addressee), 0)
 	case parser.ArrayType:
 		return v.arrayTypeToLLVMType(typ.(parser.ArrayType))
+	case *parser.TupleType:
+		return v.tupleTypeToLLVMType(typ.(*parser.TupleType))
 	default:
 		panic("Unimplemented type category in LLVM codegen")
 	}
+}
+
+func (v *Codegen) tupleTypeToLLVMType(typ *parser.TupleType) llvm.Type {
+	// TODO: Maybe move to lookup table like struct
+	var fields []llvm.Type
+	for _, mem := range typ.Members {
+		fields = append(fields, v.typeToLLVMType(mem))
+	}
+
+	return llvm.StructType(fields, false)
 }
 
 func (v *Codegen) arrayTypeToLLVMType(typ parser.ArrayType) llvm.Type {
