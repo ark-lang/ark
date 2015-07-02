@@ -1377,6 +1377,31 @@ func (v *parser) parseAccessExpr() *AccessExpr {
 				if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ".") {
 					return access
 				}
+			} else if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "|") {
+				// tuple access
+				v.consumeToken()
+
+				index := v.parseNumericLiteral()
+				if index == nil {
+					v.err("Expected integer for tuple index, found `%s`", v.peek(0).Contents)
+				}
+
+				indexLit, ok := index.(*IntegerLiteral)
+				if !ok {
+					v.err("Expected integer for tuple index, found `%s`", index)
+				}
+
+				if !v.tokenMatches(0, lexer.TOKEN_OPERATOR, "|") {
+					v.err("Expected `|` after tuple index, found `%s`", v.peek(0).Contents)
+				}
+				v.consumeToken()
+
+				access.Accesses = append(access.Accesses, &Access{AccessType: ACCESS_TUPLE, variableName: name, Index: indexLit.Value})
+
+				if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ".") {
+					return access
+				}
+
 			} else {
 				access.Accesses = append(access.Accesses, &Access{AccessType: ACCESS_VARIABLE, variableName: name})
 				return access
