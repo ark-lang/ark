@@ -681,14 +681,7 @@ func (v *BoolLiteral) NodeName() string {
 type TupleLiteral struct {
 	nodePos
 	Members []Expr
-
-	// TODO
-	// this should probably have a type for each member
-	// in the tuple, since that's what differentiates
-	// a tuple from array, after all! Till then I can't
-	// do any codegen for this, but it generates to a structure
-	// with X amount of values and their respective types.
-	Type Type
+	Type    *TupleType
 }
 
 func (v *TupleLiteral) exprNode() {}
@@ -843,6 +836,7 @@ const (
 	ACCESS_VARIABLE AccessType = iota // means this element is either a var on its own or the last var of a struct access
 	ACCESS_STRUCT                     // means the element is a struct being accessed
 	ACCESS_ARRAY                      // means the element is an array member being accessed, ie thing[1]
+	ACCESS_TUPLE                      // means the element is a tuple member being accessed, ie thing|1|
 )
 
 type Access struct {
@@ -850,7 +844,8 @@ type Access struct {
 	Variable     *Variable
 	variableName unresolvedName
 
-	Subscript Expr // only used with ACCESS_ARRAY
+	Subscript Expr   // only used with ACCESS_ARRAY
+	Index     uint64 // only used with ACCESS_TUPLE
 }
 
 type AccessExpr struct {
@@ -873,6 +868,9 @@ func (v *AccessExpr) GetType() Type {
 	acc := v.Accesses[len(v.Accesses)-1]
 	if acc.AccessType == ACCESS_ARRAY {
 		return acc.Variable.Type.(ArrayType).MemberType
+	}
+	if acc.AccessType == ACCESS_TUPLE {
+		return acc.Variable.Type.(*TupleType).Members[acc.Index]
 	}
 	return acc.Variable.Type
 }
