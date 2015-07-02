@@ -90,29 +90,23 @@ func (v *Scope) InsertFunction(t *Function) *Function {
 func (v *Scope) GetFunction(name unresolvedName) *Function {
 	if len(name.moduleNames) > 0 {
 		moduleName := name.moduleNames[0]
-		fmt.Println("finding module by the name " + moduleName)
 
 		if module, ok := v.UsedModules[moduleName]; ok {
-			fmt.Println("FOUND THE MODULE " + moduleName)
-
 			if r := module.GlobalScope.Funcs[name.name]; r != nil {
 				return r
 			} else {
-				fmt.Println("can't find the function in the module yo")
+				v.err("could not find function `%s` in module `%s`", name.name, moduleName)
 			}
 		} else if v.Outer != nil {
-			fmt.Println("FOUND THE MODULE IN OUTER! " + moduleName)
-
 			if module, ok := v.Outer.UsedModules[moduleName]; ok {
 				if r := module.GlobalScope.Funcs[name.name]; r != nil {
-					fmt.Println("Found function " + name.name + " in the global scope funcs thing!")
 					return r
 				} else {
-					fmt.Println("can't find the function in the module yo")
+					v.err("could not find function `%s` in module `%s`", name.name, moduleName)
 				}
 			}
 		} else {
-			fmt.Println("no module " + moduleName + " found in used modules")
+			v.err("no module " + moduleName + " found")
 		}
 	}
 
