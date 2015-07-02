@@ -218,8 +218,12 @@ func (v *AccessExpr) resolve(sem *semanticAnalyzer, s *Scope) {
 			v.Accesses[i+1].Variable = decl.Variable
 		case ACCESS_VARIABLE:
 			// nothing to do
+
+		case ACCESS_TUPLE:
+			// nothing to do
+
 		default:
-			panic("")
+			panic("unhandled access type")
 		}
 	}
 }

@@ -712,6 +712,17 @@ func (v *AccessExpr) analyze(s *semanticAnalyzer) {
 				s.err(v, "Array subscript must be an integer type, have `%s`", access.Subscript.GetType().TypeName())
 			}
 		}
+
+		if access.AccessType == ACCESS_TUPLE {
+			tupleType, ok := access.Variable.Type.(*TupleType)
+			if !ok {
+				s.err(v, "Cannot index type `%s` as a tuple", access.Variable.Type.TypeName())
+			}
+
+			if access.Index >= uint64(len(tupleType.Members)) {
+				s.err(v, "Index `%d` (element %d) is greater than size of tuple `%s`", access.Index, access.Index+1, tupleType.TypeName())
+			}
+		}
 	}
 }
 
