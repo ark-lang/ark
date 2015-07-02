@@ -205,7 +205,7 @@ func (v *VariableDecl) analyze(s *semanticAnalyzer) {
 
 		if v.Variable.Type == nil { // type is inferred
 			v.Variable.Type = v.Assignment.GetType()
-		} else if v.Variable.Type != v.Assignment.GetType() {
+		} else if !v.Variable.Type.Equals(v.Assignment.GetType()) {
 			s.err(v, "Cannot assign expression of type `%s` to variable of type `%s`",
 				v.Assignment.GetType().TypeName(), v.Variable.Type.TypeName())
 		}
@@ -261,7 +261,7 @@ func (v *ReturnStat) analyze(s *semanticAnalyzer) {
 		} else {
 			v.Value.setTypeHint(s.function.ReturnType)
 			v.Value.analyze(s)
-			if v.Value.GetType() != s.function.ReturnType {
+			if !v.Value.GetType().Equals(s.function.ReturnType) {
 				s.err(v.Value, "Cannot return expression of type `%s` from function `%s` of type `%s`",
 					v.Value.GetType().TypeName(), s.function.Name, s.function.ReturnType.TypeName())
 			}
@@ -588,7 +588,7 @@ func (v *ArrayLiteral) analyze(s *semanticAnalyzer) {
 		v.Type = arrayOf(v.Members[0].GetType())
 	} else {
 		for _, mem := range v.Members {
-			if mem.GetType() != memType {
+			if !mem.GetType().Equals(memType) {
 				s.err(v, "Cannot use element of type `%s` in array of type `%s`", mem.GetType().TypeName(), memType.TypeName())
 			}
 		}
@@ -604,7 +604,7 @@ func (v *ArrayLiteral) setTypeHint(t Type) {
 func (v *CastExpr) analyze(s *semanticAnalyzer) {
 	v.Expr.setTypeHint(nil)
 	v.Expr.analyze(s)
-	if v.Type == v.Expr.GetType() {
+	if v.Type.Equals(v.Expr.GetType()) {
 		s.warn(v, "Casting expression of type `%s` to the same type",
 			v.Type.TypeName())
 	} else if !v.Expr.GetType().CanCastTo(v.Type) {
@@ -712,6 +712,17 @@ func (v *AccessExpr) analyze(s *semanticAnalyzer) {
 				s.err(v, "Array subscript must be an integer type, have `%s`", access.Subscript.GetType().TypeName())
 			}
 		}
+
+		if access.AccessType == ACCESS_TUPLE {
+			tupleType, ok := access.Variable.Type.(*TupleType)
+			if !ok {
+				s.err(v, "Cannot index type `%s` as a tuple", access.Variable.Type.TypeName())
+			}
+
+			if access.Index >= uint64(len(tupleType.Members)) {
+				s.err(v, "Index `%d` (element %d) is greater than size of tuple `%s`", access.Index, access.Index+1, tupleType.TypeName())
+			}
+		}
 	}
 }
 
@@ -766,11 +777,56 @@ func (v *SizeofExpr) setTypeHint(t Type) {
 // TupleLiteral
 
 func (v *TupleLiteral) analyze(s *semanticAnalyzer) {
-	// cba do it later
+	var memberTypes []Type
+
+	if v.Type == nil {
+		memberTypes = nil
+	} else {
+		memberTypes = v.Type.Members
+	}
+
+	if len(v.Members) == len(memberTypes) {
+		for idx, mem := range memberTypes {
+			v.Members[idx].setTypeHint(mem)
+		}
+	} else {
+		for _, mem := range v.Members {
+			mem.setTypeHint(nil)
+		}
+	}
+
+	for _, mem := range v.Members {
+		mem.analyze(s)
+	}
+
+	if v.Type == nil {
+		tuple := &TupleType{}
+		for _, mem := range v.Members {
+			if mem.GetType() == nil {
+				s.err(mem, "Couldn't infer type of tuple component")
+			}
+			tuple.addMember(mem.GetType())
+		}
+
+		v.Type = tuple
+	} else {
+		if len(v.Members) != len(memberTypes) {
+			s.err(v, "Invalid amount of entries in tuple")
+		}
+
+		for idx, mem := range v.Members {
+			if !mem.GetType().Equals(memberTypes[idx]) {
+				s.err(v, "Cannot use component of type `%s` in tuple position of type `%s`", mem.GetType().TypeName(), memberTypes[idx])
+			}
+		}
+	}
 }
 
 func (v *TupleLiteral) setTypeHint(t Type) {
-	v.Type = t
+	typ, ok := t.(*TupleType)
+	if ok {
+		v.Type = typ
+	}
 }
 
 // DefaultMatchBranch

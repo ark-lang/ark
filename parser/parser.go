@@ -416,11 +416,32 @@ func getTypeFromString(scope *Scope, s string) Type {
 		return pointerTo(getTypeFromString(scope, string([]rune(s)[1:])))
 	}
 
+	// TODO: this types as strings business is getting a little dirty
+	if []rune(s)[0] == '|' {
+		tuple := &TupleType{}
+
+		runes := []rune(s)
+		body := string(runes[1 : len(runes)-1])
+		parts := strings.Split(body, ", ")
+		for _, part := range parts {
+			mem := getTypeFromString(scope, part)
+			if mem != nil {
+				tuple.addMember(mem)
+			} else {
+				// TODO: handle this more gracefully
+				panic("got a type that's not in scope")
+			}
+
+		}
+
+		return tuple
+	}
+
 	return scope.GetType(s)
 }
 
 func (v *parser) parseTypeToString() string {
-	if !(v.peek(0).Type == lexer.TOKEN_IDENTIFIER || v.tokenMatches(0, lexer.TOKEN_OPERATOR, "^")) {
+	if !(v.peek(0).Type == lexer.TOKEN_IDENTIFIER || v.tokenMatches(0, lexer.TOKEN_OPERATOR, "^") || v.tokenMatches(0, lexer.TOKEN_OPERATOR, "|")) {
 		panic("expected type")
 	}
 
@@ -431,9 +452,40 @@ func (v *parser) parseTypeToString() string {
 		} else {
 			v.err("Expected type name")
 		}
+	} else if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "|") {
+		return v.parseTupleTypeToString()
 	}
 
 	return v.consumeToken().Contents
+}
+
+func (v *parser) parseTupleTypeToString() string {
+	v.consumeToken()
+	result := "|"
+
+	innerType := v.parseTypeToString()
+	if innerType == "" {
+		v.err("Expected atleast one type name in tuple")
+	}
+
+	for innerType != "" {
+		result += innerType
+
+		if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ",") {
+			break
+		}
+
+		v.consumeToken()
+		result += ", "
+		innerType = v.parseTypeToString()
+	}
+
+	if !v.tokenMatches(0, lexer.TOKEN_OPERATOR, "|") {
+		v.err("Expected closing pipe")
+	}
+	v.consumeToken()
+
+	return result + "|"
 }
 
 func (v *parser) parseFunctionDecl() *FunctionDecl {
@@ -1323,6 +1375,31 @@ func (v *parser) parseAccessExpr() *AccessExpr {
 				if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ".") {
 					return access
 				}
+			} else if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "|") {
+				// tuple access
+				v.consumeToken()
+
+				index := v.parseNumericLiteral()
+				if index == nil {
+					v.err("Expected integer for tuple index, found `%s`", v.peek(0).Contents)
+				}
+
+				indexLit, ok := index.(*IntegerLiteral)
+				if !ok {
+					v.err("Expected integer for tuple index, found `%s`", index)
+				}
+
+				if !v.tokenMatches(0, lexer.TOKEN_OPERATOR, "|") {
+					v.err("Expected `|` after tuple index, found `%s`", v.peek(0).Contents)
+				}
+				v.consumeToken()
+
+				access.Accesses = append(access.Accesses, &Access{AccessType: ACCESS_TUPLE, variableName: name, Index: indexLit.Value})
+
+				if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ".") {
+					return access
+				}
+
 			} else {
 				access.Accesses = append(access.Accesses, &Access{AccessType: ACCESS_VARIABLE, variableName: name})
 				return access
