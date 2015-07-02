@@ -1,5 +1,5 @@
 ## Ark Programming Language
-![Build Status](https://travis-ci.org/ark-lang/ark.png?branch=master)
+[![Build Status](https://travis-ci.org/ark-lang/ark.png?branch=master)][1]
 
 [Ark](//www.ark-lang.org) is a systems programming language somewhere inbetween C and C++.
 
@@ -76,3 +76,5 @@ Requires `$GOPATH/bin` to be in your `$PATH` and Python 2.4 or newer.
 
 ## License
 Ark is licensed under the [MIT License](/LICENSE).
+
+[1]: https://travis-ci.org/ark-lang/ark "Build Status"
