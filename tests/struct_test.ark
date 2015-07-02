@@ -1,5 +1,7 @@
 [c] func printf(fmt: str, ...);
 
+struct EmptyStruct;
+
 struct Test2 {
     x: int,
 }

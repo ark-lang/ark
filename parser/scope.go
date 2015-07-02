@@ -2,6 +2,9 @@ package parser
 
 import (
 	"fmt"
+	"os"
+
+	"github.com/ark-lang/ark/util"
 )
 
 type Scope struct {
@@ -32,6 +35,12 @@ func newGlobalScope() *Scope {
 	}
 
 	return s
+}
+
+func (v *Scope) err(err string, stuff ...interface{}) {
+	fmt.Printf(util.TEXT_RED+util.TEXT_BOLD+"error:"+util.TEXT_RESET+" %s\n",
+		fmt.Sprintf(err, stuff...))
+	os.Exit(util.EXIT_FAILURE_CODEGEN)
 }
 
 func (v *Scope) IsGlobal() bool {
