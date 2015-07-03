@@ -477,17 +477,6 @@ func (v *Codegen) genFunctionDecl(n *parser.FunctionDecl) llvm.Value {
 				v.genNode(stat)
 			}
 			v.inFunction = false
-
-			retType := llvm.VoidType()
-			if n.Function.ReturnType != nil {
-				retType = v.typeToLLVMType(n.Function.ReturnType)
-			}
-
-			// function returns void, lets return void
-			// unless its a prototype obviously...
-			if retType == llvm.VoidType() && !n.Prototype {
-				v.builder.CreateRetVoid()
-			}
 		}
 	}
 
