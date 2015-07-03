@@ -1,0 +1,24 @@
+[c] func printf(fmt: str, ...): int;
+[c] func scanf(fmt: str, ...);
+
+func factorial(n: int): int {
+    if n == 0 {
+        return 1;
+    }
+    return n * factorial(n - 1);
+}
+
+func main(): int {
+    number: int = 1;
+    printf("Enter a number: \n");
+    scanf("%d", &number);
+
+    if number < 0 {
+        printf("No negatives please\n");
+        return -1;
+    }
+
+    result := factorial(number);
+    printf("%d! = %d\n", number, result);
+    return 0;
+}
