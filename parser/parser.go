@@ -417,8 +417,8 @@ func getTypeFromString(scope *Scope, s string) Type {
 	}
 
 	// TODO: this types as strings business is getting a little dirty
-	if []rune(s)[0] == '|' {
-		tuple := &TupleType{}
+	if []rune(s)[0] == '(' {
+		var members []Type
 
 		runes := []rune(s)
 		body := string(runes[1 : len(runes)-1])
@@ -426,7 +426,7 @@ func getTypeFromString(scope *Scope, s string) Type {
 		for _, part := range parts {
 			mem := getTypeFromString(scope, part)
 			if mem != nil {
-				tuple.addMember(mem)
+				members = append(members, mem)
 			} else {
 				// TODO: handle this more gracefully
 				panic("got a type that's not in scope")
@@ -434,14 +434,14 @@ func getTypeFromString(scope *Scope, s string) Type {
 
 		}
 
-		return tuple
+		return tupleOf(members...)
 	}
 
 	return scope.GetType(s)
 }
 
 func (v *parser) parseTypeToString() string {
-	if !(v.peek(0).Type == lexer.TOKEN_IDENTIFIER || v.tokenMatches(0, lexer.TOKEN_OPERATOR, "^") || v.tokenMatches(0, lexer.TOKEN_OPERATOR, "|")) {
+	if !(v.peek(0).Type == lexer.TOKEN_IDENTIFIER || v.tokenMatches(0, lexer.TOKEN_OPERATOR, "^") || v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "(")) {
 		panic("expected type")
 	}
 
@@ -452,7 +452,7 @@ func (v *parser) parseTypeToString() string {
 		} else {
 			v.err("Expected type name")
 		}
-	} else if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "|") {
+	} else if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "(") {
 		return v.parseTupleTypeToString()
 	}
 
@@ -461,7 +461,7 @@ func (v *parser) parseTypeToString() string {
 
 func (v *parser) parseTupleTypeToString() string {
 	v.consumeToken()
-	result := "|"
+	result := "("
 
 	innerType := v.parseTypeToString()
 	if innerType == "" {
@@ -480,12 +480,12 @@ func (v *parser) parseTupleTypeToString() string {
 		innerType = v.parseTypeToString()
 	}
 
-	if !v.tokenMatches(0, lexer.TOKEN_OPERATOR, "|") {
+	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ")") {
 		v.err("Expected closing pipe")
 	}
 	v.consumeToken()
 
-	return result + "|"
+	return result + ")"
 }
 
 func (v *parser) parseFunctionDecl() *FunctionDecl {
@@ -1233,8 +1233,6 @@ func (v *parser) parseBinaryOperator(upperPrecedence int, lhand Expr) Expr {
 func (v *parser) parsePrimaryExpr() Expr {
 	if sizeofExpr := v.parseSizeofExpr(); sizeofExpr != nil {
 		return sizeofExpr
-	} else if bracketExpr := v.parseBracketExpr(); bracketExpr != nil {
-		return bracketExpr
 	} else if addressOfExpr := v.parseAddressOfExpr(); addressOfExpr != nil {
 		return addressOfExpr
 	} else if litExpr := v.parseLiteral(); litExpr != nil {
@@ -1290,13 +1288,13 @@ func (v *parser) parseSizeofExpr() *SizeofExpr {
 	return sizeof
 }
 
-func (v *parser) parseTupleLiteral() *TupleLiteral {
-	if !v.tokenMatches(0, lexer.TOKEN_OPERATOR, "|") {
+func (v *parser) parseTupleLiteral() Expr {
+	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "(") {
 		return nil
 	}
 	v.consumeToken()
 
-	if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "|") {
+	if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ")") {
 		v.err("Empty tuple literal")
 	}
 
@@ -1306,9 +1304,9 @@ func (v *parser) parseTupleLiteral() *TupleLiteral {
 		if expr := v.parseExpr(); expr != nil {
 			tupleLit.Members = append(tupleLit.Members, expr)
 
-			if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "|") {
+			if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ")") {
 				v.consumeToken()
-				return tupleLit
+				break
 			} else if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ",") {
 				v.consumeToken()
 			} else {
@@ -1318,25 +1316,12 @@ func (v *parser) parseTupleLiteral() *TupleLiteral {
 			v.err("Expected expression in tuple literal, found `%s`", v.peek(0).Contents)
 		}
 	}
-}
 
-func (v *parser) parseBracketExpr() *BracketExpr {
-	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "(") {
-		return nil
+	if len(tupleLit.Members) == 1 {
+		return tupleLit.Members[0]
+	} else {
+		return tupleLit
 	}
-	v.consumeToken()
-
-	expr := v.parseExpr()
-	if expr == nil {
-		v.err("Expected expression after `)`, found `%s`", v.peek(0).Contents)
-	}
-
-	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ")") {
-		v.err("Expected matching `)`, found `%s`", v.peek(0).Contents)
-	}
-	v.consumeToken()
-
-	return &BracketExpr{Expr: expr}
 }
 
 func (v *parser) parseAccessExpr() *AccessExpr {
