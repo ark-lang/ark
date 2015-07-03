@@ -332,6 +332,10 @@ func (v *Codegen) genAssignStat(n *parser.AssignStat) {
 }
 
 func (v *Codegen) genIfStat(n *parser.IfStat) {
+	// Warning to all who tread here:
+	// This function is complicated, but theoretically it should never need to
+	// be changed again. God help the soul who has to edit this.
+
 	if !v.inFunction {
 		panic("tried to gen if stat not in function")
 	}
