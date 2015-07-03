@@ -64,15 +64,17 @@ func (v *semanticAnalyzer) analyze(modules map[string]*Module) {
 }
 
 func (v *Block) analyze(s *semanticAnalyzer) {
-	for _, n := range v.Nodes {
+	for i, n := range v.Nodes {
 		n.analyze(s)
+
+		if i < len(v.Nodes)-1 && IsNodeTerminating(n) {
+			s.err(v.Nodes[i+1], "Unreachable code")
+		}
 	}
 
 	if len(v.Nodes) > 0 {
 		v.IsTerminating = IsNodeTerminating(v.Nodes[len(v.Nodes)-1])
 	}
-
-	fmt.Println(v.IsTerminating)
 }
 
 func IsNodeTerminating(n Node) bool {
@@ -81,6 +83,10 @@ func IsNodeTerminating(n Node) bool {
 	} else if _, ok := n.(*ReturnStat); ok {
 		return true
 	} else if ifStat, ok := n.(*IfStat); ok {
+		if ifStat.Else == nil || ifStat.Else != nil && !ifStat.Else.IsTerminating {
+			return false
+		}
+
 		for _, body := range ifStat.Bodies {
 			if !body.IsTerminating {
 				return false
