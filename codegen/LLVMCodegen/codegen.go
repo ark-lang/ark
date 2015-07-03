@@ -618,9 +618,10 @@ func (v *Codegen) genArrayLiteral(n *parser.ArrayLiteral) llvm.Value {
 	// copy the constant array to the backing array
 	arrConstVals := make([]llvm.Value, 0, len(n.Members))
 	for _, mem := range n.Members {
-		arrConstVals = append(arrConstVals, v.genExpr(mem))
+		expr := v.genExpr(mem)
+		arrConstVals = append(arrConstVals, expr)
 	}
-	arrConst := llvm.ConstArray(llvm.ArrayType(memberLLVMType, len(n.Members)), arrConstVals)
+	arrConst := llvm.ConstArray(llvm.Int32Type(), arrConstVals)
 	v.builder.CreateStore(arrConst, arrAlloca)
 
 	return v.builder.CreateLoad(structAlloca, "")
@@ -926,7 +927,7 @@ func (v *Codegen) genBracketExpr(n *parser.BracketExpr) llvm.Value {
 
 func (v *Codegen) genSizeofExpr(n *parser.SizeofExpr) llvm.Value {
 	if n.Expr != nil {
-		gep := v.builder.CreateGEP(llvm.ConstNull(llvm.PointerType(v.typeToLLVMType(n.Expr.GetType()), 0)), []llvm.Value{llvm.ConstInt(llvm.Int32Type(), 1, false)}, "")
+		gep := v.builder.CreateGEP(llvm.ConstNull(llvm.PointerType(v.typeToLLVMType(n.Expr.GetType()), 0)), []llvm.Value{llvm.ConstInt(llvm.IntType(32), 1, false)}, "")
 		return v.builder.CreatePtrToInt(gep, v.typeToLLVMType(n.GetType()), "sizeof")
 	} else {
 		// we have a type
