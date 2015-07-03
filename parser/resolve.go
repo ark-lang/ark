@@ -47,25 +47,39 @@ func (v *VariableDecl) resolve(sem *semanticAnalyzer, s *Scope) {
 	if v.Assignment != nil {
 		v.Assignment.resolve(sem, s)
 	}
+
+	if v.Variable.Type != nil {
+		v.Variable.Type = v.Variable.Type.resolveType(v, sem, s)
+	}
 }
 
 func (v *StructDecl) resolve(sem *semanticAnalyzer, s *Scope) {
-
+	v.Struct = v.Struct.resolveType(v, sem, s).(*StructType)
 }
 
 func (v *EnumDecl) resolve(sem *semanticAnalyzer, s *Scope) {
-
+	// TODO: this is a noop, right?
 }
 
 func (v *TraitDecl) resolve(sem *semanticAnalyzer, s *Scope) {
-
+	v.Trait = v.Trait.resolveType(v, sem, s).(*TraitType)
 }
 
 func (v *ImplDecl) resolve(sem *semanticAnalyzer, s *Scope) {
-
+	for _, fun := range v.Functions {
+		fun.resolve(sem, s)
+	}
 }
 
 func (v *FunctionDecl) resolve(sem *semanticAnalyzer, s *Scope) {
+	for _, param := range v.Function.Parameters {
+		param.resolve(sem, s)
+	}
+
+	if v.Function.ReturnType != nil {
+		v.Function.ReturnType = v.Function.ReturnType.resolveType(v, sem, s)
+	}
+
 	if !v.Prototype {
 		v.Function.Body.resolve(sem, s)
 	}
@@ -169,6 +183,7 @@ func (v *ArrayLiteral) resolve(sem *semanticAnalyzer, s *Scope) {
 }
 
 func (v *CastExpr) resolve(sem *semanticAnalyzer, s *Scope) {
+	v.Type = v.Type.resolveType(v, sem, s)
 	v.Expr.resolve(sem, s)
 }
 
@@ -243,13 +258,62 @@ func (v *BracketExpr) resolve(sem *semanticAnalyzer, s *Scope) {
 func (v *SizeofExpr) resolve(sem *semanticAnalyzer, s *Scope) {
 	if v.Expr != nil {
 		v.Expr.resolve(sem, s)
+	} else if v.Type != nil {
+		v.Type = v.Type.resolveType(v, sem, s)
 	} else {
-		// todo types
+		panic("invalid state")
 	}
 }
 
 func (v *TupleLiteral) resolve(sem *semanticAnalyzer, s *Scope) {
-	// do it later cba
+	for _, mem := range v.Members {
+		mem.resolve(sem, s)
+	}
 }
 
 func (v *DefaultMatchBranch) resolve(sem *semanticAnalyzer, s *Scope) {}
+
+/*
+ * Types
+ */
+
+func (v PrimitiveType) resolveType(src Locatable, sem *semanticAnalyzer, s *Scope) Type {
+	return v
+}
+
+func (v *StructType) resolveType(src Locatable, sem *semanticAnalyzer, s *Scope) Type {
+	for _, vari := range v.Variables {
+		vari.resolve(sem, s)
+	}
+	return v
+}
+
+func (v ArrayType) resolveType(src Locatable, sem *semanticAnalyzer, s *Scope) Type {
+	return arrayOf(v.MemberType.resolveType(src, sem, s))
+}
+
+func (v *TraitType) resolveType(src Locatable, sem *semanticAnalyzer, s *Scope) Type {
+	for _, fun := range v.Functions {
+		fun.resolve(sem, s)
+	}
+	return v
+}
+
+func (v PointerType) resolveType(src Locatable, sem *semanticAnalyzer, s *Scope) Type {
+	return pointerTo(v.Addressee.resolveType(src, sem, s))
+}
+
+func (v *TupleType) resolveType(src Locatable, sem *semanticAnalyzer, s *Scope) Type {
+	for idx, mem := range v.Members {
+		v.Members[idx] = mem.resolveType(src, sem, s)
+	}
+	return v
+}
+
+func (v *UnresolvedType) resolveType(src Locatable, sem *semanticAnalyzer, s *Scope) Type {
+	typ := s.GetType(v.Name)
+	if typ == nil {
+		sem.err(src, "Cannot resolve `%s`", v.Name)
+	}
+	return typ
+}
