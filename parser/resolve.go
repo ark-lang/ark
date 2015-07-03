@@ -251,10 +251,6 @@ func (v *DerefExpr) resolve(sem *semanticAnalyzer, s *Scope) {
 	v.Expr.resolve(sem, s)
 }
 
-func (v *BracketExpr) resolve(sem *semanticAnalyzer, s *Scope) {
-	v.Expr.resolve(sem, s)
-}
-
 func (v *SizeofExpr) resolve(sem *semanticAnalyzer, s *Scope) {
 	if v.Expr != nil {
 		v.Expr.resolve(sem, s)
