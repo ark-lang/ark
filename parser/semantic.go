@@ -823,10 +823,9 @@ func (v *SizeofExpr) setTypeHint(t Type) {
 func (v *TupleLiteral) analyze(s *semanticAnalyzer) {
 	var memberTypes []Type
 
-	if v.Type == nil {
-		memberTypes = nil
-	} else {
-		memberTypes = v.Type.Members
+	tupleType, ok := v.Type.(*TupleType)
+	if ok {
+		memberTypes = tupleType.Members
 	}
 
 	if len(v.Members) == len(memberTypes) {
@@ -844,15 +843,15 @@ func (v *TupleLiteral) analyze(s *semanticAnalyzer) {
 	}
 
 	if v.Type == nil {
-		tuple := &TupleType{}
+		var members []Type
 		for _, mem := range v.Members {
 			if mem.GetType() == nil {
 				s.err(mem, "Couldn't infer type of tuple component")
 			}
-			tuple.addMember(mem.GetType())
+			members = append(members, mem.GetType())
 		}
 
-		v.Type = tuple
+		v.Type = tupleOf(members...)
 	} else {
 		if len(v.Members) != len(memberTypes) {
 			s.err(v, "Invalid amount of entries in tuple")
