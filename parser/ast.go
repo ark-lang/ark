@@ -682,7 +682,7 @@ func (v *BoolLiteral) NodeName() string {
 type TupleLiteral struct {
 	nodePos
 	Members []Expr
-	Type    *TupleType
+	Type    Type
 }
 
 func (v *TupleLiteral) exprNode() {}
