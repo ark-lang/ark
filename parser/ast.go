@@ -128,8 +128,9 @@ func (v *Function) String() string {
 
 type Block struct {
 	nodePos
-	Nodes []Node
-	scope *Scope
+	Nodes         []Node
+	scope         *Scope
+	IsTerminating bool
 }
 
 func (v *Block) String() string {

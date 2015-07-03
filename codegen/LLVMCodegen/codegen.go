@@ -336,13 +336,13 @@ func (v *Codegen) genIfStat(n *parser.IfStat) {
 		panic("tried to gen if stat not in function")
 	}
 
-	end := llvm.AddBasicBlock(v.currentFunction, "")
+	end := llvm.AddBasicBlock(v.currentFunction, "end")
 
 	for i, expr := range n.Exprs {
 		cond := v.genExpr(expr)
 
-		ifTrue := llvm.AddBasicBlock(v.currentFunction, "")
-		ifFalse := llvm.AddBasicBlock(v.currentFunction, "")
+		ifTrue := llvm.AddBasicBlock(v.currentFunction, "if_true")
+		ifFalse := llvm.AddBasicBlock(v.currentFunction, "if_false")
 
 		v.builder.CreateCondBr(cond, ifTrue, ifFalse)
 
@@ -351,14 +351,8 @@ func (v *Codegen) genIfStat(n *parser.IfStat) {
 			v.genNode(node)
 		}
 
-		if len(n.Bodies[i].Nodes) == 0 {
+		if !n.Bodies[i].IsTerminating {
 			v.builder.CreateBr(end)
-		} else {
-			switch n.Bodies[i].Nodes[len(n.Bodies[i].Nodes)-1].(type) {
-			case *parser.ReturnStat: // do nothing
-			default:
-				v.builder.CreateBr(end)
-			}
 		}
 
 		v.builder.SetInsertPointAtEnd(ifFalse)
@@ -369,9 +363,17 @@ func (v *Codegen) genIfStat(n *parser.IfStat) {
 		for _, node := range n.Else.Nodes {
 			v.genNode(node)
 		}
+
+		/*if len(n.Else.Nodes) > 0 {
+			if parser.IsNodeTerminating(n.Else.Nodes[len(n.Else.Nodes)-1]) {
+
+			}
+		}*/
 	}
 
-	v.builder.CreateBr(end)
+	if n.Else == nil || !n.Else.IsTerminating {
+		v.builder.CreateBr(end)
+	}
 
 	v.builder.SetInsertPointAtEnd(end)
 }
