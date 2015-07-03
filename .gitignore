@@ -4,7 +4,7 @@
 *.obj
 *.elf
 
-# Alloy executables
+# Ark executables
 main
 main.o
 main.exe
@@ -22,7 +22,7 @@ main.exe
 *.la
 *.lo
 
-# Alloy specific things
+# Ark specific things
 _gen_*.c
 _gen_*.h
 main
