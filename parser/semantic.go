@@ -121,6 +121,7 @@ func (v *Function) analyze(s *semanticAnalyzer) {
 	if v.Body != nil {
 		v.Body.analyze(s)
 	}
+
 	s.function = nil
 }
 
@@ -272,6 +273,15 @@ func (v *UseDecl) analyze(s *semanticAnalyzer) {
 
 func (v *FunctionDecl) analyze(s *semanticAnalyzer) {
 	v.Function.analyze(s)
+
+	if !v.Prototype && !v.Function.Body.IsTerminating {
+		if v.Function.ReturnType != nil && v.Function.ReturnType != PRIMITIVE_void {
+			s.err(v, "Missing return statement")
+		} else {
+			v.Function.Body.Nodes = append(v.Function.Body.Nodes, &ReturnStat{})
+		}
+	}
+
 	s.checkAttrsDistanceFromLine(v.Function.Attrs, v.lineNumber, "function", v.Function.Name)
 }
 
