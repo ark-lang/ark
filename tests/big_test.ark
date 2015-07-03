@@ -12,23 +12,23 @@ i4: s32 = 1_000_005;
 rune1 := 'a';
 rune2: rune = '\\';
 rune3: rune = '\'';
-mut float: f64 = 0.2465f;
+mut float: f64 = 0.2465;
 float2: f64 = 1.35d;
 mut float3: f64 = 0.0004;
 mut s1: str= "he\"l\nlo";
 //un: s8 = !1;
-t: int = int('h');
+t: int = cast(int, 'h');
 
 //h := i1 + 6;
 
-bitshiftTest := 1 << s8(4);
+bitshiftTest := 1 << cast(s8, 4);
 
 mut bintest: int = 5 * (5 + 5) * 5;
 mshifttest: int = 10 << 7;
 
 inferenceTest := 10;
 
-booltest := 1 == s8(0);
+booltest := 1 == cast(s8, 0);
 
 [packed]
 struct Test {
@@ -46,7 +46,7 @@ func ten(): int {
 
 
 func _2345_test日本語てすと(と: int, un: s32): int {
-
+    return 0;
 }
 
 /**
@@ -93,7 +93,6 @@ func main(a: int): mut int {
     }
 
     num: int = 0;
-    var: ^int;
-    //var = &num;
+    var := &num;
     return ^var;
 }
