@@ -1,6 +1,8 @@
 package parser
 
-import "github.com/ark-lang/ark/util"
+import (
+	"github.com/ark-lang/ark/util"
+)
 
 type Type interface {
 	TypeName() string
@@ -11,6 +13,7 @@ type Type interface {
 	IsSigned() bool           // true for all signed integer types
 	CanCastTo(Type) bool      // true if the receiver can be typecast to the parameter
 	Attrs() []*Attr           // fetches the attributes associated with the type
+	Equals(Type) bool         // compares whether two types are equal
 }
 
 //go:generate stringer -type=PrimitiveType
@@ -94,6 +97,14 @@ func (v PrimitiveType) Attrs() []*Attr {
 	return nil
 }
 
+func (v PrimitiveType) Equals(t Type) bool {
+	other, ok := t.(PrimitiveType)
+	if !ok {
+		return false
+	}
+	return v == other
+}
+
 // StructType
 
 type StructType struct {
@@ -169,6 +180,27 @@ func (v *StructType) Attrs() []*Attr {
 	return v.attrs
 }
 
+func (v *StructType) Equals(t Type) bool {
+	// TODO: Check for struct equality
+	panic("please implement the rest of this, if we ever need it")
+
+	other, ok := t.(*StructType)
+	if !ok {
+		return false
+	}
+
+	if v.Name != other.Name {
+		return false
+	}
+
+	if !equalAttributes(v.Attrs(), other.Attrs()) {
+		return false
+	}
+
+	// TODO: Check struct members
+	return true
+}
+
 // ArrayType
 
 type ArrayType struct {
@@ -177,9 +209,8 @@ type ArrayType struct {
 }
 
 // IMPORTANT:
-// Use this method to make ArrayTypes. Most importantly, NEVER take the
-// address of a ArrayType! ie, using &ArrayType{}. This would make two
-// ArrayTypes to the same PrimitiveType inequal, when they should be equal.
+// Using this function is no longer important, just make sure to use
+// .Equals() to compare two types.
 func arrayOf(t Type) ArrayType {
 	return ArrayType{MemberType: t}
 }
@@ -222,6 +253,23 @@ func (v ArrayType) CanCastTo(t Type) bool {
 
 func (v ArrayType) Attrs() []*Attr {
 	return v.attrs
+}
+
+func (v ArrayType) Equals(t Type) bool {
+	other, ok := t.(ArrayType)
+	if !ok {
+		return false
+	}
+
+	if !equalAttributes(v.Attrs(), other.Attrs()) {
+		return false
+	}
+
+	if !v.MemberType.Equals(other.MemberType) {
+		return false
+	}
+
+	return true
 }
 
 // TraitType
@@ -289,6 +337,27 @@ func (v *TraitType) Attrs() []*Attr {
 	return v.attrs
 }
 
+func (v *TraitType) Equals(t Type) bool {
+	// TODO: Check for trait equality
+	panic("please implement the rest of this, if we ever need it")
+
+	other, ok := t.(*TraitType)
+	if !ok {
+		return false
+	}
+
+	if v.Name != other.Name {
+		return false
+	}
+
+	if !equalAttributes(v.Attrs(), other.Attrs()) {
+		return false
+	}
+
+	// TODO: Check trait function types
+	return true
+}
+
 // PointerType
 
 type PointerType struct {
@@ -296,9 +365,8 @@ type PointerType struct {
 }
 
 // IMPORTANT:
-// Use this method to make PointerTypes. Most importantly, NEVER take the
-// address of a PointerType! ie, using &PointerType{}. This would make two
-// PointerTypes to the same PrimitiveType inequal, when they should be equal.
+// Using this function is no longer important, just make sure to use
+// .Equals() to compare two types.
 func pointerTo(t Type) PointerType {
 	return PointerType{Addressee: t}
 }
@@ -333,4 +401,91 @@ func (v PointerType) Attrs() []*Attr {
 
 func (v PointerType) IsSigned() bool {
 	return false
+}
+
+func (v PointerType) Equals(t Type) bool {
+	other, ok := t.(PointerType)
+	if !ok {
+		return false
+	}
+	return v == other
+}
+
+// TupleType
+
+type TupleType struct {
+	Members []Type
+}
+
+func (v *TupleType) String() string {
+	result := "(" + util.Blue("TupleType") + ": "
+	for _, mem := range v.Members {
+		result += "\t" + mem.TypeName() + "\n"
+	}
+	return result + ")"
+}
+
+func (v *TupleType) TypeName() string {
+	result := "|"
+	for idx, mem := range v.Members {
+		result += mem.TypeName()
+
+		// if we are not at the last component
+		if idx < len(v.Members)-1 {
+			result += ", "
+		}
+	}
+	result += "|"
+	return result
+}
+
+func (v *TupleType) RawType() Type {
+	return v
+}
+
+func (v *TupleType) IsSigned() bool {
+	return false
+}
+
+func (v *TupleType) LevelsOfIndirection() int {
+	return 0
+}
+
+func (v *TupleType) IsIntegerType() bool {
+	return false
+}
+
+func (v *TupleType) IsFloatingType() bool {
+	return false
+}
+
+func (v *TupleType) CanCastTo(t Type) bool {
+	return false
+}
+
+func (v *TupleType) addMember(decl Type) {
+	v.Members = append(v.Members, decl)
+}
+
+func (v *TupleType) Attrs() []*Attr {
+	return nil
+}
+
+func (v *TupleType) Equals(t Type) bool {
+	other, ok := t.(*TupleType)
+	if !ok {
+		return false
+	}
+
+	if len(v.Members) != len(other.Members) {
+		return false
+	}
+
+	for idx, mem := range v.Members {
+		if mem != other.Members[idx] {
+			return false
+		}
+	}
+
+	return true
 }
