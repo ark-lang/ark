@@ -336,7 +336,12 @@ func (v *Codegen) genIfStat(n *parser.IfStat) {
 		panic("tried to gen if stat not in function")
 	}
 
-	end := llvm.AddBasicBlock(v.currentFunction, "end")
+	statTerm := parser.IsNodeTerminating(n)
+
+	var end llvm.BasicBlock
+	if !statTerm {
+		end = llvm.AddBasicBlock(v.currentFunction, "end")
+	}
 
 	for i, expr := range n.Exprs {
 		cond := v.genExpr(expr)
@@ -351,12 +356,15 @@ func (v *Codegen) genIfStat(n *parser.IfStat) {
 			v.genNode(node)
 		}
 
-		if !n.Bodies[i].IsTerminating {
+		if !statTerm && !n.Bodies[i].IsTerminating {
 			v.builder.CreateBr(end)
 		}
 
 		v.builder.SetInsertPointAtEnd(ifFalse)
-		end.MoveAfter(ifFalse)
+
+		if !statTerm {
+			end.MoveAfter(ifFalse)
+		}
 	}
 
 	if n.Else != nil {
@@ -365,11 +373,13 @@ func (v *Codegen) genIfStat(n *parser.IfStat) {
 		}
 	}
 
-	if n.Else == nil || !n.Else.IsTerminating {
+	if !statTerm && (n.Else == nil || !n.Else.IsTerminating) {
 		v.builder.CreateBr(end)
 	}
 
-	v.builder.SetInsertPointAtEnd(end)
+	if !statTerm {
+		v.builder.SetInsertPointAtEnd(end)
+	}
 }
 
 func (v *Codegen) genLoopStat(n *parser.LoopStat) {
