@@ -1,5 +1,12 @@
 [c] func printf(fmt: str, ...);
 
+// eventually this should be a macro
+// or something similar then we can
+// do the string appending stuff
+// i.e. "a " + " " + " c" or
+// "whatever %s", a
+// (however we do it i dont know)
+// at compile-time instead of runtime
 func println(message: str) {
     printf("%s\n", message);
 }
