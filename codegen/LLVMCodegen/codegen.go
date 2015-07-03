@@ -363,12 +363,6 @@ func (v *Codegen) genIfStat(n *parser.IfStat) {
 		for _, node := range n.Else.Nodes {
 			v.genNode(node)
 		}
-
-		/*if len(n.Else.Nodes) > 0 {
-			if parser.IsNodeTerminating(n.Else.Nodes[len(n.Else.Nodes)-1]) {
-
-			}
-		}*/
 	}
 
 	if n.Else == nil || !n.Else.IsTerminating {
