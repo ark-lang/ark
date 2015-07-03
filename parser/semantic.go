@@ -67,6 +67,34 @@ func (v *Block) analyze(s *semanticAnalyzer) {
 	for _, n := range v.Nodes {
 		n.analyze(s)
 	}
+
+	if len(v.Nodes) > 0 {
+		v.IsTerminating = IsNodeTerminating(v.Nodes[len(v.Nodes)-1])
+	}
+
+	fmt.Println(v.IsTerminating)
+}
+
+func IsNodeTerminating(n Node) bool {
+	if block, ok := n.(*Block); ok {
+		return block.IsTerminating
+	} else if _, ok := n.(*ReturnStat); ok {
+		return true
+	} else if ifStat, ok := n.(*IfStat); ok {
+		for _, body := range ifStat.Bodies {
+			if !body.IsTerminating {
+				return false
+			}
+		}
+
+		if ifStat.Else != nil && !ifStat.Else.IsTerminating {
+			return false
+		}
+
+		return true
+	}
+
+	return false
 }
 
 func (v *Function) analyze(s *semanticAnalyzer) {
