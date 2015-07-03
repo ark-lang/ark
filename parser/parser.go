@@ -411,81 +411,53 @@ func (v *parser) parseDecl() Decl {
 	return ret
 }
 
-func getTypeFromString(scope *Scope, s string) Type {
-	if []rune(s)[0] == '^' {
-		return pointerTo(getTypeFromString(scope, string([]rune(s)[1:])))
-	}
-
-	// TODO: this types as strings business is getting a little dirty
-	if []rune(s)[0] == '(' {
-		var members []Type
-
-		runes := []rune(s)
-		body := string(runes[1 : len(runes)-1])
-		parts := strings.Split(body, ", ")
-		for _, part := range parts {
-			mem := getTypeFromString(scope, part)
-			if mem != nil {
-				members = append(members, mem)
-			} else {
-				// TODO: handle this more gracefully
-				panic("got a type that's not in scope")
-			}
-
-		}
-
-		return tupleOf(members...)
-	}
-
-	return scope.GetType(s)
-}
-
-func (v *parser) parseTypeToString() string {
+func (v *parser) parseType() Type {
 	if !(v.peek(0).Type == lexer.TOKEN_IDENTIFIER || v.tokenMatches(0, lexer.TOKEN_OPERATOR, "^") || v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "(")) {
 		panic("expected type")
 	}
 
 	if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "^") {
 		v.consumeToken()
-		if innerType := v.parseTypeToString(); innerType != "" {
-			return "^" + innerType
+		if innerType := v.parseType(); innerType != nil {
+			return pointerTo(innerType)
 		} else {
-			v.err("Expected type name")
+			v.err("Standalone `^` is not a valid type")
 		}
-	} else if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "(") {
-		return v.parseTupleTypeToString()
 	}
 
-	return v.consumeToken().Contents
-}
-
-func (v *parser) parseTupleTypeToString() string {
-	v.consumeToken()
-	result := "("
-
-	innerType := v.parseTypeToString()
-	if innerType == "" {
-		v.err("Expected atleast one type name in tuple")
-	}
-
-	for innerType != "" {
-		result += innerType
-
-		if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ",") {
-			break
-		}
-
+	if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "(") {
 		v.consumeToken()
-		result += ", "
-		innerType = v.parseTypeToString()
+
+		innerType := v.parseType()
+		if innerType == nil {
+			v.err("Expected at least one type in tuple")
+		}
+
+		var members []Type
+		for innerType != nil {
+			members = append(members, innerType)
+
+			if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ",") {
+				break
+			}
+
+			v.consumeToken()
+			innerType = v.parseType()
+			if innerType == nil {
+				// TODO: handle this more gracefully
+				panic("got a type that's not in scope?")
+			}
+		}
+
+		if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ")") {
+			v.err("Expected closing parens")
+		}
+		v.consumeToken()
+
+		return tupleOf(members...)
 	}
 
-	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ")") {
-		v.err("Expected closing pipe")
-	}
-	v.consumeToken()
-
-	return result + ")"
+	return v.scope.GetType(v.consumeToken().Contents)
 }
 
 func (v *parser) parseFunctionDecl() *FunctionDecl {
@@ -576,13 +548,8 @@ func (v *parser) parseFunctionDecl() *FunctionDecl {
 			function.Mutable = true
 		}
 
-		if function.returnTypeName = v.parseTypeToString(); function.returnTypeName != "" {
-			function.ReturnType = getTypeFromString(v.scope, function.returnTypeName)
-			if function.ReturnType == nil {
-				v.err("nope")
-			}
-		} else {
-			v.err("Expected function return type after colon for function `%s`", function.Name)
+		if function.ReturnType = v.parseType(); function.ReturnType == nil {
+			v.err("Invalid function return type after colon for function `%s`", function.Name)
 		}
 	}
 
@@ -1134,10 +1101,9 @@ func (v *parser) parseVariableDecl(needSemicolon bool) *VariableDecl {
 		// type is inferred
 		variable.Type = nil
 	} else {
-		variable.typeName = v.parseTypeToString()
-		variable.Type = getTypeFromString(v.scope, variable.typeName)
+		variable.Type = v.parseType()
 		if variable.Type == nil {
-			v.err("Could not decipher type from string `%s` for variable `%s`", variable.typeName, variable.Name)
+			v.err("Could not decipher type for variable `%s`", variable.Name)
 		}
 	}
 
@@ -1441,13 +1407,8 @@ func (v *parser) parseCastExpr() *CastExpr {
 
 	castExpr := &CastExpr{}
 
-	if castExpr.typeName = v.parseTypeToString(); castExpr.typeName != "" {
-		castExpr.Type = getTypeFromString(v.scope, castExpr.typeName)
-		if castExpr.Type == nil {
-			v.err("nope")
-		}
-	} else {
-		v.err("Expected type")
+	if castExpr.Type = v.parseType(); castExpr.Type == nil {
+		v.err("Invalid type in cast expr")
 	}
 
 	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ",") {
