@@ -14,6 +14,9 @@ type Type interface {
 	CanCastTo(Type) bool      // true if the receiver can be typecast to the parameter
 	Attrs() []*Attr           // fetches the attributes associated with the type
 	Equals(Type) bool         // compares whether two types are equal
+
+	// TODO: Should this be here?
+	resolveType(Locatable, *semanticAnalyzer, *Scope) Type
 }
 
 //go:generate stringer -type=PrimitiveType
@@ -495,4 +498,48 @@ func (v *TupleType) Equals(t Type) bool {
 	}
 
 	return true
+}
+
+type UnresolvedType struct {
+	Name string
+}
+
+func (v *UnresolvedType) String() string {
+	return "(" + util.Blue("UnresolvedType") + ": " + v.Name + ")"
+}
+
+func (v *UnresolvedType) TypeName() string {
+	return v.Name
+}
+
+func (v *UnresolvedType) RawType() Type {
+	panic("RawType() invalid on UnresolvedType")
+}
+
+func (v *UnresolvedType) IsSigned() bool {
+	panic("IsSigned() invalid on UnresolvedType")
+}
+
+func (v *UnresolvedType) LevelsOfIndirection() int {
+	panic("LevelsOfIndirection() invalid on UnresolvedType")
+}
+
+func (v *UnresolvedType) IsIntegerType() bool {
+	panic("IsIntegerType() invalid on UnresolvedType")
+}
+
+func (v *UnresolvedType) IsFloatingType() bool {
+	panic("IsFloatingType() invalid on UnresolvedType")
+}
+
+func (v *UnresolvedType) CanCastTo(t Type) bool {
+	panic("CanCastTo() invalid on UnresolvedType")
+}
+
+func (v *UnresolvedType) Attrs() []*Attr {
+	panic("Attrs() invalid on UnresolvedType")
+}
+
+func (v *UnresolvedType) Equals(t Type) bool {
+	panic("Equals() invalid on UnresolvedType")
 }
