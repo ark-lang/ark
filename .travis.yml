@@ -4,6 +4,9 @@ language: go
 go:
  - 1.4.2
 
+notifications:
+ email: false
+
 before_install:
  - sudo sh -c "echo 'deb http://llvm.org/apt/precise/ llvm-toolchain-precise-3.6 main' >> /etc/apt/sources.list"
  - wget -O - http://llvm.org/apt/llvm-snapshot.gpg.key | sudo apt-key add -
