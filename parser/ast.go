@@ -920,6 +920,7 @@ func (v *DerefExpr) NodeName() string {
 	return "dereference expression"
 }
 
+// TODO: Remove this
 // BracketExpr
 
 type BracketExpr struct {

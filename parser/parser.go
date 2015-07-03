@@ -457,7 +457,7 @@ func (v *parser) parseType() Type {
 		return tupleOf(members...)
 	}
 
-	return v.scope.GetType(v.consumeToken().Contents)
+	return &UnresolvedType{Name: v.consumeToken().Contents}
 }
 
 func (v *parser) parseFunctionDecl() *FunctionDecl {
