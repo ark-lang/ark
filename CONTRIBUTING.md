@@ -17,6 +17,18 @@ There are plenty of things you can do to help:
 * Create/fix/modify documentation
 * Work on the compiler
 
+## Issue Label Documentation
+To keep things organized, we have introduced various labels that contributors with sufficient
+permissions can add labels to issues. 
+
+Labels are prefixed with a letter, the letter denotes the category of label:
+
+* E: A label prefixed with E is how much experience is required to take on the issue
+* M: These are miscellaneous issues, typically ones too broad to categorize
+* O: These are the operating system/platform that an issue is relevant to
+* P: The priority of the issue
+* S: The stage in which the issue occurs
+
 ## Pull Requests
 We love Pull Requests! If you are planning on contributing, please read this list:
 
