@@ -537,8 +537,6 @@ func (v *Codegen) genExpr(n parser.Expr) llvm.Value {
 		return v.genAccessExpr(n.(*parser.AccessExpr))
 	case *parser.DerefExpr:
 		return v.genDerefExpr(n.(*parser.DerefExpr))
-	case *parser.BracketExpr:
-		return v.genBracketExpr(n.(*parser.BracketExpr))
 	case *parser.SizeofExpr:
 		return v.genSizeofExpr(n.(*parser.SizeofExpr))
 	default:
@@ -918,10 +916,6 @@ func (v *Codegen) genAccessExpr(n *parser.AccessExpr) llvm.Value {
 
 func (v *Codegen) genDerefExpr(n *parser.DerefExpr) llvm.Value {
 	return v.builder.CreateLoad(v.genExpr(n.Expr), "")
-}
-
-func (v *Codegen) genBracketExpr(n *parser.BracketExpr) llvm.Value {
-	return v.genExpr(n.Expr)
 }
 
 func (v *Codegen) genSizeofExpr(n *parser.SizeofExpr) llvm.Value {
