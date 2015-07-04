@@ -127,6 +127,12 @@ func Parse(input *lexer.Sourcefile, modules map[string]*Module, verbose bool) *M
 	p.modules = modules
 	modules[input.Name] = p.module
 
+	// use the C module by default.
+	// TODO: should we allow this?
+	// it means the errors are a bit
+	// more clear in some cases
+	p.useModule("C")
+
 	if verbose {
 		fmt.Println(util.TEXT_BOLD+util.TEXT_GREEN+"Started parsing"+util.TEXT_RESET, input.Name)
 	}
@@ -504,9 +510,6 @@ func (v *parser) parseFunctionDecl() *FunctionDecl {
 		switch attr.Key {
 		case "c":
 			if mod, ok := v.modules["C"]; ok {
-				if !v.moduleInUse("C") {
-					v.useModule("C")
-				}
 				scopeToInsertTo = mod.GlobalScope
 			} else {
 				v.err("Could not find C module to insert C binding into")
@@ -539,6 +542,12 @@ func (v *parser) parseFunctionDecl() *FunctionDecl {
 
 			// either I'm just really sleep deprived,
 			// or this is the best way to do this?
+			// 
+			// this parses the ellipse for variable
+			// function arguments, it will check for
+			// a . and then consume the other 2, it's
+			// kind of a weird way to do this and it
+			// should probably be lexed as an entire token
 			if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ".") {
 				weird_counter := 0
 				for i := 0; i < 2; i++ {

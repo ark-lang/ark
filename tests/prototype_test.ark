@@ -1,11 +1,11 @@
+[c] func printf(fmt: str, ...): int;
+
 func main(): int {
     C::printf("finally, it fucking works!\n");
     C::printf("we have to specify the c attribute so it doesn't mangle the name %d\n", 5);
-    C::puts("test fast calling convention\n");
+    puts("test fast calling convention\n");
     return 0;
 }
-
-[c] func printf(fmt: str, ...);
 
 func puts(message: str) {
     C::printf(message);

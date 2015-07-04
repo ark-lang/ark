@@ -115,7 +115,7 @@ func (v *Scope) GetFunction(name unresolvedName) *Function {
 				}
 			}
 		} else {
-			v.err("no module " + moduleName + " found")
+			v.err("could not find `" + moduleName + "`, are you sure it's being used in this module?\n\n    `use " + moduleName + ";`\n")
 		}
 	}
 

@@ -1,4 +1,4 @@
-[c] func printf(fmt: str, ...);
+[c] func printf(fmt: str, ...): int;
 
 struct Test {
     x: int,
@@ -8,27 +8,27 @@ struct Test {
 }
 
 func main(): int {
-    i: int;
+    i: int = 0;
     C::printf("sizeof i: %d\n", sizeof(i));
     C::printf("sizeof &i: %d\n", sizeof(&i));
 
-    a: u8;
+    a: u8 = 0;
     C::printf("sizeof a: %d\n", sizeof(a));
 
     test: Test;
     C::printf("sizeof test: %d\n", sizeof(test));
 
-    x: u8;
+    x: u8 = 0;
     if sizeof(x) != 1 {
         return 1;
     }
 
-    y: s16;
+    y: s16 = 0;
     if sizeof(y) != 2 {
         return 2;
     }
 
-    z: s64;
+    z: s64 = 0;
     if sizeof(z) != 8 {
         return 3;
     }
