@@ -4,9 +4,9 @@
 func main(): int {
     mut x: s32 = 0;
 
-    printf("Input a number: ");
-    scanf("%d", &x);
-    printf("Your number:    %d\n", x);
+    C::printf("Input a number: ");
+    C::scanf("%d", &x);
+    C::printf("Your number:    %d\n", x);
 
     return 0;
 }

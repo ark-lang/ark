@@ -3,9 +3,9 @@
 func main(): int {
 	mut x: int = 5;
 	if x == 5 {
-		printf("this is a test\n");
+		C::printf("this is a test\n");
 	}
-	printf("always printed\n");
+	C::printf("always printed\n");
 
 	if 5 == 6 {
 		return 1;
