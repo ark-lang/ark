@@ -6,7 +6,7 @@ func main(): int {
     for x == 2 {
         y = x + y;
         if y > 100 {
-            printf("%d\n", y);
+            C::printf("%d\n", y);
             return 0;
         }
     }

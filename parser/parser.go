@@ -120,7 +120,7 @@ func Parse(input *lexer.Sourcefile, modules map[string]*Module, verbose bool) *M
 		},
 		input:            input.Tokens,
 		verbose:          verbose,
-		scope:            newGlobalScope(),
+		scope:            NewGlobalScope(),
 		binOpPrecedences: newBinOpPrecedenceMap(),
 	}
 	p.module.GlobalScope = p.scope
@@ -344,6 +344,33 @@ func (v *parser) parseCallStat() *CallStat {
 	return nil
 }
 
+func (v *parser) moduleInUse(name string) bool {
+	if _, ok := v.modules[name]; ok {
+		if v.scope.Outer != nil {
+			if _, ok := v.scope.Outer.UsedModules[name]; ok {
+				return true
+			}
+		} else {
+			if _, ok := v.scope.UsedModules[name]; ok {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func (v *parser) useModule(name string) {
+	// check if the module exists in the modules that are
+	// parsed to avoid any weird errors
+	if moduleToUse, ok := v.modules[name]; ok {
+		if v.scope.Outer != nil {
+			v.scope.Outer.UsedModules[name] = moduleToUse
+		} else {
+			v.scope.UsedModules[name] = moduleToUse
+		}
+	}
+}
+
 func (v *parser) parseUseDecl() Decl {
 	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_USE) {
 		return nil
@@ -365,16 +392,8 @@ func (v *parser) parseUseDecl() Decl {
 		}
 	}
 
-	// check if the module exists in the modules that are
-	// parsed to avoid any weird errors
-	if moduleToUse, ok := v.modules[useDecl.ModuleName]; ok {
-		if v.scope.Outer != nil {
-			v.scope.Outer.UsedModules[moduleToUse.Name] = moduleToUse
-		} else {
-			v.scope.UsedModules[moduleToUse.Name] = moduleToUse
-		}
-		return useDecl
-	}
+	v.useModule(useDecl.ModuleName)	
+	return useDecl
 
 	v.err("attempting to use undefined module `%s`", useDecl.ModuleName)
 	return nil
@@ -480,7 +499,22 @@ func (v *parser) parseFunctionDecl() *FunctionDecl {
 		v.err("Cannot name function reserved keyword `%s`", function.Name)
 	}
 
-	if vname := v.scope.InsertFunction(function); vname != nil {
+	scopeToInsertTo := v.scope
+	for _, attr := range function.Attrs {
+		switch attr.Key {
+		case "c":
+			if mod, ok := v.modules["C"]; ok {
+				if !v.moduleInUse("C") {
+					v.useModule("C")
+				}
+				scopeToInsertTo = mod.GlobalScope
+			} else {
+				v.err("Could not find C module to insert C binding into")
+			}
+		}
+	}
+
+	if vname := scopeToInsertTo.InsertFunction(function); vname != nil {
 		v.err("Illegal redeclaration of function `%s`", function.Name)
 	}
 
