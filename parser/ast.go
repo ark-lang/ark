@@ -65,6 +65,7 @@ type Variable struct {
 	Mutable      bool
 	Attrs        []*Attr
 	scope        *Scope
+	Uses		int
 	ParentStruct *StructType
 }
 
@@ -91,6 +92,7 @@ type Function struct {
 	IsVariadic bool
 	Attrs      []*Attr
 	Body       *Block
+	Uses		int
 	scope      *Scope
 }
 
@@ -834,7 +836,7 @@ const (
 	ACCESS_VARIABLE AccessType = iota // means this element is either a var on its own or the last var of a struct access
 	ACCESS_STRUCT                     // means the element is a struct being accessed
 	ACCESS_ARRAY                      // means the element is an array member being accessed, ie thing[1]
-	ACCESS_TUPLE                      // means the element is a tuple member being accessed, ie thing|1|
+	ACCESS_TUPLE                      // means the element is a tuple member being accessed, ie thing(1)
 )
 
 type Access struct {
@@ -855,10 +857,11 @@ func (v *AccessExpr) exprNode() {}
 
 func (v *AccessExpr) String() string {
 	result := "(" + util.Blue("AccessExpr") + ": "
-	/*for _, struc := range v.StructVariables {
-		result += struc.Name + "."
+	for _, n := range v.Accesses {
+		if n.Variable != nil {
+			result += n.Variable.Name 
+		}
 	}
-	result += v.Variable.Name*/
 	return result + ")"
 }
 
