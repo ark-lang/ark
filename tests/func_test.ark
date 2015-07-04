@@ -8,10 +8,10 @@ func this_is_void(swag: int) {
 
 func main(): int {
     [unused] x: int = 5;
-    z: int = add(5, 10);
-    y: int = 19 - 25;
-    runeTest := 'h';
-    floatTest := 12.34;
+    [unused] z: int = add(5, 10);
+    [unused] y: int = 19 - 25;
+    [unused] runeTest := 'h';
+    [unused] floatTest := 12.34;
 
     this_is_void(5);
 
