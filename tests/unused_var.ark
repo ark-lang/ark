@@ -1,0 +1,13 @@
+func printf(y: int) {
+
+}
+
+func main(): int {
+    mut x: int = 0;
+
+    y := x + x;
+
+    printf(y);
+
+    return 0;
+}
