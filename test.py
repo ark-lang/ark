@@ -115,4 +115,6 @@ for file in files_tested:
 	else:
 		print(green(bold("    [+]%5s %4s\t  %s")) % (file.compile_result, file.run_result, file.name))
 
-exit(num_of_files_failed)
+
+if num_of_files_failed > 0:
+	exit(1)
