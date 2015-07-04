@@ -2,6 +2,14 @@ func main(): int {
     trueTest := true;
     falseTest: bool = false;
 
+    if trueTest == true {
+
+    }
+
+    if !falseTest == false {
+
+    }
+
     if true != (1 == 1) {
         return 1;
     }
