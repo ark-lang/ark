@@ -8,5 +8,5 @@
 // (however we do it i dont know)
 // at compile-time instead of runtime
 func println(message: str) {
-    printf("%s\n", message);
+    C::printf("%s\n", message);
 }

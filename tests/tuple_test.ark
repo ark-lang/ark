@@ -11,7 +11,7 @@ func main(): int {
     y := x|0|;
     z := x|1|;
 
-    printf("%d %f\n", x|0|, x|1|);
+    C::printf("%d %f\n", x|0|, x|1|);
 
     return y;
 }

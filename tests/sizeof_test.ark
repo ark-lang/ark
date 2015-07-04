@@ -9,14 +9,14 @@ struct Test {
 
 func main(): int {
     i: int;
-    printf("sizeof i: %d\n", sizeof(i));
-    printf("sizeof &i: %d\n", sizeof(&i));
+    C::printf("sizeof i: %d\n", sizeof(i));
+    C::printf("sizeof &i: %d\n", sizeof(&i));
 
     a: u8;
-    printf("sizeof a: %d\n", sizeof(a));
+    C::printf("sizeof a: %d\n", sizeof(a));
 
     test: Test;
-    printf("sizeof test: %d\n", sizeof(test));
+    C::printf("sizeof test: %d\n", sizeof(test));
 
     x: u8;
     if sizeof(x) != 1 {

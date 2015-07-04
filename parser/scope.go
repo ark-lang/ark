@@ -27,7 +27,7 @@ func newScope(outer *Scope) *Scope {
 	}
 }
 
-func newGlobalScope() *Scope {
+func NewGlobalScope() *Scope {
 	s := newScope(nil)
 
 	for i := 0; i < len(_PrimitiveType_index); i++ {
