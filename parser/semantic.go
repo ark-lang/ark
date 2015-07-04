@@ -70,6 +70,17 @@ func (v *semanticAnalyzer) analyzeUsage(nodes []Node) {
 			if function.Function.Body != nil {
 				v.analyzeUsage(function.Function.Body.Nodes)
 			}
+		} else if impl, ok := node.(*ImplDecl); ok {
+			for _, function := range impl.Functions {
+				if attr := getAttr(function.Function.Attrs, "unused"); attr == nil {
+					if function.Function.Name != "main" && function.Function.Uses == 0 {
+						v.err(function, "unused function `%s`", function.Function.Name)
+					}
+				}
+				if function.Function.Body != nil {
+					v.analyzeUsage(function.Function.Body.Nodes)
+				}
+			}
 		}
 	}
 }
