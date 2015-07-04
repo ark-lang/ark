@@ -1,6 +1,6 @@
-[c] func printf(fmt: str, ...);
-
 struct EmptyStruct;
+
+[c] func printf(fmt: str, ...): int;
 
 func main(): int {
     mut thing: Test;

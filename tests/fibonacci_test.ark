@@ -1,11 +1,11 @@
+[c] func printf(fmt: str, ...): int;
+
 func fib(n: int): int {
     if n < 2 {
         return n;
     }
     return fib(n - 1) + fib(n - 2);
 }
-
-[c] func printf(fmt: str, ...);
 
 func main(): int {
     C::printf("fib(12) == %d\n", fib(12));
