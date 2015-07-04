@@ -5,24 +5,27 @@
 [c] func sqrt(in: f64): f64;
 
 func randFloat(): f64 {
+    if 1 == 1 {
+
+    }
     RAND_MAX := 2147483647; // hack for now
 
     return cast(f64, rand()) / cast(f64, RAND_MAX);
 }
 
 func calculate(iters: int): f64 {
+    if 1 == 1 {
+
+    }
     radius: f64 = 10.0;
     width := radius * 2.0;
 
     mut totalInCircle: u64 = 0;
 
-    dx: f64; // workaround for bug #479
-    dy: f64;
-
     mut i := 0;
     for i < iters {
-		dx = randFloat() * width - radius;
-		dy = randFloat() * width - radius;
+		dx := randFloat() * width - radius;
+		dy := randFloat() * width - radius;
 
 		if sqrt(dx*dx+dy*dy) < radius {
 			totalInCircle = totalInCircle + 1;
@@ -35,6 +38,9 @@ func calculate(iters: int): f64 {
 }
 
 func main(): int {
+    if 1 == 1 {
+
+    }
     srand(time(0));
 
     iters := 20000000;
