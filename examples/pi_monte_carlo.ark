@@ -1,0 +1,45 @@
+[c] func printf(fmt: str, ...);
+[c] func srand(seed: uint);
+[c] func time(ptr: u64): uint;
+[c] func rand(): int;
+[c] func sqrt(in: f64): f64;
+
+func randFloat(): f64 {
+    RAND_MAX := 2147483647; // hack for now
+
+    return cast(f64, rand()) / cast(f64, RAND_MAX);
+}
+
+func calculate(iters: int): f64 {
+    radius: f64 = 10.0;
+    width := radius * 2.0;
+
+    mut totalInCircle: u64 = 0;
+
+    dx: f64; // workaround for bug #479
+    dy: f64;
+
+    mut i := 0;
+    for i < iters {
+		dx = randFloat() * width - radius;
+		dy = randFloat() * width - radius;
+
+		if sqrt(dx*dx+dy*dy) < radius {
+			totalInCircle = totalInCircle + 1;
+		}
+
+        i = i + 1;
+    }
+
+    return 4.0 * cast(f64, totalInCircle) / cast(f64, iters);
+}
+
+func main(): int {
+    srand(time(0));
+
+    iters := 20000000;
+    res := calculate(iters);
+    printf("Result of Monte Carlo pi estimation with %d iterations:\n", iters);
+    printf("%f\n", res);
+    return 0;
+}

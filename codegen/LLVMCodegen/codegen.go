@@ -67,7 +67,7 @@ func (v *Codegen) bitcodeToASM(filename string) string {
 }
 
 func (v *Codegen) createBinary() {
-	linkArgs := append(v.CCArgs, "-fno-PIE", "-nodefaultlibs", "-lc")
+	linkArgs := append(v.CCArgs, "-fno-PIE", "-nodefaultlibs", "-lc", "-lm")
 	asmFiles := []string{}
 
 	for _, file := range v.input {
@@ -132,15 +132,15 @@ func (v *Codegen) Generate(input []*parser.Module, modules map[string]*parser.Mo
 			v.genNode(node)
 		}
 
-		if verbose {
-			infile.Module.Dump()
-		}
-
 		if err := llvm.VerifyModule(infile.Module, llvm.ReturnStatusAction); err != nil {
 			v.err("%s", err.Error())
 		}
 
 		passManager.Run(infile.Module)
+
+		if verbose {
+			infile.Module.Dump()
+		}
 	}
 
 	passManager.Dispose()
@@ -698,7 +698,7 @@ func (v *Codegen) genBinaryExpr(n *parser.BinaryExpr) llvm.Value {
 
 		// Comparison
 		case parser.BINOP_GREATER, parser.BINOP_LESS, parser.BINOP_GREATER_EQ, parser.BINOP_LESS_EQ, parser.BINOP_EQ, parser.BINOP_NOT_EQ:
-			if n.GetType().IsFloatingType() {
+			if n.Lhand.GetType().IsFloatingType() {
 				return v.builder.CreateFCmp(comparisonOpToFloatPredicate(n.Op), lhand, rhand, "")
 			} else {
 				return v.builder.CreateICmp(comparisonOpToIntPredicate(n.Op, n.Lhand.GetType().IsSigned()), lhand, rhand, "")
