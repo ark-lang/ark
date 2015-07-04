@@ -220,6 +220,7 @@ func (v *AccessExpr) resolve(sem *semanticAnalyzer, s *Scope) {
 			v.Accesses[i].Subscript.resolve(sem, s)
 
 		case ACCESS_STRUCT:
+			v.Accesses[i].Variable.Type.resolveType(v, sem, s)
 			structType, ok := v.Accesses[i].Variable.Type.(*StructType)
 			if !ok {
 				sem.err(v, "Cannot access member of `%s`, type `%s`", v.Accesses[i].Variable.Name, v.Accesses[i].Variable.Type.TypeName())
