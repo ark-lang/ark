@@ -1,0 +1,8 @@
+func add() {
+
+}
+
+func main(): int {
+    add();
+    return 0;
+}
