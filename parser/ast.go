@@ -61,7 +61,6 @@ type DocComment struct {
 
 type Variable struct {
 	Type         Type
-	typeName     string
 	Name         string
 	Mutable      bool
 	Attrs        []*Attr
@@ -85,15 +84,14 @@ func (v *Variable) Scope() *Scope {
 }
 
 type Function struct {
-	Name           string
-	Parameters     []*VariableDecl
-	ReturnType     Type
-	returnTypeName string
-	Mutable        bool
-	IsVariadic     bool
-	Attrs          []*Attr
-	Body           *Block
-	scope          *Scope
+	Name       string
+	Parameters []*VariableDecl
+	ReturnType Type
+	Mutable    bool
+	IsVariadic bool
+	Attrs      []*Attr
+	Body       *Block
+	scope      *Scope
 }
 
 func (v *Function) Scope() *Scope {
@@ -780,9 +778,8 @@ func (v *UnaryExpr) NodeName() string {
 
 type CastExpr struct {
 	nodePos
-	Expr     Expr
-	Type     Type
-	typeName string
+	Expr Expr
+	Type Type
 }
 
 func (v *CastExpr) exprNode() {}
@@ -921,27 +918,6 @@ func (v *DerefExpr) GetType() Type {
 
 func (v *DerefExpr) NodeName() string {
 	return "dereference expression"
-}
-
-// BracketExpr
-
-type BracketExpr struct {
-	nodePos
-	Expr Expr
-}
-
-func (v *BracketExpr) exprNode() {}
-
-func (v *BracketExpr) String() string {
-	return "(" + util.Blue("BracketExpr") + ": " + v.Expr.String() + ")"
-}
-
-func (v *BracketExpr) GetType() Type {
-	return v.Expr.GetType()
-}
-
-func (v *BracketExpr) NodeName() string {
-	return "bracketed expression"
 }
 
 // SizeofExpr
