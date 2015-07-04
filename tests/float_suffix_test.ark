@@ -1,11 +1,15 @@
+[c] func printf(fmt: str, ...): int;
+
 func main(): int {
     t1 := 10f;
     t2 := 0.4d;
-    t3 := 1214.935735q;
+    [unused] t3 := 1214.935735q;
 
     t4 := 10F;
     t5 := 0.4D;
-    t6 := 1214.935735Q;
+    [unused] t6 := 1214.935735Q;
+
+    C::printf("%f %f %f %f\n", t1, t2, t4, t5);
 
     return 0;
 }

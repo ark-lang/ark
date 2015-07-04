@@ -18,13 +18,14 @@ type semanticAnalyzer struct {
 	function        *Function // the function we're in, or nil if we aren't
 	unresolvedNodes []Node
 	modules         map[string]*Module
+	shouldExit		bool
 }
 
 func (v *semanticAnalyzer) err(thing Locatable, err string, stuff ...interface{}) {
 	filename, line, char := thing.Pos()
 	fmt.Printf(util.TEXT_RED+util.TEXT_BOLD+"Semantic error:"+util.TEXT_RESET+" [%s:%d:%d] %s\n",
 		filename, line, char, fmt.Sprintf(err, stuff...))
-	os.Exit(util.EXIT_FAILURE_SEMANTIC)
+	v.shouldExit = true
 }
 
 func (v *semanticAnalyzer) warn(thing Locatable, err string, stuff ...interface{}) {
@@ -52,14 +53,55 @@ func (v *semanticAnalyzer) checkDuplicateAttrs(attrs []*Attr) {
 	}
 }
 
+func (v *semanticAnalyzer) analyzeUsage(nodes []Node) {
+	for _, node := range nodes {
+		if variable, ok := node.(*VariableDecl); ok {
+			if attr := getAttr(variable.Variable.Attrs, "unused"); attr == nil {
+				if variable.Variable.Uses == 0 {
+					v.err(variable, "unused variable `%s`", variable.Variable.Name)
+				}
+			}
+		} else if function, ok := node.(*FunctionDecl); ok {
+			if attr := getAttr(function.Function.Attrs, "unused"); attr == nil {
+				if function.Function.Name != "main" && function.Function.Uses == 0 {
+					v.err(function, "unused function `%s`", function.Function.Name)
+				}
+			}
+			if function.Function.Body != nil {
+				v.analyzeUsage(function.Function.Body.Nodes)
+			}
+		} else if impl, ok := node.(*ImplDecl); ok {
+			for _, function := range impl.Functions {
+				if attr := getAttr(function.Function.Attrs, "unused"); attr == nil {
+					if function.Function.Name != "main" && function.Function.Uses == 0 {
+						v.err(function, "unused function `%s`", function.Function.Name)
+					}
+				}
+				if function.Function.Body != nil {
+					v.analyzeUsage(function.Function.Body.Nodes)
+				}
+			}
+		}
+	}
+}
+
 func (v *semanticAnalyzer) analyze(modules map[string]*Module) {
 	v.modules = modules
+	v.shouldExit = false
 
 	// pass modules to resolve
 	v.resolve(modules)
 
 	for _, node := range v.module.Nodes {
 		node.analyze(v)
+	}
+
+	// once we're done analyzing everything
+	// check for unused stuff
+	v.analyzeUsage(v.module.Nodes)
+
+	if v.shouldExit {
+		os.Exit(util.EXIT_FAILURE_SEMANTIC)
 	}
 }
 
@@ -109,9 +151,8 @@ func (v *Function) analyze(s *semanticAnalyzer) {
 	for _, attr := range v.Attrs {
 		switch attr.Key {
 		case "deprecated":
-			// value is optional, nothing to check
+		case "unused":
 		case "c":
-			// idk yet who cares
 		default:
 			s.err(attr, "Invalid function attribute key `%s`", attr.Key)
 		}
@@ -222,6 +263,7 @@ func (v *Variable) analyze(s *semanticAnalyzer) {
 		switch attr.Key {
 		case "deprecated":
 			// value is optional, nothing to check
+		case "unused":
 		default:
 			s.err(attr, "Invalid variable attribute key `%s`", attr.Key)
 		}
@@ -704,6 +746,8 @@ func (v *CallExpr) analyze(s *semanticAnalyzer) {
 			v.Function.Name, paramLen, argLen)
 	}
 
+	v.Function.Uses++
+
 	for i, arg := range v.Arguments {
 		if i >= len(v.Function.Parameters) { // we have a variadic arg
 			if !isVariadic {
@@ -757,6 +801,10 @@ func (v *AccessExpr) analyze(s *semanticAnalyzer) {
 	for _, access := range v.Accesses {
 		if dep := getAttr(access.Variable.Attrs, "deprecated"); dep != nil {
 			s.warnDeprecated(v, "variable", access.Variable.Name, dep.Value)
+		}
+
+		if access.Variable != nil {
+			access.Variable.Uses++
 		}
 
 		if access.AccessType == ACCESS_ARRAY {
