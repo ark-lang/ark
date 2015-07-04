@@ -234,6 +234,9 @@ func (v *Variable) analyze(s *semanticAnalyzer) {
 
 func (v *VariableDecl) analyze(s *semanticAnalyzer) {
 	v.Variable.analyze(s)
+
+	_, isStructure := v.Variable.Type.(*StructType)
+
 	if v.Assignment != nil {
 		v.Assignment.setTypeHint(v.Variable.Type)
 		v.Assignment.analyze(s)
@@ -244,6 +247,14 @@ func (v *VariableDecl) analyze(s *semanticAnalyzer) {
 			s.err(v, "Cannot assign expression of type `%s` to variable of type `%s`",
 				v.Assignment.GetType().TypeName(), v.Variable.Type.TypeName())
 		}
+	} else if v.Assignment == nil && !v.Variable.Mutable && v.Variable.ParentStruct == nil && !isStructure {
+		// note the parent struct is nil!
+		// as well as if the type is a structure!!
+		// this is because we dont care if
+		// a structure has an uninitialized value
+		// likewise, we don't care if the variable is
+		// something like `x: StructName`.
+		s.err(v, "Variable `%s` is immutable, yet has no initial value", v.Variable.Name)
 	}
 
 	if dep := getAttr(v.Variable.Type.Attrs(), "deprecated"); dep != nil {

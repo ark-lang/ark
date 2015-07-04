@@ -1,4 +1,3 @@
-[c] func printf(fmt: str, ...);
 
 trait ToString {
     func toString(): str;
@@ -10,7 +9,7 @@ struct Foo {
 
 impl Foo {
     func bar() {
-        printf("%s\n", "bar");
+        C::printf("%s\n", "bar");
     }
 }
 
