@@ -3,11 +3,11 @@
 func add(a: int, b: int): int -> a + b;
 
 func test(mut a: int) -> for a < 10 {
-    printf("this is a test %d\n", a);
+    C::printf("this is a test %d\n", a);
     a = a + 1;
 }
 
-func whatever() -> printf("testing the whatever() func\n");
+func whatever() -> C::printf("testing the whatever() func\n");
 
 func main(): int {
     whatever();

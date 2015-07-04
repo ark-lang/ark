@@ -1,18 +1,18 @@
-[c] func printf(fmt: str, ...);
-
 struct EmptyStruct;
+
+[c] func printf(fmt: str, ...): int;
 
 func main(): int {
     mut thing: Test;
 
     thing.y = 9;
-    printf("thing.y: %d\n", thing.y);
+    C::printf("thing.y: %d\n", thing.y);
     if thing.y != 9 {
         return 1;
     }
 
     thing.test2.x = 11;
-    printf("thing.test2.x: %d\n", thing.test2.x);
+    C::printf("thing.test2.x: %d\n", thing.test2.x);
     if thing.test2.x != 11 {
         return 2;
     }
