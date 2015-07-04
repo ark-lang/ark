@@ -1,7 +1,0 @@
-use io;
-
-func main(): int {
-    io::println("Hello!");
-
-    return 0;
-}
