@@ -5,18 +5,12 @@
 [c] func sqrt(in: f64): f64;
 
 func randFloat(): f64 {
-    if 1 == 1 {
-
-    }
     RAND_MAX := 2147483647; // hack for now
 
     return cast(f64, rand()) / cast(f64, RAND_MAX);
 }
 
 func calculate(iters: int): f64 {
-    if 1 == 1 {
-
-    }
     radius: f64 = 10.0;
     width := radius * 2.0;
 
@@ -38,9 +32,6 @@ func calculate(iters: int): f64 {
 }
 
 func main(): int {
-    if 1 == 1 {
-
-    }
     srand(time(0));
 
     iters := 20000000;
