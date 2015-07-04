@@ -1,17 +1,17 @@
+[c] func printf(fmt: str, ...): int;
+
 func something(): (int, f32) {
     x := (4, 2.3); // inferred
     y: (int, f32) = (0, 2.4);
     return y;
 }
 
-[c] func printf(fmt: str, ...);
-
 func main(): int {
     x := something();
     y := x|0|;
     z := x|1|;
 
-    printf("%d %f\n", x|0|, x|1|);
+    C::printf("%d %f\n", x|0|, x|1|);
 
     return y;
 }

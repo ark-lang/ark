@@ -1,15 +1,15 @@
-[c] func printf(fmt: str, ...);
+[c] func printf(fmt: str, ...): int;
 
 func main(): int {
     mut x := 9;
     y := &x;
 
-    printf("%d\n", ^y);
+    C::printf("%d\n", ^y);
 
     x = 15;
     z := &y;
 
-    printf("%d\n", ^^z);
+    C::printf("%d\n", ^^z);
 
     x = 9000;
 
@@ -19,7 +19,7 @@ func main(): int {
     d := &c;
     e := &d;
 
-    printf("%d\n", ^^^^^^^e);
+    C::printf("%d\n", ^^^^^^^e);
 
     return 0;
 }

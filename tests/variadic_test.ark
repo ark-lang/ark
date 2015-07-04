@@ -1,6 +1,6 @@
-[c] func printf(fmt: str, ...);
+[c] func printf(fmt: str, ...): int;
 
 func main(): int {
-    printf("hi");
+    C::printf("hi");
     return 0;
 }
