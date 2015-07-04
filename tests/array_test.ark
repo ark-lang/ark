@@ -1,4 +1,4 @@
-[c] func printf(fmt: str, ...);
+[c] func printf(fmt: str, ...): int;
 
 func main(): int {
     arrayLitTest := [100, 101, 102, 103, 104];

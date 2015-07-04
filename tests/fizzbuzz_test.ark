@@ -2,7 +2,7 @@
 // %3 -> Fizz
 // %5 -> Buzz
 
-[c] func printf(fmt: str, ...);
+[c] func printf(fmt: str, ...): int;
 [c] func putchar(c: s8);
 
 func main(): int {
