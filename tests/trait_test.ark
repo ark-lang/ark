@@ -1,3 +1,4 @@
+[c] func printf(fmt: str, ...): int;
 
 trait ToString {
     func toString(): str;
