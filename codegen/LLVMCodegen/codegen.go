@@ -490,18 +490,32 @@ func (v *Codegen) genFunctionDecl(n *parser.FunctionDecl) llvm.Value {
 func (v *Codegen) genVariableDecl(n *parser.VariableDecl, semicolon bool) llvm.Value {
 	var res llvm.Value
 
-	// if n.Variable.Mutable
+	if v.inFunction {
+		mangledName := n.Variable.MangledName(parser.MANGLE_ARK_UNSTABLE)
 
-	// TODO global vars
+		funcEntry := v.currentFunction.EntryBasicBlock()
 
-	mangledName := n.Variable.MangledName(parser.MANGLE_ARK_UNSTABLE)
-	alloc := v.builder.CreateAlloca(v.typeToLLVMType(n.Variable.Type), mangledName)
-	v.variableLookup[n.Variable] = alloc
+		// use this builder for the variable alloca
+		// this means all allocas go at the start of the function
+		// so each variable is only allocated once
+		allocBuilder := llvm.NewBuilder()
 
-	if n.Assignment != nil {
-		if value := v.genExpr(n.Assignment); !value.IsNil() {
-			v.builder.CreateStore(value, alloc)
+		if funcEntry == v.builder.GetInsertBlock() {
+			allocBuilder.SetInsertPointAtEnd(funcEntry)
+		} else {
+			allocBuilder.SetInsertPointBefore(funcEntry.LastInstruction())
 		}
+
+		alloc := allocBuilder.CreateAlloca(v.typeToLLVMType(n.Variable.Type), mangledName)
+		v.variableLookup[n.Variable] = alloc
+
+		if n.Assignment != nil {
+			if value := v.genExpr(n.Assignment); !value.IsNil() {
+				v.builder.CreateStore(value, alloc)
+			}
+		}
+	} else {
+		panic("TODO global variables")
 	}
 
 	return res
