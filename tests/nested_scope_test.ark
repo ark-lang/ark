@@ -8,13 +8,13 @@ func main(): int {
 
         do {
             mut x: str = "foo";
-            printf("x = %s\n", x);
+            C::printf("x = %s\n", x);
         }
 
-        printf("x = %f\n", x);
+        C::printf("x = %f\n", x);
     }
 
-    printf("x = %d\n", x);
+    C::printf("x = %d\n", x);
 
     return 0;
 }
