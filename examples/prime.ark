@@ -1,0 +1,63 @@
+/**
+
+Ark:
+59.66
+59.14
+59.09
+60.12
+60.00
+AVERAGE = 59.602
+
+C:
+58.63
+58.57
+59.01
+50.53
+59.81
+AVERAGE = 57.31
+
+Close! We had no optimization passes either!
+
+**/
+
+[c] func printf(fmt: str, ...): int;
+[c] func sqrt(x: f64): f64;
+
+func is_prime(n: int): int {
+    if n < 2 {
+        return 0;
+    } else if n == 2 {
+        return 1;
+    } else if n % 2 == 0 {
+        return 0;
+    } 
+
+    upper: int = cast(int, sqrt(cast(f64, n)));
+    i: int = 3;
+
+    for i <= upper {
+        if n % i == 0 {
+            return 0;
+        }
+        i = i + 2;
+    }
+
+    return i;
+}
+
+func main(): int {
+    no_primes: int = 0;
+    limit: int = 67108864;
+    n: int = 0;
+
+    for n <= limit {
+        if is_prime(n) >= 1 {
+            no_primes = no_primes + 1; 
+        }
+        n = n + 1;
+    }
+
+    printf("pi(%d) = %d\n", limit, no_primes);
+
+    return 0;
+}
