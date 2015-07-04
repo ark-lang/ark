@@ -1,6 +1,6 @@
 [c] func printf(fmt: str, ...): int;
 
-func add(a: int, b: int): int -> a + b;
+[unused] func add(a: int, b: int): int -> a + b;
 
 func test(mut a: int) -> for a < 10 {
     C::printf("this is a test %d\n", a);
