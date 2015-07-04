@@ -507,6 +507,9 @@ func (v *Codegen) genVariableDecl(n *parser.VariableDecl, semicolon bool) llvm.V
 		}
 
 		alloc := allocBuilder.CreateAlloca(v.typeToLLVMType(n.Variable.Type), mangledName)
+
+		allocBuilder.Dispose()
+
 		v.variableLookup[n.Variable] = alloc
 
 		if n.Assignment != nil {
