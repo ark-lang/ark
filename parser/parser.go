@@ -24,7 +24,7 @@ type parser struct {
 	modules           map[string]*Module
 	scope             *Scope
 	binOpPrecedences  map[BinOpType]int
-	attrs             []*Attr
+	attrs             AttrGroup
 	curNodeTokenStart int
 	docCommentsBuf    []*DocComment
 }
@@ -74,7 +74,7 @@ func (v *parser) popScope() {
 	}
 }
 
-func (v *parser) fetchAttrs() []*Attr {
+func (v *parser) fetchAttrs() AttrGroup {
 	ret := v.attrs
 	v.attrs = nil
 	return ret
@@ -223,7 +223,12 @@ func (v *parser) parseNode() Node {
 	}
 
 	// this is a little dirty, but allows for attribute block without reflection (part 1 / 2)
-	v.attrs = append(v.attrs, v.parseAttrs()...)
+	if v.attrs == nil {
+		v.attrs = v.parseAttrs()
+	} else {
+		v.attrs.Extend(v.parseAttrs())
+	}
+
 	var ret Node
 	if decl := v.parseDecl(); decl != nil {
 		ret = decl
@@ -398,7 +403,7 @@ func (v *parser) parseUseDecl() Decl {
 		}
 	}
 
-	v.useModule(useDecl.ModuleName)	
+	v.useModule(useDecl.ModuleName)
 	return useDecl
 
 	v.err("attempting to use undefined module `%s`", useDecl.ModuleName)
@@ -542,7 +547,7 @@ func (v *parser) parseFunctionDecl() *FunctionDecl {
 
 			// either I'm just really sleep deprived,
 			// or this is the best way to do this?
-			// 
+			//
 			// this parses the ellipse for variable
 			// function arguments, it will check for
 			// a . and then consume the other 2, it's

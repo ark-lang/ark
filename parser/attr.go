@@ -16,6 +16,48 @@ func Contains(s string) bool {}
 func Get(s string) *Attr {}
 */
 
+type AttrGroup map[string]*Attr
+
+func (v AttrGroup) Contains(key string) bool {
+	_, ok := v[key]
+	return ok
+}
+
+func (v AttrGroup) Get(key string) *Attr {
+	return v[key]
+}
+
+func (v AttrGroup) Set(key string, value *Attr) bool {
+	_, ok := v[key]
+	v[key] = value
+	return ok
+}
+
+func (v AttrGroup) Extend(other AttrGroup) {
+	for _, attr := range other {
+		v[attr.Key] = attr
+	}
+}
+
+func (v AttrGroup) Equals(other AttrGroup) bool {
+	if len(v) != len(other) {
+		return false
+	}
+
+	for key, value := range v {
+		otherValue, ok := other[key]
+		if !ok {
+			return false
+		}
+
+		if value.Value != otherValue.Value {
+			return false
+		}
+	}
+
+	return true
+}
+
 type Attr struct {
 	Key       string
 	Value     string
@@ -33,29 +75,35 @@ func (v *Attr) String() string {
 	return util.Green(result)
 }
 
-func getAttr(attrs []*Attr, s string) *Attr {
-	for _, a := range attrs {
-		if s == a.Key {
-			return a
-		}
-	}
-	return nil
-}
-
-func (v *semanticAnalyzer) checkAttrsDistanceFromLine(attrs []*Attr, line int, declType, declName string) {
-	for i := len(attrs) - 1; i >= 0; i-- {
-		if attrs[i].lineNumber < line-1 {
-			// mute warnings from attribute blocks
-			if !attrs[i].FromBlock {
-				v.warn(attrs[i], "Gap of %d lines between declaration of %s `%s` and `%s` attribute", line-attrs[i].lineNumber, declType, declName, attrs[i].Key)
+func (v *semanticAnalyzer) checkAttrsDistanceFromLine(attrs AttrGroup, line int, declType, declName string) {
+	// Turn map into a list sorted by line number
+	var sorted []*Attr
+	for _, attr := range attrs {
+		index := 0
+		for idx, innerAttr := range sorted {
+			if attr.lineNumber >= innerAttr.lineNumber {
+				index = idx
 			}
 		}
-		line = attrs[i].lineNumber
+
+		sorted = append(sorted, nil)
+		copy(sorted[index+1:], sorted[index:])
+		sorted[index] = attr
+	}
+
+	for i := len(sorted) - 1; i >= 0; i-- {
+		if sorted[i].lineNumber < line-1 {
+			// mute warnings from attribute blocks
+			if !sorted[i].FromBlock {
+				v.warn(sorted[i], "Gap of %d lines between declaration of %s `%s` and `%s` attribute", line-sorted[i].lineNumber, declType, declName, sorted[i].Key)
+			}
+		}
+		line = sorted[i].lineNumber
 	}
 }
 
-func (v *parser) parseAttrs() []*Attr {
-	ret := make([]*Attr, 0)
+func (v *parser) parseAttrs() AttrGroup {
+	ret := make(AttrGroup)
 	for v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "[") {
 		// eat the opening bracket
 		v.consumeToken()
@@ -78,7 +126,9 @@ func (v *parser) parseAttrs() []*Attr {
 
 		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ",") {
 			v.consumeToken()
-			ret = append(ret, attr)
+			if ret.Set(attr.Key, attr) {
+				v.err("Duplicate attribute `%s`", attr.Key)
+			}
 			goto thing // hey, it works
 		} else if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "]") {
 			v.err("Expected `]` at the end of attribute, found `%s`", v.peek(0).Contents)
@@ -87,34 +137,9 @@ func (v *parser) parseAttrs() []*Attr {
 		// eat the closing bracket
 		v.consumeToken()
 
-		ret = append(ret, attr)
+		if ret.Set(attr.Key, attr) {
+			v.err("Duplicate attribute `%s`", attr.Key)
+		}
 	}
 	return ret
-}
-
-func equalAttributes(one, other []*Attr) bool {
-	if len(one) != len(other) {
-		return false
-	}
-
-	oneMap := make(map[string]*Attr)
-	otherMap := make(map[string]*Attr)
-	for _, attr := range one {
-		oneMap[attr.Key] = attr
-	}
-	for _, attr := range other {
-		otherMap[attr.Key] = attr
-	}
-
-	for key, oneAttr := range oneMap {
-		otherAttr, ok := otherMap[key]
-		if !ok {
-			return false
-		}
-		if oneAttr.Value != otherAttr.Value {
-			return false
-		}
-	}
-
-	return true
 }
