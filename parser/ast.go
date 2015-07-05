@@ -35,6 +35,9 @@ type Expr interface {
 type Decl interface {
 	Node
 	declNode()
+}
+
+type Documentable interface {
 	DocComments() []*DocComment
 }
 
@@ -341,10 +344,6 @@ func (v *UseDecl) NodeName() string {
 	return "use declaration"
 }
 
-func (v *UseDecl) DocComments() []*DocComment {
-	return nil
-}
-
 // FunctionDecl
 
 type FunctionDecl struct {
@@ -366,6 +365,24 @@ func (v *FunctionDecl) NodeName() string {
 
 func (v *FunctionDecl) DocComments() []*DocComment {
 	return v.docs
+}
+
+// DirectiveDecl
+
+type DirectiveDecl struct {
+	nodePos
+	Name     string
+	Argument *StringLiteral
+}
+
+func (v *DirectiveDecl) declNode() {}
+
+func (v *DirectiveDecl) String() string {
+	return "(" + util.Blue("DirectiveDecl") + ": #" + v.Name + " " + v.Argument.String() + ")"
+}
+
+func (v *DirectiveDecl) NodeName() string {
+	return "function declaration"
 }
 
 /**

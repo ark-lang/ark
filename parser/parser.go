@@ -345,10 +345,14 @@ func (v *parser) parseBlockStat() *BlockStat {
 }
 
 func (v *parser) parseCallStat() *CallStat {
+	locationToken := v.peek(0)
+	filename, line, char := locationToken.Filename, locationToken.LineNumber, locationToken.CharNumber
 	if call := v.parseCallExpr(); call != nil {
 		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ";") {
 			v.consumeToken()
-			return &CallStat{Call: call}
+			callStat := &CallStat{Call: call}
+			call.setPos(filename, line, char)
+			return callStat
 		}
 		v.err("Expected semicolon after function call statement, found `%s`", v.peek(0).Contents)
 	}
@@ -406,8 +410,8 @@ func (v *parser) parseUseDecl() Decl {
 	v.useModule(useDecl.ModuleName)
 	return useDecl
 
-	v.err("attempting to use undefined module `%s`", useDecl.ModuleName)
-	return nil
+	/*v.err("attempting to use undefined module `%s`", useDecl.ModuleName)
+	return nil*/ // TODO?
 }
 
 func (v *parser) parseDecl() Decl {
