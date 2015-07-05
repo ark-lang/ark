@@ -18,7 +18,7 @@ type semanticAnalyzer struct {
 	function        *Function // the function we're in, or nil if we aren't
 	unresolvedNodes []Node
 	modules         map[string]*Module
-	shouldExit		bool
+	shouldExit      bool
 }
 
 func (v *semanticAnalyzer) err(thing Locatable, err string, stuff ...interface{}) {
@@ -43,26 +43,16 @@ func (v *semanticAnalyzer) warnDeprecated(thing Locatable, typ, name, message st
 	}
 }
 
-func (v *semanticAnalyzer) checkDuplicateAttrs(attrs []*Attr) {
-	encountered := make(map[string]bool)
-	for _, attr := range attrs {
-		if encountered[attr.Key] {
-			v.err(attr, "Duplicate attribute `%s`", attr.Key)
-		}
-		encountered[attr.Key] = true
-	}
-}
-
 func (v *semanticAnalyzer) analyzeUsage(nodes []Node) {
 	for _, node := range nodes {
 		if variable, ok := node.(*VariableDecl); ok {
-			if attr := getAttr(variable.Variable.Attrs, "unused"); attr == nil {
+			if attr := variable.Variable.Attrs.Get("unused"); attr == nil {
 				if variable.Variable.Uses == 0 {
 					v.err(variable, "unused variable `%s`", variable.Variable.Name)
 				}
 			}
 		} else if function, ok := node.(*FunctionDecl); ok {
-			if attr := getAttr(function.Function.Attrs, "unused"); attr == nil {
+			if attr := function.Function.Attrs.Get("unused"); attr == nil {
 				if function.Function.Name != "main" && function.Function.Uses == 0 {
 					v.err(function, "unused function `%s`", function.Function.Name)
 				}
@@ -72,7 +62,7 @@ func (v *semanticAnalyzer) analyzeUsage(nodes []Node) {
 			}
 		} else if impl, ok := node.(*ImplDecl); ok {
 			for _, function := range impl.Functions {
-				if attr := getAttr(function.Function.Attrs, "unused"); attr == nil {
+				if attr := function.Function.Attrs.Get("unused"); attr == nil {
 					if function.Function.Name != "main" && function.Function.Uses == 0 {
 						v.err(function, "unused function `%s`", function.Function.Name)
 					}
@@ -147,7 +137,6 @@ func IsNodeTerminating(n Node) bool {
 
 func (v *Function) analyze(s *semanticAnalyzer) {
 	// make sure there are no illegal attributes
-	s.checkDuplicateAttrs(v.Attrs)
 	for _, attr := range v.Attrs {
 		switch attr.Key {
 		case "deprecated":
@@ -223,7 +212,6 @@ func evaluateEnumExpr(expr Expr) (uint64, error) {
 
 func (v *StructType) analyze(s *semanticAnalyzer) {
 	// make sure there are no illegal attributes
-	s.checkDuplicateAttrs(v.attrs)
 	for _, attr := range v.Attrs() {
 		switch attr.Key {
 		case "packed":
@@ -244,7 +232,6 @@ func (v *StructType) analyze(s *semanticAnalyzer) {
 
 func (v *TraitType) analyze(s *semanticAnalyzer) {
 	// make sure there are no illegal attributes
-	s.checkDuplicateAttrs(v.attrs)
 	for _, attr := range v.Attrs() {
 		if attr.Key != "deprecated" {
 			s.err(attr, "Invalid trait attribute key `%s`", attr.Key)
@@ -258,7 +245,6 @@ func (v *TraitType) analyze(s *semanticAnalyzer) {
 
 func (v *Variable) analyze(s *semanticAnalyzer) {
 	// make sure there are no illegal attributes
-	s.checkDuplicateAttrs(v.Attrs)
 	for _, attr := range v.Attrs {
 		switch attr.Key {
 		case "deprecated":
@@ -299,7 +285,7 @@ func (v *VariableDecl) analyze(s *semanticAnalyzer) {
 		s.err(v, "Variable `%s` is immutable, yet has no initial value", v.Variable.Name)
 	}
 
-	if dep := getAttr(v.Variable.Type.Attrs(), "deprecated"); dep != nil {
+	if dep := v.Variable.Type.Attrs().Get("deprecated"); dep != nil {
 		s.warnDeprecated(v, "type", v.Variable.Type.TypeName(), dep.Value)
 	}
 
@@ -788,7 +774,7 @@ func (v *CallExpr) analyze(s *semanticAnalyzer) {
 		}
 	}
 
-	if dep := getAttr(v.Function.Attrs, "deprecated"); dep != nil {
+	if dep := v.Function.Attrs.Get("deprecated"); dep != nil {
 		s.warnDeprecated(v, "function", v.Function.Name, dep.Value)
 	}
 }
@@ -799,7 +785,7 @@ func (v *CallExpr) setTypeHint(t Type) {}
 
 func (v *AccessExpr) analyze(s *semanticAnalyzer) {
 	for _, access := range v.Accesses {
-		if dep := getAttr(access.Variable.Attrs, "deprecated"); dep != nil {
+		if dep := access.Variable.Attrs.Get("deprecated"); dep != nil {
 			s.warnDeprecated(v, "variable", access.Variable.Name, dep.Value)
 		}
 
