@@ -7,7 +7,7 @@ import (
 )
 
 type Decl struct {
-	Node       parser.Decl
+	Node       parser.Documentable
 	Docs       string
 	ParsedDocs template.HTML // docs after markdown parsing
 	Ident      string        // identifier

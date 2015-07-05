@@ -46,7 +46,7 @@ func (v *Docgen) traverse(verbose bool) {
 			switch n.(type) {
 			case parser.Decl:
 				decl := &Decl{
-					Node: n.(parser.Decl),
+					Node: n.(parser.Documentable),
 				}
 
 				for _, comm := range decl.Node.DocComments() {
