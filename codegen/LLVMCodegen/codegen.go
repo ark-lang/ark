@@ -222,17 +222,7 @@ func (v *Codegen) declareFunctionDecl(n *parser.FunctionDecl) {
 
 		// find them attributes yo
 		if n.Function.Attrs != nil {
-			attributes := n.Function.Attrs
-
-			// todo hashmap or some shit
-			for _, attr := range attributes {
-				switch attr.Key {
-				case "c":
-					cBinding = true
-				default:
-					// do nothing
-				}
-			}
+			cBinding = n.Function.Attrs.Contains("c")
 		}
 
 		// assume it's void
@@ -949,13 +939,8 @@ func floatTypeBits(ty parser.PrimitiveType) int {
 func (v *Codegen) genCallExpr(n *parser.CallExpr) llvm.Value {
 	// todo dont use attributes, use that C:: shit
 	cBinding := false
-	for _, attr := range n.Function.Attrs {
-		switch attr.Key {
-		case "c":
-			cBinding = true
-		default:
-			// whatever
-		}
+	if n.Function.Attrs != nil {
+		cBinding = n.Function.Attrs.Contains("c")
 	}
 
 	// eww
