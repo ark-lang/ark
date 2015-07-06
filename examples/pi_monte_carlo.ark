@@ -7,7 +7,7 @@
 func randFloat(): f64 {
     RAND_MAX := 2147483647; // hack for now
 
-    return cast(f64, rand()) / cast(f64, RAND_MAX);
+    return cast(f64, C::rand()) / cast(f64, RAND_MAX);
 }
 
 func calculate(iters: int): f64 {
@@ -21,7 +21,7 @@ func calculate(iters: int): f64 {
 		dx := randFloat() * width - radius;
 		dy := randFloat() * width - radius;
 
-		if sqrt(dx*dx+dy*dy) < radius {
+		if C::sqrt(dx*dx+dy*dy) < radius {
 			totalInCircle = totalInCircle + 1;
 		}
 
@@ -32,11 +32,11 @@ func calculate(iters: int): f64 {
 }
 
 func main(): int {
-    srand(time(0));
+    C::srand(C::time(0));
 
     iters := 20000000;
     res := calculate(iters);
-    printf("Result of Monte Carlo pi estimation with %d iterations:\n", iters);
-    printf("%f\n", res);
+    C::printf("Result of Monte Carlo pi estimation with %d iterations:\n", iters);
+    C::printf("%f\n", res);
     return 0;
 }

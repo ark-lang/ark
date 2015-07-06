@@ -27,12 +27,18 @@ func newScope(outer *Scope) *Scope {
 	}
 }
 
-func NewGlobalScope() *Scope {
-	s := newScope(nil)
+var builtinScope *Scope
+
+func init() {
+	builtinScope = newScope(nil)
 
 	for i := 0; i < len(_PrimitiveType_index); i++ {
-		s.InsertType(PrimitiveType(i))
+		builtinScope.InsertType(PrimitiveType(i))
 	}
+}
+
+func NewGlobalScope() *Scope {
+	s := newScope(builtinScope)
 
 	return s
 }
@@ -41,10 +47,6 @@ func (v *Scope) err(err string, stuff ...interface{}) {
 	fmt.Printf(util.TEXT_RED+util.TEXT_BOLD+"error:"+util.TEXT_RESET+" %s\n",
 		fmt.Sprintf(err, stuff...))
 	os.Exit(util.EXIT_FAILURE_CODEGEN)
-}
-
-func (v *Scope) IsGlobal() bool {
-	return v.Outer == nil
 }
 
 func (v *Scope) InsertType(t Type) Type {

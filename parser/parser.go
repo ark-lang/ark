@@ -24,7 +24,7 @@ type parser struct {
 	modules           map[string]*Module
 	scope             *Scope
 	binOpPrecedences  map[BinOpType]int
-	attrs             []*Attr
+	attrs             AttrGroup
 	curNodeTokenStart int
 	docCommentsBuf    []*DocComment
 }
@@ -74,7 +74,7 @@ func (v *parser) popScope() {
 	}
 }
 
-func (v *parser) fetchAttrs() []*Attr {
+func (v *parser) fetchAttrs() AttrGroup {
 	ret := v.attrs
 	v.attrs = nil
 	return ret
@@ -214,16 +214,17 @@ func (v *parser) parseDocComment() *DocComment {
 
 func (v *parser) parseNode() Node {
 	v.docCommentsBuf = make([]*DocComment, 0)
-	for v.tokenMatches(0, lexer.TOKEN_COMMENT, "") || v.tokenMatches(0, lexer.TOKEN_DOCCOMMENT, "") {
-		if v.tokenMatches(0, lexer.TOKEN_DOCCOMMENT, "") {
-			v.docCommentsBuf = append(v.docCommentsBuf, v.parseDocComment())
-		} else {
-			v.consumeToken()
-		}
+	for v.tokenMatches(0, lexer.TOKEN_DOCCOMMENT, "") {
+		v.docCommentsBuf = append(v.docCommentsBuf, v.parseDocComment())
 	}
 
 	// this is a little dirty, but allows for attribute block without reflection (part 1 / 2)
-	v.attrs = append(v.attrs, v.parseAttrs()...)
+	if v.attrs == nil {
+		v.attrs = v.parseAttrs()
+	} else {
+		v.attrs.Extend(v.parseAttrs())
+	}
+
 	var ret Node
 	if decl := v.parseDecl(); decl != nil {
 		ret = decl
@@ -340,10 +341,14 @@ func (v *parser) parseBlockStat() *BlockStat {
 }
 
 func (v *parser) parseCallStat() *CallStat {
+	locationToken := v.peek(0)
+	filename, line, char := locationToken.Filename, locationToken.LineNumber, locationToken.CharNumber
 	if call := v.parseCallExpr(); call != nil {
 		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ";") {
 			v.consumeToken()
-			return &CallStat{Call: call}
+			callStat := &CallStat{Call: call}
+			call.setPos(filename, line, char)
+			return callStat
 		}
 		v.err("Expected semicolon after function call statement, found `%s`", v.peek(0).Contents)
 	}
@@ -398,11 +403,11 @@ func (v *parser) parseUseDecl() Decl {
 		}
 	}
 
-	v.useModule(useDecl.ModuleName)	
+	v.useModule(useDecl.ModuleName)
 	return useDecl
 
-	v.err("attempting to use undefined module `%s`", useDecl.ModuleName)
-	return nil
+	/*v.err("attempting to use undefined module `%s`", useDecl.ModuleName)
+	return nil*/ // TODO?
 }
 
 func (v *parser) parseDecl() Decl {
@@ -542,7 +547,7 @@ func (v *parser) parseFunctionDecl() *FunctionDecl {
 
 			// either I'm just really sleep deprived,
 			// or this is the best way to do this?
-			// 
+			//
 			// this parses the ellipse for variable
 			// function arguments, it will check for
 			// a . and then consume the other 2, it's
@@ -658,8 +663,8 @@ func (v *parser) parseBlock(pushNewScope bool) *Block {
 	}
 
 	for {
-		for v.tokenMatches(0, lexer.TOKEN_COMMENT, "") || v.tokenMatches(0, lexer.TOKEN_DOCCOMMENT, "") {
-			v.consumeToken()
+		for v.tokenMatches(0, lexer.TOKEN_DOCCOMMENT, "") {
+			v.consumeToken() // TODO error here?
 		}
 		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "}") {
 			v.consumeToken()
