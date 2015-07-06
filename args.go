@@ -21,13 +21,13 @@ func newInputList(s kingpin.Settings) (target *[]string) {
 var (
 	app = kingpin.New("ark", "Compiler for the Ark programming language.").Version(VERSION).Author(AUTHOR)
 
-	logLevel = app.Flag("loglevel", "Set the level of logging to show").Default("info").String()
+	logLevel = app.Flag("loglevel", "Set the level of logging to show").Default("info").Enum("debug", "verbose", "info", "warning", "error")
 	logTags  = app.Flag("logtags", "Which log tags to show").Default("all").String()
 
 	buildCom     = app.Command("build", "Build an executable.")
 	buildOutput  = buildCom.Flag("output", "Output binary name.").Short('o').Default("main").String()
 	buildInputs  = newInputList(buildCom.Arg("input", "Ark source files."))
-	buildCodegen = buildCom.Flag("codegen", "Codegen backend to use").Default("llvm").Enum("none", "llvm", "ark")
+	buildCodegen = buildCom.Flag("codegen", "Codegen backend to use").Default("llvm").Enum("none", "llvm")
 	buildStatic  = buildCom.Flag("static", "Pass the -static option to cc.").Bool()
 	buildRun     = buildCom.Flag("run", "Run the executable.").Bool()
 	buildAsm     = buildCom.Flag("output-assembly", "Stop compiling before assembling.").Short('S').Bool()
