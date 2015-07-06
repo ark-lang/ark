@@ -1,0 +1,9 @@
+[c] func printf(fmt: str, ...): int;
+
+[unused] x: int = 10;
+
+func main(): int {
+    x = 20;
+    C::printf("%d\n", x);
+    return 0;
+}
