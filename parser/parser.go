@@ -147,19 +147,16 @@ func Parse(input *lexer.Sourcefile, modules map[string]*Module, verbose bool) *M
 	if verbose {
 		fmt.Println(util.TEXT_BOLD+util.TEXT_GREEN+"Started parsing"+util.TEXT_RESET, input.Name)
 	}
-
 	t := time.Now()
+
 	p.parse()
 
-	sem := &semanticAnalyzer{module: p.module}
-	sem.analyze(modules)
-
 	dur := time.Since(t)
-
 	if verbose {
-		for _, n := range p.module.Nodes {
-			fmt.Println(n.String())
-		}
+		// TODO: This can not run before semantic analysis due to nil-pointer dereferences in String()
+		// for _, n := range p.module.Nodes {
+		// 	fmt.Println(n.String())
+		// }
 
 		fmt.Printf(util.TEXT_BOLD+util.TEXT_GREEN+"Finished parsing"+util.TEXT_RESET+" %s (%.2fms)\n",
 			input.Name, float32(dur.Nanoseconds())/1000000)
