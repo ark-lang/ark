@@ -30,9 +30,9 @@ func is_prime(n: int): int {
         return 1;
     } else if n % 2 == 0 {
         return 0;
-    } 
+    }
 
-    upper: int = cast(int, sqrt(cast(f64, n)));
+    upper: int = cast(int, C::sqrt(cast(f64, n)));
     i: int = 3;
 
     for i <= upper {
@@ -52,12 +52,12 @@ func main(): int {
 
     for n <= limit {
         if is_prime(n) >= 1 {
-            no_primes = no_primes + 1; 
+            no_primes = no_primes + 1;
         }
         n = n + 1;
     }
 
-    printf("pi(%d) = %d\n", limit, no_primes);
+    C::printf("pi(%d) = %d\n", limit, no_primes);
 
     return 0;
 }
