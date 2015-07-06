@@ -283,7 +283,7 @@ func (v *VariableDecl) analyze(s *SemanticAnalyzer) {
 		s.err(v, "Variable `%s` is immutable, yet has no initial value", v.Variable.Name)
 	}
 
-	if v.Variable.Type.Attrs().Contains("deprecated") {
+	if dep := v.Variable.Type.Attrs().Get("deprecated"); dep != nil {
 		s.warnDeprecated(v, "type", v.Variable.Type.TypeName(), dep.Value)
 	}
 
@@ -762,7 +762,7 @@ func (v *CallExpr) analyze(s *SemanticAnalyzer) {
 		}
 	}
 
-	if v.Function.Attrs.Contains("deprecated") {
+	if dep := v.Function.Attrs.Get("deprecated"); dep != nil {
 		s.warnDeprecated(v, "function", v.Function.Name, dep.Value)
 	}
 }
@@ -773,7 +773,7 @@ func (v *CallExpr) setTypeHint(t Type) {}
 
 func (v *AccessExpr) analyze(s *SemanticAnalyzer) {
 	for _, access := range v.Accesses {
-		if access.Variable.Attrs.Contains("deprecated") {
+		if dep := access.Variable.Attrs.Get("deprecated"); dep != nil {
 			s.warnDeprecated(v, "variable", access.Variable.Name, dep.Value)
 		}
 
