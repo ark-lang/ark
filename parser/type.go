@@ -12,7 +12,7 @@ type Type interface {
 	IsFloatingType() bool     // true for all floating-point types
 	IsSigned() bool           // true for all signed integer types
 	CanCastTo(Type) bool      // true if the receiver can be typecast to the parameter
-	Attrs() []*Attr           // fetches the attributes associated with the type
+	Attrs() AttrGroup         // fetches the attributes associated with the type
 	Equals(Type) bool         // compares whether two types are equal
 
 	// TODO: Should this be here?
@@ -96,7 +96,7 @@ func (v PrimitiveType) CanCastTo(t Type) bool {
 		(t.IsFloatingType() || t.IsIntegerType() || t == PRIMITIVE_rune)
 }
 
-func (v PrimitiveType) Attrs() []*Attr {
+func (v PrimitiveType) Attrs() AttrGroup {
 	return nil
 }
 
@@ -113,7 +113,7 @@ func (v PrimitiveType) Equals(t Type) bool {
 type StructType struct {
 	Name      string
 	Variables []*VariableDecl
-	attrs     []*Attr
+	attrs     AttrGroup
 }
 
 func (v *StructType) String() string {
@@ -179,7 +179,7 @@ func (v *StructType) VariableIndex(d *Variable) int {
 	return -1
 }
 
-func (v *StructType) Attrs() []*Attr {
+func (v *StructType) Attrs() AttrGroup {
 	return v.attrs
 }
 
@@ -196,7 +196,7 @@ func (v *StructType) Equals(t Type) bool {
 		return false
 	}
 
-	if !equalAttributes(v.Attrs(), other.Attrs()) {
+	if !v.Attrs().Equals(other.Attrs()) {
 		return false
 	}
 
@@ -208,7 +208,7 @@ func (v *StructType) Equals(t Type) bool {
 
 type ArrayType struct {
 	MemberType Type
-	attrs      []*Attr
+	attrs      AttrGroup
 }
 
 // IMPORTANT:
@@ -254,7 +254,7 @@ func (v ArrayType) CanCastTo(t Type) bool {
 	return false
 }
 
-func (v ArrayType) Attrs() []*Attr {
+func (v ArrayType) Attrs() AttrGroup {
 	return v.attrs
 }
 
@@ -264,7 +264,7 @@ func (v ArrayType) Equals(t Type) bool {
 		return false
 	}
 
-	if !equalAttributes(v.Attrs(), other.Attrs()) {
+	if !v.Attrs().Equals(other.Attrs()) {
 		return false
 	}
 
@@ -280,7 +280,7 @@ func (v ArrayType) Equals(t Type) bool {
 type TraitType struct {
 	Name      string
 	Functions []*FunctionDecl
-	attrs     []*Attr
+	attrs     AttrGroup
 }
 
 func (v *TraitType) String() string {
@@ -336,7 +336,7 @@ func (v *TraitType) addFunctionDecl(decl *FunctionDecl) {
 	v.Functions = append(v.Functions, decl)
 }
 
-func (v *TraitType) Attrs() []*Attr {
+func (v *TraitType) Attrs() AttrGroup {
 	return v.attrs
 }
 
@@ -353,7 +353,7 @@ func (v *TraitType) Equals(t Type) bool {
 		return false
 	}
 
-	if !equalAttributes(v.Attrs(), other.Attrs()) {
+	if !v.Attrs().Equals(other.Attrs()) {
 		return false
 	}
 
@@ -398,7 +398,7 @@ func (v PointerType) CanCastTo(t Type) bool {
 	return false
 }
 
-func (v PointerType) Attrs() []*Attr {
+func (v PointerType) Attrs() AttrGroup {
 	return nil
 }
 
@@ -477,7 +477,7 @@ func (v *TupleType) addMember(decl Type) {
 	v.Members = append(v.Members, decl)
 }
 
-func (v *TupleType) Attrs() []*Attr {
+func (v *TupleType) Attrs() AttrGroup {
 	return nil
 }
 
@@ -536,7 +536,7 @@ func (v *UnresolvedType) CanCastTo(t Type) bool {
 	panic("CanCastTo() invalid on UnresolvedType")
 }
 
-func (v *UnresolvedType) Attrs() []*Attr {
+func (v *UnresolvedType) Attrs() AttrGroup {
 	panic("Attrs() invalid on UnresolvedType")
 }
 

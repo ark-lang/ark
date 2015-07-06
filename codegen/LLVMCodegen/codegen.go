@@ -107,11 +107,6 @@ func (v *Codegen) Generate(input []*parser.Module, modules map[string]*parser.Mo
 	v.variableLookup = make(map[*parser.Variable]llvm.Value)
 	v.structLookup_UseHelperFunction = make(map[*parser.StructType]llvm.Type)
 
-	if verbose {
-		fmt.Println(util.TEXT_BOLD + util.TEXT_GREEN + "Started codegenning" + util.TEXT_RESET)
-	}
-	t := time.Now()
-
 	passManager := llvm.NewPassManager()
 	passBuilder := llvm.NewPassManagerBuilder()
 	passBuilder.SetOptLevel(3)
@@ -120,10 +115,14 @@ func (v *Codegen) Generate(input []*parser.Module, modules map[string]*parser.Mo
 	v.modules = make(map[string]*parser.Module)
 
 	for _, infile := range input {
+		if verbose {
+			fmt.Println(util.TEXT_BOLD + util.TEXT_GREEN + "Started codegenning " + util.TEXT_RESET + infile.Name)
+		}
+		t := time.Now()
+
 		infile.Module = llvm.NewModule(infile.Name)
 		v.curFile = infile
 
-		fmt.Println("adding module " + v.curFile.Name)
 		v.modules[v.curFile.Name] = v.curFile
 
 		v.declareDecls(infile.Nodes)
@@ -141,17 +140,17 @@ func (v *Codegen) Generate(input []*parser.Module, modules map[string]*parser.Mo
 		if verbose {
 			infile.Module.Dump()
 		}
+
+		dur := time.Since(t)
+		if verbose {
+			fmt.Printf(util.TEXT_BOLD+util.TEXT_GREEN+"Finished codegenning "+util.TEXT_RESET+infile.Name+" (%.2fms)\n",
+				float32(dur.Nanoseconds())/1000000)
+		}
 	}
 
 	passManager.Dispose()
 
 	v.createBinary()
-
-	dur := time.Since(t)
-	if verbose {
-		fmt.Printf(util.TEXT_BOLD+util.TEXT_GREEN+"Finished codegenning"+util.TEXT_RESET+" (%.2fms)\n",
-			float32(dur.Nanoseconds())/1000000)
-	}
 }
 
 func (v *Codegen) declareDecls(nodes []parser.Node) {
@@ -577,14 +576,17 @@ func (v *Codegen) genAddressOfExpr(n *parser.AddressOfExpr) llvm.Value {
 
 		switch n.Access.Accesses[i].AccessType {
 		case parser.ACCESS_ARRAY:
+			subscriptExpr := v.genExpr(n.Access.Accesses[i].Subscript)
+
+			sizeGepIndexes := []llvm.Value{llvm.ConstInt(llvm.Int32Type(), 0, false), llvm.ConstInt(llvm.Int32Type(), 0, false)}
+			v.genBoundsCheck(v.builder.CreateLoad(v.builder.CreateGEP(gep, sizeGepIndexes, ""), ""), subscriptExpr, n.Access.Accesses[i].Subscript.GetType())
+
 			gepIndexes := []llvm.Value{llvm.ConstInt(llvm.Int32Type(), 0, false), llvm.ConstInt(llvm.Int32Type(), 1, false)}
 			gep = v.builder.CreateGEP(gep, gepIndexes, "")
 
 			load := v.builder.CreateLoad(gep, "")
 
-			// TODO check that access is in bounds!
-
-			gepIndexes = []llvm.Value{llvm.ConstInt(llvm.Int32Type(), 0, false), v.genExpr(n.Access.Accesses[i].Subscript)}
+			gepIndexes = []llvm.Value{llvm.ConstInt(llvm.Int32Type(), 0, false), subscriptExpr}
 			gep = v.builder.CreateGEP(load, gepIndexes, "")
 
 		case parser.ACCESS_VARIABLE:
@@ -604,6 +606,51 @@ func (v *Codegen) genAddressOfExpr(n *parser.AddressOfExpr) llvm.Value {
 	}
 
 	return gep
+}
+
+func (v *Codegen) genBoundsCheck(limit llvm.Value, index llvm.Value, indexType parser.Type) {
+	segvBlock := llvm.AddBasicBlock(v.currentFunction, "boundscheck_segv")
+	endBlock := llvm.AddBasicBlock(v.currentFunction, "boundscheck_end")
+	upperCheckBlock := llvm.AddBasicBlock(v.currentFunction, "boundscheck_upper_block")
+
+	tooLow := v.builder.CreateICmp(llvm.IntSGT, llvm.ConstInt(index.Type(), 0, false), index, "boundscheck_lower")
+	v.builder.CreateCondBr(tooLow, segvBlock, upperCheckBlock)
+
+	v.builder.SetInsertPointAtEnd(upperCheckBlock)
+
+	// make sure limit and index have same width
+	castedLimit := limit
+	castedIndex := index
+	if index.Type().IntTypeWidth() < limit.Type().IntTypeWidth() {
+		if indexType.IsSigned() {
+			castedIndex = v.builder.CreateSExt(index, limit.Type(), "")
+		} else {
+			castedIndex = v.builder.CreateZExt(index, limit.Type(), "")
+		}
+	} else if index.Type().IntTypeWidth() > limit.Type().IntTypeWidth() {
+		castedLimit = v.builder.CreateZExt(limit, index.Type(), "")
+	}
+
+	tooHigh := v.builder.CreateICmp(llvm.IntSLE, castedLimit, castedIndex, "boundscheck_upper")
+	v.builder.CreateCondBr(tooHigh, segvBlock, endBlock)
+
+	v.builder.SetInsertPointAtEnd(segvBlock)
+	v.genRaiseSegfault()
+	v.builder.CreateUnreachable()
+
+	v.builder.SetInsertPointAtEnd(endBlock)
+}
+
+func (v *Codegen) genRaiseSegfault() {
+	fn := v.curFile.Module.NamedFunction("raise")
+	intType := v.typeToLLVMType(parser.PRIMITIVE_int)
+
+	if fn.IsNil() {
+		fnType := llvm.FunctionType(intType, []llvm.Type{intType}, false)
+		fn = llvm.AddFunction(v.curFile.Module, "raise", fnType)
+	}
+
+	v.builder.CreateCall(fn, []llvm.Value{llvm.ConstInt(intType, 11, false)}, "segfault")
 }
 
 func (v *Codegen) genBoolLiteral(n *parser.BoolLiteral) llvm.Value {
