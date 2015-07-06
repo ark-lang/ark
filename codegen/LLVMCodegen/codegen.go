@@ -576,14 +576,17 @@ func (v *Codegen) genAddressOfExpr(n *parser.AddressOfExpr) llvm.Value {
 
 		switch n.Access.Accesses[i].AccessType {
 		case parser.ACCESS_ARRAY:
+			subscriptExpr := v.genExpr(n.Access.Accesses[i].Subscript)
+
+			sizeGepIndexes := []llvm.Value{llvm.ConstInt(llvm.Int32Type(), 0, false), llvm.ConstInt(llvm.Int32Type(), 0, false)}
+			v.genBoundsCheck(v.builder.CreateLoad(v.builder.CreateGEP(gep, sizeGepIndexes, ""), ""), subscriptExpr, n.Access.Accesses[i].Subscript.GetType())
+
 			gepIndexes := []llvm.Value{llvm.ConstInt(llvm.Int32Type(), 0, false), llvm.ConstInt(llvm.Int32Type(), 1, false)}
 			gep = v.builder.CreateGEP(gep, gepIndexes, "")
 
 			load := v.builder.CreateLoad(gep, "")
 
-			// TODO check that access is in bounds!
-
-			gepIndexes = []llvm.Value{llvm.ConstInt(llvm.Int32Type(), 0, false), v.genExpr(n.Access.Accesses[i].Subscript)}
+			gepIndexes = []llvm.Value{llvm.ConstInt(llvm.Int32Type(), 0, false), subscriptExpr}
 			gep = v.builder.CreateGEP(load, gepIndexes, "")
 
 		case parser.ACCESS_VARIABLE:
@@ -603,6 +606,51 @@ func (v *Codegen) genAddressOfExpr(n *parser.AddressOfExpr) llvm.Value {
 	}
 
 	return gep
+}
+
+func (v *Codegen) genBoundsCheck(limit llvm.Value, index llvm.Value, indexType parser.Type) {
+	segvBlock := llvm.AddBasicBlock(v.currentFunction, "boundscheck_segv")
+	endBlock := llvm.AddBasicBlock(v.currentFunction, "boundscheck_end")
+	upperCheckBlock := llvm.AddBasicBlock(v.currentFunction, "boundscheck_upper_block")
+
+	tooLow := v.builder.CreateICmp(llvm.IntSGT, llvm.ConstInt(index.Type(), 0, false), index, "boundscheck_lower")
+	v.builder.CreateCondBr(tooLow, segvBlock, upperCheckBlock)
+
+	v.builder.SetInsertPointAtEnd(upperCheckBlock)
+
+	// make sure limit and index have same width
+	castedLimit := limit
+	castedIndex := index
+	if index.Type().IntTypeWidth() < limit.Type().IntTypeWidth() {
+		if indexType.IsSigned() {
+			castedIndex = v.builder.CreateSExt(index, limit.Type(), "")
+		} else {
+			castedIndex = v.builder.CreateZExt(index, limit.Type(), "")
+		}
+	} else if index.Type().IntTypeWidth() > limit.Type().IntTypeWidth() {
+		castedLimit = v.builder.CreateZExt(limit, index.Type(), "")
+	}
+
+	tooHigh := v.builder.CreateICmp(llvm.IntSLE, castedLimit, castedIndex, "boundscheck_upper")
+	v.builder.CreateCondBr(tooHigh, segvBlock, endBlock)
+
+	v.builder.SetInsertPointAtEnd(segvBlock)
+	v.genRaiseSegfault()
+	v.builder.CreateUnreachable()
+
+	v.builder.SetInsertPointAtEnd(endBlock)
+}
+
+func (v *Codegen) genRaiseSegfault() {
+	fn := v.curFile.Module.NamedFunction("raise")
+	intType := v.typeToLLVMType(parser.PRIMITIVE_int)
+
+	if fn.IsNil() {
+		fnType := llvm.FunctionType(intType, []llvm.Type{intType}, false)
+		fn = llvm.AddFunction(v.curFile.Module, "raise", fnType)
+	}
+
+	v.builder.CreateCall(fn, []llvm.Value{llvm.ConstInt(intType, 11, false)}, "segfault")
 }
 
 func (v *Codegen) genBoolLiteral(n *parser.BoolLiteral) llvm.Value {
