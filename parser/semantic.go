@@ -82,6 +82,10 @@ func (v *semanticAnalyzer) analyze(modules map[string]*Module) {
 	// pass modules to resolve
 	v.resolve(modules)
 
+	if v.shouldExit {
+		os.Exit(util.EXIT_FAILURE_SEMANTIC)
+	}
+
 	for _, node := range v.module.Nodes {
 		node.analyze(v)
 	}
