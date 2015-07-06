@@ -27,7 +27,8 @@ Labels are prefixed with a letter, the letter denotes the category of label:
 * M: These are miscellaneous issues, typically ones too broad to categorize
 * O: These are the operating system/platform that an issue is relevant to
 * P: The priority of the issue
-* S: The stage in which the issue occurs
+* S: The stage in which the issue occurs (note not all issues have stages)
+* A: An area in which the issue is relevant to, e.g. A-tests is for issues related to tests
 
 ## Pull Requests
 We love Pull Requests! If you are planning on contributing, please read this list:
