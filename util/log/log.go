@@ -70,7 +70,7 @@ func Log(level LogLevel, tag string, msg string, args ...interface{}) {
 	}
 
 	if AtLevel(level) {
-		fmt.Printf("["+tag+"] "+msg, args...)
+		fmt.Printf(msg, args...)
 	}
 }
 
@@ -82,7 +82,7 @@ func Logln(level LogLevel, tag string, msg string, args ...interface{}) {
 	}
 
 	if AtLevel(level) {
-		fmt.Printf("["+tag+"] "+msg+"\n", args...)
+		fmt.Printf(msg+"\n", args...)
 	}
 }
 
