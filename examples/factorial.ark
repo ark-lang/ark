@@ -10,15 +10,15 @@ func factorial(n: int): int {
 
 func main(): int {
     number: int = 1;
-    printf("Enter a number: \n");
-    scanf("%d", &number);
+    C::printf("Enter a number: \n");
+    C::scanf("%d", &number);
 
     if number < 0 {
-        printf("No negatives please\n");
+        C::printf("No negatives please\n");
         return -1;
     }
 
     result := factorial(number);
-    printf("%d! = %d\n", number, result);
+    C::printf("%d! = %d\n", number, result);
     return 0;
 }
