@@ -4,6 +4,7 @@ package lexer
 
 import (
 	"fmt"
+	"github.com/ark-lang/ark/util/log"
 	"os"
 	"strings"
 	"time"
@@ -19,11 +20,10 @@ type lexer struct {
 	filename                   string
 	charNumber, lineNumber     int
 	tokStartChar, tokStartLine int
-	verbose                    bool
 }
 
 func (v *lexer) errWithCustomPosition(ln, cn int, err string, stuff ...interface{}) {
-	fmt.Printf(util.TEXT_RED+util.TEXT_BOLD+"Lexer error:"+util.TEXT_RESET+" [%s:%d:%d] %s\n",
+	log.Error("lexer", util.TEXT_RED+util.TEXT_BOLD+"Lexer error:"+util.TEXT_RESET+" [%s:%d:%d] %s\n",
 		v.filename, ln, cn, fmt.Sprintf(err, stuff...))
 	os.Exit(1)
 }
@@ -70,7 +70,7 @@ func (v *lexer) discardBuffer() {
 
 // debugging func
 func (v *lexer) printBuffer() {
-	fmt.Printf("[%d:%d] `%s`\n", v.startPos, v.endPos, string(v.input[v.startPos:v.endPos]))
+	log.Debug("lexer", "[%d:%d] `%s`\n", v.startPos, v.endPos, string(v.input[v.startPos:v.endPos]))
 }
 
 func (v *lexer) pushToken(t TokenType) {
@@ -86,14 +86,12 @@ func (v *lexer) pushToken(t TokenType) {
 
 	v.output = append(v.output, tok)
 
-	if v.verbose {
-		fmt.Printf("[%4d:%4d:%-17s] `%s`\n", v.startPos, v.endPos, tok.Type, tok.Contents)
-	}
+	log.Verbose("lexer", "[%4d:%4d:%-17s] `%s`\n", v.startPos, v.endPos, tok.Type, tok.Contents)
 
 	v.discardBuffer()
 }
 
-func Lex(input []rune, filename string, verbose bool) []*Token {
+func Lex(input []rune, filename string) []*Token {
 	v := &lexer{
 		input:        input,
 		startPos:     0,
@@ -103,19 +101,14 @@ func Lex(input []rune, filename string, verbose bool) []*Token {
 		lineNumber:   1,
 		tokStartChar: 1,
 		tokStartLine: 1,
-		verbose:      verbose,
 	}
 
-	if v.verbose {
-		fmt.Println(util.TEXT_BOLD+util.TEXT_GREEN+"Starting lexing"+util.TEXT_RESET, filename)
-	}
+	log.Verboseln("lexer", util.TEXT_BOLD+util.TEXT_GREEN+"Starting lexing "+util.TEXT_RESET+filename)
 	t := time.Now()
 	v.lex()
 	dur := time.Since(t)
-	if v.verbose {
-		fmt.Printf(util.TEXT_BOLD+util.TEXT_GREEN+"Finished lexing"+util.TEXT_RESET+" %s (%.2fms)\n",
-			filename, float32(dur)/1000000)
-	}
+	log.Verbose("lexer", util.TEXT_BOLD+util.TEXT_GREEN+"Finished lexing"+util.TEXT_RESET+" %s (%.2fms)\n",
+		filename, float32(dur)/1000000)
 	return v.output
 }
 

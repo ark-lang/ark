@@ -5,6 +5,7 @@ package parser
 
 import (
 	"fmt"
+	"github.com/ark-lang/ark/util/log"
 	"os"
 	"strconv"
 	"strings"
@@ -19,7 +20,6 @@ type parser struct {
 	module       *Module
 	input        []*lexer.Token
 	currentToken int
-	verbose      bool
 
 	modules           map[string]*Module
 	currentModule     *Module
@@ -31,7 +31,7 @@ type parser struct {
 }
 
 func (v *parser) err(err string, stuff ...interface{}) {
-	fmt.Printf(util.TEXT_RED+util.TEXT_BOLD+"Parser error:"+util.TEXT_RESET+" [%s:%d:%d] %s\n",
+	log.Error("parser", util.TEXT_RED+util.TEXT_BOLD+"Parser error:"+util.TEXT_RESET+" [%s:%d:%d] %s\n",
 		v.peek(0).Filename, v.peek(0).LineNumber, v.peek(0).CharNumber, fmt.Sprintf(err, stuff...))
 	os.Exit(util.EXIT_FAILURE_PARSE)
 }
@@ -112,7 +112,7 @@ func (v *parser) getPrecedence(op BinOpType) int {
 	return -1
 }
 
-func Parse(input *lexer.Sourcefile, modules map[string]*Module, verbose bool) *Module {
+func Parse(input *lexer.Sourcefile, modules map[string]*Module) *Module {
 	p := &parser{
 		module: &Module{
 			Nodes: make([]Node, 0),
@@ -120,7 +120,6 @@ func Parse(input *lexer.Sourcefile, modules map[string]*Module, verbose bool) *M
 			Name:  input.Name,
 		},
 		input:            input.Tokens,
-		verbose:          verbose,
 		scope:            NewGlobalScope(),
 		binOpPrecedences: newBinOpPrecedenceMap(),
 	}
@@ -140,23 +139,19 @@ func Parse(input *lexer.Sourcefile, modules map[string]*Module, verbose bool) *M
 	}
 	p.module.GlobalScope.UsedModules["C"] = cModule
 
-	if verbose {
-		fmt.Println(util.TEXT_BOLD+util.TEXT_GREEN+"Started parsing"+util.TEXT_RESET, input.Name)
-	}
+	log.Verboseln("parser", util.TEXT_BOLD+util.TEXT_GREEN+"Started parsing "+util.TEXT_RESET+input.Name)
 	t := time.Now()
 
 	p.parse()
 
 	dur := time.Since(t)
-	if verbose {
-		// TODO: This can not run before semantic analysis due to nil-pointer dereferences in String()
-		// for _, n := range p.module.Nodes {
-		// 	fmt.Println(n.String())
-		// }
+	// TODO: This can not run before semantic analysis due to nil-pointer dereferences in String()
+	// for _, n := range p.module.Nodes {
+	// 	fmt.Println(n.String())
+	// }
 
-		fmt.Printf(util.TEXT_BOLD+util.TEXT_GREEN+"Finished parsing"+util.TEXT_RESET+" %s (%.2fms)\n",
-			input.Name, float32(dur.Nanoseconds())/1000000)
-	}
+	log.Verbose("parser", util.TEXT_BOLD+util.TEXT_GREEN+"Finished parsing"+util.TEXT_RESET+" %s (%.2fms)\n",
+		input.Name, float32(dur.Nanoseconds())/1000000)
 
 	return p.module
 }
