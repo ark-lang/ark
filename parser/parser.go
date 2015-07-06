@@ -127,6 +127,17 @@ func Parse(input *lexer.Sourcefile, modules map[string]*Module, verbose bool) *M
 	p.modules = modules
 	modules[input.Name] = p.module
 
+	// add a C module here which will contain
+	// all of the c bindings and what not to
+	// keep everything separate
+	cModule := &Module{
+		Nodes:       make([]Node, 0),
+		Path:        "", // not really a path for this module
+		Name:        "C",
+		GlobalScope: NewGlobalScope(),
+	}
+	modules["C"] = cModule
+
 	// use the C module by default.
 	// TODO: should we allow this?
 	// it means the errors are a bit
