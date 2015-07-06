@@ -146,8 +146,6 @@ func (v *Codegen) Generate(input []*parser.Module, modules map[string]*parser.Mo
 			fmt.Printf(util.TEXT_BOLD+util.TEXT_GREEN+"Finished codegenning "+util.TEXT_RESET+infile.Name+" (%.2fms)\n",
 				float32(dur.Nanoseconds())/1000000)
 		}
-
-		v.curFile.Module.Dump()
 	}
 
 	passManager.Dispose()
@@ -429,7 +427,7 @@ func (v *Codegen) genDecl(n parser.Decl) {
 	case *parser.TraitDecl:
 		// nothing to gen
 	case *parser.ImplDecl:
-		// TODO
+		v.genImplDecl(n.(*parser.ImplDecl))
 	case *parser.EnumDecl:
 		// todo
 	case *parser.VariableDecl:
@@ -474,6 +472,16 @@ func (v *Codegen) genFunctionDecl(n *parser.FunctionDecl) llvm.Value {
 			v.inFunction = false
 		}
 	}
+
+	return res
+}
+
+func (c *Codegen) genImplDecl(n *parser.ImplDecl) llvm.Value {
+	var res llvm.Value
+
+	/*for _, fun := range n.Functions {
+
+			}*/
 
 	return res
 }
