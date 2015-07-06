@@ -1,23 +1,22 @@
 [c] func printf(fmt: str, ...);
-[c] func atof(mess: str): f64;
 [c] func rand(): int;
 [c] func srand(i: uint);
 [c] func time(ptr: u32): u64;
 [c] func scanf(fmt: str, ...);
 
-func println(mess: str) -> printf("%s\n", mess);
+func println(mess: str) -> C::printf("%s\n", mess);
 
 func main(): int {
     println("Higher or lower game, in Ark!");
 
-    srand(cast(uint, time(0)));
+    C::srand(cast(uint, C::time(0)));
 
-    num := rand() % 100 + 1;
+    num := C::rand() % 100 + 1;
 
     for {
         println("\nEnter a number between 1 and 100 (inclusive):");
-        guess: int;
-        scanf("%d", &guess);
+        mut guess: int;
+        C::scanf("%d", &guess);
 
         if guess == num {
             println("You win!");
