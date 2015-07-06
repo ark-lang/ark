@@ -2,6 +2,7 @@ package parser
 
 import (
 	"fmt"
+	"github.com/ark-lang/ark/util/log"
 	"os"
 
 	"github.com/ark-lang/ark/util"
@@ -23,14 +24,14 @@ type SemanticAnalyzer struct {
 
 func (v *SemanticAnalyzer) err(thing Locatable, err string, stuff ...interface{}) {
 	filename, line, char := thing.Pos()
-	fmt.Printf(util.TEXT_RED+util.TEXT_BOLD+"Semantic error:"+util.TEXT_RESET+" [%s:%d:%d] %s\n",
+	log.Error("semantic", util.TEXT_RED+util.TEXT_BOLD+"Semantic error:"+util.TEXT_RESET+" [%s:%d:%d] %s\n",
 		filename, line, char, fmt.Sprintf(err, stuff...))
 	v.shouldExit = true
 }
 
 func (v *SemanticAnalyzer) warn(thing Locatable, err string, stuff ...interface{}) {
 	filename, line, char := thing.Pos()
-	fmt.Printf(util.TEXT_YELLOW+util.TEXT_BOLD+"Semantic warning:"+util.TEXT_RESET+" [%s:%d:%d] %s\n",
+	log.Warning("semantic", util.TEXT_YELLOW+util.TEXT_BOLD+"Semantic warning:"+util.TEXT_RESET+" [%s:%d:%d] %s\n",
 		filename, line, char, fmt.Sprintf(err, stuff...))
 }
 

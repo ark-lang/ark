@@ -1,7 +1,7 @@
 package doc
 
 import (
-	"fmt"
+	"github.com/ark-lang/ark/util/log"
 	"os"
 	"time"
 
@@ -17,26 +17,22 @@ type Docgen struct {
 	curOutput *File
 }
 
-func (v *Docgen) Generate(verbose bool) {
-	if verbose {
-		fmt.Println(util.TEXT_BOLD + util.TEXT_GREEN + "Started docgenning" + util.TEXT_RESET)
-	}
+func (v *Docgen) Generate() {
+	log.Verboseln("docgen", util.TEXT_BOLD+util.TEXT_GREEN+"Started docgenning"+util.TEXT_RESET)
 	t := time.Now()
 
 	v.output = make([]*File, 0)
 
-	v.traverse(verbose)
+	v.traverse()
 
 	v.generate()
 
 	dur := time.Since(t)
-	if verbose {
-		fmt.Printf(util.TEXT_BOLD+util.TEXT_GREEN+"Finished docgenning"+util.TEXT_RESET+" (%.2fms)\n",
-			float32(dur.Nanoseconds())/1000000)
-	}
+	log.Verbose("docgen", util.TEXT_BOLD+util.TEXT_GREEN+"Finished docgenning"+util.TEXT_RESET+" (%.2fms)\n",
+		float32(dur.Nanoseconds())/1000000)
 }
 
-func (v *Docgen) traverse(verbose bool) {
+func (v *Docgen) traverse() {
 	for _, file := range v.Input {
 		v.curOutput = &File{
 			Name: file.Name,
