@@ -518,7 +518,16 @@ func (v *Codegen) genVariableDecl(n *parser.VariableDecl, semicolon bool) llvm.V
 			}
 		}
 	} else {
-		panic("TODO global variables")
+		mangledName := n.Variable.MangledName(parser.MANGLE_ARK_UNSTABLE)
+		varType := v.typeToLLVMType(n.Variable.Type)
+		value := llvm.AddGlobal(v.curFile.Module, varType, mangledName)
+		value.SetLinkage(llvm.InternalLinkage)
+		value.SetGlobalConstant(n.Variable.Mutable)
+		if n.Assignment != nil {
+			value.SetInitializer(v.genExpr(n.Assignment))
+		}
+		v.variableLookup[n.Variable] = value
+		v.curFile.Module.Dump()
 	}
 
 	return res
