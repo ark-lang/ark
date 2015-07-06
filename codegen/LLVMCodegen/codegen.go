@@ -13,6 +13,9 @@ import (
 
 	"llvm.org/llvm/bindings/go/llvm"
 )
+import (
+	"github.com/ark-lang/ark/util/log"
+)
 
 const intSize = int(unsafe.Sizeof(C.int(0)))
 
@@ -35,7 +38,7 @@ type Codegen struct {
 }
 
 func (v *Codegen) err(err string, stuff ...interface{}) {
-	fmt.Printf(util.TEXT_RED+util.TEXT_BOLD+"error:"+util.TEXT_RESET+" %s\n",
+	log.Error("codegen", util.TEXT_RED+util.TEXT_BOLD+"error:"+util.TEXT_RESET+" %s\n",
 		fmt.Sprintf(err, stuff...))
 	os.Exit(util.EXIT_FAILURE_CODEGEN)
 }
@@ -101,7 +104,7 @@ func (v *Codegen) createBinary() {
 	}
 }
 
-func (v *Codegen) Generate(input []*parser.Module, modules map[string]*parser.Module, verbose bool) {
+func (v *Codegen) Generate(input []*parser.Module, modules map[string]*parser.Module) {
 	v.input = input
 	v.builder = llvm.NewBuilder()
 	v.variableLookup = make(map[*parser.Variable]llvm.Value)
@@ -115,9 +118,7 @@ func (v *Codegen) Generate(input []*parser.Module, modules map[string]*parser.Mo
 	v.modules = make(map[string]*parser.Module)
 
 	for _, infile := range input {
-		if verbose {
-			fmt.Println(util.TEXT_BOLD + util.TEXT_GREEN + "Started codegenning " + util.TEXT_RESET + infile.Name)
-		}
+		log.Verboseln("codegen", util.TEXT_BOLD+util.TEXT_GREEN+"Started codegenning "+util.TEXT_RESET+infile.Name)
 		t := time.Now()
 
 		infile.Module = llvm.NewModule(infile.Name)
@@ -137,15 +138,13 @@ func (v *Codegen) Generate(input []*parser.Module, modules map[string]*parser.Mo
 
 		passManager.Run(infile.Module)
 
-		if verbose {
+		if log.AtLevel(log.LevelVerbose) {
 			infile.Module.Dump()
 		}
 
 		dur := time.Since(t)
-		if verbose {
-			fmt.Printf(util.TEXT_BOLD+util.TEXT_GREEN+"Finished codegenning "+util.TEXT_RESET+infile.Name+" (%.2fms)\n",
-				float32(dur.Nanoseconds())/1000000)
-		}
+		log.Verbose("codegen", util.TEXT_BOLD+util.TEXT_GREEN+"Finished codegenning "+util.TEXT_RESET+infile.Name+" (%.2fms)\n",
+			float32(dur.Nanoseconds())/1000000)
 	}
 
 	passManager.Dispose()
@@ -481,7 +480,7 @@ func (c *Codegen) genImplDecl(n *parser.ImplDecl) llvm.Value {
 
 	/*for _, fun := range n.Functions {
 
-			}*/
+													}*/
 
 	return res
 }
