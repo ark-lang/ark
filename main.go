@@ -82,12 +82,12 @@ func parseFiles(files []string) ([]*parser.Module, map[string]*parser.Module) {
 	// all of the c bindings and what not to
 	// keep everything separate
 	cModule := &parser.Module{
-		Nodes: make([]parser.Node, 0),
-		Path:  "",	// not really a path for this module
-		Name:  "C",
+		Nodes:       make([]parser.Node, 0),
+		Path:        "", // not really a path for this module
+		Name:        "C",
 		GlobalScope: parser.NewGlobalScope(),
-	};
-	modules["C"] = cModule;
+	}
+	modules["C"] = cModule
 
 	for _, file := range sourcefiles {
 		parsedFiles = append(parsedFiles, parser.Parse(file, modules, *verbose))
