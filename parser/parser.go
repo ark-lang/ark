@@ -22,6 +22,7 @@ type parser struct {
 	verbose      bool
 
 	modules           map[string]*Module
+	currentModule     *Module
 	scope             *Scope
 	binOpPrecedences  map[BinOpType]int
 	attrs             AttrGroup
@@ -126,6 +127,7 @@ func Parse(input *lexer.Sourcefile, modules map[string]*Module, verbose bool) *M
 	p.module.GlobalScope = p.scope
 	p.modules = modules
 	modules[input.Name] = p.module
+	p.currentModule = p.module
 
 	// add a C module here which will contain
 	// all of the c bindings and what not to
@@ -136,13 +138,7 @@ func Parse(input *lexer.Sourcefile, modules map[string]*Module, verbose bool) *M
 		Name:        "C",
 		GlobalScope: NewGlobalScope(),
 	}
-	modules["C"] = cModule
-
-	// use the C module by default.
-	// TODO: should we allow this?
-	// it means the errors are a bit
-	// more clear in some cases
-	p.useModule("C")
+	p.module.GlobalScope.UsedModules["C"] = cModule
 
 	if verbose {
 		fmt.Println(util.TEXT_BOLD+util.TEXT_GREEN+"Started parsing"+util.TEXT_RESET, input.Name)
@@ -520,7 +516,7 @@ func (v *parser) parseFunctionDecl() *FunctionDecl {
 
 	scopeToInsertTo := v.scope
 	if function.Attrs.Contains("c") {
-		if mod, ok := v.modules["C"]; ok {
+		if mod, ok := v.currentModule.GlobalScope.UsedModules["C"]; ok {
 			scopeToInsertTo = mod.GlobalScope
 		} else {
 			v.err("Could not find C module to insert C binding into")
