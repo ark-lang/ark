@@ -146,6 +146,8 @@ func (v *Codegen) Generate(input []*parser.Module, modules map[string]*parser.Mo
 			fmt.Printf(util.TEXT_BOLD+util.TEXT_GREEN+"Finished codegenning "+util.TEXT_RESET+infile.Name+" (%.2fms)\n",
 				float32(dur.Nanoseconds())/1000000)
 		}
+
+		v.curFile.Module.Dump()
 	}
 
 	passManager.Dispose()
