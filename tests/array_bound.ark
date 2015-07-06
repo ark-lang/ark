@@ -1,0 +1,8 @@
+[c] func printf(fmt: str, ...);
+
+func main(): int {
+    x := [0, 1, 2, 3, 4, 5];
+    y := x[7];
+    C::printf("%d\n", y);
+    return 0;
+}
