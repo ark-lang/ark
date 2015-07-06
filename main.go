@@ -32,7 +32,7 @@ func main() {
 		if *buildStatic {
 			ccArgs = append(ccArgs, "-static")
 		}
-		newBuild(*buildInputs, *buildOutput, *buildCodegen, ccArgs, *buildAsm)
+		build(*buildInputs, *buildOutput, *buildCodegen, ccArgs, *buildAsm)
 		printFinishedMessage(startTime, buildCom.FullCommand(), len(*buildInputs))
 		if *buildRun {
 			if *buildAsm {
