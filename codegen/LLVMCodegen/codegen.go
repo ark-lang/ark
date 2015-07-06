@@ -107,11 +107,6 @@ func (v *Codegen) Generate(input []*parser.Module, modules map[string]*parser.Mo
 	v.variableLookup = make(map[*parser.Variable]llvm.Value)
 	v.structLookup_UseHelperFunction = make(map[*parser.StructType]llvm.Type)
 
-	if verbose {
-		fmt.Println(util.TEXT_BOLD + util.TEXT_GREEN + "Started codegenning" + util.TEXT_RESET)
-	}
-	t := time.Now()
-
 	passManager := llvm.NewPassManager()
 	passBuilder := llvm.NewPassManagerBuilder()
 	passBuilder.SetOptLevel(3)
@@ -120,10 +115,14 @@ func (v *Codegen) Generate(input []*parser.Module, modules map[string]*parser.Mo
 	v.modules = make(map[string]*parser.Module)
 
 	for _, infile := range input {
+		if verbose {
+			fmt.Println(util.TEXT_BOLD + util.TEXT_GREEN + "Started codegenning " + util.TEXT_RESET + infile.Name)
+		}
+		t := time.Now()
+
 		infile.Module = llvm.NewModule(infile.Name)
 		v.curFile = infile
 
-		fmt.Println("adding module " + v.curFile.Name)
 		v.modules[v.curFile.Name] = v.curFile
 
 		v.declareDecls(infile.Nodes)
@@ -141,17 +140,17 @@ func (v *Codegen) Generate(input []*parser.Module, modules map[string]*parser.Mo
 		if verbose {
 			infile.Module.Dump()
 		}
+
+		dur := time.Since(t)
+		if verbose {
+			fmt.Printf(util.TEXT_BOLD+util.TEXT_GREEN+"Finished codegenning "+util.TEXT_RESET+infile.Name+" (%.2fms)\n",
+				float32(dur.Nanoseconds())/1000000)
+		}
 	}
 
 	passManager.Dispose()
 
 	v.createBinary()
-
-	dur := time.Since(t)
-	if verbose {
-		fmt.Printf(util.TEXT_BOLD+util.TEXT_GREEN+"Finished codegenning"+util.TEXT_RESET+" (%.2fms)\n",
-			float32(dur.Nanoseconds())/1000000)
-	}
 }
 
 func (v *Codegen) declareDecls(nodes []parser.Node) {
