@@ -2,9 +2,10 @@ package log
 
 import (
 	"fmt"
-	"github.com/ark-lang/ark/util"
 	"os"
 	"strings"
+
+	"github.com/ark-lang/ark/util"
 )
 
 type LogLevel int
@@ -38,7 +39,7 @@ func init() {
 func SetLevel(level string) {
 	lvl, ok := LevelMap[level]
 	if !ok {
-		fmt.Printf("Invalid log level")
+		fmt.Println("Invalid log level")
 		os.Exit(util.EXIT_FAILURE_SETUP)
 	}
 
