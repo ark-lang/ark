@@ -110,7 +110,8 @@ func build(input []string, output string, cg string, ccArgs []string, outputAsm 
 				OutputAsm:  outputAsm,
 			}
 		default:
-			panic("whoops")
+			fmt.Println(util.Red("error: ") + "Invalid backend choice `" + cg + "`")
+			os.Exit(1)
 		}
 
 		gen.Generate(parsedFiles, modules, *verbose)
