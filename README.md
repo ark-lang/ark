@@ -11,7 +11,7 @@ A small example program written in Ark.
 func main(): int {
     mut i := 0;
     for i < 5 {
-        printf("i: %d\n", i);
+        C::printf("i: %d\n", i);
         i = i + 1;
     }
     return 0;
