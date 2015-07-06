@@ -526,7 +526,6 @@ func (v *Codegen) genVariableDecl(n *parser.VariableDecl, semicolon bool) llvm.V
 		if n.Assignment != nil {
 			value.SetInitializer(v.genExpr(n.Assignment))
 		}
-		value.SetLinkage(llvm.Linkage)
 		v.variableLookup[n.Variable] = value
 	}
 
