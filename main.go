@@ -32,7 +32,7 @@ func main() {
 		if *buildStatic {
 			ccArgs = append(ccArgs, "-static")
 		}
-		build(*buildInputs, *buildOutput, *buildCodegen, ccArgs, *buildAsm)
+		newBuild(*buildInputs, *buildOutput, *buildCodegen, ccArgs, *buildAsm)
 		printFinishedMessage(startTime, buildCom.FullCommand(), len(*buildInputs))
 		if *buildRun {
 			if *buildAsm {
@@ -85,16 +85,54 @@ func parseFiles(files []string) ([]*parser.Module, map[string]*parser.Module) {
 	return parsedFiles, modules
 }
 
-func build(input []string, output string, cg string, ccArgs []string, outputAsm bool) {
-	parsedFiles, modules := parseFiles(input)
+func build(files []string, outputFile string, cg string, ccArgs []string, outputAsm bool) {
+	// read source files
+	var sourcefiles []*lexer.Sourcefile
 
+	timed("reading sourcefiles", func() {
+		for _, file := range files {
+			sourcefile, err := lexer.NewSourcefile(file)
+			if err != nil {
+				setupErr("%s", err.Error())
+			}
+			sourcefiles = append(sourcefiles, sourcefile)
+		}
+	})
+
+	// lexing
+	timed("lexing phase", func() {
+		for _, file := range sourcefiles {
+			file.Tokens = lexer.Lex(file.Contents, file.Name, *verbose)
+		}
+	})
+
+	// parsing
+	var parsedFiles []*parser.Module
+	modules := make(map[string]*parser.Module)
+
+	timed("parsing phase", func() {
+		for _, file := range sourcefiles {
+			parsedFiles = append(parsedFiles, parser.Parse(file, modules, *verbose))
+		}
+	})
+
+	// semantic analysis
+	timed("semantic analysis phase", func() {
+		// TODO: We're looping over a map, the order we get is thus random
+		for _, module := range modules {
+			sem := &parser.SemanticAnalyzer{Module: module}
+			sem.Analyze(modules)
+		}
+	})
+
+	// codegen
 	if cg != "none" {
 		var gen codegen.Codegen
 
 		switch cg {
 		case "llvm":
 			gen = &LLVMCodegen.Codegen{
-				OutputName: output,
+				OutputName: outputFile,
 				CCArgs:     ccArgs,
 				OutputAsm:  outputAsm,
 			}
@@ -103,7 +141,24 @@ func build(input []string, output string, cg string, ccArgs []string, outputAsm 
 			os.Exit(1)
 		}
 
-		gen.Generate(parsedFiles, modules, *verbose)
+		timed("codegen phase", func() {
+			gen.Generate(parsedFiles, modules, *verbose)
+		})
+	}
+
+}
+
+func timed(title string, fn func()) {
+	if *verbose {
+		fmt.Println(util.TEXT_BOLD + util.TEXT_GREEN + "Started " + title + util.TEXT_RESET)
+	}
+	start := time.Now()
+
+	fn()
+
+	duration := time.Since(start)
+	if *verbose {
+		fmt.Printf(util.TEXT_BOLD+util.TEXT_GREEN+"Ended "+title+util.TEXT_RESET+" (%.2fms)\n", float32(duration)/1000000)
 	}
 }
 

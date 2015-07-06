@@ -46,12 +46,18 @@ num_of_files_failed = 0
 # no output is shown?
 show_output = False
 
+# pass -v to ark
+be_verbose = False
+
 FNULL = open(os.devnull, 'w')
 
 # This is kind of hacky and not very scalable,
 # will show the output if they added -o as an arg
 if "-o" in sys.argv or "--show-output" in sys.argv:
 	show_output = True;
+
+if "-v" in sys.argv or "--verbose" in sys.argv:
+	be_verbose = True
 
 def sort_nicely(l):
 	"""Sort the given list in the way that humans expect."""
@@ -67,10 +73,15 @@ for name in files:
 	if show_output:
 		print(bold("Compiling ") + name + "...")
 
+	cmd = ["ark", "build"]
+	if be_verbose:
+		cmd.append("-v")
+	cmd.extend(["tests/"+name, "-o", "tests/"+output_file])
+
 	if show_output:
-		compile_result = subprocess.call(["ark", "build", "tests/" + name, "-o", "tests/" + output_file])
+		compile_result = subprocess.call(cmd)
 	else:
-		compile_result = subprocess.call(["ark", "build", "tests/" + name, "-o", "tests/" + output_file], stdout=FNULL, stderr=subprocess.STDOUT)
+		compile_result = subprocess.call(cmd, stdout=FNULL, stderr=subprocess.STDOUT)
 
 	if compile_result != 0:
 		if show_output:
