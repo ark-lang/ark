@@ -75,7 +75,7 @@ func (v *Attr) String() string {
 	return util.Green(result)
 }
 
-func (v *semanticAnalyzer) checkAttrsDistanceFromLine(attrs AttrGroup, line int, declType, declName string) {
+func (v *SemanticAnalyzer) checkAttrsDistanceFromLine(attrs AttrGroup, line int, declType, declName string) {
 	// Turn map into a list sorted by line number
 	var sorted []*Attr
 	for _, attr := range attrs {

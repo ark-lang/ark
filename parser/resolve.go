@@ -21,19 +21,19 @@ func (v unresolvedName) String() string {
 	return ret + v.name
 }
 
-func (v *semanticAnalyzer) errResolve(thing Locatable, name unresolvedName) {
+func (v *SemanticAnalyzer) errResolve(thing Locatable, name unresolvedName) {
 	v.err(thing, "Cannot resolve `%s`", name.String())
 }
 
-func (v *semanticAnalyzer) resolve(modules map[string]*Module) {
+func (v *SemanticAnalyzer) resolve(modules map[string]*Module) {
 	v.modules = modules
 
-	for _, node := range v.module.Nodes {
-		node.resolve(v, v.module.GlobalScope)
+	for _, node := range v.Module.Nodes {
+		node.resolve(v, v.Module.GlobalScope)
 	}
 }
 
-func (v *Block) resolve(sem *semanticAnalyzer, s *Scope) {
+func (v *Block) resolve(sem *SemanticAnalyzer, s *Scope) {
 	for _, n := range v.Nodes {
 		n.resolve(sem, v.scope)
 	}
@@ -43,7 +43,7 @@ func (v *Block) resolve(sem *semanticAnalyzer, s *Scope) {
  * Declarations
  */
 
-func (v *VariableDecl) resolve(sem *semanticAnalyzer, s *Scope) {
+func (v *VariableDecl) resolve(sem *SemanticAnalyzer, s *Scope) {
 	if v.Assignment != nil {
 		v.Assignment.resolve(sem, s)
 	}
@@ -53,25 +53,25 @@ func (v *VariableDecl) resolve(sem *semanticAnalyzer, s *Scope) {
 	}
 }
 
-func (v *StructDecl) resolve(sem *semanticAnalyzer, s *Scope) {
+func (v *StructDecl) resolve(sem *SemanticAnalyzer, s *Scope) {
 	v.Struct = v.Struct.resolveType(v, sem, s).(*StructType)
 }
 
-func (v *EnumDecl) resolve(sem *semanticAnalyzer, s *Scope) {
+func (v *EnumDecl) resolve(sem *SemanticAnalyzer, s *Scope) {
 	// TODO: this is a noop, right?
 }
 
-func (v *TraitDecl) resolve(sem *semanticAnalyzer, s *Scope) {
+func (v *TraitDecl) resolve(sem *SemanticAnalyzer, s *Scope) {
 	v.Trait = v.Trait.resolveType(v, sem, s).(*TraitType)
 }
 
-func (v *ImplDecl) resolve(sem *semanticAnalyzer, s *Scope) {
+func (v *ImplDecl) resolve(sem *SemanticAnalyzer, s *Scope) {
 	for _, fun := range v.Functions {
 		fun.resolve(sem, s)
 	}
 }
 
-func (v *FunctionDecl) resolve(sem *semanticAnalyzer, s *Scope) {
+func (v *FunctionDecl) resolve(sem *SemanticAnalyzer, s *Scope) {
 	for _, param := range v.Function.Parameters {
 		param.resolve(sem, s)
 	}
@@ -85,11 +85,11 @@ func (v *FunctionDecl) resolve(sem *semanticAnalyzer, s *Scope) {
 	}
 }
 
-func (v *UseDecl) resolve(sem *semanticAnalyzer, s *Scope) {
+func (v *UseDecl) resolve(sem *SemanticAnalyzer, s *Scope) {
 	// later...
 }
 
-func (v *ModuleDecl) resolve(sem *semanticAnalyzer, s *Scope) {
+func (v *ModuleDecl) resolve(sem *SemanticAnalyzer, s *Scope) {
 
 }
 
@@ -97,13 +97,13 @@ func (v *ModuleDecl) resolve(sem *semanticAnalyzer, s *Scope) {
  * Statements
  */
 
-func (v *ReturnStat) resolve(sem *semanticAnalyzer, s *Scope) {
+func (v *ReturnStat) resolve(sem *SemanticAnalyzer, s *Scope) {
 	if v.Value != nil {
 		v.Value.resolve(sem, s)
 	}
 }
 
-func (v *IfStat) resolve(sem *semanticAnalyzer, s *Scope) {
+func (v *IfStat) resolve(sem *SemanticAnalyzer, s *Scope) {
 	for _, expr := range v.Exprs {
 		expr.resolve(sem, s)
 	}
@@ -118,15 +118,15 @@ func (v *IfStat) resolve(sem *semanticAnalyzer, s *Scope) {
 
 }
 
-func (v *BlockStat) resolve(sem *semanticAnalyzer, s *Scope) {
+func (v *BlockStat) resolve(sem *SemanticAnalyzer, s *Scope) {
 	v.Block.resolve(sem, s)
 }
 
-func (v *CallStat) resolve(sem *semanticAnalyzer, s *Scope) {
+func (v *CallStat) resolve(sem *SemanticAnalyzer, s *Scope) {
 	v.Call.resolve(sem, s)
 }
 
-func (v *AssignStat) resolve(sem *semanticAnalyzer, s *Scope) {
+func (v *AssignStat) resolve(sem *SemanticAnalyzer, s *Scope) {
 	v.Assignment.resolve(sem, s)
 
 	if v.Deref != nil {
@@ -136,7 +136,7 @@ func (v *AssignStat) resolve(sem *semanticAnalyzer, s *Scope) {
 	}
 }
 
-func (v *LoopStat) resolve(sem *semanticAnalyzer, s *Scope) {
+func (v *LoopStat) resolve(sem *SemanticAnalyzer, s *Scope) {
 	v.Body.resolve(sem, s)
 
 	switch v.LoopType {
@@ -148,7 +148,7 @@ func (v *LoopStat) resolve(sem *semanticAnalyzer, s *Scope) {
 	}
 }
 
-func (v *MatchStat) resolve(sem *semanticAnalyzer, s *Scope) {
+func (v *MatchStat) resolve(sem *SemanticAnalyzer, s *Scope) {
 	v.Target.resolve(sem, s)
 
 	for pattern, stmt := range v.Branches {
@@ -161,33 +161,33 @@ func (v *MatchStat) resolve(sem *semanticAnalyzer, s *Scope) {
  * Expressions
  */
 
-func (v *IntegerLiteral) resolve(sem *semanticAnalyzer, s *Scope)  {}
-func (v *FloatingLiteral) resolve(sem *semanticAnalyzer, s *Scope) {}
-func (v *StringLiteral) resolve(sem *semanticAnalyzer, s *Scope)   {}
-func (v *RuneLiteral) resolve(sem *semanticAnalyzer, s *Scope)     {}
-func (v *BoolLiteral) resolve(sem *semanticAnalyzer, s *Scope)     {}
+func (v *IntegerLiteral) resolve(sem *SemanticAnalyzer, s *Scope)  {}
+func (v *FloatingLiteral) resolve(sem *SemanticAnalyzer, s *Scope) {}
+func (v *StringLiteral) resolve(sem *SemanticAnalyzer, s *Scope)   {}
+func (v *RuneLiteral) resolve(sem *SemanticAnalyzer, s *Scope)     {}
+func (v *BoolLiteral) resolve(sem *SemanticAnalyzer, s *Scope)     {}
 
-func (v *UnaryExpr) resolve(sem *semanticAnalyzer, s *Scope) {
+func (v *UnaryExpr) resolve(sem *SemanticAnalyzer, s *Scope) {
 	v.Expr.resolve(sem, s)
 }
 
-func (v *BinaryExpr) resolve(sem *semanticAnalyzer, s *Scope) {
+func (v *BinaryExpr) resolve(sem *SemanticAnalyzer, s *Scope) {
 	v.Lhand.resolve(sem, s)
 	v.Rhand.resolve(sem, s)
 }
 
-func (v *ArrayLiteral) resolve(sem *semanticAnalyzer, s *Scope) {
+func (v *ArrayLiteral) resolve(sem *SemanticAnalyzer, s *Scope) {
 	for _, mem := range v.Members {
 		mem.resolve(sem, s)
 	}
 }
 
-func (v *CastExpr) resolve(sem *semanticAnalyzer, s *Scope) {
+func (v *CastExpr) resolve(sem *SemanticAnalyzer, s *Scope) {
 	v.Type = v.Type.resolveType(v, sem, s)
 	v.Expr.resolve(sem, s)
 }
 
-func (v *CallExpr) resolve(sem *semanticAnalyzer, s *Scope) {
+func (v *CallExpr) resolve(sem *SemanticAnalyzer, s *Scope) {
 	v.Function = s.GetFunction(v.functionName)
 	if v.Function == nil {
 		sem.errResolve(v, v.functionName)
@@ -204,7 +204,7 @@ func (v *CallExpr) resolve(sem *semanticAnalyzer, s *Scope) {
 // good luck changing anything here without rewriting everything
 // at least it works
 // - MovingtoMars
-func (v *AccessExpr) resolve(sem *semanticAnalyzer, s *Scope) {
+func (v *AccessExpr) resolve(sem *SemanticAnalyzer, s *Scope) {
 	// resolve the first name
 	firstVar := v.Accesses[0]
 	firstVar.Variable = s.GetVariable(firstVar.variableName)
@@ -244,15 +244,15 @@ func (v *AccessExpr) resolve(sem *semanticAnalyzer, s *Scope) {
 	}
 }
 
-func (v *AddressOfExpr) resolve(sem *semanticAnalyzer, s *Scope) {
+func (v *AddressOfExpr) resolve(sem *SemanticAnalyzer, s *Scope) {
 	v.Access.resolve(sem, s)
 }
 
-func (v *DerefExpr) resolve(sem *semanticAnalyzer, s *Scope) {
+func (v *DerefExpr) resolve(sem *SemanticAnalyzer, s *Scope) {
 	v.Expr.resolve(sem, s)
 }
 
-func (v *SizeofExpr) resolve(sem *semanticAnalyzer, s *Scope) {
+func (v *SizeofExpr) resolve(sem *SemanticAnalyzer, s *Scope) {
 	if v.Expr != nil {
 		v.Expr.resolve(sem, s)
 	} else if v.Type != nil {
@@ -262,52 +262,52 @@ func (v *SizeofExpr) resolve(sem *semanticAnalyzer, s *Scope) {
 	}
 }
 
-func (v *TupleLiteral) resolve(sem *semanticAnalyzer, s *Scope) {
+func (v *TupleLiteral) resolve(sem *SemanticAnalyzer, s *Scope) {
 	for _, mem := range v.Members {
 		mem.resolve(sem, s)
 	}
 }
 
-func (v *DefaultMatchBranch) resolve(sem *semanticAnalyzer, s *Scope) {}
+func (v *DefaultMatchBranch) resolve(sem *SemanticAnalyzer, s *Scope) {}
 
 /*
  * Types
  */
 
-func (v PrimitiveType) resolveType(src Locatable, sem *semanticAnalyzer, s *Scope) Type {
+func (v PrimitiveType) resolveType(src Locatable, sem *SemanticAnalyzer, s *Scope) Type {
 	return v
 }
 
-func (v *StructType) resolveType(src Locatable, sem *semanticAnalyzer, s *Scope) Type {
+func (v *StructType) resolveType(src Locatable, sem *SemanticAnalyzer, s *Scope) Type {
 	for _, vari := range v.Variables {
 		vari.resolve(sem, s)
 	}
 	return v
 }
 
-func (v ArrayType) resolveType(src Locatable, sem *semanticAnalyzer, s *Scope) Type {
+func (v ArrayType) resolveType(src Locatable, sem *SemanticAnalyzer, s *Scope) Type {
 	return arrayOf(v.MemberType.resolveType(src, sem, s))
 }
 
-func (v *TraitType) resolveType(src Locatable, sem *semanticAnalyzer, s *Scope) Type {
+func (v *TraitType) resolveType(src Locatable, sem *SemanticAnalyzer, s *Scope) Type {
 	for _, fun := range v.Functions {
 		fun.resolve(sem, s)
 	}
 	return v
 }
 
-func (v PointerType) resolveType(src Locatable, sem *semanticAnalyzer, s *Scope) Type {
+func (v PointerType) resolveType(src Locatable, sem *SemanticAnalyzer, s *Scope) Type {
 	return pointerTo(v.Addressee.resolveType(src, sem, s))
 }
 
-func (v *TupleType) resolveType(src Locatable, sem *semanticAnalyzer, s *Scope) Type {
+func (v *TupleType) resolveType(src Locatable, sem *SemanticAnalyzer, s *Scope) Type {
 	for idx, mem := range v.Members {
 		v.Members[idx] = mem.resolveType(src, sem, s)
 	}
 	return v
 }
 
-func (v *UnresolvedType) resolveType(src Locatable, sem *semanticAnalyzer, s *Scope) Type {
+func (v *UnresolvedType) resolveType(src Locatable, sem *SemanticAnalyzer, s *Scope) Type {
 	typ := s.GetType(v.Name)
 	if typ == nil {
 		sem.err(src, "Cannot resolve `%s`", v.Name)
