@@ -27,12 +27,18 @@ func newScope(outer *Scope) *Scope {
 	}
 }
 
-func NewGlobalScope() *Scope {
-	s := newScope(nil)
+var builtinScope *Scope
+
+func init() {
+	builtinScope = newScope(nil)
 
 	for i := 0; i < len(_PrimitiveType_index); i++ {
-		s.InsertType(PrimitiveType(i))
+		builtinScope.InsertType(PrimitiveType(i))
 	}
+}
+
+func NewGlobalScope() *Scope {
+	s := newScope(builtinScope)
 
 	return s
 }
