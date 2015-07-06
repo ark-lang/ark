@@ -54,7 +54,8 @@ func (v *semanticAnalyzer) analyzeUsage(nodes []Node) {
 		} else if function, ok := node.(*FunctionDecl); ok {
 			if attr := function.Function.Attrs.Get("unused"); attr == nil {
 				if function.Function.Name != "main" && function.Function.Uses == 0 {
-					v.err(function, "unused function `%s`", function.Function.Name)
+					//v.err(function, "unused function `%s`", function.Function.Name)
+					// TODO add compiler option for this?
 				}
 			}
 			if function.Function.Body != nil {
