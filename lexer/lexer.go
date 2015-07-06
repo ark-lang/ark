@@ -172,7 +172,7 @@ start:
 				if isDoc {
 					v.pushToken(TOKEN_DOCCOMMENT)
 				} else {
-					v.pushToken(TOKEN_COMMENT)
+					v.discardBuffer()
 				}
 				goto start
 			}
@@ -191,7 +191,7 @@ start:
 				if isDoc {
 					v.pushToken(TOKEN_DOCCOMMENT)
 				} else {
-					v.pushToken(TOKEN_COMMENT)
+					v.discardBuffer()
 				}
 				v.consume()
 				goto start

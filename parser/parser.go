@@ -214,12 +214,8 @@ func (v *parser) parseDocComment() *DocComment {
 
 func (v *parser) parseNode() Node {
 	v.docCommentsBuf = make([]*DocComment, 0)
-	for v.tokenMatches(0, lexer.TOKEN_COMMENT, "") || v.tokenMatches(0, lexer.TOKEN_DOCCOMMENT, "") {
-		if v.tokenMatches(0, lexer.TOKEN_DOCCOMMENT, "") {
-			v.docCommentsBuf = append(v.docCommentsBuf, v.parseDocComment())
-		} else {
-			v.consumeToken()
-		}
+	for v.tokenMatches(0, lexer.TOKEN_DOCCOMMENT, "") {
+		v.docCommentsBuf = append(v.docCommentsBuf, v.parseDocComment())
 	}
 
 	// this is a little dirty, but allows for attribute block without reflection (part 1 / 2)
@@ -667,8 +663,8 @@ func (v *parser) parseBlock(pushNewScope bool) *Block {
 	}
 
 	for {
-		for v.tokenMatches(0, lexer.TOKEN_COMMENT, "") || v.tokenMatches(0, lexer.TOKEN_DOCCOMMENT, "") {
-			v.consumeToken()
+		for v.tokenMatches(0, lexer.TOKEN_DOCCOMMENT, "") {
+			v.consumeToken() // TODO error here?
 		}
 		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "}") {
 			v.consumeToken()
