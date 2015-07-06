@@ -15,7 +15,7 @@ type Locatable interface {
 type Node interface {
 	String() string
 	NodeName() string
-	resolve(*SemanticAnalyzer, *Scope)
+	resolve(*Resolver, *Scope)
 	analyze(*SemanticAnalyzer)
 	Locatable
 }
