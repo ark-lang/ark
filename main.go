@@ -78,17 +78,6 @@ func parseFiles(files []string) ([]*parser.Module, map[string]*parser.Module) {
 	parsedFiles := make([]*parser.Module, 0)
 	modules := make(map[string]*parser.Module, 0)
 
-	// add a C module here which will contain
-	// all of the c bindings and what not to
-	// keep everything separate
-	cModule := &parser.Module{
-		Nodes:       make([]parser.Node, 0),
-		Path:        "", // not really a path for this module
-		Name:        "C",
-		GlobalScope: parser.NewGlobalScope(),
-	}
-	modules["C"] = cModule
-
 	for _, file := range sourcefiles {
 		parsedFiles = append(parsedFiles, parser.Parse(file, modules, *verbose))
 	}
@@ -110,7 +99,8 @@ func build(input []string, output string, cg string, ccArgs []string, outputAsm 
 				OutputAsm:  outputAsm,
 			}
 		default:
-			panic("whoops")
+			fmt.Println(util.Red("error: ") + "Invalid backend choice `" + cg + "`")
+			os.Exit(1)
 		}
 
 		gen.Generate(parsedFiles, modules, *verbose)
