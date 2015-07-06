@@ -519,14 +519,11 @@ func (v *parser) parseFunctionDecl() *FunctionDecl {
 	}
 
 	scopeToInsertTo := v.scope
-	for _, attr := range function.Attrs {
-		switch attr.Key {
-		case "c":
-			if mod, ok := v.modules["C"]; ok {
-				scopeToInsertTo = mod.GlobalScope
-			} else {
-				v.err("Could not find C module to insert C binding into")
-			}
+	if function.Attrs.Contains("c") {
+		if mod, ok := v.modules["C"]; ok {
+			scopeToInsertTo = mod.GlobalScope
+		} else {
+			v.err("Could not find C module to insert C binding into")
 		}
 	}
 
