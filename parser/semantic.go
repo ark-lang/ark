@@ -46,13 +46,13 @@ func (v *SemanticAnalyzer) warnDeprecated(thing Locatable, typ, name, message st
 func (v *SemanticAnalyzer) analyzeUsage(nodes []Node) {
 	for _, node := range nodes {
 		if variable, ok := node.(*VariableDecl); ok {
-			if attr := variable.Variable.Attrs.Get("unused"); attr == nil {
+			if !variable.Variable.Attrs.Contains("unused") {
 				if variable.Variable.Uses == 0 {
 					v.err(variable, "unused variable `%s`", variable.Variable.Name)
 				}
 			}
 		} else if function, ok := node.(*FunctionDecl); ok {
-			if attr := function.Function.Attrs.Get("unused"); attr == nil {
+			if !function.Function.Attrs.Contains("unused") {
 				if function.Function.Name != "main" && function.Function.Uses == 0 {
 					//v.err(function, "unused function `%s`", function.Function.Name)
 					// TODO add compiler option for this?
@@ -63,7 +63,7 @@ func (v *SemanticAnalyzer) analyzeUsage(nodes []Node) {
 			}
 		} else if impl, ok := node.(*ImplDecl); ok {
 			for _, function := range impl.Functions {
-				if attr := function.Function.Attrs.Get("unused"); attr == nil {
+				if !function.Function.Attrs.Contains("unused") {
 					if function.Function.Name != "main" && function.Function.Uses == 0 {
 						v.err(function, "unused function `%s`", function.Function.Name)
 					}
@@ -283,7 +283,7 @@ func (v *VariableDecl) analyze(s *SemanticAnalyzer) {
 		s.err(v, "Variable `%s` is immutable, yet has no initial value", v.Variable.Name)
 	}
 
-	if dep := v.Variable.Type.Attrs().Get("deprecated"); dep != nil {
+	if v.Variable.Type.Attrs().Contains("deprecated") {
 		s.warnDeprecated(v, "type", v.Variable.Type.TypeName(), dep.Value)
 	}
 
@@ -708,17 +708,7 @@ func (v *CallExpr) analyze(s *SemanticAnalyzer) {
 
 	// find them attributes yo
 	if v.Function.Attrs != nil {
-		attributes := v.Function.Attrs
-
-		// todo hashmap or some shit
-		for _, attr := range attributes {
-			switch attr.Key {
-			case "c":
-				c = true
-			default:
-				// do nothing
-			}
-		}
+		c = v.Function.Attrs.Contains("c")
 	}
 
 	if argLen < paramLen {
@@ -772,7 +762,7 @@ func (v *CallExpr) analyze(s *SemanticAnalyzer) {
 		}
 	}
 
-	if dep := v.Function.Attrs.Get("deprecated"); dep != nil {
+	if v.Function.Attrs.Contains("deprecated") {
 		s.warnDeprecated(v, "function", v.Function.Name, dep.Value)
 	}
 }
@@ -783,7 +773,7 @@ func (v *CallExpr) setTypeHint(t Type) {}
 
 func (v *AccessExpr) analyze(s *SemanticAnalyzer) {
 	for _, access := range v.Accesses {
-		if dep := access.Variable.Attrs.Get("deprecated"); dep != nil {
+		if access.Variable.Attrs.Contains("deprecated") {
 			s.warnDeprecated(v, "variable", access.Variable.Name, dep.Value)
 		}
 
