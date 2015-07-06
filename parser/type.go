@@ -16,7 +16,7 @@ type Type interface {
 	Equals(Type) bool         // compares whether two types are equal
 
 	// TODO: Should this be here?
-	resolveType(Locatable, *semanticAnalyzer, *Scope) Type
+	resolveType(Locatable, *SemanticAnalyzer, *Scope) Type
 }
 
 //go:generate stringer -type=PrimitiveType

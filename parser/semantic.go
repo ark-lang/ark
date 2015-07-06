@@ -13,28 +13,28 @@ import (
 // contains a pointer to another Expr(s), simple pass the type hint along to that
 // Expr(s) then return.
 
-type semanticAnalyzer struct {
-	module          *Module
+type SemanticAnalyzer struct {
+	Module          *Module
 	function        *Function // the function we're in, or nil if we aren't
 	unresolvedNodes []Node
 	modules         map[string]*Module
 	shouldExit      bool
 }
 
-func (v *semanticAnalyzer) err(thing Locatable, err string, stuff ...interface{}) {
+func (v *SemanticAnalyzer) err(thing Locatable, err string, stuff ...interface{}) {
 	filename, line, char := thing.Pos()
 	fmt.Printf(util.TEXT_RED+util.TEXT_BOLD+"Semantic error:"+util.TEXT_RESET+" [%s:%d:%d] %s\n",
 		filename, line, char, fmt.Sprintf(err, stuff...))
 	v.shouldExit = true
 }
 
-func (v *semanticAnalyzer) warn(thing Locatable, err string, stuff ...interface{}) {
+func (v *SemanticAnalyzer) warn(thing Locatable, err string, stuff ...interface{}) {
 	filename, line, char := thing.Pos()
 	fmt.Printf(util.TEXT_YELLOW+util.TEXT_BOLD+"Semantic warning:"+util.TEXT_RESET+" [%s:%d:%d] %s\n",
 		filename, line, char, fmt.Sprintf(err, stuff...))
 }
 
-func (v *semanticAnalyzer) warnDeprecated(thing Locatable, typ, name, message string) {
+func (v *SemanticAnalyzer) warnDeprecated(thing Locatable, typ, name, message string) {
 	mess := fmt.Sprintf("Access of deprecated %s `%s`", typ, name)
 	if message == "" {
 		v.warn(thing, mess)
@@ -43,7 +43,7 @@ func (v *semanticAnalyzer) warnDeprecated(thing Locatable, typ, name, message st
 	}
 }
 
-func (v *semanticAnalyzer) analyzeUsage(nodes []Node) {
+func (v *SemanticAnalyzer) analyzeUsage(nodes []Node) {
 	for _, node := range nodes {
 		if variable, ok := node.(*VariableDecl); ok {
 			if attr := variable.Variable.Attrs.Get("unused"); attr == nil {
@@ -76,7 +76,7 @@ func (v *semanticAnalyzer) analyzeUsage(nodes []Node) {
 	}
 }
 
-func (v *semanticAnalyzer) analyze(modules map[string]*Module) {
+func (v *SemanticAnalyzer) Analyze(modules map[string]*Module) {
 	v.modules = modules
 	v.shouldExit = false
 
@@ -87,20 +87,20 @@ func (v *semanticAnalyzer) analyze(modules map[string]*Module) {
 		os.Exit(util.EXIT_FAILURE_SEMANTIC)
 	}
 
-	for _, node := range v.module.Nodes {
+	for _, node := range v.Module.Nodes {
 		node.analyze(v)
 	}
 
 	// once we're done analyzing everything
 	// check for unused stuff
-	v.analyzeUsage(v.module.Nodes)
+	v.analyzeUsage(v.Module.Nodes)
 
 	if v.shouldExit {
 		os.Exit(util.EXIT_FAILURE_SEMANTIC)
 	}
 }
 
-func (v *Block) analyze(s *semanticAnalyzer) {
+func (v *Block) analyze(s *SemanticAnalyzer) {
 	for i, n := range v.Nodes {
 		n.analyze(s)
 
@@ -140,7 +140,7 @@ func IsNodeTerminating(n Node) bool {
 	return false
 }
 
-func (v *Function) analyze(s *semanticAnalyzer) {
+func (v *Function) analyze(s *SemanticAnalyzer) {
 	// make sure there are no illegal attributes
 	for _, attr := range v.Attrs {
 		switch attr.Key {
@@ -160,11 +160,11 @@ func (v *Function) analyze(s *semanticAnalyzer) {
 	s.function = nil
 }
 
-func (v *ModuleDecl) analyze(s *semanticAnalyzer) {
+func (v *ModuleDecl) analyze(s *SemanticAnalyzer) {
 
 }
 
-func (v *EnumDecl) analyze(s *semanticAnalyzer) {
+func (v *EnumDecl) analyze(s *SemanticAnalyzer) {
 	// here we infer the enum integer type from given typed expressions, if any
 	var enumValueType Type
 	for _, member := range v.Body {
@@ -215,7 +215,7 @@ func evaluateEnumExpr(expr Expr) (uint64, error) {
 	return 0, nil // TODO
 }
 
-func (v *StructType) analyze(s *semanticAnalyzer) {
+func (v *StructType) analyze(s *SemanticAnalyzer) {
 	// make sure there are no illegal attributes
 	for _, attr := range v.Attrs() {
 		switch attr.Key {
@@ -235,7 +235,7 @@ func (v *StructType) analyze(s *semanticAnalyzer) {
 	}
 }
 
-func (v *TraitType) analyze(s *semanticAnalyzer) {
+func (v *TraitType) analyze(s *SemanticAnalyzer) {
 	// make sure there are no illegal attributes
 	for _, attr := range v.Attrs() {
 		if attr.Key != "deprecated" {
@@ -248,7 +248,7 @@ func (v *TraitType) analyze(s *semanticAnalyzer) {
 	}
 }
 
-func (v *Variable) analyze(s *semanticAnalyzer) {
+func (v *Variable) analyze(s *SemanticAnalyzer) {
 	// make sure there are no illegal attributes
 	for _, attr := range v.Attrs {
 		switch attr.Key {
@@ -265,7 +265,7 @@ func (v *Variable) analyze(s *semanticAnalyzer) {
  * Declarations
  */
 
-func (v *VariableDecl) analyze(s *semanticAnalyzer) {
+func (v *VariableDecl) analyze(s *SemanticAnalyzer) {
 	v.Variable.analyze(s)
 
 	_, isStructure := v.Variable.Type.(*StructType)
@@ -297,25 +297,25 @@ func (v *VariableDecl) analyze(s *semanticAnalyzer) {
 	s.checkAttrsDistanceFromLine(v.Variable.Attrs, v.lineNumber, "variable", v.Variable.Name)
 }
 
-func (v *StructDecl) analyze(s *semanticAnalyzer) {
+func (v *StructDecl) analyze(s *SemanticAnalyzer) {
 	v.Struct.analyze(s)
 	s.checkAttrsDistanceFromLine(v.Struct.Attrs(), v.lineNumber, "type", v.Struct.TypeName())
 }
 
-func (v *TraitDecl) analyze(s *semanticAnalyzer) {
+func (v *TraitDecl) analyze(s *SemanticAnalyzer) {
 	v.Trait.analyze(s)
 	s.checkAttrsDistanceFromLine(v.Trait.Attrs(), v.lineNumber, "type", v.Trait.TypeName())
 }
 
-func (v *ImplDecl) analyze(s *semanticAnalyzer) {
+func (v *ImplDecl) analyze(s *SemanticAnalyzer) {
 	// TODO
 }
 
-func (v *UseDecl) analyze(s *semanticAnalyzer) {
+func (v *UseDecl) analyze(s *SemanticAnalyzer) {
 
 }
 
-func (v *FunctionDecl) analyze(s *semanticAnalyzer) {
+func (v *FunctionDecl) analyze(s *SemanticAnalyzer) {
 	v.Function.analyze(s)
 
 	if !v.Prototype && !v.Function.Body.IsTerminating {
@@ -333,7 +333,7 @@ func (v *FunctionDecl) analyze(s *semanticAnalyzer) {
  * Statements
  */
 
-func (v *ReturnStat) analyze(s *semanticAnalyzer) {
+func (v *ReturnStat) analyze(s *SemanticAnalyzer) {
 	if s.function == nil {
 		s.err(v, "Return statement must be in a function")
 	}
@@ -357,7 +357,7 @@ func (v *ReturnStat) analyze(s *semanticAnalyzer) {
 	}
 }
 
-func (v *IfStat) analyze(s *semanticAnalyzer) {
+func (v *IfStat) analyze(s *SemanticAnalyzer) {
 	for _, expr := range v.Exprs {
 		expr.setTypeHint(PRIMITIVE_bool)
 		expr.analyze(s)
@@ -378,19 +378,19 @@ func (v *IfStat) analyze(s *semanticAnalyzer) {
 
 // BlockStat
 
-func (v *BlockStat) analyze(s *semanticAnalyzer) {
+func (v *BlockStat) analyze(s *SemanticAnalyzer) {
 	v.Block.analyze(s)
 }
 
 // CallStat
 
-func (v *CallStat) analyze(s *semanticAnalyzer) {
+func (v *CallStat) analyze(s *SemanticAnalyzer) {
 	v.Call.analyze(s)
 }
 
 // AssignStat
 
-func (v *AssignStat) analyze(s *semanticAnalyzer) {
+func (v *AssignStat) analyze(s *SemanticAnalyzer) {
 	if (v.Deref == nil) == (v.Access == nil) { // make sure aren't both not null or null
 		panic("oh no")
 	}
@@ -423,7 +423,7 @@ func (v *AssignStat) analyze(s *semanticAnalyzer) {
 
 // LoopStat
 
-func (v *LoopStat) analyze(s *semanticAnalyzer) {
+func (v *LoopStat) analyze(s *SemanticAnalyzer) {
 	v.Body.analyze(s)
 
 	switch v.LoopType {
@@ -438,7 +438,7 @@ func (v *LoopStat) analyze(s *semanticAnalyzer) {
 
 // MatchStat
 
-func (v *MatchStat) analyze(s *semanticAnalyzer) {
+func (v *MatchStat) analyze(s *SemanticAnalyzer) {
 	v.Target.analyze(s)
 
 	for pattern, stmt := range v.Branches {
@@ -453,7 +453,7 @@ func (v *MatchStat) analyze(s *semanticAnalyzer) {
 
 // UnaryExpr
 
-func (v *UnaryExpr) analyze(s *semanticAnalyzer) {
+func (v *UnaryExpr) analyze(s *SemanticAnalyzer) {
 	v.Expr.analyze(s)
 
 	switch v.Op {
@@ -493,7 +493,7 @@ func (v *UnaryExpr) setTypeHint(t Type) {
 
 // BinaryExpr
 
-func (v *BinaryExpr) analyze(s *semanticAnalyzer) {
+func (v *BinaryExpr) analyze(s *SemanticAnalyzer) {
 	v.Lhand.analyze(s)
 	v.Rhand.analyze(s)
 
@@ -591,7 +591,7 @@ func (v *BinaryExpr) setTypeHint(t Type) {
 
 // IntegerLiteral
 
-func (v *IntegerLiteral) analyze(s *semanticAnalyzer) {}
+func (v *IntegerLiteral) analyze(s *SemanticAnalyzer) {}
 
 func (v *IntegerLiteral) setTypeHint(t Type) {
 	switch t {
@@ -606,7 +606,7 @@ func (v *IntegerLiteral) setTypeHint(t Type) {
 
 // FloatingLiteral
 
-func (v *FloatingLiteral) analyze(s *semanticAnalyzer) {}
+func (v *FloatingLiteral) analyze(s *SemanticAnalyzer) {}
 
 func (v *FloatingLiteral) setTypeHint(t Type) {
 	if v.Type != nil {
@@ -624,22 +624,22 @@ func (v *FloatingLiteral) setTypeHint(t Type) {
 
 // StringLiteral
 
-func (v *StringLiteral) analyze(s *semanticAnalyzer) {}
+func (v *StringLiteral) analyze(s *SemanticAnalyzer) {}
 func (v *StringLiteral) setTypeHint(t Type)          {}
 
 // RuneLiteral
 
-func (v *RuneLiteral) analyze(s *semanticAnalyzer) {}
+func (v *RuneLiteral) analyze(s *SemanticAnalyzer) {}
 func (v *RuneLiteral) setTypeHint(t Type)          {}
 
 // BoolLiteral
 
-func (v *BoolLiteral) analyze(s *semanticAnalyzer) {}
+func (v *BoolLiteral) analyze(s *SemanticAnalyzer) {}
 func (v *BoolLiteral) setTypeHint(t Type)          {}
 
 // ArrayLiteral
 
-func (v *ArrayLiteral) analyze(s *semanticAnalyzer) {
+func (v *ArrayLiteral) analyze(s *SemanticAnalyzer) {
 	// TODO make type inferring stuff actually work well
 
 	var memType Type // type of each member of the array
@@ -689,7 +689,7 @@ func (v *ArrayLiteral) setTypeHint(t Type) {
 
 // CastExpr
 
-func (v *CastExpr) analyze(s *semanticAnalyzer) {
+func (v *CastExpr) analyze(s *SemanticAnalyzer) {
 	v.Expr.setTypeHint(nil)
 	v.Expr.analyze(s)
 	if v.Type.Equals(v.Expr.GetType()) {
@@ -705,7 +705,7 @@ func (v *CastExpr) setTypeHint(t Type) {}
 
 // CallExpr
 
-func (v *CallExpr) analyze(s *semanticAnalyzer) {
+func (v *CallExpr) analyze(s *SemanticAnalyzer) {
 	argLen := len(v.Arguments)
 	paramLen := len(v.Function.Parameters)
 
@@ -788,7 +788,7 @@ func (v *CallExpr) setTypeHint(t Type) {}
 
 // AccessExpr
 
-func (v *AccessExpr) analyze(s *semanticAnalyzer) {
+func (v *AccessExpr) analyze(s *SemanticAnalyzer) {
 	for _, access := range v.Accesses {
 		if dep := access.Variable.Attrs.Get("deprecated"); dep != nil {
 			s.warnDeprecated(v, "variable", access.Variable.Name, dep.Value)
@@ -824,7 +824,7 @@ func (v *AccessExpr) setTypeHint(t Type) {}
 
 // AddressOfExpr
 
-func (v *AddressOfExpr) analyze(s *semanticAnalyzer) {
+func (v *AddressOfExpr) analyze(s *SemanticAnalyzer) {
 	v.Access.analyze(s)
 }
 
@@ -832,7 +832,7 @@ func (v *AddressOfExpr) setTypeHint(t Type) {}
 
 // DerefExpr
 
-func (v *DerefExpr) analyze(s *semanticAnalyzer) {
+func (v *DerefExpr) analyze(s *SemanticAnalyzer) {
 	v.Expr.analyze(s)
 	if ptr, ok := v.Expr.GetType().(PointerType); !ok {
 		s.err(v, "Cannot dereference expression of type `%s`", v.Expr.GetType().TypeName())
@@ -847,7 +847,7 @@ func (v *DerefExpr) setTypeHint(t Type) {
 
 // SizeofExpr
 
-func (v *SizeofExpr) analyze(s *semanticAnalyzer) {
+func (v *SizeofExpr) analyze(s *SemanticAnalyzer) {
 	if v.Expr != nil {
 		v.Expr.setTypeHint(nil)
 		v.Expr.analyze(s)
@@ -860,7 +860,7 @@ func (v *SizeofExpr) setTypeHint(t Type) {
 
 // TupleLiteral
 
-func (v *TupleLiteral) analyze(s *semanticAnalyzer) {
+func (v *TupleLiteral) analyze(s *SemanticAnalyzer) {
 	var memberTypes []Type
 
 	tupleType, ok := v.Type.(*TupleType)
@@ -914,7 +914,7 @@ func (v *TupleLiteral) setTypeHint(t Type) {
 
 // DefaultMatchBranch
 
-func (v *DefaultMatchBranch) analyze(s *semanticAnalyzer) {
+func (v *DefaultMatchBranch) analyze(s *SemanticAnalyzer) {
 
 }
 
