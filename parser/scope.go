@@ -49,10 +49,6 @@ func (v *Scope) err(err string, stuff ...interface{}) {
 	os.Exit(util.EXIT_FAILURE_CODEGEN)
 }
 
-func (v *Scope) IsGlobal() bool {
-	return v.Outer == nil
-}
-
 func (v *Scope) InsertType(t Type) Type {
 	c := v.Types[t.TypeName()]
 	if c == nil {
