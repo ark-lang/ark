@@ -80,13 +80,6 @@ func (v *SemanticAnalyzer) Analyze(modules map[string]*Module) {
 	v.modules = modules
 	v.shouldExit = false
 
-	// pass modules to resolve
-	v.resolve(modules)
-
-	if v.shouldExit {
-		os.Exit(util.EXIT_FAILURE_SEMANTIC)
-	}
-
 	for _, node := range v.Module.Nodes {
 		node.analyze(v)
 	}
