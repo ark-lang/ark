@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/ark-lang/ark/util/log"
 	"os"
 	"os/exec"
 	"time"
@@ -26,7 +27,11 @@ var startTime time.Time
 func main() {
 	startTime = time.Now()
 
-	switch kingpin.MustParse(app.Parse(os.Args[1:])) {
+	command := kingpin.MustParse(app.Parse(os.Args[1:]))
+	log.SetLevel(*logLevel)
+	log.SetTags(*logTags)
+
+	switch command {
 	case buildCom.FullCommand():
 		ccArgs := []string{}
 		if *buildStatic {
@@ -49,13 +54,13 @@ func main() {
 
 func printFinishedMessage(startTime time.Time, command string, numFiles int) {
 	dur := time.Since(startTime)
-	fmt.Printf("%s (%d file(s), %.2fms)\n",
+	log.Info("main", "%s (%d file(s), %.2fms)\n",
 		util.TEXT_GREEN+util.TEXT_BOLD+fmt.Sprintf("Finished %s", command)+util.TEXT_RESET,
 		numFiles, float32(dur.Nanoseconds())/1000000)
 }
 
 func setupErr(err string, stuff ...interface{}) {
-	fmt.Printf(util.TEXT_RED+util.TEXT_BOLD+"Setup error:"+util.TEXT_RESET+" %s\n",
+	log.Error("main", util.TEXT_RED+util.TEXT_BOLD+"Setup error:"+util.TEXT_RESET+" %s\n",
 		fmt.Sprintf(err, stuff...))
 	os.Exit(util.EXIT_FAILURE_SETUP)
 }
@@ -72,14 +77,14 @@ func parseFiles(files []string) ([]*parser.Module, map[string]*parser.Module) {
 	}
 
 	for _, file := range sourcefiles {
-		file.Tokens = lexer.Lex(file.Contents, file.Name, *verbose)
+		file.Tokens = lexer.Lex(file.Contents, file.Name)
 	}
 
 	parsedFiles := make([]*parser.Module, 0)
 	modules := make(map[string]*parser.Module, 0)
 
 	for _, file := range sourcefiles {
-		parsedFiles = append(parsedFiles, parser.Parse(file, modules, *verbose))
+		parsedFiles = append(parsedFiles, parser.Parse(file, modules))
 	}
 
 	return parsedFiles, modules
@@ -102,7 +107,7 @@ func build(files []string, outputFile string, cg string, ccArgs []string, output
 	// lexing
 	timed("lexing phase", func() {
 		for _, file := range sourcefiles {
-			file.Tokens = lexer.Lex(file.Contents, file.Name, *verbose)
+			file.Tokens = lexer.Lex(file.Contents, file.Name)
 		}
 	})
 
@@ -112,7 +117,7 @@ func build(files []string, outputFile string, cg string, ccArgs []string, output
 
 	timed("parsing phase", func() {
 		for _, file := range sourcefiles {
-			parsedFiles = append(parsedFiles, parser.Parse(file, modules, *verbose))
+			parsedFiles = append(parsedFiles, parser.Parse(file, modules))
 		}
 	})
 
@@ -146,29 +151,25 @@ func build(files []string, outputFile string, cg string, ccArgs []string, output
 				OutputAsm:  outputAsm,
 			}
 		default:
-			fmt.Println(util.Red("error: ") + "Invalid backend choice `" + cg + "`")
+			log.Error("main", util.Red("error: ")+"Invalid backend choice `"+cg+"`")
 			os.Exit(1)
 		}
 
 		timed("codegen phase", func() {
-			gen.Generate(parsedFiles, modules, *verbose)
+			gen.Generate(parsedFiles, modules)
 		})
 	}
 
 }
 
 func timed(title string, fn func()) {
-	if *verbose {
-		fmt.Println(util.TEXT_BOLD + util.TEXT_GREEN + "Started " + title + util.TEXT_RESET)
-	}
+	log.Verboseln("main", util.TEXT_BOLD+util.TEXT_GREEN+"Started "+title+util.TEXT_RESET)
 	start := time.Now()
 
 	fn()
 
 	duration := time.Since(start)
-	if *verbose {
-		fmt.Printf(util.TEXT_BOLD+util.TEXT_GREEN+"Ended "+title+util.TEXT_RESET+" (%.2fms)\n", float32(duration)/1000000)
-	}
+	log.Verboseln("main", util.TEXT_BOLD+util.TEXT_GREEN+"Ended "+title+util.TEXT_RESET+" (%.2fms)", float32(duration)/1000000)
 }
 
 func run(output string) {
@@ -187,5 +188,5 @@ func docgen(input []string, dir string) {
 		Dir:   dir,
 	}
 
-	gen.Generate(*verbose)
+	gen.Generate()
 }

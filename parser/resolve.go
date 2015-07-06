@@ -3,6 +3,7 @@ package parser
 import (
 	"fmt"
 	"github.com/ark-lang/ark/util"
+	"github.com/ark-lang/ark/util/log"
 	"os"
 )
 
@@ -35,7 +36,7 @@ type Resolver struct {
 
 func (v *Resolver) err(thing Locatable, err string, stuff ...interface{}) {
 	filename, line, char := thing.Pos()
-	fmt.Printf(util.TEXT_RED+util.TEXT_BOLD+"Resolve error:"+util.TEXT_RESET+" [%s:%d:%d] %s\n",
+	log.Error("resolve", util.TEXT_RED+util.TEXT_BOLD+"Resolve error:"+util.TEXT_RESET+" [%s:%d:%d] %s\n",
 		filename, line, char, fmt.Sprintf(err, stuff...))
 	v.shouldExit = true
 }
