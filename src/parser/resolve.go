@@ -30,16 +30,15 @@ func (v unresolvedName) String() string {
 }
 
 type Resolver struct {
-	Module     *Module
-	modules    map[string]*Module
-	shouldExit bool
+	Module  *Module
+	modules map[string]*Module
 }
 
 func (v *Resolver) err(thing Locatable, err string, stuff ...interface{}) {
 	filename, line, char := thing.Pos()
 	log.Error("resolve", util.TEXT_RED+util.TEXT_BOLD+"Resolve error:"+util.TEXT_RESET+" [%s:%d:%d] %s\n",
 		filename, line, char, fmt.Sprintf(err, stuff...))
-	v.shouldExit = true
+	os.Exit(util.EXIT_FAILURE_SEMANTIC)
 }
 
 func (v *Resolver) errResolve(thing Locatable, name unresolvedName) {
@@ -51,10 +50,6 @@ func (v *Resolver) Resolve(modules map[string]*Module) {
 
 	for _, node := range v.Module.Nodes {
 		node.resolve(v, v.Module.GlobalScope)
-	}
-
-	if v.shouldExit {
-		os.Exit(util.EXIT_FAILURE_SEMANTIC)
 	}
 }
 
@@ -227,50 +222,41 @@ func (v *CallExpr) resolve(res *Resolver, s *Scope) {
 	}
 }
 
-// this whole function is so bad
-// why does this even exist
-// please get around to rewriting this in a way that doesn't suck
-// good luck changing anything here without rewriting everything
-// at least it works
-// - MovingtoMars
-func (v *AccessExpr) resolve(res *Resolver, s *Scope) {
-	// resolve the first name
-	firstVar := v.Accesses[0]
-	firstVar.Variable = s.GetVariable(firstVar.variableName)
+func (v *VariableAccessExpr) resolve(res *Resolver, s *Scope) {
+	v.Variable = s.GetVariable(v.Name)
 
-	if v.Accesses[0].Variable == nil {
-		res.errResolve(v, firstVar.variableName)
+	if v.Variable == nil {
+		res.errResolve(v, v.Name)
+	} else if v.Variable.Type != nil {
+		v.Variable.Type.resolveType(v, res, s)
+	}
+}
+
+func (v *StructAccessExpr) resolve(res *Resolver, s *Scope) {
+	v.Struct.resolve(res, s)
+
+	structType, ok := v.Struct.GetType().(*StructType)
+	if !ok {
+
+		res.err(v, "Cannot access member of type `%s`", v.Struct.GetType().TypeName())
 	}
 
-	// resolve everything else
-	for i := 0; i < len(v.Accesses); i++ {
-		switch v.Accesses[i].AccessType {
-		case ACCESS_ARRAY:
-			v.Accesses[i].Subscript.resolve(res, s)
-
-		case ACCESS_STRUCT:
-			v.Accesses[i].Variable.Type = v.Accesses[i].Variable.Type.resolveType(v, res, s)
-			structType, ok := v.Accesses[i].Variable.Type.(*StructType)
-			if !ok {
-				res.err(v, "Cannot access member of `%s`, type `%s`", v.Accesses[i].Variable.Name, v.Accesses[i].Variable.Type.TypeName())
-			}
-
-			memberName := v.Accesses[i+1].variableName.name // TODO check no mod access
-			decl := structType.getVariableDecl(memberName)
-			if decl == nil {
-				res.err(v, "Struct `%s` does not contain member `%s`", structType.TypeName(), memberName)
-			}
-			v.Accesses[i+1].Variable = decl.Variable
-		case ACCESS_VARIABLE:
-			// nothing to do
-
-		case ACCESS_TUPLE:
-			// nothing to do
-
-		default:
-			panic("unhandled access type")
-		}
+	// TODO check no mod access
+	decl := structType.getVariableDecl(v.Member)
+	if decl == nil {
+		res.err(v, "Struct `%s` does not contain member `%s`", structType.TypeName(), v.Member)
 	}
+
+	v.Variable = decl.Variable
+}
+
+func (v *ArrayAccessExpr) resolve(res *Resolver, s *Scope) {
+	v.Array.resolve(res, s)
+	v.Subscript.resolve(res, s)
+}
+
+func (v *TupleAccessExpr) resolve(res *Resolver, s *Scope) {
+	v.Tuple.resolve(res, s)
 }
 
 func (v *AddressOfExpr) resolve(res *Resolver, s *Scope) {
