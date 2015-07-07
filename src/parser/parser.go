@@ -1455,20 +1455,7 @@ func (v *parser) parseCallOrAccessExpr() Expr {
 	}
 	v.consumeToken() // consume (
 
-	// TODO: This will be cleaner once we get around to implementing function types
-	switch functionSrc.(type) {
-	case *VariableAccessExpr:
-		vae := functionSrc.(*VariableAccessExpr)
-		callExpr.functionName = vae.Name
-
-	case *StructAccessExpr:
-		sae := functionSrc.(*StructAccessExpr)
-		name := unresolvedName{name: sae.GetType().TypeName() + "." + sae.Member}
-		callExpr.functionName = name
-
-	default:
-		panic("Invalid function source (for now)")
-	}
+	callExpr.functionSource = functionSrc
 
 	if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ")") {
 		v.consumeToken()
