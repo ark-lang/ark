@@ -36,10 +36,10 @@ class TestFile:
 files_tested = []
 
 # how many files passed
-num_of_files_passed = 0
+total_num_of_files_passed = 0
 
 # how many files failed
-num_of_files_failed = 0
+total_num_of_files_failed = 0
 
 # if we show the ouput to the console
 # TODO maybe print out summary even if
@@ -65,67 +65,90 @@ def sort_nicely(l):
 	alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)', key)]
 	l.sort(key = alphanum_key)
 
-files = [x for x in os.listdir("tests") if x.endswith("_test.ark")]
-sort_nicely(files)
-for name in files:
-	output_file = name + ".test"
+dirs = []
 
-	if show_output:
-		print(bold("Compiling ") + name + "...")
+for root, subdirs, dirfiles in os.walk("tests"):
+	subfiles = []
+	for file in dirfiles:
+		if file.endswith("_test.ark"):
+			subfiles.append(file)
+	sort_nicely(subfiles)
+	dirs.append([root, subfiles])
 
-	cmd = ["ark", "build"]
-	if be_verbose:
-		cmd.append("-v")
-	cmd.extend(["tests/"+name, "-o", "tests/"+output_file])
+for directory, filelist in dirs:
+	files_tested = []
 
-	if show_output:
-		compile_result = subprocess.call(cmd)
-	else:
-		compile_result = subprocess.call(cmd, stdout=FNULL, stderr=subprocess.STDOUT)
+	# how many files passed
+	num_of_files_passed = 0
 
-	if compile_result != 0:
+	# how many files failed
+	num_of_files_failed = 0
+
+	for name in filelist:
+		output_file = name + ".test"
+
 		if show_output:
-			print(red(bold("Compilation failed:")) + " returned with " + str(compile_result))
-		files_tested.append(TestFile(name, True, str(compile_result), "-"))
-		num_of_files_failed += 1
-		if show_output: print("")
-		continue
+			print(bold("Compiling ") + name + "...")
 
-	if show_output:
-		print(bold("Running ") + name + "...")
+		cmd = ["ark", "build"]
+		if be_verbose:
+			cmd.append("-v")
+		cmd.extend([os.path.join(directory, name), "-o", "tests/"+output_file])
 
-	run_result = 63 # this is 00111111 which is ? in base 10 lol idk
-	try:
 		if show_output:
-			run_result = subprocess.call(["./tests/" + output_file])
+			compile_result = subprocess.call(cmd)
 		else:
-			run_result = subprocess.call(["./tests/" + output_file], stdout=FNULL, stderr=subprocess.STDOUT)
+			compile_result = subprocess.call(cmd, stdout=FNULL, stderr=subprocess.STDOUT)
 
-		os.remove("tests/" + output_file)
-	except (OSError, IOError) as e:
-		print(red(bold("File not found: " + output_file)))
+		if compile_result != 0:
+			if show_output:
+				print(red(bold("Compilation failed:")) + " returned with " + str(compile_result))
+			files_tested.append(TestFile(name, True, str(compile_result), "-"))
+			num_of_files_failed += 1
+			if show_output: print("")
+			continue
 
-	if run_result != 0:
-		if show_output: print(red(bold("Running failed:")) + " returned with " + str(run_result))
-		files_tested.append(TestFile(name, True, "0", str(run_result)))
-		num_of_files_failed += 1
-	else:
-		files_tested.append(TestFile(name, False, "0", str(run_result)))
-		num_of_files_passed += 1
+		if show_output:
+			print(bold("Running ") + name + "...")
 
-	if show_output: print("")
+		run_result = 63 # this is 00111111 which is ? in base 10 lol idk
+		try:
+			if show_output:
+				run_result = subprocess.call(["./tests/" + output_file])
+			else:
+				run_result = subprocess.call(["./tests/" + output_file], stdout=FNULL, stderr=subprocess.STDOUT)
 
-# print results
-total_num_of_files = num_of_files_passed + num_of_files_failed
-print(bold("Results: " + str(num_of_files_passed) + "/" + str(total_num_of_files) + " files passed")) # some margin
-print("   pass comp  run\t  filename")
+			os.remove("tests/" + output_file)
+		except (OSError, IOError) as e:
+			print(red(bold("File not found: " + output_file)))
 
-for file in files_tested:
-	if file.failed:
-		print(red(bold("    [-]%5s %4s\t  %s")) % (file.compile_result, file.run_result, file.name))
-	else:
-		print(green(bold("    [+]%5s %4s\t  %s")) % (file.compile_result, file.run_result, file.name))
+		if run_result != 0:
+			if show_output: print(red(bold("Running failed:")) + " returned with " + str(run_result))
+			files_tested.append(TestFile(name, True, "0", str(run_result)))
+			num_of_files_failed += 1
+		else:
+			files_tested.append(TestFile(name, False, "0", str(run_result)))
+			num_of_files_passed += 1
 
+		if show_output: print("")
 
-if num_of_files_failed > 0:
+	total_num_of_files_passed += num_of_files_passed
+	total_num_of_files_failed += num_of_files_failed
+
+	# print results
+	total_num_of_files = num_of_files_passed + num_of_files_failed
+	print(bold(directory + ": " + str(num_of_files_passed) + "/" + str(total_num_of_files) + " files passed")) # some margin
+	print("   pass comp  run\t  filename")
+
+	for file in files_tested:
+		if file.failed:
+			print(red(bold("    [-]%5s %4s\t  %s")) % (file.compile_result, file.run_result, file.name))
+		else:
+			print(green(bold("    [+]%5s %4s\t  %s")) % (file.compile_result, file.run_result, file.name))
+
+	print('')
+
+print(bold("Total: " + str(total_num_of_files_passed) + "/" + str(total_num_of_files_passed + total_num_of_files_failed) + " files passed"))
+
+if total_num_of_files_failed > 0:
 	exit(1)
