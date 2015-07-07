@@ -5,12 +5,13 @@ package parser
 
 import (
 	"fmt"
-	"github.com/ark-lang/ark/util/log"
 	"os"
 	"strconv"
 	"strings"
 	"time"
 	"unicode"
+
+	"github.com/ark-lang/ark/util/log"
 
 	"github.com/ark-lang/ark/lexer"
 	"github.com/ark-lang/ark/util"
@@ -441,10 +442,6 @@ func (v *parser) parseDecl() Decl {
 }
 
 func (v *parser) parseType() Type {
-	if !(v.peek(0).Type == lexer.TOKEN_IDENTIFIER || v.tokenMatches(0, lexer.TOKEN_OPERATOR, "^") || v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "(")) {
-		panic("expected type")
-	}
-
 	if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "^") {
 		v.consumeToken()
 		if innerType := v.parseType(); innerType != nil {
@@ -452,9 +449,7 @@ func (v *parser) parseType() Type {
 		} else {
 			v.err("Standalone `^` is not a valid type")
 		}
-	}
-
-	if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "(") {
+	} else if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "(") {
 		v.consumeToken()
 
 		innerType := v.parseType()
@@ -473,20 +468,36 @@ func (v *parser) parseType() Type {
 			v.consumeToken()
 			innerType = v.parseType()
 			if innerType == nil {
-				// TODO: handle this more gracefully
-				panic("got a type that's not in scope?")
+				v.err("Expected type, found `%s`", v.peek(0))
 			}
 		}
 
 		if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ")") {
-			v.err("Expected closing parens")
+			v.err("Expected closing parens, found `%s`", v.peek(0).Contents)
 		}
 		v.consumeToken()
 
 		return tupleOf(members...)
+	} else if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "[") {
+		v.consumeToken()
+
+		if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "]") {
+			v.err("Expected closing bracket, found `%s`", v.peek(0).Contents)
+		}
+		v.consumeToken()
+
+		innerType := v.parseType()
+		if innerType == nil {
+			v.err("Expected type, found `%s`", v.peek(0))
+		}
+
+		return arrayOf(innerType)
+	} else if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, "") {
+		return &UnresolvedType{Name: v.consumeToken().Contents}
 	}
 
-	return &UnresolvedType{Name: v.consumeToken().Contents}
+	v.err("Expected type, found `%s`", v.peek(0).Contents)
+	return nil
 }
 
 func (v *parser) parseFunctionDecl() *FunctionDecl {
