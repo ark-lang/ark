@@ -724,7 +724,7 @@ func (v *Codegen) genArrayLiteral(n *parser.ArrayLiteral) llvm.Value {
 		expr := v.genExpr(mem)
 		arrConstVals = append(arrConstVals, expr)
 	}
-	arrConst := llvm.ConstArray(llvm.Int32Type(), arrConstVals)
+	arrConst := llvm.ConstArray(arrConstVals[0].Type(), arrConstVals)
 	v.builder.CreateStore(arrConst, arrAlloca)
 
 	return v.builder.CreateLoad(structAlloca, "")
