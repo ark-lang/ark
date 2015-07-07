@@ -314,28 +314,31 @@ func (v *Codegen) genDeferStat(n *parser.DeferStat) {
 }
 
 func (v *Codegen) genBlock(n *parser.Block) {
-	for _, x := range n.Nodes {
-		v.currentBlock = n // set it on every iteration to overidde sub-blocks
+	for i, x := range n.Nodes {
+		v.currentBlock = n // set it on every iteration to overide sub-blocks
+
+		if i == len(n.Nodes)-1 && !n.IsTerminating {
+			fmt.Println("true")
+		}
+
 		v.genNode(x)
+
+		if (i == len(n.Nodes)-1 && !n.IsTerminating) || (i == len(n.Nodes)-2 && n.IsTerminating) {
+			// print all the defer stats
+			deferDat := v.blockDeferData[n]
+
+			if len(deferDat) > 0 {
+				for i := len(deferDat) - 1; i >= 0; i-- {
+					v.genCallExprWithArgs(deferDat[i].stat.Call, deferDat[i].args)
+				}
+			}
+
+			delete(v.blockDeferData, n)
+		}
 	}
 
 	v.currentBlock = nil
 
-	deferDat := v.blockDeferData[n]
-
-	if len(deferDat) > 0 {
-		deferBuilder := llvm.NewBuilder()
-		deferBuilder.SetInsertPointBefore(v.builder.GetInsertBlock().LastInstruction())
-
-		modBuilder := v.builder
-		v.builder = deferBuilder
-
-		for i := len(deferDat) - 1; i >= 0; i-- {
-			v.genCallExprWithArgs(deferDat[i].stat.Call, deferDat[i].args)
-		}
-
-		v.builder = modBuilder
-	}
 }
 
 func (v *Codegen) genReturnStat(n *parser.ReturnStat) {
@@ -387,9 +390,7 @@ func (v *Codegen) genIfStat(n *parser.IfStat) {
 		v.builder.CreateCondBr(cond, ifTrue, ifFalse)
 
 		v.builder.SetInsertPointAtEnd(ifTrue)
-		for _, node := range n.Bodies[i].Nodes {
-			v.genNode(node)
-		}
+		v.genBlock(n.Bodies[i])
 
 		if !statTerm && !n.Bodies[i].IsTerminating {
 			v.builder.CreateBr(end)
@@ -403,9 +404,7 @@ func (v *Codegen) genIfStat(n *parser.IfStat) {
 	}
 
 	if n.Else != nil {
-		for _, node := range n.Else.Nodes {
-			v.genNode(node)
-		}
+		v.genBlock(n.Else)
 	}
 
 	if !statTerm && (n.Else == nil || !n.Else.IsTerminating) {
