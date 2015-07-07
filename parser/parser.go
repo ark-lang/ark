@@ -664,8 +664,9 @@ func (v *parser) parseFunctionDecl() *FunctionDecl {
 				v.err("Single line function `%s` expects a statement or an expression, found `%s`", funcDecl.Function.Name, v.peek(0).Contents)
 			}
 
-			v.popScope()
 		}
+
+		v.popScope()
 	} else if !funcDecl.Prototype {
 		v.err("Expecting block or semi-colon (prototype) after function signature")
 	}
