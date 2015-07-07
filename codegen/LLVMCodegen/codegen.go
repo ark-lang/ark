@@ -423,9 +423,7 @@ func (v *Codegen) genLoopStat(n *parser.LoopStat) {
 		v.builder.CreateBr(loopBlock)
 		v.builder.SetInsertPointAtEnd(loopBlock)
 
-		for _, node := range n.Body.Nodes {
-			v.genNode(node)
-		}
+		v.genBlock(n.Body)
 
 		v.builder.CreateBr(loopBlock)
 		afterBlock := llvm.AddBasicBlock(v.currentFunction, "")
@@ -442,9 +440,7 @@ func (v *Codegen) genLoopStat(n *parser.LoopStat) {
 		v.builder.CreateCondBr(cond, loopBlock, afterBlock)
 
 		v.builder.SetInsertPointAtEnd(loopBlock)
-		for _, node := range n.Body.Nodes {
-			v.genNode(node)
-		}
+		v.genBlock(n.Body)
 		v.builder.CreateBr(evalBlock)
 
 		v.builder.SetInsertPointAtEnd(afterBlock)
