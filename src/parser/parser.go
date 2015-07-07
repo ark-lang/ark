@@ -949,9 +949,7 @@ func (v *parser) parseStructDecl() *StructDecl {
 
 	structure.attrs = v.fetchAttrs()
 
-	if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ";") {
-		v.consumeToken()
-	} else if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "{") {
+	if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "{") {
 		v.consumeToken()
 
 		v.pushScope()
