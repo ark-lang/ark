@@ -1,7 +1,7 @@
 package parser
 
 import (
-	"github.com/ark-lang/ark/util"
+	"github.com/ark-lang/ark/src/util"
 )
 
 type Type interface {

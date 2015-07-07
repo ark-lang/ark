@@ -6,7 +6,7 @@ import "fmt"
 type MangleType int
 
 const (
-	MANGLE_ARK_UNSTABLE MangleType = iota // see https://github.com/ark-lang/ark/issues/401
+	MANGLE_ARK_UNSTABLE MangleType = iota // see https://github.com/ark-lang/ark/src/issues/401
 )
 
 func (v *Function) MangledName(typ MangleType) string {
