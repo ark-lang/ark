@@ -448,6 +448,24 @@ func (v *CallStat) NodeName() string {
 	return "call statement"
 }
 
+// DeferStat
+
+type DeferStat struct {
+	nodePos
+	Call *CallExpr
+}
+
+func (v *DeferStat) statNode() {}
+
+func (v *DeferStat) String() string {
+	return "(" + util.Blue("DeferStat") + ": " +
+		v.Call.String() + ")"
+}
+
+func (v *DeferStat) NodeName() string {
+	return "call statement"
+}
+
 // AssignStat
 
 type AssignStat struct {
