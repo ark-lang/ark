@@ -6,6 +6,7 @@ const (
 	KEYWORD_BREAK    string = "break"
 	KEYWORD_CAST     string = "cast"
 	KEYWORD_CONTINUE string = "continue"
+	KEYWORD_DEFER    string = "defer"
 	KEYWORD_DO       string = "do"
 	KEYWORD_ELSE     string = "else"
 	KEYWORD_ENUM     string = "enum"
@@ -41,6 +42,7 @@ func init() {
 	keywordMap[KEYWORD_BREAK] = true
 	keywordMap[KEYWORD_CAST] = true
 	keywordMap[KEYWORD_CONTINUE] = true
+	keywordMap[KEYWORD_DEFER] = true
 	keywordMap[KEYWORD_DO] = true
 	keywordMap[KEYWORD_ELSE] = true
 	keywordMap[KEYWORD_ENUM] = true

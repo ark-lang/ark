@@ -1,0 +1,17 @@
+[c] func printf(fmt: str, ...): int;
+
+func println(mess: str) {
+    C::printf("%s\n", mess);
+}
+
+func main(): int {
+    defer println("printed last");
+    defer println("printed second-to-last");
+
+    if true {
+        defer println("printed second");
+        defer println("printed first");
+    }
+
+    return 0;
+}
