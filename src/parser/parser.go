@@ -186,7 +186,7 @@ func (v *parser) peekName() (unresolvedName, int) {
 				return name, numTok
 			}
 		} else {
-			v.err("Expected identifier, found `%s`", v.peek(0).Contents)
+			return unresolvedName{}, 0
 		}
 	}
 }
@@ -1415,7 +1415,6 @@ func (v *parser) parseAccessExpr() Expr {
 
 			lhand = &TupleAccessExpr{Tuple: lhand, Index: indexLit.Value}
 		} else {
-			// TODO: Handle function calls here
 			break
 		}
 	}
@@ -1424,16 +1423,39 @@ func (v *parser) parseAccessExpr() Expr {
 }
 
 func (v *parser) parseCallExpr() *CallExpr {
-	callExpr := &CallExpr{}
+	// this is rather dirty, please don't hit me
+	start := v.currentToken
 
-	numNameToks := 0
-	if callExpr.functionName, numNameToks = v.peekName(); v.tokenMatches(numNameToks, lexer.TOKEN_SEPARATOR, "(") && numNameToks > 0 {
-		v.consumeTokens(numNameToks)
-	} else {
+	expr := v.parseCallOrAccessExpr()
+	callExpr, ok := expr.(*CallExpr)
+	if !ok {
+		v.currentToken = start
 		return nil
 	}
 
+	return callExpr
+}
+
+func (v *parser) parseCallOrAccessExpr() Expr {
+	callExpr := &CallExpr{}
+
+	if _, numNameTokens := v.peekName(); numNameTokens <= 0 {
+		return nil
+	}
+
+	functionSrc := v.parseAccessExpr()
+	if functionSrc == nil {
+		return nil
+	}
+
+	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "(") {
+		tok := v.peek(0)
+		log.Debugln("parser", "[%s:%d:%d] `%s` (type `%s`)", tok.Filename, tok.LineNumber, tok.CharNumber, tok.Contents, tok.Type)
+		return functionSrc
+	}
 	v.consumeToken() // consume (
+
+	callExpr.functionSource = functionSrc
 
 	if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ")") {
 		v.consumeToken()

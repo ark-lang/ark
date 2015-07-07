@@ -212,9 +212,25 @@ func (v *CastExpr) resolve(res *Resolver, s *Scope) {
 }
 
 func (v *CallExpr) resolve(res *Resolver, s *Scope) {
-	v.Function = s.GetFunction(v.functionName)
+	// TODO: This will be cleaner once we get around to implementing function types
+	var name unresolvedName
+	switch v.functionSource.(type) {
+	case *VariableAccessExpr:
+		vae := v.functionSource.(*VariableAccessExpr)
+		name = vae.Name
+
+	case *StructAccessExpr:
+		sae := v.functionSource.(*StructAccessExpr)
+		sae.Struct.resolve(res, s)
+		name = unresolvedName{name: sae.Struct.GetType().TypeName() + "." + sae.Member}
+
+	default:
+		panic("Invalid function source (for now)")
+	}
+
+	v.Function = s.GetFunction(name)
 	if v.Function == nil {
-		res.errResolve(v, v.functionName)
+		res.errResolve(v, name)
 	}
 
 	for _, arg := range v.Arguments {
@@ -237,7 +253,6 @@ func (v *StructAccessExpr) resolve(res *Resolver, s *Scope) {
 
 	structType, ok := v.Struct.GetType().(*StructType)
 	if !ok {
-
 		res.err(v, "Cannot access member of type `%s`", v.Struct.GetType().TypeName())
 	}
 
