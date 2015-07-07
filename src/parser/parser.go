@@ -1226,6 +1226,7 @@ func (v *parser) parseExpr() Expr {
 		bin.setPos(filename, line, char)
 		return bin
 	}
+
 	return pri
 }
 
@@ -1358,75 +1359,68 @@ func (v *parser) parseTupleLiteral() Expr {
 	}
 }
 
-func (v *parser) parseAccessExpr() *AccessExpr {
-	access := &AccessExpr{}
-
-	if _, numNameToks := v.peekName(); numNameToks > 0 {
-
+func (v *parser) parseAccessExpr() Expr {
+	var lhand Expr
+	if name, numNameToks := v.peekName(); numNameToks > 0 {
+		v.consumeTokens(numNameToks)
+		lhand = &VariableAccessExpr{Name: name}
 	} else {
 		return nil
 	}
 
 	for {
-		if name, numNameToks := v.peekName(); numNameToks > 0 {
-			v.consumeTokens(numNameToks)
+		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ".") {
+			// struct access
+			v.consumeToken()
 
-			if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ".") {
-				// struct access
-				v.consumeToken()
-				access.Accesses = append(access.Accesses, &Access{AccessType: ACCESS_STRUCT, variableName: name})
-			} else if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "[") {
-				// array access
-				v.consumeToken()
-
-				subscript := v.parseExpr()
-				if subscript == nil {
-					v.err("Expected expression for array subscript, found `%s`", v.peek(0).Contents)
-				}
-
-				if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "]") {
-					v.err("Expected `]` after array subscript, found `%s`", v.peek(0).Contents)
-				}
-				v.consumeToken()
-
-				access.Accesses = append(access.Accesses, &Access{AccessType: ACCESS_ARRAY, variableName: name, Subscript: subscript})
-
-				if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ".") {
-					return access
-				}
-			} else if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "|") {
-				// tuple access
-				v.consumeToken()
-
-				index := v.parseNumericLiteral()
-				if index == nil {
-					v.err("Expected integer for tuple index, found `%s`", v.peek(0).Contents)
-				}
-
-				indexLit, ok := index.(*IntegerLiteral)
-				if !ok {
-					v.err("Expected integer for tuple index, found `%s`", index)
-				}
-
-				if !v.tokenMatches(0, lexer.TOKEN_OPERATOR, "|") {
-					v.err("Expected `|` after tuple index, found `%s`", v.peek(0).Contents)
-				}
-				v.consumeToken()
-
-				access.Accesses = append(access.Accesses, &Access{AccessType: ACCESS_TUPLE, variableName: name, Index: indexLit.Value})
-
-				if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ".") {
-					return access
-				}
-
-			} else {
-				access.Accesses = append(access.Accesses, &Access{AccessType: ACCESS_VARIABLE, variableName: name})
-				return access
+			if v.peek(0).Type != lexer.TOKEN_IDENTIFIER {
+				v.err("Expected identifier after struct access, got `%s`", v.peek(0).Contents)
 			}
+
+			member := v.consumeToken()
+			lhand = &StructAccessExpr{Struct: lhand, Member: member.Contents}
+		} else if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "[") {
+			// array access
+			v.consumeToken()
+
+			subscript := v.parseExpr()
+			if subscript == nil {
+				v.err("Expected expression for array subscript, found `%s`", v.peek(0).Contents)
+			}
+
+			if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "]") {
+				v.err("Expected `]` after array subscript, found `%s`", v.peek(0).Contents)
+			}
+			v.consumeToken()
+
+			lhand = &ArrayAccessExpr{Array: lhand, Subscript: subscript}
+		} else if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "|") {
+			// tuple access
+			v.consumeToken()
+
+			index := v.parseNumericLiteral()
+			if index == nil {
+				v.err("Expected integer for tuple index, found `%s`", v.peek(0).Contents)
+			}
+
+			indexLit, ok := index.(*IntegerLiteral)
+			if !ok {
+				v.err("Expected integer for tuple index, found `%s`", index)
+			}
+
+			if !v.tokenMatches(0, lexer.TOKEN_OPERATOR, "|") {
+				v.err("Expected `|` after tuple index, found `%s`", v.peek(0).Contents)
+			}
+			v.consumeToken()
+
+			lhand = &TupleAccessExpr{Tuple: lhand, Index: indexLit.Value}
 		} else {
-			panic("shit")
+			// TODO: Handle function calls here
+			break
 		}
 	}
+
+	return lhand
 }
 
 func (v *parser) parseCallExpr() *CallExpr {

@@ -777,41 +777,59 @@ func (v *CallExpr) analyze(s *SemanticAnalyzer) {
 
 func (v *CallExpr) setTypeHint(t Type) {}
 
-// AccessExpr
+// VariableAccessExpr
+func (v *VariableAccessExpr) analyze(s *SemanticAnalyzer) {
+	if dep := v.Variable.Attrs.Get("deprecated"); dep != nil {
+		s.warnDeprecated(v, "variable", v.Variable.Name, dep.Value)
+	}
 
-func (v *AccessExpr) analyze(s *SemanticAnalyzer) {
-	for _, access := range v.Accesses {
-		if dep := access.Variable.Attrs.Get("deprecated"); dep != nil {
-			s.warnDeprecated(v, "variable", access.Variable.Name, dep.Value)
-		}
+	v.Variable.Uses++
+}
 
-		if access.Variable != nil {
-			access.Variable.Uses++
-		}
+func (v *VariableAccessExpr) setTypeHint(t Type) {}
 
-		if access.AccessType == ACCESS_ARRAY {
-			access.Subscript.setTypeHint(PRIMITIVE_int)
-			access.Subscript.analyze(s)
+// StructAccessExpr
+func (v *StructAccessExpr) analyze(s *SemanticAnalyzer) {
+	v.Struct.analyze(s)
 
-			if !access.Subscript.GetType().IsIntegerType() {
-				s.err(v, "Array subscript must be an integer type, have `%s`", access.Subscript.GetType().TypeName())
-			}
-		}
+	if dep := v.Variable.Attrs.Get("deprecated"); dep != nil {
+		s.warnDeprecated(v, "variable", v.Variable.Name, dep.Value)
+	}
 
-		if access.AccessType == ACCESS_TUPLE {
-			tupleType, ok := access.Variable.Type.(*TupleType)
-			if !ok {
-				s.err(v, "Cannot index type `%s` as a tuple", access.Variable.Type.TypeName())
-			}
+	v.Variable.Uses++
+}
 
-			if access.Index >= uint64(len(tupleType.Members)) {
-				s.err(v, "Index `%d` (element %d) is greater than size of tuple `%s`", access.Index, access.Index+1, tupleType.TypeName())
-			}
-		}
+func (v *StructAccessExpr) setTypeHint(t Type) {}
+
+// ArrayAccessExpr
+func (v *ArrayAccessExpr) analyze(s *SemanticAnalyzer) {
+	v.Array.analyze(s)
+
+	v.Subscript.setTypeHint(PRIMITIVE_int)
+	v.Subscript.analyze(s)
+
+	if !v.Subscript.GetType().IsIntegerType() {
+		s.err(v, "Array subscript must be an integer type, have `%s`", v.Subscript.GetType().TypeName())
 	}
 }
 
-func (v *AccessExpr) setTypeHint(t Type) {}
+func (v *ArrayAccessExpr) setTypeHint(t Type) {}
+
+// TupleAccessExpr
+func (v *TupleAccessExpr) analyze(s *SemanticAnalyzer) {
+	v.Tuple.analyze(s)
+
+	tupleType, ok := v.Tuple.GetType().(*TupleType)
+	if !ok {
+		s.err(v, "Cannot index type `%s` as a tuple", v.Tuple.GetType().TypeName())
+	}
+
+	if v.Index >= uint64(len(tupleType.Members)) {
+		s.err(v, "Index `%d` (element %d) is greater than size of tuple `%s`", v.Index, v.Index+1, tupleType.TypeName())
+	}
+}
+
+func (v *TupleAccessExpr) setTypeHint(t Type) {}
 
 // AddressOfExpr
 
