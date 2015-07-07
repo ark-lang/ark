@@ -359,7 +359,7 @@ func (v *Codegen) genCallStat(n *parser.CallStat) {
 
 func (v *Codegen) genAssignStat(n *parser.AssignStat) {
 	if n.Access != nil {
-		v.builder.CreateStore(v.genExpr(n.Assignment), v.genAddressOfExpr(&parser.AddressOfExpr{Access: n.Access})) // TODO do this better
+		v.builder.CreateStore(v.genExpr(n.Assignment), v.genAccessGEP(n.Access))
 	} else {
 		v.genDerefExpr(n.Deref)
 	}
@@ -591,8 +591,8 @@ func (v *Codegen) genExpr(n parser.Expr) llvm.Value {
 		return v.genCastExpr(n.(*parser.CastExpr))
 	case *parser.CallExpr:
 		return v.genCallExpr(n.(*parser.CallExpr))
-	case *parser.AccessExpr:
-		return v.genAccessExpr(n.(*parser.AccessExpr))
+	case *parser.VariableAccessExpr, *parser.StructAccessExpr, *parser.ArrayAccessExpr, *parser.TupleAccessExpr:
+		return v.genAccessExpr(n)
 	case *parser.DerefExpr:
 		return v.genDerefExpr(n.(*parser.DerefExpr))
 	case *parser.SizeofExpr:
@@ -603,42 +603,54 @@ func (v *Codegen) genExpr(n parser.Expr) llvm.Value {
 }
 
 func (v *Codegen) genAddressOfExpr(n *parser.AddressOfExpr) llvm.Value {
-	gep := v.builder.CreateGEP(v.variableLookup[n.Access.Accesses[0].Variable], []llvm.Value{llvm.ConstInt(llvm.Int32Type(), 0, false)}, "")
+	return v.genAccessGEP(n.Access)
+}
 
-	for i := 0; i < len(n.Access.Accesses); i++ {
+func (v *Codegen) genAccessExpr(n parser.Expr) llvm.Value {
+	return v.builder.CreateLoad(v.genAccessGEP(n), "")
+}
 
-		switch n.Access.Accesses[i].AccessType {
-		case parser.ACCESS_ARRAY:
-			subscriptExpr := v.genExpr(n.Access.Accesses[i].Subscript)
+func (v *Codegen) genAccessGEP(n parser.Expr) llvm.Value {
+	switch n.(type) {
+	case *parser.VariableAccessExpr:
+		vae := n.(*parser.VariableAccessExpr)
+		return v.builder.CreateGEP(v.variableLookup[vae.Variable], []llvm.Value{llvm.ConstInt(llvm.Int32Type(), 0, false)}, "")
 
-			sizeGepIndexes := []llvm.Value{llvm.ConstInt(llvm.Int32Type(), 0, false), llvm.ConstInt(llvm.Int32Type(), 0, false)}
-			v.genBoundsCheck(v.builder.CreateLoad(v.builder.CreateGEP(gep, sizeGepIndexes, ""), ""), subscriptExpr, n.Access.Accesses[i].Subscript.GetType())
+	case *parser.StructAccessExpr:
+		sae := n.(*parser.StructAccessExpr)
 
-			gepIndexes := []llvm.Value{llvm.ConstInt(llvm.Int32Type(), 0, false), llvm.ConstInt(llvm.Int32Type(), 1, false)}
-			gep = v.builder.CreateGEP(gep, gepIndexes, "")
+		gep := v.genAccessGEP(sae.Struct)
+		index := sae.Struct.GetType().(*parser.StructType).VariableIndex(sae.Variable)
+		return v.builder.CreateGEP(gep, []llvm.Value{llvm.ConstInt(llvm.Int32Type(), 0, false), llvm.ConstInt(llvm.Int32Type(), uint64(index), false)}, "")
 
-			load := v.builder.CreateLoad(gep, "")
+	case *parser.ArrayAccessExpr:
+		aae := n.(*parser.ArrayAccessExpr)
 
-			gepIndexes = []llvm.Value{llvm.ConstInt(llvm.Int32Type(), 0, false), subscriptExpr}
-			gep = v.builder.CreateGEP(load, gepIndexes, "")
+		gep := v.genAccessGEP(aae.Array)
+		subscriptExpr := v.genExpr(aae.Subscript)
 
-		case parser.ACCESS_VARIABLE:
-			// nothing to do
+		sizeGepIndexes := []llvm.Value{llvm.ConstInt(llvm.Int32Type(), 0, false), llvm.ConstInt(llvm.Int32Type(), 0, false)}
+		v.genBoundsCheck(v.builder.CreateLoad(v.builder.CreateGEP(gep, sizeGepIndexes, ""), ""), subscriptExpr, aae.Subscript.GetType())
 
-		case parser.ACCESS_STRUCT:
-			index := n.Access.Accesses[i].Variable.Type.(*parser.StructType).VariableIndex(n.Access.Accesses[i+1].Variable)
-			gep = v.builder.CreateGEP(gep, []llvm.Value{llvm.ConstInt(llvm.Int32Type(), 0, false), llvm.ConstInt(llvm.Int32Type(), uint64(index), false)}, "")
+		gepIndexes := []llvm.Value{llvm.ConstInt(llvm.Int32Type(), 0, false), llvm.ConstInt(llvm.Int32Type(), 1, false)}
+		gep = v.builder.CreateGEP(gep, gepIndexes, "")
 
-		case parser.ACCESS_TUPLE:
-			index := n.Access.Accesses[i].Index
-			gep = v.builder.CreateGEP(gep, []llvm.Value{llvm.ConstInt(llvm.Int32Type(), 0, false), llvm.ConstInt(llvm.Int32Type(), index, false)}, "")
+		load := v.builder.CreateLoad(gep, "")
 
-		default:
-			panic("unhandled access type")
-		}
+		gepIndexes = []llvm.Value{llvm.ConstInt(llvm.Int32Type(), 0, false), subscriptExpr}
+		return v.builder.CreateGEP(load, gepIndexes, "")
+
+	case *parser.TupleAccessExpr:
+		tae := n.(*parser.TupleAccessExpr)
+
+		gep := v.genAccessGEP(tae.Tuple)
+		index := tae.Index
+
+		return v.builder.CreateGEP(gep, []llvm.Value{llvm.ConstInt(llvm.Int32Type(), 0, false), llvm.ConstInt(llvm.Int32Type(), index, false)}, "")
+
+	default:
+		panic("unhandled access type")
 	}
-
-	return gep
 }
 
 func (v *Codegen) genBoundsCheck(limit llvm.Value, index llvm.Value, indexType parser.Type) {
@@ -1014,10 +1026,6 @@ func (v *Codegen) genCallExpr(n *parser.CallExpr) llvm.Value {
 	}
 
 	return v.genCallExprWithArgs(n, args)
-}
-
-func (v *Codegen) genAccessExpr(n *parser.AccessExpr) llvm.Value {
-	return v.builder.CreateLoad(v.genAddressOfExpr(&parser.AddressOfExpr{Access: n}), "") // TODO do this better
 }
 
 func (v *Codegen) genDerefExpr(n *parser.DerefExpr) llvm.Value {
