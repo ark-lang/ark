@@ -142,6 +142,7 @@ func (v *Codegen) Generate(input []*parser.Module, modules map[string]*parser.Mo
 		}
 
 		if err := llvm.VerifyModule(infile.Module, llvm.ReturnStatusAction); err != nil {
+			infile.Module.Dump()
 			v.err("%s", err.Error())
 		}
 
