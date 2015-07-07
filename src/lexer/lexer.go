@@ -4,13 +4,13 @@ package lexer
 
 import (
 	"fmt"
-	"github.com/ark-lang/ark/util/log"
+	"github.com/ark-lang/ark/src/util/log"
 	"os"
 	"strings"
 	"time"
 	"unicode"
 
-	"github.com/ark-lang/ark/util"
+	"github.com/ark-lang/ark/src/util"
 )
 
 type lexer struct {

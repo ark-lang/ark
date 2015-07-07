@@ -11,10 +11,10 @@ import (
 	"time"
 	"unicode"
 
-	"github.com/ark-lang/ark/util/log"
+	"github.com/ark-lang/ark/src/util/log"
 
-	"github.com/ark-lang/ark/lexer"
-	"github.com/ark-lang/ark/util"
+	"github.com/ark-lang/ark/src/lexer"
+	"github.com/ark-lang/ark/src/util"
 )
 
 type parser struct {
@@ -1309,15 +1309,6 @@ func (v *parser) parseSizeofExpr() *SizeofExpr {
 	v.consumeToken()
 
 	sizeof := &SizeofExpr{}
-
-	// TODO types
-	/*if castExpr.typeName = v.parseTypeToString(); castExpr.typeName != "" {
-		castExpr.Type = getTypeFromString(v.scope, castExpr.typeName)
-		if castExpr.Type == nil {
-			v.err("nope")
-		}
-
-	}*/
 
 	if expr := v.parseExpr(); expr != nil {
 		sizeof.Expr = expr

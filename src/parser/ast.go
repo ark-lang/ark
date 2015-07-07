@@ -3,7 +3,7 @@ package parser
 import (
 	"fmt"
 
-	"github.com/ark-lang/ark/util"
+	"github.com/ark-lang/ark/src/util"
 )
 
 //

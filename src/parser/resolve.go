@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/ark-lang/ark/util"
-	"github.com/ark-lang/ark/util/log"
+	"github.com/ark-lang/ark/src/util"
+	"github.com/ark-lang/ark/src/util/log"
 )
 
 // What is done:

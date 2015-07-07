@@ -3,7 +3,7 @@ package doc
 import (
 	"html/template"
 
-	"github.com/ark-lang/ark/parser"
+	"github.com/ark-lang/ark/src/parser"
 )
 
 type Decl struct {
