@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/ark-lang/ark/util"
+	"github.com/ark-lang/ark/src/util"
 )
 
 type LogLevel int

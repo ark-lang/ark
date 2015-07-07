@@ -2,19 +2,20 @@ package main
 
 import (
 	"fmt"
-	"github.com/ark-lang/ark/util/log"
 	"os"
 	"os/exec"
 	"time"
 
+	"github.com/ark-lang/ark/src/util/log"
+
 	"gopkg.in/alecthomas/kingpin.v2"
 
-	"github.com/ark-lang/ark/codegen"
-	"github.com/ark-lang/ark/codegen/LLVMCodegen"
-	"github.com/ark-lang/ark/doc"
-	"github.com/ark-lang/ark/lexer"
-	"github.com/ark-lang/ark/parser"
-	"github.com/ark-lang/ark/util"
+	"github.com/ark-lang/ark/src/codegen"
+	"github.com/ark-lang/ark/src/codegen/LLVMCodegen"
+	"github.com/ark-lang/ark/src/doc"
+	"github.com/ark-lang/ark/src/lexer"
+	"github.com/ark-lang/ark/src/parser"
+	"github.com/ark-lang/ark/src/util"
 )
 
 const (
