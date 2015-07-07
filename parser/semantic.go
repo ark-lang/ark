@@ -2,8 +2,9 @@ package parser
 
 import (
 	"fmt"
-	"github.com/ark-lang/ark/util/log"
 	"os"
+
+	"github.com/ark-lang/ark/util/log"
 
 	"github.com/ark-lang/ark/util"
 )
@@ -379,6 +380,12 @@ func (v *BlockStat) analyze(s *SemanticAnalyzer) {
 // CallStat
 
 func (v *CallStat) analyze(s *SemanticAnalyzer) {
+	v.Call.analyze(s)
+}
+
+// DeferStat
+
+func (v *DeferStat) analyze(s *SemanticAnalyzer) {
 	v.Call.analyze(s)
 }
 

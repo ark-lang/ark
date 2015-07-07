@@ -2,9 +2,10 @@ package parser
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/ark-lang/ark/util"
 	"github.com/ark-lang/ark/util/log"
-	"os"
 )
 
 // What is done:
@@ -147,6 +148,10 @@ func (v *BlockStat) resolve(res *Resolver, s *Scope) {
 }
 
 func (v *CallStat) resolve(res *Resolver, s *Scope) {
+	v.Call.resolve(res, s)
+}
+
+func (v *DeferStat) resolve(res *Resolver, s *Scope) {
 	v.Call.resolve(res, s)
 }
 

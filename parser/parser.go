@@ -250,7 +250,9 @@ func (v *parser) parseStat() Stat {
 	locationToken := v.peek(0)
 	filename, line, char := locationToken.Filename, locationToken.LineNumber, locationToken.CharNumber
 
-	if ifStat := v.parseIfStat(); ifStat != nil {
+	if deferStat := v.parseDeferStat(); deferStat != nil {
+		ret = deferStat
+	} else if ifStat := v.parseIfStat(); ifStat != nil {
 		ret = ifStat
 	} else if matchStat := v.parseMatchStat(); matchStat != nil {
 		ret = matchStat
@@ -346,12 +348,33 @@ func (v *parser) parseCallStat() *CallStat {
 	if call := v.parseCallExpr(); call != nil {
 		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ";") {
 			v.consumeToken()
-			callStat := &CallStat{Call: call}
 			call.setPos(filename, line, char)
-			return callStat
+			return &CallStat{Call: call}
 		}
 		v.err("Expected semicolon after function call statement, found `%s`", v.peek(0).Contents)
 	}
+	return nil
+}
+
+func (v *parser) parseDeferStat() *DeferStat {
+	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_DEFER) {
+		return nil
+	}
+	v.consumeToken()
+
+	locationToken := v.peek(0)
+	filename, line, char := locationToken.Filename, locationToken.LineNumber, locationToken.CharNumber
+	if call := v.parseCallExpr(); call != nil {
+		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ";") {
+			v.consumeToken()
+			call.setPos(filename, line, char)
+			return &DeferStat{Call: call}
+		}
+		v.err("Expected semicolon after defer statement, found `%s`", v.peek(0).Contents)
+	} else {
+		v.err("Expected function call, found `%s`", v.peek(0).Contents)
+	}
+
 	return nil
 }
 
