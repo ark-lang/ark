@@ -480,7 +480,7 @@ func (c *Codegen) genImplDecl(n *parser.ImplDecl) llvm.Value {
 
 	/*for _, fun := range n.Functions {
 
-													}*/
+																	}*/
 
 	return res
 }
