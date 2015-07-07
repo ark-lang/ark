@@ -186,7 +186,7 @@ func (v *EnumDecl) analyze(s *SemanticAnalyzer) {
 
 	for _, member := range v.Body {
 		if member.Value == nil {
-			member.Value = &IntegerLiteral{Value: index, Type: enumValueType}
+			member.Value = &NumericLiteral{IntValue: index, Type: enumValueType}
 			member.Value.analyze(s)
 			index++
 		} else {
@@ -590,36 +590,30 @@ func (v *BinaryExpr) setTypeHint(t Type) {
 	}
 }
 
-// IntegerLiteral
+// NumericLiteral
 
-func (v *IntegerLiteral) analyze(s *SemanticAnalyzer) {}
+func (v *NumericLiteral) analyze(s *SemanticAnalyzer) {}
 
-func (v *IntegerLiteral) setTypeHint(t Type) {
-	switch t {
-	case PRIMITIVE_int, PRIMITIVE_uint,
-		PRIMITIVE_s8, PRIMITIVE_s16, PRIMITIVE_s32, PRIMITIVE_s64, PRIMITIVE_i128,
-		PRIMITIVE_u8, PRIMITIVE_u16, PRIMITIVE_u32, PRIMITIVE_u64, PRIMITIVE_u128:
-		v.Type = t
-	default:
-		v.Type = PRIMITIVE_int // TODO check overflow
-	}
-}
+func (v *NumericLiteral) setTypeHint(t Type) {
+	if v.IsFloat {
+		switch t {
+		case PRIMITIVE_f32, PRIMITIVE_f64, PRIMITIVE_f128:
+			v.Type = t
 
-// FloatingLiteral
+		default:
+			v.Type = PRIMITIVE_f64
+		}
+	} else {
+		switch t {
+		case PRIMITIVE_int, PRIMITIVE_uint,
+			PRIMITIVE_s8, PRIMITIVE_s16, PRIMITIVE_s32, PRIMITIVE_s64, PRIMITIVE_i128,
+			PRIMITIVE_u8, PRIMITIVE_u16, PRIMITIVE_u32, PRIMITIVE_u64, PRIMITIVE_u128,
+			PRIMITIVE_f32, PRIMITIVE_f64, PRIMITIVE_f128:
+			v.Type = t
 
-func (v *FloatingLiteral) analyze(s *SemanticAnalyzer) {}
-
-func (v *FloatingLiteral) setTypeHint(t Type) {
-	if v.Type != nil {
-		// we've already figured out the type from a suffix
-		return
-	}
-
-	switch t {
-	case PRIMITIVE_f64, PRIMITIVE_f32, PRIMITIVE_f128:
-		v.Type = t
-	default:
-		v.Type = PRIMITIVE_f64
+		default:
+			v.Type = PRIMITIVE_int
+		}
 	}
 }
 

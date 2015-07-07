@@ -571,10 +571,8 @@ func (v *Codegen) genExpr(n parser.Expr) llvm.Value {
 		return v.genAddressOfExpr(n.(*parser.AddressOfExpr))
 	case *parser.RuneLiteral:
 		return v.genRuneLiteral(n.(*parser.RuneLiteral))
-	case *parser.IntegerLiteral:
-		return v.genIntegerLiteral(n.(*parser.IntegerLiteral))
-	case *parser.FloatingLiteral:
-		return v.genFloatingLiteral(n.(*parser.FloatingLiteral))
+	case *parser.NumericLiteral:
+		return v.genNumericLiteral(n.(*parser.NumericLiteral))
 	case *parser.StringLiteral:
 		return v.genStringLiteral(n.(*parser.StringLiteral))
 	case *parser.BoolLiteral:
@@ -752,12 +750,12 @@ func (v *Codegen) genTupleLiteral(n *parser.TupleLiteral) llvm.Value {
 	return llvm.ConstStruct(values, false)
 }
 
-func (v *Codegen) genIntegerLiteral(n *parser.IntegerLiteral) llvm.Value {
-	return llvm.ConstInt(v.typeToLLVMType(n.Type), n.Value, false)
-}
-
-func (v *Codegen) genFloatingLiteral(n *parser.FloatingLiteral) llvm.Value {
-	return llvm.ConstFloat(v.typeToLLVMType(n.Type), n.Value)
+func (v *Codegen) genNumericLiteral(n *parser.NumericLiteral) llvm.Value {
+	if n.Type.IsFloatingType() {
+		return llvm.ConstFloat(v.typeToLLVMType(n.Type), n.AsFloat())
+	} else {
+		return llvm.ConstInt(v.typeToLLVMType(n.Type), n.AsInt(), false)
+	}
 }
 
 func (v *Codegen) genStringLiteral(n *parser.StringLiteral) llvm.Value {

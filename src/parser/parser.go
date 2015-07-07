@@ -1399,13 +1399,8 @@ func (v *parser) parseAccessExpr() Expr {
 			v.consumeToken()
 
 			index := v.parseNumericLiteral()
-			if index == nil {
+			if index == nil || index.IsFloat {
 				v.err("Expected integer for tuple index, found `%s`", v.peek(0).Contents)
-			}
-
-			indexLit, ok := index.(*IntegerLiteral)
-			if !ok {
-				v.err("Expected integer for tuple index, found `%s`", index)
 			}
 
 			if !v.tokenMatches(0, lexer.TOKEN_OPERATOR, "|") {
@@ -1413,7 +1408,7 @@ func (v *parser) parseAccessExpr() Expr {
 			}
 			v.consumeToken()
 
-			lhand = &TupleAccessExpr{Tuple: lhand, Index: indexLit.Value}
+			lhand = &TupleAccessExpr{Tuple: lhand, Index: index.IntValue}
 		} else {
 			break
 		}
@@ -1626,7 +1621,7 @@ func (v *parser) parseBoolLiteral() *BoolLiteral {
 	return nil
 }
 
-func (v *parser) parseNumericLiteral() Expr {
+func (v *parser) parseNumericLiteral() *NumericLiteral {
 	if !v.tokenMatches(0, lexer.TOKEN_NUMBER, "") {
 		return nil
 	}
@@ -1636,14 +1631,14 @@ func (v *parser) parseNumericLiteral() Expr {
 
 	if strings.HasPrefix(num, "0x") || strings.HasPrefix(num, "0X") {
 		// Hexadecimal integer
-		hex := &IntegerLiteral{}
+		hex := &NumericLiteral{}
 		for _, r := range num[2:] {
 			if r == '_' {
 				continue
 			}
-			hex.Value *= 16
+			hex.IntValue *= 16
 			if val := uint64(hexRuneToInt(r)); val >= 0 {
-				hex.Value += val
+				hex.IntValue += val
 			} else {
 				v.err("Malformed hex literal: `%s`", num)
 			}
@@ -1651,14 +1646,14 @@ func (v *parser) parseNumericLiteral() Expr {
 		return hex
 	} else if strings.HasPrefix(num, "0b") {
 		// Binary integer
-		bin := &IntegerLiteral{}
+		bin := &NumericLiteral{}
 		for _, r := range num[2:] {
 			if r == '_' {
 				continue
 			}
-			bin.Value *= 2
+			bin.IntValue *= 2
 			if val := uint64(binRuneToInt(r)); val >= 0 {
-				bin.Value += val
+				bin.IntValue += val
 			} else {
 				v.err("Malformed binary literal: `%s`", num)
 			}
@@ -1666,14 +1661,14 @@ func (v *parser) parseNumericLiteral() Expr {
 		return bin
 	} else if strings.HasPrefix(num, "0o") {
 		// Octal integer
-		oct := &IntegerLiteral{}
+		oct := &NumericLiteral{}
 		for _, r := range num[2:] {
 			if r == '_' {
 				continue
 			}
-			oct.Value *= 8
+			oct.IntValue *= 8
 			if val := uint64(octRuneToInt(r)); val >= 0 {
-				oct.Value += val
+				oct.IntValue += val
 			} else {
 				v.err("Malformed octal literal: `%s`", num)
 			}
@@ -1685,7 +1680,7 @@ func (v *parser) parseNumericLiteral() Expr {
 			return nil
 		}
 
-		f := &FloatingLiteral{}
+		f := &NumericLiteral{IsFloat: true}
 
 		fnum := num
 		hasSuffix := true
@@ -1705,7 +1700,7 @@ func (v *parser) parseNumericLiteral() Expr {
 			fnum = fnum[:len(fnum)-1]
 		}
 
-		f.Value, err = strconv.ParseFloat(fnum, 64)
+		f.FloatValue, err = strconv.ParseFloat(fnum, 64)
 
 		if err != nil {
 			if err.(*strconv.NumError).Err == strconv.ErrSyntax {
@@ -1722,13 +1717,13 @@ func (v *parser) parseNumericLiteral() Expr {
 		return f
 	} else {
 		// Decimal integer
-		i := &IntegerLiteral{}
+		i := &NumericLiteral{}
 		for _, r := range num {
 			if r == '_' {
 				continue
 			}
-			i.Value *= 10
-			i.Value += uint64(r - '0')
+			i.IntValue *= 10
+			i.IntValue += uint64(r - '0')
 		}
 		return i
 	}
