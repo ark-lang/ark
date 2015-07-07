@@ -13,5 +13,13 @@ func main(): int {
         defer println("printed first");
     }
 
+    mut i := 0;
+    for i < 5 {
+        defer C::printf("i: %d\n", i);
+        defer println("Loop iteration...");
+
+        i = i + 1;
+    }
+
     return 0;
 }
