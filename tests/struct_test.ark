@@ -1,4 +1,4 @@
-struct EmptyStruct;
+struct EmptyStruct {}
 
 [c] func printf(fmt: str, ...): int;
 
