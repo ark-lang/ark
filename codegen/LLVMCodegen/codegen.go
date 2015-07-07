@@ -35,6 +35,14 @@ type Codegen struct {
 
 	inFunction      bool
 	currentFunction llvm.Value
+
+	currentBlock   *parser.Block
+	blockDeferData map[*parser.Block][]*deferData
+}
+
+type deferData struct {
+	stat *parser.DeferStat
+	args []llvm.Value
 }
 
 func (v *Codegen) err(err string, stuff ...interface{}) {
@@ -116,6 +124,7 @@ func (v *Codegen) Generate(input []*parser.Module, modules map[string]*parser.Mo
 	//passBuilder.Populate(passManager) //leave this off until the compiler is better
 
 	v.modules = make(map[string]*parser.Module)
+	v.blockDeferData = make(map[*parser.Block][]*deferData)
 
 	for _, infile := range input {
 		log.Verboseln("codegen", util.TEXT_BOLD+util.TEXT_GREEN+"Started codegenning "+util.TEXT_RESET+infile.Name)
@@ -284,14 +293,47 @@ func (v *Codegen) genStat(n parser.Stat) {
 		v.genLoopStat(n.(*parser.LoopStat))
 	case *parser.MatchStat:
 		v.genMatchStat(n.(*parser.MatchStat))
+	case *parser.DeferStat:
+		v.genDeferStat(n.(*parser.DeferStat))
 	default:
 		panic("unimplimented stat")
 	}
 }
 
+func (v *Codegen) genDeferStat(n *parser.DeferStat) {
+	data := &deferData{
+		stat: n,
+	}
+
+	v.blockDeferData[v.currentBlock] = append(v.blockDeferData[v.currentBlock], data)
+
+	for _, arg := range n.Call.Arguments {
+		data.args = append(data.args, v.genExpr(arg))
+	}
+}
+
 func (v *Codegen) genBlock(n *parser.Block) {
 	for _, x := range n.Nodes {
+		v.currentBlock = n // set it on every iteration to overidde sub-blocks
 		v.genNode(x)
+	}
+
+	v.currentBlock = nil
+
+	deferDat := v.blockDeferData[n]
+
+	if len(deferDat) > 0 {
+		deferBuilder := llvm.NewBuilder()
+		deferBuilder.SetInsertPointBefore(v.builder.GetInsertBlock().LastInstruction())
+
+		modBuilder := v.builder
+		v.builder = deferBuilder
+
+		for i := len(deferDat) - 1; i >= 0; i-- {
+			v.genCallExprWithArgs(deferDat[i].stat.Call, deferDat[i].args)
+		}
+
+		v.builder = modBuilder
 	}
 }
 
@@ -465,9 +507,7 @@ func (v *Codegen) genFunctionDecl(n *parser.FunctionDecl) llvm.Value {
 
 			v.inFunction = true
 			v.currentFunction = function
-			for _, stat := range n.Function.Body.Nodes {
-				v.genNode(stat)
-			}
+			v.genBlock(n.Function.Body)
 			v.inFunction = false
 		}
 	}
@@ -478,9 +518,7 @@ func (v *Codegen) genFunctionDecl(n *parser.FunctionDecl) llvm.Value {
 func (c *Codegen) genImplDecl(n *parser.ImplDecl) llvm.Value {
 	var res llvm.Value
 
-	/*for _, fun := range n.Functions {
-
-																	}*/
+	/*for _, fun := range n.Functions {}*/
 
 	return res
 }
@@ -943,7 +981,7 @@ func floatTypeBits(ty parser.PrimitiveType) int {
 	}
 }
 
-func (v *Codegen) genCallExpr(n *parser.CallExpr) llvm.Value {
+func (v *Codegen) genCallExprWithArgs(n *parser.CallExpr, args []llvm.Value) llvm.Value {
 	// todo dont use attributes, use that C:: shit
 	cBinding := false
 	if n.Function.Attrs != nil {
@@ -957,17 +995,13 @@ func (v *Codegen) genCallExpr(n *parser.CallExpr) llvm.Value {
 		functionName = n.Function.Name
 	}
 
-swag:
 	function := v.curFile.Module.NamedFunction(functionName)
 	if function.IsNil() {
 		v.declareFunctionDecl(&parser.FunctionDecl{Function: n.Function, Prototype: true})
-		goto swag
-	}
 
-	numOfArguments := len(n.Arguments)
-	args := make([]llvm.Value, numOfArguments)
-	for i, arg := range n.Arguments {
-		args[i] = v.genExpr(arg)
+		if v.curFile.Module.NamedFunction(functionName).IsNil() {
+			panic("how did this happen")
+		}
 	}
 
 	call := v.builder.CreateCall(function, args, "")
@@ -975,6 +1009,15 @@ swag:
 	call.SetInstructionCallConv(function.FunctionCallConv())
 
 	return call
+}
+
+func (v *Codegen) genCallExpr(n *parser.CallExpr) llvm.Value {
+	args := make([]llvm.Value, 0, len(n.Arguments))
+	for _, arg := range n.Arguments {
+		args = append(args, v.genExpr(arg))
+	}
+
+	return v.genCallExprWithArgs(n, args)
 }
 
 func (v *Codegen) genAccessExpr(n *parser.AccessExpr) llvm.Value {
