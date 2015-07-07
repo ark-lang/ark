@@ -1,12 +1,12 @@
 package doc
 
 import (
-	"github.com/ark-lang/ark/util/log"
+	"github.com/ark-lang/ark/src/util/log"
 	"os"
 	"time"
 
-	"github.com/ark-lang/ark/parser"
-	"github.com/ark-lang/ark/util"
+	"github.com/ark-lang/ark/src/parser"
+	"github.com/ark-lang/ark/src/util"
 )
 
 type Docgen struct {

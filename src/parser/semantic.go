@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/ark-lang/ark/util/log"
+	"github.com/ark-lang/ark/src/util/log"
 
-	"github.com/ark-lang/ark/util"
+	"github.com/ark-lang/ark/src/util"
 )
 
 // IMPORTANT NOTE for setTypeHint():

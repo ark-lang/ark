@@ -8,13 +8,13 @@ import (
 	"time"
 	"unsafe"
 
-	"github.com/ark-lang/ark/parser"
-	"github.com/ark-lang/ark/util"
+	"github.com/ark-lang/ark/src/parser"
+	"github.com/ark-lang/ark/src/util"
 
 	"llvm.org/llvm/bindings/go/llvm"
 )
 import (
-	"github.com/ark-lang/ark/util/log"
+	"github.com/ark-lang/ark/src/util/log"
 )
 
 const intSize = int(unsafe.Sizeof(C.int(0)))
