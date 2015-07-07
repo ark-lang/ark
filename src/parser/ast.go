@@ -2,6 +2,7 @@ package parser
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/ark-lang/ark/src/util"
 )
@@ -471,7 +472,7 @@ func (v *DeferStat) NodeName() string {
 type AssignStat struct {
 	nodePos
 	Deref      *DerefExpr // one of these should be nil, not neither or both. felix: what even for x = 5?
-	Access     *AccessExpr
+	Access     Expr
 	Assignment Expr
 }
 
@@ -863,63 +864,111 @@ func (v *CallExpr) NodeName() string {
 	return "call expression"
 }
 
-// AccessExpr
-
-type AccessType int
-
-const (
-	ACCESS_VARIABLE AccessType = iota // means this element is either a var on its own or the last var of a struct access
-	ACCESS_STRUCT                     // means the element is a struct being accessed
-	ACCESS_ARRAY                      // means the element is an array member being accessed, ie thing[1]
-	ACCESS_TUPLE                      // means the element is a tuple member being accessed, ie thing(1)
-)
-
-type Access struct {
-	AccessType   AccessType
-	Variable     *Variable
-	variableName unresolvedName
-
-	Subscript Expr   // only used with ACCESS_ARRAY
-	Index     uint64 // only used with ACCESS_TUPLE
-}
-
-type AccessExpr struct {
+// VariableAccessExpr
+type VariableAccessExpr struct {
 	nodePos
-	Accesses []*Access
+	Name unresolvedName
+
+	Variable *Variable
 }
 
-func (v *AccessExpr) exprNode() {}
+func (v *VariableAccessExpr) exprNode() {}
 
-func (v *AccessExpr) String() string {
-	result := "(" + util.Blue("AccessExpr") + ": "
-	for _, n := range v.Accesses {
-		if n.Variable != nil {
-			result += n.Variable.Name
-		}
-	}
+func (v *VariableAccessExpr) String() string {
+	result := "(" + util.Blue("VariableAccessExpr") + ": name"
+	result += v.Name.String()
 	return result + ")"
 }
 
-func (v *AccessExpr) GetType() Type {
-	acc := v.Accesses[len(v.Accesses)-1]
-	if acc.AccessType == ACCESS_ARRAY {
-		return acc.Variable.Type.(ArrayType).MemberType
-	}
-	if acc.AccessType == ACCESS_TUPLE {
-		return acc.Variable.Type.(*TupleType).Members[acc.Index]
-	}
-	return acc.Variable.Type
+func (v *VariableAccessExpr) GetType() Type {
+	return v.Variable.Type
 }
 
-func (v *AccessExpr) NodeName() string {
-	return "access expression"
+func (v *VariableAccessExpr) NodeName() string {
+	return "variable access expression"
+}
+
+// StructAccessExpr
+type StructAccessExpr struct {
+	nodePos
+	Struct Expr
+	Member string
+
+	Variable *Variable
+}
+
+func (v *StructAccessExpr) exprNode() {}
+
+func (v *StructAccessExpr) String() string {
+	result := "(" + util.Blue("StructAccessExpr") + ": struct"
+	result += v.Struct.String() + ", member "
+	result += v.Member
+	return result + ")"
+}
+
+func (v *StructAccessExpr) GetType() Type {
+	return v.Variable.Type
+}
+
+func (v *StructAccessExpr) NodeName() string {
+	return "struct access expression"
+}
+
+// ArrayAccessExpr
+
+type ArrayAccessExpr struct {
+	nodePos
+	Array     Expr
+	Subscript Expr
+}
+
+func (v *ArrayAccessExpr) exprNode() {}
+
+func (v *ArrayAccessExpr) String() string {
+	result := "(" + util.Blue("ArrayAccessExpr") + ": array"
+	result += v.Array.String() + ", index "
+	result += v.Subscript.String()
+	return result + ")"
+}
+
+func (v *ArrayAccessExpr) GetType() Type {
+	return v.Array.GetType().(ArrayType).MemberType
+}
+
+func (v *ArrayAccessExpr) NodeName() string {
+	return "array access expression"
+}
+
+// TupleAccessExpr
+
+type TupleAccessExpr struct {
+	nodePos
+	Tuple Expr
+	Index uint64
+}
+
+func (v *TupleAccessExpr) exprNode() {}
+
+func (v *TupleAccessExpr) String() string {
+	result := "(" + util.Blue("TupleAccessExpr") + ": tuple"
+	result += v.Tuple.String() + ", index "
+	result += strconv.FormatUint(v.Index, 10)
+	return result + ")"
+}
+
+func (v *TupleAccessExpr) GetType() Type {
+	return v.Tuple.GetType().(*TupleType).Members[v.Index]
+}
+
+func (v *TupleAccessExpr) NodeName() string {
+	return "tuple access expression"
 }
 
 // AddressOfExpr
 
 type AddressOfExpr struct {
 	nodePos
-	Access *AccessExpr
+	Access Expr
 }
 
 func (v *AddressOfExpr) exprNode() {}
