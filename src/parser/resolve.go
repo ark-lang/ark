@@ -185,11 +185,10 @@ func (v *MatchStat) resolve(res *Resolver, s *Scope) {
  * Expressions
  */
 
-func (v *IntegerLiteral) resolve(res *Resolver, s *Scope)  {}
-func (v *FloatingLiteral) resolve(res *Resolver, s *Scope) {}
-func (v *StringLiteral) resolve(res *Resolver, s *Scope)   {}
-func (v *RuneLiteral) resolve(res *Resolver, s *Scope)     {}
-func (v *BoolLiteral) resolve(res *Resolver, s *Scope)     {}
+func (v *NumericLiteral) resolve(res *Resolver, s *Scope) {}
+func (v *StringLiteral) resolve(res *Resolver, s *Scope)  {}
+func (v *RuneLiteral) resolve(res *Resolver, s *Scope)    {}
+func (v *BoolLiteral) resolve(res *Resolver, s *Scope)    {}
 
 func (v *UnaryExpr) resolve(res *Resolver, s *Scope) {
 	v.Expr.resolve(res, s)

@@ -618,50 +618,48 @@ func (v *RuneLiteral) NodeName() string {
 	return "rune literal"
 }
 
-// IntegerLiteral
-
-type IntegerLiteral struct {
+// NumericLiteral
+type NumericLiteral struct {
 	nodePos
-	Value    uint64
-	Type     Type
-	typeHint Type
+	IntValue   uint64
+	FloatValue float64
+	IsFloat    bool
+	Type       Type
+	typeHint   Type
 }
 
-func (v *IntegerLiteral) exprNode() {}
+func (v *NumericLiteral) exprNode() {}
 
-func (v *IntegerLiteral) String() string {
-	return fmt.Sprintf("("+util.Blue("IntegerLiteral")+": "+util.Yellow("%d")+" "+util.Green(v.GetType().TypeName())+")", v.Value)
+func (v *NumericLiteral) String() string {
+	if v.IsFloat {
+		return fmt.Sprintf("("+util.Blue("NumericLiteral")+": "+util.Yellow("%d")+" "+util.Green(v.GetType().TypeName())+")", v.FloatValue)
+	} else {
+		return fmt.Sprintf("("+util.Blue("NumericLiteral")+": "+util.Yellow("%d")+" "+util.Green(v.GetType().TypeName())+")", v.IntValue)
+	}
 }
 
-func (v *IntegerLiteral) GetType() Type {
+func (v *NumericLiteral) GetType() Type {
 	return v.Type
 }
 
-func (v *IntegerLiteral) NodeName() string {
-	return "integer literal"
+func (v *NumericLiteral) NodeName() string {
+	return "numeric literal"
 }
 
-// FloatingLiteral
-
-type FloatingLiteral struct {
-	nodePos
-	Value    float64
-	Type     Type
-	typeHint Type
+func (v *NumericLiteral) AsFloat() float64 {
+	if v.IsFloat {
+		return v.FloatValue
+	} else {
+		return float64(v.IntValue)
+	}
 }
 
-func (v *FloatingLiteral) exprNode() {}
+func (v *NumericLiteral) AsInt() uint64 {
+	if v.IsFloat {
+		panic("downcasting floating point value to int")
+	}
 
-func (v *FloatingLiteral) String() string {
-	return fmt.Sprintf("("+util.Blue("FloatingLiteral")+": "+util.Yellow("%f")+" "+util.Green(v.GetType().TypeName())+")", v.Value)
-}
-
-func (v *FloatingLiteral) GetType() Type {
-	return v.Type
-}
-
-func (v *FloatingLiteral) NodeName() string {
-	return "floating-point literal"
+	return v.IntValue
 }
 
 // StringLiteral
