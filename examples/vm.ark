@@ -1,0 +1,45 @@
+[c] func printf(fmt: str, ...): int;
+
+// no enums just yet
+PSH: s32 = 0;
+ADD: s32 = 1;
+POP: s32 = 2;
+HLT: s32 = 3;
+
+program: []s32 = [
+    PSH, 5,
+    PSH, 6,
+    ADD,
+    POP,
+    HLT
+];
+
+struct VirtualMachine {
+    running: bool,
+    sp: s32,
+    ip: s32,
+}
+
+func fetch(vm: VirtualMachine): s32 {
+    instr: s32 = program[vm.ip];
+    C::printf("%d\n", instr);
+    return instr;
+}
+
+func eval(vm: VirtualMachine, instr: s32) {
+    match instr {
+        HLT -> C::printf("halting\n");
+    }
+}
+
+func main(): int {
+    vm: VirtualMachine;
+    vm.running = true;
+
+    for vm.running {
+        eval(vm, fetch(vm));
+        vm.ip = vm.ip + 1;
+    }
+
+    return 0;
+}
