@@ -92,7 +92,6 @@ _testmain.go
 
 .DS_Store
 .dSYM/
-ark
 
 # Ark codegen out files
 *.ark.out
