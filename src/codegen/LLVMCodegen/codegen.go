@@ -650,32 +650,36 @@ func (v *Codegen) genRuneLiteral(n *parser.RuneLiteral) llvm.Value {
 
 // Allocates a literal array on the stack
 func (v *Codegen) genArrayLiteral(n *parser.ArrayLiteral) llvm.Value {
-	memberLLVMType := v.typeToLLVMType(n.Type.(parser.ArrayType).MemberType)
+	if v.inFunction {
+		memberLLVMType := v.typeToLLVMType(n.Type.(parser.ArrayType).MemberType)
 
-	// allocate backing array
-	arrAlloca := v.builder.CreateArrayAlloca(llvm.ArrayType(memberLLVMType, len(n.Members)), llvm.ConstInt(llvm.IntType(32), uint64(len(n.Members)), false), "")
+		// allocate backing array
+		arrAlloca := v.builder.CreateArrayAlloca(llvm.ArrayType(memberLLVMType, len(n.Members)), llvm.ConstInt(llvm.IntType(32), uint64(len(n.Members)), false), "")
 
-	// allocate the array object
-	structAlloca := v.builder.CreateAlloca(v.typeToLLVMType(n.Type), "")
+		// allocate the array object
+		structAlloca := v.builder.CreateAlloca(v.typeToLLVMType(n.Type), "")
 
-	// set the length of the array
-	lenGEP := v.builder.CreateGEP(structAlloca, []llvm.Value{llvm.ConstInt(llvm.IntType(32), 0, false), llvm.ConstInt(llvm.IntType(32), 0, false)}, "")
-	v.builder.CreateStore(llvm.ConstInt(llvm.IntType(32), uint64(len(n.Members)), false), lenGEP)
+		// set the length of the array
+		lenGEP := v.builder.CreateGEP(structAlloca, []llvm.Value{llvm.ConstInt(llvm.IntType(32), 0, false), llvm.ConstInt(llvm.IntType(32), 0, false)}, "")
+		v.builder.CreateStore(llvm.ConstInt(llvm.IntType(32), uint64(len(n.Members)), false), lenGEP)
 
-	// set the array pointer to the backing array we allocated
-	arrGEP := v.builder.CreateGEP(structAlloca, []llvm.Value{llvm.ConstInt(llvm.IntType(32), 0, false), llvm.ConstInt(llvm.IntType(32), 1, false)}, "")
-	v.builder.CreateStore(v.builder.CreateBitCast(arrAlloca, llvm.PointerType(llvm.ArrayType(memberLLVMType, 0), 0), ""), arrGEP)
+		// set the array pointer to the backing array we allocated
+		arrGEP := v.builder.CreateGEP(structAlloca, []llvm.Value{llvm.ConstInt(llvm.IntType(32), 0, false), llvm.ConstInt(llvm.IntType(32), 1, false)}, "")
+		v.builder.CreateStore(v.builder.CreateBitCast(arrAlloca, llvm.PointerType(llvm.ArrayType(memberLLVMType, 0), 0), ""), arrGEP)
 
-	// copy the constant array to the backing array
-	arrConstVals := make([]llvm.Value, 0, len(n.Members))
-	for _, mem := range n.Members {
-		expr := v.genExpr(mem)
-		arrConstVals = append(arrConstVals, expr)
+		// copy the constant array to the backing array
+		arrConstVals := make([]llvm.Value, 0, len(n.Members))
+		for _, mem := range n.Members {
+			expr := v.genExpr(mem)
+			arrConstVals = append(arrConstVals, expr)
+		}
+		arrConst := llvm.ConstArray(arrConstVals[0].Type(), arrConstVals)
+		v.builder.CreateStore(arrConst, arrAlloca)
+
+		return v.builder.CreateLoad(structAlloca, "")
+	} else {
+		panic("no codegen for global arrays yet")
 	}
-	arrConst := llvm.ConstArray(arrConstVals[0].Type(), arrConstVals)
-	v.builder.CreateStore(arrConst, arrAlloca)
-
-	return v.builder.CreateLoad(structAlloca, "")
 }
 
 func (v *Codegen) genTupleLiteral(n *parser.TupleLiteral) llvm.Value {
