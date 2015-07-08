@@ -38,11 +38,13 @@ func main() {
 		if *buildStatic {
 			ccArgs = append(ccArgs, "-static")
 		}
-		build(*buildInputs, *buildOutput, *buildCodegen, ccArgs, *buildAsm)
+
+		outputType := parseOutputType(*buildOutputType)
+		build(*buildInputs, *buildOutput, *buildCodegen, ccArgs, outputType)
 		printFinishedMessage(startTime, buildCom.FullCommand(), len(*buildInputs))
 		if *buildRun {
-			if *buildAsm {
-				setupErr("Cannot use --run flag with -S flag")
+			if outputType != LLVMCodegen.OUTPUT_EXECUTABLE {
+				setupErr("Can only use --run flag when building executable")
 			}
 			run(*buildOutput)
 		}
@@ -91,7 +93,7 @@ func parseFiles(files []string) ([]*parser.Module, map[string]*parser.Module) {
 	return parsedFiles, modules
 }
 
-func build(files []string, outputFile string, cg string, ccArgs []string, outputAsm bool) {
+func build(files []string, outputFile string, cg string, ccArgs []string, outputType LLVMCodegen.OutputType) {
 	// read source files
 	var sourcefiles []*lexer.Sourcefile
 
@@ -147,9 +149,9 @@ func build(files []string, outputFile string, cg string, ccArgs []string, output
 		switch cg {
 		case "llvm":
 			gen = &LLVMCodegen.Codegen{
-				OutputName: outputFile,
-				CCArgs:     ccArgs,
-				OutputAsm:  outputAsm,
+				OutputName:   outputFile,
+				CompilerArgs: ccArgs,
+				OutputType:   outputType,
 			}
 		default:
 			log.Error("main", util.Red("error: ")+"Invalid backend choice `"+cg+"`")
