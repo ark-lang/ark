@@ -4,7 +4,6 @@ import (
 	"C"
 	"fmt"
 	"os"
-	"os/exec"
 	"time"
 	"unsafe"
 
@@ -13,9 +12,7 @@ import (
 
 	"llvm.org/llvm/bindings/go/llvm"
 )
-import (
-	"github.com/ark-lang/ark/src/util/log"
-)
+import "github.com/ark-lang/ark/src/util/log"
 
 const intSize = int(unsafe.Sizeof(C.int(0)))
 
@@ -27,9 +24,12 @@ type Codegen struct {
 	variableLookup                 map[*parser.Variable]llvm.Value
 	structLookup_UseHelperFunction map[*parser.StructType]llvm.Type // use getStructDecl
 
-	OutputName string
-	OutputAsm  bool
-	CCArgs     []string
+	OutputName   string
+	OutputType   OutputType
+	CompilerArgs []string
+	Compiler     string // defaults to cc
+	LinkerArgs   []string
+	Linker       string // defaults to cc
 
 	modules map[string]*parser.Module
 
@@ -49,67 +49,6 @@ func (v *Codegen) err(err string, stuff ...interface{}) {
 	log.Error("codegen", util.TEXT_RED+util.TEXT_BOLD+"error:"+util.TEXT_RESET+" %s\n",
 		fmt.Sprintf(err, stuff...))
 	os.Exit(util.EXIT_FAILURE_CODEGEN)
-}
-
-func (v *Codegen) createBitcode(file *parser.Module) string {
-	filename := file.Name + ".bc"
-
-	fileHandle, err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
-	if err != nil {
-		v.err("Couldn't create bitcode file "+filename+": `%s`", err.Error())
-	}
-	defer fileHandle.Close()
-
-	if err := llvm.WriteBitcodeToFile(file.Module, fileHandle); err != nil {
-		v.err("failed to write bitcode to file for "+file.Name+": `%s`", err.Error())
-	}
-
-	return filename
-}
-
-func (v *Codegen) bitcodeToASM(filename string) string {
-	asmName := filename + ".s"
-	cmd := exec.Command("llc", filename, "-o", filename+".s")
-	if out, err := cmd.CombinedOutput(); err != nil {
-		v.err("Failed to convert bitcode to assembly: `%s`\n%s", err.Error(), string(out))
-	}
-
-	return asmName
-}
-
-func (v *Codegen) createBinary() {
-	linkArgs := append(v.CCArgs, "-fno-PIE", "-nodefaultlibs", "-lc", "-lm")
-	asmFiles := []string{}
-
-	for _, file := range v.input {
-		name := v.createBitcode(file)
-		asmName := v.bitcodeToASM(name)
-		asmFiles = append(asmFiles, asmName)
-
-		if err := os.Remove(name); err != nil {
-			v.err("Failed to remove "+name+": `%s`", err.Error())
-		}
-
-		linkArgs = append(linkArgs, asmName)
-	}
-
-	if v.OutputAsm {
-		return
-	}
-
-	if v.OutputName == "" {
-		panic("OutputName is empty")
-	}
-	linkArgs = append(linkArgs, "-o", v.OutputName)
-
-	cmd := exec.Command("cc", linkArgs...)
-	if out, err := cmd.CombinedOutput(); err != nil {
-		v.err("failed to link object files: `%s`\n%s", err.Error(), string(out))
-	}
-
-	for _, asmFile := range asmFiles {
-		os.Remove(asmFile)
-	}
 }
 
 func (v *Codegen) Generate(input []*parser.Module, modules map[string]*parser.Module) {
