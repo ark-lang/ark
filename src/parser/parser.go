@@ -288,10 +288,7 @@ func (v *parser) parseAssignStat() *AssignStat {
 	locationToken := v.peek(0)
 	filename, line, char := locationToken.Filename, locationToken.LineNumber, locationToken.CharNumber
 
-	if deref := v.parseDerefExpr(); deref != nil {
-		deref.setPos(filename, line, char)
-		assign.Deref = deref
-	} else if access := v.parseAccessExpr(); access != nil {
+	if access := v.parseAccessExpr(); access != nil {
 		access.setPos(filename, line, char)
 		assign.Access = access
 	} else {
@@ -1283,8 +1280,6 @@ func (v *parser) parsePrimaryExpr() Expr {
 		return litExpr
 	} else if castExpr := v.parseCastExpr(); castExpr != nil {
 		return castExpr
-	} else if derefExpr := v.parseDerefExpr(); derefExpr != nil {
-		return derefExpr
 	} else if unaryExpr := v.parseUnaryExpr(); unaryExpr != nil {
 		return unaryExpr
 	} else if callExpr := v.parseCallExpr(); callExpr != nil {
@@ -1364,6 +1359,15 @@ func (v *parser) parseAccessExpr() AccessExpr {
 	if name, numNameToks := v.peekName(); numNameToks > 0 {
 		v.consumeTokens(numNameToks)
 		lhand = &VariableAccessExpr{Name: name}
+	} else if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "^") {
+		v.consumeToken()
+
+		e := v.parseExpr()
+		if e == nil {
+			v.err("Expected expression after dereference operator")
+		}
+
+		lhand = &DerefAccessExpr{Expr: e}
 	} else {
 		return nil
 	}
@@ -1527,20 +1531,6 @@ func (v *parser) parseUnaryExpr() *UnaryExpr {
 	}
 
 	return &UnaryExpr{Expr: e, Op: op}
-}
-
-func (v *parser) parseDerefExpr() *DerefExpr {
-	if !v.tokenMatches(0, lexer.TOKEN_OPERATOR, "^") {
-		return nil
-	}
-	v.consumeToken()
-
-	e := v.parseExpr()
-	if e == nil {
-		v.err("Expected expression after dereference operator")
-	}
-
-	return &DerefExpr{Expr: e}
 }
 
 func (v *parser) parseAddressOfExpr() *AddressOfExpr {

@@ -152,12 +152,7 @@ func (v *DeferStat) resolve(res *Resolver, s *Scope) {
 
 func (v *AssignStat) resolve(res *Resolver, s *Scope) {
 	v.Assignment.resolve(res, s)
-
-	if v.Deref != nil {
-		v.Deref.resolve(res, s)
-	} else if v.Access != nil {
-		v.Access.resolve(res, s)
-	}
+	v.Access.resolve(res, s)
 }
 
 func (v *LoopStat) resolve(res *Resolver, s *Scope) {
@@ -273,12 +268,12 @@ func (v *TupleAccessExpr) resolve(res *Resolver, s *Scope) {
 	v.Tuple.resolve(res, s)
 }
 
-func (v *AddressOfExpr) resolve(res *Resolver, s *Scope) {
-	v.Access.resolve(res, s)
+func (v *DerefAccessExpr) resolve(res *Resolver, s *Scope) {
+	v.Expr.resolve(res, s)
 }
 
-func (v *DerefExpr) resolve(res *Resolver, s *Scope) {
-	v.Expr.resolve(res, s)
+func (v *AddressOfExpr) resolve(res *Resolver, s *Scope) {
+	v.Access.resolve(res, s)
 }
 
 func (v *SizeofExpr) resolve(res *Resolver, s *Scope) {

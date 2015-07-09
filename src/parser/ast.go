@@ -476,7 +476,6 @@ func (v *DeferStat) NodeName() string {
 
 type AssignStat struct {
 	nodePos
-	Deref      *DerefExpr // one of these should be nil, not neither or both. felix: what even for x = 5?
 	Access     AccessExpr
 	Assignment Expr
 }
@@ -485,12 +484,7 @@ func (v *AssignStat) statNode() {}
 
 func (v *AssignStat) String() string {
 	result := "(" + util.Blue("AssignStat") + ": "
-	if v.Deref != nil {
-		result += v.Deref.String()
-
-	} else if v.Access != nil {
-		result += v.Access.String()
-	}
+	result += v.Access.String()
 	return result + " = " + v.Assignment.String() + ")"
 }
 
@@ -983,6 +977,37 @@ func (v *TupleAccessExpr) Mutable() bool {
 	return v.Tuple.Mutable()
 }
 
+// DerefAccessExpr
+
+type DerefAccessExpr struct {
+	nodePos
+	Expr Expr
+	Type Type
+}
+
+func (v *DerefAccessExpr) exprNode() {}
+
+func (v *DerefAccessExpr) String() string {
+	return "(" + util.Blue("DerefAccessExpr") + ": " + v.Expr.String() + ")"
+}
+
+func (v *DerefAccessExpr) GetType() Type {
+	return v.Type
+}
+
+func (v *DerefAccessExpr) NodeName() string {
+	return "dereference access expression"
+}
+
+func (v *DerefAccessExpr) Mutable() bool {
+	access, ok := v.Expr.(AccessExpr)
+	if ok {
+		return access.Mutable()
+	} else {
+		return true
+	}
+}
+
 // AddressOfExpr
 
 type AddressOfExpr struct {
@@ -1002,28 +1027,6 @@ func (v *AddressOfExpr) GetType() Type {
 
 func (v *AddressOfExpr) NodeName() string {
 	return "address-of expression"
-}
-
-// DerefExpr
-
-type DerefExpr struct {
-	nodePos
-	Expr Expr
-	Type Type
-}
-
-func (v *DerefExpr) exprNode() {}
-
-func (v *DerefExpr) String() string {
-	return "(" + util.Blue("DerefExpr") + ": " + v.Expr.String() + ")"
-}
-
-func (v *DerefExpr) GetType() Type {
-	return v.Type
-}
-
-func (v *DerefExpr) NodeName() string {
-	return "dereference expression"
 }
 
 // SizeofExpr

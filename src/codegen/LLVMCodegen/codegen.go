@@ -302,11 +302,7 @@ func (v *Codegen) genCallStat(n *parser.CallStat) {
 }
 
 func (v *Codegen) genAssignStat(n *parser.AssignStat) {
-	if n.Access != nil {
-		v.builder.CreateStore(v.genExpr(n.Assignment), v.genAccessGEP(n.Access))
-	} else {
-		v.builder.CreateStore(v.genExpr(n.Assignment), v.genExpr(n.Deref.Expr))
-	}
+	v.builder.CreateStore(v.genExpr(n.Assignment), v.genAccessGEP(n.Access))
 }
 
 func (v *Codegen) genIfStat(n *parser.IfStat) {
@@ -532,13 +528,12 @@ func (v *Codegen) genExpr(n parser.Expr) llvm.Value {
 		return v.genCastExpr(n.(*parser.CastExpr))
 	case *parser.CallExpr:
 		return v.genCallExpr(n.(*parser.CallExpr))
-	case *parser.VariableAccessExpr, *parser.StructAccessExpr, *parser.ArrayAccessExpr, *parser.TupleAccessExpr:
+	case *parser.VariableAccessExpr, *parser.StructAccessExpr, *parser.ArrayAccessExpr, *parser.TupleAccessExpr, *parser.DerefAccessExpr:
 		return v.genAccessExpr(n)
-	case *parser.DerefExpr:
-		return v.genDerefExpr(n.(*parser.DerefExpr))
 	case *parser.SizeofExpr:
 		return v.genSizeofExpr(n.(*parser.SizeofExpr))
 	default:
+		log.Debug("codegen", "expr: %s\n", n)
 		panic("unimplemented expr")
 	}
 }
@@ -588,6 +583,11 @@ func (v *Codegen) genAccessGEP(n parser.Expr) llvm.Value {
 		index := tae.Index
 
 		return v.builder.CreateGEP(gep, []llvm.Value{llvm.ConstInt(llvm.Int32Type(), 0, false), llvm.ConstInt(llvm.Int32Type(), index, false)}, "")
+
+	case *parser.DerefAccessExpr:
+		dae := n.(*parser.DerefAccessExpr)
+
+		return v.genExpr(dae.Expr)
 
 	default:
 		panic("unhandled access type")
@@ -988,10 +988,6 @@ func (v *Codegen) genCallExpr(n *parser.CallExpr) llvm.Value {
 	}
 
 	return v.genCallExprWithArgs(n, args)
-}
-
-func (v *Codegen) genDerefExpr(n *parser.DerefExpr) llvm.Value {
-	return v.builder.CreateLoad(v.genExpr(n.Expr), "")
 }
 
 func (v *Codegen) genSizeofExpr(n *parser.SizeofExpr) llvm.Value {
