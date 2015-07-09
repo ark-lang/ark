@@ -33,6 +33,11 @@ type Expr interface {
 	setTypeHint(Type) // the type of the parent node, nil if parent node's type is inferred
 }
 
+type AccessExpr interface {
+	Expr
+	Mutable() bool
+}
+
 type Decl interface {
 	Node
 	declNode()
@@ -472,7 +477,7 @@ func (v *DeferStat) NodeName() string {
 type AssignStat struct {
 	nodePos
 	Deref      *DerefExpr // one of these should be nil, not neither or both. felix: what even for x = 5?
-	Access     Expr
+	Access     AccessExpr
 	Assignment Expr
 }
 
@@ -886,10 +891,14 @@ func (v *VariableAccessExpr) NodeName() string {
 	return "variable access expression"
 }
 
+func (v *VariableAccessExpr) Mutable() bool {
+	return v.Variable.Mutable
+}
+
 // StructAccessExpr
 type StructAccessExpr struct {
 	nodePos
-	Struct Expr
+	Struct AccessExpr
 	Member string
 
 	Variable *Variable
@@ -912,11 +921,15 @@ func (v *StructAccessExpr) NodeName() string {
 	return "struct access expression"
 }
 
+func (v *StructAccessExpr) Mutable() bool {
+	return true
+}
+
 // ArrayAccessExpr
 
 type ArrayAccessExpr struct {
 	nodePos
-	Array     Expr
+	Array     AccessExpr
 	Subscript Expr
 }
 
@@ -937,11 +950,15 @@ func (v *ArrayAccessExpr) NodeName() string {
 	return "array access expression"
 }
 
+func (v *ArrayAccessExpr) Mutable() bool {
+	return v.Array.Mutable()
+}
+
 // TupleAccessExpr
 
 type TupleAccessExpr struct {
 	nodePos
-	Tuple Expr
+	Tuple AccessExpr
 	Index uint64
 }
 
@@ -960,6 +977,10 @@ func (v *TupleAccessExpr) GetType() Type {
 
 func (v *TupleAccessExpr) NodeName() string {
 	return "tuple access expression"
+}
+
+func (v *TupleAccessExpr) Mutable() bool {
+	return v.Tuple.Mutable()
 }
 
 // AddressOfExpr

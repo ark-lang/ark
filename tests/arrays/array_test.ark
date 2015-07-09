@@ -1,7 +1,7 @@
 [c] func printf(fmt: str, ...): int;
 
 func main(): int {
-    arrayLitTest: []s16 = [100, 101, 102, 103, 104];
+    mut arrayLitTest: []s16 = [100, 101, 102, 103, 104];
 
     if arrayLitTest[1] != 101 {
         return 1;
