@@ -1,7 +1,7 @@
 ## Ark Programming Language
 [![Build Status](https://travis-ci.org/ark-lang/ark.png?branch=master)][1]
 
-[Ark](//www.ark-lang.org) is a systems programming language somewhere inbetween C and C++.
+[Ark](//www.ark-lang.org) is a systems programming language somewhere in-between C and C++.
 
 ## Example
 A small example program written in Ark.
