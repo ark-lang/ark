@@ -12,7 +12,9 @@ import (
 
 	"llvm.org/llvm/bindings/go/llvm"
 )
-import "github.com/ark-lang/ark/src/util/log"
+import (
+	"github.com/ark-lang/ark/src/util/log"
+)
 
 const intSize = int(unsafe.Sizeof(C.int(0)))
 
@@ -38,6 +40,9 @@ type Codegen struct {
 
 	currentBlock   *parser.Block
 	blockDeferData map[*parser.Block][]*deferData
+
+	// dirty thing for global arrays
+	arrayIndex int
 }
 
 type deferData struct {
@@ -650,14 +655,18 @@ func (v *Codegen) genRuneLiteral(n *parser.RuneLiteral) llvm.Value {
 
 // Allocates a literal array on the stack
 func (v *Codegen) genArrayLiteral(n *parser.ArrayLiteral) llvm.Value {
+	arrayLLVMType := v.typeToLLVMType(n.Type)
+	memberLLVMType := v.typeToLLVMType(n.Type.(parser.ArrayType).MemberType)
+
 	if v.inFunction {
-		memberLLVMType := v.typeToLLVMType(n.Type.(parser.ArrayType).MemberType)
-
 		// allocate backing array
-		arrAlloca := v.builder.CreateArrayAlloca(llvm.ArrayType(memberLLVMType, len(n.Members)), llvm.ConstInt(llvm.IntType(32), uint64(len(n.Members)), false), "")
+		arrAlloca := v.builder.CreateAlloca(llvm.ArrayType(memberLLVMType, len(n.Members)), "")
 
-		// allocate the array object
-		structAlloca := v.builder.CreateAlloca(v.typeToLLVMType(n.Type), "")
+		// copy the constant array to the backing array
+		v.builder.CreateStore(v.genArrayLiterals(n), arrAlloca)
+
+		// allocate struct
+		structAlloca := v.builder.CreateAlloca(arrayLLVMType, "")
 
 		// set the length of the array
 		lenGEP := v.builder.CreateGEP(structAlloca, []llvm.Value{llvm.ConstInt(llvm.IntType(32), 0, false), llvm.ConstInt(llvm.IntType(32), 0, false)}, "")
@@ -667,19 +676,32 @@ func (v *Codegen) genArrayLiteral(n *parser.ArrayLiteral) llvm.Value {
 		arrGEP := v.builder.CreateGEP(structAlloca, []llvm.Value{llvm.ConstInt(llvm.IntType(32), 0, false), llvm.ConstInt(llvm.IntType(32), 1, false)}, "")
 		v.builder.CreateStore(v.builder.CreateBitCast(arrAlloca, llvm.PointerType(llvm.ArrayType(memberLLVMType, 0), 0), ""), arrGEP)
 
-		// copy the constant array to the backing array
-		arrConstVals := make([]llvm.Value, 0, len(n.Members))
-		for _, mem := range n.Members {
-			expr := v.genExpr(mem)
-			arrConstVals = append(arrConstVals, expr)
-		}
-		arrConst := llvm.ConstArray(arrConstVals[0].Type(), arrConstVals)
-		v.builder.CreateStore(arrConst, arrAlloca)
-
 		return v.builder.CreateLoad(structAlloca, "")
 	} else {
-		panic("no codegen for global arrays yet")
+		backName := fmt.Sprintf("_globarr_back_%d", v.arrayIndex)
+		v.arrayIndex++
+
+		backGlob := llvm.AddGlobal(v.curFile.Module, llvm.ArrayType(memberLLVMType, len(n.Members)), backName)
+		backGlob.SetLinkage(llvm.InternalLinkage)
+		backGlob.SetGlobalConstant(false)
+		backGlob.SetInitializer(v.genArrayLiterals(n))
+
+		lengthVal := llvm.ConstInt(llvm.IntType(32), uint64(len(n.Members)), false)
+		backRef := llvm.ConstBitCast(backGlob, llvm.PointerType(llvm.ArrayType(memberLLVMType, 0), 0))
+
+		return llvm.ConstStruct([]llvm.Value{lengthVal, backRef}, false)
 	}
+}
+
+func (v *Codegen) genArrayLiterals(n *parser.ArrayLiteral) llvm.Value {
+	memberLLVMType := v.typeToLLVMType(n.Type.(parser.ArrayType).MemberType)
+
+	arrConstVals := make([]llvm.Value, len(n.Members))
+	for idx, mem := range n.Members {
+		arrConstVals[idx] = v.genExpr(mem)
+	}
+
+	return llvm.ConstArray(memberLLVMType, arrConstVals)
 }
 
 func (v *Codegen) genTupleLiteral(n *parser.TupleLiteral) llvm.Value {
