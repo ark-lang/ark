@@ -300,7 +300,7 @@ func (v *Codegen) genAssignStat(n *parser.AssignStat) {
 	if n.Access != nil {
 		v.builder.CreateStore(v.genExpr(n.Assignment), v.genAccessGEP(n.Access))
 	} else {
-		v.genDerefExpr(n.Deref)
+		v.builder.CreateStore(v.genExpr(n.Assignment), v.genExpr(n.Deref.Expr))
 	}
 }
 
