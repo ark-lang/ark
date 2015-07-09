@@ -400,17 +400,9 @@ func (v *AssignStat) analyze(s *SemanticAnalyzer) {
 	if v.Deref != nil {
 		lhs = v.Deref
 	} else if v.Access != nil {
-		//var variable *Variable
-
-		/*if len(v.Access.StructVariables) > 0 { TODO
-			variable = v.Access.StructVariables[0]
-		} else {
-			variable = v.Access.Variable
-		}*/
-
-		/*if !variable.Mutable {
-			s.err(v, "Cannot assign value to immutable variable `%s`", variable.Name)
-		}*/
+		if !v.Access.Mutable() {
+			s.err(v, "Cannot assign value to immutable access")
+		}
 		lhs = v.Access
 	}
 

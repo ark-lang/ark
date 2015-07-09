@@ -1,6 +1,6 @@
 [c] func printf(fmt: str, ...): int;
 
-x: int = 10;
+mut x: int = 10;
 
 func main(): int {
     x = 20;

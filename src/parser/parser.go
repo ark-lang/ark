@@ -1359,8 +1359,8 @@ func (v *parser) parseTupleLiteral() Expr {
 	}
 }
 
-func (v *parser) parseAccessExpr() Expr {
-	var lhand Expr
+func (v *parser) parseAccessExpr() AccessExpr {
+	var lhand AccessExpr
 	if name, numNameToks := v.peekName(); numNameToks > 0 {
 		v.consumeTokens(numNameToks)
 		lhand = &VariableAccessExpr{Name: name}
