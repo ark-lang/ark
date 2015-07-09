@@ -1,6 +1,6 @@
 [c] func printf(fmt: str, ...): int;
 
-arrayGlobalTest: []s16 = [100, 101, 102, 103, 104];
+mut arrayGlobalTest: []s16 = [100, 101, 102, 103, 104];
 random := [0, 16, 32, 64, 128, 256, 512, 1024];
 
 func main(): int {

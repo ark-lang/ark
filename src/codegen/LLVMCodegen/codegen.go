@@ -498,7 +498,7 @@ func (v *Codegen) genVariableDecl(n *parser.VariableDecl, semicolon bool) llvm.V
 		varType := v.typeToLLVMType(n.Variable.Type)
 		value := llvm.AddGlobal(v.curFile.Module, varType, mangledName)
 		value.SetLinkage(llvm.InternalLinkage)
-		value.SetGlobalConstant(n.Variable.Mutable)
+		value.SetGlobalConstant(!n.Variable.Mutable)
 		if n.Assignment != nil {
 			value.SetInitializer(v.genExpr(n.Assignment))
 		}
