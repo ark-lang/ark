@@ -392,33 +392,15 @@ func (v *DeferStat) analyze(s *SemanticAnalyzer) {
 // AssignStat
 
 func (v *AssignStat) analyze(s *SemanticAnalyzer) {
-	if (v.Deref == nil) == (v.Access == nil) { // make sure aren't both not null or null
-		panic("oh no")
+	if !v.Access.Mutable() {
+		s.err(v, "Cannot assign value to immutable access")
 	}
 
-	var lhs Expr
-	if v.Deref != nil {
-		lhs = v.Deref
-	} else if v.Access != nil {
-		//var variable *Variable
-
-		/*if len(v.Access.StructVariables) > 0 { TODO
-			variable = v.Access.StructVariables[0]
-		} else {
-			variable = v.Access.Variable
-		}*/
-
-		/*if !variable.Mutable {
-			s.err(v, "Cannot assign value to immutable variable `%s`", variable.Name)
-		}*/
-		lhs = v.Access
-	}
-
-	v.Assignment.setTypeHint(lhs.GetType())
+	v.Assignment.setTypeHint(v.Access.GetType())
 	v.Assignment.analyze(s)
-	lhs.analyze(s)
-	if lhs.GetType() != v.Assignment.GetType() {
-		s.err(v, "Mismatched types: `%s` and `%s`", lhs.GetType().TypeName(), v.Assignment.GetType().TypeName())
+	v.Access.analyze(s)
+	if v.Access.GetType() != v.Assignment.GetType() {
+		s.err(v, "Mismatched types: `%s` and `%s`", v.Access.GetType().TypeName(), v.Assignment.GetType().TypeName())
 	}
 }
 
@@ -825,17 +807,9 @@ func (v *TupleAccessExpr) analyze(s *SemanticAnalyzer) {
 
 func (v *TupleAccessExpr) setTypeHint(t Type) {}
 
-// AddressOfExpr
+// DerefAccessExpr
 
-func (v *AddressOfExpr) analyze(s *SemanticAnalyzer) {
-	v.Access.analyze(s)
-}
-
-func (v *AddressOfExpr) setTypeHint(t Type) {}
-
-// DerefExpr
-
-func (v *DerefExpr) analyze(s *SemanticAnalyzer) {
+func (v *DerefAccessExpr) analyze(s *SemanticAnalyzer) {
 	v.Expr.analyze(s)
 	if ptr, ok := v.Expr.GetType().(PointerType); !ok {
 		s.err(v, "Cannot dereference expression of type `%s`", v.Expr.GetType().TypeName())
@@ -844,9 +818,17 @@ func (v *DerefExpr) analyze(s *SemanticAnalyzer) {
 	}
 }
 
-func (v *DerefExpr) setTypeHint(t Type) {
+func (v *DerefAccessExpr) setTypeHint(t Type) {
 	v.Expr.setTypeHint(pointerTo(t))
 }
+
+// AddressOfExpr
+
+func (v *AddressOfExpr) analyze(s *SemanticAnalyzer) {
+	v.Access.analyze(s)
+}
+
+func (v *AddressOfExpr) setTypeHint(t Type) {}
 
 // SizeofExpr
 
