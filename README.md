@@ -30,7 +30,7 @@ Installing Ark should be relatively easy, you'll need a few dependencies before
 you get started:
 
 ### Dependencies
-* Go installed and `$GOPATH` setup
+* Go installed and `$GOPATH` setup - [Instructions on setting up GOPATH](https://golang.org/doc/code.html#GOPATH)
 * subversion
 * LLVM installed, with `llvm-config` and `llc` in your `$PATH`
 * a C++ compiler
@@ -38,7 +38,8 @@ you get started:
 ## Building
 Replace `RELEASE_360` with the version of LLVM you have installed. For example, version 3.6.1 becomes `RELEASE_361`. You can find out your version of llvm by running `llvm-config --version`.
 
-    $ svn co https://llvm.org/svn/llvm-project/llvm/tags/RELEASE_360/final $GOPATH/src/llvm.org/llvm
+    $ svn co https://llvm.org/svn/llvm-project/llvm/tags/RELEASE_360/final \
+    > $GOPATH/src/llvm.org/llvm
     $ export CGO_CPPFLAGS="`llvm-config --cppflags`"
     $ export CGO_LDFLAGS="`llvm-config --ldflags --libs --system-libs all`"
     $ export CGO_CXXFLAGS=-std=c++11
