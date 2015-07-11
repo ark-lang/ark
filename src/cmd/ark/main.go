@@ -34,6 +34,10 @@ func main() {
 
 	switch command {
 	case buildCom.FullCommand():
+		if len(*buildInputs) == 0 {
+			setupErr("No input files passed.")
+		}
+
 		ccArgs := []string{}
 		if *buildStatic {
 			ccArgs = append(ccArgs, "-static")

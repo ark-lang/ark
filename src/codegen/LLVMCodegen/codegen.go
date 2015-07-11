@@ -12,7 +12,9 @@ import (
 
 	"llvm.org/llvm/bindings/go/llvm"
 )
-import "github.com/ark-lang/ark/src/util/log"
+import (
+	"github.com/ark-lang/ark/src/util/log"
+)
 
 const intSize = int(unsafe.Sizeof(C.int(0)))
 
@@ -38,6 +40,9 @@ type Codegen struct {
 
 	currentBlock   *parser.Block
 	blockDeferData map[*parser.Block][]*deferData
+
+	// dirty thing for global arrays
+	arrayIndex int
 }
 
 type deferData struct {
@@ -297,11 +302,7 @@ func (v *Codegen) genCallStat(n *parser.CallStat) {
 }
 
 func (v *Codegen) genAssignStat(n *parser.AssignStat) {
-	if n.Access != nil {
-		v.builder.CreateStore(v.genExpr(n.Assignment), v.genAccessGEP(n.Access))
-	} else {
-		v.genDerefExpr(n.Deref)
-	}
+	v.builder.CreateStore(v.genExpr(n.Assignment), v.genAccessGEP(n.Access))
 }
 
 func (v *Codegen) genIfStat(n *parser.IfStat) {
@@ -493,7 +494,7 @@ func (v *Codegen) genVariableDecl(n *parser.VariableDecl, semicolon bool) llvm.V
 		varType := v.typeToLLVMType(n.Variable.Type)
 		value := llvm.AddGlobal(v.curFile.Module, varType, mangledName)
 		value.SetLinkage(llvm.InternalLinkage)
-		value.SetGlobalConstant(n.Variable.Mutable)
+		value.SetGlobalConstant(!n.Variable.Mutable)
 		if n.Assignment != nil {
 			value.SetInitializer(v.genExpr(n.Assignment))
 		}
@@ -527,13 +528,12 @@ func (v *Codegen) genExpr(n parser.Expr) llvm.Value {
 		return v.genCastExpr(n.(*parser.CastExpr))
 	case *parser.CallExpr:
 		return v.genCallExpr(n.(*parser.CallExpr))
-	case *parser.VariableAccessExpr, *parser.StructAccessExpr, *parser.ArrayAccessExpr, *parser.TupleAccessExpr:
+	case *parser.VariableAccessExpr, *parser.StructAccessExpr, *parser.ArrayAccessExpr, *parser.TupleAccessExpr, *parser.DerefAccessExpr:
 		return v.genAccessExpr(n)
-	case *parser.DerefExpr:
-		return v.genDerefExpr(n.(*parser.DerefExpr))
 	case *parser.SizeofExpr:
 		return v.genSizeofExpr(n.(*parser.SizeofExpr))
 	default:
+		log.Debug("codegen", "expr: %s\n", n)
 		panic("unimplemented expr")
 	}
 }
@@ -583,6 +583,11 @@ func (v *Codegen) genAccessGEP(n parser.Expr) llvm.Value {
 		index := tae.Index
 
 		return v.builder.CreateGEP(gep, []llvm.Value{llvm.ConstInt(llvm.Int32Type(), 0, false), llvm.ConstInt(llvm.Int32Type(), index, false)}, "")
+
+	case *parser.DerefAccessExpr:
+		dae := n.(*parser.DerefAccessExpr)
+
+		return v.genExpr(dae.Expr)
 
 	default:
 		panic("unhandled access type")
@@ -650,14 +655,18 @@ func (v *Codegen) genRuneLiteral(n *parser.RuneLiteral) llvm.Value {
 
 // Allocates a literal array on the stack
 func (v *Codegen) genArrayLiteral(n *parser.ArrayLiteral) llvm.Value {
+	arrayLLVMType := v.typeToLLVMType(n.Type)
+	memberLLVMType := v.typeToLLVMType(n.Type.(parser.ArrayType).MemberType)
+
 	if v.inFunction {
-		memberLLVMType := v.typeToLLVMType(n.Type.(parser.ArrayType).MemberType)
-
 		// allocate backing array
-		arrAlloca := v.builder.CreateArrayAlloca(llvm.ArrayType(memberLLVMType, len(n.Members)), llvm.ConstInt(llvm.IntType(32), uint64(len(n.Members)), false), "")
+		arrAlloca := v.builder.CreateAlloca(llvm.ArrayType(memberLLVMType, len(n.Members)), "")
 
-		// allocate the array object
-		structAlloca := v.builder.CreateAlloca(v.typeToLLVMType(n.Type), "")
+		// copy the constant array to the backing array
+		v.builder.CreateStore(v.genArrayLiterals(n), arrAlloca)
+
+		// allocate struct
+		structAlloca := v.builder.CreateAlloca(arrayLLVMType, "")
 
 		// set the length of the array
 		lenGEP := v.builder.CreateGEP(structAlloca, []llvm.Value{llvm.ConstInt(llvm.IntType(32), 0, false), llvm.ConstInt(llvm.IntType(32), 0, false)}, "")
@@ -667,19 +676,32 @@ func (v *Codegen) genArrayLiteral(n *parser.ArrayLiteral) llvm.Value {
 		arrGEP := v.builder.CreateGEP(structAlloca, []llvm.Value{llvm.ConstInt(llvm.IntType(32), 0, false), llvm.ConstInt(llvm.IntType(32), 1, false)}, "")
 		v.builder.CreateStore(v.builder.CreateBitCast(arrAlloca, llvm.PointerType(llvm.ArrayType(memberLLVMType, 0), 0), ""), arrGEP)
 
-		// copy the constant array to the backing array
-		arrConstVals := make([]llvm.Value, 0, len(n.Members))
-		for _, mem := range n.Members {
-			expr := v.genExpr(mem)
-			arrConstVals = append(arrConstVals, expr)
-		}
-		arrConst := llvm.ConstArray(arrConstVals[0].Type(), arrConstVals)
-		v.builder.CreateStore(arrConst, arrAlloca)
-
 		return v.builder.CreateLoad(structAlloca, "")
 	} else {
-		panic("no codegen for global arrays yet")
+		backName := fmt.Sprintf("_globarr_back_%d", v.arrayIndex)
+		v.arrayIndex++
+
+		backGlob := llvm.AddGlobal(v.curFile.Module, llvm.ArrayType(memberLLVMType, len(n.Members)), backName)
+		backGlob.SetLinkage(llvm.InternalLinkage)
+		backGlob.SetGlobalConstant(false)
+		backGlob.SetInitializer(v.genArrayLiterals(n))
+
+		lengthVal := llvm.ConstInt(llvm.IntType(32), uint64(len(n.Members)), false)
+		backRef := llvm.ConstBitCast(backGlob, llvm.PointerType(llvm.ArrayType(memberLLVMType, 0), 0))
+
+		return llvm.ConstStruct([]llvm.Value{lengthVal, backRef}, false)
 	}
+}
+
+func (v *Codegen) genArrayLiterals(n *parser.ArrayLiteral) llvm.Value {
+	memberLLVMType := v.typeToLLVMType(n.Type.(parser.ArrayType).MemberType)
+
+	arrConstVals := make([]llvm.Value, len(n.Members))
+	for idx, mem := range n.Members {
+		arrConstVals[idx] = v.genExpr(mem)
+	}
+
+	return llvm.ConstArray(memberLLVMType, arrConstVals)
 }
 
 func (v *Codegen) genTupleLiteral(n *parser.TupleLiteral) llvm.Value {
@@ -966,10 +988,6 @@ func (v *Codegen) genCallExpr(n *parser.CallExpr) llvm.Value {
 	}
 
 	return v.genCallExprWithArgs(n, args)
-}
-
-func (v *Codegen) genDerefExpr(n *parser.DerefExpr) llvm.Value {
-	return v.builder.CreateLoad(v.genExpr(n.Expr), "")
 }
 
 func (v *Codegen) genSizeofExpr(n *parser.SizeofExpr) llvm.Value {
