@@ -63,7 +63,12 @@ func (v *Codegen) asmToObject(filename string) string {
 	objName += ".o"
 
 	if v.Compiler == "" {
-		v.Compiler = "cc"
+		envcc := os.Getenv("CC")
+		if envcc != "" {
+			v.Compiler = envcc
+		} else {
+			v.Compiler = "cc"
+		}
 	}
 
 	args := append(v.CompilerArgs, "-fno-PIE", "-c", filename, "-o", objName)
