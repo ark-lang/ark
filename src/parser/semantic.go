@@ -24,16 +24,16 @@ type SemanticAnalyzer struct {
 }
 
 func (v *SemanticAnalyzer) err(thing Locatable, err string, stuff ...interface{}) {
-	filename, line, char := thing.Pos()
+	pos := thing.Pos()
 	log.Error("semantic", util.TEXT_RED+util.TEXT_BOLD+"Semantic error:"+util.TEXT_RESET+" [%s:%d:%d] %s\n",
-		filename, line, char, fmt.Sprintf(err, stuff...))
+		pos.Filename, pos.Line, pos.Char, fmt.Sprintf(err, stuff...))
 	v.shouldExit = true
 }
 
 func (v *SemanticAnalyzer) warn(thing Locatable, err string, stuff ...interface{}) {
-	filename, line, char := thing.Pos()
+	pos := thing.Pos()
 	log.Warning("semantic", util.TEXT_YELLOW+util.TEXT_BOLD+"Semantic warning:"+util.TEXT_RESET+" [%s:%d:%d] %s\n",
-		filename, line, char, fmt.Sprintf(err, stuff...))
+		pos.Filename, pos.Line, pos.Char, fmt.Sprintf(err, stuff...))
 }
 
 func (v *SemanticAnalyzer) warnDeprecated(thing Locatable, typ, name, message string) {
@@ -289,17 +289,17 @@ func (v *VariableDecl) analyze(s *SemanticAnalyzer) {
 		s.warnDeprecated(v, "type", v.Variable.Type.TypeName(), dep.Value)
 	}
 
-	s.checkAttrsDistanceFromLine(v.Variable.Attrs, v.lineNumber, "variable", v.Variable.Name)
+	s.checkAttrsDistanceFromLine(v.Variable.Attrs, v.Pos().Line, "variable", v.Variable.Name)
 }
 
 func (v *StructDecl) analyze(s *SemanticAnalyzer) {
 	v.Struct.analyze(s)
-	s.checkAttrsDistanceFromLine(v.Struct.Attrs(), v.lineNumber, "type", v.Struct.TypeName())
+	s.checkAttrsDistanceFromLine(v.Struct.Attrs(), v.Pos().Line, "type", v.Struct.TypeName())
 }
 
 func (v *TraitDecl) analyze(s *SemanticAnalyzer) {
 	v.Trait.analyze(s)
-	s.checkAttrsDistanceFromLine(v.Trait.Attrs(), v.lineNumber, "type", v.Trait.TypeName())
+	s.checkAttrsDistanceFromLine(v.Trait.Attrs(), v.Pos().Line, "type", v.Trait.TypeName())
 }
 
 func (v *ImplDecl) analyze(s *SemanticAnalyzer) {
@@ -321,7 +321,7 @@ func (v *FunctionDecl) analyze(s *SemanticAnalyzer) {
 		}
 	}
 
-	s.checkAttrsDistanceFromLine(v.Function.Attrs, v.lineNumber, "function", v.Function.Name)
+	s.checkAttrsDistanceFromLine(v.Function.Attrs, v.Pos().Line, "function", v.Function.Name)
 }
 
 /*

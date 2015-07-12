@@ -81,7 +81,7 @@ func (v *SemanticAnalyzer) checkAttrsDistanceFromLine(attrs AttrGroup, line int,
 	for _, attr := range attrs {
 		index := 0
 		for idx, innerAttr := range sorted {
-			if attr.lineNumber >= innerAttr.lineNumber {
+			if attr.pos.Line >= innerAttr.pos.Line {
 				index = idx
 			}
 		}
@@ -92,13 +92,13 @@ func (v *SemanticAnalyzer) checkAttrsDistanceFromLine(attrs AttrGroup, line int,
 	}
 
 	for i := len(sorted) - 1; i >= 0; i-- {
-		if sorted[i].lineNumber < line-1 {
+		if sorted[i].pos.Line < line-1 {
 			// mute warnings from attribute blocks
 			if !sorted[i].FromBlock {
-				v.warn(sorted[i], "Gap of %d lines between declaration of %s `%s` and `%s` attribute", line-sorted[i].lineNumber, declType, declName, sorted[i].Key)
+				v.warn(sorted[i], "Gap of %d lines between declaration of %s `%s` and `%s` attribute", line-sorted[i].pos.Line, declType, declName, sorted[i].Key)
 			}
 		}
-		line = sorted[i].lineNumber
+		line = sorted[i].pos.Line
 	}
 }
 
@@ -111,7 +111,7 @@ func (v *parser) parseAttrs() AttrGroup {
 		attr := &Attr{
 			Key: v.consumeToken().Contents,
 		}
-		attr.setPos(v.peek(0).Filename, v.peek(0).LineNumber, v.peek(0).CharNumber)
+		attr.setPos(v.peek(0).Where.Start())
 
 		if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "=") {
 			v.consumeToken() // eat =
