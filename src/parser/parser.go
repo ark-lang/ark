@@ -33,7 +33,7 @@ type parser struct {
 
 func (v *parser) err(err string, stuff ...interface{}) {
 	log.Error("parser", util.TEXT_RED+util.TEXT_BOLD+"Parser error:"+util.TEXT_RESET+" [%s:%d:%d] %s\n",
-		v.peek(0).Filename, v.peek(0).LineNumber, v.peek(0).CharNumber, fmt.Sprintf(err, stuff...))
+		v.peek(0).Where.Filename, v.peek(0).Where.StartLine, v.peek(0).Where.StartChar, fmt.Sprintf(err, stuff...))
 	os.Exit(util.EXIT_FAILURE_PARSE)
 }
 
@@ -197,8 +197,7 @@ func (v *parser) parseDocComment() *DocComment {
 	}
 	tok := v.consumeToken()
 	doc := &DocComment{
-		StartLine: tok.LineNumber,
-		EndLine:   tok.EndLineNumber,
+		Where: tok.Where,
 	}
 
 	if strings.HasPrefix(tok.Contents, "/**") {
@@ -248,7 +247,7 @@ func (v *parser) parseNode() Node {
 func (v *parser) parseStat() Stat {
 	var ret Stat
 	locationToken := v.peek(0)
-	filename, line, char := locationToken.Filename, locationToken.LineNumber, locationToken.CharNumber
+	pos := locationToken.Where.Start()
 
 	if deferStat := v.parseDeferStat(); deferStat != nil {
 		ret = deferStat
@@ -270,7 +269,7 @@ func (v *parser) parseStat() Stat {
 		return nil
 	}
 
-	ret.setPos(filename, line, char)
+	ret.setPos(pos)
 	return ret
 }
 
@@ -286,10 +285,10 @@ func (v *parser) parseAssignStat() *AssignStat {
 	assign := &AssignStat{}
 
 	locationToken := v.peek(0)
-	filename, line, char := locationToken.Filename, locationToken.LineNumber, locationToken.CharNumber
+	pos := locationToken.Where.Start()
 
 	if access := v.parseAccessExpr(); access != nil {
-		access.setPos(filename, line, char)
+		access.setPos(pos)
 		assign.Access = access
 	} else {
 		v.err("Malformed assignment statement")
@@ -341,11 +340,11 @@ func (v *parser) parseBlockStat() *BlockStat {
 
 func (v *parser) parseCallStat() *CallStat {
 	locationToken := v.peek(0)
-	filename, line, char := locationToken.Filename, locationToken.LineNumber, locationToken.CharNumber
+	pos := locationToken.Where.Start()
 	if call := v.parseCallExpr(); call != nil {
 		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ";") {
 			v.consumeToken()
-			call.setPos(filename, line, char)
+			call.setPos(pos)
 			return &CallStat{Call: call}
 		}
 		v.err("Expected semicolon after function call statement, found `%s`", v.peek(0).Contents)
@@ -360,11 +359,11 @@ func (v *parser) parseDeferStat() *DeferStat {
 	v.consumeToken()
 
 	locationToken := v.peek(0)
-	filename, line, char := locationToken.Filename, locationToken.LineNumber, locationToken.CharNumber
+	pos := locationToken.Where.Start()
 	if call := v.parseCallExpr(); call != nil {
 		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ";") {
 			v.consumeToken()
-			call.setPos(filename, line, char)
+			call.setPos(pos)
 			return &DeferStat{Call: call}
 		}
 		v.err("Expected semicolon after defer statement, found `%s`", v.peek(0).Contents)
@@ -434,7 +433,7 @@ func (v *parser) parseDecl() Decl {
 	var ret Decl
 
 	locationToken := v.peek(0)
-	filename, line, char := locationToken.Filename, locationToken.LineNumber, locationToken.CharNumber
+	pos := locationToken.Where.Start()
 
 	if structureDecl := v.parseStructDecl(); structureDecl != nil {
 		ret = structureDecl
@@ -456,7 +455,7 @@ func (v *parser) parseDecl() Decl {
 		return nil
 	}
 
-	ret.setPos(filename, line, char)
+	ret.setPos(pos)
 
 	return ret
 }
@@ -959,14 +958,14 @@ func (v *parser) parseStructDecl() *StructDecl {
 			}
 
 			locationToken := v.peek(0)
-			filename, line, char := locationToken.Filename, locationToken.LineNumber, locationToken.CharNumber
+			pos := locationToken.Where.Start()
 
 			if variable := v.parseVariableDecl(false); variable != nil {
 				if variable.Variable.Mutable {
 					v.err("Cannot specify `mut` keyword on struct member: `%s`", variable.Variable.Name)
 				}
 				structure.addVariableDecl(variable)
-				variable.setPos(filename, line, char)
+				variable.setPos(pos)
 				itemCount++
 			} else {
 				v.err("Invalid structure item in structure `%s`", structure.Name)
@@ -1019,11 +1018,11 @@ func (v *parser) parseTraitDecl() *TraitDecl {
 			}
 
 			locationToken := v.peek(0)
-			filename, line, char := locationToken.Filename, locationToken.LineNumber, locationToken.CharNumber
+			pos := locationToken.Where.Start()
 
 			if fn := v.parseFunctionDecl(); fn != nil {
 				trait.addFunctionDecl(fn)
-				fn.setPos(filename, line, char)
+				fn.setPos(pos)
 			} else {
 				v.err("Invalid function declaration in trait `%s`", trait.Name)
 			}
@@ -1132,11 +1131,11 @@ func (v *parser) parseImplDecl() *ImplDecl {
 			}
 
 			locationToken := v.peek(0)
-			filename, line, char := locationToken.Filename, locationToken.LineNumber, locationToken.CharNumber
+			pos := locationToken.Where.Start()
 
 			if fn := v.parseFunctionDecl(); fn != nil {
 				impl.Functions = append(impl.Functions, fn)
-				fn.setPos(filename, line, char)
+				fn.setPos(pos)
 			} else {
 				v.err("Invalid function in `impl`")
 			}
@@ -1212,15 +1211,15 @@ func (v *parser) parseExpr() Expr {
 	pri := v.parsePrimaryExpr()
 
 	locationToken := v.peek(0)
-	filename, line, char := locationToken.Filename, locationToken.LineNumber, locationToken.CharNumber
+	pos := locationToken.Where.Start()
 
 	if pri == nil {
 		return nil
 	}
-	pri.setPos(filename, line, char)
+	pri.setPos(pos)
 
 	if bin := v.parseBinaryOperator(0, pri); bin != nil {
-		bin.setPos(filename, line, char)
+		bin.setPos(pos)
 		return bin
 	}
 
@@ -1247,9 +1246,9 @@ func (v *parser) parseBinaryOperator(upperPrecedence int, lhand Expr) Expr {
 		v.consumeToken()
 
 		locationToken := v.peek(0)
-		filename, line, char := locationToken.Filename, locationToken.LineNumber, locationToken.CharNumber
+		pos := locationToken.Where.Start()
 		rhand := v.parsePrimaryExpr()
-		rhand.setPos(filename, line, char)
+		rhand.setPos(pos)
 
 		if rhand == nil {
 			return nil
@@ -1449,7 +1448,7 @@ func (v *parser) parseCallOrAccessExpr() Expr {
 
 	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "(") {
 		tok := v.peek(0)
-		log.Debugln("parser", "[%s:%d:%d] `%s` (type `%s`)", tok.Filename, tok.LineNumber, tok.CharNumber, tok.Contents, tok.Type)
+		log.Debugln("parser", "[%s:%d:%d] `%s` (type `%s`)", tok.Where.Filename, tok.Where.StartLine, tok.Where.StartChar, tok.Contents, tok.Type)
 		return functionSrc
 	}
 	v.consumeToken() // consume (
@@ -1540,13 +1539,13 @@ func (v *parser) parseAddressOfExpr() *AddressOfExpr {
 	v.consumeToken()
 
 	locationToken := v.peek(0)
-	filename, line, char := locationToken.Filename, locationToken.LineNumber, locationToken.CharNumber
+	pos := locationToken.Where.Start()
 
 	access := v.parseAccessExpr()
 	if access == nil {
 		v.err("Expected variable access after `&` operator, found `%s`", v.peek(0).Contents)
 	}
-	access.setPos(filename, line, char)
+	access.setPos(pos)
 
 	return &AddressOfExpr{
 		Access: access,

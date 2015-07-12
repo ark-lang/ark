@@ -2,6 +2,7 @@ package parser
 
 import (
 	"fmt"
+	"github.com/ark-lang/ark/src/lexer"
 	"strconv"
 
 	"github.com/ark-lang/ark/src/util"
@@ -9,8 +10,8 @@ import (
 
 //
 type Locatable interface {
-	Pos() (filename string, line, char int)
-	setPos(filename string, line, char int)
+	Pos() lexer.Position
+	setPos(pos lexer.Position)
 }
 
 type Node interface {
@@ -49,23 +50,20 @@ type Documentable interface {
 
 // an implementation of Locatable that is used for Nodes
 type nodePos struct {
-	filename               string
-	lineNumber, charNumber int
+	pos lexer.Position
 }
 
-func (v nodePos) Pos() (filename string, line, char int) {
-	return v.filename, v.lineNumber, v.charNumber
+func (v nodePos) Pos() lexer.Position {
+	return v.pos
 }
 
-func (v *nodePos) setPos(filename string, line, char int) {
-	v.filename = filename
-	v.lineNumber = line
-	v.charNumber = char
+func (v *nodePos) setPos(pos lexer.Position) {
+	v.pos = pos
 }
 
 type DocComment struct {
-	Contents           string
-	StartLine, EndLine int
+	Contents string
+	Where    lexer.Span
 }
 
 type Variable struct {
