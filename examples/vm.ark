@@ -6,14 +6,6 @@ ADD: s32 = 1;
 POP: s32 = 2;
 HLT: s32 = 3;
 
-program: []s32 = [
-    PSH, 5,
-    PSH, 6,
-    ADD,
-    POP,
-    HLT
-];
-
 struct VirtualMachine {
     running: bool,
     sp: s32,
