@@ -14,22 +14,21 @@ import (
 )
 
 type lexer struct {
-	input                      []rune
-	startPos, endPos           int
-	output                     []*Token
-	filename                   string
-	charNumber, lineNumber     int
-	tokStartChar, tokStartLine int
+	input            []rune
+	startPos, endPos int
+	output           []*Token
+	curPos           Position
+	tokStart         Position
 }
 
-func (v *lexer) errWithCustomPosition(ln, cn int, err string, stuff ...interface{}) {
+func (v *lexer) errWithCustomPosition(pos Position, err string, stuff ...interface{}) {
 	log.Error("lexer", util.TEXT_RED+util.TEXT_BOLD+"Lexer error:"+util.TEXT_RESET+" [%s:%d:%d] %s\n",
-		v.filename, ln, cn, fmt.Sprintf(err, stuff...))
+		pos.Filename, pos.Line, pos.Char, fmt.Sprintf(err, stuff...))
 	os.Exit(1)
 }
 
 func (v *lexer) err(err string, stuff ...interface{}) {
-	v.errWithCustomPosition(v.lineNumber, v.charNumber, err, stuff...)
+	v.errWithCustomPosition(v.curPos, err, stuff...)
 }
 
 func (v *lexer) peek(ahead int) rune {
@@ -44,10 +43,10 @@ func (v *lexer) peek(ahead int) rune {
 }
 
 func (v *lexer) consume() {
-	v.charNumber++
+	v.curPos.Char++
 	if v.peek(0) == '\n' {
-		v.charNumber = 1
-		v.lineNumber++
+		v.curPos.Char = 1
+		v.curPos.Line++
 	}
 
 	v.endPos++
@@ -64,8 +63,7 @@ func (v *lexer) expect(r rune) {
 func (v *lexer) discardBuffer() {
 	v.startPos = v.endPos
 
-	v.tokStartChar = v.charNumber
-	v.tokStartLine = v.lineNumber
+	v.tokStart = v.curPos
 }
 
 // debugging func
@@ -75,13 +73,9 @@ func (v *lexer) printBuffer() {
 
 func (v *lexer) pushToken(t TokenType) {
 	tok := &Token{
-		Type:          t,
-		Filename:      v.filename,
-		CharNumber:    v.tokStartChar,
-		LineNumber:    v.tokStartLine,
-		EndCharNumber: v.charNumber,
-		EndLineNumber: v.lineNumber,
-		Contents:      string(v.input[v.startPos:v.endPos]),
+		Type:     t,
+		Contents: string(v.input[v.startPos:v.endPos]),
+		Where:    NewSpan(v.tokStart, v.curPos),
 	}
 
 	v.output = append(v.output, tok)
@@ -93,14 +87,11 @@ func (v *lexer) pushToken(t TokenType) {
 
 func Lex(input []rune, filename string) []*Token {
 	v := &lexer{
-		input:        input,
-		startPos:     0,
-		endPos:       0,
-		filename:     filename,
-		charNumber:   1,
-		lineNumber:   1,
-		tokStartChar: 1,
-		tokStartLine: 1,
+		input:    input,
+		startPos: 0,
+		endPos:   0,
+		curPos:   Position{Filename: filename, Line: 1, Char: 1},
+		tokStart: Position{Filename: filename, Line: 1, Char: 1},
 	}
 
 	log.Verboseln("lexer", util.TEXT_BOLD+util.TEXT_GREEN+"Starting lexing "+util.TEXT_RESET+filename)
@@ -146,8 +137,7 @@ start:
 
 	v.discardBuffer()
 
-	lineNumber := v.lineNumber
-	charNumber := v.charNumber
+	pos := v.curPos
 
 	// Block comments
 	if v.peek(0) == '/' && v.peek(1) == '*' {
@@ -157,7 +147,7 @@ start:
 
 		for {
 			if isEOF(v.peek(0)) {
-				v.errWithCustomPosition(lineNumber, charNumber, "Unterminated block comment")
+				v.errWithCustomPosition(pos, "Unterminated block comment")
 			}
 			if v.peek(0) == '*' && v.peek(1) == '/' {
 				v.consume()
@@ -247,8 +237,7 @@ func (v *lexer) recognizeIdentifierToken() {
 }
 
 func (v *lexer) recognizeStringToken() {
-	lineNumber := v.lineNumber
-	charNumber := v.charNumber
+	pos := v.curPos
 
 	v.expect('"')
 
@@ -261,7 +250,7 @@ func (v *lexer) recognizeStringToken() {
 			v.pushToken(TOKEN_STRING)
 			return
 		} else if isEOF(v.peek(0)) {
-			v.errWithCustomPosition(lineNumber, charNumber, "Unterminated string literal")
+			v.errWithCustomPosition(pos, "Unterminated string literal")
 		} else {
 			v.consume()
 		}
@@ -269,8 +258,7 @@ func (v *lexer) recognizeStringToken() {
 }
 
 func (v *lexer) recognizeCharacterToken() {
-	lineNumber := v.lineNumber
-	charNumber := v.charNumber
+	pos := v.curPos
 
 	v.expect('\'')
 
@@ -287,7 +275,7 @@ func (v *lexer) recognizeCharacterToken() {
 			v.pushToken(TOKEN_RUNE)
 			return
 		} else if isEOF(v.peek(0)) {
-			v.errWithCustomPosition(lineNumber, charNumber, "Unterminated character literal")
+			v.errWithCustomPosition(pos, "Unterminated character literal")
 		} else {
 			v.consume()
 		}
