@@ -14,9 +14,8 @@ import (
 )
 
 type lexer struct {
-	input            []rune
+	input            *Sourcefile
 	startPos, endPos int
-	output           []*Token
 	curPos           Position
 	tokStart         Position
 }
@@ -36,10 +35,10 @@ func (v *lexer) peek(ahead int) rune {
 		panic(fmt.Sprintf("Tried to peek a negative number: %d", ahead))
 	}
 
-	if v.endPos+ahead >= len(v.input) {
+	if v.endPos+ahead >= len(v.input.Contents) {
 		return 0
 	}
-	return v.input[v.endPos+ahead]
+	return v.input.Contents[v.endPos+ahead]
 }
 
 func (v *lexer) consume() {
@@ -47,6 +46,7 @@ func (v *lexer) consume() {
 	if v.peek(0) == '\n' {
 		v.curPos.Char = 1
 		v.curPos.Line++
+		v.input.NewLines = append(v.input.NewLines, v.endPos)
 	}
 
 	v.endPos++
@@ -68,39 +68,39 @@ func (v *lexer) discardBuffer() {
 
 // debugging func
 func (v *lexer) printBuffer() {
-	log.Debug("lexer", "[%d:%d] `%s`\n", v.startPos, v.endPos, string(v.input[v.startPos:v.endPos]))
+	log.Debug("lexer", "[%d:%d] `%s`\n", v.startPos, v.endPos, string(v.input.Contents[v.startPos:v.endPos]))
 }
 
 func (v *lexer) pushToken(t TokenType) {
 	tok := &Token{
 		Type:     t,
-		Contents: string(v.input[v.startPos:v.endPos]),
+		Contents: string(v.input.Contents[v.startPos:v.endPos]),
 		Where:    NewSpan(v.tokStart, v.curPos),
 	}
 
-	v.output = append(v.output, tok)
+	v.input.Tokens = append(v.input.Tokens, tok)
 
 	log.Verbose("lexer", "[%4d:%4d:%-17s] `%s`\n", v.startPos, v.endPos, tok.Type, tok.Contents)
 
 	v.discardBuffer()
 }
 
-func Lex(input []rune, filename string) []*Token {
+func Lex(input *Sourcefile) []*Token {
 	v := &lexer{
 		input:    input,
 		startPos: 0,
 		endPos:   0,
-		curPos:   Position{Filename: filename, Line: 1, Char: 1},
-		tokStart: Position{Filename: filename, Line: 1, Char: 1},
+		curPos:   Position{Filename: input.Name, Line: 1, Char: 1},
+		tokStart: Position{Filename: input.Name, Line: 1, Char: 1},
 	}
 
-	log.Verboseln("lexer", util.TEXT_BOLD+util.TEXT_GREEN+"Starting lexing "+util.TEXT_RESET+filename)
+	log.Verboseln("lexer", util.TEXT_BOLD+util.TEXT_GREEN+"Starting lexing "+util.TEXT_RESET+input.Name)
 	t := time.Now()
 	v.lex()
 	dur := time.Since(t)
 	log.Verbose("lexer", util.TEXT_BOLD+util.TEXT_GREEN+"Finished lexing"+util.TEXT_RESET+" %s (%.2fms)\n",
-		filename, float32(dur)/1000000)
-	return v.output
+		input.Name, float32(dur)/1000000)
+	return v.input.Tokens
 }
 
 func (v *lexer) lex() {
@@ -108,6 +108,7 @@ func (v *lexer) lex() {
 		v.skipLayoutAndComments()
 
 		if isEOF(v.peek(0)) {
+			v.input.NewLines = append(v.input.NewLines, v.endPos)
 			return
 		}
 

@@ -10,6 +10,7 @@ type Sourcefile struct {
 	Path     string
 	Name     string
 	Contents []rune
+	NewLines []int
 	Tokens   []*Token
 }
 
@@ -23,6 +24,8 @@ func NewSourcefile(filepath string) (*Sourcefile, error) {
 	name := filepath[i:j]
 
 	sf := &Sourcefile{Name: name, Path: filepath}
+	sf.NewLines = append(sf.NewLines, -1)
+	sf.NewLines = append(sf.NewLines, -1)
 
 	contents, err := ioutil.ReadFile(sf.Path)
 	if err != nil {
@@ -31,4 +34,8 @@ func NewSourcefile(filepath string) (*Sourcefile, error) {
 
 	sf.Contents = []rune(string(contents))
 	return sf, nil
+}
+
+func (s *Sourcefile) GetLine(line int) string {
+	return string(s.Contents[s.NewLines[line]+1 : s.NewLines[line+1]])
 }
