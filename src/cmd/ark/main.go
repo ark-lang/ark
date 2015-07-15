@@ -73,31 +73,6 @@ func setupErr(err string, stuff ...interface{}) {
 }
 
 func parseFiles(files []string) ([]*parser.Module, map[string]*parser.Module) {
-	sourcefiles := make([]*lexer.Sourcefile, 0)
-
-	for _, file := range files {
-		input, err := lexer.NewSourcefile(file)
-		if err != nil {
-			setupErr("%s", err.Error())
-		}
-		sourcefiles = append(sourcefiles, input)
-	}
-
-	for _, file := range sourcefiles {
-		file.Tokens = lexer.Lex(file.Contents, file.Name)
-	}
-
-	parsedFiles := make([]*parser.Module, 0)
-	modules := make(map[string]*parser.Module, 0)
-
-	for _, file := range sourcefiles {
-		parsedFiles = append(parsedFiles, parser.Parse(file, modules))
-	}
-
-	return parsedFiles, modules
-}
-
-func build(files []string, outputFile string, cg string, ccArgs []string, outputType LLVMCodegen.OutputType) {
 	// read source files
 	var sourcefiles []*lexer.Sourcefile
 
@@ -114,19 +89,32 @@ func build(files []string, outputFile string, cg string, ccArgs []string, output
 	// lexing
 	timed("lexing phase", func() {
 		for _, file := range sourcefiles {
-			file.Tokens = lexer.Lex(file.Contents, file.Name)
+			file.Tokens = lexer.Lex(file)
 		}
 	})
 
 	// parsing
-	var parsedFiles []*parser.Module
-	modules := make(map[string]*parser.Module)
-
+	var parsedFiles []*parser.ParseTree
 	timed("parsing phase", func() {
 		for _, file := range sourcefiles {
-			parsedFiles = append(parsedFiles, parser.Parse(file, modules))
+			parsedFiles = append(parsedFiles, parser.Parse(file))
 		}
 	})
+
+	// construction
+	var constructedModules []*parser.Module
+	modules := make(map[string]*parser.Module)
+	timed("construction phase", func() {
+		for _, file := range parsedFiles {
+			constructedModules = append(constructedModules, parser.Construct(file, modules))
+		}
+	})
+
+	return constructedModules, modules
+}
+
+func build(files []string, outputFile string, cg string, ccArgs []string, outputType LLVMCodegen.OutputType) {
+	constructedModules, modules := parseFiles(files)
 
 	// resolve
 	timed("resolve phase", func() {
@@ -163,7 +151,7 @@ func build(files []string, outputFile string, cg string, ccArgs []string, output
 		}
 
 		timed("codegen phase", func() {
-			gen.Generate(parsedFiles, modules)
+			gen.Generate(constructedModules, modules)
 		})
 	}
 
@@ -188,10 +176,10 @@ func run(output string) {
 }
 
 func docgen(input []string, dir string) {
-	files, _ := parseFiles(input)
+	constructedModules, _ := parseFiles(input)
 
 	gen := &doc.Docgen{
-		Input: files,
+		Input: constructedModules,
 		Dir:   dir,
 	}
 
