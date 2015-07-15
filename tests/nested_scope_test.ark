@@ -3,10 +3,10 @@
 func main(): int {
     mut x: int = 5;
 
-    do {
+    {
         mut x: f32 = 4.321;
 
-        do {
+        {
             mut x: str = "foo";
             C::printf("x = %s\n", x);
         }

@@ -18,22 +18,89 @@ import (
 )
 
 type parser struct {
-	module       *Module
-	input        []*lexer.Token
+	input        *lexer.Sourcefile
 	currentToken int
+	tree         *ParseTree
 
-	modules           map[string]*Module
-	currentModule     *Module
-	scope             *Scope
 	binOpPrecedences  map[BinOpType]int
-	attrs             AttrGroup
 	curNodeTokenStart int
-	docCommentsBuf    []*DocComment
+}
+
+func Parse(input *lexer.Sourcefile) *ParseTree {
+	p := &parser{
+		input:            input,
+		binOpPrecedences: newBinOpPrecedenceMap(),
+		tree:             &ParseTree{Source: input},
+	}
+
+	log.Verboseln("parser", util.TEXT_BOLD+util.TEXT_GREEN+"Started parsing "+util.TEXT_RESET+input.Name)
+	t := time.Now()
+
+	p.parse()
+
+	dur := time.Since(t)
+	log.Verbose("parser", util.TEXT_BOLD+util.TEXT_GREEN+"Finished parsing"+util.TEXT_RESET+" %s (%.2fms)\n",
+		input.Name, float32(dur.Nanoseconds())/1000000)
+
+	return p.tree
 }
 
 func (v *parser) err(err string, stuff ...interface{}) {
-	log.Error("parser", util.TEXT_RED+util.TEXT_BOLD+"Parser error:"+util.TEXT_RESET+" [%s:%d:%d] %s\n",
-		v.peek(0).Where.Filename, v.peek(0).Where.StartLine, v.peek(0).Where.StartChar, fmt.Sprintf(err, stuff...))
+	v.errPos(err, stuff...)
+}
+
+func (v *parser) errToken(err string, stuff ...interface{}) {
+	v.errTokenSpecific(v.peek(0), err, stuff...)
+}
+
+func (v *parser) errPos(err string, stuff ...interface{}) {
+	v.errPosSpecific(v.peek(0).Where.Start(), err, stuff...)
+}
+
+func (v *parser) errTokenSpecific(tok *lexer.Token, err string, stuff ...interface{}) {
+	log.Errorln("parser", util.TEXT_RED+util.TEXT_BOLD+"Parser error:"+util.TEXT_RESET)
+
+	for line := tok.Where.Start().Line; line <= tok.Where.End().Line; line++ {
+		lineString := v.input.GetLine(line)
+
+		var pad int
+		if line == tok.Where.Start().Line {
+			pad = tok.Where.Start().Char - 1
+		} else {
+			pad = 0
+		}
+
+		var length int
+		if line == tok.Where.End().Line {
+			length = tok.Where.End().Char
+		} else {
+			length = len([]rune(lineString))
+		}
+
+		log.Errorln("parser", strings.Replace(lineString, "%", "%%", -1))
+		log.Error("parser", strings.Repeat(" ", pad))
+		log.Errorln("parser", strings.Repeat("^", length))
+	}
+
+	log.Errorln("parser", "[%s:%d:%d] %s",
+		tok.Where.Filename, tok.Where.StartLine, tok.Where.StartChar,
+		fmt.Sprintf(err, stuff...))
+	os.Exit(util.EXIT_FAILURE_PARSE)
+}
+
+func (v *parser) errPosSpecific(pos lexer.Position, err string, stuff ...interface{}) {
+	log.Errorln("parser", util.TEXT_RED+util.TEXT_BOLD+"Parser error:"+util.TEXT_RESET)
+
+	line := v.input.GetLine(pos.Line)
+	pad := pos.Char - 1
+
+	log.Errorln("parser", strings.Replace(line, "%", "%%", -1))
+	log.Error("parser", strings.Repeat(" ", pad))
+	log.Errorln("parser", "^")
+
+	log.Errorln("parser", "[%s:%d:%d] %s",
+		pos.Filename, pos.Line, pos.Char,
+		fmt.Sprintf(err, stuff...))
 	os.Exit(util.EXIT_FAILURE_PARSE)
 }
 
@@ -42,11 +109,11 @@ func (v *parser) peek(ahead int) *lexer.Token {
 		panic(fmt.Sprintf("Tried to peek a negative number: %d", ahead))
 	}
 
-	if v.currentToken+ahead >= len(v.input) {
+	if v.currentToken+ahead >= len(v.input.Tokens) {
 		return nil
 	}
 
-	return v.input[v.currentToken+ahead]
+	return v.input.Tokens[v.currentToken+ahead]
 }
 
 func (v *parser) consumeToken() *lexer.Token {
@@ -59,33 +126,6 @@ func (v *parser) consumeTokens(num int) {
 	for i := 0; i < num; i++ {
 		v.consumeToken()
 	}
-}
-
-func (v *parser) pushNode(node Node) {
-	v.module.Nodes = append(v.module.Nodes, node)
-}
-
-func (v *parser) pushScope() {
-	v.scope = newScope(v.scope)
-}
-
-func (v *parser) popScope() {
-	v.scope = v.scope.Outer
-	if v.scope == nil {
-		panic("popped too many scopes")
-	}
-}
-
-func (v *parser) fetchAttrs() AttrGroup {
-	ret := v.attrs
-	v.attrs = nil
-	return ret
-}
-
-func (v *parser) fetchDocComments() []*DocComment {
-	ret := v.docCommentsBuf
-	v.docCommentsBuf = nil
-	return ret
 }
 
 func (v *parser) tokenMatches(ahead int, t lexer.TokenType, contents string) bool {
@@ -113,1120 +153,1034 @@ func (v *parser) getPrecedence(op BinOpType) int {
 	return -1
 }
 
-func Parse(input *lexer.Sourcefile, modules map[string]*Module) *Module {
-	p := &parser{
-		module: &Module{
-			Nodes: make([]Node, 0),
-			Path:  input.Path,
-			Name:  input.Name,
-		},
-		input:            input.Tokens,
-		scope:            NewGlobalScope(),
-		binOpPrecedences: newBinOpPrecedenceMap(),
-	}
-	p.module.GlobalScope = p.scope
-	p.modules = modules
-	modules[input.Name] = p.module
-	p.currentModule = p.module
-
-	// add a C module here which will contain
-	// all of the c bindings and what not to
-	// keep everything separate
-	cModule := &Module{
-		Nodes:       make([]Node, 0),
-		Path:        "", // not really a path for this module
-		Name:        "C",
-		GlobalScope: NewGlobalScope(),
-	}
-	p.module.GlobalScope.UsedModules["C"] = cModule
-
-	log.Verboseln("parser", util.TEXT_BOLD+util.TEXT_GREEN+"Started parsing "+util.TEXT_RESET+input.Name)
-	t := time.Now()
-
-	p.parse()
-
-	dur := time.Since(t)
-	// TODO: This can not run before semantic analysis due to nil-pointer dereferences in String()
-	// for _, n := range p.module.Nodes {
-	// 	fmt.Println(n.String())
-	// }
-
-	log.Verbose("parser", util.TEXT_BOLD+util.TEXT_GREEN+"Finished parsing"+util.TEXT_RESET+" %s (%.2fms)\n",
-		input.Name, float32(dur.Nanoseconds())/1000000)
-
-	return p.module
+func (v *parser) nextIs(typ lexer.TokenType) bool {
+	return v.peek(0).Type == typ
 }
 
 func (v *parser) parse() {
 	for v.peek(0) != nil {
 		if n := v.parseNode(); n != nil {
-			v.pushNode(n)
+			v.tree.AddNode(n)
 		} else {
 			panic("what's this over here?")
 		}
 	}
 }
 
-// reads an identifier, with module access, without consuming it
-// returns the name and the number of tokens it takes up
-func (v *parser) peekName() (unresolvedName, int) {
-	var name unresolvedName
+func (v *parser) parseNode() ParseNode {
+	var ret ParseNode
 
-	numTok := 0
-
-	for {
-		if v.tokenMatches(numTok, lexer.TOKEN_IDENTIFIER, "") {
-			ident := v.peek(numTok).Contents
-			numTok++
-			if v.tokenMatches(numTok, lexer.TOKEN_OPERATOR, "::") {
-				numTok++
-				name.moduleNames = append(name.moduleNames, ident)
-			} else {
-				name.name = ident
-				return name, numTok
-			}
-		} else {
-			return unresolvedName{}, 0
-		}
-	}
-}
-
-func (v *parser) parseDocComment() *DocComment {
-	if !v.tokenMatches(0, lexer.TOKEN_DOCCOMMENT, "") {
-		return nil
-	}
-	tok := v.consumeToken()
-	doc := &DocComment{
-		Where: tok.Where,
-	}
-
-	if strings.HasPrefix(tok.Contents, "/**") {
-		doc.Contents = tok.Contents[3 : len(tok.Contents)-2]
-	} else if strings.HasPrefix(tok.Contents, "///") {
-		doc.Contents = tok.Contents[3:]
-	} else {
-		panic(fmt.Sprintf("How did this doccomment get through the lexer??\n`%s`", tok.Contents))
-	}
-
-	return doc
-}
-
-func (v *parser) parseNode() Node {
-	v.docCommentsBuf = make([]*DocComment, 0)
-	for v.tokenMatches(0, lexer.TOKEN_DOCCOMMENT, "") {
-		v.docCommentsBuf = append(v.docCommentsBuf, v.parseDocComment())
-	}
-
-	// this is a little dirty, but allows for attribute block without reflection (part 1 / 2)
-	if v.attrs == nil {
-		v.attrs = v.parseAttrs()
-	} else {
-		v.attrs.Extend(v.parseAttrs())
-	}
-
-	var ret Node
 	if decl := v.parseDecl(); decl != nil {
 		ret = decl
 	} else if stat := v.parseStat(); stat != nil {
 		ret = stat
 	}
 
-	if ret != nil {
-		if len(v.attrs) > 0 {
-			v.err("%s does not accept attributes", util.CapitalizeFirst(ret.NodeName()))
-		}
-		if len(v.docCommentsBuf) > 0 {
-			v.err("%s does not accept documentation comments", util.CapitalizeFirst(ret.NodeName())) // TODO fix for func decls
-		}
-		return ret
-	}
-
-	return nil
-}
-
-func (v *parser) parseStat() Stat {
-	var ret Stat
-	locationToken := v.peek(0)
-	pos := locationToken.Where.Start()
-
-	if deferStat := v.parseDeferStat(); deferStat != nil {
-		ret = deferStat
-	} else if ifStat := v.parseIfStat(); ifStat != nil {
-		ret = ifStat
-	} else if matchStat := v.parseMatchStat(); matchStat != nil {
-		ret = matchStat
-	} else if loopStat := v.parseLoopStat(); loopStat != nil {
-		ret = loopStat
-	} else if returnStat := v.parseReturnStat(); returnStat != nil {
-		ret = returnStat
-	} else if blockStat := v.parseBlockStat(); blockStat != nil {
-		ret = blockStat
-	} else if callStat := v.parseCallStat(); callStat != nil {
-		ret = callStat
-	} else if assignStat := v.parseAssignStat(); assignStat != nil {
-		ret = assignStat
-	} else {
-		return nil
-	}
-
-	ret.setPos(pos)
 	return ret
 }
 
-func (v *parser) parseAssignStat() *AssignStat {
-	for i := 0; true; i++ {
-		if v.peek(i) == nil || v.tokenMatches(i, lexer.TOKEN_SEPARATOR, ";") {
-			return nil
-		} else if v.tokenMatches(i, lexer.TOKEN_OPERATOR, "=") {
-			break
+func (v *parser) parseDocComments() []*DocComment {
+	var dcs []*DocComment
+
+	for v.nextIs(lexer.TOKEN_DOCCOMMENT) {
+		tok := v.consumeToken()
+
+		var contents string
+		if strings.HasPrefix(tok.Contents, "/**") {
+			contents = tok.Contents[3 : len(tok.Contents)-2]
+		} else if strings.HasPrefix(tok.Contents, "///") {
+			contents = tok.Contents[3:]
+		} else {
+			panic(fmt.Sprintf("How did this doccomment get through the lexer??\n`%s`", tok.Contents))
 		}
+
+		dcs = append(dcs, &DocComment{Where: tok.Where, Contents: contents})
 	}
 
-	assign := &AssignStat{}
-
-	locationToken := v.peek(0)
-	pos := locationToken.Where.Start()
-
-	if access := v.parseAccessExpr(); access != nil {
-		access.setPos(pos)
-		assign.Access = access
-	} else {
-		v.err("Malformed assignment statement")
-	}
-
-	if !v.tokenMatches(0, lexer.TOKEN_OPERATOR, "=") {
-		v.err("Expected `=`, found `%s`", v.peek(0).Contents)
-	}
-	v.consumeToken()
-
-	if expr := v.parseExpr(); expr != nil {
-		assign.Assignment = expr
-	} else {
-		v.err("Expected expression in variable assignment, found `%s`", v.peek(0).Contents)
-	}
-
-	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ";") {
-		v.err("Expected semicolon after assignment statement, found `%s`", v.peek(0).Contents)
-	}
-	v.consumeToken()
-
-	return assign
-
+	return dcs
 }
 
-func (v *parser) parseBlockStat() *BlockStat {
-	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_DO) && !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "{") {
+func (v *parser) parseAttributes() AttrGroup {
+	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "[") {
 		return nil
 	}
+	attrs := make(AttrGroup)
 
-	// messy but fuck it
-	hasDo := false
-	if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_DO) {
+	for v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "[") {
 		v.consumeToken()
-		hasDo = true
-	}
+		for {
+			attr := &Attr{}
 
-	var blockStat *BlockStat
-	if block := v.parseBlock(true); block != nil {
-		blockStat = &BlockStat{Block: block}
-	} else if hasDo {
-		v.err("Expected block after `%d` keyword, found `%s`", KEYWORD_DO, v.peek(0).Contents)
-	} else {
-		v.err("Expected block, found `%s`", v.peek(0).Contents)
-	}
-
-	return blockStat
-}
-
-func (v *parser) parseCallStat() *CallStat {
-	locationToken := v.peek(0)
-	pos := locationToken.Where.Start()
-	if call := v.parseCallExpr(); call != nil {
-		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ";") {
-			v.consumeToken()
-			call.setPos(pos)
-			return &CallStat{Call: call}
-		}
-		v.err("Expected semicolon after function call statement, found `%s`", v.peek(0).Contents)
-	}
-	return nil
-}
-
-func (v *parser) parseDeferStat() *DeferStat {
-	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_DEFER) {
-		return nil
-	}
-	v.consumeToken()
-
-	locationToken := v.peek(0)
-	pos := locationToken.Where.Start()
-	if call := v.parseCallExpr(); call != nil {
-		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ";") {
-			v.consumeToken()
-			call.setPos(pos)
-			return &DeferStat{Call: call}
-		}
-		v.err("Expected semicolon after defer statement, found `%s`", v.peek(0).Contents)
-	} else {
-		v.err("Expected function call, found `%s`", v.peek(0).Contents)
-	}
-
-	return nil
-}
-
-func (v *parser) moduleInUse(name string) bool {
-	if _, ok := v.modules[name]; ok {
-		if v.scope.Outer != nil {
-			if _, ok := v.scope.Outer.UsedModules[name]; ok {
-				return true
+			if !v.nextIs(lexer.TOKEN_IDENTIFIER) {
+				v.err("Expected attribute name, got `%s`", v.peek(0).Contents)
 			}
-		} else {
-			if _, ok := v.scope.UsedModules[name]; ok {
-				return true
+			keyToken := v.consumeToken()
+			attr.setPos(keyToken.Where.Start())
+			attr.Key = keyToken.Contents
+
+			if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "=") {
+				v.consumeToken()
+
+				if !v.nextIs(lexer.TOKEN_STRING) {
+					v.err("Expected attribute value, got `%s`", v.peek(0).Contents)
+				}
+				attr.Value = v.consumeToken().Contents
 			}
-		}
-	}
-	return false
-}
 
-func (v *parser) useModule(name string) {
-	// check if the module exists in the modules that are
-	// parsed to avoid any weird errors
-	if moduleToUse, ok := v.modules[name]; ok {
-		if v.scope.Outer != nil {
-			v.scope.Outer.UsedModules[name] = moduleToUse
-		} else {
-			v.scope.UsedModules[name] = moduleToUse
-		}
-	}
-}
-
-func (v *parser) parseUseDecl() Decl {
-	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_USE) {
-		return nil
-	}
-
-	// consume use, since we know it's
-	// already there due to the previous check
-	v.consumeToken()
-
-	var useDecl *UseDecl
-
-	if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, "") {
-		moduleName := v.consumeToken().Contents
-		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ";") {
-			v.consumeToken()
-			useDecl = &UseDecl{ModuleName: moduleName, Scope: v.scope}
-		} else {
-			v.err("Expected semicolon after use declaration, found `%s`", v.peek(0).Contents)
-		}
-	}
-
-	v.useModule(useDecl.ModuleName)
-	return useDecl
-
-	/*v.err("attempting to use undefined module `%s`", useDecl.ModuleName)
-	return nil*/ // TODO?
-}
-
-func (v *parser) parseDecl() Decl {
-	var ret Decl
-
-	locationToken := v.peek(0)
-	pos := locationToken.Where.Start()
-
-	if structureDecl := v.parseStructDecl(); structureDecl != nil {
-		ret = structureDecl
-	} else if useDecl := v.parseUseDecl(); useDecl != nil {
-		ret = useDecl
-	} else if traitDecl := v.parseTraitDecl(); traitDecl != nil {
-		ret = traitDecl
-	} else if implDecl := v.parseImplDecl(); implDecl != nil {
-		ret = implDecl
-	} else if moduleDecl := v.parseModuleDecl(); moduleDecl != nil {
-		ret = moduleDecl
-	} else if functionDecl := v.parseFunctionDecl(); functionDecl != nil {
-		ret = functionDecl
-	} else if enumDecl := v.parseEnumDecl(); enumDecl != nil {
-		ret = enumDecl
-	} else if variableDecl := v.parseVariableDecl(true); variableDecl != nil {
-		ret = variableDecl
-	} else {
-		return nil
-	}
-
-	ret.setPos(pos)
-
-	return ret
-}
-
-func (v *parser) parseType() Type {
-	if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "^") {
-		v.consumeToken()
-		if innerType := v.parseType(); innerType != nil {
-			return pointerTo(innerType)
-		} else {
-			v.err("Standalone `^` is not a valid type")
-		}
-	} else if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "(") {
-		v.consumeToken()
-
-		innerType := v.parseType()
-		if innerType == nil {
-			v.err("Expected at least one type in tuple")
-		}
-
-		var members []Type
-		for innerType != nil {
-			members = append(members, innerType)
+			if attrs.Set(attr.Key, attr) {
+				// TODO: I feel kinda dirty having this here
+				v.err("Duplicate attribute `%s`", attr.Key)
+			}
 
 			if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ",") {
 				break
 			}
-
 			v.consumeToken()
-			innerType = v.parseType()
-			if innerType == nil {
-				v.err("Expected type, found `%s`", v.peek(0))
-			}
 		}
-
-		if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ")") {
-			v.err("Expected closing parens, found `%s`", v.peek(0).Contents)
-		}
-		v.consumeToken()
-
-		return tupleOf(members...)
-	} else if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "[") {
-		v.consumeToken()
 
 		if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "]") {
-			v.err("Expected closing bracket, found `%s`", v.peek(0).Contents)
+			v.err("Expected closing `]` after attribute, got `%s`", v.peek(0).Contents)
 		}
 		v.consumeToken()
-
-		innerType := v.parseType()
-		if innerType == nil {
-			v.err("Expected type, found `%s`", v.peek(0))
-		}
-
-		return arrayOf(innerType)
-	} else if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, "") {
-		return &UnresolvedType{Name: v.consumeToken().Contents}
 	}
 
-	v.err("Expected type, found `%s`", v.peek(0).Contents)
-	return nil
+	return attrs
 }
 
-func (v *parser) parseFunctionDecl() *FunctionDecl {
-	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_FUNC) {
+func (v *parser) parseName() *NameNode {
+	if !v.nextIs(lexer.TOKEN_IDENTIFIER) {
 		return nil
 	}
 
-	function := &Function{Attrs: v.fetchAttrs()}
-
-	v.consumeToken()
-
-	// name
-	if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, "") {
-		function.Name = v.consumeToken().Contents
-	} else {
-		v.err("Function expected an identifier")
-	}
-
-	if isReservedKeyword(function.Name) {
-		v.err("Cannot name function reserved keyword `%s`", function.Name)
-	}
-
-	scopeToInsertTo := v.scope
-	if function.Attrs.Contains("c") {
-		if mod, ok := v.currentModule.GlobalScope.UsedModules["C"]; ok {
-			scopeToInsertTo = mod.GlobalScope
-		} else {
-			v.err("Could not find C module to insert C binding into")
-		}
-	}
-
-	if vname := scopeToInsertTo.InsertFunction(function); vname != nil {
-		v.err("Illegal redeclaration of function `%s`", function.Name)
-	}
-
-	funcDecl := &FunctionDecl{
-		Function: function,
-		docs:     v.fetchDocComments(),
-	}
-
-	// Arguments
-	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "(") {
-		v.err("Expected `(` after function identifier, found `%s`", v.peek(0).Contents)
-	}
-	v.consumeToken()
-
-	v.pushScope()
-
-	function.Parameters = make([]*VariableDecl, 0)
-	if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ")") {
-		v.consumeToken()
-	} else {
-		for {
-
-			// either I'm just really sleep deprived,
-			// or this is the best way to do this?
-			//
-			// this parses the ellipse for variable
-			// function arguments, it will check for
-			// a . and then consume the other 2, it's
-			// kind of a weird way to do this and it
-			// should probably be lexed as an entire token
-			if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ".") {
-				weird_counter := 0
-				for i := 0; i < 2; i++ {
-					if v.tokenMatches(i, lexer.TOKEN_SEPARATOR, ".") {
-						v.consumeToken()
-						weird_counter = weird_counter + i + 1
-					}
-				}
-				if weird_counter == 3 {
-					v.consumeToken() // last .
-					function.IsVariadic = true
-				}
-			} else if decl := v.parseVariableDecl(false); decl != nil {
-				if decl.Assignment != nil {
-					v.err("Assignment in function parameter `%s`", decl.Variable.Name)
-				}
-
-				function.Parameters = append(function.Parameters, decl)
-			} else {
-				v.err("Expected function parameter, found `%s`", v.peek(0).Contents)
-			}
-
-			if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ")") {
-				v.consumeToken()
-				break
-			} else if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ",") {
-				v.consumeToken()
-			} else {
-				v.err("Expected `)` or `,` after function parameter, found `%s`", v.peek(0).Contents)
-			}
-		}
-	}
-
-	// return type
-	if v.tokenMatches(0, lexer.TOKEN_OPERATOR, ":") {
-		v.consumeToken()
-
-		// mutable return type
-		if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_MUT) {
-			v.consumeToken()
-			function.Mutable = true
-		}
-
-		if function.ReturnType = v.parseType(); function.ReturnType == nil {
-			v.err("Invalid function return type after colon for function `%s`", function.Name)
-		}
-	}
-
-	if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ";") {
-		v.consumeToken()
-		funcDecl.Prototype = true
-	}
-
-	// block
-	if block := v.parseBlock(false); block != nil {
-		if funcDecl.Prototype {
-			v.err("Function prototype cannot have a block")
-		}
-		funcDecl.Function.Body = block
-	} else if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "->") && !funcDecl.Prototype {
-		v.consumeToken()
-
-		v.pushScope()
-		funcDecl.Function.Body = &Block{scope: v.scope}
-		if stat := v.parseStat(); stat != nil {
-			funcDecl.Function.Body.appendNode(stat)
-		} else {
-			// messy...
-			// parses the expression appends the node to
-			// a fake "body", then checks for a semi colon
-			if expr := v.parseExpr(); expr != nil {
-				funcDecl.Function.Body.appendNode(&ReturnStat{Value: expr})
-				if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ";") {
-					v.consumeToken()
-				} else {
-					v.err("Expected semi-colon at the end of single line function `%s`", funcDecl.Function.Name)
-				}
-			} else {
-				v.err("Single line function `%s` expects a statement or an expression, found `%s`", funcDecl.Function.Name, v.peek(0).Contents)
-			}
-
-		}
-
-		v.popScope()
-	} else if !funcDecl.Prototype {
-		v.err("Expecting block or semi-colon (prototype) after function signature")
-	}
-
-	v.popScope()
-
-	return funcDecl
-}
-
-func (v *parser) parseBlock(pushNewScope bool) *Block {
-	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "{") {
-		return nil
-	}
-
-	v.consumeToken()
-
-	if pushNewScope {
-		v.pushScope()
-	}
-
-	block := &Block{scope: v.scope}
-	attrs := v.fetchAttrs()
-	for _, attr := range attrs {
-		attr.FromBlock = true
-	}
-
+	var parts []LocatedString
 	for {
-		for v.tokenMatches(0, lexer.TOKEN_DOCCOMMENT, "") {
-			v.consumeToken() // TODO error here?
+		if !v.nextIs(lexer.TOKEN_IDENTIFIER) {
+			v.err("Expected identifier after `::` in name, got `%s`", v.peek(0).Contents)
 		}
-		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "}") {
-			v.consumeToken()
+
+		part := NewLocatedString(v.consumeToken())
+		if isReservedKeyword(part.Value) {
+			v.err("Cannot use reserved keyword `%s` as name", part.Value)
+		}
+		parts = append(parts, part)
+
+		if !v.tokenMatches(0, lexer.TOKEN_OPERATOR, "::") {
 			break
 		}
-
-		// this is a little dirty, but allows for attribute block without reflection (part 2 / 2)
-		v.attrs = attrs
-		if s := v.parseNode(); s != nil {
-			block.appendNode(s)
-		} else {
-			v.err("Expected statement, found something else")
-		}
-	}
-
-	if pushNewScope {
-		v.popScope()
-	}
-	return block
-}
-
-func (v *parser) parseReturnStat() *ReturnStat {
-	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_RETURN) {
-		return nil
-	}
-
-	v.consumeToken()
-
-	if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ";") {
 		v.consumeToken()
-		return &ReturnStat{}
 	}
 
-	expr := v.parseExpr()
-	if expr == nil {
-		v.err("Expected expression in return statement, found `%s`", v.peek(0).Contents)
-	}
-
-	// same here, you wouldn't have to do this
-	// if every statement parsed a ";" at the end??
-	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ";") {
-		v.err("Expected semicolon after return statement, found `%s`", v.peek(0).Contents)
-	}
-	v.consumeToken()
-	return &ReturnStat{Value: expr}
-}
-
-func (v *parser) parseIfStat() *IfStat {
-	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_IF) {
-		return nil
-	}
-	v.consumeToken()
-
-	ifStat := &IfStat{
-		Exprs:  make([]Expr, 0),
-		Bodies: make([]*Block, 0),
-	}
-
-	for {
-		expr := v.parseExpr()
-		if expr == nil {
-			v.err("Expected expression for if condition, found `%s`", v.peek(0).Contents)
-		}
-		ifStat.Exprs = append(ifStat.Exprs, expr)
-
-		body := v.parseBlock(true)
-		if body == nil {
-			v.err("Expected body after if condition, found `%s`", v.peek(0).Contents)
-		}
-		ifStat.Bodies = append(ifStat.Bodies, body)
-
-		if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_ELSE) {
-			v.consumeToken()
-			if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_IF) {
-				v.consumeToken()
-				continue
-			} else {
-				body := v.parseBlock(true)
-				if body == nil {
-					v.err("Expected else body, found `%s`", v.peek(0).Contents)
-				}
-				ifStat.Else = body
-				return ifStat
-			}
-		} else {
-			return ifStat
-		}
-	}
-}
-
-func (v *parser) parseMatchStat() *MatchStat {
-	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_MATCH) {
-		return nil
-	}
-	v.consumeToken()
-
-	match := newMatch()
-
-	if target := v.parseExpr(); target != nil {
-		match.Target = target
+	name, parts := parts[len(parts)-1], parts[:len(parts)-1]
+	res := &NameNode{Modules: parts, Name: name}
+	if len(parts) > 0 {
+		res.SetWhere(lexer.NewSpan(parts[0].Where.Start(), name.Where.End()))
 	} else {
-		v.err("Expected match target, found `%s`", v.peek(0).Contents)
+		res.SetWhere(name.Where)
 	}
-
-	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "{") {
-		v.err("Expected body after match target, found `%s`", v.peek(0).Contents)
-	}
-	v.consumeToken()
-
-	var parsedDefaultMatch bool
-	for {
-		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "}") {
-			v.consumeToken()
-			break
-		}
-
-		// a "pattern" is currently either the default branch "_" or an expression
-		var pattern Expr
-		if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, "_") {
-			v.consumeToken()
-			if parsedDefaultMatch {
-				v.err("Duplicate \"default\" branch in match statement")
-			}
-			pattern = &DefaultMatchBranch{}
-			parsedDefaultMatch = true
-		} else if pattern = v.parseExpr(); pattern == nil {
-			v.err("Expected pattern in match body, found `%s`", v.peek(0).Contents)
-		}
-
-		if !v.tokenMatches(0, lexer.TOKEN_OPERATOR, "->") {
-			v.err("Expected \"->\" between pattern and statement "+
-				"in match body, found `%s`", v.peek(0).Contents)
-		}
-		v.consumeToken() // consume "->"
-
-		v.pushScope()
-		var stmt Stat
-		if stmt = v.parseStat(); stmt == nil {
-			v.err("Expected statement or block in match body, "+
-				"found `%s`", v.peek(0).Contents)
-		}
-		v.popScope()
-
-		match.Branches[pattern] = stmt
-	}
-
-	return match
+	return res
 }
 
-func (v *parser) parseLoopStat() *LoopStat {
-	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_FOR) {
-		return nil
-	}
-	v.consumeToken()
+func (v *parser) parseDecl() ParseNode {
+	var res ParseNode
+	docComments := v.parseDocComments()
+	attrs := v.parseAttributes()
 
-	loop := &LoopStat{}
-
-	// matches for {} which is
-	// an infinite loop
-	if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "{") { // infinite loop
-		loop.LoopType = LOOP_TYPE_INFINITE
-
-		loop.Body = v.parseBlock(true)
-		if loop.Body == nil {
-			v.err("Malformed infinite loop body")
-		}
-		return loop
-	}
-
-	// matches for condition {}
-	// basically a white loop
-	// or a "conditional for loop"
-	if cond := v.parseExpr(); cond != nil {
-		loop.LoopType = LOOP_TYPE_CONDITIONAL
-		loop.Condition = cond
-
-		loop.Body = v.parseBlock(true)
-		if loop.Body == nil {
-			v.err("Malformed infinite loop body")
-		}
-		return loop
+	if structDecl := v.parseStructDecl(); structDecl != nil {
+		res = structDecl
+	} else if useDecl := v.parseUseDecl(); useDecl != nil {
+		res = useDecl
+	} else if traitDecl := v.parseTraitDecl(); traitDecl != nil {
+		res = traitDecl
+	} else if implDecl := v.parseImplDecl(); implDecl != nil {
+		res = implDecl
+	} else if moduleDecl := v.parseModuleDecl(); moduleDecl != nil {
+		res = moduleDecl
+	} else if funcDecl := v.parseFuncDecl(); funcDecl != nil {
+		res = funcDecl
+	} else if enumDecl := v.parseEnumDecl(); enumDecl != nil {
+		res = enumDecl
+	} else if varDecl := v.parseVarDecl(); varDecl != nil {
+		res = varDecl
 	}
 
-	v.err("Malformed `%s` loop", KEYWORD_FOR)
-	return nil
+	if len(docComments) != 0 && res != nil {
+		res.SetDocComments(docComments)
+	}
+
+	if attrs != nil && res != nil {
+		res.SetAttrs(attrs)
+	}
+
+	return res
 }
 
-func (v *parser) parseModuleDecl() *ModuleDecl {
-	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_MODULE) {
-		return nil
-	}
-	module := &Module{}
-
-	v.consumeToken()
-
-	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, "") {
-		v.err("Expected identifier after `module` keyword, found `%s`", v.peek(0).Contents)
-	}
-
-	module.Name = v.consumeToken().Contents
-	if isReservedKeyword(module.Name) {
-		v.err("Cannot name module reserved keyword `%s`", module.Name)
-	}
-
-	if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "{") {
-		v.consumeToken()
-
-		for {
-			if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "}") {
-				v.consumeToken()
-				break
-			}
-
-			// maybe decl for this instead?
-			// also refactor how it's stored in the
-			// module and just store Decl?
-			// idk might be cleaner
-			if function := v.parseFunctionDecl(); function != nil {
-				module.Functions = append(module.Functions, function)
-			} else if variable := v.parseVariableDecl(true); variable != nil {
-				module.Variables = append(module.Variables, variable)
-			} else {
-				v.err("invalid item in module `%s`", module.Name)
-			}
-		}
-	}
-
-	return &ModuleDecl{Module: module}
-}
-
-func (v *parser) parseStructDecl() *StructDecl {
+func (v *parser) parseStructDecl() *StructDeclNode {
 	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_STRUCT) {
 		return nil
 	}
-	structure := &StructType{}
+	startToken := v.consumeToken()
 
+	if !v.nextIs(lexer.TOKEN_IDENTIFIER) {
+		v.err("Expected name after struct keyword, got `%s`", v.peek(0).Contents)
+	}
+	name := v.consumeToken()
+
+	if isReservedKeyword(name.Contents) {
+		v.err("Cannot use reserved keyword `%s` as name for struct", name.Contents)
+	}
+
+	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "{") {
+		v.err("Expected starting `{` after struct name, got `%s`", v.peek(0).Contents)
+	}
 	v.consumeToken()
 
-	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, "") {
-		v.err("Expected identifier after `struct` keyword, found `%s`", v.peek(0).Contents)
-	}
-	structure.Name = v.consumeToken().Contents
-
-	if isReservedKeyword(structure.Name) {
-		v.err("Cannot name struct reserved keyword `%s`", structure.Name)
-	}
-
-	if sname := v.scope.InsertType(structure); sname != nil {
-		v.err("Illegal redeclaration of type `%s`", structure.Name)
-	}
-
-	structure.attrs = v.fetchAttrs()
-
-	if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "{") {
-		v.consumeToken()
-
-		v.pushScope()
-
-		var itemCount = 0
-		for {
-			if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "}") {
-				v.consumeToken()
-				break
-			}
-
-			locationToken := v.peek(0)
-			pos := locationToken.Where.Start()
-
-			if variable := v.parseVariableDecl(false); variable != nil {
-				if variable.Variable.Mutable {
-					v.err("Cannot specify `mut` keyword on struct member: `%s`", variable.Variable.Name)
-				}
-				structure.addVariableDecl(variable)
-				variable.setPos(pos)
-				itemCount++
-			} else {
-				v.err("Invalid structure item in structure `%s`", structure.Name)
-			}
-
-			if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ",") {
-				v.consumeToken()
-			}
+	var members []*VarDeclNode
+	for {
+		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "}") {
+			break
 		}
 
-		v.popScope()
-	} else {
-		v.err("Expected block or semi-colon after structure declaration, found `%s`", v.peek(0).Contents)
+		member := v.parseVarDeclBody()
+		if member == nil {
+			v.err("Expected valid variable declaration in struct")
+		}
+		members = append(members, member)
+
+		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ",") {
+			v.consumeToken()
+		}
 	}
 
-	return &StructDecl{Struct: structure}
+	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "}") {
+		v.err("Expected closing `}` after struct, got `%s`", v.peek(0).Contents)
+	}
+	endToken := v.consumeToken()
+
+	res := &StructDeclNode{Name: NewLocatedString(name), Members: members}
+	res.SetWhere(lexer.NewSpanFromTokens(startToken, endToken))
+	return res
 }
 
-func (v *parser) parseTraitDecl() *TraitDecl {
+func (v *parser) parseUseDecl() *UseDeclNode {
+	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_USE) {
+		return nil
+	}
+	startToken := v.consumeToken()
+
+	module := v.parseName()
+	if module == nil {
+		v.err("Expected valid module name after `use` keyword")
+	}
+
+	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ";") {
+		v.err("Expected `;` after use-construct, got `%s`", v.peek(0).Contents)
+	}
+	endToken := v.consumeToken()
+
+	res := &UseDeclNode{Module: module}
+	res.SetWhere(lexer.NewSpanFromTokens(startToken, endToken))
+	return res
+}
+
+func (v *parser) parseTraitDecl() *TraitDeclNode {
 	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_TRAIT) {
 		return nil
 	}
-	trait := &TraitType{}
+	startToken := v.consumeToken()
 
+	if !v.nextIs(lexer.TOKEN_IDENTIFIER) {
+		v.err("Expected trait name after `trait` keyword, got `%s`", v.peek(0).Contents)
+	}
+	name := v.consumeToken()
+
+	if isReservedKeyword(name.Contents) {
+		v.err("Cannot use reserved keyword `%s` as name for trait", name.Contents)
+	}
+
+	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, "{") {
+		v.err("Expected starting `{` after trait name, got `%s`", v.peek(0).Contents)
+	}
 	v.consumeToken()
 
-	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, "") {
-		v.err("Expected identifier after `trait` keyword, found `%s`", v.peek(0).Contents)
-	}
-	trait.Name = v.consumeToken().Contents
-
-	if isReservedKeyword(trait.Name) {
-		v.err("Cannot name trait reserved keyword `%s`", trait.Name)
-	}
-	if tname := v.scope.InsertType(trait); tname != nil {
-		v.err("Illegal redeclaration of type `%s`", trait.Name)
-	}
-
-	trait.attrs = v.fetchAttrs()
-
-	if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "{") {
-		v.consumeToken()
-
-		v.pushScope()
-
-		for {
-			if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "}") {
-				v.consumeToken()
-				break
-			}
-
-			locationToken := v.peek(0)
-			pos := locationToken.Where.Start()
-
-			if fn := v.parseFunctionDecl(); fn != nil {
-				trait.addFunctionDecl(fn)
-				fn.setPos(pos)
-			} else {
-				v.err("Invalid function declaration in trait `%s`", trait.Name)
-			}
+	var members []*FunctionDeclNode
+	for {
+		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "}") {
+			break
 		}
 
-		v.popScope()
-	} else {
-		v.err("Expected body after trait identifier, found `%s`", v.peek(0).Contents)
-	}
-
-	return &TraitDecl{Trait: trait}
-}
-
-func (v *parser) parseEnumDecl() *EnumDecl {
-	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_ENUM) {
-		return nil
-	}
-
-	v.consumeToken()
-
-	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, "") {
-		v.err("Expected identifier after `enum` keyword, found `%s`", v.peek(0).Contents)
-	}
-
-	enum := &EnumDecl{Name: v.consumeToken().Contents, Body: make([]*EnumVal, 0)}
-
-	if isReservedKeyword(enum.Name) {
-		v.err("Cannot define `enum` for reserved keyword `%s`", enum.Name)
-	}
-
-	if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "{") {
-		v.consumeToken()
-		for {
-			if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "}") {
-				v.consumeToken()
-				break
-			}
-			if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, "") {
-				name := v.consumeToken().Contents
-				var value Expr
-
-				if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "=") {
-					v.consumeToken()
-
-					if expr := v.parseExpr(); expr != nil {
-						value = expr
-					} else {
-						v.err("expecting expression in enum item")
-					}
-				}
-
-				if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ",") {
-					v.consumeToken()
-				} else if !v.tokenMatches(1, lexer.TOKEN_SEPARATOR, "}") {
-					v.err("Missing comma in `enum` %s", enum.Name)
-				}
-
-				enum.Body = append(enum.Body, &EnumVal{Name: name, Value: value})
-			}
+		member, ok := v.parseDecl().(*FunctionDeclNode)
+		if member == nil || !ok {
+			v.err("Expected valid function declaration in trait declaration")
 		}
-
+		members = append(members, member)
 	}
-	return enum
+
+	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "}") {
+		v.err("Expected closing `}` after trait declaration, got `%s`", v.peek(0).Contents)
+	}
+	endToken := v.consumeToken()
+
+	res := &TraitDeclNode{Name: NewLocatedString(name), Members: members}
+	res.SetWhere(lexer.NewSpanFromTokens(startToken, endToken))
+	return res
 }
 
-func (v *parser) parseImplDecl() *ImplDecl {
+func (v *parser) parseImplDecl() *ImplDeclNode {
 	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_IMPL) {
 		return nil
 	}
+	startToken := v.consumeToken()
 
-	v.consumeToken()
+	if !v.nextIs(lexer.TOKEN_IDENTIFIER) {
+		v.err("Expected struct name after `impl` keyword, got `%s`", v.peek(0).Contents)
+	}
+	structName := v.consumeToken()
 
-	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, "") {
-		v.err("Expected identifier after `impl` keyword, found `%s`", v.peek(0).Contents)
+	if isReservedKeyword(structName.Contents) {
+		v.err("Cannot use reserved keyword `%s` as struct name", structName.Contents)
 	}
 
-	impl := &ImplDecl{}
-	impl.StructName = v.consumeToken().Contents
-
-	if isReservedKeyword(impl.StructName) {
-		v.err("Cannot define `impl` for reserved keyword `%s`", impl.StructName)
-	}
-
+	var traitName *lexer.Token
 	if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_FOR) {
 		v.consumeToken()
 
-		if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, "") {
-			v.err("Expected identifier after `for` keyword, found `%s`", v.peek(0).Contents)
+		if !v.nextIs(lexer.TOKEN_IDENTIFIER) {
+			v.err("Expected trait name after `for` in impl declaration, got `%s`", v.peek(0).Contents)
 		}
-		impl.TraitName = v.consumeToken().Contents
-		if isReservedKeyword(impl.TraitName) {
-			v.err("Cannot define `impl` for reserved keyword `%s`", impl.TraitName)
-		}
+		traitName = v.consumeToken()
 
+		if isReservedKeyword(traitName.Contents) {
+			v.err("Cannot use reserved keyword `%s` as trait name", traitName.Contents)
+		}
 	}
 
-	if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "{") {
-		v.consumeToken()
+	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, "{") {
+		v.err("Expected starting `{` after impl start, got `%s`", v.peek(0).Contents)
+	}
+	v.consumeToken()
 
-		v.pushScope()
-
-		for {
-			if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "}") {
-				v.consumeToken()
-				break
-			}
-
-			locationToken := v.peek(0)
-			pos := locationToken.Where.Start()
-
-			if fn := v.parseFunctionDecl(); fn != nil {
-				impl.Functions = append(impl.Functions, fn)
-				fn.setPos(pos)
-			} else {
-				v.err("Invalid function in `impl`")
-			}
+	var members []*FunctionDeclNode
+	for {
+		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "}") {
+			break
 		}
 
-		v.popScope()
-	} else {
-		v.err("Expected body after `impl` identifier, found `%s`", v.peek(0).Contents)
+		member, ok := v.parseDecl().(*FunctionDeclNode)
+		if member == nil || !ok {
+			v.err("Expected valid function declaration in impl declaration")
+		}
+		members = append(members, member)
 	}
 
-	return impl
+	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "}") {
+		v.err("Expected closing `}` after impl declaration, got `%s`", v.peek(0).Contents)
+	}
+	endToken := v.consumeToken()
+
+	res := &ImplDeclNode{StructName: NewLocatedString(structName), Members: members}
+	if traitName != nil {
+		res.TraitName = NewLocatedString(traitName)
+	}
+	res.SetWhere(lexer.NewSpanFromTokens(startToken, endToken))
+	return res
 }
 
-func (v *parser) parseVariableDecl(needSemicolon bool) *VariableDecl {
-	variable := &Variable{}
-	varDecl := &VariableDecl{Variable: variable}
+func (v *parser) parseModuleDecl() *ModuleDeclNode {
+	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_MODULE) {
+		return nil
+	}
+	startToken := v.consumeToken()
 
-	if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_MUT) {
-		variable.Mutable = true
+	if !v.nextIs(lexer.TOKEN_IDENTIFIER) {
+		v.err("Expected module name after `module` keyword, got `%s`", v.peek(0).Contents)
+	}
+	name := v.consumeToken()
+
+	if isReservedKeyword(name.Contents) {
+		v.err("Cannot use reserved keyword `%s` as module name", name.Contents)
+	}
+
+	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "{") {
+		v.err("Expected starting `{` after module name, got `%s`", v.peek(0).Contents)
+	}
+	v.consumeToken()
+
+	var members []ParseNode
+	for {
+		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "}") {
+			break
+		}
+
+		member := v.parseDecl()
+		if member == nil {
+			v.err("Expected valid declaration in module declaration")
+		}
+		members = append(members, member)
+	}
+
+	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "}") {
+		v.err("Expected closing `}` after module declaration, got `%s`", v.peek(0).Contents)
+	}
+	endToken := v.consumeToken()
+
+	res := &ModuleDeclNode{Name: NewLocatedString(name), Members: members}
+	res.SetWhere(lexer.NewSpanFromTokens(startToken, endToken))
+	return res
+}
+
+func (v *parser) parseFuncDecl() *FunctionDeclNode {
+	funcHeader := v.parseFuncHeader()
+	if funcHeader == nil {
+		return nil
+	}
+
+	var body *BlockNode
+	if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "->") {
 		v.consumeToken()
+
+		var stat ParseNode
+		if stat = v.parseStat(); stat != nil {
+		} else if expr := v.parseExpr(); expr != nil {
+			// TODO: Wrapping in return should maybe be done in constructor
+			stat = &ReturnStatNode{Value: expr}
+			if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ";") {
+				v.err("Expected `;` after function declaration, got `%s`", v.peek(0).Contents)
+			}
+			v.consumeToken()
+		} else {
+			v.err("Expected valid statement or expression after `->` in function declaration")
+		}
+
+		block := &BlockNode{}
+		block.Nodes = append(block.Nodes, stat)
+		body = block
+	} else {
+		body = v.parseBlock()
+	}
+
+	var maybeEndToken *lexer.Token
+	if body == nil {
+		if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ";") {
+			v.err("Expected `;` after body-less function declaration, got `%s`", v.peek(0).Contents)
+		}
+		maybeEndToken = v.consumeToken()
+	}
+
+	res := &FunctionDeclNode{Header: funcHeader, Body: body}
+	if body != nil {
+		res.SetWhere(lexer.NewSpan(funcHeader.Where().Start(), body.Where().End()))
+	} else {
+		res.SetWhere(lexer.NewSpan(funcHeader.Where().Start(), maybeEndToken.Where.End()))
+	}
+	return res
+}
+
+func (v *parser) parseFuncHeader() *FunctionHeaderNode {
+	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_FUNC) {
+		return nil
+	}
+	startToken := v.consumeToken()
+
+	if !v.nextIs(lexer.TOKEN_IDENTIFIER) {
+		v.err("Expected function name after `func` keyword, got `%s`", v.peek(0).Contents)
+	}
+	name := v.consumeToken()
+
+	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "(") {
+		v.err("Expected starting `(` after function name, got `%s`", v.peek(0).Contents)
+	}
+	v.consumeToken()
+
+	var args []*VarDeclNode
+	variadic := false
+	for {
+		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ")") {
+			break
+		}
+
+		if v.tokensMatch(lexer.TOKEN_SEPARATOR, ".", lexer.TOKEN_SEPARATOR, ".", lexer.TOKEN_SEPARATOR, ".") {
+			v.consumeTokens(3)
+			if !variadic {
+				variadic = true
+			} else {
+				v.err("Duplicate `...` in function arguments")
+			}
+		} else {
+			arg := v.parseVarDeclBody()
+			if arg == nil {
+				v.err("Expected valid variable declaration in function args")
+			}
+			args = append(args, arg)
+		}
+
+		if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ",") {
+			break
+		}
+		v.consumeToken()
+	}
+
+	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ")") {
+		v.err("Expected closing `)` after function args, got `%s`", v.peek(0).Contents)
+	}
+	maybeEndToken := v.consumeToken()
+
+	var returnType ParseNode
+	if v.tokenMatches(0, lexer.TOKEN_OPERATOR, ":") {
+		v.consumeToken()
+
+		returnType = v.parseType()
+		if returnType == nil {
+			v.err("Expected valid type after `:` in function header")
+		}
+	}
+
+	res := &FunctionHeaderNode{Name: NewLocatedString(name), Arguments: args, Variadic: variadic}
+	if returnType != nil {
+		res.ReturnType = returnType
+		res.SetWhere(lexer.NewSpan(startToken.Where.Start(), returnType.Where().End()))
+	} else {
+		res.SetWhere(lexer.NewSpanFromTokens(startToken, maybeEndToken))
+	}
+	return res
+}
+
+func (v *parser) parseEnumDecl() *EnumDeclNode {
+	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_ENUM) {
+		return nil
+	}
+	startToken := v.consumeToken()
+
+	if !v.nextIs(lexer.TOKEN_IDENTIFIER) {
+		v.err("Expected enum name after `enum` keyword, got `%s`", v.peek(0).Contents)
+	}
+	name := v.consumeToken()
+
+	if isReservedKeyword(name.Contents) {
+		v.err("Cannot use reserved keyword `%s` as name for enum", name.Contents)
+	}
+
+	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "{") {
+		v.err("Expected starting `{` after enum name, got `%s`", v.peek(0).Contents)
+	}
+	v.consumeToken()
+
+	var members []*EnumEntryNode
+	for {
+		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "}") {
+			break
+		}
+
+		member := v.parseEnumEntry()
+		if member == nil {
+			v.err("Expected valid enum entry in enum")
+		}
+		members = append(members, member)
+
+		if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ",") {
+			break
+		}
+		v.consumeToken()
+	}
+
+	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "}") {
+		v.err("Expected closing `}` after enum, got `%s`", v.peek(0).Contents)
+	}
+	endToken := v.consumeToken()
+
+	res := &EnumDeclNode{Name: NewLocatedString(name), Members: members}
+	res.SetWhere(lexer.NewSpanFromTokens(startToken, endToken))
+	return res
+}
+
+func (v *parser) parseEnumEntry() *EnumEntryNode {
+	if !v.nextIs(lexer.TOKEN_IDENTIFIER) {
+		return nil
+	}
+	name := v.consumeToken()
+
+	if isReservedKeyword(name.Contents) {
+		v.err("Cannot use reserved keyword `%s` as name for enum entry", name.Contents)
+	}
+
+	var value ParseNode
+	if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "=") {
+		v.consumeToken()
+
+		value = v.parseExpr()
+		if value == nil {
+			v.err("Expected valid expression after `=` in enum entry")
+		}
+	}
+
+	res := &EnumEntryNode{Name: NewLocatedString(name), Value: value}
+	if value != nil {
+		res.SetWhere(lexer.NewSpan(name.Where.Start(), value.Where().End()))
+	} else {
+		res.SetWhere(name.Where)
+	}
+	return res
+}
+
+func (v *parser) parseVarDecl() *VarDeclNode {
+	body := v.parseVarDeclBody()
+	if body == nil {
+		return nil
+	}
+
+	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ";") {
+		v.err("Expected `;` after variable declaration, got `%s`", v.peek(0).Contents)
+	}
+	endToken := v.consumeToken()
+
+	res := body
+	res.SetWhere(lexer.NewSpan(body.Where().Start(), endToken.Where.End()))
+	return res
+}
+
+func (v *parser) parseVarDeclBody() *VarDeclNode {
+	startPos := v.currentToken
+
+	var mutable *lexer.Token
+	if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_MUT) {
+		mutable = v.consumeToken()
 	}
 
 	if !v.tokensMatch(lexer.TOKEN_IDENTIFIER, "", lexer.TOKEN_OPERATOR, ":") {
+		v.currentToken = startPos
 		return nil
 	}
-	variable.Name = v.consumeToken().Contents // consume name
-	variable.Attrs = v.fetchAttrs()
 
-	if isReservedKeyword(variable.Name) {
-		v.err("Cannot name variable reserved keyword `%s`", variable.Name)
+	name := v.consumeToken()
+
+	// consume ':'
+	v.consumeToken()
+
+	varType := v.parseType()
+	if varType == nil && !v.tokenMatches(0, lexer.TOKEN_OPERATOR, "=") {
+		v.err("Expected valid type in variable declaration")
 	}
 
-	v.consumeToken() // consume :
-
+	var value ParseNode
 	if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "=") {
-		// type is inferred
-		variable.Type = nil
+		v.consumeToken()
+
+		value = v.parseExpr()
+		if value == nil {
+			v.err("Expected valid expression after `=` in variable declaration")
+		}
+	}
+
+	res := &VarDeclNode{Name: NewLocatedString(name), Type: varType}
+	start := name.Where.Start()
+	if mutable != nil {
+		res.Mutable = NewLocatedString(mutable)
+		start = mutable.Where.Start()
+	}
+
+	var end lexer.Position
+	if value != nil {
+		res.Value = value
+		end = value.Where().End()
 	} else {
-		variable.Type = v.parseType()
-		if variable.Type == nil {
-			v.err("Could not decipher type for variable `%s`", variable.Name)
-		}
+		end = varType.Where().End()
 	}
 
-	if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "=") {
-		v.consumeToken() // consume =
-		varDecl.Assignment = v.parseExpr()
-		if varDecl.Assignment == nil {
-			v.err("Expected expression in assignment to variable `%s`", variable.Name)
-		}
-	}
-
-	if sname := v.scope.InsertVariable(variable); sname != nil {
-		v.err("Illegal redeclaration of variable `%s`", variable.Name)
-	}
-
-	// might be better to just have every statement need a ";"
-	// so you would do this after parsing the statement instead?
-	if needSemicolon {
-		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ";") {
-			v.consumeToken()
-		} else {
-			v.err("Expected semicolon at end of variable declaration, found `%s`", v.peek(0).Contents)
-		}
-	}
-
-	varDecl.docs = v.fetchDocComments()
-
-	return varDecl
+	res.SetWhere(lexer.NewSpan(start, end))
+	return res
 }
 
-func (v *parser) parseExpr() Expr {
+func (v *parser) parseStat() ParseNode {
+	var res ParseNode
+
+	if deferStat := v.parseDeferStat(); deferStat != nil {
+		res = deferStat
+	} else if ifStat := v.parseIfStat(); ifStat != nil {
+		res = ifStat
+	} else if matchStat := v.parseMatchStat(); matchStat != nil {
+		res = matchStat
+	} else if loopStat := v.parseLoopStat(); loopStat != nil {
+		res = loopStat
+	} else if returnStat := v.parseReturnStat(); returnStat != nil {
+		res = returnStat
+	} else if blockStat := v.parseBlockStat(); blockStat != nil {
+		res = blockStat
+	} else if callStat := v.parseCallStat(); callStat != nil {
+		res = callStat
+	} else if assignStat := v.parseAssignStat(); assignStat != nil {
+		res = assignStat
+	}
+
+	return res
+}
+
+func (v *parser) parseDeferStat() *DeferStatNode {
+	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_DEFER) {
+		return nil
+	}
+	startToken := v.consumeToken()
+
+	call := v.parseCallExpr()
+	if call == nil {
+		v.err("Expected valid call expression in defer statement")
+	}
+
+	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ";") {
+		v.err("Expected `;` after defer statement, got `%s`", v.peek(0).Contents)
+	}
+	endToken := v.consumeToken()
+
+	res := &DeferStatNode{Call: call}
+	res.SetWhere(lexer.NewSpanFromTokens(startToken, endToken))
+	return res
+}
+
+func (v *parser) parseIfStat() *IfStatNode {
+	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_IF) {
+		return nil
+	}
+	startToken := v.consumeToken()
+
+	var parts []*ConditionBodyNode
+	var lastPart *ConditionBodyNode
+	for {
+		condition := v.parseExpr()
+		if condition == nil {
+			v.err("Expected valid expression as condition in if statement")
+		}
+
+		body := v.parseBlock()
+		if body == nil {
+			v.err("Expected valid block after condition in if statement")
+		}
+
+		lastPart = &ConditionBodyNode{Condition: condition, Body: body}
+		lastPart.SetWhere(lexer.NewSpan(condition.Where().Start(), body.Where().End()))
+		parts = append(parts, lastPart)
+
+		if !v.tokensMatch(lexer.TOKEN_IDENTIFIER, KEYWORD_ELSE, lexer.TOKEN_IDENTIFIER, KEYWORD_IF) {
+			break
+		}
+		v.consumeTokens(2)
+	}
+
+	var elseBody *BlockNode
+	if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_ELSE) {
+		v.consumeToken()
+
+		elseBody = v.parseBlock()
+		if elseBody == nil {
+			v.err("Expected valid block after `else` keyword in if statement")
+		}
+	}
+
+	res := &IfStatNode{Parts: parts, ElseBody: elseBody}
+	if elseBody != nil {
+		res.SetWhere(lexer.NewSpan(startToken.Where.Start(), elseBody.Where().End()))
+	} else {
+		res.SetWhere(lexer.NewSpan(startToken.Where.Start(), lastPart.Where().End()))
+	}
+	return res
+}
+
+func (v *parser) parseMatchStat() *MatchStatNode {
+	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_MATCH) {
+		return nil
+	}
+	startToken := v.consumeToken()
+
+	value := v.parseExpr()
+	if value == nil {
+		v.err("Expected valid expresson as value in match statement")
+	}
+
+	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "{") {
+		v.err("Expected starting `{` after value in match statement, got `%s`", v.peek(0).Contents)
+	}
+	v.consumeToken()
+
+	var cases []*MatchCaseNode
+	for {
+		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "}") {
+			break
+		}
+
+		var pattern ParseNode
+		if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, "_") {
+			patTok := v.consumeToken()
+
+			pattern = &DefaultPatternNode{}
+			pattern.SetWhere(patTok.Where)
+		} else {
+			pattern = v.parseExpr()
+		}
+
+		if pattern == nil {
+			v.err("Expected valid expression as pattern in match statement")
+		}
+
+		if !v.tokenMatches(0, lexer.TOKEN_OPERATOR, "->") {
+			v.err("Expected `->` after match pattern, got `%s`", v.peek(0).Contents)
+		}
+		v.consumeToken()
+
+		body := v.parseStat()
+		if body == nil {
+			v.err("Expected valid statement as body in match statement")
+		}
+
+		caseNode := &MatchCaseNode{Pattern: pattern, Body: body}
+		caseNode.SetWhere(lexer.NewSpan(pattern.Where().Start(), body.Where().End()))
+		cases = append(cases, caseNode)
+	}
+
+	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "}") {
+		v.err("Expected closing `}` after match statement, got `%s`", v.peek(0).Contents)
+	}
+	endToken := v.consumeToken()
+
+	res := &MatchStatNode{Value: value, Cases: cases}
+	res.SetWhere(lexer.NewSpanFromTokens(startToken, endToken))
+	return res
+}
+
+func (v *parser) parseLoopStat() *LoopStatNode {
+	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_FOR) {
+		return nil
+	}
+	startToken := v.consumeToken()
+
+	condition := v.parseExpr()
+
+	body := v.parseBlock()
+	if body == nil {
+		v.err("Expected valid block as body of loop statement")
+	}
+
+	res := &LoopStatNode{Condition: condition, Body: body}
+	res.SetWhere(lexer.NewSpan(startToken.Where.Start(), body.Where().End()))
+	return res
+}
+
+func (v *parser) parseReturnStat() *ReturnStatNode {
+	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_RETURN) {
+		return nil
+	}
+	startToken := v.consumeToken()
+
+	value := v.parseExpr()
+
+	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ";") {
+		v.err("Expected `;` after return statement, got `%s`", v.peek(0).Contents)
+	}
+	endToken := v.consumeToken()
+
+	res := &ReturnStatNode{Value: value}
+	res.SetWhere(lexer.NewSpanFromTokens(startToken, endToken))
+	return res
+}
+
+func (v *parser) parseBlockStat() *BlockStatNode {
+	startPos := v.currentToken
+	var doToken *lexer.Token
+	if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_DO) {
+		doToken = v.consumeToken()
+	}
+
+	body := v.parseBlock()
+	if body == nil {
+		v.currentToken = startPos
+		return nil
+	}
+
+	res := &BlockStatNode{Body: body}
+	if doToken != nil {
+		body.NonScoping = true
+		res.SetWhere(lexer.NewSpan(doToken.Where.Start(), body.Where().End()))
+	} else {
+		res.SetWhere(body.Where())
+	}
+	return res
+}
+
+func (v *parser) parseBlock() *BlockNode {
+	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "{") {
+		return nil
+	}
+	startToken := v.consumeToken()
+
+	var nodes []ParseNode
+	for {
+		node := v.parseNode()
+		if node == nil {
+			break
+		}
+		nodes = append(nodes, node)
+	}
+
+	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "}") {
+		v.err("Expected closing `}` after block, got `%s`", v.peek(0).Contents)
+	}
+	endToken := v.consumeToken()
+
+	res := &BlockNode{Nodes: nodes}
+	res.SetWhere(lexer.NewSpanFromTokens(startToken, endToken))
+	return res
+}
+
+func (v *parser) parseCallStat() *CallStatNode {
+	callExpr := v.parseCallExpr()
+	if callExpr == nil {
+		return nil
+	}
+
+	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ";") {
+		v.err("Expected `;` after call statement")
+	}
+	endToken := v.consumeToken()
+
+	res := &CallStatNode{Call: callExpr}
+	res.SetWhere(lexer.NewSpan(callExpr.Where().Start(), endToken.Where.End()))
+	return res
+}
+
+func (v *parser) parseAssignStat() ParseNode {
+	startPos := v.currentToken
+
+	accessExpr := v.parseAccessExpr()
+	if accessExpr == nil || !v.tokenMatches(0, lexer.TOKEN_OPERATOR, "=") {
+		v.currentToken = startPos
+		return nil
+	}
+
+	// consume '='
+	v.consumeToken()
+
+	value := v.parseExpr()
+	if value == nil {
+		v.err("Expected valid expression as valid in assignment statement")
+	}
+
+	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ";") {
+		v.err("Expected `;` after assignment statement, got `%s`", v.peek(0).Contents)
+	}
+	endToken := v.consumeToken()
+
+	res := &AssignStatNode{Target: accessExpr, Value: value}
+	res.SetWhere(lexer.NewSpan(accessExpr.Where().Start(), endToken.Where.End()))
+	return res
+}
+
+func (v *parser) parseType() ParseNode {
+	var res ParseNode
+	if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "^") {
+		res = v.parsePointerType()
+	} else if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "(") {
+		res = v.parseTupleType()
+	} else if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "[") {
+		res = v.parseArrayType()
+	} else if v.nextIs(lexer.TOKEN_IDENTIFIER) {
+		res = v.parseTypeReference()
+	}
+
+	return res
+}
+
+func (v *parser) parsePointerType() *PointerTypeNode {
+	startToken := v.consumeToken()
+
+	target := v.parseType()
+	if target == nil {
+		v.err("Expected valid type after `^` in pointer type")
+	}
+
+	res := &PointerTypeNode{TargetType: target}
+	res.SetWhere(lexer.NewSpan(startToken.Where.Start(), target.Where().End()))
+
+	return res
+}
+
+func (v *parser) parseTupleType() *TupleTypeNode {
+	startToken := v.consumeToken()
+
+	var members []ParseNode
+	for {
+		memberType := v.parseType()
+		if memberType == nil {
+			v.err("Expected valid type in tuple type")
+		}
+		members = append(members, memberType)
+
+		if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ",") {
+			break
+		}
+		v.consumeToken()
+	}
+
+	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ")") {
+		v.err("Expected closing `)` after tuple type, got `%s`", v.peek(0).Contents)
+	}
+	endToken := v.consumeToken()
+
+	res := &TupleTypeNode{MemberTypes: members}
+	res.SetWhere(lexer.NewSpanFromTokens(startToken, endToken))
+	return res
+}
+
+func (v *parser) parseArrayType() *ArrayTypeNode {
+	startToken := v.consumeToken()
+
+	length := v.parseNumberLit()
+	if length != nil && length.IsFloat {
+		v.err("Expected integer length for array type")
+	}
+
+	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "]") {
+		v.err("Expected closing `]` in array type, got `%s`", v.peek(0).Contents)
+	}
+	v.consumeToken()
+
+	memberType := v.parseType()
+	if memberType == nil {
+		v.err("Expected valid type in array type")
+	}
+
+	res := &ArrayTypeNode{MemberType: memberType}
+	if length != nil {
+		// TODO: Defend against overflow
+		res.Length = int(length.IntValue)
+	}
+	res.SetWhere(lexer.NewSpan(startToken.Where.Start(), memberType.Where().End()))
+	return res
+}
+
+func (v *parser) parseTypeReference() *TypeReferenceNode {
+	name := v.parseName()
+	if name == nil {
+		return nil
+	}
+
+	res := &TypeReferenceNode{Reference: name}
+	res.SetWhere(name.Where())
+	return res
+}
+
+func (v *parser) parseExpr() ParseNode {
 	pri := v.parsePrimaryExpr()
-
-	locationToken := v.peek(0)
-	pos := locationToken.Where.Start()
-
 	if pri == nil {
 		return nil
 	}
-	pri.setPos(pos)
 
 	if bin := v.parseBinaryOperator(0, pri); bin != nil {
-		bin.setPos(pos)
 		return bin
 	}
 
 	return pri
 }
 
-func (v *parser) parseBinaryOperator(upperPrecedence int, lhand Expr) Expr {
+func (v *parser) parseBinaryOperator(upperPrecedence int, lhand ParseNode) ParseNode {
+	// TODO: I have a suspicion this might break with some combinations of operators
+	startPos := v.currentToken
+
 	tok := v.peek(0)
 	if tok.Type != lexer.TOKEN_OPERATOR || v.peek(1).Contents == ";" {
 		return nil
@@ -1240,133 +1194,229 @@ func (v *parser) parseBinaryOperator(upperPrecedence int, lhand Expr) Expr {
 
 		typ := stringToBinOpType(v.peek(0).Contents)
 		if typ == BINOP_ERR {
-			panic("yep")
+			v.err("Invalid binary operator `%s`", v.peek(0).Contents)
 		}
-
 		v.consumeToken()
 
-		locationToken := v.peek(0)
-		pos := locationToken.Where.Start()
 		rhand := v.parsePrimaryExpr()
-		rhand.setPos(pos)
-
 		if rhand == nil {
+			v.currentToken = startPos
 			return nil
 		}
+
 		nextPrecedence := v.getPrecedence(stringToBinOpType(v.peek(0).Contents))
 		if tokPrecedence < nextPrecedence {
 			rhand = v.parseBinaryOperator(tokPrecedence+1, rhand)
 			if rhand == nil {
+				v.currentToken = startPos
 				return nil
 			}
 		}
 
-		temp := &BinaryExpr{
-			Lhand: lhand,
-			Rhand: rhand,
-			Op:    typ,
+		temp := &BinaryExprNode{
+			Lhand:    lhand,
+			Rhand:    rhand,
+			Operator: typ,
 		}
+		temp.SetWhere(lexer.NewSpan(lhand.Where().Start(), rhand.Where().Start()))
 		lhand = temp
 	}
 }
 
-func (v *parser) parsePrimaryExpr() Expr {
+func (v *parser) parsePrimaryExpr() ParseNode {
+	var res ParseNode
+
 	if sizeofExpr := v.parseSizeofExpr(); sizeofExpr != nil {
-		return sizeofExpr
-	} else if addressOfExpr := v.parseAddressOfExpr(); addressOfExpr != nil {
-		return addressOfExpr
-	} else if litExpr := v.parseLiteral(); litExpr != nil {
-		return litExpr
+		res = sizeofExpr
+	} else if addrofExpr := v.parseAddrofExpr(); addrofExpr != nil {
+		res = addrofExpr
+	} else if litExpr := v.parseLitExpr(); litExpr != nil {
+		res = litExpr
 	} else if castExpr := v.parseCastExpr(); castExpr != nil {
-		return castExpr
+		res = castExpr
 	} else if unaryExpr := v.parseUnaryExpr(); unaryExpr != nil {
-		return unaryExpr
+		res = unaryExpr
 	} else if callExpr := v.parseCallExpr(); callExpr != nil {
-		return callExpr
+		res = callExpr
 	} else if accessExpr := v.parseAccessExpr(); accessExpr != nil {
-		return accessExpr
+		res = accessExpr
 	}
 
-	return nil
+	return res
 }
 
-func (v *parser) parseSizeofExpr() *SizeofExpr {
+func (v *parser) parseSizeofExpr() *SizeofExprNode {
 	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_SIZEOF) {
 		return nil
 	}
-	v.consumeToken()
+	startToken := v.consumeToken()
 
 	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "(") {
-		v.err("Expected `()` in sizeof expression, found `%s`", v.peek(0).Contents)
+		v.err("Expected opening `(` in sizeof expression, got `%s`", v.peek(0).Contents)
 	}
 	v.consumeToken()
 
-	sizeof := &SizeofExpr{}
-
-	if expr := v.parseExpr(); expr != nil {
-		sizeof.Expr = expr
-	} else {
-		v.err("Expected expression in sizeof expression, found `%s`", v.peek(0).Contents)
+	value := v.parseExpr()
+	if value == nil {
+		v.err("Expected valid expression in sizeof expression")
 	}
 
 	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ")") {
-		v.err("Expected `)` in sizeof expression, found `%s`", v.peek(0).Contents)
+		v.err("Expected closing `)` after sizeof expression, got `%s`", v.peek(0).Contents)
+	}
+	endToken := v.consumeToken()
+
+	res := &SizeofExprNode{Value: value}
+	res.SetWhere(lexer.NewSpanFromTokens(startToken, endToken))
+	return res
+}
+
+func (v *parser) parseAddrofExpr() *AddrofExprNode {
+	if !v.tokenMatches(0, lexer.TOKEN_OPERATOR, "&") {
+		return nil
+	}
+	startToken := v.consumeToken()
+
+	value := v.parseExpr()
+	if value == nil {
+		v.err("Expected valid expression after addrof expression")
+	}
+
+	res := &AddrofExprNode{Value: value}
+	res.SetWhere(lexer.NewSpan(startToken.Where.Start(), value.Where().End()))
+	return res
+}
+
+func (v *parser) parseLitExpr() ParseNode {
+	var res ParseNode
+
+	if arrayLit := v.parseArrayLit(); arrayLit != nil {
+		res = arrayLit
+	} else if tupleLit := v.parseTupleLit(); tupleLit != nil {
+		res = tupleLit
+	} else if boolLit := v.parseBoolLit(); boolLit != nil {
+		res = boolLit
+	} else if numberLit := v.parseNumberLit(); numberLit != nil {
+		res = numberLit
+	} else if stringLit := v.parseStringLit(); stringLit != nil {
+		res = stringLit
+	} else if runeLit := v.parseRuneLit(); runeLit != nil {
+		res = runeLit
+	}
+
+	return res
+}
+
+func (v *parser) parseCastExpr() *CastExprNode {
+	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_CAST) {
+		return nil
+	}
+	startToken := v.consumeToken()
+
+	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "(") {
+		v.err("Expected opening `(` in cast expression, got `%s`", v.peek(0).Contents)
 	}
 	v.consumeToken()
 
-	return sizeof
+	typ := v.parseType()
+	if typ == nil {
+		v.err("Expected valid type in cast expression")
+	}
+
+	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ",") {
+		v.err("Expected `,` in cast expresion, got `%s`", v.peek(0).Contents)
+	}
+	v.consumeToken()
+
+	value := v.parseExpr()
+	if value == nil {
+		v.err("Expected valid expression in cast expression")
+	}
+
+	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ")") {
+		v.err("Expected closing `)` after cast expression, got `%s`", v.peek(0).Contents)
+	}
+	endToken := v.consumeToken()
+
+	res := &CastExprNode{Type: typ, Value: value}
+	res.SetWhere(lexer.NewSpanFromTokens(startToken, endToken))
+	return res
 }
 
-func (v *parser) parseTupleLiteral() Expr {
-	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "(") {
+func (v *parser) parseUnaryExpr() *UnaryExprNode {
+	if !v.nextIs(lexer.TOKEN_OPERATOR) {
+		return nil
+	}
+
+	op := stringToUnOpType(v.peek(0).Contents)
+	if op == UNOP_ERR {
+		return nil
+	}
+	startToken := v.consumeToken()
+
+	value := v.parseExpr()
+	if value == nil {
+		v.err("Expected valid expression after unary operator")
+	}
+
+	res := &UnaryExprNode{Value: value, Operator: op}
+	res.SetWhere(lexer.NewSpan(startToken.Where.Start(), value.Where().End()))
+	return res
+}
+
+func (v *parser) parseCallExpr() *CallExprNode {
+	startPos := v.currentToken
+
+	function := v.parseAccessExpr()
+	if function == nil || !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "(") {
+		v.currentToken = startPos
 		return nil
 	}
 	v.consumeToken()
 
-	if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ")") {
-		v.err("Empty tuple literal")
-	}
-
-	tupleLit := &TupleLiteral{}
-
+	var args []ParseNode
 	for {
-		if expr := v.parseExpr(); expr != nil {
-			tupleLit.Members = append(tupleLit.Members, expr)
-
-			if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ")") {
-				v.consumeToken()
-				break
-			} else if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ",") {
-				v.consumeToken()
-			} else {
-				v.err("Expected `,` after tuple literal member, found `%s`", v.peek(0).Contents)
-			}
-		} else {
-			v.err("Expected expression in tuple literal, found `%s`", v.peek(0).Contents)
+		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ")") {
+			break
 		}
+
+		arg := v.parseExpr()
+		if arg == nil {
+			v.err("Expected valid expression as call argument")
+		}
+		args = append(args, arg)
+
+		if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ",") {
+			break
+		}
+		v.consumeToken()
 	}
 
-	if len(tupleLit.Members) == 1 {
-		return tupleLit.Members[0]
-	} else {
-		return tupleLit
+	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ")") {
+		v.err("Expected closing `)` after call, got `%s`", v.peek(0).Contents)
 	}
+	endToken := v.consumeToken()
+
+	res := &CallExprNode{Function: function, Arguments: args}
+	res.SetWhere(lexer.NewSpan(function.Where().Start(), endToken.Where.End()))
+	return res
 }
 
-func (v *parser) parseAccessExpr() AccessExpr {
-	var lhand AccessExpr
-	if name, numNameToks := v.peekName(); numNameToks > 0 {
-		v.consumeTokens(numNameToks)
-		lhand = &VariableAccessExpr{Name: name}
+func (v *parser) parseAccessExpr() ParseNode {
+	var lhand ParseNode
+	if name := v.parseName(); name != nil {
+		lhand = &VariableAccessNode{Name: name}
+		lhand.SetWhere(name.Where())
 	} else if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "^") {
-		v.consumeToken()
+		startToken := v.consumeToken()
 
-		e := v.parseExpr()
-		if e == nil {
+		value := v.parseExpr()
+		if value == nil {
 			v.err("Expected expression after dereference operator")
 		}
 
-		lhand = &DerefAccessExpr{Expr: e}
+		lhand = &DerefAccessNode{Value: value}
+		lhand.SetWhere(lexer.NewSpan(startToken.Where.Start(), value.Where().End()))
 	} else {
 		return nil
 	}
@@ -1381,37 +1431,44 @@ func (v *parser) parseAccessExpr() AccessExpr {
 			}
 
 			member := v.consumeToken()
-			lhand = &StructAccessExpr{Struct: lhand, Member: member.Contents}
+
+			res := &StructAccessNode{Struct: lhand, Member: NewLocatedString(member)}
+			res.SetWhere(lexer.NewSpan(lhand.Where().Start(), member.Where.End()))
+			lhand = res
 		} else if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "[") {
 			// array access
 			v.consumeToken()
 
-			subscript := v.parseExpr()
-			if subscript == nil {
-				v.err("Expected expression for array subscript, found `%s`", v.peek(0).Contents)
+			index := v.parseExpr()
+			if index == nil {
+				v.err("Expected valid expression as array index")
 			}
 
 			if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "]") {
-				v.err("Expected `]` after array subscript, found `%s`", v.peek(0).Contents)
+				v.err("Expected `]` after array index, found `%s`", v.peek(0).Contents)
 			}
-			v.consumeToken()
+			endToken := v.consumeToken()
 
-			lhand = &ArrayAccessExpr{Array: lhand, Subscript: subscript}
+			res := &ArrayAccessNode{Array: lhand, Index: index}
+			res.SetWhere(lexer.NewSpan(lhand.Where().Start(), endToken.Where.End()))
+			lhand = res
 		} else if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "|") {
 			// tuple access
 			v.consumeToken()
 
-			index := v.parseNumericLiteral()
+			index := v.parseNumberLit()
 			if index == nil || index.IsFloat {
-				v.err("Expected integer for tuple index, found `%s`", v.peek(0).Contents)
+				v.err("Expected integer for tuple index")
 			}
 
 			if !v.tokenMatches(0, lexer.TOKEN_OPERATOR, "|") {
 				v.err("Expected `|` after tuple index, found `%s`", v.peek(0).Contents)
 			}
-			v.consumeToken()
+			endToken := v.consumeToken()
 
-			lhand = &TupleAccessExpr{Tuple: lhand, Index: index.IntValue}
+			res := &TupleAccessNode{Tuple: lhand, Index: int(index.IntValue)}
+			res.SetWhere(lexer.NewSpan(index.Where().Start(), endToken.Where.End()))
+			lhand = res
 		} else {
 			break
 		}
@@ -1420,327 +1477,204 @@ func (v *parser) parseAccessExpr() AccessExpr {
 	return lhand
 }
 
-func (v *parser) parseCallExpr() *CallExpr {
-	// this is rather dirty, please don't hit me
-	start := v.currentToken
-
-	expr := v.parseCallOrAccessExpr()
-	callExpr, ok := expr.(*CallExpr)
-	if !ok {
-		v.currentToken = start
-		return nil
-	}
-
-	return callExpr
-}
-
-func (v *parser) parseCallOrAccessExpr() Expr {
-	callExpr := &CallExpr{}
-
-	if _, numNameTokens := v.peekName(); numNameTokens <= 0 {
-		return nil
-	}
-
-	functionSrc := v.parseAccessExpr()
-	if functionSrc == nil {
-		return nil
-	}
-
-	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "(") {
-		tok := v.peek(0)
-		log.Debugln("parser", "[%s:%d:%d] `%s` (type `%s`)", tok.Where.Filename, tok.Where.StartLine, tok.Where.StartChar, tok.Contents, tok.Type)
-		return functionSrc
-	}
-	v.consumeToken() // consume (
-
-	callExpr.functionSource = functionSrc
-
-	if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ")") {
-		v.consumeToken()
-	} else {
-		for {
-			if expr := v.parseExpr(); expr != nil {
-				callExpr.Arguments = append(callExpr.Arguments, expr)
-			} else {
-				v.err("Expected function argument, found `%s`", v.peek(0).Contents)
-			}
-
-			if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ")") {
-				v.consumeToken()
-				break
-			} else if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ",") {
-				v.consumeToken()
-			} else {
-				v.err("Expected `)` or `,` after function argument, found `%s`", v.peek(0).Contents)
-			}
-		}
-	}
-
-	return callExpr
-}
-
-// TODO: move cast exprs into CallExpr
-func (v *parser) parseCastExpr() *CastExpr {
-	if !v.tokensMatch(lexer.TOKEN_IDENTIFIER, KEYWORD_CAST, lexer.TOKEN_SEPARATOR, "(") {
-		return nil
-	}
-	v.consumeToken()
-	v.consumeToken()
-
-	castExpr := &CastExpr{}
-
-	if castExpr.Type = v.parseType(); castExpr.Type == nil {
-		v.err("Invalid type in cast expr")
-	}
-
-	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ",") {
-		v.err("Expected `,`, found `%s`", v.peek(0).Contents)
-	}
-	v.consumeToken()
-
-	castExpr.Expr = v.parseExpr()
-	if castExpr.Expr == nil {
-		v.err("Expected expression in typecast, found `%s`", v.peek(0))
-	}
-
-	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ")") {
-		v.err("Exprected `)` at the end of typecast, found `%s`", v.peek(0))
-	}
-	v.consumeToken()
-
-	return castExpr
-}
-
-func (v *parser) parseUnaryExpr() *UnaryExpr {
-	if !v.tokenMatches(0, lexer.TOKEN_OPERATOR, "") {
-		return nil
-	}
-
-	contents := v.peek(0).Contents
-	op := stringToUnOpType(contents)
-	if op == UNOP_ERR {
-		return nil
-	}
-
-	v.consumeToken()
-
-	e := v.parseExpr()
-	if e == nil {
-		v.err("Expected expression after unary operator `%s`", contents)
-	}
-
-	return &UnaryExpr{Expr: e, Op: op}
-}
-
-func (v *parser) parseAddressOfExpr() *AddressOfExpr {
-	if !v.tokenMatches(0, lexer.TOKEN_OPERATOR, "&") {
-		return nil
-	}
-	v.consumeToken()
-
-	locationToken := v.peek(0)
-	pos := locationToken.Where.Start()
-
-	access := v.parseAccessExpr()
-	if access == nil {
-		v.err("Expected variable access after `&` operator, found `%s`", v.peek(0).Contents)
-	}
-	access.setPos(pos)
-
-	return &AddressOfExpr{
-		Access: access,
-	}
-}
-
-func (v *parser) parseLiteral() Expr {
-	if arrayLit := v.parseArrayLiteral(); arrayLit != nil {
-		return arrayLit
-	} else if tupleLit := v.parseTupleLiteral(); tupleLit != nil {
-		return tupleLit
-	} else if boolLit := v.parseBoolLiteral(); boolLit != nil {
-		return boolLit
-	} else if numLit := v.parseNumericLiteral(); numLit != nil {
-		return numLit
-	} else if stringLit := v.parseStringLiteral(); stringLit != nil {
-		return stringLit
-	} else if runeLit := v.parseRuneLiteral(); runeLit != nil {
-		return runeLit
-	}
-	return nil
-}
-
-func (v *parser) parseArrayLiteral() *ArrayLiteral {
+func (v *parser) parseArrayLit() *ArrayLiteralNode {
 	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "[") {
 		return nil
 	}
-	v.consumeToken()
+	startToken := v.consumeToken()
 
-	if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "]") {
-		v.err("Empty array literal")
-	}
-
-	arrayLit := &ArrayLiteral{}
-
+	var values []ParseNode
 	for {
-		if expr := v.parseExpr(); expr != nil {
-			arrayLit.Members = append(arrayLit.Members, expr)
-
-			if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "]") {
-				v.consumeToken()
-				return arrayLit
-			} else if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ",") {
-				v.consumeToken()
-			} else {
-				v.err("Expected `,` after array literal member, found `%s`", v.peek(0).Contents)
-			}
-		} else {
-			v.err("Expected expression in array literal, found `%s`", v.peek(0).Contents)
+		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "]") {
+			break
 		}
+
+		value := v.parseExpr()
+		if value == nil {
+			v.err("Expected valid expression in array literal")
+		}
+		values = append(values, value)
+
+		if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ",") {
+			break
+		}
+		v.consumeToken()
 	}
+
+	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "]") {
+		v.err("Expected closing `]` after array literal, got `%s`", v.peek(0).Contents)
+	}
+	endToken := v.consumeToken()
+
+	res := &ArrayLiteralNode{Values: values}
+	res.SetWhere(lexer.NewSpanFromTokens(startToken, endToken))
+	return res
 }
 
-func (v *parser) parseBoolLiteral() *BoolLiteral {
-	if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_TRUE) {
-		v.consumeToken()
-		return &BoolLiteral{Value: true}
-	} else if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_FALSE) {
-		v.consumeToken()
-		return &BoolLiteral{Value: false}
-	}
-	return nil
-}
-
-func (v *parser) parseNumericLiteral() *NumericLiteral {
-	if !v.tokenMatches(0, lexer.TOKEN_NUMBER, "") {
+func (v *parser) parseTupleLit() *TupleLiteralNode {
+	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "(") {
 		return nil
 	}
+	startToken := v.consumeToken()
 
-	num := v.consumeToken().Contents
+	var values []ParseNode
+	for {
+		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ")") {
+			break
+		}
+
+		value := v.parseExpr()
+		if value == nil {
+			v.err("Expected valid expression in tuple literal")
+		}
+		values = append(values, value)
+
+		if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ",") {
+			break
+		}
+		v.consumeToken()
+	}
+
+	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ")") {
+		v.err("Expected closing `]` after tuple literal, got `%s`", v.peek(0).Contents)
+	}
+	endToken := v.consumeToken()
+
+	res := &TupleLiteralNode{Values: values}
+	res.SetWhere(lexer.NewSpanFromTokens(startToken, endToken))
+	return res
+}
+
+func (v *parser) parseBoolLit() *BoolLitNode {
+	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, "true") && !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, "false") {
+		return nil
+	}
+	token := v.consumeToken()
+
+	var value bool
+	if token.Contents == "true" {
+		value = true
+	} else {
+		value = false
+	}
+
+	res := &BoolLitNode{Value: value}
+	res.SetWhere(token.Where)
+	return res
+}
+
+func (v *parser) parseNumberLit() *NumberLitNode {
+	// TODO: Arbitrary base numbers?
+	if !v.nextIs(lexer.TOKEN_NUMBER) {
+		return nil
+	}
+	token := v.consumeToken()
+
+	num := token.Contents
 	var err error
+
+	res := &NumberLitNode{}
 
 	if strings.HasPrefix(num, "0x") || strings.HasPrefix(num, "0X") {
 		// Hexadecimal integer
-		hex := &NumericLiteral{}
 		for _, r := range num[2:] {
 			if r == '_' {
 				continue
 			}
-			hex.IntValue *= 16
+			res.IntValue *= 16
 			if val := uint64(hexRuneToInt(r)); val >= 0 {
-				hex.IntValue += val
+				res.IntValue += val
 			} else {
 				v.err("Malformed hex literal: `%s`", num)
 			}
 		}
-		return hex
 	} else if strings.HasPrefix(num, "0b") {
 		// Binary integer
-		bin := &NumericLiteral{}
 		for _, r := range num[2:] {
 			if r == '_' {
 				continue
 			}
-			bin.IntValue *= 2
+			res.IntValue *= 2
 			if val := uint64(binRuneToInt(r)); val >= 0 {
-				bin.IntValue += val
+				res.IntValue += val
 			} else {
 				v.err("Malformed binary literal: `%s`", num)
 			}
 		}
-		return bin
 	} else if strings.HasPrefix(num, "0o") {
 		// Octal integer
-		oct := &NumericLiteral{}
 		for _, r := range num[2:] {
 			if r == '_' {
 				continue
 			}
-			oct.IntValue *= 8
+			res.IntValue *= 8
 			if val := uint64(octRuneToInt(r)); val >= 0 {
-				oct.IntValue += val
+				res.IntValue += val
 			} else {
 				v.err("Malformed octal literal: `%s`", num)
 			}
 		}
-		return oct
 	} else if lastRune := unicode.ToLower([]rune(num)[len([]rune(num))-1]); strings.ContainsRune(num, '.') || lastRune == 'f' || lastRune == 'd' || lastRune == 'q' {
 		if strings.Count(num, ".") > 1 {
 			v.err("Floating-point cannot have multiple periods: `%s`", num)
 			return nil
 		}
-
-		f := &NumericLiteral{IsFloat: true}
-
-		fnum := num
-		hasSuffix := true
+		res.IsFloat = true
 
 		switch lastRune {
-		case 'f':
-			f.Type = PRIMITIVE_f32
-		case 'd':
-			f.Type = PRIMITIVE_f64
-		case 'q':
-			f.Type = PRIMITIVE_f128
-		default:
-			hasSuffix = false
+		case 'f', 'd', 'q':
+			res.FloatSize = lastRune
 		}
 
-		if hasSuffix {
-			fnum = fnum[:len(fnum)-1]
+		if res.FloatSize != 0 {
+			res.FloatValue, err = strconv.ParseFloat(num[:len(num)-1], 64)
+		} else {
+			res.FloatValue, err = strconv.ParseFloat(num, 64)
 		}
-
-		f.FloatValue, err = strconv.ParseFloat(fnum, 64)
 
 		if err != nil {
 			if err.(*strconv.NumError).Err == strconv.ErrSyntax {
 				v.err("Malformed floating-point literal: `%s`", num)
-				return nil
 			} else if err.(*strconv.NumError).Err == strconv.ErrRange {
 				v.err("Floating-point literal cannot be represented: `%s`", num)
-				return nil
 			} else {
-				panic("shouldn't be here, ever")
+				v.err("Unexpected error from floating-point literal: %s", err)
 			}
 		}
-
-		return f
 	} else {
 		// Decimal integer
-		i := &NumericLiteral{}
 		for _, r := range num {
 			if r == '_' {
 				continue
 			}
-			i.IntValue *= 10
-			i.IntValue += uint64(r - '0')
+			res.IntValue *= 10
+			res.IntValue += uint64(r - '0')
 		}
-		return i
 	}
+
+	res.SetWhere(token.Where)
+	return res
 }
 
-func (v *parser) parseStringLiteral() *StringLiteral {
-	if !v.tokenMatches(0, lexer.TOKEN_STRING, "") {
+func (v *parser) parseStringLit() *StringLitNode {
+	if !v.nextIs(lexer.TOKEN_STRING) {
 		return nil
 	}
-	c := v.consumeToken().Contents
-	strLen := len(c)
-	return &StringLiteral{Value: UnescapeString(c[1 : strLen-1]), StrLen: strLen}
+	token := v.consumeToken()
+	strLen := len(token.Contents)
+	res := &StringLitNode{Value: UnescapeString(token.Contents[1 : strLen-1])}
+	res.SetWhere(token.Where)
+	return res
 }
 
-func (v *parser) parseRuneLiteral() *RuneLiteral {
-	if !v.tokenMatches(0, lexer.TOKEN_RUNE, "") {
+func (v *parser) parseRuneLit() *RuneLitNode {
+	if !v.nextIs(lexer.TOKEN_RUNE) {
 		return nil
 	}
+	token := v.consumeToken()
+	c := UnescapeString(token.Contents)
 
-	raw := v.consumeToken().Contents
-	c := UnescapeString(raw)
-
-	if l := len([]rune(c)); l == 3 {
-		return &RuneLiteral{Value: []rune(c)[1]}
-	} else if l < 3 {
-		panic("lexer problem")
-	} else {
-		v.err("Rune literal contains more than one rune: `%s`", raw)
-		return nil
-	}
+	res := &RuneLitNode{Value: []rune(c)[1]}
+	res.SetWhere(token.Where)
+	return res
 }
