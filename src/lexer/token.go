@@ -42,7 +42,7 @@ func NewSpan(start, end Position) Span {
 	}
 }
 
-func NewSpanFromTokens(start, end Token) Span {
+func NewSpanFromTokens(start, end *Token) Span {
 	return Span{Filename: start.Where.Filename,
 		StartLine: start.Where.StartLine, StartChar: start.Where.StartChar,
 		EndLine: end.Where.EndLine, EndChar: end.Where.EndChar,
