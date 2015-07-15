@@ -72,7 +72,7 @@ func setupErr(err string, stuff ...interface{}) {
 	os.Exit(util.EXIT_FAILURE_SETUP)
 }
 
-func build(files []string, outputFile string, cg string, ccArgs []string, outputType LLVMCodegen.OutputType) {
+func parseFiles(files []string) ([]*parser.Module, map[string]*parser.Module) {
 	// read source files
 	var sourcefiles []*lexer.Sourcefile
 
@@ -109,6 +109,12 @@ func build(files []string, outputFile string, cg string, ccArgs []string, output
 			constructedModules = append(constructedModules, parser.Construct(file, modules))
 		}
 	})
+
+	return constructedModules, modules
+}
+
+func build(files []string, outputFile string, cg string, ccArgs []string, outputType LLVMCodegen.OutputType) {
+	constructedModules, modules := parseFiles(files)
 
 	// resolve
 	timed("resolve phase", func() {
@@ -170,38 +176,10 @@ func run(output string) {
 }
 
 func docgen(input []string, dir string) {
-	// TODO: eww duplication
-	// read source files
-	var sourcefiles []*lexer.Sourcefile
-
-	timed("reading sourcefiles", func() {
-		for _, file := range input {
-			sourcefile, err := lexer.NewSourcefile(file)
-			if err != nil {
-				setupErr("%s", err.Error())
-			}
-			sourcefiles = append(sourcefiles, sourcefile)
-		}
-	})
-
-	// lexing
-	timed("lexing phase", func() {
-		for _, file := range sourcefiles {
-			file.Tokens = lexer.Lex(file)
-		}
-	})
-
-	// parsing
-	var parsedFiles []*parser.ParseTree
-
-	timed("parsing phase", func() {
-		for _, file := range sourcefiles {
-			parsedFiles = append(parsedFiles, parser.Parse(file))
-		}
-	})
+	constructedModules, _ := parseFiles(input)
 
 	gen := &doc.Docgen{
-		Input: parsedFiles,
+		Input: constructedModules,
 		Dir:   dir,
 	}
 
