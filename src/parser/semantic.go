@@ -399,7 +399,7 @@ func (v *AssignStat) analyze(s *SemanticAnalyzer) {
 	v.Assignment.setTypeHint(v.Access.GetType())
 	v.Assignment.analyze(s)
 	v.Access.analyze(s)
-	if v.Access.GetType() != v.Assignment.GetType() {
+	if !v.Access.GetType().Equals(v.Assignment.GetType()) {
 		s.err(v, "Mismatched types: `%s` and `%s`", v.Access.GetType().TypeName(), v.Assignment.GetType().TypeName())
 	}
 }
