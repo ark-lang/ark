@@ -199,9 +199,11 @@ func (v *ArrayTypeNode) construct(c *Constructor) Type {
 }
 
 func (v *TypeReferenceNode) construct(c *Constructor) Type {
-	// TODO: Types in other modules
 	res := &UnresolvedType{}
-	res.Name = v.Reference.Name.Value
+	res.Name.name = v.Reference.Name.Value
+	for _, module := range v.Reference.Modules {
+		res.Name.moduleNames = append(res.Name.moduleNames, module.Value)
+	}
 	return res
 }
 
