@@ -663,7 +663,11 @@ func (v *Codegen) genArrayLiteral(n *parser.ArrayLiteral) llvm.Value {
 		arrAlloca := v.builder.CreateAlloca(llvm.ArrayType(memberLLVMType, len(n.Members)), "")
 
 		// copy the constant array to the backing array
-		v.builder.CreateStore(v.genArrayLiterals(n), arrAlloca)
+		for idx, value := range n.Members {
+			gep := v.builder.CreateGEP(arrAlloca, []llvm.Value{llvm.ConstInt(llvm.IntType(32), 0, false), llvm.ConstInt(llvm.IntType(32), uint64(idx), false)}, "")
+			value := v.genExpr(value)
+			v.builder.CreateStore(value, gep)
+		}
 
 		// allocate struct
 		structAlloca := v.builder.CreateAlloca(arrayLLVMType, "")
@@ -684,24 +688,22 @@ func (v *Codegen) genArrayLiteral(n *parser.ArrayLiteral) llvm.Value {
 		backGlob := llvm.AddGlobal(v.curFile.Module, llvm.ArrayType(memberLLVMType, len(n.Members)), backName)
 		backGlob.SetLinkage(llvm.InternalLinkage)
 		backGlob.SetGlobalConstant(false)
-		backGlob.SetInitializer(v.genArrayLiterals(n))
+
+		arrConstVals := make([]llvm.Value, len(n.Members))
+		for idx, mem := range n.Members {
+			value := v.genExpr(mem)
+			if !value.IsConstant() {
+				v.err("Encountered non-constant value in global array")
+			}
+			arrConstVals[idx] = v.genExpr(mem)
+		}
+		backGlob.SetInitializer(llvm.ConstArray(memberLLVMType, arrConstVals))
 
 		lengthVal := llvm.ConstInt(llvm.IntType(32), uint64(len(n.Members)), false)
 		backRef := llvm.ConstBitCast(backGlob, llvm.PointerType(llvm.ArrayType(memberLLVMType, 0), 0))
 
 		return llvm.ConstStruct([]llvm.Value{lengthVal, backRef}, false)
 	}
-}
-
-func (v *Codegen) genArrayLiterals(n *parser.ArrayLiteral) llvm.Value {
-	memberLLVMType := v.typeToLLVMType(n.Type.(parser.ArrayType).MemberType)
-
-	arrConstVals := make([]llvm.Value, len(n.Members))
-	for idx, mem := range n.Members {
-		arrConstVals[idx] = v.genExpr(mem)
-	}
-
-	return llvm.ConstArray(memberLLVMType, arrConstVals)
 }
 
 func (v *Codegen) genTupleLiteral(n *parser.TupleLiteral) llvm.Value {
