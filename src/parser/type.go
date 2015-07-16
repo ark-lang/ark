@@ -501,15 +501,15 @@ func (v *TupleType) Equals(t Type) bool {
 }
 
 type UnresolvedType struct {
-	Name string
+	Name unresolvedName
 }
 
 func (v *UnresolvedType) String() string {
-	return "(" + util.Blue("UnresolvedType") + ": " + v.Name + ")"
+	return "(" + util.Blue("UnresolvedType") + ": " + v.Name.String() + ")"
 }
 
 func (v *UnresolvedType) TypeName() string {
-	return v.Name
+	return v.Name.String()
 }
 
 func (v *UnresolvedType) RawType() Type {
