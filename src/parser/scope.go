@@ -59,8 +59,30 @@ func (v *Scope) InsertType(t Type) Type {
 	return c
 }
 
-func (v *Scope) GetType(name string) Type {
-	if r := v.Types[name]; r != nil {
+func (v *Scope) GetType(name unresolvedName) Type {
+	if len(name.moduleNames) > 0 {
+		moduleName := name.moduleNames[0]
+
+		if module, ok := v.UsedModules[moduleName]; ok {
+			if r := module.GlobalScope.Types[name.name]; r != nil {
+				return r
+			} else {
+				v.err("could not find type `%s` in module `%s`", name.name, moduleName)
+			}
+		} else if v.Outer != nil {
+			if module, ok := v.Outer.UsedModules[moduleName]; ok {
+				if r := module.GlobalScope.Types[name.name]; r != nil {
+					return r
+				} else {
+					v.err("could not find type `%s` in module `%s`", name.name, moduleName)
+				}
+			}
+		} else {
+			v.err("could not find `" + moduleName + "`, are you sure it's being used in this module?\n\n    `use " + moduleName + ";`\n")
+		}
+	}
+
+	if r := v.Types[name.name]; r != nil {
 		return r
 	} else if v.Outer != nil {
 		return v.Outer.GetType(name)
