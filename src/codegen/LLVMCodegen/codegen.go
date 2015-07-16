@@ -480,6 +480,23 @@ func (v *Codegen) genVariableDecl(n *parser.VariableDecl, semicolon bool) llvm.V
 
 		alloc := allocBuilder.CreateAlloca(v.typeToLLVMType(n.Variable.Type), mangledName)
 
+		// set allocated memory to zero
+		fn := v.curFile.Module.NamedFunction("llvm.memset.p0i8.i32")
+		if fn.IsNil() {
+			fnType := llvm.FunctionType(llvm.VoidType(), []llvm.Type{llvm.PointerType(llvm.IntType(8), 0), llvm.IntType(8), llvm.IntType(32), llvm.IntType(32), llvm.IntType(1)}, false)
+			fn = llvm.AddFunction(v.curFile.Module, "llvm.memset.p0i8.i32", fnType)
+		}
+
+		// cast alloc to byte array
+		castAlloc := allocBuilder.CreateBitCast(alloc, llvm.PointerType(llvm.IntType(8), 0), "")
+
+		// get type length
+		gep := allocBuilder.CreateGEP(llvm.ConstNull(llvm.PointerType(v.typeToLLVMType(n.Variable.Type), 0)), []llvm.Value{llvm.ConstInt(llvm.IntType(32), 1, false)}, "")
+		length := allocBuilder.CreatePtrToInt(gep, llvm.IntType(32), "")
+
+		// call memset intrinsic
+		allocBuilder.CreateCall(fn, []llvm.Value{castAlloc, llvm.ConstInt(llvm.IntType(8), 0, false), length, llvm.ConstInt(llvm.IntType(32), 0, false), llvm.ConstInt(llvm.IntType(1), 0, false)}, "")
+
 		allocBuilder.Dispose()
 
 		v.variableLookup[n.Variable] = alloc
