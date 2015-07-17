@@ -107,14 +107,14 @@ func (v *Scope) GetIdent(name unresolvedName) *Ident {
 			if r := module.GlobalScope.Idents[name.name]; r != nil {
 				return r
 			} else {
-				v.err("could not find function `%s` in module `%s`", name.name, moduleName)
+				v.err("could not find identifier `%s` in module `%s`", name.name, moduleName)
 			}
 		} else if v.Outer != nil {
 			if module, ok := v.Outer.UsedModules[moduleName]; ok {
 				if r := module.GlobalScope.Idents[name.name]; r != nil {
 					return r
 				} else {
-					v.err("could not find function `%s` in module `%s`", name.name, moduleName)
+					v.err("could not find identifier `%s` in module `%s`", name.name, moduleName)
 				}
 			}
 		} else {
