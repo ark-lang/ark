@@ -104,12 +104,6 @@ type ImplDeclNode struct {
 	Members    []*FunctionDeclNode
 }
 
-type ModuleDeclNode struct {
-	baseNode
-	Name    LocatedString
-	Members []ParseNode
-}
-
 type FunctionHeaderNode struct {
 	baseNode
 	Name       LocatedString

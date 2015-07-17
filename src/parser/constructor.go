@@ -269,37 +269,6 @@ func (v *ImplDeclNode) construct(c *Constructor) Node {
 	return res
 }
 
-func (v *ModuleDeclNode) construct(c *Constructor) Node {
-	mod := &Module{}
-	mod.Name = v.Name.Value
-
-	for _, member := range v.Members {
-		thing := c.constructNode(member)
-
-		// Comment from ages past:
-		// maybe decl for this instead?
-		// also refactor how it's stored in the
-		// module and just store Decl?
-		// idk might be cleaner
-		switch thing.(type) {
-		case *FunctionDecl:
-			mod.Functions = append(mod.Functions, thing.(*FunctionDecl))
-
-		case *VariableDecl:
-			mod.Variables = append(mod.Variables, thing.(*VariableDecl))
-
-		default:
-			panic("invalid item in module `" + mod.Name + "`")
-		}
-
-	}
-
-	res := &ModuleDecl{Module: mod}
-	res.docs = v.DocComments()
-	res.setPos(v.Where().Start())
-	return res
-}
-
 func (v *FunctionDeclNode) construct(c *Constructor) Node {
 	function := &Function{}
 	function.Name = v.Header.Name.Value
