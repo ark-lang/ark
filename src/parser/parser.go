@@ -60,27 +60,7 @@ func (v *parser) errPos(err string, stuff ...interface{}) {
 func (v *parser) errTokenSpecific(tok *lexer.Token, err string, stuff ...interface{}) {
 	log.Errorln("parser", util.TEXT_RED+util.TEXT_BOLD+"Parser error:"+util.TEXT_RESET)
 
-	for line := tok.Where.Start().Line; line <= tok.Where.End().Line; line++ {
-		lineString := v.input.GetLine(line)
-
-		var pad int
-		if line == tok.Where.Start().Line {
-			pad = tok.Where.Start().Char - 1
-		} else {
-			pad = 0
-		}
-
-		var length int
-		if line == tok.Where.End().Line {
-			length = tok.Where.End().Char
-		} else {
-			length = len([]rune(lineString))
-		}
-
-		log.Errorln("parser", strings.Replace(lineString, "%", "%%", -1))
-		log.Error("parser", strings.Repeat(" ", pad))
-		log.Errorln("parser", strings.Repeat("^", length))
-	}
+	log.Error("parser", v.input.MarkSpan(tok.Where))
 
 	log.Errorln("parser", "[%s:%d:%d] %s",
 		tok.Where.Filename, tok.Where.StartLine, tok.Where.StartChar,
@@ -91,12 +71,7 @@ func (v *parser) errTokenSpecific(tok *lexer.Token, err string, stuff ...interfa
 func (v *parser) errPosSpecific(pos lexer.Position, err string, stuff ...interface{}) {
 	log.Errorln("parser", util.TEXT_RED+util.TEXT_BOLD+"Parser error:"+util.TEXT_RESET)
 
-	line := v.input.GetLine(pos.Line)
-	pad := pos.Char - 1
-
-	log.Errorln("parser", strings.Replace(line, "%", "%%", -1))
-	log.Error("parser", strings.Repeat(" ", pad))
-	log.Errorln("parser", "^")
+	log.Error("parser", v.input.MarkPos(pos))
 
 	log.Errorln("parser", "[%s:%d:%d] %s",
 		pos.Filename, pos.Line, pos.Char,

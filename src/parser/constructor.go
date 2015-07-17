@@ -7,7 +7,6 @@ import (
 	"github.com/ark-lang/ark/src/util/log"
 	"os"
 	"reflect"
-	"strings"
 	"time"
 )
 
@@ -37,12 +36,7 @@ func (v *Constructor) err(pos lexer.Span, err string, stuff ...interface{}) {
 func (v *Constructor) errPos(pos lexer.Position, err string, stuff ...interface{}) {
 	log.Errorln("constructor", util.TEXT_RED+util.TEXT_BOLD+"Constructor error:"+util.TEXT_RESET)
 
-	line := v.tree.Source.GetLine(pos.Line)
-	pad := pos.Char - 1
-
-	log.Errorln("constructor", strings.Replace(line, "%", "%%", -1))
-	log.Error("constructor", strings.Repeat(" ", pad))
-	log.Errorln("constructor", "^")
+	log.Error("constructor", v.tree.Source.MarkPos(pos))
 
 	log.Errorln("constructor", "[%s:%d:%d] %s",
 		pos.Filename, pos.Line, pos.Char,
@@ -53,27 +47,7 @@ func (v *Constructor) errPos(pos lexer.Position, err string, stuff ...interface{
 func (v *Constructor) errSpan(pos lexer.Span, err string, stuff ...interface{}) {
 	log.Errorln("constructor", util.TEXT_RED+util.TEXT_BOLD+"Constructor error:"+util.TEXT_RESET)
 
-	for line := pos.Start().Line; line <= pos.End().Line; line++ {
-		lineString := v.tree.Source.GetLine(line)
-
-		var pad int
-		if line == pos.Start().Line {
-			pad = pos.Start().Char - 1
-		} else {
-			pad = 0
-		}
-
-		var length int
-		if line == pos.End().Line {
-			length = pos.End().Char
-		} else {
-			length = len([]rune(lineString))
-		}
-
-		log.Errorln("constructor", strings.Replace(lineString, "%", "%%", -1))
-		log.Error("constructor", strings.Repeat(" ", pad))
-		log.Errorln("constructor", strings.Repeat("^", length))
-	}
+	log.Error("constructor", v.tree.Source.MarkSpan(pos))
 
 	log.Errorln("constructor", "[%s:%d:%d] %s",
 		pos.Filename, pos.StartLine, pos.StartChar,
@@ -109,6 +83,7 @@ func Construct(tree *ParseTree, modules map[string]*Module) *Module {
 		tree: tree,
 		module: &Module{
 			Nodes: make([]Node, 0),
+			File:  tree.Source,
 			Path:  tree.Source.Path,
 			Name:  tree.Source.Name,
 		},
