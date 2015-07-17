@@ -466,24 +466,30 @@ func (v *parser) parseFuncDecl() *FunctionDeclNode {
 
 	var body *BlockNode
 	var stat, expr ParseNode
+	var endPosition lexer.Position
 	if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "->") {
 		v.consumeToken()
 
 		if stat = v.parseStat(); stat != nil {
+			endPosition = stat.Where().End()
 		} else if expr = v.parseExpr(); expr != nil {
 			if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ";") {
 				v.err("Expected `;` after function declaration, got `%s`", v.peek(0).Contents)
 			}
 			v.consumeToken()
+			endPosition = expr.Where().End()
 		} else {
 			v.err("Expected valid statement or expression after `->` in function declaration")
 		}
 	} else {
 		body = v.parseBlock()
+		if body != nil {
+			endPosition = body.Where().End()
+		}
 	}
 
 	var maybeEndToken *lexer.Token
-	if body == nil {
+	if body == nil && stat == nil && expr == nil {
 		if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ";") {
 			v.err("Expected `;` after body-less function declaration, got `%s`", v.peek(0).Contents)
 		}
@@ -491,8 +497,8 @@ func (v *parser) parseFuncDecl() *FunctionDeclNode {
 	}
 
 	res := &FunctionDeclNode{Header: funcHeader, Body: body, Stat: stat, Expr: expr}
-	if body != nil {
-		res.SetWhere(lexer.NewSpan(funcHeader.Where().Start(), body.Where().End()))
+	if body != nil || stat != nil || expr != nil {
+		res.SetWhere(lexer.NewSpan(funcHeader.Where().Start(), endPosition))
 	} else {
 		res.SetWhere(lexer.NewSpan(funcHeader.Where().Start(), maybeEndToken.Where.End()))
 	}
