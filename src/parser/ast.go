@@ -192,37 +192,6 @@ func (v *VariableDecl) DocComments() []*DocComment {
 	return v.docs
 }
 
-// ModuleDecl
-
-type ModuleDecl struct {
-	nodePos
-	Module *Module
-	docs   []*DocComment
-}
-
-func (v *ModuleDecl) declNode() {}
-
-func (v *ModuleDecl) String() string {
-	result := "(" + util.Blue(v.Module.Name) + " (in " + util.Green(v.Module.Path) + "): \n"
-	// todo interfaces for this shit
-	for _, function := range v.Module.Functions {
-		result += "\t" + function.String() + "\n"
-	}
-	for _, variable := range v.Module.Variables {
-		result += "\t" + variable.String() + "\n"
-	}
-	result += ")"
-	return result
-}
-
-func (v *ModuleDecl) NodeName() string {
-	return "mod decl"
-}
-
-func (v *ModuleDecl) DocComments() []*DocComment {
-	return nil // TODO
-}
-
 // StructDecl
 
 type StructDecl struct {

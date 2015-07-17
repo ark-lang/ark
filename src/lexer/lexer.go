@@ -141,6 +141,7 @@ start:
 	pos := v.curPos
 
 	// Block comments
+	// TODO refactor this it's kind of messy
 	if v.peek(0) == '/' && v.peek(1) == '*' {
 		v.consume()
 		v.consume()

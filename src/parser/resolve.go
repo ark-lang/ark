@@ -109,10 +109,6 @@ func (v *UseDecl) resolve(res *Resolver, s *Scope) {
 	// later...
 }
 
-func (v *ModuleDecl) resolve(res *Resolver, s *Scope) {
-
-}
-
 /*
  * Statements
  */
