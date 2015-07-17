@@ -2,12 +2,13 @@ package parser
 
 import (
 	"fmt"
-	"github.com/ark-lang/ark/src/lexer"
-	"github.com/ark-lang/ark/src/util"
-	"github.com/ark-lang/ark/src/util/log"
 	"os"
 	"reflect"
 	"time"
+
+	"github.com/ark-lang/ark/src/lexer"
+	"github.com/ark-lang/ark/src/util"
+	"github.com/ark-lang/ark/src/util/log"
 )
 
 type ConstructableNode interface {
@@ -34,24 +35,24 @@ func (v *Constructor) err(pos lexer.Span, err string, stuff ...interface{}) {
 }
 
 func (v *Constructor) errPos(pos lexer.Position, err string, stuff ...interface{}) {
-	log.Errorln("constructor", util.TEXT_RED+util.TEXT_BOLD+"Constructor error:"+util.TEXT_RESET)
+	log.Errorln("constructor",
+		util.TEXT_RED+util.TEXT_BOLD+"Constructor error:"+util.TEXT_RESET+" [%s:%d:%d] %s",
+		pos.Filename, pos.Line, pos.Char,
+		fmt.Sprintf(err, stuff...))
 
 	log.Error("constructor", v.tree.Source.MarkPos(pos))
 
-	log.Errorln("constructor", "[%s:%d:%d] %s",
-		pos.Filename, pos.Line, pos.Char,
-		fmt.Sprintf(err, stuff...))
 	os.Exit(util.EXIT_FAILURE_CONSTRUCTOR)
 }
 
 func (v *Constructor) errSpan(pos lexer.Span, err string, stuff ...interface{}) {
-	log.Errorln("constructor", util.TEXT_RED+util.TEXT_BOLD+"Constructor error:"+util.TEXT_RESET)
+	log.Errorln("constructor",
+		util.TEXT_RED+util.TEXT_BOLD+"Constructor error:"+util.TEXT_RESET+" [%s:%d:%d] %s",
+		pos.Filename, pos.StartLine, pos.StartChar,
+		fmt.Sprintf(err, stuff...))
 
 	log.Error("constructor", v.tree.Source.MarkSpan(pos))
 
-	log.Errorln("constructor", "[%s:%d:%d] %s",
-		pos.Filename, pos.StartLine, pos.StartChar,
-		fmt.Sprintf(err, stuff...))
 	os.Exit(util.EXIT_FAILURE_CONSTRUCTOR)
 }
 

@@ -4,11 +4,12 @@ package lexer
 
 import (
 	"fmt"
-	"github.com/ark-lang/ark/src/util/log"
 	"os"
 	"strings"
 	"time"
 	"unicode"
+
+	"github.com/ark-lang/ark/src/util/log"
 
 	"github.com/ark-lang/ark/src/util"
 )
@@ -20,14 +21,17 @@ type lexer struct {
 	tokStart         Position
 }
 
-func (v *lexer) errWithCustomPosition(pos Position, err string, stuff ...interface{}) {
-	log.Error("lexer", util.TEXT_RED+util.TEXT_BOLD+"Lexer error:"+util.TEXT_RESET+" [%s:%d:%d] %s\n",
+func (v *lexer) errPos(pos Position, err string, stuff ...interface{}) {
+	log.Errorln("lexer", util.TEXT_RED+util.TEXT_BOLD+"Lexer error:"+util.TEXT_RESET+" [%s:%d:%d] %s",
 		pos.Filename, pos.Line, pos.Char, fmt.Sprintf(err, stuff...))
+
+	log.Error("lexer", v.input.MarkPos(pos))
+
 	os.Exit(1)
 }
 
 func (v *lexer) err(err string, stuff ...interface{}) {
-	v.errWithCustomPosition(v.curPos, err, stuff...)
+	v.errPos(v.curPos, err, stuff...)
 }
 
 func (v *lexer) peek(ahead int) rune {
@@ -149,7 +153,7 @@ start:
 
 		for {
 			if isEOF(v.peek(0)) {
-				v.errWithCustomPosition(pos, "Unterminated block comment")
+				v.errPos(pos, "Unterminated block comment")
 			}
 			if v.peek(0) == '*' && v.peek(1) == '/' {
 				v.consume()
@@ -252,7 +256,7 @@ func (v *lexer) recognizeStringToken() {
 			v.pushToken(TOKEN_STRING)
 			return
 		} else if isEOF(v.peek(0)) {
-			v.errWithCustomPosition(pos, "Unterminated string literal")
+			v.errPos(pos, "Unterminated string literal")
 		} else {
 			v.consume()
 		}
@@ -277,7 +281,7 @@ func (v *lexer) recognizeCharacterToken() {
 			v.pushToken(TOKEN_RUNE)
 			return
 		} else if isEOF(v.peek(0)) {
-			v.errWithCustomPosition(pos, "Unterminated character literal")
+			v.errPos(pos, "Unterminated character literal")
 		} else {
 			v.consume()
 		}
