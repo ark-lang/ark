@@ -155,10 +155,6 @@ func (v *Function) analyze(s *SemanticAnalyzer) {
 	s.function = nil
 }
 
-func (v *ModuleDecl) analyze(s *SemanticAnalyzer) {
-
-}
-
 func (v *EnumDecl) analyze(s *SemanticAnalyzer) {
 	// here we infer the enum integer type from given typed expressions, if any
 	var enumValueType Type
