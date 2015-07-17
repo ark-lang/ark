@@ -293,8 +293,6 @@ func (v *parser) parseDecl() ParseNode {
 		res = traitDecl
 	} else if implDecl := v.parseImplDecl(); implDecl != nil {
 		res = implDecl
-	} else if moduleDecl := v.parseModuleDecl(); moduleDecl != nil {
-		res = moduleDecl
 	} else if funcDecl := v.parseFuncDecl(); funcDecl != nil {
 		res = funcDecl
 	} else if enumDecl := v.parseEnumDecl(); enumDecl != nil {
@@ -481,49 +479,6 @@ func (v *parser) parseImplDecl() *ImplDeclNode {
 	if traitName != nil {
 		res.TraitName = NewLocatedString(traitName)
 	}
-	res.SetWhere(lexer.NewSpanFromTokens(startToken, endToken))
-	return res
-}
-
-func (v *parser) parseModuleDecl() *ModuleDeclNode {
-	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_MODULE) {
-		return nil
-	}
-	startToken := v.consumeToken()
-
-	if !v.nextIs(lexer.TOKEN_IDENTIFIER) {
-		v.err("Expected module name after `module` keyword, got `%s`", v.peek(0).Contents)
-	}
-	name := v.consumeToken()
-
-	if isReservedKeyword(name.Contents) {
-		v.err("Cannot use reserved keyword `%s` as module name", name.Contents)
-	}
-
-	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "{") {
-		v.err("Expected starting `{` after module name, got `%s`", v.peek(0).Contents)
-	}
-	v.consumeToken()
-
-	var members []ParseNode
-	for {
-		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "}") {
-			break
-		}
-
-		member := v.parseDecl()
-		if member == nil {
-			v.err("Expected valid declaration in module declaration")
-		}
-		members = append(members, member)
-	}
-
-	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "}") {
-		v.err("Expected closing `}` after module declaration, got `%s`", v.peek(0).Contents)
-	}
-	endToken := v.consumeToken()
-
-	res := &ModuleDeclNode{Name: NewLocatedString(name), Members: members}
 	res.SetWhere(lexer.NewSpanFromTokens(startToken, endToken))
 	return res
 }
