@@ -261,6 +261,13 @@ func (v *FunctionDeclNode) construct(c *Constructor) Node {
 	res := &FunctionDecl{}
 	res.docs = v.DocComments()
 	res.Function = function
+
+	if v.Expr != nil {
+		v.Stat = &ReturnStatNode{Value: v.Expr}
+	}
+	if v.Stat != nil {
+		v.Body = &BlockNode{Nodes: []ParseNode{v.Stat}}
+	}
 	if v.Body != nil {
 		c.pushScope()
 		function.Body = c.constructNode(v.Body).(*Block) // TODO: Error message
