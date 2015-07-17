@@ -8,13 +8,6 @@ import (
 	"github.com/ark-lang/ark/src/util/log"
 )
 
-// What is done:
-// - variables
-// - function
-// What is not:
-// - types
-// - traits
-
 type unresolvedName struct {
 	moduleNames []string
 	name        string
@@ -44,7 +37,7 @@ func (v *Resolver) err(thing Locatable, err string, stuff ...interface{}) {
 	os.Exit(util.EXIT_FAILURE_SEMANTIC)
 }
 
-func (v *Resolver) errResolve(thing Locatable, name unresolvedName) {
+func (v *Resolver) errCannotResolve(thing Locatable, name unresolvedName) {
 	v.err(thing, "Cannot resolve `%s`", name.String())
 }
 
@@ -221,9 +214,13 @@ func (v *CallExpr) resolve(res *Resolver, s *Scope) {
 		panic("Invalid function source (for now)")
 	}
 
-	v.Function = s.GetFunction(name)
-	if v.Function == nil {
-		res.errResolve(v, name)
+	ident := s.GetIdent(name)
+	if ident == nil {
+		res.errCannotResolve(v, name)
+	} else if ident.Type != IDENT_FUNCTION {
+		res.err(v, "Expected function identifier, found %s `%s`", ident.Type, name)
+	} else {
+		v.Function = ident.Value.(*Function)
 	}
 
 	for _, arg := range v.Arguments {
@@ -232,10 +229,17 @@ func (v *CallExpr) resolve(res *Resolver, s *Scope) {
 }
 
 func (v *VariableAccessExpr) resolve(res *Resolver, s *Scope) {
-	v.Variable = s.GetVariable(v.Name)
+	ident := s.GetIdent(v.Name)
+	if ident == nil {
+		res.errCannotResolve(v, v.Name)
+	} else if ident.Type != IDENT_VARIABLE {
+		res.err(v, "Expected variable identifier, found %s `%s`", ident.Type, v.Name)
+	} else {
+		v.Variable = ident.Value.(*Variable)
+	}
 
 	if v.Variable == nil {
-		res.errResolve(v, v.Name)
+		res.errCannotResolve(v, v.Name)
 	} else if v.Variable.Type != nil {
 		v.Variable.Type.resolveType(v, res, s)
 	}
@@ -331,9 +335,14 @@ func (v *TupleType) resolveType(src Locatable, res *Resolver, s *Scope) Type {
 }
 
 func (v *UnresolvedType) resolveType(src Locatable, res *Resolver, s *Scope) Type {
-	typ := s.GetType(v.Name)
-	if typ == nil {
+	ident := s.GetIdent(v.Name)
+	if ident == nil {
 		res.err(src, "Cannot resolve `%s`", v.Name)
+	} else if ident.Type != IDENT_TYPE {
+		res.err(src, "Expected type identifier, found %s `%s`", ident.Type, v.Name)
+	} else {
+		return ident.Value.(Type)
 	}
-	return typ
+
+	panic("should never get here")
 }
