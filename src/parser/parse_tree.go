@@ -116,6 +116,8 @@ type FunctionDeclNode struct {
 	baseNode
 	Header *FunctionHeaderNode
 	Body   *BlockNode
+	Stat   ParseNode
+	Expr   ParseNode
 }
 
 type EnumDeclNode struct {

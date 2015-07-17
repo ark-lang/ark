@@ -465,14 +465,12 @@ func (v *parser) parseFuncDecl() *FunctionDeclNode {
 	}
 
 	var body *BlockNode
+	var stat, expr ParseNode
 	if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "->") {
 		v.consumeToken()
 
-		var stat ParseNode
 		if stat = v.parseStat(); stat != nil {
-		} else if expr := v.parseExpr(); expr != nil {
-			// TODO: Wrapping in return should maybe be done in constructor
-			stat = &ReturnStatNode{Value: expr}
+		} else if expr = v.parseExpr(); expr != nil {
 			if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ";") {
 				v.err("Expected `;` after function declaration, got `%s`", v.peek(0).Contents)
 			}
@@ -480,10 +478,6 @@ func (v *parser) parseFuncDecl() *FunctionDeclNode {
 		} else {
 			v.err("Expected valid statement or expression after `->` in function declaration")
 		}
-
-		block := &BlockNode{}
-		block.Nodes = append(block.Nodes, stat)
-		body = block
 	} else {
 		body = v.parseBlock()
 	}
@@ -496,7 +490,7 @@ func (v *parser) parseFuncDecl() *FunctionDeclNode {
 		maybeEndToken = v.consumeToken()
 	}
 
-	res := &FunctionDeclNode{Header: funcHeader, Body: body}
+	res := &FunctionDeclNode{Header: funcHeader, Body: body, Stat: stat, Expr: expr}
 	if body != nil {
 		res.SetWhere(lexer.NewSpan(funcHeader.Where().Start(), body.Where().End()))
 	} else {
