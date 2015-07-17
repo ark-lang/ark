@@ -58,24 +58,26 @@ func (v *parser) errPos(err string, stuff ...interface{}) {
 }
 
 func (v *parser) errTokenSpecific(tok *lexer.Token, err string, stuff ...interface{}) {
-	log.Errorln("parser", util.TEXT_RED+util.TEXT_BOLD+"Parser error:"+util.TEXT_RESET)
+
+	log.Errorln("parser",
+		util.TEXT_RED+util.TEXT_BOLD+"Parser error:"+util.TEXT_RESET+" [%s:%d:%d] %s",
+		tok.Where.Filename, tok.Where.StartLine, tok.Where.StartChar,
+		fmt.Sprintf(err, stuff...))
 
 	log.Error("parser", v.input.MarkSpan(tok.Where))
 
-	log.Errorln("parser", "[%s:%d:%d] %s",
-		tok.Where.Filename, tok.Where.StartLine, tok.Where.StartChar,
-		fmt.Sprintf(err, stuff...))
 	os.Exit(util.EXIT_FAILURE_PARSE)
 }
 
 func (v *parser) errPosSpecific(pos lexer.Position, err string, stuff ...interface{}) {
-	log.Errorln("parser", util.TEXT_RED+util.TEXT_BOLD+"Parser error:"+util.TEXT_RESET)
+
+	log.Errorln("parser",
+		util.TEXT_RED+util.TEXT_BOLD+"Parser error:"+util.TEXT_RESET+" [%s:%d:%d] %s",
+		pos.Filename, pos.Line, pos.Char,
+		fmt.Sprintf(err, stuff...))
 
 	log.Error("parser", v.input.MarkPos(pos))
 
-	log.Errorln("parser", "[%s:%d:%d] %s",
-		pos.Filename, pos.Line, pos.Char,
-		fmt.Sprintf(err, stuff...))
 	os.Exit(util.EXIT_FAILURE_PARSE)
 }
 
@@ -987,7 +989,7 @@ func (v *parser) parseAssignStat() ParseNode {
 
 	value := v.parseExpr()
 	if value == nil {
-		v.err("Expected valid expression as valid in assignment statement")
+		v.err("Expected valid expression in assignment statement")
 	}
 
 	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ";") {
