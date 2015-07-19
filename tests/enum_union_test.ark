@@ -1,0 +1,8 @@
+enum Option {
+	None,
+	Some(^void)
+}
+
+func main(): int {
+	return 0;
+}
