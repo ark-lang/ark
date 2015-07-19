@@ -82,7 +82,12 @@ type TypeReferenceNode struct {
 
 type StructDeclNode struct {
 	baseNode
-	Name    LocatedString
+	Name LocatedString
+	Body *StructBodyNode
+}
+
+type StructBodyNode struct {
+	baseNode
 	Members []*VarDeclNode
 }
 

@@ -304,10 +304,21 @@ func (v *parser) parseStructDecl() *StructDeclNode {
 		v.err("Cannot use reserved keyword `%s` as name for struct", name.Contents)
 	}
 
-	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "{") {
-		v.err("Expected starting `{` after struct name, got `%s`", v.peek(0).Contents)
+	body := v.parseStructBody()
+	if body == nil {
+		v.err("Expected starting `{` after struct name")
 	}
-	v.consumeToken()
+
+	res := &StructDeclNode{Name: NewLocatedString(name), Body: body}
+	res.SetWhere(lexer.NewSpan(startToken.Where.Start(), body.Where().End()))
+	return res
+}
+
+func (v *parser) parseStructBody() *StructBodyNode {
+	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "{") {
+		return nil
+	}
+	startToken := v.consumeToken()
 
 	var members []*VarDeclNode
 	for {
@@ -331,7 +342,7 @@ func (v *parser) parseStructDecl() *StructDeclNode {
 	}
 	endToken := v.consumeToken()
 
-	res := &StructDeclNode{Name: NewLocatedString(name), Members: members}
+	res := &StructBodyNode{Members: members}
 	res.SetWhere(lexer.NewSpanFromTokens(startToken, endToken))
 	return res
 }
