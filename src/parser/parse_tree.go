@@ -133,8 +133,10 @@ type EnumDeclNode struct {
 
 type EnumEntryNode struct {
 	baseNode
-	Name  LocatedString
-	Value ParseNode
+	Name       LocatedString
+	Value      ParseNode
+	TupleBody  *TupleTypeNode
+	StructBody *StructBodyNode
 }
 
 type VarDeclNode struct {
