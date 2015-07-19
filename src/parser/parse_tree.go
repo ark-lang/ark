@@ -82,7 +82,12 @@ type TypeReferenceNode struct {
 
 type StructDeclNode struct {
 	baseNode
-	Name    LocatedString
+	Name LocatedString
+	Body *StructBodyNode
+}
+
+type StructBodyNode struct {
+	baseNode
 	Members []*VarDeclNode
 }
 
@@ -128,8 +133,10 @@ type EnumDeclNode struct {
 
 type EnumEntryNode struct {
 	baseNode
-	Name  LocatedString
-	Value ParseNode
+	Name       LocatedString
+	Value      ParseNode
+	TupleBody  *TupleTypeNode
+	StructBody *StructBodyNode
 }
 
 type VarDeclNode struct {

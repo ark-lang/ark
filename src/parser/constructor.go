@@ -188,7 +188,7 @@ func (v *StructDeclNode) construct(c *Constructor) Node {
 	structType.attrs = v.Attrs()
 	structType.Name = v.Name.Value
 	c.pushScope()
-	for _, member := range v.Members {
+	for _, member := range v.Body.Members {
 		structType.addVariableDecl(c.constructNode(member).(*VariableDecl)) // TODO: Error message
 	}
 	c.popScope()
