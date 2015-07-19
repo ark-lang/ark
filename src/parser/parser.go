@@ -235,11 +235,7 @@ func (v *parser) parseName() *NameNode {
 			v.err("Expected identifier after `::` in name, got `%s`", v.peek(0).Contents)
 		}
 
-		part := NewLocatedString(v.consumeToken())
-		if isReservedKeyword(part.Value) {
-			v.err("Cannot use reserved keyword `%s` as name", part.Value)
-		}
-		parts = append(parts, part)
+		parts = append(parts, NewLocatedString(v.consumeToken()))
 
 		if !v.tokenMatches(0, lexer.TOKEN_OPERATOR, "::") {
 			break
@@ -304,10 +300,21 @@ func (v *parser) parseStructDecl() *StructDeclNode {
 		v.err("Cannot use reserved keyword `%s` as name for struct", name.Contents)
 	}
 
-	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "{") {
-		v.err("Expected starting `{` after struct name, got `%s`", v.peek(0).Contents)
+	body := v.parseStructBody()
+	if body == nil {
+		v.err("Expected starting `{` after struct name")
 	}
-	v.consumeToken()
+
+	res := &StructDeclNode{Name: NewLocatedString(name), Body: body}
+	res.SetWhere(lexer.NewSpan(startToken.Where.Start(), body.Where().End()))
+	return res
+}
+
+func (v *parser) parseStructBody() *StructBodyNode {
+	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "{") {
+		return nil
+	}
+	startToken := v.consumeToken()
 
 	var members []*VarDeclNode
 	for {
@@ -331,7 +338,7 @@ func (v *parser) parseStructDecl() *StructDeclNode {
 	}
 	endToken := v.consumeToken()
 
-	res := &StructDeclNode{Name: NewLocatedString(name), Members: members}
+	res := &StructBodyNode{Members: members}
 	res.SetWhere(lexer.NewSpanFromTokens(startToken, endToken))
 	return res
 }
@@ -635,6 +642,9 @@ func (v *parser) parseEnumEntry() *EnumEntryNode {
 	}
 
 	var value ParseNode
+	var structBody *StructBodyNode
+	var tupleBody *TupleTypeNode
+	var lastPos lexer.Position
 	if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "=") {
 		v.consumeToken()
 
@@ -642,11 +652,16 @@ func (v *parser) parseEnumEntry() *EnumEntryNode {
 		if value == nil {
 			v.err("Expected valid expression after `=` in enum entry")
 		}
+		lastPos = value.Where().End()
+	} else if tupleBody = v.parseTupleType(); tupleBody != nil {
+		lastPos = tupleBody.Where().End()
+	} else if structBody = v.parseStructBody(); structBody != nil {
+		lastPos = structBody.Where().End()
 	}
 
-	res := &EnumEntryNode{Name: NewLocatedString(name), Value: value}
-	if value != nil {
-		res.SetWhere(lexer.NewSpan(name.Where.Start(), value.Where().End()))
+	res := &EnumEntryNode{Name: NewLocatedString(name), Value: value, TupleBody: tupleBody, StructBody: structBody}
+	if value != nil || structBody != nil || tupleBody != nil {
+		res.SetWhere(lexer.NewSpan(name.Where.Start(), lastPos))
 	} else {
 		res.SetWhere(name.Where)
 	}
@@ -1018,6 +1033,9 @@ func (v *parser) parseType() ParseNode {
 }
 
 func (v *parser) parsePointerType() *PointerTypeNode {
+	if !v.tokenMatches(0, lexer.TOKEN_OPERATOR, "^") {
+		return nil
+	}
 	startToken := v.consumeToken()
 
 	target := v.parseType()
@@ -1032,6 +1050,9 @@ func (v *parser) parsePointerType() *PointerTypeNode {
 }
 
 func (v *parser) parseTupleType() *TupleTypeNode {
+	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "(") {
+		return nil
+	}
 	startToken := v.consumeToken()
 
 	var members []ParseNode
@@ -1059,6 +1080,9 @@ func (v *parser) parseTupleType() *TupleTypeNode {
 }
 
 func (v *parser) parseArrayType() *ArrayTypeNode {
+	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "[") {
+		return nil
+	}
 	startToken := v.consumeToken()
 
 	length := v.parseNumberLit()
