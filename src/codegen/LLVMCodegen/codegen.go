@@ -43,6 +43,11 @@ type Codegen struct {
 
 	// dirty thing for global arrays
 	arrayIndex int
+
+	// size calculation stuff
+	target        llvm.Target
+	targetMachine llvm.TargetMachine
+	targetData    llvm.TargetData
 }
 
 type deferData struct {
@@ -61,6 +66,18 @@ func (v *Codegen) Generate(input []*parser.Module, modules map[string]*parser.Mo
 	v.builder = llvm.NewBuilder()
 	v.variableLookup = make(map[*parser.Variable]llvm.Value)
 	v.structLookup_UseHelperFunction = make(map[*parser.StructType]llvm.Type)
+
+	// initialize llvm target
+	llvm.InitializeNativeTarget()
+
+	// setup target stuff
+	var err error
+	v.target, err = llvm.GetTargetFromTriple(llvm.DefaultTargetTriple())
+	if err != nil {
+		panic(err)
+	}
+	v.targetMachine = v.target.CreateTargetMachine(llvm.DefaultTargetTriple(), "", "", llvm.CodeGenLevelNone, llvm.RelocDefault, llvm.CodeModelDefault)
+	v.targetData = v.targetMachine.TargetData()
 
 	passManager := llvm.NewPassManager()
 	passBuilder := llvm.NewPassManagerBuilder()
@@ -489,11 +506,11 @@ func (v *Codegen) genVariableDecl(n *parser.VariableDecl, semicolon bool) llvm.V
 		castAlloc := allocBuilder.CreateBitCast(alloc, llvm.PointerType(llvm.IntType(8), 0), "")
 
 		// get type length
-		gep := allocBuilder.CreateGEP(llvm.ConstNull(llvm.PointerType(v.typeToLLVMType(n.Variable.Type), 0)), []llvm.Value{llvm.ConstInt(llvm.IntType(32), 1, false)}, "")
-		length := allocBuilder.CreatePtrToInt(gep, llvm.IntType(32), "")
+		size := v.targetData.TypeAllocSize(v.typeToLLVMType(n.Variable.Type))
+		sizeValue := llvm.ConstInt(llvm.IntType(32), size, false)
 
 		// call memset intrinsic
-		allocBuilder.CreateCall(fn, []llvm.Value{castAlloc, llvm.ConstInt(llvm.IntType(8), 0, false), length, llvm.ConstInt(llvm.IntType(32), 0, false), llvm.ConstInt(llvm.IntType(1), 0, false)}, "")
+		allocBuilder.CreateCall(fn, []llvm.Value{castAlloc, llvm.ConstInt(llvm.IntType(8), 0, false), sizeValue, llvm.ConstInt(llvm.IntType(32), 0, false), llvm.ConstInt(llvm.IntType(1), 0, false)}, "")
 
 		allocBuilder.Dispose()
 
