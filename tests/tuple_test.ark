@@ -1,17 +1,26 @@
 [c] func printf(fmt: str, ...): int;
 
-func something(): (int, f32) {
-    [unused] x := (4, 2.3); // inferred
-    y: (int, f32) = (0, 2.4);
+func something(): |int, f32| {
+    [unused] x := |4, 2.3|; // inferred
+    y: |int, f32| = |0, 2.4|;
     return y;
 }
 
-func main(): int {
+func ambigous(): ||int, f32|, bool| {    
     x := something();
+    return ||x|0|, x|1||, false|;
+}
+
+func main(): int {
+    a := ambigous();
+    x := a|0|;
     y := x|0|;
     [unused] z := x|1|;
 
-    C::printf("%d %f\n", x|0|, x|1|);
+    if !a|1| {
+    	C::printf("%d %f\n", x|0|, x|1|);
+    	return y;
+    }
 
-    return y;
+    return 1;
 }
