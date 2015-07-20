@@ -76,6 +76,10 @@ Requires `$GOPATH/bin` to be in your `$PATH` and Python 2.4 or newer.
 
     $ ./test.py
 
+## Code Of Conduct
+This project adheres to the [Open Code of Conduct][code-of-conduct]. By participating, you are expected to honor this code.
+[code-of-conduct]: http://todogroup.org/opencodeofconduct/#ark-lang/abuse@ark-lang.org
+
 ## License
 Ark is licensed under the [MIT License](/LICENSE).
 
