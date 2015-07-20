@@ -417,9 +417,6 @@ func (v PointerType) Equals(t Type) bool {
 // TupleType
 
 func tupleOf(types ...Type) Type {
-	if len(types) == 1 {
-		return types[0]
-	}
 	return &TupleType{Members: types}
 }
 
