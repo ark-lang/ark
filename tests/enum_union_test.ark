@@ -1,6 +1,6 @@
 enum Option {
 	None,
-	Some(^void)
+	Some|^void|
 }
 
 func main(): int {
