@@ -543,9 +543,6 @@ func (v *TupleLiteralNode) construct(c *Constructor) Expr {
 	for _, member := range v.Values {
 		res.Members = append(res.Members, c.constructExpr(member))
 	}
-	if len(res.Members) == 1 {
-		return res.Members[0]
-	}
 	res.setPos(v.Where().Start())
 	return res
 }
