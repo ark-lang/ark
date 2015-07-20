@@ -4,7 +4,21 @@
 
 [Ark](//www.ark-lang.org) is a systems programming language somewhere in-between C and C++.
 
-## Example
+## Table Of Contents
+* [Example](#example)
+* [Resources](#resources)
+* [Installing](#installing)
+    * [Dependencies](#dependencies)
+* [Building](#building)
+* [Usage](#usage)
+    * [Compiling Ark Code](#compiling-ark-code)
+    * [Generating Documentation](#docgen)
+* [Utilities](#utilities)
+    * [`make gen` and `make fmt`](#make-gen-and-make-fmt)
+    * [Testing](#testing)
+* [License](#license)
+
+## <a name="example"></a> Example
 A small example program written in Ark.
 
 ```rust
@@ -19,24 +33,24 @@ func main(): int {
 }
 ```
 
-## Resources
+## <a name="resources"></a> Resources
 * [Reference](https://github.com/ark-lang/ark-docs/blob/master/REFERENCE.md)
 * [Tests](/tests/)
 * [Libraries](/lib/)
 * [Contributing](/CONTRIBUTING.md)
 * [Ark Style Guide](https://github.com/ark-lang/ark-docs/blob/master/STYLEGUIDE.md)
 
-## Installing
+## <a name="installing"></a> Installing
 Installing Ark should be relatively easy, you'll need a few dependencies before
 you get started:
 
-### Dependencies
+### <a name="dependencies"></a> Dependencies
 * Go installed and `$GOPATH` setup - [Instructions on setting up GOPATH](https://golang.org/doc/code.html#GOPATH)
 * subversion
 * LLVM installed, with `llvm-config` and `llc` in your `$PATH`
 * a C++ compiler
 
-## Building
+## <a name="building"></a> Building
 Replace `RELEASE_360` with the version of LLVM you have installed. For example, version 3.6.1 becomes `RELEASE_361`. You can find out your version of llvm by running `llvm-config --version`.
 
     $ svn co https://llvm.org/svn/llvm-project/llvm/tags/RELEASE_360/final \
@@ -52,35 +66,35 @@ Make sure `$GOPATH/bin` is in your `$PATH`.
 
 To see the current state of the compiler, try running the [test script](#testing).
 
-## Usage
+## <a name="usage"></a> Usage
 For detailed usage information, run `ark help`. For information on specific commands, use `ark help <command>`.
 
-### Compiling Ark Code
+### <a name="compiling-ark-code"></a> Compiling Ark Code
 ```
 ark build tests/big_test.ark -o out_name
 ```
 If the `-o` option is not specified, the outputted binary will be names `main`.
 
-### Docgen
+### <a name="docgen"></a> Docgen
 ```
 ark docgen tests/big_test.ark --dir some_output_dir
 ```
 If the `--dir` option is not specified, the generated documentation will be placed in `docgen`.
 
-## Utilities
-### `make gen` and `make fmt`
+## <a name="utilities"></a> Utilities
+### <a name="make-gen-and-make-fmt"></a> `make gen` and `make fmt`
 The targets `gen` and `fmt` are included for the convenience of the developers. They run `go generate` and `go fmt` respectively on all the modules in Ark. Please run `make fmt` before creating a pull request.
 
-### Testing
+### <a name="testing"></a> Testing
 Requires `$GOPATH/bin` to be in your `$PATH` and Python 2.4 or newer.
 
     $ ./test.py
 
-## Code Of Conduct
+## <a name="code-of-conduct"></a> Code Of Conduct
 This project adheres to the [Open Code of Conduct][code-of-conduct]. By participating, you are expected to honor this code.
 [code-of-conduct]: http://todogroup.org/opencodeofconduct/#ark-lang/abuse@ark-lang.org
 
-## License
+## <a name="license"></a> License
 Ark is licensed under the [MIT License](/LICENSE).
 
 [1]: https://travis-ci.org/ark-lang/ark "Build Status"
