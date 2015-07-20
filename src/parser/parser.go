@@ -1021,7 +1021,7 @@ func (v *parser) parseType() ParseNode {
 	var res ParseNode
 	if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "^") {
 		res = v.parsePointerType()
-	} else if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "(") {
+	} else if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "|") {
 		res = v.parseTupleType()
 	} else if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "[") {
 		res = v.parseArrayType()
@@ -1050,7 +1050,8 @@ func (v *parser) parsePointerType() *PointerTypeNode {
 }
 
 func (v *parser) parseTupleType() *TupleTypeNode {
-	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "(") {
+	if !v.tokenMatches(0, lexer.TOKEN_OPERATOR, "|") {
+		println(v.peek(0))
 		return nil
 	}
 	startToken := v.consumeToken()
@@ -1069,7 +1070,7 @@ func (v *parser) parseTupleType() *TupleTypeNode {
 		v.consumeToken()
 	}
 
-	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ")") {
+	if !v.tokenMatches(0, lexer.TOKEN_OPERATOR, "|") {
 		v.err("Expected closing `)` after tuple type, got `%s`", v.peek(0).Contents)
 	}
 	endToken := v.consumeToken()
@@ -1148,11 +1149,24 @@ func (v *parser) parseBinaryOperator(upperPrecedence int, lhand ParseNode) Parse
 			return lhand
 		}
 
-		typ := stringToBinOpType(v.peek(0).Contents)
+		// ugh, jank
+		op := v.peek(0).Contents
+		if op == "|" {
+			if v.peek(1).Contents == "|" {
+				op += "|"
+			}
+		}
+
+		typ := stringToBinOpType(op)
 		if typ == BINOP_ERR {
 			v.err("Invalid binary operator `%s`", v.peek(0).Contents)
 		}
 		v.consumeToken()
+
+		// ugh, jank
+		if op == "||" {
+			v.consumeToken()
+		}
 
 		rhand := v.parsePrimaryExpr()
 		if rhand == nil {
@@ -1180,12 +1194,16 @@ func (v *parser) parseBinaryOperator(upperPrecedence int, lhand ParseNode) Parse
 }
 
 func (v *parser) parsePrimaryExpr() ParseNode {
+	// Main problem with enums is that the current propesed syntax for enums conflict
+	// (parsing wise) with function calls.
 	var res ParseNode
 
 	if sizeofExpr := v.parseSizeofExpr(); sizeofExpr != nil {
 		res = sizeofExpr
 	} else if addrofExpr := v.parseAddrofExpr(); addrofExpr != nil {
 		res = addrofExpr
+	} else if parensExpr := v.parseParensExpr(); parensExpr != nil {
+		res = parensExpr
 	} else if litExpr := v.parseLitExpr(); litExpr != nil {
 		res = litExpr
 	} else if castExpr := v.parseCastExpr(); castExpr != nil {
@@ -1241,6 +1259,25 @@ func (v *parser) parseAddrofExpr() *AddrofExprNode {
 	res := &AddrofExprNode{Value: value}
 	res.SetWhere(lexer.NewSpan(startToken.Where.Start(), value.Where().End()))
 	return res
+}
+
+func (v *parser) parseParensExpr() ParseNode {
+	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "(") {
+		return nil
+	}
+	v.consumeToken()
+
+	subExpr := v.parseExpr()
+	if subExpr == nil {
+		v.err("Expected valid expression in parens expression")
+	}
+
+	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ")") {
+		v.err("Expected closing `)` in parens expression, got `%s`", v.peek(0).Contents)
+	}
+	v.consumeToken()
+
+	return subExpr
 }
 
 func (v *parser) parseLitExpr() ParseNode {
@@ -1409,11 +1446,22 @@ func (v *parser) parseAccessExpr() ParseNode {
 			res.SetWhere(lexer.NewSpan(lhand.Where().Start(), endToken.Where.End()))
 			lhand = res
 		} else if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "|") {
+			if v.peek(1).Type != lexer.TOKEN_NUMBER {
+				break
+			}
+
 			// tuple access
 			v.consumeToken()
 
+			log.Debugln("parser", "Before number parse: %s", v.peek(0).Contents)
+			log.Debug("parser", v.input.MarkSpan(v.peek(0).Where))
+			log.Debug("parser", v.input.MarkPos(v.peek(0).Where.Start()))
 			index := v.parseNumberLit()
 			if index == nil || index.IsFloat {
+				println(index)
+				log.Debugln("parser", "After invalid number parse: %s", v.peek(0).Contents)
+				log.Debug("parser", v.input.MarkSpan(v.peek(0).Where))
+				log.Debug("parser", v.input.MarkPos(v.peek(0).Where.Start()))
 				v.err("Expected integer for tuple index")
 			}
 
@@ -1468,17 +1516,13 @@ func (v *parser) parseArrayLit() *ArrayLiteralNode {
 }
 
 func (v *parser) parseTupleLit() *TupleLiteralNode {
-	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "(") {
+	if !v.tokenMatches(0, lexer.TOKEN_OPERATOR, "|") {
 		return nil
 	}
 	startToken := v.consumeToken()
 
 	var values []ParseNode
 	for {
-		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ")") {
-			break
-		}
-
 		value := v.parseExpr()
 		if value == nil {
 			v.err("Expected valid expression in tuple literal")
@@ -1491,8 +1535,8 @@ func (v *parser) parseTupleLit() *TupleLiteralNode {
 		v.consumeToken()
 	}
 
-	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ")") {
-		v.err("Expected closing `]` after tuple literal, got `%s`", v.peek(0).Contents)
+	if !v.tokenMatches(0, lexer.TOKEN_OPERATOR, "|") {
+		v.err("Expected closing `|` after tuple literal, got `%s`", v.peek(0).Contents)
 	}
 	endToken := v.consumeToken()
 

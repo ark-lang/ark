@@ -739,13 +739,15 @@ func (v *Codegen) genArrayLiteral(n *parser.ArrayLiteral) llvm.Value {
 }
 
 func (v *Codegen) genTupleLiteral(n *parser.TupleLiteral) llvm.Value {
-	// TODO: Is this optimal?
-	var values []llvm.Value
-	for _, mem := range n.Members {
-		values = append(values, v.genExpr(mem))
+	alloc := v.builder.CreateAlloca(v.typeToLLVMType(n.GetType()), "")
+
+	for idx, mem := range n.Members {
+		index := llvm.ConstInt(llvm.IntType(32), uint64(idx), false)
+		gep := v.builder.CreateGEP(alloc, []llvm.Value{llvm.ConstInt(llvm.IntType(32), 0, false), index}, "")
+		v.builder.CreateStore(v.genExpr(mem), gep)
 	}
 
-	return llvm.ConstStruct(values, false)
+	return v.builder.CreateLoad(alloc, "")
 }
 
 func (v *Codegen) genNumericLiteral(n *parser.NumericLiteral) llvm.Value {
