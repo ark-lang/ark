@@ -7,7 +7,7 @@ enum Option {
 
 func main(): int {
     [unused] x := Option::None;
-    [unused] y := Option::Some(cast(^void, 0xdeadbeef));
+    [unused] y := Option::Some(^void(0xdeadbeef));
 
     C::printf("None-tag: %d\n", x);
     C::printf("Some-tag: %d\n", y);

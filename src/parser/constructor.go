@@ -550,6 +550,16 @@ func (v *CallExprNode) construct(c *Constructor) Expr {
 		res.Values = values
 		res.setPos(v.Where().Start())
 		return res
+	} else if typ.IsType() {
+		if len(v.Arguments) > 1 {
+			c.errSpan(v.Where(), "Cast cannot recieve more that one argument")
+		}
+
+		res := &CastExpr{}
+		res.Type = c.constructType(&TypeReferenceNode{Reference: van.Name})
+		res.Expr = c.constructExpr(v.Arguments[0])
+		res.setPos(v.Where().Start())
+		return res
 	} else {
 		log.Debugln("constructor", "`%s` was a `%s`", van.Name.Name.Value, typ)
 		c.errSpan(van.Name.Name.Where, "Name `%s` is not a function or a enum member", van.Name.Name.Value)
