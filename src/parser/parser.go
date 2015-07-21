@@ -641,16 +641,16 @@ func (v *parser) parseEnumEntry() *EnumEntryNode {
 		v.err("Cannot use reserved keyword `%s` as name for enum entry", name.Contents)
 	}
 
-	var value ParseNode
+	var value *NumberLitNode
 	var structBody *StructBodyNode
 	var tupleBody *TupleTypeNode
 	var lastPos lexer.Position
 	if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "=") {
 		v.consumeToken()
 
-		value = v.parseExpr()
-		if value == nil {
-			v.err("Expected valid expression after `=` in enum entry")
+		value = v.parseNumberLit()
+		if value == nil || value.IsFloat {
+			v.err("Expected valid integer after `=` in enum entry")
 		}
 		lastPos = value.Where().End()
 	} else if tupleBody = v.parseTupleType(); tupleBody != nil {
