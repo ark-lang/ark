@@ -264,10 +264,14 @@ func (v *FunctionDeclNode) construct(c *Constructor) Node {
 	function.Name = v.Header.Name.Value
 	function.Attrs = v.Attrs()
 	function.IsVariadic = v.Header.Variadic
+
 	c.pushScope()
+	var arguments []ParseNode
 	for _, arg := range v.Header.Arguments {
+		arguments = append(arguments, arg)
 		function.Parameters = append(function.Parameters, c.constructNode(arg).(*VariableDecl)) // TODO: Error message
 	}
+	c.nameMap = MapNames(arguments, c.tree, c.treeFiles, c.nameMap)
 
 	if v.Header.ReturnType != nil {
 		function.ReturnType = c.constructType(v.Header.ReturnType)
@@ -290,6 +294,7 @@ func (v *FunctionDeclNode) construct(c *Constructor) Node {
 	} else {
 		res.Prototype = true
 	}
+	c.nameMap = c.nameMap.parent
 	c.popScope()
 
 	scopeToInsertTo := c.scope
