@@ -5,5 +5,14 @@ enum Test {
 }
 
 func main(): int {
+	if Test::VALUE != 0 {
+		return 1;
+	}
+	if Test::ANOTHER != 4 {
+		return 2;
+	}
+	if Test::GG != 5 {
+		return 3;
+	}
 	return 0;
 }
