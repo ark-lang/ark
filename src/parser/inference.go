@@ -252,16 +252,21 @@ func (v *UnaryExpr) setTypeHint(t Type) {
 // BinaryExpr
 
 func (v *BinaryExpr) infer(s *TypeInferer) {
-	v.Lhand.infer(s)
-	v.Rhand.infer(s)
 
 	switch v.Op {
 	case BINOP_EQ, BINOP_NOT_EQ:
+		v.Lhand.infer(s)
+		v.Rhand.setTypeHint(v.Lhand.GetType())
+		v.Rhand.infer(s)
 		v.Type = PRIMITIVE_bool
 
 	case BINOP_ADD, BINOP_SUB, BINOP_MUL, BINOP_DIV, BINOP_MOD,
 		BINOP_GREATER, BINOP_LESS, BINOP_GREATER_EQ, BINOP_LESS_EQ,
 		BINOP_BIT_AND, BINOP_BIT_OR, BINOP_BIT_XOR:
+		v.Lhand.infer(s)
+		v.Rhand.setTypeHint(v.Lhand.GetType())
+		v.Rhand.infer(s)
+
 		switch v.Op.Category() {
 		case OP_ARITHMETIC:
 			v.Type = v.Lhand.GetType()
@@ -272,9 +277,13 @@ func (v *BinaryExpr) infer(s *TypeInferer) {
 		}
 
 	case BINOP_BIT_LEFT, BINOP_BIT_RIGHT:
+		v.Lhand.infer(s)
+		v.Rhand.infer(s)
 		v.Type = v.Lhand.GetType()
 
 	case BINOP_LOG_AND, BINOP_LOG_OR:
+		v.Lhand.infer(s)
+		v.Rhand.infer(s)
 		v.Type = PRIMITIVE_bool
 
 	default:
@@ -468,6 +477,9 @@ func (v *TupleAccessExpr) setTypeHint(t Type) {}
 
 func (v *DerefAccessExpr) infer(s *TypeInferer) {
 	v.Expr.infer(s)
+	if pointerType, ok := v.Expr.GetType().(PointerType); ok {
+		v.Type = pointerType.Addressee
+	}
 }
 
 func (v *DerefAccessExpr) setTypeHint(t Type) {
