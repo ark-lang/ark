@@ -235,33 +235,15 @@ func (v *TraitDecl) DocComments() []*DocComment {
 }
 
 // EnumDecl
-type EnumVal struct {
-	Name  string
-	Value Expr
-}
-
-func (v *EnumVal) String() string {
-	if v.Value != nil {
-		return "(" + util.Blue("EnumVal") + ": " + v.Name + " = " + v.Value.String() + ")"
-	}
-	return "(" + util.Blue("EnumVal") + ": " + v.Name + ")"
-}
-
 type EnumDecl struct {
 	nodePos
-	Name        string
-	Body        []*EnumVal
-	IsAnonymous bool
+	Enum *EnumType
 }
 
 func (v *EnumDecl) declNode() {}
 
 func (v *EnumDecl) String() string {
-	result := "\n"
-	for _, val := range v.Body {
-		result += "\t" + val.String() + "\n"
-	}
-	return "(" + util.Blue("EnumDecl") + ": " + result + ")"
+	return "(" + util.Blue("EnumDecl") + ": " + v.Enum.String() + ")"
 }
 
 func (v *EnumDecl) NodeName() string {
@@ -723,6 +705,33 @@ func (v *ArrayLiteral) GetType() Type {
 
 func (v *ArrayLiteral) NodeName() string {
 	return "array literal"
+}
+
+// EnumLiteral
+
+type EnumLiteral struct {
+	nodePos
+	Type   Type
+	Member string
+	Values []Expr
+}
+
+func (v *EnumLiteral) exprNode() {}
+
+func (v *EnumLiteral) String() string {
+	res := "(" + util.Blue("EnumLiteral") + ":"
+	for _, val := range v.Values {
+		res += " " + val.String()
+	}
+	return res + ")"
+}
+
+func (v *EnumLiteral) GetType() Type {
+	return v.Type
+}
+
+func (v *EnumLiteral) NodeName() string {
+	return "enum literal"
 }
 
 // BinaryExpr

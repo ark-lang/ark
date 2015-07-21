@@ -310,15 +310,37 @@ func (v *FunctionDeclNode) construct(c *Constructor) Node {
 }
 
 func (v *EnumDeclNode) construct(c *Constructor) Node {
-	res := &EnumDecl{}
-	res.Name = v.Name.Value
-	for _, member := range v.Members {
-		val := &EnumVal{Name: member.Name.Value}
-		if member.Value != nil {
-			val.Value = c.constructExpr(member.Value)
+	enumType := &EnumType{}
+	enumType.Name = v.Name.Value
+	enumType.MemberNames = make([]string, len(v.Members))
+	enumType.MemberTypes = make([]Type, len(v.Members))
+	enumType.MemberTags = make([]int, len(v.Members))
+	lastValue := 0
+	for idx, mem := range v.Members {
+		enumType.MemberNames[idx] = mem.Name.Value
+
+		if mem.TupleBody != nil {
+			enumType.MemberTypes[idx] = c.constructType(mem.TupleBody)
+		} else if mem.StructBody != nil {
+			// TODO
+		} else {
+			enumType.MemberTypes[idx] = PRIMITIVE_void
 		}
-		res.Body = append(res.Body, val)
+
+		if mem.Value != nil {
+			// TODO: Check for overflow
+			lastValue = int(mem.Value.IntValue)
+		}
+		enumType.MemberTags[idx] = lastValue
+		lastValue += 1
 	}
+
+	if c.scope.InsertType(enumType) != nil {
+		c.err(v.Where(), "Illegal redeclaration of enum `%s`", enumType.Name)
+	}
+
+	res := &EnumDecl{}
+	res.Enum = enumType
 	res.setPos(v.Where().Start())
 	return res
 }
@@ -500,28 +522,65 @@ func (v *UnaryExprNode) construct(c *Constructor) Expr {
 func (v *CallExprNode) construct(c *Constructor) Expr {
 	van := v.Function.(*VariableAccessNode) // TODO: better error
 	typ := c.nameMap.TypeOfNameNode(van.Name)
-	if typ != NODE_FUNCTION {
-		log.Debugln("constructor", "`%s` was a `%s`", van.Name.Name.Value, typ)
-		c.errSpan(van.Name.Name.Where, "Name `%s` is not a function", van.Name.Name.Value)
-	}
+	if typ == NODE_FUNCTION {
+		res := &CallExpr{}
+		for _, arg := range v.Arguments {
+			res.Arguments = append(res.Arguments, c.constructExpr(arg))
+		}
+		res.functionSource = c.constructExpr(v.Function)
+		res.setPos(v.Where().Start())
+		return res
+	} else if typ == NODE_ENUM_MEMBER {
+		name := unresolvedName{}
+		var moduleNames []string
+		for _, moduleName := range van.Name.Modules[:len(van.Name.Modules)-1] {
+			moduleNames = append(moduleNames, moduleName.Value)
+		}
+		name.moduleNames = moduleNames
+		name.name = van.Name.Modules[len(van.Name.Modules)-1].Value
 
-	res := &CallExpr{}
-	for _, arg := range v.Arguments {
-		res.Arguments = append(res.Arguments, c.constructExpr(arg))
+		var values []Expr
+		for _, arg := range v.Arguments {
+			values = append(values, c.constructExpr(arg))
+		}
+
+		res := &EnumLiteral{}
+		res.Member = van.Name.Name.Value
+		res.Type = &UnresolvedType{Name: name}
+		res.Values = values
+		res.setPos(v.Where().Start())
+		return res
+	} else {
+		log.Debugln("constructor", "`%s` was a `%s`", van.Name.Name.Value, typ)
+		c.errSpan(van.Name.Name.Where, "Name `%s` is not a function or a enum member", van.Name.Name.Value)
+		return nil
 	}
-	res.functionSource = c.constructExpr(v.Function)
-	res.setPos(v.Where().Start())
-	return res
 }
 
 func (v *VariableAccessNode) construct(c *Constructor) Expr {
-	res := &VariableAccessExpr{}
-	for _, module := range v.Name.Modules {
-		res.Name.moduleNames = append(res.Name.moduleNames, module.Value)
+	if c.nameMap.TypeOfNameNode(v.Name) == NODE_ENUM_MEMBER {
+		name := unresolvedName{}
+		var moduleNames []string
+		for _, moduleName := range v.Name.Modules[:len(v.Name.Modules)-1] {
+			moduleNames = append(moduleNames, moduleName.Value)
+		}
+		name.moduleNames = moduleNames
+		name.name = v.Name.Modules[len(v.Name.Modules)-1].Value
+
+		res := &EnumLiteral{}
+		res.Member = v.Name.Name.Value
+		res.Type = &UnresolvedType{Name: name}
+		res.setPos(v.Where().Start())
+		return res
+	} else {
+		res := &VariableAccessExpr{}
+		for _, module := range v.Name.Modules {
+			res.Name.moduleNames = append(res.Name.moduleNames, module.Value)
+		}
+		res.Name.name = v.Name.Name.Value
+		res.setPos(v.Where().Start())
+		return res
 	}
-	res.Name.name = v.Name.Name.Value
-	res.setPos(v.Where().Start())
-	return res
 }
 
 func (v *DerefAccessNode) construct(c *Constructor) Expr {

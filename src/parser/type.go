@@ -503,6 +503,89 @@ func (v *TupleType) Equals(t Type) bool {
 	return true
 }
 
+// EnumType
+type EnumType struct {
+	Name        string
+	MemberNames []string
+	MemberTypes []Type
+	MemberTags  []int
+	attrs       AttrGroup
+}
+
+func (v *EnumType) String() string {
+	result := "(" + util.Blue("EnumType") + ": "
+	for _, attr := range v.attrs {
+		result += attr.String() + " "
+	}
+	result += v.Name + "\n"
+	for idx, name := range v.MemberNames {
+		result += "\t" + name + ": " + v.MemberTypes[idx].TypeName() + "\n"
+	}
+	return result + util.Magenta(" <"+v.MangledName(MANGLE_ARK_UNSTABLE)+"> ") + ")"
+}
+
+func (v *EnumType) TypeName() string {
+	return v.Name
+}
+
+func (v *EnumType) RawType() Type {
+	return v
+}
+
+func (v *EnumType) IsSigned() bool {
+	return false
+}
+
+func (v *EnumType) LevelsOfIndirection() int {
+	return 0
+}
+
+func (v *EnumType) IsIntegerType() bool {
+	return false
+}
+
+func (v *EnumType) IsFloatingType() bool {
+	return false
+}
+
+func (v *EnumType) CanCastTo(t Type) bool {
+	return false
+}
+
+func (v *EnumType) MemberIndex(name string) int {
+	for idx, member := range v.MemberNames {
+		if member == name {
+			return idx
+		}
+	}
+	return -1
+}
+
+func (v *EnumType) Attrs() AttrGroup {
+	return v.attrs
+}
+
+func (v *EnumType) Equals(t Type) bool {
+	// TODO: Check for enum equality
+	panic("please implement the rest of this, if we ever need it")
+
+	other, ok := t.(*EnumType)
+	if !ok {
+		return false
+	}
+
+	if v.Name != other.Name {
+		return false
+	}
+
+	if !v.Attrs().Equals(other.Attrs()) {
+		return false
+	}
+
+	// TODO: Check enum members
+	return true
+}
+
 // UnresolvedType
 type UnresolvedType struct {
 	Name unresolvedName
