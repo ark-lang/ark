@@ -251,7 +251,11 @@ func (v *StructAccessExpr) resolve(res *Resolver, s *Scope) {
 
 	structType, ok := v.Struct.GetType().(*StructType)
 	if !ok {
-		res.err(v, "Cannot access member of type `%s`", v.Struct.GetType().TypeName())
+		if v.Struct.GetType() == nil {
+			res.err(v, "Type of access expression was nil")
+		} else {
+			res.err(v, "Cannot access member of type `%s`", v.Struct.GetType().TypeName())
+		}
 	}
 
 	// TODO check no mod access
@@ -274,6 +278,9 @@ func (v *TupleAccessExpr) resolve(res *Resolver, s *Scope) {
 
 func (v *DerefAccessExpr) resolve(res *Resolver, s *Scope) {
 	v.Expr.resolve(res, s)
+	if ptr, ok := v.Expr.GetType().(PointerType); ok {
+		v.Type = ptr.Addressee
+	}
 }
 
 func (v *AddressOfExpr) resolve(res *Resolver, s *Scope) {

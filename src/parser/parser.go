@@ -24,6 +24,7 @@ type parser struct {
 
 	binOpPrecedences  map[BinOpType]int
 	curNodeTokenStart int
+	ruleStack         []string
 }
 
 func Parse(input *lexer.Sourcefile) *ParseTree {
@@ -58,7 +59,7 @@ func (v *parser) errPos(err string, stuff ...interface{}) {
 }
 
 func (v *parser) errTokenSpecific(tok *lexer.Token, err string, stuff ...interface{}) {
-
+	log.Debugln("parser", strings.Join(v.ruleStack, " / "))
 	log.Errorln("parser",
 		util.TEXT_RED+util.TEXT_BOLD+"Parser error:"+util.TEXT_RESET+" [%s:%d:%d] %s",
 		tok.Where.Filename, tok.Where.StartLine, tok.Where.StartChar,
@@ -70,7 +71,7 @@ func (v *parser) errTokenSpecific(tok *lexer.Token, err string, stuff ...interfa
 }
 
 func (v *parser) errPosSpecific(pos lexer.Position, err string, stuff ...interface{}) {
-
+	log.Debugln("parser", strings.Join(v.ruleStack, " / "))
 	log.Errorln("parser",
 		util.TEXT_RED+util.TEXT_BOLD+"Parser error:"+util.TEXT_RESET+" [%s:%d:%d] %s",
 		pos.Filename, pos.Line, pos.Char,
@@ -79,6 +80,14 @@ func (v *parser) errPosSpecific(pos lexer.Position, err string, stuff ...interfa
 	log.Error("parser", v.input.MarkPos(pos))
 
 	os.Exit(util.EXIT_FAILURE_PARSE)
+}
+
+func (v *parser) pushRule(name string) {
+	v.ruleStack = append(v.ruleStack, name)
+}
+
+func (v *parser) popRule() {
+	v.ruleStack = v.ruleStack[:len(v.ruleStack)-1]
 }
 
 func (v *parser) peek(ahead int) *lexer.Token {
@@ -145,6 +154,9 @@ func (v *parser) parse() {
 }
 
 func (v *parser) parseNode() ParseNode {
+	v.pushRule("node")
+	defer v.popRule()
+
 	var ret ParseNode
 
 	if decl := v.parseDecl(); decl != nil {
@@ -157,6 +169,9 @@ func (v *parser) parseNode() ParseNode {
 }
 
 func (v *parser) parseDocComments() []*DocComment {
+	v.pushRule("doccomments")
+	defer v.popRule()
+
 	var dcs []*DocComment
 
 	for v.nextIs(lexer.TOKEN_DOCCOMMENT) {
@@ -178,6 +193,9 @@ func (v *parser) parseDocComments() []*DocComment {
 }
 
 func (v *parser) parseAttributes() AttrGroup {
+	v.pushRule("attributes")
+	defer v.popRule()
+
 	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "[") {
 		return nil
 	}
@@ -225,6 +243,9 @@ func (v *parser) parseAttributes() AttrGroup {
 }
 
 func (v *parser) parseName() *NameNode {
+	v.pushRule("name")
+	defer v.popRule()
+
 	if !v.nextIs(lexer.TOKEN_IDENTIFIER) {
 		return nil
 	}
@@ -254,6 +275,9 @@ func (v *parser) parseName() *NameNode {
 }
 
 func (v *parser) parseDecl() ParseNode {
+	v.pushRule("decl")
+	defer v.popRule()
+
 	var res ParseNode
 	docComments := v.parseDocComments()
 	attrs := v.parseAttributes()
@@ -286,6 +310,9 @@ func (v *parser) parseDecl() ParseNode {
 }
 
 func (v *parser) parseStructDecl() *StructDeclNode {
+	v.pushRule("structdecl")
+	defer v.popRule()
+
 	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_STRUCT) {
 		return nil
 	}
@@ -311,6 +338,9 @@ func (v *parser) parseStructDecl() *StructDeclNode {
 }
 
 func (v *parser) parseStructBody() *StructBodyNode {
+	v.pushRule("structbody")
+	defer v.popRule()
+
 	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "{") {
 		return nil
 	}
@@ -344,6 +374,9 @@ func (v *parser) parseStructBody() *StructBodyNode {
 }
 
 func (v *parser) parseUseDecl() *UseDeclNode {
+	v.pushRule("usedecl")
+	defer v.popRule()
+
 	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_USE) {
 		return nil
 	}
@@ -365,6 +398,9 @@ func (v *parser) parseUseDecl() *UseDeclNode {
 }
 
 func (v *parser) parseTraitDecl() *TraitDeclNode {
+	v.pushRule("traitdecl")
+	defer v.popRule()
+
 	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_TRAIT) {
 		return nil
 	}
@@ -408,6 +444,9 @@ func (v *parser) parseTraitDecl() *TraitDeclNode {
 }
 
 func (v *parser) parseImplDecl() *ImplDeclNode {
+	v.pushRule("impldecl")
+	defer v.popRule()
+
 	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_IMPL) {
 		return nil
 	}
@@ -468,6 +507,9 @@ func (v *parser) parseImplDecl() *ImplDeclNode {
 }
 
 func (v *parser) parseFuncDecl() *FunctionDeclNode {
+	v.pushRule("funcdecl")
+	defer v.popRule()
+
 	funcHeader := v.parseFuncHeader()
 	if funcHeader == nil {
 		return nil
@@ -515,6 +557,9 @@ func (v *parser) parseFuncDecl() *FunctionDeclNode {
 }
 
 func (v *parser) parseFuncHeader() *FunctionHeaderNode {
+	v.pushRule("funcheader")
+	defer v.popRule()
+
 	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_FUNC) {
 		return nil
 	}
@@ -584,6 +629,9 @@ func (v *parser) parseFuncHeader() *FunctionHeaderNode {
 }
 
 func (v *parser) parseEnumDecl() *EnumDeclNode {
+	v.pushRule("enumdecl")
+	defer v.popRule()
+
 	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_ENUM) {
 		return nil
 	}
@@ -632,6 +680,9 @@ func (v *parser) parseEnumDecl() *EnumDeclNode {
 }
 
 func (v *parser) parseEnumEntry() *EnumEntryNode {
+	v.pushRule("enumentry")
+	defer v.popRule()
+
 	if !v.nextIs(lexer.TOKEN_IDENTIFIER) {
 		return nil
 	}
@@ -669,6 +720,9 @@ func (v *parser) parseEnumEntry() *EnumEntryNode {
 }
 
 func (v *parser) parseVarDecl() *VarDeclNode {
+	v.pushRule("vardecl")
+	defer v.popRule()
+
 	body := v.parseVarDeclBody()
 	if body == nil {
 		return nil
@@ -685,6 +739,9 @@ func (v *parser) parseVarDecl() *VarDeclNode {
 }
 
 func (v *parser) parseVarDeclBody() *VarDeclNode {
+	v.pushRule("vardeclbody")
+	defer v.popRule()
+
 	startPos := v.currentToken
 
 	var mutable *lexer.Token
@@ -737,6 +794,9 @@ func (v *parser) parseVarDeclBody() *VarDeclNode {
 }
 
 func (v *parser) parseStat() ParseNode {
+	v.pushRule("stat")
+	defer v.popRule()
+
 	var res ParseNode
 
 	if deferStat := v.parseDeferStat(); deferStat != nil {
@@ -761,6 +821,9 @@ func (v *parser) parseStat() ParseNode {
 }
 
 func (v *parser) parseDeferStat() *DeferStatNode {
+	v.pushRule("deferstat")
+	defer v.popRule()
+
 	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_DEFER) {
 		return nil
 	}
@@ -782,6 +845,9 @@ func (v *parser) parseDeferStat() *DeferStatNode {
 }
 
 func (v *parser) parseIfStat() *IfStatNode {
+	v.pushRule("ifstat")
+	defer v.popRule()
+
 	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_IF) {
 		return nil
 	}
@@ -830,6 +896,9 @@ func (v *parser) parseIfStat() *IfStatNode {
 }
 
 func (v *parser) parseMatchStat() *MatchStatNode {
+	v.pushRule("matchstat")
+	defer v.popRule()
+
 	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_MATCH) {
 		return nil
 	}
@@ -891,6 +960,9 @@ func (v *parser) parseMatchStat() *MatchStatNode {
 }
 
 func (v *parser) parseLoopStat() *LoopStatNode {
+	v.pushRule("loopstat")
+	defer v.popRule()
+
 	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_FOR) {
 		return nil
 	}
@@ -909,6 +981,9 @@ func (v *parser) parseLoopStat() *LoopStatNode {
 }
 
 func (v *parser) parseReturnStat() *ReturnStatNode {
+	v.pushRule("returnstat")
+	defer v.popRule()
+
 	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_RETURN) {
 		return nil
 	}
@@ -927,6 +1002,9 @@ func (v *parser) parseReturnStat() *ReturnStatNode {
 }
 
 func (v *parser) parseBlockStat() *BlockStatNode {
+	v.pushRule("blockstat")
+	defer v.popRule()
+
 	startPos := v.currentToken
 	var doToken *lexer.Token
 	if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_DO) {
@@ -950,6 +1028,9 @@ func (v *parser) parseBlockStat() *BlockStatNode {
 }
 
 func (v *parser) parseBlock() *BlockNode {
+	v.pushRule("block")
+	defer v.popRule()
+
 	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "{") {
 		return nil
 	}
@@ -975,6 +1056,9 @@ func (v *parser) parseBlock() *BlockNode {
 }
 
 func (v *parser) parseCallStat() *CallStatNode {
+	v.pushRule("callstat")
+	defer v.popRule()
+
 	callExpr := v.parseCallExpr()
 	if callExpr == nil {
 		return nil
@@ -991,6 +1075,9 @@ func (v *parser) parseCallStat() *CallStatNode {
 }
 
 func (v *parser) parseAssignStat() ParseNode {
+	v.pushRule("assignstat")
+	defer v.popRule()
+
 	startPos := v.currentToken
 
 	accessExpr := v.parseAccessExpr()
@@ -1018,6 +1105,9 @@ func (v *parser) parseAssignStat() ParseNode {
 }
 
 func (v *parser) parseType() ParseNode {
+	v.pushRule("type")
+	defer v.popRule()
+
 	var res ParseNode
 	if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "^") {
 		res = v.parsePointerType()
@@ -1033,6 +1123,9 @@ func (v *parser) parseType() ParseNode {
 }
 
 func (v *parser) parsePointerType() *PointerTypeNode {
+	v.pushRule("pointertype")
+	defer v.popRule()
+
 	if !v.tokenMatches(0, lexer.TOKEN_OPERATOR, "^") {
 		return nil
 	}
@@ -1050,6 +1143,9 @@ func (v *parser) parsePointerType() *PointerTypeNode {
 }
 
 func (v *parser) parseTupleType() *TupleTypeNode {
+	v.pushRule("tupletype")
+	defer v.popRule()
+
 	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "(") {
 		return nil
 	}
@@ -1080,6 +1176,9 @@ func (v *parser) parseTupleType() *TupleTypeNode {
 }
 
 func (v *parser) parseArrayType() *ArrayTypeNode {
+	v.pushRule("arraytype")
+	defer v.popRule()
+
 	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "[") {
 		return nil
 	}
@@ -1110,6 +1209,9 @@ func (v *parser) parseArrayType() *ArrayTypeNode {
 }
 
 func (v *parser) parseTypeReference() *TypeReferenceNode {
+	v.pushRule("typereference")
+	defer v.popRule()
+
 	name := v.parseName()
 	if name == nil {
 		return nil
@@ -1121,6 +1223,9 @@ func (v *parser) parseTypeReference() *TypeReferenceNode {
 }
 
 func (v *parser) parseExpr() ParseNode {
+	v.pushRule("expr")
+	defer v.popRule()
+
 	pri := v.parsePrimaryExpr()
 	if pri == nil {
 		return nil
@@ -1134,6 +1239,9 @@ func (v *parser) parseExpr() ParseNode {
 }
 
 func (v *parser) parseBinaryOperator(upperPrecedence int, lhand ParseNode) ParseNode {
+	v.pushRule("binop")
+	defer v.popRule()
+
 	// TODO: I have a suspicion this might break with some combinations of operators
 	startPos := v.currentToken
 
@@ -1180,6 +1288,9 @@ func (v *parser) parseBinaryOperator(upperPrecedence int, lhand ParseNode) Parse
 }
 
 func (v *parser) parsePrimaryExpr() ParseNode {
+	v.pushRule("primaryexpr")
+	defer v.popRule()
+
 	var res ParseNode
 
 	if sizeofExpr := v.parseSizeofExpr(); sizeofExpr != nil {
@@ -1202,6 +1313,9 @@ func (v *parser) parsePrimaryExpr() ParseNode {
 }
 
 func (v *parser) parseSizeofExpr() *SizeofExprNode {
+	v.pushRule("sizeofexpr")
+	defer v.popRule()
+
 	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_SIZEOF) {
 		return nil
 	}
@@ -1228,6 +1342,9 @@ func (v *parser) parseSizeofExpr() *SizeofExprNode {
 }
 
 func (v *parser) parseAddrofExpr() *AddrofExprNode {
+	v.pushRule("addrofexpr")
+	defer v.popRule()
+
 	if !v.tokenMatches(0, lexer.TOKEN_OPERATOR, "&") {
 		return nil
 	}
@@ -1244,6 +1361,9 @@ func (v *parser) parseAddrofExpr() *AddrofExprNode {
 }
 
 func (v *parser) parseLitExpr() ParseNode {
+	v.pushRule("litexpr")
+	defer v.popRule()
+
 	var res ParseNode
 
 	if arrayLit := v.parseArrayLit(); arrayLit != nil {
@@ -1264,6 +1384,9 @@ func (v *parser) parseLitExpr() ParseNode {
 }
 
 func (v *parser) parseCastExpr() *CastExprNode {
+	v.pushRule("castexpr")
+	defer v.popRule()
+
 	startPos := v.currentToken
 
 	typ := v.parseType()
@@ -1289,6 +1412,9 @@ func (v *parser) parseCastExpr() *CastExprNode {
 }
 
 func (v *parser) parseUnaryExpr() *UnaryExprNode {
+	v.pushRule("unaryexpr")
+	defer v.popRule()
+
 	if !v.nextIs(lexer.TOKEN_OPERATOR) {
 		return nil
 	}
@@ -1310,6 +1436,9 @@ func (v *parser) parseUnaryExpr() *UnaryExprNode {
 }
 
 func (v *parser) parseCallExpr() *CallExprNode {
+	v.pushRule("callexpr")
+	defer v.popRule()
+
 	startPos := v.currentToken
 
 	function := v.parseAccessExpr()
@@ -1348,10 +1477,25 @@ func (v *parser) parseCallExpr() *CallExprNode {
 }
 
 func (v *parser) parseAccessExpr() ParseNode {
+	v.pushRule("accessexpr")
+	defer v.popRule()
+
 	var lhand ParseNode
 	if name := v.parseName(); name != nil {
 		lhand = &VariableAccessNode{Name: name}
 		lhand.SetWhere(name.Where())
+	} else if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "(") {
+		v.consumeToken()
+
+		lhand = v.parseAccessExpr()
+		if lhand == nil {
+			v.err("Expected valid access expression after `(` in access expression")
+		}
+
+		if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ")") {
+			v.err("Expected closing `)` in access expression, got `%s`", v.peek(0).Contents)
+		}
+		v.consumeToken()
 	} else if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "^") {
 		startToken := v.consumeToken()
 
@@ -1423,6 +1567,9 @@ func (v *parser) parseAccessExpr() ParseNode {
 }
 
 func (v *parser) parseArrayLit() *ArrayLiteralNode {
+	v.pushRule("arraylit")
+	defer v.popRule()
+
 	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "[") {
 		return nil
 	}
@@ -1457,6 +1604,10 @@ func (v *parser) parseArrayLit() *ArrayLiteralNode {
 }
 
 func (v *parser) parseTupleLit() *TupleLiteralNode {
+	v.pushRule("tuplelit")
+	defer v.popRule()
+
+	startPos := v.currentToken
 	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "(") {
 		return nil
 	}
@@ -1481,9 +1632,15 @@ func (v *parser) parseTupleLit() *TupleLiteralNode {
 	}
 
 	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ")") {
-		v.err("Expected closing `]` after tuple literal, got `%s`", v.peek(0).Contents)
+		v.err("Expected closing `)` after tuple literal, got `%s`", v.peek(0).Contents)
 	}
 	endToken := v.consumeToken()
+
+	// Dirty hack
+	if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ".") {
+		v.currentToken = startPos
+		return nil
+	}
 
 	res := &TupleLiteralNode{Values: values}
 	res.SetWhere(lexer.NewSpanFromTokens(startToken, endToken))
@@ -1491,6 +1648,9 @@ func (v *parser) parseTupleLit() *TupleLiteralNode {
 }
 
 func (v *parser) parseBoolLit() *BoolLitNode {
+	v.pushRule("boollit")
+	defer v.popRule()
+
 	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, "true") && !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, "false") {
 		return nil
 	}
@@ -1509,6 +1669,9 @@ func (v *parser) parseBoolLit() *BoolLitNode {
 }
 
 func (v *parser) parseNumberLit() *NumberLitNode {
+	v.pushRule("numberlit")
+	defer v.popRule()
+
 	// TODO: Arbitrary base numbers?
 	if !v.nextIs(lexer.TOKEN_NUMBER) {
 		return nil
@@ -1602,6 +1765,9 @@ func (v *parser) parseNumberLit() *NumberLitNode {
 }
 
 func (v *parser) parseStringLit() *StringLitNode {
+	v.pushRule("stringlit")
+	defer v.popRule()
+
 	if !v.nextIs(lexer.TOKEN_STRING) {
 		return nil
 	}
@@ -1613,6 +1779,9 @@ func (v *parser) parseStringLit() *StringLitNode {
 }
 
 func (v *parser) parseRuneLit() *RuneLitNode {
+	v.pushRule("runelit")
+	defer v.popRule()
+
 	if !v.nextIs(lexer.TOKEN_RUNE) {
 		return nil
 	}
