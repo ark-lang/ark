@@ -831,7 +831,10 @@ func (v *CallExpr) String() string {
 }
 
 func (v *CallExpr) GetType() Type {
-	return v.Function.ReturnType
+	if v.Function != nil {
+		return v.Function.ReturnType
+	}
+	return nil
 }
 
 func (v *CallExpr) NodeName() string {
@@ -952,7 +955,10 @@ func (v *TupleAccessExpr) String() string {
 }
 
 func (v *TupleAccessExpr) GetType() Type {
-	return v.Tuple.GetType().(*TupleType).Members[v.Index]
+	if v.Tuple.GetType() != nil {
+		return v.Tuple.GetType().(*TupleType).Members[v.Index]
+	}
+	return nil
 }
 
 func (v *TupleAccessExpr) NodeName() string {
@@ -1008,7 +1014,10 @@ func (v *AddressOfExpr) String() string {
 }
 
 func (v *AddressOfExpr) GetType() Type {
-	return pointerTo(v.Access.GetType())
+	if v.Access.GetType() != nil {
+		return pointerTo(v.Access.GetType())
+	}
+	return nil
 }
 
 func (v *AddressOfExpr) NodeName() string {
