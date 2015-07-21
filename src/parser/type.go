@@ -387,7 +387,7 @@ func (v PointerType) LevelsOfIndirection() int {
 }
 
 func (v PointerType) IsIntegerType() bool {
-	return false
+	return true
 }
 
 func (v PointerType) IsFloatingType() bool {
@@ -395,6 +395,9 @@ func (v PointerType) IsFloatingType() bool {
 }
 
 func (v PointerType) CanCastTo(t Type) bool {
+	if t.IsIntegerType() {
+		return true
+	}
 	return false
 }
 
