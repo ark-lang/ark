@@ -62,19 +62,19 @@ func (s *Sourcefile) MarkPos(pos Position) string {
 func (s *Sourcefile) MarkSpan(span Span) string {
 	buf := new(bytes.Buffer)
 
-	for line := span.Start().Line; line <= span.End().Line; line++ {
+	for line := span.StartLine; line <= span.EndLine; line++ {
 		lineString := s.GetLine(line)
 
 		var pad int
-		if line == span.Start().Line {
-			pad = span.Start().Char - 1
+		if line == span.StartLine {
+			pad = span.StartChar - 1
 		} else {
 			pad = 0
 		}
 
 		var length int
-		if line == span.End().Line {
-			length = span.End().Char
+		if line == span.EndLine {
+			length = span.EndChar - span.StartChar
 		} else {
 			length = len([]rune(lineString))
 		}

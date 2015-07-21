@@ -75,7 +75,7 @@ func (v *StructDecl) resolve(res *Resolver, s *Scope) {
 }
 
 func (v *EnumDecl) resolve(res *Resolver, s *Scope) {
-	// TODO: this is a noop, right?
+	v.Enum = v.Enum.resolveType(v, res, s).(*EnumType)
 }
 
 func (v *TraitDecl) resolve(res *Resolver, s *Scope) {
@@ -296,6 +296,13 @@ func (v *TupleLiteral) resolve(res *Resolver, s *Scope) {
 	}
 }
 
+func (v *EnumLiteral) resolve(res *Resolver, s *Scope) {
+	v.Type = v.Type.resolveType(v, res, s)
+	for _, val := range v.Values {
+		val.resolve(res, s)
+	}
+}
+
 func (v *DefaultMatchBranch) resolve(res *Resolver, s *Scope) {}
 
 /*
@@ -331,6 +338,13 @@ func (v PointerType) resolveType(src Locatable, res *Resolver, s *Scope) Type {
 func (v *TupleType) resolveType(src Locatable, res *Resolver, s *Scope) Type {
 	for idx, mem := range v.Members {
 		v.Members[idx] = mem.resolveType(src, res, s)
+	}
+	return v
+}
+
+func (v *EnumType) resolveType(src Locatable, res *Resolver, s *Scope) Type {
+	for idx, mem := range v.MemberTypes {
+		v.MemberTypes[idx] = mem.resolveType(src, res, s)
 	}
 	return v
 }

@@ -134,7 +134,7 @@ type EnumDeclNode struct {
 type EnumEntryNode struct {
 	baseNode
 	Name       LocatedString
-	Value      ParseNode
+	Value      *NumberLitNode
 	TupleBody  *TupleTypeNode
 	StructBody *StructBodyNode
 }
