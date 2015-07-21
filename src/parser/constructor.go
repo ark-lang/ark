@@ -317,6 +317,7 @@ func (v *FunctionDeclNode) construct(c *Constructor) Node {
 func (v *EnumDeclNode) construct(c *Constructor) Node {
 	enumType := &EnumType{}
 	enumType.Name = v.Name.Value
+	enumType.Simple = true
 	enumType.MemberNames = make([]string, len(v.Members))
 	enumType.MemberTypes = make([]Type, len(v.Members))
 	enumType.MemberTags = make([]int, len(v.Members))
@@ -326,8 +327,10 @@ func (v *EnumDeclNode) construct(c *Constructor) Node {
 
 		if mem.TupleBody != nil {
 			enumType.MemberTypes[idx] = c.constructType(mem.TupleBody)
+			enumType.Simple = false
 		} else if mem.StructBody != nil {
 			// TODO
+			enumType.Simple = false
 		} else {
 			enumType.MemberTypes[idx] = PRIMITIVE_void
 		}
