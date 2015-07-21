@@ -23,9 +23,8 @@ func (v unresolvedName) String() string {
 }
 
 type Resolver struct {
-	Module     *Module
-	modules    map[string]*Module
-	shouldExit bool
+	Module  *Module
+	modules map[string]*Module
 }
 
 func (v *Resolver) err(thing Locatable, err string, stuff ...interface{}) {
@@ -36,7 +35,7 @@ func (v *Resolver) err(thing Locatable, err string, stuff ...interface{}) {
 
 	log.Error("resolve", v.Module.File.MarkPos(pos))
 
-	v.shouldExit = true
+	os.Exit(util.EXIT_FAILURE_SEMANTIC)
 }
 
 func (v *Resolver) errCannotResolve(thing Locatable, name unresolvedName) {
@@ -48,10 +47,6 @@ func (v *Resolver) Resolve(modules map[string]*Module) {
 
 	for _, node := range v.Module.Nodes {
 		node.resolve(v, v.Module.GlobalScope)
-	}
-
-	if v.shouldExit {
-		os.Exit(util.EXIT_FAILURE_SEMANTIC)
 	}
 }
 
