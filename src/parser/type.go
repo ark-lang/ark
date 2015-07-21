@@ -184,9 +184,6 @@ func (v *StructType) Attrs() AttrGroup {
 }
 
 func (v *StructType) Equals(t Type) bool {
-	// TODO: Check for struct equality
-	panic("please implement the rest of this, if we ever need it")
-
 	other, ok := t.(*StructType)
 	if !ok {
 		return false
@@ -200,7 +197,20 @@ func (v *StructType) Equals(t Type) bool {
 		return false
 	}
 
-	// TODO: Check struct members
+	if len(v.Variables) != len(other.Variables) {
+		return false
+	}
+
+	for idx, _ := range v.Variables {
+		variable, otherVariable := v.Variables[idx].Variable, other.Variables[idx].Variable
+		if variable.Name != otherVariable.Name {
+			return false
+		}
+		if !variable.Type.Equals(otherVariable.Type) {
+			return false
+		}
+	}
+
 	return true
 }
 
@@ -342,8 +352,6 @@ func (v *TraitType) Attrs() AttrGroup {
 
 func (v *TraitType) Equals(t Type) bool {
 	// TODO: Check for trait equality
-	panic("please implement the rest of this, if we ever need it")
-
 	other, ok := t.(*TraitType)
 	if !ok {
 		return false
@@ -356,6 +364,8 @@ func (v *TraitType) Equals(t Type) bool {
 	if !v.Attrs().Equals(other.Attrs()) {
 		return false
 	}
+
+	panic("please implement the rest of this, if we ever need it")
 
 	// TODO: Check trait function types
 	return true
@@ -566,9 +576,6 @@ func (v *EnumType) Attrs() AttrGroup {
 }
 
 func (v *EnumType) Equals(t Type) bool {
-	// TODO: Check for enum equality
-	panic("please implement the rest of this, if we ever need it")
-
 	other, ok := t.(*EnumType)
 	if !ok {
 		return false
@@ -582,7 +589,25 @@ func (v *EnumType) Equals(t Type) bool {
 		return false
 	}
 
-	// TODO: Check enum members
+	if len(v.MemberNames) != len(other.MemberNames) {
+		return false
+	}
+
+	for idx, _ := range v.MemberNames {
+		name, otherName := v.MemberNames[idx], other.MemberNames[idx]
+		typ, otherTyp := v.MemberTypes[idx], other.MemberTypes[idx]
+		tag, otherTag := v.MemberTags[idx], other.MemberTags[idx]
+		if name != otherName {
+			return false
+		}
+		if !typ.Equals(otherTyp) {
+			return false
+		}
+		if tag != otherTag {
+			return false
+		}
+	}
+
 	return true
 }
 
