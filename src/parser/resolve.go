@@ -12,7 +12,6 @@ type unresolvedName struct {
 	moduleNames []string
 	name        string
 	modules     map[string]*Module
-	shouldExit  bool
 }
 
 func (v unresolvedName) String() string {
@@ -24,8 +23,9 @@ func (v unresolvedName) String() string {
 }
 
 type Resolver struct {
-	Module  *Module
-	modules map[string]*Module
+	Module     *Module
+	modules    map[string]*Module
+	shouldExit bool
 }
 
 func (v *Resolver) err(thing Locatable, err string, stuff ...interface{}) {
@@ -49,9 +49,9 @@ func (v *Resolver) Resolve(modules map[string]*Module) {
 	for _, node := range v.Module.Nodes {
 		node.resolve(v, v.Module.GlobalScope)
 	}
-	
+
 	if v.shouldExit {
-		os.Exit(util.EXIT_FAILURE_SEMANTIC)	
+		os.Exit(util.EXIT_FAILURE_SEMANTIC)
 	}
 }
 
