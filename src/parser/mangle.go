@@ -82,3 +82,14 @@ func (v *TraitType) MangledName(typ MangleType) string {
 		panic("")
 	}
 }
+
+func (v *EnumType) MangledName(typ MangleType) string {
+	switch typ {
+	case MANGLE_ARK_UNSTABLE:
+		result := fmt.Sprintf("_E_%d%s", len([]rune(v.Name)), v.Name)
+		// TODO module
+		return result
+	default:
+		panic("")
+	}
+}

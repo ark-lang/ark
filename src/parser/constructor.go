@@ -24,10 +24,12 @@ type ConstructableExpr interface {
 }
 
 type Constructor struct {
-	tree    *ParseTree
-	module  *Module
-	modules map[string]*Module
-	scope   *Scope
+	tree      *ParseTree
+	treeFiles map[string]*ParseTree
+	module    *Module
+	modules   map[string]*Module
+	scope     *Scope
+	nameMap   *NameMap
 }
 
 func (v *Constructor) err(pos lexer.Span, err string, stuff ...interface{}) {
@@ -79,16 +81,18 @@ func (v *Constructor) useModule(name string) {
 	}
 }
 
-func Construct(tree *ParseTree, modules map[string]*Module) *Module {
+func Construct(tree *ParseTree, treeFiles map[string]*ParseTree, modules map[string]*Module) *Module {
 	c := &Constructor{
-		tree: tree,
+		tree:      tree,
+		treeFiles: treeFiles,
 		module: &Module{
 			Nodes: make([]Node, 0),
 			File:  tree.Source,
 			Path:  tree.Source.Path,
 			Name:  tree.Source.Name,
 		},
-		scope: NewGlobalScope(),
+		scope:   NewGlobalScope(),
+		nameMap: MapNames(tree.Nodes, tree, treeFiles, nil),
 	}
 	c.module.GlobalScope = c.scope
 	c.modules = modules
@@ -175,6 +179,11 @@ func (v *ArrayTypeNode) construct(c *Constructor) Type {
 }
 
 func (v *TypeReferenceNode) construct(c *Constructor) Type {
+	typ := c.nameMap.TypeOfNameNode(v.Reference)
+	if !typ.IsType() {
+		c.errSpan(v.Reference.Name.Where, "Name `%s` is not a type", v.Reference.Name.Value)
+	}
+
 	res := &UnresolvedType{}
 	res.Name.name = v.Reference.Name.Value
 	for _, module := range v.Reference.Modules {
@@ -204,6 +213,11 @@ func (v *StructDeclNode) construct(c *Constructor) Node {
 }
 
 func (v *UseDeclNode) construct(c *Constructor) Node {
+	typ := c.nameMap.TypeOfNameNode(v.Module)
+	if typ != NODE_MODULE {
+		c.errSpan(v.Module.Name.Where, "Name `%s` is not a module", v.Module.Name)
+	}
+
 	res := &UseDecl{}
 	res.ModuleName = v.Module.Name.Value
 	res.Scope = c.scope
@@ -296,15 +310,37 @@ func (v *FunctionDeclNode) construct(c *Constructor) Node {
 }
 
 func (v *EnumDeclNode) construct(c *Constructor) Node {
-	res := &EnumDecl{}
-	res.Name = v.Name.Value
-	for _, member := range v.Members {
-		val := &EnumVal{Name: member.Name.Value}
-		if member.Value != nil {
-			val.Value = c.constructExpr(member.Value)
+	enumType := &EnumType{}
+	enumType.Name = v.Name.Value
+	enumType.MemberNames = make([]string, len(v.Members))
+	enumType.MemberTypes = make([]Type, len(v.Members))
+	enumType.MemberTags = make([]int, len(v.Members))
+	lastValue := 0
+	for idx, mem := range v.Members {
+		enumType.MemberNames[idx] = mem.Name.Value
+
+		if mem.TupleBody != nil {
+			enumType.MemberTypes[idx] = c.constructType(mem.TupleBody)
+		} else if mem.StructBody != nil {
+			// TODO
+		} else {
+			enumType.MemberTypes[idx] = PRIMITIVE_void
 		}
-		res.Body = append(res.Body, val)
+
+		if mem.Value != nil {
+			// TODO: Check for overflow
+			lastValue = int(mem.Value.IntValue)
+		}
+		enumType.MemberTags[idx] = lastValue
+		lastValue += 1
 	}
+
+	if c.scope.InsertType(enumType) != nil {
+		c.err(v.Where(), "Illegal redeclaration of enum `%s`", enumType.Name)
+	}
+
+	res := &EnumDecl{}
+	res.Enum = enumType
 	res.setPos(v.Where().Start())
 	return res
 }
@@ -408,6 +444,8 @@ func (v *BlockStatNode) construct(c *Constructor) Node {
 }
 
 func (v *BlockNode) construct(c *Constructor) Node {
+	c.nameMap = MapNames(v.Nodes, c.tree, c.treeFiles, c.nameMap)
+
 	res := &Block{}
 	res.scope = c.scope
 	if !v.NonScoping {
@@ -421,6 +459,8 @@ func (v *BlockNode) construct(c *Constructor) Node {
 		c.popScope()
 	}
 	res.setPos(v.Where().Start())
+
+	c.nameMap = c.nameMap.parent
 	return res
 }
 
@@ -463,6 +503,7 @@ func (v *AddrofExprNode) construct(c *Constructor) Expr {
 }
 
 func (v *CastExprNode) construct(c *Constructor) Expr {
+	// TODO: type(value) syntax
 	res := &CastExpr{}
 	res.Type = c.constructType(v.Type)
 	res.Expr = c.constructExpr(v.Value)
@@ -479,23 +520,67 @@ func (v *UnaryExprNode) construct(c *Constructor) Expr {
 }
 
 func (v *CallExprNode) construct(c *Constructor) Expr {
-	res := &CallExpr{}
-	for _, arg := range v.Arguments {
-		res.Arguments = append(res.Arguments, c.constructExpr(arg))
+	van := v.Function.(*VariableAccessNode) // TODO: better error
+	typ := c.nameMap.TypeOfNameNode(van.Name)
+	if typ == NODE_FUNCTION {
+		res := &CallExpr{}
+		for _, arg := range v.Arguments {
+			res.Arguments = append(res.Arguments, c.constructExpr(arg))
+		}
+		res.functionSource = c.constructExpr(v.Function)
+		res.setPos(v.Where().Start())
+		return res
+	} else if typ == NODE_ENUM_MEMBER {
+		name := unresolvedName{}
+		var moduleNames []string
+		for _, moduleName := range van.Name.Modules[:len(van.Name.Modules)-1] {
+			moduleNames = append(moduleNames, moduleName.Value)
+		}
+		name.moduleNames = moduleNames
+		name.name = van.Name.Modules[len(van.Name.Modules)-1].Value
+
+		var values []Expr
+		for _, arg := range v.Arguments {
+			values = append(values, c.constructExpr(arg))
+		}
+
+		res := &EnumLiteral{}
+		res.Member = van.Name.Name.Value
+		res.Type = &UnresolvedType{Name: name}
+		res.Values = values
+		res.setPos(v.Where().Start())
+		return res
+	} else {
+		log.Debugln("constructor", "`%s` was a `%s`", van.Name.Name.Value, typ)
+		c.errSpan(van.Name.Name.Where, "Name `%s` is not a function or a enum member", van.Name.Name.Value)
+		return nil
 	}
-	res.functionSource = c.constructExpr(v.Function)
-	res.setPos(v.Where().Start())
-	return res
 }
 
 func (v *VariableAccessNode) construct(c *Constructor) Expr {
-	res := &VariableAccessExpr{}
-	for _, module := range v.Name.Modules {
-		res.Name.moduleNames = append(res.Name.moduleNames, module.Value)
+	if c.nameMap.TypeOfNameNode(v.Name) == NODE_ENUM_MEMBER {
+		name := unresolvedName{}
+		var moduleNames []string
+		for _, moduleName := range v.Name.Modules[:len(v.Name.Modules)-1] {
+			moduleNames = append(moduleNames, moduleName.Value)
+		}
+		name.moduleNames = moduleNames
+		name.name = v.Name.Modules[len(v.Name.Modules)-1].Value
+
+		res := &EnumLiteral{}
+		res.Member = v.Name.Name.Value
+		res.Type = &UnresolvedType{Name: name}
+		res.setPos(v.Where().Start())
+		return res
+	} else {
+		res := &VariableAccessExpr{}
+		for _, module := range v.Name.Modules {
+			res.Name.moduleNames = append(res.Name.moduleNames, module.Value)
+		}
+		res.Name.name = v.Name.Name.Value
+		res.setPos(v.Where().Start())
+		return res
 	}
-	res.Name.name = v.Name.Name.Value
-	res.setPos(v.Where().Start())
-	return res
 }
 
 func (v *DerefAccessNode) construct(c *Constructor) Expr {

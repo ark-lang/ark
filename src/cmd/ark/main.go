@@ -95,9 +95,12 @@ func parseFiles(files []string) ([]*parser.Module, map[string]*parser.Module) {
 
 	// parsing
 	var parsedFiles []*parser.ParseTree
+	parsedFileMap := make(map[string]*parser.ParseTree)
 	timed("parsing phase", func() {
 		for _, file := range sourcefiles {
-			parsedFiles = append(parsedFiles, parser.Parse(file))
+			parsedFile := parser.Parse(file)
+			parsedFiles = append(parsedFiles, parsedFile)
+			parsedFileMap[parsedFile.Source.Name] = parsedFile
 		}
 	})
 
@@ -106,7 +109,7 @@ func parseFiles(files []string) ([]*parser.Module, map[string]*parser.Module) {
 	modules := make(map[string]*parser.Module)
 	timed("construction phase", func() {
 		for _, file := range parsedFiles {
-			constructedModules = append(constructedModules, parser.Construct(file, modules))
+			constructedModules = append(constructedModules, parser.Construct(file, parsedFileMap, modules))
 		}
 	})
 
