@@ -516,6 +516,7 @@ func (v *TupleType) Equals(t Type) bool {
 // EnumType
 type EnumType struct {
 	Name        string
+	Simple      bool
 	MemberNames []string
 	MemberTypes []Type
 	MemberTags  []int
@@ -551,7 +552,7 @@ func (v *EnumType) LevelsOfIndirection() int {
 }
 
 func (v *EnumType) IsIntegerType() bool {
-	return false
+	return v.Simple
 }
 
 func (v *EnumType) IsFloatingType() bool {

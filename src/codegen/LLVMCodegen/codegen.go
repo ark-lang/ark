@@ -186,21 +186,28 @@ func (v *Codegen) addEnumType(typ *parser.EnumType) {
 		return
 	}
 
-	longestLength := uint64(0)
-	for _, memTyp := range typ.MemberTypes {
-		if memTyp == parser.PRIMITIVE_void {
-			continue
+	var enum llvm.Type
+	if typ.Simple {
+		// TODO: Handle other integer size, maybe dynamic depending on max value? (1 / 2)
+		enum = llvm.IntType(32)
+	} else {
+		longestLength := uint64(0)
+		for _, memTyp := range typ.MemberTypes {
+			if memTyp == parser.PRIMITIVE_void {
+				continue
+			}
+
+			memLength := v.targetData.TypeAllocSize(v.typeToLLVMType(memTyp))
+			if memLength > longestLength {
+				longestLength = memLength
+			}
 		}
 
-		memLength := v.targetData.TypeAllocSize(v.typeToLLVMType(memTyp))
-		if memLength > longestLength {
-			longestLength = memLength
-		}
+		// TODO: verify no overflow
+		fields := []llvm.Type{llvm.IntType(32), llvm.ArrayType(llvm.IntType(8), int(longestLength))}
+		enum = llvm.StructType(fields, false)
 	}
 
-	// TODO: verify no overflow
-	fields := []llvm.Type{llvm.IntType(32), llvm.ArrayType(llvm.IntType(8), int(longestLength))}
-	enum := llvm.StructType(fields, false)
 	llvm.AddGlobal(v.curFile.Module, enum, typ.MangledName(parser.MANGLE_ARK_UNSTABLE))
 	v.enumLookup_UseHelperFunction[typ] = enum
 }
@@ -787,28 +794,35 @@ func (v *Codegen) genEnumLiteral(n *parser.EnumLiteral) llvm.Value {
 	enumType := n.Type.(*parser.EnumType)
 	enumLLVMType := v.typeToLLVMType(n.Type)
 	if v.inFunction {
-		alloc := v.builder.CreateAlloca(enumLLVMType, "")
+		if enumType.Simple {
+			memberIdx := enumType.MemberIndex(n.Member)
+			tag := enumType.MemberTags[memberIdx]
+			// TODO: Handle other integer size, maybe dynamic depending on max value? (1 / 2)
+			return llvm.ConstInt(llvm.IntType(32), uint64(tag), false)
+		} else {
+			alloc := v.builder.CreateAlloca(enumLLVMType, "")
 
-		memberIdx := enumType.MemberIndex(n.Member)
-		tag := enumType.MemberTags[memberIdx]
+			memberIdx := enumType.MemberIndex(n.Member)
+			tag := enumType.MemberTags[memberIdx]
 
-		tagGep := v.builder.CreateGEP(alloc, []llvm.Value{llvm.ConstInt(llvm.IntType(32), 0, false), llvm.ConstInt(llvm.IntType(32), 0, false)}, "")
-		v.builder.CreateStore(llvm.ConstInt(llvm.IntType(32), uint64(tag), false), tagGep)
+			tagGep := v.builder.CreateGEP(alloc, []llvm.Value{llvm.ConstInt(llvm.IntType(32), 0, false), llvm.ConstInt(llvm.IntType(32), 0, false)}, "")
+			v.builder.CreateStore(llvm.ConstInt(llvm.IntType(32), uint64(tag), false), tagGep)
 
-		if len(n.Values) > 0 {
-			innerType := enumType.MemberTypes[memberIdx]
-			innerLLVMType := v.typeToLLVMType(innerType)
+			if len(n.Values) > 0 {
+				innerType := enumType.MemberTypes[memberIdx]
+				innerLLVMType := v.typeToLLVMType(innerType)
 
-			dataGep := v.builder.CreateGEP(alloc, []llvm.Value{llvm.ConstInt(llvm.IntType(32), 0, false), llvm.ConstInt(llvm.IntType(32), 1, false)}, "")
-			dataGep = v.builder.CreateBitCast(dataGep, llvm.PointerType(innerLLVMType, 0), "")
+				dataGep := v.builder.CreateGEP(alloc, []llvm.Value{llvm.ConstInt(llvm.IntType(32), 0, false), llvm.ConstInt(llvm.IntType(32), 1, false)}, "")
+				dataGep = v.builder.CreateBitCast(dataGep, llvm.PointerType(innerLLVMType, 0), "")
 
-			for idx, value := range n.Values {
-				memberGep := v.builder.CreateGEP(dataGep, []llvm.Value{llvm.ConstInt(llvm.IntType(32), 0, false), llvm.ConstInt(llvm.IntType(32), uint64(idx), false)}, "")
-				v.builder.CreateStore(v.genExpr(value), memberGep)
+				for idx, value := range n.Values {
+					memberGep := v.builder.CreateGEP(dataGep, []llvm.Value{llvm.ConstInt(llvm.IntType(32), 0, false), llvm.ConstInt(llvm.IntType(32), uint64(idx), false)}, "")
+					v.builder.CreateStore(v.genExpr(value), memberGep)
+				}
 			}
-		}
 
-		return v.builder.CreateLoad(alloc, "")
+			return v.builder.CreateLoad(alloc, "")
+		}
 	} else {
 		// TODO: Global enum literals
 		panic("global enums lits are a pain m'kay?")
