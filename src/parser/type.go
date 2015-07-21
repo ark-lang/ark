@@ -500,6 +500,7 @@ func (v *TupleType) Equals(t Type) bool {
 	return true
 }
 
+// UnresolvedType
 type UnresolvedType struct {
 	Name unresolvedName
 }
