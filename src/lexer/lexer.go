@@ -293,9 +293,6 @@ func (v *lexer) recognizeOperatorToken() {
 	// treat them as individual operators instead.
 	if v.peek(0) == ':' && v.peek(1) == '=' {
 		v.consume()
-	} else if v.peek(0) == '|' {
-		// split consecutive pipes to allow for pipe tuples
-		v.consume()
 	} else {
 		v.consume()
 		if isOperator(v.peek(0)) && v.peek(0) != '^' {
