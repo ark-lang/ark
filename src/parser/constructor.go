@@ -24,10 +24,12 @@ type ConstructableExpr interface {
 }
 
 type Constructor struct {
-	tree    *ParseTree
-	module  *Module
-	modules map[string]*Module
-	scope   *Scope
+	tree      *ParseTree
+	treeFiles map[string]*ParseTree
+	module    *Module
+	modules   map[string]*Module
+	scope     *Scope
+	nameMap   *NameMap
 }
 
 func (v *Constructor) err(pos lexer.Span, err string, stuff ...interface{}) {
@@ -79,16 +81,18 @@ func (v *Constructor) useModule(name string) {
 	}
 }
 
-func Construct(tree *ParseTree, modules map[string]*Module) *Module {
+func Construct(tree *ParseTree, treeFiles map[string]*ParseTree, modules map[string]*Module) *Module {
 	c := &Constructor{
-		tree: tree,
+		tree:      tree,
+		treeFiles: treeFiles,
 		module: &Module{
 			Nodes: make([]Node, 0),
 			File:  tree.Source,
 			Path:  tree.Source.Path,
 			Name:  tree.Source.Name,
 		},
-		scope: NewGlobalScope(),
+		scope:   NewGlobalScope(),
+		nameMap: MapNames(tree.Nodes, tree, treeFiles, nil),
 	}
 	c.module.GlobalScope = c.scope
 	c.modules = modules
@@ -175,6 +179,11 @@ func (v *ArrayTypeNode) construct(c *Constructor) Type {
 }
 
 func (v *TypeReferenceNode) construct(c *Constructor) Type {
+	typ := c.nameMap.TypeOfNameNode(v.Reference)
+	if !typ.IsType() {
+		c.errSpan(v.Reference.Name.Where, "Name `%s` is not a type", v.Reference.Name.Value)
+	}
+
 	res := &UnresolvedType{}
 	res.Name.name = v.Reference.Name.Value
 	for _, module := range v.Reference.Modules {
@@ -204,6 +213,11 @@ func (v *StructDeclNode) construct(c *Constructor) Node {
 }
 
 func (v *UseDeclNode) construct(c *Constructor) Node {
+	typ := c.nameMap.TypeOfNameNode(v.Module)
+	if typ != NODE_MODULE {
+		c.errSpan(v.Module.Name.Where, "Name `%s` is not a module", v.Module.Name)
+	}
+
 	res := &UseDecl{}
 	res.ModuleName = v.Module.Name.Value
 	res.Scope = c.scope
@@ -408,6 +422,8 @@ func (v *BlockStatNode) construct(c *Constructor) Node {
 }
 
 func (v *BlockNode) construct(c *Constructor) Node {
+	c.nameMap = MapNames(v.Nodes, c.tree, c.treeFiles, c.nameMap)
+
 	res := &Block{}
 	res.scope = c.scope
 	if !v.NonScoping {
@@ -421,6 +437,8 @@ func (v *BlockNode) construct(c *Constructor) Node {
 		c.popScope()
 	}
 	res.setPos(v.Where().Start())
+
+	c.nameMap = c.nameMap.parent
 	return res
 }
 
@@ -463,6 +481,7 @@ func (v *AddrofExprNode) construct(c *Constructor) Expr {
 }
 
 func (v *CastExprNode) construct(c *Constructor) Expr {
+	// TODO: type(value) syntax
 	res := &CastExpr{}
 	res.Type = c.constructType(v.Type)
 	res.Expr = c.constructExpr(v.Value)
@@ -479,6 +498,13 @@ func (v *UnaryExprNode) construct(c *Constructor) Expr {
 }
 
 func (v *CallExprNode) construct(c *Constructor) Expr {
+	van := v.Function.(*VariableAccessNode) // TODO: better error
+	typ := c.nameMap.TypeOfNameNode(van.Name)
+	if typ != NODE_FUNCTION {
+		log.Debugln("constructor", "`%s` was a `%s`", van.Name.Name.Value, typ)
+		c.errSpan(van.Name.Name.Where, "Name `%s` is not a function", van.Name.Name.Value)
+	}
+
 	res := &CallExpr{}
 	for _, arg := range v.Arguments {
 		res.Arguments = append(res.Arguments, c.constructExpr(arg))
