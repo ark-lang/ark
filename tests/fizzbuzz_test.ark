@@ -24,7 +24,7 @@ func main(): int {
             C::printf("%d", i);
         }
 
-        C::putchar(cast(s8, '\n'));
+        C::putchar(s8('\n'));
 
         i = i + 1;
     }
