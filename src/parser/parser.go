@@ -1188,12 +1188,12 @@ func (v *parser) parsePrimaryExpr() ParseNode {
 		res = addrofExpr
 	} else if litExpr := v.parseLitExpr(); litExpr != nil {
 		res = litExpr
-	} else if castExpr := v.parseCastExpr(); castExpr != nil {
-		res = castExpr
 	} else if unaryExpr := v.parseUnaryExpr(); unaryExpr != nil {
 		res = unaryExpr
 	} else if callExpr := v.parseCallExpr(); callExpr != nil {
 		res = callExpr
+	} else if castExpr := v.parseCastExpr(); castExpr != nil {
+		res = castExpr
 	} else if accessExpr := v.parseAccessExpr(); accessExpr != nil {
 		res = accessExpr
 	}
@@ -1264,23 +1264,12 @@ func (v *parser) parseLitExpr() ParseNode {
 }
 
 func (v *parser) parseCastExpr() *CastExprNode {
-	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_CAST) {
-		return nil
-	}
-	startToken := v.consumeToken()
-
-	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "(") {
-		v.err("Expected opening `(` in cast expression, got `%s`", v.peek(0).Contents)
-	}
-	v.consumeToken()
+	startPos := v.currentToken
 
 	typ := v.parseType()
-	if typ == nil {
-		v.err("Expected valid type in cast expression")
-	}
-
-	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ",") {
-		v.err("Expected `,` in cast expresion, got `%s`", v.peek(0).Contents)
+	if typ == nil || !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "(") {
+		v.currentToken = startPos
+		return nil
 	}
 	v.consumeToken()
 
@@ -1295,7 +1284,7 @@ func (v *parser) parseCastExpr() *CastExprNode {
 	endToken := v.consumeToken()
 
 	res := &CastExprNode{Type: typ, Value: value}
-	res.SetWhere(lexer.NewSpanFromTokens(startToken, endToken))
+	res.SetWhere(lexer.NewSpan(typ.Where().Start(), endToken.Where.End()))
 	return res
 }
 

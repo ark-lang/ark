@@ -15,5 +15,5 @@ func main(): int
     swap(&a, &b);
     C::printf("a: %d, b: %d\n", a, b);
 
-    return 6 - cast(int, a); // Inference problems ugh
+    return 6 - int(a); // Inference problems ugh
 }
