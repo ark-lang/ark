@@ -740,6 +740,7 @@ func (v *Codegen) genArrayLiteral(n *parser.ArrayLiteral) llvm.Value {
 
 func (v *Codegen) genTupleLiteral(n *parser.TupleLiteral) llvm.Value {
 	// TODO: Is this optimal?
+	// TODO: This probably doesn't work with global variables
 	var values []llvm.Value
 	for _, mem := range n.Members {
 		values = append(values, v.genExpr(mem))
@@ -924,7 +925,10 @@ func (v *Codegen) genCastExpr(n *parser.CastExpr) llvm.Value {
 	castType := n.GetType()
 
 	if exprType.IsIntegerType() || exprType == parser.PRIMITIVE_rune {
-		if castType.IsIntegerType() || castType == parser.PRIMITIVE_rune {
+		if _, ok := castType.(parser.PointerType); ok {
+			// TODO: This might not be right in all cases
+			return v.builder.CreateIntToPtr(v.genExpr(n.Expr), v.typeToLLVMType(castType), "")
+		} else if castType.IsIntegerType() || castType == parser.PRIMITIVE_rune {
 			exprBits := v.typeToLLVMType(exprType).IntTypeWidth()
 			castBits := v.typeToLLVMType(castType).IntTypeWidth()
 			if exprBits == castBits {
@@ -1103,6 +1107,9 @@ func primitiveTypeToLLVMType(typ parser.PrimitiveType) llvm.Type {
 		return llvm.IntType(1)
 	case parser.PRIMITIVE_str:
 		return llvm.PointerType(llvm.IntType(8), 0)
+
+	case parser.PRIMITIVE_void:
+		return llvm.VoidType()
 
 	default:
 		panic("Unimplemented primitive type in LLVM codegen")
