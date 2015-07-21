@@ -222,12 +222,9 @@ func (v *VariableDecl) analyze(s *SemanticAnalyzer) {
 	_, isStructure := v.Variable.Type.(*StructType)
 
 	if v.Assignment != nil {
-		v.Assignment.setTypeHint(v.Variable.Type)
 		v.Assignment.analyze(s)
 
-		if v.Variable.Type == nil { // type is inferred
-			v.Variable.Type = v.Assignment.GetType()
-		} else if !v.Variable.Type.Equals(v.Assignment.GetType()) {
+		if !v.Variable.Type.Equals(v.Assignment.GetType()) {
 			s.err(v, "Cannot assign expression of type `%s` to variable of type `%s`",
 				v.Assignment.GetType().TypeName(), v.Variable.Type.TypeName())
 		}
@@ -263,7 +260,6 @@ func (v *ImplDecl) analyze(s *SemanticAnalyzer) {
 }
 
 func (v *UseDecl) analyze(s *SemanticAnalyzer) {
-
 }
 
 func (v *FunctionDecl) analyze(s *SemanticAnalyzer) {
@@ -298,7 +294,6 @@ func (v *ReturnStat) analyze(s *SemanticAnalyzer) {
 		if s.function.ReturnType == nil {
 			s.err(v.Value, "Cannot return expression from void function")
 		} else {
-			v.Value.setTypeHint(s.function.ReturnType)
 			v.Value.analyze(s)
 			if !v.Value.GetType().Equals(s.function.ReturnType) {
 				s.err(v.Value, "Cannot return expression of type `%s` from function `%s` of type `%s`",
@@ -310,7 +305,6 @@ func (v *ReturnStat) analyze(s *SemanticAnalyzer) {
 
 func (v *IfStat) analyze(s *SemanticAnalyzer) {
 	for _, expr := range v.Exprs {
-		expr.setTypeHint(PRIMITIVE_bool)
 		expr.analyze(s)
 		if expr.GetType() != PRIMITIVE_bool {
 			s.err(expr, "If condition must be of type `bool`")
@@ -352,7 +346,6 @@ func (v *AssignStat) analyze(s *SemanticAnalyzer) {
 		s.err(v, "Cannot assign value to immutable access")
 	}
 
-	v.Assignment.setTypeHint(v.Access.GetType())
 	v.Assignment.analyze(s)
 	v.Access.analyze(s)
 	if !v.Access.GetType().Equals(v.Assignment.GetType()) {
@@ -368,7 +361,6 @@ func (v *LoopStat) analyze(s *SemanticAnalyzer) {
 	switch v.LoopType {
 	case LOOP_TYPE_INFINITE:
 	case LOOP_TYPE_CONDITIONAL:
-		v.Condition.setTypeHint(PRIMITIVE_bool)
 		v.Condition.analyze(s)
 	default:
 		panic("invalid loop type")
@@ -397,36 +389,19 @@ func (v *UnaryExpr) analyze(s *SemanticAnalyzer) {
 
 	switch v.Op {
 	case UNOP_LOG_NOT:
-		if v.Expr.GetType() == PRIMITIVE_bool {
-			v.Type = PRIMITIVE_bool
-		} else {
+		if v.Expr.GetType() != PRIMITIVE_bool {
 			s.err(v, "Used logical not on non-bool")
 		}
 	case UNOP_BIT_NOT:
-		if v.Expr.GetType().IsIntegerType() || v.Expr.GetType().IsFloatingType() {
-			v.Type = v.Expr.GetType()
-		} else {
+		if !(v.Expr.GetType().IsIntegerType() || v.Expr.GetType().IsFloatingType()) {
 			s.err(v, "Used bitwise not on non-numeric type")
 		}
 	case UNOP_NEGATIVE:
-		if v.Expr.GetType().IsIntegerType() || v.Expr.GetType().IsFloatingType() {
-			v.Type = v.Expr.GetType()
-		} else {
+		if !(v.Expr.GetType().IsIntegerType() || v.Expr.GetType().IsFloatingType()) {
 			s.err(v, "Used negative on non-numeric type")
 		}
 	default:
-		panic("whoops")
-	}
-}
-
-func (v *UnaryExpr) setTypeHint(t Type) {
-	switch v.Op {
-	case UNOP_LOG_NOT:
-		v.Expr.setTypeHint(PRIMITIVE_bool)
-	case UNOP_BIT_NOT, UNOP_NEGATIVE:
-		v.Expr.setTypeHint(t)
-	default:
-		panic("whoops")
+		panic("unknown unary op")
 	}
 }
 
@@ -448,8 +423,6 @@ func (v *BinaryExpr) analyze(s *SemanticAnalyzer) {
 		} else if lht := v.Lhand.GetType(); !(lht == PRIMITIVE_bool || lht == PRIMITIVE_rune || lht.IsIntegerType() || lht.IsFloatingType() || lht.LevelsOfIndirection() > 0) {
 			s.err(v, "Operands for binary operator `%s` must be numeric, or pointers or booleans, have `%s`",
 				v.Op.OpString(), v.Lhand.GetType().TypeName())
-		} else {
-			v.Type = PRIMITIVE_bool
 		}
 
 	case BINOP_ADD, BINOP_SUB, BINOP_MUL, BINOP_DIV, BINOP_MOD,
@@ -461,15 +434,6 @@ func (v *BinaryExpr) analyze(s *SemanticAnalyzer) {
 		} else if lht := v.Lhand.GetType(); !(lht == PRIMITIVE_rune || lht.IsIntegerType() || lht.IsFloatingType() || lht.LevelsOfIndirection() > 0) {
 			s.err(v, "Operands for binary operator `%s` must be numeric or pointers, have `%s`",
 				v.Op.OpString(), v.Lhand.GetType().TypeName())
-		} else {
-			switch v.Op.Category() {
-			case OP_ARITHMETIC:
-				v.Type = v.Lhand.GetType()
-			case OP_COMPARISON:
-				v.Type = PRIMITIVE_bool
-			default:
-				s.err(v, "invalid operands specified `%s`", v.Op.String())
-			}
 		}
 
 	case BINOP_BIT_LEFT, BINOP_BIT_RIGHT:
@@ -479,16 +443,12 @@ func (v *BinaryExpr) analyze(s *SemanticAnalyzer) {
 		} else if !v.Rhand.GetType().IsIntegerType() {
 			s.err(v.Rhand, "Right-hand operatnd for bitshift operator `%s` must be an integer, have `%s`",
 				v.Op.OpString(), v.Rhand.GetType().TypeName())
-		} else {
-			v.Type = lht
 		}
 
 	case BINOP_LOG_AND, BINOP_LOG_OR:
 		if v.Lhand.GetType() != PRIMITIVE_bool || v.Rhand.GetType() != PRIMITIVE_bool {
 			s.err(v, "Operands for logical operator `%s` must have the same type, have `%s` and `%s`",
 				v.Op.OpString(), v.Lhand.GetType().TypeName(), v.Rhand.GetType().TypeName())
-		} else {
-			v.Type = PRIMITIVE_bool
 		}
 
 	default:
@@ -496,138 +456,47 @@ func (v *BinaryExpr) analyze(s *SemanticAnalyzer) {
 	}
 }
 
-func (v *BinaryExpr) setTypeHint(t Type) {
-	switch v.Op.Category() {
-	case OP_ARITHMETIC, OP_BITWISE:
-		if v.Op == BINOP_BIT_LEFT || v.Op == BINOP_BIT_RIGHT {
-			v.Rhand.setTypeHint(nil)
-			v.Lhand.setTypeHint(t)
-			return
-		}
-		if t == nil {
-			if v.Lhand.GetType() == nil && v.Rhand.GetType() != nil {
-				v.Lhand.setTypeHint(v.Rhand.GetType())
-				return
-			} else if v.Rhand.GetType() == nil && v.Lhand.GetType() != nil {
-				v.Rhand.setTypeHint(v.Lhand.GetType())
-				return
-			}
-		}
-		v.Lhand.setTypeHint(t)
-		v.Rhand.setTypeHint(t)
-	case OP_COMPARISON:
-		if v.Lhand.GetType() == nil && v.Rhand.GetType() != nil {
-			v.Lhand.setTypeHint(v.Rhand.GetType())
-		} else if v.Rhand.GetType() == nil && v.Lhand.GetType() != nil {
-			v.Rhand.setTypeHint(v.Lhand.GetType())
-		} else {
-			v.Lhand.setTypeHint(nil)
-			v.Rhand.setTypeHint(nil)
-		}
-	case OP_LOGICAL:
-		v.Lhand.setTypeHint(PRIMITIVE_bool)
-		v.Rhand.setTypeHint(PRIMITIVE_bool)
-	default:
-		panic("missing opcategory")
-	}
-}
-
 // NumericLiteral
 
 func (v *NumericLiteral) analyze(s *SemanticAnalyzer) {}
 
-func (v *NumericLiteral) setTypeHint(t Type) {
-	if v.IsFloat {
-		switch t {
-		case PRIMITIVE_f32, PRIMITIVE_f64, PRIMITIVE_f128:
-			v.Type = t
-
-		default:
-			v.Type = PRIMITIVE_f64
-		}
-	} else {
-		switch t {
-		case PRIMITIVE_int, PRIMITIVE_uint,
-			PRIMITIVE_s8, PRIMITIVE_s16, PRIMITIVE_s32, PRIMITIVE_s64, PRIMITIVE_i128,
-			PRIMITIVE_u8, PRIMITIVE_u16, PRIMITIVE_u32, PRIMITIVE_u64, PRIMITIVE_u128,
-			PRIMITIVE_f32, PRIMITIVE_f64, PRIMITIVE_f128:
-			v.Type = t
-
-		default:
-			v.Type = PRIMITIVE_int
-		}
-	}
-}
-
 // StringLiteral
 
 func (v *StringLiteral) analyze(s *SemanticAnalyzer) {}
-func (v *StringLiteral) setTypeHint(t Type)          {}
 
 // RuneLiteral
 
 func (v *RuneLiteral) analyze(s *SemanticAnalyzer) {}
-func (v *RuneLiteral) setTypeHint(t Type)          {}
 
 // BoolLiteral
 
 func (v *BoolLiteral) analyze(s *SemanticAnalyzer) {}
-func (v *BoolLiteral) setTypeHint(t Type)          {}
 
 // ArrayLiteral
 
 func (v *ArrayLiteral) analyze(s *SemanticAnalyzer) {
 	// TODO make type inferring stuff actually work well
-
-	var memType Type // type of each member of the array
-
-	if v.Type == nil {
-		memType = nil
-	} else {
-		arrayType, ok := v.Type.(ArrayType)
-		if !ok {
-			s.err(v, "Invalid type")
-		}
-		memType = arrayType.MemberType
-	}
-
-	for _, mem := range v.Members {
-		mem.setTypeHint(memType)
-	}
-
+	// TODO: check array length once we get around to that stuff
 	for _, mem := range v.Members {
 		mem.analyze(s)
 	}
 
-	if v.Type == nil {
-		// now we work out the type of the whole array be checking the member types
-		for i := 1; i < len(v.Members); i++ {
-			if v.Members[i-1].GetType() != v.Members[i].GetType() {
-				s.err(v, "Array member type mismatch: `%s` and `%s`", v.Members[i-1].GetType().TypeName(), v.Members[i].GetType().TypeName())
-			}
-		}
+	arrayType, ok := v.Type.(ArrayType)
+	if !ok {
+		s.err(v, "Invalid type")
+	}
+	memType := arrayType.MemberType
 
-		if v.Members[0].GetType() == nil {
-			s.err(v, "Couldn't infer type of array members") // don't think this can ever happen
-		}
-		v.Type = arrayOf(v.Members[0].GetType())
-	} else {
-		for _, mem := range v.Members {
-			if !mem.GetType().Equals(memType) {
-				s.err(v, "Cannot use element of type `%s` in array of type `%s`", mem.GetType().TypeName(), memType.TypeName())
-			}
+	for _, mem := range v.Members {
+		if !mem.GetType().Equals(memType) {
+			s.err(v, "Cannot use element of type `%s` in array of type `%s`", mem.GetType().TypeName(), memType.TypeName())
 		}
 	}
-}
-
-func (v *ArrayLiteral) setTypeHint(t Type) {
-	v.Type = t
 }
 
 // CastExpr
 
 func (v *CastExpr) analyze(s *SemanticAnalyzer) {
-	v.Expr.setTypeHint(nil)
 	v.Expr.analyze(s)
 	if v.Type.Equals(v.Expr.GetType()) {
 		s.warn(v, "Casting expression of type `%s` to the same type",
@@ -637,8 +506,6 @@ func (v *CastExpr) analyze(s *SemanticAnalyzer) {
 			v.Expr.GetType().TypeName(), v.Type.TypeName())
 	}
 }
-
-func (v *CastExpr) setTypeHint(t Type) {}
 
 // CallExpr
 
@@ -671,7 +538,6 @@ func (v *CallExpr) analyze(s *SemanticAnalyzer) {
 			if !isVariadic {
 				panic("woah")
 			}
-			arg.setTypeHint(nil)
 			arg.analyze(s)
 
 			if !c {
@@ -697,7 +563,6 @@ func (v *CallExpr) analyze(s *SemanticAnalyzer) {
 				}
 			}
 		} else {
-			arg.setTypeHint(v.Function.Parameters[i].Variable.Type)
 			arg.analyze(s)
 
 			if arg.GetType() != v.Function.Parameters[i].Variable.Type {
@@ -711,8 +576,6 @@ func (v *CallExpr) analyze(s *SemanticAnalyzer) {
 	}
 }
 
-func (v *CallExpr) setTypeHint(t Type) {}
-
 // VariableAccessExpr
 func (v *VariableAccessExpr) analyze(s *SemanticAnalyzer) {
 	if dep := v.Variable.Attrs.Get("deprecated"); dep != nil {
@@ -721,8 +584,6 @@ func (v *VariableAccessExpr) analyze(s *SemanticAnalyzer) {
 
 	v.Variable.Uses++
 }
-
-func (v *VariableAccessExpr) setTypeHint(t Type) {}
 
 // StructAccessExpr
 func (v *StructAccessExpr) analyze(s *SemanticAnalyzer) {
@@ -735,21 +596,16 @@ func (v *StructAccessExpr) analyze(s *SemanticAnalyzer) {
 	v.Variable.Uses++
 }
 
-func (v *StructAccessExpr) setTypeHint(t Type) {}
-
 // ArrayAccessExpr
 func (v *ArrayAccessExpr) analyze(s *SemanticAnalyzer) {
 	v.Array.analyze(s)
 
-	v.Subscript.setTypeHint(PRIMITIVE_int)
 	v.Subscript.analyze(s)
 
 	if !v.Subscript.GetType().IsIntegerType() {
 		s.err(v, "Array subscript must be an integer type, have `%s`", v.Subscript.GetType().TypeName())
 	}
 }
-
-func (v *ArrayAccessExpr) setTypeHint(t Type) {}
 
 // TupleAccessExpr
 func (v *TupleAccessExpr) analyze(s *SemanticAnalyzer) {
@@ -765,21 +621,13 @@ func (v *TupleAccessExpr) analyze(s *SemanticAnalyzer) {
 	}
 }
 
-func (v *TupleAccessExpr) setTypeHint(t Type) {}
-
 // DerefAccessExpr
 
 func (v *DerefAccessExpr) analyze(s *SemanticAnalyzer) {
 	v.Expr.analyze(s)
-	if ptr, ok := v.Expr.GetType().(PointerType); !ok {
+	if _, ok := v.Expr.GetType().(PointerType); !ok {
 		s.err(v, "Cannot dereference expression of type `%s`", v.Expr.GetType().TypeName())
-	} else {
-		v.Type = ptr.Addressee
 	}
-}
-
-func (v *DerefAccessExpr) setTypeHint(t Type) {
-	v.Expr.setTypeHint(pointerTo(t))
 }
 
 // AddressOfExpr
@@ -788,72 +636,32 @@ func (v *AddressOfExpr) analyze(s *SemanticAnalyzer) {
 	v.Access.analyze(s)
 }
 
-func (v *AddressOfExpr) setTypeHint(t Type) {}
-
 // SizeofExpr
 
 func (v *SizeofExpr) analyze(s *SemanticAnalyzer) {
 	if v.Expr != nil {
-		v.Expr.setTypeHint(nil)
 		v.Expr.analyze(s)
 	}
-}
-
-func (v *SizeofExpr) setTypeHint(t Type) {
-	//v.Expr.setTypeHint(t)
 }
 
 // TupleLiteral
 
 func (v *TupleLiteral) analyze(s *SemanticAnalyzer) {
-	var memberTypes []Type
-
-	tupleType, ok := v.Type.(*TupleType)
-	if ok {
-		memberTypes = tupleType.Members
-	}
-
-	if len(v.Members) == len(memberTypes) {
-		for idx, mem := range memberTypes {
-			v.Members[idx].setTypeHint(mem)
-		}
-	} else {
-		for _, mem := range v.Members {
-			mem.setTypeHint(nil)
-		}
-	}
+	tupleType := v.Type.(*TupleType)
+	memberTypes := tupleType.Members
 
 	for _, mem := range v.Members {
 		mem.analyze(s)
 	}
 
-	if v.Type == nil {
-		var members []Type
-		for _, mem := range v.Members {
-			if mem.GetType() == nil {
-				s.err(mem, "Couldn't infer type of tuple component")
-			}
-			members = append(members, mem.GetType())
-		}
-
-		v.Type = tupleOf(members...)
-	} else {
-		if len(v.Members) != len(memberTypes) {
-			s.err(v, "Invalid amount of entries in tuple")
-		}
-
-		for idx, mem := range v.Members {
-			if !mem.GetType().Equals(memberTypes[idx]) {
-				s.err(v, "Cannot use component of type `%s` in tuple position of type `%s`", mem.GetType().TypeName(), memberTypes[idx])
-			}
-		}
+	if len(v.Members) != len(memberTypes) {
+		s.err(v, "Invalid amount of entries in tuple")
 	}
-}
 
-func (v *TupleLiteral) setTypeHint(t Type) {
-	typ, ok := t.(*TupleType)
-	if ok {
-		v.Type = typ
+	for idx, mem := range v.Members {
+		if !mem.GetType().Equals(memberTypes[idx]) {
+			s.err(v, "Cannot use component of type `%s` in tuple position of type `%s`", mem.GetType().TypeName(), memberTypes[idx])
+		}
 	}
 }
 
@@ -865,16 +673,8 @@ func (v *EnumLiteral) analyze(s *SemanticAnalyzer) {
 	}
 }
 
-func (v *EnumLiteral) setTypeHint(t Type) {
-	// noop
-}
-
 // DefaultMatchBranch
 
 func (v *DefaultMatchBranch) analyze(s *SemanticAnalyzer) {
-
-}
-
-func (v *DefaultMatchBranch) setTypeHint(t Type) {
 
 }

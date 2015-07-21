@@ -17,6 +17,7 @@ type Locatable interface {
 type Node interface {
 	String() string
 	NodeName() string
+	infer(*TypeInferer)
 	resolve(*Resolver, *Scope)
 	analyze(*SemanticAnalyzer)
 	Locatable
@@ -854,7 +855,10 @@ func (v *VariableAccessExpr) String() string {
 }
 
 func (v *VariableAccessExpr) GetType() Type {
-	return v.Variable.Type
+	if v.Variable != nil {
+		return v.Variable.Type
+	}
+	return nil
 }
 
 func (v *VariableAccessExpr) NodeName() string {
@@ -884,7 +888,10 @@ func (v *StructAccessExpr) String() string {
 }
 
 func (v *StructAccessExpr) GetType() Type {
-	return v.Variable.Type
+	if v.Variable != nil {
+		return v.Variable.Type
+	}
+	return nil
 }
 
 func (v *StructAccessExpr) NodeName() string {
@@ -913,7 +920,10 @@ func (v *ArrayAccessExpr) String() string {
 }
 
 func (v *ArrayAccessExpr) GetType() Type {
-	return v.Array.GetType().(ArrayType).MemberType
+	if v.Array.GetType() != nil {
+		return v.Array.GetType().(ArrayType).MemberType
+	}
+	return nil
 }
 
 func (v *ArrayAccessExpr) NodeName() string {
