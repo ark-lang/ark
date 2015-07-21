@@ -1,8 +1,15 @@
+[c] func printf(fmt: str, ...): int;
+
 enum Option {
-	None,
-	Some(^void)
+    None,
+    Some(^void)
 }
 
 func main(): int {
-	return 0;
+    [unused] x := Option::None;
+    [unused] y := Option::Some(cast(^void, 0xdeadbeef));
+
+    C::printf("None-tag: %d\n", x);
+    C::printf("Some-tag: %d\n", y);
+    return 0;
 }

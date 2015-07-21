@@ -163,54 +163,7 @@ func (v *Function) analyze(s *SemanticAnalyzer) {
 }
 
 func (v *EnumDecl) analyze(s *SemanticAnalyzer) {
-	// here we infer the enum integer type from given typed expressions, if any
-	var enumValueType Type
-	for _, member := range v.Body {
-		if member.Value != nil && member.Value.GetType() != nil {
-			if !member.Value.GetType().IsIntegerType() {
-				s.err(v, "Enum member value must be an integer type, have `%s`", member.Value.GetType().TypeName())
-			} else {
-				if enumValueType == nil {
-					enumValueType = member.Value.GetType()
-				} else {
-					s.err(v, "Enum values have conflicting types: `%s` and `%s`", enumValueType.TypeName(), member.Value.GetType().TypeName())
-				}
-			}
-		}
-	}
-
-	// no expressions to infer from, just default to int
-	if enumValueType == nil {
-		enumValueType = PRIMITIVE_int
-	}
-
-	// holds current value
-	index := uint64(0)
-
-	for _, member := range v.Body {
-		if member.Value == nil {
-			member.Value = &NumericLiteral{IntValue: index, Type: enumValueType}
-			member.Value.analyze(s)
-			index++
-		} else {
-			member.Value.setTypeHint(enumValueType)
-			member.Value.analyze(s)
-
-			if member.Value.GetType() != enumValueType {
-				s.err(v, "Incompatible types in enum: `%s` and `%s`", member.Value.GetType().TypeName(), enumValueType.TypeName())
-			}
-
-			index, err := evaluateEnumExpr(member.Value)
-			if err != nil {
-				s.err(v, "Enum value `%s` must be constant", member.Name)
-			}
-			index++
-		}
-	}
-}
-
-func evaluateEnumExpr(expr Expr) (uint64, error) {
-	return 0, nil // TODO
+	// We shouldn't need anything here
 }
 
 func (v *StructType) analyze(s *SemanticAnalyzer) {
@@ -898,6 +851,18 @@ func (v *TupleLiteral) setTypeHint(t Type) {
 	if ok {
 		v.Type = typ
 	}
+}
+
+// EnumLiteral
+func (v *EnumLiteral) analyze(s *SemanticAnalyzer) {
+	// TODO: maybe check for duplciates or something?
+	for _, val := range v.Values {
+		val.analyze(s)
+	}
+}
+
+func (v *EnumLiteral) setTypeHint(t Type) {
+	// noop
 }
 
 // DefaultMatchBranch

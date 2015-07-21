@@ -25,6 +25,7 @@ type Codegen struct {
 	builder                        llvm.Builder
 	variableLookup                 map[*parser.Variable]llvm.Value
 	structLookup_UseHelperFunction map[*parser.StructType]llvm.Type // use getStructDecl
+	enumLookup_UseHelperFunction   map[*parser.EnumType]llvm.Type
 
 	OutputName   string
 	OutputType   OutputType
@@ -66,6 +67,7 @@ func (v *Codegen) Generate(input []*parser.Module, modules map[string]*parser.Mo
 	v.builder = llvm.NewBuilder()
 	v.variableLookup = make(map[*parser.Variable]llvm.Value)
 	v.structLookup_UseHelperFunction = make(map[*parser.StructType]llvm.Type)
+	v.enumLookup_UseHelperFunction = make(map[*parser.EnumType]llvm.Type)
 
 	// initialize llvm target
 	llvm.InitializeNativeTarget()
@@ -129,7 +131,10 @@ func (v *Codegen) declareDecls(nodes []parser.Node) {
 			switch n.(type) {
 			case *parser.StructDecl:
 				v.declareStructDecl(n.(*parser.StructDecl))
+			case *parser.EnumDecl:
+				v.declareEnumDecl(n.(*parser.EnumDecl))
 			}
+
 		}
 	}
 
@@ -145,6 +150,10 @@ func (v *Codegen) declareDecls(nodes []parser.Node) {
 
 func (v *Codegen) declareStructDecl(n *parser.StructDecl) {
 	v.addStructType(n.Struct)
+}
+
+func (v *Codegen) declareEnumDecl(n *parser.EnumDecl) {
+	v.addEnumType(n.Enum)
 }
 
 func (v *Codegen) addStructType(typ *parser.StructType) {
@@ -170,7 +179,30 @@ func (v *Codegen) addStructType(typ *parser.StructType) {
 	structure := llvm.StructType(fields, packed)
 	llvm.AddGlobal(v.curFile.Module, structure, typ.MangledName(parser.MANGLE_ARK_UNSTABLE))
 	v.structLookup_UseHelperFunction[typ] = structure
+}
 
+func (v *Codegen) addEnumType(typ *parser.EnumType) {
+	if _, ok := v.enumLookup_UseHelperFunction[typ]; ok {
+		return
+	}
+
+	longestLength := uint64(0)
+	for _, memTyp := range typ.MemberTypes {
+		if memTyp == parser.PRIMITIVE_void {
+			continue
+		}
+
+		memLength := v.targetData.TypeAllocSize(v.typeToLLVMType(memTyp))
+		if memLength > longestLength {
+			longestLength = memLength
+		}
+	}
+
+	// TODO: verify no overflow
+	fields := []llvm.Type{llvm.IntType(32), llvm.ArrayType(llvm.IntType(8), int(longestLength))}
+	enum := llvm.StructType(fields, false)
+	llvm.AddGlobal(v.curFile.Module, enum, typ.MangledName(parser.MANGLE_ARK_UNSTABLE))
+	v.enumLookup_UseHelperFunction[typ] = enum
 }
 
 func (v *Codegen) declareFunctionDecl(n *parser.FunctionDecl) {
@@ -552,6 +584,8 @@ func (v *Codegen) genExpr(n parser.Expr) llvm.Value {
 		return v.genTupleLiteral(n.(*parser.TupleLiteral))
 	case *parser.ArrayLiteral:
 		return v.genArrayLiteral(n.(*parser.ArrayLiteral))
+	case *parser.EnumLiteral:
+		return v.genEnumLiteral(n.(*parser.EnumLiteral))
 	case *parser.BinaryExpr:
 		return v.genBinaryExpr(n.(*parser.BinaryExpr))
 	case *parser.UnaryExpr:
@@ -747,6 +781,38 @@ func (v *Codegen) genTupleLiteral(n *parser.TupleLiteral) llvm.Value {
 	}
 
 	return llvm.ConstStruct(values, false)
+}
+
+func (v *Codegen) genEnumLiteral(n *parser.EnumLiteral) llvm.Value {
+	enumType := n.Type.(*parser.EnumType)
+	enumLLVMType := v.typeToLLVMType(n.Type)
+	if v.inFunction {
+		alloc := v.builder.CreateAlloca(enumLLVMType, "")
+
+		memberIdx := enumType.MemberIndex(n.Member)
+		tag := enumType.MemberTags[memberIdx]
+
+		tagGep := v.builder.CreateGEP(alloc, []llvm.Value{llvm.ConstInt(llvm.IntType(32), 0, false), llvm.ConstInt(llvm.IntType(32), 0, false)}, "")
+		v.builder.CreateStore(llvm.ConstInt(llvm.IntType(32), uint64(tag), false), tagGep)
+
+		if len(n.Values) > 0 {
+			innerType := enumType.MemberTypes[memberIdx]
+			innerLLVMType := v.typeToLLVMType(innerType)
+
+			dataGep := v.builder.CreateGEP(alloc, []llvm.Value{llvm.ConstInt(llvm.IntType(32), 0, false), llvm.ConstInt(llvm.IntType(32), 1, false)}, "")
+			dataGep = v.builder.CreateBitCast(dataGep, llvm.PointerType(innerLLVMType, 0), "")
+
+			for idx, value := range n.Values {
+				memberGep := v.builder.CreateGEP(dataGep, []llvm.Value{llvm.ConstInt(llvm.IntType(32), 0, false), llvm.ConstInt(llvm.IntType(32), uint64(idx), false)}, "")
+				v.builder.CreateStore(v.genExpr(value), memberGep)
+			}
+		}
+
+		return v.builder.CreateLoad(alloc, "")
+	} else {
+		// TODO: Global enum literals
+		panic("global enums lits are a pain m'kay?")
+	}
 }
 
 func (v *Codegen) genNumericLiteral(n *parser.NumericLiteral) llvm.Value {
@@ -1050,8 +1116,19 @@ func (v *Codegen) typeToLLVMType(typ parser.Type) llvm.Type {
 		return v.arrayTypeToLLVMType(typ.(parser.ArrayType))
 	case *parser.TupleType:
 		return v.tupleTypeToLLVMType(typ.(*parser.TupleType))
+	case *parser.EnumType:
+		return v.enumTypeToLLVMType(typ.(*parser.EnumType))
 	default:
+		log.Debugln("codegen", "Type was %s", typ)
 		panic("Unimplemented type category in LLVM codegen")
+	}
+}
+
+func (v *Codegen) enumTypeToLLVMType(typ *parser.EnumType) llvm.Type {
+	if val, ok := v.enumLookup_UseHelperFunction[typ]; ok {
+		return val
+	} else {
+		panic("why no enum type entry")
 	}
 }
 
