@@ -249,6 +249,15 @@ func (v *VariableAccessExpr) resolve(res *Resolver, s *Scope) {
 func (v *StructAccessExpr) resolve(res *Resolver, s *Scope) {
 	v.Struct.resolve(res, s)
 
+	for {
+		pointerType, ok := v.Struct.GetType().(PointerType)
+		if !ok {
+			break
+		}
+		v.Struct = &DerefAccessExpr{Expr: v.Struct, Type: pointerType.Addressee}
+		v.resolve(res, s)
+	}
+
 	structType, ok := v.Struct.GetType().(*StructType)
 	if !ok {
 		if v.Struct.GetType() == nil {
