@@ -1,5 +1,6 @@
 ## Ark Programming Language
 [![Build Status](https://travis-ci.org/ark-lang/ark.png?branch=master)][1]
+[![license](http://img.shields.io/badge/license-MIT-green.svg)](https://raw.githubusercontent.com/ark-lang/ark/master/LICENSE)
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/ark-lang/ark?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
 [Ark](//www.ark-lang.org) is a systems programming language somewhere in-between C and C++.
@@ -93,8 +94,5 @@ Requires `$GOPATH/bin` to be in your `$PATH` and Python 2.4 or newer.
 ## <a name="code-of-conduct"></a> Code Of Conduct
 This project adheres to the [Open Code of Conduct][code-of-conduct]. By participating, you are expected to honor this code.
 [code-of-conduct]: http://todogroup.org/opencodeofconduct/#ark-lang/mail@felixangell.com
-
-## <a name="license"></a> License
-Ark is licensed under the [MIT License](/LICENSE).
 
 [1]: https://travis-ci.org/ark-lang/ark "Build Status"
