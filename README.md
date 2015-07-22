@@ -1,7 +1,4 @@
-## Ark Programming Language
-[![Build Status](https://travis-ci.org/ark-lang/ark.png?branch=master)][1]
-[![license](http://img.shields.io/badge/license-MIT-green.svg)](https://raw.githubusercontent.com/ark-lang/ark/master/LICENSE)
-[![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/ark-lang/ark?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+## Ark Programming Language [![Build Status](https://travis-ci.org/ark-lang/ark.png?branch=master)][1] [![license](http://img.shields.io/badge/license-MIT-green.svg)](https://raw.githubusercontent.com/ark-lang/ark/master/LICENSE) [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/ark-lang/ark?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
 [Ark](//www.ark-lang.org) is a systems programming language somewhere in-between C and C++.
 
