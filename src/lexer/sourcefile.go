@@ -77,6 +77,8 @@ func (s *Sourcefile) MarkSpan(span Span) string {
 			length = span.EndChar - span.StartChar
 		} else {
 			length = len([]rune(lineString))
+			// assumes 8-length tabs in terminal
+			length += 7 * strings.Count(lineString, "\t")
 		}
 
 		buf.WriteString(strings.Replace(lineString, "%", "%%", -1))

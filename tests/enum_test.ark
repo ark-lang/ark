@@ -5,13 +5,16 @@ enum Test {
 }
 
 func main(): int {
-	if Test::VALUE != 0 {
+	x := Test::VALUE;
+	y := Test::ANOTHER;
+	z := Test::GG;
+	if Test::VALUE != x {
 		return 1;
 	}
-	if Test::ANOTHER != 4 {
+	if Test::ANOTHER != y {
 		return 2;
 	}
-	if Test::GG != 5 {
+	if Test::GG != z {
 		return 3;
 	}
 	return 0;

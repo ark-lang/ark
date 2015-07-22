@@ -560,7 +560,7 @@ func (v *EnumType) IsFloatingType() bool {
 }
 
 func (v *EnumType) CanCastTo(t Type) bool {
-	return false
+	return v.Simple && t.IsIntegerType()
 }
 
 func (v *EnumType) MemberIndex(name string) int {
