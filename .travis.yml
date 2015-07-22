@@ -3,6 +3,7 @@ language: go
 # which go versions do we target?
 go:
  - 1.4.2
+ - tip
 
 notifications:
  email: false
