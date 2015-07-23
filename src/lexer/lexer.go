@@ -150,23 +150,34 @@ start:
 		v.consume()
 		v.consume()
 		isDoc := v.peek(0) == '*'
+		depth := 1
 
-		for {
+		for depth > 0 {
+			if v.peek(0) == '/' && v.peek(1) == '*' {
+				v.consume()
+				v.consume()
+				depth += 1
+			}
+
 			if isEOF(v.peek(0)) {
 				v.errPos(pos, "Unterminated block comment")
 			}
+
 			if v.peek(0) == '*' && v.peek(1) == '/' {
 				v.consume()
 				v.consume()
-				if isDoc {
-					v.pushToken(TOKEN_DOCCOMMENT)
-				} else {
-					v.discardBuffer()
-				}
-				goto start
+				depth -= 1
 			}
+
 			v.consume()
 		}
+
+		if isDoc {
+			v.pushToken(TOKEN_DOCCOMMENT)
+		} else {
+			v.discardBuffer()
+		}
+		goto start
 	}
 
 	// Single-line comments

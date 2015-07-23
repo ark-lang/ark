@@ -1,0 +1,10 @@
+/* We do lex
+  /* nested comments */
+  /* Because
+    /* Why not? */
+  */
+*/
+
+func main(): int {
+	return 0;
+}
