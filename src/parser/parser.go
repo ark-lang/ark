@@ -59,7 +59,7 @@ func (v *parser) errPos(err string, stuff ...interface{}) {
 }
 
 func (v *parser) errTokenSpecific(tok *lexer.Token, err string, stuff ...interface{}) {
-	log.Debugln("parser", strings.Join(v.ruleStack, " / "))
+	v.dumpRules()
 	log.Errorln("parser",
 		util.TEXT_RED+util.TEXT_BOLD+"Parser error:"+util.TEXT_RESET+" [%s:%d:%d] %s",
 		tok.Where.Filename, tok.Where.StartLine, tok.Where.StartChar,
@@ -71,7 +71,7 @@ func (v *parser) errTokenSpecific(tok *lexer.Token, err string, stuff ...interfa
 }
 
 func (v *parser) errPosSpecific(pos lexer.Position, err string, stuff ...interface{}) {
-	log.Debugln("parser", strings.Join(v.ruleStack, " / "))
+	v.dumpRules()
 	log.Errorln("parser",
 		util.TEXT_RED+util.TEXT_BOLD+"Parser error:"+util.TEXT_RESET+" [%s:%d:%d] %s",
 		pos.Filename, pos.Line, pos.Char,
@@ -88,6 +88,10 @@ func (v *parser) pushRule(name string) {
 
 func (v *parser) popRule() {
 	v.ruleStack = v.ruleStack[:len(v.ruleStack)-1]
+}
+
+func (v *parser) dumpRules() {
+	log.Debugln("parser", strings.Join(v.ruleStack, " / "))
 }
 
 func (v *parser) peek(ahead int) *lexer.Token {
@@ -557,7 +561,7 @@ func (v *parser) parseFuncHeader() *FunctionHeaderNode {
 	if v.tokenMatches(0, lexer.TOKEN_OPERATOR, ":") {
 		v.consumeToken()
 
-		returnType = v.parseType()
+		returnType = v.parseType(true)
 		if returnType == nil {
 			v.err("Expected valid type after `:` in function header")
 		}
@@ -691,7 +695,7 @@ func (v *parser) parseVarDeclBody() *VarDeclNode {
 	// consume ':'
 	v.consumeToken()
 
-	varType := v.parseType()
+	varType := v.parseType(true)
 	if varType == nil && !v.tokenMatches(0, lexer.TOKEN_OPERATOR, "=") {
 		v.err("Expected valid type in variable declaration")
 	}
@@ -761,8 +765,8 @@ func (v *parser) parseDeferStat() *DeferStatNode {
 	}
 	startToken := v.consumeToken()
 
-	call := v.parseCallExpr()
-	if call == nil {
+	call, ok := v.parseExpr().(*CallExprNode)
+	if !ok {
 		v.err("Expected valid call expression in defer statement")
 	}
 
@@ -973,8 +977,11 @@ func (v *parser) parseCallStat() *CallStatNode {
 	v.pushRule("callstat")
 	defer v.popRule()
 
-	callExpr := v.parseCallExpr()
-	if callExpr == nil {
+	startPos := v.currentToken
+
+	callExpr, ok := v.parseExpr().(*CallExprNode)
+	if !ok {
+		v.currentToken = startPos
 		return nil
 	}
 
@@ -991,7 +998,7 @@ func (v *parser) parseAssignStat() ParseNode {
 
 	startPos := v.currentToken
 
-	accessExpr := v.parseAccessExpr()
+	accessExpr := v.parseExpr()
 	if accessExpr == nil || !v.tokenMatches(0, lexer.TOKEN_OPERATOR, "=") {
 		v.currentToken = startPos
 		return nil
@@ -1012,7 +1019,7 @@ func (v *parser) parseAssignStat() ParseNode {
 	return res
 }
 
-func (v *parser) parseType() ParseNode {
+func (v *parser) parseType(doRefs bool) ParseNode {
 	v.pushRule("type")
 	defer v.popRule()
 
@@ -1023,7 +1030,7 @@ func (v *parser) parseType() ParseNode {
 		res = v.parseTupleType()
 	} else if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "[") {
 		res = v.parseArrayType()
-	} else if v.nextIs(lexer.TOKEN_IDENTIFIER) {
+	} else if doRefs && v.nextIs(lexer.TOKEN_IDENTIFIER) {
 		res = v.parseTypeReference()
 	}
 
@@ -1039,7 +1046,7 @@ func (v *parser) parsePointerType() *PointerTypeNode {
 	}
 	startToken := v.consumeToken()
 
-	target := v.parseType()
+	target := v.parseType(true)
 	if target == nil {
 		v.err("Expected valid type after `^` in pointer type")
 	}
@@ -1061,7 +1068,7 @@ func (v *parser) parseTupleType() *TupleTypeNode {
 
 	var members []ParseNode
 	for {
-		memberType := v.parseType()
+		memberType := v.parseType(true)
 		if memberType == nil {
 			v.err("Expected valid type in tuple type")
 		}
@@ -1096,7 +1103,7 @@ func (v *parser) parseArrayType() *ArrayTypeNode {
 
 	v.expect(lexer.TOKEN_SEPARATOR, "]")
 
-	memberType := v.parseType()
+	memberType := v.parseType(true)
 	if memberType == nil {
 		v.err("Expected valid type in array type")
 	}
@@ -1128,7 +1135,7 @@ func (v *parser) parseExpr() ParseNode {
 	v.pushRule("expr")
 	defer v.popRule()
 
-	pri := v.parsePrimaryExpr()
+	pri := v.parsePostfixExpr()
 	if pri == nil {
 		return nil
 	}
@@ -1164,7 +1171,7 @@ func (v *parser) parseBinaryOperator(upperPrecedence int, lhand ParseNode) Parse
 		}
 		v.consumeToken()
 
-		rhand := v.parsePrimaryExpr()
+		rhand := v.parsePostfixExpr()
 		if rhand == nil {
 			v.currentToken = startPos
 			return nil
@@ -1189,6 +1196,96 @@ func (v *parser) parseBinaryOperator(upperPrecedence int, lhand ParseNode) Parse
 	}
 }
 
+func (v *parser) parsePostfixExpr() ParseNode {
+	v.pushRule("postfixexpr")
+	defer v.popRule()
+
+	expr := v.parsePrimaryExpr()
+	if expr == nil {
+		return nil
+	}
+
+	for {
+		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ".") {
+			// struct access
+			v.consumeToken()
+			v.pushRule("structaccess")
+			defer v.popRule()
+
+			member := v.expect(lexer.TOKEN_IDENTIFIER, "")
+
+			res := &StructAccessNode{Struct: expr, Member: NewLocatedString(member)}
+			res.SetWhere(lexer.NewSpan(expr.Where().Start(), member.Where.End()))
+			expr = res
+		} else if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "[") {
+			// array index
+			v.consumeToken()
+			v.pushRule("arrayindex")
+			defer v.popRule()
+
+			index := v.parseExpr()
+			if index == nil {
+				v.err("Expected valid expression as array index")
+			}
+
+			endToken := v.expect(lexer.TOKEN_SEPARATOR, "]")
+
+			res := &ArrayAccessNode{Array: expr, Index: index}
+			res.SetWhere(lexer.NewSpan(expr.Where().Start(), endToken.Where.End()))
+			expr = res
+		} else if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "|") {
+			// tuple index
+			v.consumeToken()
+			v.pushRule("tupleindex")
+			defer v.popRule()
+
+			index := v.parseNumberLit()
+			if index == nil || index.IsFloat {
+				v.err("Expected integer for tuple index")
+			}
+
+			endToken := v.expect(lexer.TOKEN_OPERATOR, "|")
+
+			res := &TupleAccessNode{Tuple: expr, Index: int(index.IntValue)}
+			res.SetWhere(lexer.NewSpan(expr.Where().Start(), endToken.Where.End()))
+			expr = res
+		} else if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "(") {
+			// call expr
+			v.consumeToken()
+			v.pushRule("callexpr")
+			defer v.popRule()
+
+			var args []ParseNode
+			for {
+				if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ")") {
+					break
+				}
+
+				arg := v.parseExpr()
+				if arg == nil {
+					v.err("Expected valid expression as call argument")
+				}
+				args = append(args, arg)
+
+				if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ",") {
+					break
+				}
+				v.consumeToken()
+			}
+
+			endToken := v.expect(lexer.TOKEN_SEPARATOR, ")")
+
+			res := &CallExprNode{Function: expr, Arguments: args}
+			res.SetWhere(lexer.NewSpan(expr.Where().Start(), endToken.Where.End()))
+			expr = res
+		} else {
+			break
+		}
+	}
+
+	return expr
+}
+
 func (v *parser) parsePrimaryExpr() ParseNode {
 	v.pushRule("primaryexpr")
 	defer v.popRule()
@@ -1201,14 +1298,12 @@ func (v *parser) parsePrimaryExpr() ParseNode {
 		res = addrofExpr
 	} else if litExpr := v.parseLitExpr(); litExpr != nil {
 		res = litExpr
-	} else if unaryExpr := v.parseUnaryExpr(); unaryExpr != nil {
-		res = unaryExpr
-	} else if callExpr := v.parseCallExpr(); callExpr != nil {
-		res = callExpr
 	} else if castExpr := v.parseCastExpr(); castExpr != nil {
 		res = castExpr
-	} else if accessExpr := v.parseAccessExpr(); accessExpr != nil {
-		res = accessExpr
+	} else if unaryExpr := v.parseUnaryExpr(); unaryExpr != nil {
+		res = unaryExpr
+	} else if name := v.parseName(); name != nil {
+		res = &VariableAccessNode{Name: name}
 	}
 
 	return res
@@ -1285,7 +1380,7 @@ func (v *parser) parseCastExpr() *CastExprNode {
 
 	startPos := v.currentToken
 
-	typ := v.parseType()
+	typ := v.parseType(false)
 	if typ == nil || !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "(") {
 		v.currentToken = startPos
 		return nil
@@ -1326,121 +1421,6 @@ func (v *parser) parseUnaryExpr() *UnaryExprNode {
 	res := &UnaryExprNode{Value: value, Operator: op}
 	res.SetWhere(lexer.NewSpan(startToken.Where.Start(), value.Where().End()))
 	return res
-}
-
-func (v *parser) parseCallExpr() *CallExprNode {
-	v.pushRule("callexpr")
-	defer v.popRule()
-
-	startPos := v.currentToken
-
-	function := v.parseAccessExpr()
-	if function == nil || !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "(") {
-		v.currentToken = startPos
-		return nil
-	}
-	v.consumeToken()
-
-	var args []ParseNode
-	for {
-		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ")") {
-			break
-		}
-
-		arg := v.parseExpr()
-		if arg == nil {
-			v.err("Expected valid expression as call argument")
-		}
-		args = append(args, arg)
-
-		if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ",") {
-			break
-		}
-		v.consumeToken()
-	}
-
-	endToken := v.expect(lexer.TOKEN_SEPARATOR, ")")
-
-	res := &CallExprNode{Function: function, Arguments: args}
-	res.SetWhere(lexer.NewSpan(function.Where().Start(), endToken.Where.End()))
-	return res
-}
-
-func (v *parser) parseAccessExpr() ParseNode {
-	v.pushRule("accessexpr")
-	defer v.popRule()
-
-	var lhand ParseNode
-	if name := v.parseName(); name != nil {
-		lhand = &VariableAccessNode{Name: name}
-		lhand.SetWhere(name.Where())
-	} else if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "(") {
-		v.consumeToken()
-
-		lhand = v.parseAccessExpr()
-		if lhand == nil {
-			v.err("Expected valid access expression after `(` in access expression")
-		}
-
-		v.expect(lexer.TOKEN_SEPARATOR, ")")
-	} else if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "^") {
-		startToken := v.consumeToken()
-
-		value := v.parseExpr()
-		if value == nil {
-			v.err("Expected expression after dereference operator")
-		}
-
-		lhand = &DerefAccessNode{Value: value}
-		lhand.SetWhere(lexer.NewSpan(startToken.Where.Start(), value.Where().End()))
-	} else {
-		return nil
-	}
-
-	for {
-		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ".") {
-			// struct access
-			v.consumeToken()
-
-			member := v.expect(lexer.TOKEN_IDENTIFIER, "")
-
-			res := &StructAccessNode{Struct: lhand, Member: NewLocatedString(member)}
-			res.SetWhere(lexer.NewSpan(lhand.Where().Start(), member.Where.End()))
-			lhand = res
-		} else if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "[") {
-			// array access
-			v.consumeToken()
-
-			index := v.parseExpr()
-			if index == nil {
-				v.err("Expected valid expression as array index")
-			}
-
-			endToken := v.expect(lexer.TOKEN_SEPARATOR, "]")
-
-			res := &ArrayAccessNode{Array: lhand, Index: index}
-			res.SetWhere(lexer.NewSpan(lhand.Where().Start(), endToken.Where.End()))
-			lhand = res
-		} else if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "|") {
-			// tuple access
-			v.consumeToken()
-
-			index := v.parseNumberLit()
-			if index == nil || index.IsFloat {
-				v.err("Expected integer for tuple index")
-			}
-
-			endToken := v.expect(lexer.TOKEN_OPERATOR, "|")
-
-			res := &TupleAccessNode{Tuple: lhand, Index: int(index.IntValue)}
-			res.SetWhere(lexer.NewSpan(index.Where().Start(), endToken.Where.End()))
-			lhand = res
-		} else {
-			break
-		}
-	}
-
-	return lhand
 }
 
 func (v *parser) parseArrayLit() *ArrayLiteralNode {

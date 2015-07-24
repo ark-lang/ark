@@ -8,6 +8,7 @@ const (
 	OP_BITWISE
 	OP_LOGICAL
 	OP_ASSIGN
+	OP_ACCESS
 )
 
 func (v OpCategory) PrettyString() string {
@@ -22,6 +23,8 @@ func (v OpCategory) PrettyString() string {
 		return "logical"
 	case OP_ASSIGN:
 		return "assignment"
+	case OP_ACCESS:
+		return "access"
 	default:
 		panic("missing opcategory")
 	}
@@ -123,6 +126,8 @@ const (
 	UNOP_BIT_NOT
 
 	UNOP_NEGATIVE
+
+	UNOP_DEREF
 )
 
 func stringToUnOpType(s string) UnOpType {
@@ -135,6 +140,9 @@ func stringToUnOpType(s string) UnOpType {
 
 	case "-":
 		return UNOP_NEGATIVE
+
+	case "^":
+		return UNOP_DEREF
 
 	default:
 		return UNOP_ERR
@@ -151,6 +159,9 @@ func (v UnOpType) OpString() string {
 
 	case UNOP_NEGATIVE:
 		return "-"
+
+	case UNOP_DEREF:
+		return "^"
 
 	default:
 		return "ERR"
