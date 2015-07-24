@@ -160,6 +160,30 @@ func (v *Constructor) constructExpr(node ParseNode) Expr {
 	}
 }
 
+func (v *Constructor) constructNodes(nodes []ParseNode) []Node {
+	var res []Node
+	for _, node := range nodes {
+		res = append(res, v.constructNode(node))
+	}
+	return res
+}
+
+func (v *Constructor) constructTypes(nodes []ParseNode) []Type {
+	var res []Type
+	for _, node := range nodes {
+		res = append(res, v.constructType(node))
+	}
+	return res
+}
+
+func (v *Constructor) constructExprs(nodes []ParseNode) []Expr {
+	var res []Expr
+	for _, node := range nodes {
+		res = append(res, v.constructExpr(node))
+	}
+	return res
+}
+
 func (v *PointerTypeNode) construct(c *Constructor) Type {
 	targetType := c.constructType(v.TargetType)
 	return pointerTo(targetType)
@@ -167,9 +191,7 @@ func (v *PointerTypeNode) construct(c *Constructor) Type {
 
 func (v *TupleTypeNode) construct(c *Constructor) Type {
 	res := &TupleType{}
-	for _, member := range v.MemberTypes {
-		res.Members = append(res.Members, c.constructType(member))
-	}
+	res.Members = c.constructTypes(v.MemberTypes)
 	return res
 }
 
@@ -184,11 +206,7 @@ func (v *TypeReferenceNode) construct(c *Constructor) Type {
 		c.errSpan(v.Reference.Name.Where, "Name `%s` is not a type", v.Reference.Name.Value)
 	}
 
-	res := &UnresolvedType{}
-	res.Name.name = v.Reference.Name.Value
-	for _, module := range v.Reference.Modules {
-		res.Name.moduleNames = append(res.Name.moduleNames, module.Value)
-	}
+	res := &UnresolvedType{Name: toUnresolvedName(v.Reference)}
 	return res
 }
 
@@ -329,7 +347,15 @@ func (v *EnumDeclNode) construct(c *Constructor) Node {
 			enumType.MemberTypes[idx] = c.constructType(mem.TupleBody)
 			enumType.Simple = false
 		} else if mem.StructBody != nil {
-			// TODO
+			structType := &StructType{}
+			structType.Name = "_" + v.Name.Value + "::" + mem.Name.Value
+			c.pushScope()
+			for _, member := range mem.StructBody.Members {
+				structType.addVariableDecl(c.constructNode(member).(*VariableDecl)) // TODO: Error message
+			}
+			c.popScope()
+
+			enumType.MemberTypes[idx] = structType
 			enumType.Simple = false
 		} else {
 			enumType.MemberTypes[idx] = PRIMITIVE_void
@@ -460,9 +486,7 @@ func (v *BlockNode) construct(c *Constructor) Node {
 		c.pushScope()
 	}
 	res.scope = c.scope
-	for _, node := range v.Nodes {
-		res.Nodes = append(res.Nodes, c.constructNode(node))
-	}
+	res.Nodes = c.constructNodes(v.Nodes)
 	if !v.NonScoping {
 		c.popScope()
 	}
@@ -541,30 +565,15 @@ func (v *CallExprNode) construct(c *Constructor) Expr {
 	typ := c.nameMap.TypeOfNameNode(van.Name)
 	if typ == NODE_FUNCTION {
 		res := &CallExpr{}
-		for _, arg := range v.Arguments {
-			res.Arguments = append(res.Arguments, c.constructExpr(arg))
-		}
+		res.Arguments = c.constructExprs(v.Arguments)
 		res.functionSource = c.constructExpr(v.Function)
 		res.setPos(v.Where().Start())
 		return res
 	} else if typ == NODE_ENUM_MEMBER {
-		name := unresolvedName{}
-		var moduleNames []string
-		for _, moduleName := range van.Name.Modules[:len(van.Name.Modules)-1] {
-			moduleNames = append(moduleNames, moduleName.Value)
-		}
-		name.moduleNames = moduleNames
-		name.name = van.Name.Modules[len(van.Name.Modules)-1].Value
-
-		var values []Expr
-		for _, arg := range v.Arguments {
-			values = append(values, c.constructExpr(arg))
-		}
-
 		res := &EnumLiteral{}
 		res.Member = van.Name.Name.Value
-		res.Type = &UnresolvedType{Name: name}
-		res.Values = values
+		res.Type = &UnresolvedType{Name: toParentName(van.Name)}
+		res.Values = c.constructExprs(v.Arguments)
 		res.setPos(v.Where().Start())
 		return res
 	} else if typ.IsType() {
@@ -586,25 +595,14 @@ func (v *CallExprNode) construct(c *Constructor) Expr {
 
 func (v *VariableAccessNode) construct(c *Constructor) Expr {
 	if c.nameMap.TypeOfNameNode(v.Name) == NODE_ENUM_MEMBER {
-		name := unresolvedName{}
-		var moduleNames []string
-		for _, moduleName := range v.Name.Modules[:len(v.Name.Modules)-1] {
-			moduleNames = append(moduleNames, moduleName.Value)
-		}
-		name.moduleNames = moduleNames
-		name.name = v.Name.Modules[len(v.Name.Modules)-1].Value
-
 		res := &EnumLiteral{}
 		res.Member = v.Name.Name.Value
-		res.Type = &UnresolvedType{Name: name}
+		res.Type = &UnresolvedType{Name: toParentName(v.Name)}
 		res.setPos(v.Where().Start())
 		return res
 	} else {
 		res := &VariableAccessExpr{}
-		for _, module := range v.Name.Modules {
-			res.Name.moduleNames = append(res.Name.moduleNames, module.Value)
-		}
-		res.Name.name = v.Name.Name.Value
+		res.Name = toUnresolvedName(v.Name)
 		res.setPos(v.Where().Start())
 		return res
 	}
@@ -636,23 +634,50 @@ func (v *TupleAccessNode) construct(c *Constructor) Expr {
 
 func (v *ArrayLiteralNode) construct(c *Constructor) Expr {
 	res := &ArrayLiteral{}
-	for _, member := range v.Values {
-		res.Members = append(res.Members, c.constructExpr(member))
-	}
+	res.Members = c.constructExprs(v.Values)
 	res.setPos(v.Where().Start())
 	return res
 }
 
 func (v *TupleLiteralNode) construct(c *Constructor) Expr {
 	res := &TupleLiteral{}
-	for _, member := range v.Values {
-		res.Members = append(res.Members, c.constructExpr(member))
-	}
+	res.Members = c.constructExprs(v.Values)
 	if len(res.Members) == 1 {
 		return res.Members[0]
 	}
 	res.setPos(v.Where().Start())
 	return res
+}
+
+func (v *StructLiteralNode) construct(c *Constructor) Expr {
+	if v.Name == nil || c.nameMap.TypeOfNameNode(v.Name) == NODE_STRUCT {
+		res := &StructLiteral{}
+		if v.Name != nil {
+			res.Type = &UnresolvedType{Name: toUnresolvedName(v.Name)}
+		}
+		res.Values = make(map[string]Expr)
+		for idx, member := range v.Members {
+			res.Values[member.Value] = c.constructExpr(v.Values[idx])
+		}
+		return res
+	} else if typ := c.nameMap.TypeOfNameNode(v.Name); typ == NODE_ENUM_MEMBER {
+		var members []string
+		for _, member := range v.Members {
+			members = append(members, member.Value)
+		}
+
+		res := &EnumLiteral{}
+		res.Member = v.Name.Name.Value
+		res.Type = &UnresolvedType{Name: toParentName(v.Name)}
+		res.Names = members
+		res.Values = c.constructExprs(v.Values)
+		res.setPos(v.Where().Start())
+		return res
+	} else {
+		log.Debugln("constructor", "`%s` was a `%s`", v.Name.Name.Value, typ)
+		c.errSpan(v.Name.Name.Where, "Name `%s` is not a struct or a enum member", v.Name.Name.Value)
+		return nil
+	}
 }
 
 func (v *BoolLitNode) construct(c *Constructor) Expr {
@@ -693,5 +718,24 @@ func (v *RuneLitNode) construct(c *Constructor) Expr {
 	res := &RuneLiteral{}
 	res.Value = v.Value
 	res.setPos(v.Where().Start())
+	return res
+}
+
+func toUnresolvedName(node *NameNode) unresolvedName {
+	res := unresolvedName{}
+	res.name = node.Name.Value
+	for _, module := range node.Modules {
+		res.moduleNames = append(res.moduleNames, module.Value)
+	}
+	return res
+}
+
+func toParentName(node *NameNode) unresolvedName {
+	res := unresolvedName{}
+	for _, moduleName := range node.Modules[:len(node.Modules)-1] {
+		res.moduleNames = append(res.moduleNames, moduleName.Value)
+	}
+	res.name = node.Modules[len(node.Modules)-1].Value
+
 	return res
 }

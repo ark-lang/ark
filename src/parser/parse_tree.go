@@ -286,6 +286,13 @@ type TupleLiteralNode struct {
 	Values []ParseNode
 }
 
+type StructLiteralNode struct {
+	baseNode
+	Name    *NameNode
+	Members []LocatedString
+	Values  []ParseNode
+}
+
 type BoolLitNode struct {
 	baseNode
 	Value bool

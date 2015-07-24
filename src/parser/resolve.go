@@ -23,8 +23,9 @@ func (v unresolvedName) String() string {
 }
 
 type Resolver struct {
-	Module  *Module
-	modules map[string]*Module
+	Module   *Module
+	modules  map[string]*Module
+	resolved map[interface{}]bool
 }
 
 func (v *Resolver) err(thing Locatable, err string, stuff ...interface{}) {
@@ -43,6 +44,7 @@ func (v *Resolver) errCannotResolve(thing Locatable, name unresolvedName) {
 }
 
 func (v *Resolver) Resolve(modules map[string]*Module) {
+	v.resolved = make(map[interface{}]bool)
 	v.modules = modules
 
 	for _, node := range v.Module.Nodes {
@@ -51,6 +53,11 @@ func (v *Resolver) Resolve(modules map[string]*Module) {
 }
 
 func (v *Block) resolve(res *Resolver, s *Scope) {
+	if res.resolved[v] {
+		return
+	}
+	res.resolved[v] = true
+
 	for _, n := range v.Nodes {
 		n.resolve(res, v.scope)
 	}
@@ -265,7 +272,7 @@ func (v *StructAccessExpr) resolve(res *Resolver, s *Scope) {
 	}
 
 	// TODO check no mod access
-	decl := structType.getVariableDecl(v.Member)
+	decl := structType.GetVariableDecl(v.Member)
 	if decl == nil {
 		res.err(v, "Struct `%s` does not contain member `%s`", structType.TypeName(), v.Member)
 	}
@@ -309,6 +316,12 @@ func (v *TupleLiteral) resolve(res *Resolver, s *Scope) {
 	}
 }
 
+func (v *StructLiteral) resolve(res *Resolver, s *Scope) {
+	for _, mem := range v.Values {
+		mem.resolve(res, s)
+	}
+}
+
 func (v *EnumLiteral) resolve(res *Resolver, s *Scope) {
 	v.Type = v.Type.resolveType(v, res, s)
 	for _, val := range v.Values {
@@ -327,6 +340,11 @@ func (v PrimitiveType) resolveType(src Locatable, res *Resolver, s *Scope) Type 
 }
 
 func (v *StructType) resolveType(src Locatable, res *Resolver, s *Scope) Type {
+	if res.resolved[v] {
+		return v
+	}
+	res.resolved[v] = true
+
 	for _, vari := range v.Variables {
 		vari.resolve(res, s)
 	}
@@ -338,6 +356,11 @@ func (v ArrayType) resolveType(src Locatable, res *Resolver, s *Scope) Type {
 }
 
 func (v *TraitType) resolveType(src Locatable, res *Resolver, s *Scope) Type {
+	if res.resolved[v] {
+		return v
+	}
+	res.resolved[v] = true
+
 	for _, fun := range v.Functions {
 		fun.resolve(res, s)
 	}
@@ -356,6 +379,11 @@ func (v *TupleType) resolveType(src Locatable, res *Resolver, s *Scope) Type {
 }
 
 func (v *EnumType) resolveType(src Locatable, res *Resolver, s *Scope) Type {
+	if res.resolved[v] {
+		return v
+	}
+	res.resolved[v] = true
+
 	for idx, mem := range v.MemberTypes {
 		v.MemberTypes[idx] = mem.resolveType(src, res, s)
 	}
@@ -372,5 +400,5 @@ func (v *UnresolvedType) resolveType(src Locatable, res *Resolver, s *Scope) Typ
 		return ident.Value.(Type)
 	}
 
-	panic("should never get here")
+	panic("unreachable")
 }
