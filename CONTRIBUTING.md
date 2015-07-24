@@ -16,6 +16,7 @@ There are plenty of things you can do to help:
 * Fix bugs/implement features in the issue tracker
 * Create/fix/modify documentation
 * Work on the compiler
+* RFC/Specs
 
 ## Issue Label Documentation
 To keep things organized, we have introduced various labels that contributors with sufficient
@@ -55,6 +56,11 @@ Be it personal code, or you're contributing to the standard libraries,
 check out the [style guide](https://github.com/ark-lang/ark-docs/blob/master/STYLEGUIDE.md). Not only will this keep everything
 consistent (if you're contributing to the std libraries that is), but it will
 also make the code a lot more readable and easier to maintain.
+
+## Ark RFCs/Specs
+If you want to request a feature, or improve upon an existing feature, keep reading. If you want to help decide how to integrate an unimplemented feature, or give ideas on how it would work, keep reading. 
+
+We now have a repository for RFC's and Specifications, this is to keep everything separate from issues related to the compiler itself (in terms of implementations of features, bugs, etc). If you want to request a feature, or you want to help use decide how to integrate a feature into the language, or just change something in the language: please go visit [this repository](//github.com/ark-lang/ark-rfcs).
 
 ## Community
 Please do not post questions for help in the Issue Tracker _unless_ you think
