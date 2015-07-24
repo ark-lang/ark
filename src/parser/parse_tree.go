@@ -257,11 +257,6 @@ type VariableAccessNode struct {
 	Name *NameNode
 }
 
-type DerefAccessNode struct {
-	baseNode
-	Value ParseNode
-}
-
 type StructAccessNode struct {
 	baseNode
 	Struct ParseNode
