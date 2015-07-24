@@ -2,6 +2,9 @@
 
 [Ark](//www.ark-lang.org) is a systems programming language somewhere in-between C and C++.
 
+## Ark RFC's
+We now have a repository for RFC's and Specifications, this is to keep everything separate from issues related to the compiler itself (in terms of implementations of features, bugs, etc). If you want to request a feature, or you want to help use decide how to integrate a feature into the language, or just change something in the language: please go visit [this repository](//github.com/ark-lang/ark-rfcs).
+
 ## Table Of Contents
 * [Example](#example)
 * [Resources](#resources)
