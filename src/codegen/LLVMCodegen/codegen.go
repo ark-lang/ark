@@ -9,11 +9,9 @@ import (
 
 	"github.com/ark-lang/ark/src/parser"
 	"github.com/ark-lang/ark/src/util"
+	"github.com/ark-lang/ark/src/util/log"
 
 	"llvm.org/llvm/bindings/go/llvm"
-)
-import (
-	"github.com/ark-lang/ark/src/util/log"
 )
 
 const intSize = int(unsafe.Sizeof(C.int(0)))
@@ -176,39 +174,40 @@ func (v *Codegen) addStructType(typ *parser.StructType) {
 		fields[i] = memberType
 	}
 
-	structure := llvm.StructType(fields, packed)
-	llvm.AddGlobal(v.curFile.Module, structure, typ.MangledName(parser.MANGLE_ARK_UNSTABLE))
+	structure := v.curFile.Module.Context().StructCreateNamed(typ.MangledName(parser.MANGLE_ARK_UNSTABLE))
+	structure.StructSetBody(fields, packed)
 	v.structLookup_UseHelperFunction[typ] = structure
 }
 
 func (v *Codegen) addEnumType(typ *parser.EnumType) {
-	if _, ok := v.enumLookup_UseHelperFunction[typ]; ok {
+	if _, ok := v.enumLookup_UseHelperFunction[typ]; ok || typ.Simple {
 		return
 	}
 
-	var enum llvm.Type
-	if typ.Simple {
-		// TODO: Handle other integer size, maybe dynamic depending on max value? (1 / 2)
-		enum = llvm.IntType(32)
-	} else {
-		longestLength := uint64(0)
-		for _, memTyp := range typ.MemberTypes {
-			if memTyp == parser.PRIMITIVE_void {
-				continue
-			}
+	enum := v.curFile.Module.Context().StructCreateNamed(typ.MangledName(parser.MANGLE_ARK_UNSTABLE))
 
-			memLength := v.targetData.TypeAllocSize(v.typeToLLVMType(memTyp))
-			if memLength > longestLength {
-				longestLength = memLength
-			}
+	longestLength := uint64(0)
+	for _, memTyp := range typ.MemberTypes {
+		if memTyp == parser.PRIMITIVE_void {
+			continue
 		}
 
-		// TODO: verify no overflow
-		fields := []llvm.Type{llvm.IntType(32), llvm.ArrayType(llvm.IntType(8), int(longestLength))}
-		enum = llvm.StructType(fields, false)
+		if structType, ok := memTyp.(*parser.StructType); ok {
+			// TODO: Proper mangling of structs added from enums
+			// TODO: check recursive loop
+			v.addStructType(structType)
+		}
+
+		memLength := v.targetData.TypeAllocSize(v.typeToLLVMType(memTyp))
+		if memLength > longestLength {
+			longestLength = memLength
+		}
 	}
 
-	llvm.AddGlobal(v.curFile.Module, enum, typ.MangledName(parser.MANGLE_ARK_UNSTABLE))
+	// TODO: verify no overflow
+	fields := []llvm.Type{llvm.IntType(32), llvm.ArrayType(llvm.IntType(8), int(longestLength))}
+	enum.StructSetBody(fields, false)
+
 	v.enumLookup_UseHelperFunction[typ] = enum
 }
 
@@ -593,6 +592,8 @@ func (v *Codegen) genExpr(n parser.Expr) llvm.Value {
 		return v.genArrayLiteral(n.(*parser.ArrayLiteral))
 	case *parser.EnumLiteral:
 		return v.genEnumLiteral(n.(*parser.EnumLiteral))
+	case *parser.StructLiteral:
+		return v.genStructLiteral(n.(*parser.StructLiteral))
 	case *parser.BinaryExpr:
 		return v.genBinaryExpr(n.(*parser.BinaryExpr))
 	case *parser.UnaryExpr:
@@ -630,7 +631,7 @@ func (v *Codegen) genAccessGEP(n parser.Expr) llvm.Value {
 
 		gep := v.genAccessGEP(sae.Struct)
 		index := sae.Struct.GetType().(*parser.StructType).VariableIndex(sae.Variable)
-		return v.builder.CreateGEP(gep, []llvm.Value{llvm.ConstInt(llvm.Int32Type(), 0, false), llvm.ConstInt(llvm.Int32Type(), uint64(index), false)}, "")
+		return v.builder.CreateStructGEP(gep, index, "")
 
 	case *parser.ArrayAccessExpr:
 		aae := n.(*parser.ArrayAccessExpr)
@@ -638,24 +639,22 @@ func (v *Codegen) genAccessGEP(n parser.Expr) llvm.Value {
 		gep := v.genAccessGEP(aae.Array)
 		subscriptExpr := v.genExpr(aae.Subscript)
 
-		sizeGepIndexes := []llvm.Value{llvm.ConstInt(llvm.Int32Type(), 0, false), llvm.ConstInt(llvm.Int32Type(), 0, false)}
-		v.genBoundsCheck(v.builder.CreateLoad(v.builder.CreateGEP(gep, sizeGepIndexes, ""), ""), subscriptExpr, aae.Subscript.GetType())
+		v.genBoundsCheck(v.builder.CreateLoad(v.builder.CreateStructGEP(gep, 0, ""), ""), subscriptExpr, aae.Subscript.GetType())
 
-		gepIndexes := []llvm.Value{llvm.ConstInt(llvm.Int32Type(), 0, false), llvm.ConstInt(llvm.Int32Type(), 1, false)}
-		gep = v.builder.CreateGEP(gep, gepIndexes, "")
+		gep = v.builder.CreateStructGEP(gep, 1, "")
 
 		load := v.builder.CreateLoad(gep, "")
 
-		gepIndexes = []llvm.Value{llvm.ConstInt(llvm.Int32Type(), 0, false), subscriptExpr}
+		gepIndexes := []llvm.Value{llvm.ConstInt(llvm.Int32Type(), 0, false), subscriptExpr}
 		return v.builder.CreateGEP(load, gepIndexes, "")
 
 	case *parser.TupleAccessExpr:
 		tae := n.(*parser.TupleAccessExpr)
 
 		gep := v.genAccessGEP(tae.Tuple)
-		index := tae.Index
 
-		return v.builder.CreateGEP(gep, []llvm.Value{llvm.ConstInt(llvm.Int32Type(), 0, false), llvm.ConstInt(llvm.Int32Type(), index, false)}, "")
+		// TODO: Check overflow
+		return v.builder.CreateStructGEP(gep, int(tae.Index), "")
 
 	case *parser.DerefAccessExpr:
 		dae := n.(*parser.DerefAccessExpr)
@@ -737,7 +736,7 @@ func (v *Codegen) genArrayLiteral(n *parser.ArrayLiteral) llvm.Value {
 
 		// copy the constant array to the backing array
 		for idx, value := range n.Members {
-			gep := v.builder.CreateGEP(arrAlloca, []llvm.Value{llvm.ConstInt(llvm.IntType(32), 0, false), llvm.ConstInt(llvm.IntType(32), uint64(idx), false)}, "")
+			gep := v.builder.CreateStructGEP(arrAlloca, idx, "")
 			value := v.genExpr(value)
 			v.builder.CreateStore(value, gep)
 		}
@@ -746,11 +745,11 @@ func (v *Codegen) genArrayLiteral(n *parser.ArrayLiteral) llvm.Value {
 		structAlloca := v.builder.CreateAlloca(arrayLLVMType, "")
 
 		// set the length of the array
-		lenGEP := v.builder.CreateGEP(structAlloca, []llvm.Value{llvm.ConstInt(llvm.IntType(32), 0, false), llvm.ConstInt(llvm.IntType(32), 0, false)}, "")
+		lenGEP := v.builder.CreateStructGEP(structAlloca, 0, "")
 		v.builder.CreateStore(llvm.ConstInt(llvm.IntType(32), uint64(len(n.Members)), false), lenGEP)
 
 		// set the array pointer to the backing array we allocated
-		arrGEP := v.builder.CreateGEP(structAlloca, []llvm.Value{llvm.ConstInt(llvm.IntType(32), 0, false), llvm.ConstInt(llvm.IntType(32), 1, false)}, "")
+		arrGEP := v.builder.CreateStructGEP(structAlloca, 1, "")
 		v.builder.CreateStore(v.builder.CreateBitCast(arrAlloca, llvm.PointerType(llvm.ArrayType(memberLLVMType, 0), 0), ""), arrGEP)
 
 		return v.builder.CreateLoad(structAlloca, "")
@@ -793,39 +792,71 @@ func (v *Codegen) genTupleLiteral(n *parser.TupleLiteral) llvm.Value {
 func (v *Codegen) genEnumLiteral(n *parser.EnumLiteral) llvm.Value {
 	enumType := n.Type.(*parser.EnumType)
 	enumLLVMType := v.typeToLLVMType(n.Type)
+
+	if enumType.Simple {
+		memberIdx := enumType.MemberIndex(n.Member)
+		tag := enumType.MemberTags[memberIdx]
+		// TODO: Handle other integer size, maybe dynamic depending on max value?
+		return llvm.ConstInt(llvm.IntType(32), uint64(tag), false)
+	}
+
 	if v.inFunction {
-		if enumType.Simple {
-			memberIdx := enumType.MemberIndex(n.Member)
-			tag := enumType.MemberTags[memberIdx]
-			// TODO: Handle other integer size, maybe dynamic depending on max value? (1 / 2)
-			return llvm.ConstInt(llvm.IntType(32), uint64(tag), false)
-		} else {
-			alloc := v.builder.CreateAlloca(enumLLVMType, "")
+		alloc := v.builder.CreateAlloca(enumLLVMType, "")
 
-			memberIdx := enumType.MemberIndex(n.Member)
-			tag := enumType.MemberTags[memberIdx]
+		memberIdx := enumType.MemberIndex(n.Member)
+		tag := enumType.MemberTags[memberIdx]
 
-			tagGep := v.builder.CreateGEP(alloc, []llvm.Value{llvm.ConstInt(llvm.IntType(32), 0, false), llvm.ConstInt(llvm.IntType(32), 0, false)}, "")
-			v.builder.CreateStore(llvm.ConstInt(llvm.IntType(32), uint64(tag), false), tagGep)
+		tagGep := v.builder.CreateStructGEP(alloc, 0, "")
+		v.builder.CreateStore(llvm.ConstInt(llvm.IntType(32), uint64(tag), false), tagGep)
 
-			if len(n.Values) > 0 {
-				innerType := enumType.MemberTypes[memberIdx]
-				innerLLVMType := v.typeToLLVMType(innerType)
+		if len(n.Values) > 0 {
+			innerType := enumType.MemberTypes[memberIdx]
+			innerLLVMType := v.typeToLLVMType(innerType)
 
-				dataGep := v.builder.CreateGEP(alloc, []llvm.Value{llvm.ConstInt(llvm.IntType(32), 0, false), llvm.ConstInt(llvm.IntType(32), 1, false)}, "")
-				dataGep = v.builder.CreateBitCast(dataGep, llvm.PointerType(innerLLVMType, 0), "")
+			dataGep := v.builder.CreateStructGEP(alloc, 1, "")
+			dataGep = v.builder.CreateBitCast(dataGep, llvm.PointerType(innerLLVMType, 0), "")
 
+			if structType, ok := innerType.(*parser.StructType); ok {
 				for idx, value := range n.Values {
-					memberGep := v.builder.CreateGEP(dataGep, []llvm.Value{llvm.ConstInt(llvm.IntType(32), 0, false), llvm.ConstInt(llvm.IntType(32), uint64(idx), false)}, "")
+					name := n.Names[idx]
+					vari := structType.GetVariableDecl(name).Variable
+					i := structType.VariableIndex(vari)
+
+					gep := v.builder.CreateStructGEP(dataGep, i, "")
+					v.builder.CreateStore(v.genExpr(value), gep)
+				}
+			} else {
+				for idx, value := range n.Values {
+					memberGep := v.builder.CreateStructGEP(dataGep, idx, "")
 					v.builder.CreateStore(v.genExpr(value), memberGep)
 				}
 			}
-
-			return v.builder.CreateLoad(alloc, "")
 		}
+		return v.builder.CreateLoad(alloc, "")
 	} else {
 		// TODO: Global enum literals
-		panic("global enums lits are a pain m'kay?")
+		panic("unimplemented: global enum literals")
+	}
+}
+
+func (v *Codegen) genStructLiteral(n *parser.StructLiteral) llvm.Value {
+	structType := n.Type.(*parser.StructType)
+	structLLVMType := v.typeToLLVMType(structType)
+	if v.inFunction {
+		alloc := v.builder.CreateAlloca(structLLVMType, "")
+
+		for name, value := range n.Values {
+			vari := structType.GetVariableDecl(name).Variable
+			idx := structType.VariableIndex(vari)
+
+			gep := v.builder.CreateStructGEP(alloc, idx, "")
+			v.builder.CreateStore(v.genExpr(value), gep)
+		}
+
+		return v.builder.CreateLoad(alloc, "")
+	} else {
+		// TODO: Global struct literals
+		panic("unimplemented: global struct literals")
 	}
 }
 
@@ -1109,13 +1140,15 @@ func (v *Codegen) genCallExpr(n *parser.CallExpr) llvm.Value {
 }
 
 func (v *Codegen) genSizeofExpr(n *parser.SizeofExpr) llvm.Value {
+	var typ llvm.Type
+
 	if n.Expr != nil {
-		gep := v.builder.CreateGEP(llvm.ConstNull(llvm.PointerType(v.typeToLLVMType(n.Expr.GetType()), 0)), []llvm.Value{llvm.ConstInt(llvm.IntType(32), 1, false)}, "")
-		return v.builder.CreatePtrToInt(gep, v.typeToLLVMType(n.GetType()), "sizeof")
+		typ = v.typeToLLVMType(n.Expr.GetType())
 	} else {
-		// we have a type
-		panic("can't do this yet")
+		typ = v.typeToLLVMType(n.Type)
 	}
+
+	return llvm.ConstInt(v.targetData.IntPtrType(), v.targetData.TypeAllocSize(typ), false)
 }
 
 func (v *Codegen) typeToLLVMType(typ parser.Type) llvm.Type {
@@ -1138,14 +1171,6 @@ func (v *Codegen) typeToLLVMType(typ parser.Type) llvm.Type {
 	}
 }
 
-func (v *Codegen) enumTypeToLLVMType(typ *parser.EnumType) llvm.Type {
-	if val, ok := v.enumLookup_UseHelperFunction[typ]; ok {
-		return val
-	} else {
-		panic("why no enum type entry")
-	}
-}
-
 func (v *Codegen) tupleTypeToLLVMType(typ *parser.TupleType) llvm.Type {
 	// TODO: Maybe move to lookup table like struct
 	var fields []llvm.Type
@@ -1163,11 +1188,26 @@ func (v *Codegen) arrayTypeToLLVMType(typ parser.ArrayType) llvm.Type {
 }
 
 func (v *Codegen) structTypeToLLVMType(typ *parser.StructType) llvm.Type {
-	if val, ok := v.structLookup_UseHelperFunction[typ]; ok {
-		return val
-	} else {
-		panic("why no struct type entry")
+	name := typ.MangledName(parser.MANGLE_ARK_UNSTABLE)
+	llvmType := v.curFile.Module.GetTypeByName(name)
+	if llvmType.IsNil() {
+		llvmType = v.curFile.Module.Context().StructCreateNamed(name)
 	}
+	return llvmType
+}
+
+func (v *Codegen) enumTypeToLLVMType(typ *parser.EnumType) llvm.Type {
+	if typ.Simple {
+		// TODO: Handle other integer size, maybe dynamic depending on max value? (1 / 2)
+		return llvm.IntType(32)
+	}
+
+	name := typ.MangledName(parser.MANGLE_ARK_UNSTABLE)
+	llvmType := v.curFile.Module.GetTypeByName(name)
+	if llvmType.IsNil() {
+		llvmType = v.curFile.Module.Context().StructCreateNamed(name)
+	}
+	return llvmType
 }
 
 func primitiveTypeToLLVMType(typ parser.PrimitiveType) llvm.Type {

@@ -550,9 +550,54 @@ func (v *TupleLiteral) setTypeHint(t Type) {
 	}
 }
 
+// StructLiteral
+func (v *StructLiteral) infer(s *TypeInferer) {
+	structType, ok := v.Type.(*StructType)
+
+	for name, mem := range v.Values {
+		if ok {
+			if decl := structType.GetVariableDecl(name); decl != nil {
+				mem.setTypeHint(decl.Variable.Type)
+			}
+		}
+		mem.infer(s)
+	}
+}
+
+func (v *StructLiteral) setTypeHint(t Type) {
+	typ, ok := t.(*StructType)
+	if ok {
+		v.Type = typ
+	}
+}
+
 // EnumLiteral
 func (v *EnumLiteral) infer(s *TypeInferer) {
-	for _, val := range v.Values {
+	var structTypes map[string]Type
+	var tupleTypes []Type
+
+	if enumType, ok := v.Type.(*EnumType); ok {
+		memIdx := enumType.MemberIndex(v.Member)
+		memType := enumType.MemberTypes[memIdx]
+
+		if structType, ok := memType.(*StructType); ok {
+			structTypes = make(map[string]Type)
+			for _, decl := range structType.Variables {
+				structTypes[decl.Variable.Name] = decl.Variable.Type
+			}
+		} else if tupleType, ok := memType.(*TupleType); ok {
+			tupleTypes = tupleType.Members
+		}
+	}
+
+	for idx, val := range v.Values {
+		if structTypes != nil {
+			name := v.Names[idx]
+			val.setTypeHint(structTypes[name])
+		} else if tupleTypes != nil {
+			val.setTypeHint(tupleTypes[idx])
+		}
+
 		val.infer(s)
 	}
 }

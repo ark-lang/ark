@@ -1,15 +1,17 @@
 [c] func printf(fmt: str, ...): int;
 
-enum Option {
-    None,
-    Some(^u8)
+enum Tree {
+    Node{left: ^Tree, right: ^Tree},
+    Leaf(int)
 }
 
 func main(): int {
-    x := Option::None;
-    y := Option::Some(^u8(0xdeadbeef));
+	x := Tree::Leaf(42);
+	y := Tree::Leaf(36);
+	z := Tree::Node{left: &x, right: &y};
 
-    C::printf("None-tag: %d\n", x);
-    C::printf("Some-tag: %d\n", y);
+    C::printf("Tree-tag: %d\n", x);
+    C::printf("Tree-tag: %d\n", y);
+    C::printf("Node-tag: %d\n", z);
     return 0;
 }

@@ -661,6 +661,26 @@ func (v *TupleLiteral) analyze(s *SemanticAnalyzer) {
 	}
 }
 
+func (v *StructLiteral) analyze(s *SemanticAnalyzer) {
+	structType := v.Type.(*StructType)
+
+	for _, mem := range v.Values {
+		mem.analyze(s)
+	}
+
+	for name, mem := range v.Values {
+		decl := structType.GetVariableDecl(name)
+		if decl == nil {
+			s.err(v, "No member named `%s` on struct of type `%s`", name, structType.TypeName())
+		}
+
+		if !mem.GetType().Equals(decl.Variable.Type) {
+			s.err(v, "Cannot use value of type `%s` as member of `%s` with type `%s`",
+				mem.GetType().TypeName(), decl.Variable.Type.TypeName(), structType.TypeName())
+		}
+	}
+}
+
 // EnumLiteral
 func (v *EnumLiteral) analyze(s *SemanticAnalyzer) {
 	// TODO: maybe check for duplciates or something?

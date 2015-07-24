@@ -682,6 +682,28 @@ func (v *TupleLiteral) NodeName() string {
 	return "tuple literal"
 }
 
+// StructLiteral
+
+type StructLiteral struct {
+	nodePos
+	Type   Type
+	Values map[string]Expr
+}
+
+func (v *StructLiteral) exprNode() {}
+
+func (v *StructLiteral) String() string {
+	return "struct"
+}
+
+func (v *StructLiteral) GetType() Type {
+	return v.Type
+}
+
+func (v *StructLiteral) NodeName() string {
+	return "struct literal"
+}
+
 // ArrayLiteral
 
 type ArrayLiteral struct {
@@ -714,6 +736,7 @@ type EnumLiteral struct {
 	nodePos
 	Type   Type
 	Member string
+	Names  []string
 	Values []Expr
 }
 

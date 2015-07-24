@@ -156,7 +156,7 @@ func (v *StructType) CanCastTo(t Type) bool {
 	return false
 }
 
-func (v *StructType) getVariableDecl(s string) *VariableDecl {
+func (v *StructType) GetVariableDecl(s string) *VariableDecl {
 	for _, decl := range v.Variables {
 		if decl.Variable.Name == s {
 			return decl
