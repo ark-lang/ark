@@ -143,6 +143,18 @@ func (v *parser) nextIs(typ lexer.TokenType) bool {
 	return v.peek(0).Type == typ
 }
 
+func (v *parser) expect(typ lexer.TokenType, val string) *lexer.Token {
+	if !v.tokenMatches(0, typ, val) {
+		tok := v.peek(0)
+		if val != "" {
+			v.errToken("Expected `%s` (%s), got `%s` (%s)", val, typ, tok.Contents, tok.Type)
+		} else {
+			v.errToken("Expected %s, got %s (`%s`)", typ, tok.Type, tok.Contents)
+		}
+	}
+	return v.consumeToken()
+}
+
 func (v *parser) parse() {
 	for v.peek(0) != nil {
 		if n := v.parseNode(); n != nil {
@@ -206,20 +218,13 @@ func (v *parser) parseAttributes() AttrGroup {
 		for {
 			attr := &Attr{}
 
-			if !v.nextIs(lexer.TOKEN_IDENTIFIER) {
-				v.err("Expected attribute name, got `%s`", v.peek(0).Contents)
-			}
-			keyToken := v.consumeToken()
+			keyToken := v.expect(lexer.TOKEN_IDENTIFIER, "")
 			attr.setPos(keyToken.Where.Start())
 			attr.Key = keyToken.Contents
 
 			if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "=") {
 				v.consumeToken()
-
-				if !v.nextIs(lexer.TOKEN_STRING) {
-					v.err("Expected attribute value, got `%s`", v.peek(0).Contents)
-				}
-				attr.Value = v.consumeToken().Contents
+				attr.Value = v.expect(lexer.TOKEN_STRING, "").Contents
 			}
 
 			if attrs.Set(attr.Key, attr) {
@@ -233,10 +238,7 @@ func (v *parser) parseAttributes() AttrGroup {
 			v.consumeToken()
 		}
 
-		if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "]") {
-			v.err("Expected closing `]` after attribute, got `%s`", v.peek(0).Contents)
-		}
-		v.consumeToken()
+		v.expect(lexer.TOKEN_SEPARATOR, "]")
 	}
 
 	return attrs
@@ -252,11 +254,8 @@ func (v *parser) parseName() *NameNode {
 
 	var parts []LocatedString
 	for {
-		if !v.nextIs(lexer.TOKEN_IDENTIFIER) {
-			v.err("Expected identifier after `::` in name, got `%s`", v.peek(0).Contents)
-		}
-
-		parts = append(parts, NewLocatedString(v.consumeToken()))
+		part := v.expect(lexer.TOKEN_IDENTIFIER, "")
+		parts = append(parts, NewLocatedString(part))
 
 		if !v.tokenMatches(0, lexer.TOKEN_OPERATOR, "::") {
 			break
@@ -318,11 +317,7 @@ func (v *parser) parseStructDecl() *StructDeclNode {
 	}
 	startToken := v.consumeToken()
 
-	if !v.nextIs(lexer.TOKEN_IDENTIFIER) {
-		v.err("Expected name after struct keyword, got `%s`", v.peek(0).Contents)
-	}
-	name := v.consumeToken()
-
+	name := v.expect(lexer.TOKEN_IDENTIFIER, "")
 	if isReservedKeyword(name.Contents) {
 		v.err("Cannot use reserved keyword `%s` as name for struct", name.Contents)
 	}
@@ -363,10 +358,7 @@ func (v *parser) parseStructBody() *StructBodyNode {
 		}
 	}
 
-	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "}") {
-		v.err("Expected closing `}` after struct, got `%s`", v.peek(0).Contents)
-	}
-	endToken := v.consumeToken()
+	endToken := v.expect(lexer.TOKEN_SEPARATOR, "}")
 
 	res := &StructBodyNode{Members: members}
 	res.SetWhere(lexer.NewSpanFromTokens(startToken, endToken))
@@ -387,10 +379,7 @@ func (v *parser) parseUseDecl() *UseDeclNode {
 		v.err("Expected valid module name after `use` keyword")
 	}
 
-	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ";") {
-		v.err("Expected `;` after use-construct, got `%s`", v.peek(0).Contents)
-	}
-	endToken := v.consumeToken()
+	endToken := v.expect(lexer.TOKEN_SEPARATOR, ";")
 
 	res := &UseDeclNode{Module: module}
 	res.SetWhere(lexer.NewSpanFromTokens(startToken, endToken))
@@ -406,19 +395,12 @@ func (v *parser) parseTraitDecl() *TraitDeclNode {
 	}
 	startToken := v.consumeToken()
 
-	if !v.nextIs(lexer.TOKEN_IDENTIFIER) {
-		v.err("Expected trait name after `trait` keyword, got `%s`", v.peek(0).Contents)
-	}
-	name := v.consumeToken()
-
+	name := v.expect(lexer.TOKEN_IDENTIFIER, "")
 	if isReservedKeyword(name.Contents) {
 		v.err("Cannot use reserved keyword `%s` as name for trait", name.Contents)
 	}
 
-	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, "{") {
-		v.err("Expected starting `{` after trait name, got `%s`", v.peek(0).Contents)
-	}
-	v.consumeToken()
+	v.expect(lexer.TOKEN_IDENTIFIER, "{")
 
 	var members []*FunctionDeclNode
 	for {
@@ -433,10 +415,7 @@ func (v *parser) parseTraitDecl() *TraitDeclNode {
 		members = append(members, member)
 	}
 
-	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "}") {
-		v.err("Expected closing `}` after trait declaration, got `%s`", v.peek(0).Contents)
-	}
-	endToken := v.consumeToken()
+	endToken := v.expect(lexer.TOKEN_SEPARATOR, "}")
 
 	res := &TraitDeclNode{Name: NewLocatedString(name), Members: members}
 	res.SetWhere(lexer.NewSpanFromTokens(startToken, endToken))
@@ -452,11 +431,7 @@ func (v *parser) parseImplDecl() *ImplDeclNode {
 	}
 	startToken := v.consumeToken()
 
-	if !v.nextIs(lexer.TOKEN_IDENTIFIER) {
-		v.err("Expected struct name after `impl` keyword, got `%s`", v.peek(0).Contents)
-	}
-	structName := v.consumeToken()
-
+	structName := v.expect(lexer.TOKEN_IDENTIFIER, "")
 	if isReservedKeyword(structName.Contents) {
 		v.err("Cannot use reserved keyword `%s` as struct name", structName.Contents)
 	}
@@ -465,20 +440,13 @@ func (v *parser) parseImplDecl() *ImplDeclNode {
 	if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_FOR) {
 		v.consumeToken()
 
-		if !v.nextIs(lexer.TOKEN_IDENTIFIER) {
-			v.err("Expected trait name after `for` in impl declaration, got `%s`", v.peek(0).Contents)
-		}
-		traitName = v.consumeToken()
-
+		traitName = v.expect(lexer.TOKEN_IDENTIFIER, "")
 		if isReservedKeyword(traitName.Contents) {
 			v.err("Cannot use reserved keyword `%s` as trait name", traitName.Contents)
 		}
 	}
 
-	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, "{") {
-		v.err("Expected starting `{` after impl start, got `%s`", v.peek(0).Contents)
-	}
-	v.consumeToken()
+	v.expect(lexer.TOKEN_SEPARATOR, "{")
 
 	var members []*FunctionDeclNode
 	for {
@@ -493,10 +461,7 @@ func (v *parser) parseImplDecl() *ImplDeclNode {
 		members = append(members, member)
 	}
 
-	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "}") {
-		v.err("Expected closing `}` after impl declaration, got `%s`", v.peek(0).Contents)
-	}
-	endToken := v.consumeToken()
+	endToken := v.expect(lexer.TOKEN_SEPARATOR, "}")
 
 	res := &ImplDeclNode{StructName: NewLocatedString(structName), Members: members}
 	if traitName != nil {
@@ -524,11 +489,8 @@ func (v *parser) parseFuncDecl() *FunctionDeclNode {
 		if stat = v.parseStat(); stat != nil {
 			endPosition = stat.Where().End()
 		} else if expr = v.parseExpr(); expr != nil {
-			if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ";") {
-				v.err("Expected `;` after function declaration, got `%s`", v.peek(0).Contents)
-			}
-			v.consumeToken()
-			endPosition = expr.Where().End()
+			tok := v.expect(lexer.TOKEN_SEPARATOR, ";")
+			endPosition = tok.Where.End()
 		} else {
 			v.err("Expected valid statement or expression after `->` in function declaration")
 		}
@@ -539,20 +501,13 @@ func (v *parser) parseFuncDecl() *FunctionDeclNode {
 		}
 	}
 
-	var maybeEndToken *lexer.Token
 	if body == nil && stat == nil && expr == nil {
-		if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ";") {
-			v.err("Expected `;` after body-less function declaration, got `%s`", v.peek(0).Contents)
-		}
-		maybeEndToken = v.consumeToken()
+		tok := v.expect(lexer.TOKEN_SEPARATOR, ";")
+		endPosition = tok.Where.End()
 	}
 
 	res := &FunctionDeclNode{Header: funcHeader, Body: body, Stat: stat, Expr: expr}
-	if body != nil || stat != nil || expr != nil {
-		res.SetWhere(lexer.NewSpan(funcHeader.Where().Start(), endPosition))
-	} else {
-		res.SetWhere(lexer.NewSpan(funcHeader.Where().Start(), maybeEndToken.Where.End()))
-	}
+	res.SetWhere(lexer.NewSpan(funcHeader.Where().Start(), endPosition))
 	return res
 }
 
@@ -565,15 +520,8 @@ func (v *parser) parseFuncHeader() *FunctionHeaderNode {
 	}
 	startToken := v.consumeToken()
 
-	if !v.nextIs(lexer.TOKEN_IDENTIFIER) {
-		v.err("Expected function name after `func` keyword, got `%s`", v.peek(0).Contents)
-	}
-	name := v.consumeToken()
-
-	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "(") {
-		v.err("Expected starting `(` after function name, got `%s`", v.peek(0).Contents)
-	}
-	v.consumeToken()
+	name := v.expect(lexer.TOKEN_IDENTIFIER, "")
+	v.expect(lexer.TOKEN_SEPARATOR, "(")
 
 	var args []*VarDeclNode
 	variadic := false
@@ -603,10 +551,7 @@ func (v *parser) parseFuncHeader() *FunctionHeaderNode {
 		v.consumeToken()
 	}
 
-	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ")") {
-		v.err("Expected closing `)` after function args, got `%s`", v.peek(0).Contents)
-	}
-	maybeEndToken := v.consumeToken()
+	maybeEndToken := v.expect(lexer.TOKEN_SEPARATOR, ")")
 
 	var returnType ParseNode
 	if v.tokenMatches(0, lexer.TOKEN_OPERATOR, ":") {
@@ -637,19 +582,12 @@ func (v *parser) parseEnumDecl() *EnumDeclNode {
 	}
 	startToken := v.consumeToken()
 
-	if !v.nextIs(lexer.TOKEN_IDENTIFIER) {
-		v.err("Expected enum name after `enum` keyword, got `%s`", v.peek(0).Contents)
-	}
-	name := v.consumeToken()
-
+	name := v.expect(lexer.TOKEN_IDENTIFIER, "")
 	if isReservedKeyword(name.Contents) {
 		v.err("Cannot use reserved keyword `%s` as name for enum", name.Contents)
 	}
 
-	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "{") {
-		v.err("Expected starting `{` after enum name, got `%s`", v.peek(0).Contents)
-	}
-	v.consumeToken()
+	v.expect(lexer.TOKEN_SEPARATOR, "{")
 
 	var members []*EnumEntryNode
 	for {
@@ -669,10 +607,7 @@ func (v *parser) parseEnumDecl() *EnumDeclNode {
 		v.consumeToken()
 	}
 
-	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "}") {
-		v.err("Expected closing `}` after enum, got `%s`", v.peek(0).Contents)
-	}
-	endToken := v.consumeToken()
+	endToken := v.expect(lexer.TOKEN_SEPARATOR, "}")
 
 	res := &EnumDeclNode{Name: NewLocatedString(name), Members: members}
 	res.SetWhere(lexer.NewSpanFromTokens(startToken, endToken))
@@ -728,10 +663,7 @@ func (v *parser) parseVarDecl() *VarDeclNode {
 		return nil
 	}
 
-	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ";") {
-		v.err("Expected `;` after variable declaration, got `%s`", v.peek(0).Contents)
-	}
-	endToken := v.consumeToken()
+	endToken := v.expect(lexer.TOKEN_SEPARATOR, ";")
 
 	res := body
 	res.SetWhere(lexer.NewSpan(body.Where().Start(), endToken.Where.End()))
@@ -834,10 +766,7 @@ func (v *parser) parseDeferStat() *DeferStatNode {
 		v.err("Expected valid call expression in defer statement")
 	}
 
-	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ";") {
-		v.err("Expected `;` after defer statement, got `%s`", v.peek(0).Contents)
-	}
-	endToken := v.consumeToken()
+	endToken := v.expect(lexer.TOKEN_SEPARATOR, ";")
 
 	res := &DeferStatNode{Call: call}
 	res.SetWhere(lexer.NewSpanFromTokens(startToken, endToken))
@@ -909,10 +838,7 @@ func (v *parser) parseMatchStat() *MatchStatNode {
 		v.err("Expected valid expresson as value in match statement")
 	}
 
-	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "{") {
-		v.err("Expected starting `{` after value in match statement, got `%s`", v.peek(0).Contents)
-	}
-	v.consumeToken()
+	v.expect(lexer.TOKEN_SEPARATOR, "{")
 
 	var cases []*MatchCaseNode
 	for {
@@ -934,10 +860,7 @@ func (v *parser) parseMatchStat() *MatchStatNode {
 			v.err("Expected valid expression as pattern in match statement")
 		}
 
-		if !v.tokenMatches(0, lexer.TOKEN_OPERATOR, "->") {
-			v.err("Expected `->` after match pattern, got `%s`", v.peek(0).Contents)
-		}
-		v.consumeToken()
+		v.expect(lexer.TOKEN_OPERATOR, "->")
 
 		body := v.parseStat()
 		if body == nil {
@@ -949,10 +872,7 @@ func (v *parser) parseMatchStat() *MatchStatNode {
 		cases = append(cases, caseNode)
 	}
 
-	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "}") {
-		v.err("Expected closing `}` after match statement, got `%s`", v.peek(0).Contents)
-	}
-	endToken := v.consumeToken()
+	endToken := v.expect(lexer.TOKEN_SEPARATOR, "}")
 
 	res := &MatchStatNode{Value: value, Cases: cases}
 	res.SetWhere(lexer.NewSpanFromTokens(startToken, endToken))
@@ -991,10 +911,7 @@ func (v *parser) parseReturnStat() *ReturnStatNode {
 
 	value := v.parseExpr()
 
-	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ";") {
-		v.err("Expected `;` after return statement, got `%s`", v.peek(0).Contents)
-	}
-	endToken := v.consumeToken()
+	endToken := v.expect(lexer.TOKEN_SEPARATOR, ";")
 
 	res := &ReturnStatNode{Value: value}
 	res.SetWhere(lexer.NewSpanFromTokens(startToken, endToken))
@@ -1045,10 +962,7 @@ func (v *parser) parseBlock() *BlockNode {
 		nodes = append(nodes, node)
 	}
 
-	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "}") {
-		v.err("Expected closing `}` after block, got `%s`", v.peek(0).Contents)
-	}
-	endToken := v.consumeToken()
+	endToken := v.expect(lexer.TOKEN_SEPARATOR, "}")
 
 	res := &BlockNode{Nodes: nodes}
 	res.SetWhere(lexer.NewSpanFromTokens(startToken, endToken))
@@ -1064,10 +978,7 @@ func (v *parser) parseCallStat() *CallStatNode {
 		return nil
 	}
 
-	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ";") {
-		v.err("Expected `;` after call statement")
-	}
-	endToken := v.consumeToken()
+	endToken := v.expect(lexer.TOKEN_SEPARATOR, ";")
 
 	res := &CallStatNode{Call: callExpr}
 	res.SetWhere(lexer.NewSpan(callExpr.Where().Start(), endToken.Where.End()))
@@ -1094,10 +1005,7 @@ func (v *parser) parseAssignStat() ParseNode {
 		v.err("Expected valid expression in assignment statement")
 	}
 
-	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ";") {
-		v.err("Expected `;` after assignment statement, got `%s`", v.peek(0).Contents)
-	}
-	endToken := v.consumeToken()
+	endToken := v.expect(lexer.TOKEN_SEPARATOR, ";")
 
 	res := &AssignStatNode{Target: accessExpr, Value: value}
 	res.SetWhere(lexer.NewSpan(accessExpr.Where().Start(), endToken.Where.End()))
@@ -1165,10 +1073,7 @@ func (v *parser) parseTupleType() *TupleTypeNode {
 		v.consumeToken()
 	}
 
-	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ")") {
-		v.err("Expected closing `)` after tuple type, got `%s`", v.peek(0).Contents)
-	}
-	endToken := v.consumeToken()
+	endToken := v.expect(lexer.TOKEN_SEPARATOR, ")")
 
 	res := &TupleTypeNode{MemberTypes: members}
 	res.SetWhere(lexer.NewSpanFromTokens(startToken, endToken))
@@ -1189,10 +1094,7 @@ func (v *parser) parseArrayType() *ArrayTypeNode {
 		v.err("Expected integer length for array type")
 	}
 
-	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "]") {
-		v.err("Expected closing `]` in array type, got `%s`", v.peek(0).Contents)
-	}
-	v.consumeToken()
+	v.expect(lexer.TOKEN_SEPARATOR, "]")
 
 	memberType := v.parseType()
 	if memberType == nil {
@@ -1321,20 +1223,14 @@ func (v *parser) parseSizeofExpr() *SizeofExprNode {
 	}
 	startToken := v.consumeToken()
 
-	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "(") {
-		v.err("Expected opening `(` in sizeof expression, got `%s`", v.peek(0).Contents)
-	}
-	v.consumeToken()
+	v.expect(lexer.TOKEN_SEPARATOR, "(")
 
 	value := v.parseExpr()
 	if value == nil {
 		v.err("Expected valid expression in sizeof expression")
 	}
 
-	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ")") {
-		v.err("Expected closing `)` after sizeof expression, got `%s`", v.peek(0).Contents)
-	}
-	endToken := v.consumeToken()
+	endToken := v.expect(lexer.TOKEN_SEPARATOR, ")")
 
 	res := &SizeofExprNode{Value: value}
 	res.SetWhere(lexer.NewSpanFromTokens(startToken, endToken))
@@ -1401,10 +1297,7 @@ func (v *parser) parseCastExpr() *CastExprNode {
 		v.err("Expected valid expression in cast expression")
 	}
 
-	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ")") {
-		v.err("Expected closing `)` after cast expression, got `%s`", v.peek(0).Contents)
-	}
-	endToken := v.consumeToken()
+	endToken := v.expect(lexer.TOKEN_SEPARATOR, ")")
 
 	res := &CastExprNode{Type: typ, Value: value}
 	res.SetWhere(lexer.NewSpan(typ.Where().Start(), endToken.Where.End()))
@@ -1466,10 +1359,7 @@ func (v *parser) parseCallExpr() *CallExprNode {
 		v.consumeToken()
 	}
 
-	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ")") {
-		v.err("Expected closing `)` after call, got `%s`", v.peek(0).Contents)
-	}
-	endToken := v.consumeToken()
+	endToken := v.expect(lexer.TOKEN_SEPARATOR, ")")
 
 	res := &CallExprNode{Function: function, Arguments: args}
 	res.SetWhere(lexer.NewSpan(function.Where().Start(), endToken.Where.End()))
@@ -1492,10 +1382,7 @@ func (v *parser) parseAccessExpr() ParseNode {
 			v.err("Expected valid access expression after `(` in access expression")
 		}
 
-		if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ")") {
-			v.err("Expected closing `)` in access expression, got `%s`", v.peek(0).Contents)
-		}
-		v.consumeToken()
+		v.expect(lexer.TOKEN_SEPARATOR, ")")
 	} else if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "^") {
 		startToken := v.consumeToken()
 
@@ -1515,11 +1402,7 @@ func (v *parser) parseAccessExpr() ParseNode {
 			// struct access
 			v.consumeToken()
 
-			if v.peek(0).Type != lexer.TOKEN_IDENTIFIER {
-				v.err("Expected identifier after struct access, got `%s`", v.peek(0).Contents)
-			}
-
-			member := v.consumeToken()
+			member := v.expect(lexer.TOKEN_IDENTIFIER, "")
 
 			res := &StructAccessNode{Struct: lhand, Member: NewLocatedString(member)}
 			res.SetWhere(lexer.NewSpan(lhand.Where().Start(), member.Where.End()))
@@ -1533,10 +1416,7 @@ func (v *parser) parseAccessExpr() ParseNode {
 				v.err("Expected valid expression as array index")
 			}
 
-			if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "]") {
-				v.err("Expected `]` after array index, found `%s`", v.peek(0).Contents)
-			}
-			endToken := v.consumeToken()
+			endToken := v.expect(lexer.TOKEN_SEPARATOR, "]")
 
 			res := &ArrayAccessNode{Array: lhand, Index: index}
 			res.SetWhere(lexer.NewSpan(lhand.Where().Start(), endToken.Where.End()))
@@ -1550,10 +1430,7 @@ func (v *parser) parseAccessExpr() ParseNode {
 				v.err("Expected integer for tuple index")
 			}
 
-			if !v.tokenMatches(0, lexer.TOKEN_OPERATOR, "|") {
-				v.err("Expected `|` after tuple index, found `%s`", v.peek(0).Contents)
-			}
-			endToken := v.consumeToken()
+			endToken := v.expect(lexer.TOKEN_OPERATOR, "|")
 
 			res := &TupleAccessNode{Tuple: lhand, Index: int(index.IntValue)}
 			res.SetWhere(lexer.NewSpan(index.Where().Start(), endToken.Where.End()))
@@ -1593,10 +1470,7 @@ func (v *parser) parseArrayLit() *ArrayLiteralNode {
 		v.consumeToken()
 	}
 
-	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "]") {
-		v.err("Expected closing `]` after array literal, got `%s`", v.peek(0).Contents)
-	}
-	endToken := v.consumeToken()
+	endToken := v.expect(lexer.TOKEN_SEPARATOR, "]")
 
 	res := &ArrayLiteralNode{Values: values}
 	res.SetWhere(lexer.NewSpanFromTokens(startToken, endToken))
@@ -1631,10 +1505,7 @@ func (v *parser) parseTupleLit() *TupleLiteralNode {
 		v.consumeToken()
 	}
 
-	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ")") {
-		v.err("Expected closing `)` after tuple literal, got `%s`", v.peek(0).Contents)
-	}
-	endToken := v.consumeToken()
+	endToken := v.expect(lexer.TOKEN_SEPARATOR, ")")
 
 	// Dirty hack
 	if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ".") {
