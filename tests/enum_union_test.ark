@@ -2,12 +2,12 @@
 
 enum Option {
     None,
-    Some(^void)
+    Some(^u8)
 }
 
 func main(): int {
-    [unused] x := Option::None;
-    [unused] y := Option::Some(^void(0xdeadbeef));
+    x := Option::None;
+    y := Option::Some(^u8(0xdeadbeef));
 
     C::printf("None-tag: %d\n", x);
     C::printf("Some-tag: %d\n", y);
