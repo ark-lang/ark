@@ -520,9 +520,18 @@ func (v *CastExprNode) construct(c *Constructor) Expr {
 }
 
 func (v *UnaryExprNode) construct(c *Constructor) Expr {
-	res := &UnaryExpr{}
-	res.Expr = c.constructExpr(v.Value)
-	res.Op = v.Operator
+	var res Expr
+	if v.Operator == UNOP_DEREF {
+		res = &DerefAccessExpr{
+			Expr: c.constructExpr(v.Value),
+		}
+	} else {
+		res = &UnaryExpr{
+			Expr: c.constructExpr(v.Value),
+			Op:   v.Operator,
+		}
+	}
+
 	res.setPos(v.Where().Start())
 	return res
 }
@@ -599,13 +608,6 @@ func (v *VariableAccessNode) construct(c *Constructor) Expr {
 		res.setPos(v.Where().Start())
 		return res
 	}
-}
-
-func (v *DerefAccessNode) construct(c *Constructor) Expr {
-	res := &DerefAccessExpr{}
-	res.Expr = c.constructExpr(v.Value)
-	res.setPos(v.Where().Start())
-	return res
 }
 
 func (v *StructAccessNode) construct(c *Constructor) Expr {
