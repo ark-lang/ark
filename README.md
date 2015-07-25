@@ -91,8 +91,4 @@ Requires `$GOPATH/bin` to be in your `$PATH` and Python 2.4 or newer.
 
     $ ./test.py
 
-## <a name="code-of-conduct"></a> Code Of Conduct
-This project adheres to the [Open Code of Conduct][code-of-conduct]. By participating, you are expected to honor this code.
-[code-of-conduct]: http://todogroup.org/opencodeofconduct/#ark-lang/mail@felixangell.com
-
 [1]: https://travis-ci.org/ark-lang/ark "Build Status"
