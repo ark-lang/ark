@@ -155,6 +155,11 @@ func (v *AssignStat) resolve(res *Resolver, s *Scope) {
 	v.Access.resolve(res, s)
 }
 
+func (v *BinopAssignStat) resolve(res *Resolver, s *Scope) {
+	v.Assignment.resolve(res, s)
+	v.Access.resolve(res, s)
+}
+
 func (v *LoopStat) resolve(res *Resolver, s *Scope) {
 	v.Body.resolve(res, s)
 

@@ -215,6 +215,13 @@ type AssignStatNode struct {
 	Value  ParseNode
 }
 
+type BinopAssignStatNode struct {
+	baseNode
+	Target   ParseNode
+	Operator BinOpType
+	Value    ParseNode
+}
+
 // expressions
 type BinaryExprNode struct {
 	baseNode

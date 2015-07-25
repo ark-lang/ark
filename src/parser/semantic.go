@@ -365,6 +365,20 @@ func (v *AssignStat) analyze(s *SemanticAnalyzer) {
 	}
 }
 
+// BinopAssignStat
+
+func (v *BinopAssignStat) analyze(s *SemanticAnalyzer) {
+	if !v.Access.Mutable() {
+		s.err(v, "Cannot assign value to immutable access")
+	}
+
+	v.Assignment.analyze(s)
+	v.Access.analyze(s)
+	if !v.Access.GetType().Equals(v.Assignment.GetType()) {
+		s.err(v, "Mismatched types: `%s` and `%s`", v.Access.GetType().TypeName(), v.Assignment.GetType().TypeName())
+	}
+}
+
 // LoopStat
 
 func (v *LoopStat) analyze(s *SemanticAnalyzer) {

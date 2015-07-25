@@ -509,6 +509,15 @@ func (v *AssignStatNode) construct(c *Constructor) Node {
 	return res
 }
 
+func (v *BinopAssignStatNode) construct(c *Constructor) Node {
+	res := &BinopAssignStat{}
+	res.Access = c.constructExpr(v.Target).(AccessExpr) // TODO: Error message
+	res.Operator = v.Operator
+	res.Assignment = c.constructExpr(v.Value)
+	res.setPos(v.Where().Start())
+	return res
+}
+
 func (v *BinaryExprNode) construct(c *Constructor) Expr {
 	res := &BinaryExpr{}
 	res.Lhand = c.constructExpr(v.Lhand)
