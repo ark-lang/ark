@@ -167,7 +167,7 @@ func (v *Codegen) addStructType(typ *parser.StructType) {
 
 	numOfFields := len(typ.Variables)
 	fields := make([]llvm.Type, numOfFields)
-	packed := false
+	packed := typ.Attrs().Contains("packed")
 
 	for i, member := range typ.Variables {
 		memberType := v.typeToLLVMType(member.Variable.Type)
