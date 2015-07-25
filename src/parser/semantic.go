@@ -683,9 +683,38 @@ func (v *StructLiteral) analyze(s *SemanticAnalyzer) {
 
 // EnumLiteral
 func (v *EnumLiteral) analyze(s *SemanticAnalyzer) {
-	// TODO: maybe check for duplciates or something?
+	enumType := v.Type.(*EnumType)
+
 	for _, val := range v.Values {
 		val.analyze(s)
+	}
+
+	memIdx := enumType.MemberIndex(v.Member)
+
+	if structType, ok := enumType.MemberTypes[memIdx].(*StructType); ok {
+		for idx, mem := range v.Values {
+			name := v.Names[idx]
+
+			decl := structType.GetVariableDecl(name)
+			if decl == nil {
+				s.err(v, "No member named `%s` on struct of type `%s`", name, structType.TypeName())
+			}
+
+			if !mem.GetType().Equals(decl.Variable.Type) {
+				s.err(v, "Cannot use value of type `%s` as member of `%s` with type `%s`",
+					mem.GetType().TypeName(), decl.Variable.Type.TypeName(), structType.TypeName())
+			}
+		}
+	} else if tupleType, ok := enumType.MemberTypes[memIdx].(*TupleType); ok {
+		if len(v.Values) != len(tupleType.Members) {
+			s.err(v, "Invalid amount of entries in tuple")
+		}
+
+		for idx, mem := range v.Values {
+			if !mem.GetType().Equals(tupleType.Members[idx]) {
+				s.err(v, "Cannot use component of type `%s` in tuple position of type `%s`", mem.GetType().TypeName(), tupleType.Members[idx])
+			}
+		}
 	}
 }
 
