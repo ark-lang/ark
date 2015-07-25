@@ -368,7 +368,7 @@ func (v *Codegen) genBinopAssignStat(n *parser.BinopAssignStat) {
 	storageValue := v.builder.CreateLoad(storage, "")
 	assignmentValue := v.genExpr(n.Assignment)
 
-	value := v.genBinop(n.Operator, n.Access.GetType(), storageValue, assignmentValue)
+	value := v.genBinop(n.Operator, n.Access.GetType(), n.Access.GetType(), n.Assignment.GetType(), storageValue, assignmentValue)
 	v.builder.CreateStore(value, storage)
 }
 
@@ -865,48 +865,48 @@ func (v *Codegen) genBinaryExpr(n *parser.BinaryExpr) llvm.Value {
 	lhand := v.genExpr(n.Lhand)
 	rhand := v.genExpr(n.Rhand)
 
-	return v.genBinop(n.Op, n.GetType(), lhand, rhand)
+	return v.genBinop(n.Op, n.GetType(), n.Lhand.GetType(), n.Rhand.GetType(), lhand, rhand)
 }
 
-func (v *Codegen) genBinop(operator parser.BinOpType, typ parser.Type, lhand, rhand llvm.Value) llvm.Value {
+func (v *Codegen) genBinop(operator parser.BinOpType, resType, lhandType, rhandType parser.Type, lhand, rhand llvm.Value) llvm.Value {
 	if lhand.IsNil() || rhand.IsNil() {
 		v.err("invalid binary expr")
 	} else {
 		switch operator {
 		// Arithmetic
 		case parser.BINOP_ADD:
-			if typ.IsFloatingType() {
+			if resType.IsFloatingType() {
 				return v.builder.CreateFAdd(lhand, rhand, "")
 			} else {
 				return v.builder.CreateAdd(lhand, rhand, "")
 			}
 		case parser.BINOP_SUB:
-			if typ.IsFloatingType() {
+			if resType.IsFloatingType() {
 				return v.builder.CreateFSub(lhand, rhand, "")
 			} else {
 				return v.builder.CreateSub(lhand, rhand, "")
 			}
 		case parser.BINOP_MUL:
-			if typ.IsFloatingType() {
+			if resType.IsFloatingType() {
 				return v.builder.CreateFMul(lhand, rhand, "")
 			} else {
 				return v.builder.CreateMul(lhand, rhand, "")
 			}
 		case parser.BINOP_DIV:
-			if typ.IsFloatingType() {
+			if resType.IsFloatingType() {
 				return v.builder.CreateFDiv(lhand, rhand, "")
 			} else {
-				if typ.(parser.PrimitiveType).IsSigned() {
+				if resType.(parser.PrimitiveType).IsSigned() {
 					return v.builder.CreateSDiv(lhand, rhand, "")
 				} else {
 					return v.builder.CreateUDiv(lhand, rhand, "")
 				}
 			}
 		case parser.BINOP_MOD:
-			if typ.IsFloatingType() {
+			if resType.IsFloatingType() {
 				return v.builder.CreateFRem(lhand, rhand, "")
 			} else {
-				if typ.(parser.PrimitiveType).IsSigned() {
+				if resType.(parser.PrimitiveType).IsSigned() {
 					return v.builder.CreateSRem(lhand, rhand, "")
 				} else {
 					return v.builder.CreateURem(lhand, rhand, "")
@@ -915,10 +915,10 @@ func (v *Codegen) genBinop(operator parser.BinOpType, typ parser.Type, lhand, rh
 
 		// Comparison
 		case parser.BINOP_GREATER, parser.BINOP_LESS, parser.BINOP_GREATER_EQ, parser.BINOP_LESS_EQ, parser.BINOP_EQ, parser.BINOP_NOT_EQ:
-			if typ.IsFloatingType() {
+			if lhandType.IsFloatingType() {
 				return v.builder.CreateFCmp(comparisonOpToFloatPredicate(operator), lhand, rhand, "")
 			} else {
-				return v.builder.CreateICmp(comparisonOpToIntPredicate(operator, typ.IsSigned()), lhand, rhand, "")
+				return v.builder.CreateICmp(comparisonOpToIntPredicate(operator, lhandType.IsSigned()), lhand, rhand, "")
 			}
 
 		// Bitwise
@@ -934,7 +934,7 @@ func (v *Codegen) genBinop(operator parser.BinOpType, typ parser.Type, lhand, rh
 			// TODO make sure both operands are same type (create type cast here?)
 			// TODO in semantic.go, make sure rhand is *unsigned* (LLVM always treats it that way)
 			// TODO doc this
-			if typ.IsSigned() {
+			if lhandType.IsSigned() {
 				return v.builder.CreateAShr(lhand, rhand, "")
 			} else {
 				return v.builder.CreateLShr(lhand, rhand, "")
