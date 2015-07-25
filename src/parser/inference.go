@@ -578,6 +578,12 @@ func (v *EnumLiteral) infer(s *TypeInferer) {
 
 	if enumType, ok := v.Type.(*EnumType); ok {
 		memIdx := enumType.MemberIndex(v.Member)
+
+		if memIdx < 0 {
+			s.err(v, "Enum `%s` has no member `%s`", v.Type.(*EnumType).Name, v.Member)
+			return
+		}
+
 		memType := enumType.MemberTypes[memIdx]
 
 		if structType, ok := memType.(*StructType); ok {
