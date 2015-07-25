@@ -10,8 +10,8 @@ func main(): int {
 	y := Tree::Leaf(36);
 	z := Tree::Node{left: &x, right: &y};
 
-    C::printf("Tree-tag: %d\n", x);
-    C::printf("Tree-tag: %d\n", y);
+    C::printf("Leaf-tag: %d\n", x);
+    C::printf("Leaf-tag: %d\n", y);
     C::printf("Node-tag: %d\n", z);
     return 0;
 }

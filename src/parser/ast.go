@@ -736,16 +736,19 @@ type EnumLiteral struct {
 	nodePos
 	Type   Type
 	Member string
-	Names  []string
-	Values []Expr
+
+	TupleLiteral  *TupleLiteral
+	StructLiteral *StructLiteral
 }
 
 func (v *EnumLiteral) exprNode() {}
 
 func (v *EnumLiteral) String() string {
 	res := "(" + util.Blue("EnumLiteral") + ":"
-	for _, val := range v.Values {
-		res += " " + val.String()
+	if v.TupleLiteral != nil {
+		res += v.TupleLiteral.String()
+	} else if v.StructLiteral != nil {
+		res += v.StructLiteral.String()
 	}
 	return res + ")"
 }

@@ -336,15 +336,13 @@ func (v *EnumDeclNode) construct(c *Constructor) Node {
 	enumType := &EnumType{}
 	enumType.Name = v.Name.Value
 	enumType.Simple = true
-	enumType.MemberNames = make([]string, len(v.Members))
-	enumType.MemberTypes = make([]Type, len(v.Members))
-	enumType.MemberTags = make([]int, len(v.Members))
+	enumType.Members = make([]EnumTypeMember, len(v.Members))
 	lastValue := 0
 	for idx, mem := range v.Members {
-		enumType.MemberNames[idx] = mem.Name.Value
+		enumType.Members[idx].Name = mem.Name.Value
 
 		if mem.TupleBody != nil {
-			enumType.MemberTypes[idx] = c.constructType(mem.TupleBody)
+			enumType.Members[idx].Type = c.constructType(mem.TupleBody)
 			enumType.Simple = false
 		} else if mem.StructBody != nil {
 			structType := &StructType{}
@@ -355,17 +353,17 @@ func (v *EnumDeclNode) construct(c *Constructor) Node {
 			}
 			c.popScope()
 
-			enumType.MemberTypes[idx] = structType
+			enumType.Members[idx].Type = structType
 			enumType.Simple = false
 		} else {
-			enumType.MemberTypes[idx] = PRIMITIVE_void
+			enumType.Members[idx].Type = PRIMITIVE_void
 		}
 
 		if mem.Value != nil {
 			// TODO: Check for overflow
 			lastValue = int(mem.Value.IntValue)
 		}
-		enumType.MemberTags[idx] = lastValue
+		enumType.Members[idx].Tag = lastValue
 		lastValue += 1
 	}
 
@@ -573,7 +571,7 @@ func (v *CallExprNode) construct(c *Constructor) Expr {
 		res := &EnumLiteral{}
 		res.Member = van.Name.Name.Value
 		res.Type = &UnresolvedType{Name: toParentName(van.Name)}
-		res.Values = c.constructExprs(v.Arguments)
+		res.TupleLiteral = &TupleLiteral{Members: c.constructExprs(v.Arguments)}
 		res.setPos(v.Where().Start())
 		return res
 	} else if typ.IsType() {
@@ -650,29 +648,24 @@ func (v *TupleLiteralNode) construct(c *Constructor) Expr {
 }
 
 func (v *StructLiteralNode) construct(c *Constructor) Expr {
+	res := &StructLiteral{}
+	if v.Name != nil {
+		res.Type = &UnresolvedType{Name: toUnresolvedName(v.Name)}
+	}
+	res.Values = make(map[string]Expr)
+	for idx, member := range v.Members {
+		res.Values[member.Value] = c.constructExpr(v.Values[idx])
+	}
+
 	if v.Name == nil || c.nameMap.TypeOfNameNode(v.Name) == NODE_STRUCT {
-		res := &StructLiteral{}
-		if v.Name != nil {
-			res.Type = &UnresolvedType{Name: toUnresolvedName(v.Name)}
-		}
-		res.Values = make(map[string]Expr)
-		for idx, member := range v.Members {
-			res.Values[member.Value] = c.constructExpr(v.Values[idx])
-		}
 		return res
 	} else if typ := c.nameMap.TypeOfNameNode(v.Name); typ == NODE_ENUM_MEMBER {
-		var members []string
-		for _, member := range v.Members {
-			members = append(members, member.Value)
-		}
-
-		res := &EnumLiteral{}
-		res.Member = v.Name.Name.Value
-		res.Type = &UnresolvedType{Name: toParentName(v.Name)}
-		res.Names = members
-		res.Values = c.constructExprs(v.Values)
-		res.setPos(v.Where().Start())
-		return res
+		enum := &EnumLiteral{}
+		enum.Member = v.Name.Name.Value
+		enum.Type = &UnresolvedType{Name: toParentName(v.Name)}
+		enum.StructLiteral = res
+		enum.setPos(v.Where().Start())
+		return enum
 	} else {
 		log.Debugln("constructor", "`%s` was a `%s`", v.Name.Name.Value, typ)
 		c.errSpan(v.Name.Name.Where, "Name `%s` is not a struct or a enum member", v.Name.Name.Value)

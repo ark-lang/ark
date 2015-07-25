@@ -573,38 +573,21 @@ func (v *StructLiteral) setTypeHint(t Type) {
 
 // EnumLiteral
 func (v *EnumLiteral) infer(s *TypeInferer) {
-	var structTypes map[string]Type
-	var tupleTypes []Type
-
 	if enumType, ok := v.Type.(*EnumType); ok {
 		memIdx := enumType.MemberIndex(v.Member)
 
-		if memIdx < 0 {
-			s.err(v, "Enum `%s` has no member `%s`", v.Type.(*EnumType).Name, v.Member)
+		if memIdx < 0 || memIdx >= len(enumType.Members) {
 			return
 		}
 
-		memType := enumType.MemberTypes[memIdx]
-
-		if structType, ok := memType.(*StructType); ok {
-			structTypes = make(map[string]Type)
-			for _, decl := range structType.Variables {
-				structTypes[decl.Variable.Name] = decl.Variable.Type
-			}
-		} else if tupleType, ok := memType.(*TupleType); ok {
-			tupleTypes = tupleType.Members
+		memType := enumType.Members[memIdx].Type
+		if structType, ok := memType.(*StructType); ok && v.StructLiteral != nil {
+			v.StructLiteral.setTypeHint(structType)
+			v.StructLiteral.infer(s)
+		} else if tupleType, ok := memType.(*TupleType); ok && v.TupleLiteral != nil {
+			v.TupleLiteral.setTypeHint(tupleType)
+			v.TupleLiteral.infer(s)
 		}
-	}
-
-	for idx, val := range v.Values {
-		if structTypes != nil {
-			name := v.Names[idx]
-			val.setTypeHint(structTypes[name])
-		} else if tupleTypes != nil {
-			val.setTypeHint(tupleTypes[idx])
-		}
-
-		val.infer(s)
 	}
 }
 
