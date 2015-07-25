@@ -1,0 +1,20 @@
+[c] func printf(fmt: str, ...): int;
+
+func main(): int {
+	mut x := 0;
+	x += 5;
+
+	C::printf("x was `0`, became `%d`\n", x);
+	if x != 5 {
+		return 1;
+	}
+
+	x <<= 2;
+
+	C::printf("x was `5`, became `%d`\n", x);
+	if x != 20 {
+		return 1;
+	}
+
+	return 0;
+}

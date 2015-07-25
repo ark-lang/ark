@@ -442,6 +442,27 @@ func (v *AssignStat) NodeName() string {
 	return "assignment statement"
 }
 
+// BinopAssignStat
+
+type BinopAssignStat struct {
+	nodePos
+	Access     AccessExpr
+	Operator   BinOpType
+	Assignment Expr
+}
+
+func (v *BinopAssignStat) statNode() {}
+
+func (v *BinopAssignStat) String() string {
+	result := "(" + util.Blue("BinopssignStat") + ": "
+	result += v.Access.String()
+	return result + " " + v.Operator.OpString() + "= " + v.Assignment.String() + ")"
+}
+
+func (v *BinopAssignStat) NodeName() string {
+	return "binop assignment statement"
+}
+
 // IfStat
 
 type IfStat struct {
