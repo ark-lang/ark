@@ -2,10 +2,10 @@ struct EmptyStruct {}
 
 [c] func printf(fmt: str, ...): int;
 
-func main(): int {
-    mut thing: Test = {z: 42};
+mut thing: Test = {z: 42};
 
-    C::printf("thing.z: %d\n", thing.z);
+func main(): int {
+    C::printf("thing.z: %f\n", thing.z);
     if thing.z != 42 {
         return 1;
     }

@@ -163,7 +163,19 @@ func (v *Function) analyze(s *SemanticAnalyzer) {
 }
 
 func (v *EnumDecl) analyze(s *SemanticAnalyzer) {
-	// We shouldn't need anything here
+	usedNames := make(map[string]bool)
+	usedTags := make(map[int]bool)
+	for _, mem := range v.Enum.Members {
+		if usedNames[mem.Name] {
+			s.err(v, "Duplicate member name `%s`", mem.Name)
+		}
+		usedNames[mem.Name] = true
+
+		if usedTags[mem.Tag] {
+			s.err(v, "Duplciate enum tag `%d` on member `%s`", mem.Tag, mem.Name)
+		}
+		usedTags[mem.Tag] = true
+	}
 }
 
 func (v *StructType) analyze(s *SemanticAnalyzer) {
@@ -685,36 +697,17 @@ func (v *StructLiteral) analyze(s *SemanticAnalyzer) {
 func (v *EnumLiteral) analyze(s *SemanticAnalyzer) {
 	enumType := v.Type.(*EnumType)
 
-	for _, val := range v.Values {
-		val.analyze(s)
-	}
-
 	memIdx := enumType.MemberIndex(v.Member)
 
-	if structType, ok := enumType.MemberTypes[memIdx].(*StructType); ok {
-		for idx, mem := range v.Values {
-			name := v.Names[idx]
+	if memIdx < 0 || memIdx >= len(enumType.Members) {
+		s.err(v, "Enum `%s` has no member `%s`", v.Type.(*EnumType).Name, v.Member)
+		return
+	}
 
-			decl := structType.GetVariableDecl(name)
-			if decl == nil {
-				s.err(v, "No member named `%s` on struct of type `%s`", name, structType.TypeName())
-			}
-
-			if !mem.GetType().Equals(decl.Variable.Type) {
-				s.err(v, "Cannot use value of type `%s` as member of `%s` with type `%s`",
-					mem.GetType().TypeName(), decl.Variable.Type.TypeName(), structType.TypeName())
-			}
-		}
-	} else if tupleType, ok := enumType.MemberTypes[memIdx].(*TupleType); ok {
-		if len(v.Values) != len(tupleType.Members) {
-			s.err(v, "Invalid amount of entries in tuple")
-		}
-
-		for idx, mem := range v.Values {
-			if !mem.GetType().Equals(tupleType.Members[idx]) {
-				s.err(v, "Cannot use component of type `%s` in tuple position of type `%s`", mem.GetType().TypeName(), tupleType.Members[idx])
-			}
-		}
+	if v.TupleLiteral != nil {
+		v.TupleLiteral.analyze(s)
+	} else if v.StructLiteral != nil {
+		v.StructLiteral.analyze(s)
 	}
 }
 

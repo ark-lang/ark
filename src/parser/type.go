@@ -515,12 +515,16 @@ func (v *TupleType) Equals(t Type) bool {
 
 // EnumType
 type EnumType struct {
-	Name        string
-	Simple      bool
-	MemberNames []string
-	MemberTypes []Type
-	MemberTags  []int
-	attrs       AttrGroup
+	Name    string
+	Simple  bool
+	Members []EnumTypeMember
+	attrs   AttrGroup
+}
+
+type EnumTypeMember struct {
+	Name string
+	Type Type
+	Tag  int
 }
 
 func (v *EnumType) String() string {
@@ -529,8 +533,8 @@ func (v *EnumType) String() string {
 		result += attr.String() + " "
 	}
 	result += v.Name + "\n"
-	for idx, name := range v.MemberNames {
-		result += "\t" + name + ": " + v.MemberTypes[idx].TypeName() + "\n"
+	for _, mem := range v.Members {
+		result += "\t" + mem.Name + ": " + mem.Type.TypeName() + "\n"
 	}
 	return result + util.Magenta(" <"+v.MangledName(MANGLE_ARK_UNSTABLE)+"> ") + ")"
 }
@@ -564,8 +568,8 @@ func (v *EnumType) CanCastTo(t Type) bool {
 }
 
 func (v *EnumType) MemberIndex(name string) int {
-	for idx, member := range v.MemberNames {
-		if member == name {
+	for idx, member := range v.Members {
+		if member.Name == name {
 			return idx
 		}
 	}
@@ -590,21 +594,20 @@ func (v *EnumType) Equals(t Type) bool {
 		return false
 	}
 
-	if len(v.MemberNames) != len(other.MemberNames) {
+	if len(v.Members) != len(other.Members) {
 		return false
 	}
 
-	for idx, _ := range v.MemberNames {
-		name, otherName := v.MemberNames[idx], other.MemberNames[idx]
-		typ, otherTyp := v.MemberTypes[idx], other.MemberTypes[idx]
-		tag, otherTag := v.MemberTags[idx], other.MemberTags[idx]
-		if name != otherName {
+	for idx, member := range v.Members {
+		otherMember := other.Members[idx]
+
+		if member.Name != otherMember.Name {
 			return false
 		}
-		if !typ.Equals(otherTyp) {
+		if !member.Type.Equals(otherMember.Type) {
 			return false
 		}
-		if tag != otherTag {
+		if member.Tag != otherMember.Tag {
 			return false
 		}
 	}

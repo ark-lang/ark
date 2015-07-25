@@ -324,8 +324,10 @@ func (v *StructLiteral) resolve(res *Resolver, s *Scope) {
 
 func (v *EnumLiteral) resolve(res *Resolver, s *Scope) {
 	v.Type = v.Type.resolveType(v, res, s)
-	for _, val := range v.Values {
-		val.resolve(res, s)
+	if v.TupleLiteral != nil {
+		v.TupleLiteral.resolve(res, s)
+	} else if v.StructLiteral != nil {
+		v.StructLiteral.resolve(res, s)
 	}
 }
 
@@ -384,8 +386,8 @@ func (v *EnumType) resolveType(src Locatable, res *Resolver, s *Scope) Type {
 	}
 	res.resolved[v] = true
 
-	for idx, mem := range v.MemberTypes {
-		v.MemberTypes[idx] = mem.resolveType(src, res, s)
+	for _, mem := range v.Members {
+		mem.Type = mem.Type.resolveType(src, res, s)
 	}
 	return v
 }

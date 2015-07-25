@@ -187,18 +187,18 @@ func (v *Codegen) addEnumType(typ *parser.EnumType) {
 	enum := v.curFile.Module.Context().StructCreateNamed(typ.MangledName(parser.MANGLE_ARK_UNSTABLE))
 
 	longestLength := uint64(0)
-	for _, memTyp := range typ.MemberTypes {
-		if memTyp == parser.PRIMITIVE_void {
+	for _, member := range typ.Members {
+		if member.Type == parser.PRIMITIVE_void {
 			continue
 		}
 
-		if structType, ok := memTyp.(*parser.StructType); ok {
+		if structType, ok := member.Type.(*parser.StructType); ok {
 			// TODO: Proper mangling of structs added from enums
 			// TODO: check recursive loop
 			v.addStructType(structType)
 		}
 
-		memLength := v.targetData.TypeAllocSize(v.typeToLLVMType(memTyp))
+		memLength := v.targetData.TypeAllocSize(v.typeToLLVMType(member.Type))
 		if memLength > longestLength {
 			longestLength = memLength
 		}
@@ -533,23 +533,6 @@ func (v *Codegen) genVariableDecl(n *parser.VariableDecl, semicolon bool) llvm.V
 
 		alloc := allocBuilder.CreateAlloca(v.typeToLLVMType(n.Variable.Type), mangledName)
 
-		// set allocated memory to zero
-		fn := v.curFile.Module.NamedFunction("llvm.memset.p0i8.i32")
-		if fn.IsNil() {
-			fnType := llvm.FunctionType(llvm.VoidType(), []llvm.Type{llvm.PointerType(llvm.IntType(8), 0), llvm.IntType(8), llvm.IntType(32), llvm.IntType(32), llvm.IntType(1)}, false)
-			fn = llvm.AddFunction(v.curFile.Module, "llvm.memset.p0i8.i32", fnType)
-		}
-
-		// cast alloc to byte array
-		castAlloc := allocBuilder.CreateBitCast(alloc, llvm.PointerType(llvm.IntType(8), 0), "")
-
-		// get type length
-		size := v.targetData.TypeAllocSize(v.typeToLLVMType(n.Variable.Type))
-		sizeValue := llvm.ConstInt(llvm.IntType(32), size, false)
-
-		// call memset intrinsic
-		allocBuilder.CreateCall(fn, []llvm.Value{castAlloc, llvm.ConstInt(llvm.IntType(8), 0, false), sizeValue, llvm.ConstInt(llvm.IntType(32), 0, false), llvm.ConstInt(llvm.IntType(1), 0, false)}, "")
-
 		allocBuilder.Dispose()
 
 		v.variableLookup[n.Variable] = alloc
@@ -730,133 +713,127 @@ func (v *Codegen) genArrayLiteral(n *parser.ArrayLiteral) llvm.Value {
 	arrayLLVMType := v.typeToLLVMType(n.Type)
 	memberLLVMType := v.typeToLLVMType(n.Type.(parser.ArrayType).MemberType)
 
+	arrayValues := make([]llvm.Value, len(n.Members))
+	for idx, mem := range n.Members {
+		value := v.genExpr(mem)
+		if !v.inFunction && !value.IsConstant() {
+			v.err("Encountered non-constant value in global array")
+		}
+		arrayValues[idx] = value
+	}
+
+	lengthValue := llvm.ConstInt(llvm.IntType(32), uint64(len(n.Members)), false)
+	var backingArrayPointer llvm.Value
+
 	if v.inFunction {
 		// allocate backing array
-		arrAlloca := v.builder.CreateAlloca(llvm.ArrayType(memberLLVMType, len(n.Members)), "")
+		backingArray := v.builder.CreateAlloca(llvm.ArrayType(memberLLVMType, len(n.Members)), "")
 
 		// copy the constant array to the backing array
-		for idx, value := range n.Members {
-			gep := v.builder.CreateStructGEP(arrAlloca, idx, "")
-			value := v.genExpr(value)
+		for idx, value := range arrayValues {
+			gep := v.builder.CreateStructGEP(backingArray, idx, "")
 			v.builder.CreateStore(value, gep)
 		}
 
-		// allocate struct
-		structAlloca := v.builder.CreateAlloca(arrayLLVMType, "")
-
-		// set the length of the array
-		lenGEP := v.builder.CreateStructGEP(structAlloca, 0, "")
-		v.builder.CreateStore(llvm.ConstInt(llvm.IntType(32), uint64(len(n.Members)), false), lenGEP)
-
-		// set the array pointer to the backing array we allocated
-		arrGEP := v.builder.CreateStructGEP(structAlloca, 1, "")
-		v.builder.CreateStore(v.builder.CreateBitCast(arrAlloca, llvm.PointerType(llvm.ArrayType(memberLLVMType, 0), 0), ""), arrGEP)
-
-		return v.builder.CreateLoad(structAlloca, "")
+		backingArrayPointer = v.builder.CreateBitCast(backingArray, llvm.PointerType(llvm.ArrayType(memberLLVMType, 0), 0), "")
 	} else {
 		backName := fmt.Sprintf("_globarr_back_%d", v.arrayIndex)
 		v.arrayIndex++
 
-		backGlob := llvm.AddGlobal(v.curFile.Module, llvm.ArrayType(memberLLVMType, len(n.Members)), backName)
-		backGlob.SetLinkage(llvm.InternalLinkage)
-		backGlob.SetGlobalConstant(false)
+		backingArray := llvm.AddGlobal(v.curFile.Module, llvm.ArrayType(memberLLVMType, len(n.Members)), backName)
+		backingArray.SetLinkage(llvm.InternalLinkage)
+		backingArray.SetGlobalConstant(false)
+		backingArray.SetInitializer(llvm.ConstArray(memberLLVMType, arrayValues))
 
-		arrConstVals := make([]llvm.Value, len(n.Members))
-		for idx, mem := range n.Members {
-			value := v.genExpr(mem)
-			if !value.IsConstant() {
-				v.err("Encountered non-constant value in global array")
-			}
-			arrConstVals[idx] = v.genExpr(mem)
-		}
-		backGlob.SetInitializer(llvm.ConstArray(memberLLVMType, arrConstVals))
-
-		lengthVal := llvm.ConstInt(llvm.IntType(32), uint64(len(n.Members)), false)
-		backRef := llvm.ConstBitCast(backGlob, llvm.PointerType(llvm.ArrayType(memberLLVMType, 0), 0))
-
-		return llvm.ConstStruct([]llvm.Value{lengthVal, backRef}, false)
+		backingArrayPointer = llvm.ConstBitCast(backingArray, llvm.PointerType(llvm.ArrayType(memberLLVMType, 0), 0))
 	}
+
+	structValue := llvm.Undef(arrayLLVMType)
+	structValue = v.builder.CreateInsertValue(structValue, lengthValue, 0, "")
+	structValue = v.builder.CreateInsertValue(structValue, backingArrayPointer, 1, "")
+	return structValue
 }
 
 func (v *Codegen) genTupleLiteral(n *parser.TupleLiteral) llvm.Value {
-	// TODO: Is this optimal?
-	// TODO: This probably doesn't work with global variables
-	var values []llvm.Value
-	for _, mem := range n.Members {
-		values = append(values, v.genExpr(mem))
+	tupleType := n.Type.(*parser.TupleType)
+	tupleLLVMType := v.typeToLLVMType(tupleType)
+
+	tupleValue := llvm.Undef(tupleLLVMType)
+	for idx, mem := range n.Members {
+		memberValue := v.genExpr(mem)
+
+		if !v.inFunction && !memberValue.IsConstant() {
+			v.err("Encountered non-constant value in global tuple literal")
+		}
+
+		tupleValue = v.builder.CreateInsertValue(tupleValue, memberValue, idx, "")
 	}
 
-	return llvm.ConstStruct(values, false)
+	return tupleValue
+}
+
+func (v *Codegen) genStructLiteral(n *parser.StructLiteral) llvm.Value {
+	structType := n.Type.(*parser.StructType)
+	structLLVMType := v.typeToLLVMType(structType)
+
+	structValue := llvm.Undef(structLLVMType)
+
+	for name, value := range n.Values {
+		vari := structType.GetVariableDecl(name).Variable
+		idx := structType.VariableIndex(vari)
+
+		memberValue := v.genExpr(value)
+		if !v.inFunction && !memberValue.IsConstant() {
+			v.err("Encountered non-constant value in global struct literal")
+		}
+
+		structValue = v.builder.CreateInsertValue(structValue, v.genExpr(value), idx, "")
+	}
+
+	return structValue
 }
 
 func (v *Codegen) genEnumLiteral(n *parser.EnumLiteral) llvm.Value {
 	enumType := n.Type.(*parser.EnumType)
 	enumLLVMType := v.typeToLLVMType(n.Type)
 
+	memberIdx := enumType.MemberIndex(n.Member)
+	member := enumType.Members[memberIdx]
+
+	// TODO: Handle other integer size, maybe dynamic depending on max value?
+	tagValue := llvm.ConstInt(llvm.IntType(32), uint64(member.Tag), false)
+
 	if enumType.Simple {
-		memberIdx := enumType.MemberIndex(n.Member)
-		tag := enumType.MemberTags[memberIdx]
-		// TODO: Handle other integer size, maybe dynamic depending on max value?
-		return llvm.ConstInt(llvm.IntType(32), uint64(tag), false)
+		return tagValue
+	}
+
+	enumValue := llvm.Undef(enumLLVMType)
+	enumValue = v.builder.CreateInsertValue(enumValue, tagValue, 0, "")
+
+	memberLLVMType := v.typeToLLVMType(member.Type)
+
+	var memberValue llvm.Value
+	if n.TupleLiteral != nil {
+		memberValue = v.genTupleLiteral(n.TupleLiteral)
+	} else if n.StructLiteral != nil {
+		memberValue = v.genStructLiteral(n.StructLiteral)
 	}
 
 	if v.inFunction {
 		alloc := v.builder.CreateAlloca(enumLLVMType, "")
 
-		memberIdx := enumType.MemberIndex(n.Member)
-		tag := enumType.MemberTags[memberIdx]
-
 		tagGep := v.builder.CreateStructGEP(alloc, 0, "")
-		v.builder.CreateStore(llvm.ConstInt(llvm.IntType(32), uint64(tag), false), tagGep)
+		v.builder.CreateStore(tagValue, tagGep)
 
-		if len(n.Values) > 0 {
-			innerType := enumType.MemberTypes[memberIdx]
-			innerLLVMType := v.typeToLLVMType(innerType)
+		dataGep := v.builder.CreateStructGEP(alloc, 1, "")
 
-			dataGep := v.builder.CreateStructGEP(alloc, 1, "")
-			dataGep = v.builder.CreateBitCast(dataGep, llvm.PointerType(innerLLVMType, 0), "")
+		dataGep = v.builder.CreateBitCast(dataGep, llvm.PointerType(memberLLVMType, 0), "")
 
-			if structType, ok := innerType.(*parser.StructType); ok {
-				for idx, value := range n.Values {
-					name := n.Names[idx]
-					vari := structType.GetVariableDecl(name).Variable
-					i := structType.VariableIndex(vari)
-
-					gep := v.builder.CreateStructGEP(dataGep, i, "")
-					v.builder.CreateStore(v.genExpr(value), gep)
-				}
-			} else {
-				for idx, value := range n.Values {
-					memberGep := v.builder.CreateStructGEP(dataGep, idx, "")
-					v.builder.CreateStore(v.genExpr(value), memberGep)
-				}
-			}
-		}
-		return v.builder.CreateLoad(alloc, "")
-	} else {
-		// TODO: Global enum literals
-		panic("unimplemented: global enum literals")
-	}
-}
-
-func (v *Codegen) genStructLiteral(n *parser.StructLiteral) llvm.Value {
-	structType := n.Type.(*parser.StructType)
-	structLLVMType := v.typeToLLVMType(structType)
-	if v.inFunction {
-		alloc := v.builder.CreateAlloca(structLLVMType, "")
-
-		for name, value := range n.Values {
-			vari := structType.GetVariableDecl(name).Variable
-			idx := structType.VariableIndex(vari)
-
-			gep := v.builder.CreateStructGEP(alloc, idx, "")
-			v.builder.CreateStore(v.genExpr(value), gep)
-		}
+		v.builder.CreateStore(memberValue, dataGep)
 
 		return v.builder.CreateLoad(alloc, "")
 	} else {
-		// TODO: Global struct literals
-		panic("unimplemented: global struct literals")
+		panic("unimplemented: global enum literal")
 	}
 }
 
