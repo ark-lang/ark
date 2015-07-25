@@ -1,6 +1,5 @@
 package lexer
 
-//go:generate stringer -type=TokenType
 type TokenType int
 
 const (
@@ -15,6 +14,12 @@ const (
 	TOKEN_DOCCOMMENT
 	TOKEN_END_OF_FILE
 )
+
+var tokenStrings = []string{"rune", "identifier", "separator", "operator", "number", "erroneous", "string", "unknowns", "doccomment", "eof"}
+
+func (v TokenType) String() string {
+	return tokenStrings[v] + " token"
+}
 
 type Token struct {
 	Type     TokenType
