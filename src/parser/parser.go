@@ -688,7 +688,11 @@ func (v *parser) parseVarDeclBody() *VarDeclNode {
 	if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "=") {
 		v.consumeToken()
 
-		value = v.parseExpr()
+		value = v.parseCompositeLiteral()
+		if value == nil {
+			value = v.parseExpr()
+		}
+
 		if value == nil {
 			v.err("Expected valid expression after `=` in variable declaration")
 		}
@@ -981,7 +985,12 @@ func (v *parser) parseAssignStat() ParseNode {
 	// consume '='
 	v.consumeToken()
 
-	value := v.parseExpr()
+	var value ParseNode
+	value = v.parseCompositeLiteral()
+	if value == nil {
+		value = v.parseExpr()
+	}
+
 	if value == nil {
 		v.err("Expected valid expression in assignment statement")
 	}
@@ -1315,12 +1324,8 @@ func (v *parser) parseLitExpr() ParseNode {
 
 	var res ParseNode
 
-	if arrayLit := v.parseArrayLit(); arrayLit != nil {
-		res = arrayLit
-	} else if tupleLit := v.parseTupleLit(); tupleLit != nil {
+	if tupleLit := v.parseTupleLit(); tupleLit != nil {
 		res = tupleLit
-	} else if structLit := v.parseStructLit(); structLit != nil {
-		res = structLit
 	} else if boolLit := v.parseBoolLit(); boolLit != nil {
 		res = boolLit
 	} else if numberLit := v.parseNumberLit(); numberLit != nil {
@@ -1378,6 +1383,18 @@ func (v *parser) parseUnaryExpr() *UnaryExprNode {
 
 	res := &UnaryExprNode{Value: value, Operator: op}
 	res.SetWhere(lexer.NewSpan(startToken.Where.Start(), value.Where().End()))
+	return res
+}
+
+func (v *parser) parseCompositeLiteral() ParseNode {
+	defer un(trace(v, "complit"))
+
+	var res ParseNode
+	if arrayLit := v.parseArrayLit(); arrayLit != nil {
+		res = arrayLit
+	} else if structLit := v.parseStructLit(); structLit != nil {
+		res = structLit
+	}
 	return res
 }
 
