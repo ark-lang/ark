@@ -48,7 +48,14 @@ func UnescapeString(s string) string {
 	for i := 0; i < len(sr); i++ {
 		if sr[i] == '\\' {
 			i++
-			out = append(out, []rune(SIMPLE_ESCAPE_VALUES)[strings.IndexRune(SIMPLE_ESCAPE_NAMES, sr[i])])
+
+			index := strings.IndexRune(SIMPLE_ESCAPE_NAMES, sr[i])
+
+			if index < 0 {
+				panic("bad escape. todo proper error")
+			}
+
+			out = append(out, []rune(SIMPLE_ESCAPE_VALUES)[index])
 		} else {
 			out = append(out, sr[i])
 		}
