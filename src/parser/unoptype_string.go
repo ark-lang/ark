@@ -4,9 +4,9 @@ package parser
 
 import "fmt"
 
-const _UnOpType_name = "UNOP_ERRUNOP_LOG_NOTUNOP_BIT_NOTUNOP_NEGATIVE"
+const _UnOpType_name = "UNOP_ERRUNOP_LOG_NOTUNOP_BIT_NOTUNOP_NEGATIVEUNOP_DEREF"
 
-var _UnOpType_index = [...]uint8{8, 20, 32, 45}
+var _UnOpType_index = [...]uint8{8, 20, 32, 45, 55}
 
 func (i UnOpType) String() string {
 	if i < 0 || i >= UnOpType(len(_UnOpType_index)) {

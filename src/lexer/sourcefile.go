@@ -41,16 +41,27 @@ func (s *Sourcefile) GetLine(line int) string {
 	return string(s.Contents[s.NewLines[line]+1 : s.NewLines[line+1]])
 }
 
+const TabWidth = 4
+
 func (s *Sourcefile) MarkPos(pos Position) string {
 	buf := new(bytes.Buffer)
 
 	lineString := s.GetLine(pos.Line)
+	lineStringRunes := []rune(lineString)
 	pad := pos.Char - 1
 
-	buf.WriteString(strings.Replace(lineString, "%", "%%", -1))
+	buf.WriteString(strings.Replace(strings.Replace(lineString, "%", "%%", -1), "\t", "    ", -1))
 	buf.WriteRune('\n')
 	for i := 0; i < pad; i++ {
-		buf.WriteRune(' ')
+		spaces := 1
+
+		if lineStringRunes[i] == '\t' {
+			spaces = TabWidth
+		}
+
+		for t := 0; t < spaces; t++ {
+			buf.WriteRune(' ')
+		}
 	}
 	buf.WriteRune('^')
 	buf.WriteRune('\n')
@@ -64,6 +75,7 @@ func (s *Sourcefile) MarkSpan(span Span) string {
 
 	for line := span.StartLine; line <= span.EndLine; line++ {
 		lineString := s.GetLine(line)
+		lineStringRunes := []rune(lineString)
 
 		var pad int
 		if line == span.StartLine {
@@ -76,18 +88,34 @@ func (s *Sourcefile) MarkSpan(span Span) string {
 		if line == span.EndLine {
 			length = span.EndChar - span.StartChar
 		} else {
-			length = len([]rune(lineString))
-			// assumes 8-length tabs in terminal
-			length += 7 * strings.Count(lineString, "\t")
+			length = len(lineStringRunes)
 		}
 
-		buf.WriteString(strings.Replace(lineString, "%", "%%", -1))
+		buf.WriteString(strings.Replace(strings.Replace(lineString, "%", "%%", -1), "\t", "    ", -1))
 		buf.WriteRune('\n')
+
 		for i := 0; i < pad; i++ {
-			buf.WriteRune(' ')
+			spaces := 1
+
+			if lineStringRunes[i] == '\t' {
+				spaces = TabWidth
+			}
+
+			for t := 0; t < spaces; t++ {
+				buf.WriteRune(' ')
+			}
 		}
 		for i := 0; i < length; i++ {
-			buf.WriteRune('^')
+			// there must be a less repetitive way to do this but oh well
+			spaces := 1
+
+			if lineStringRunes[i+pad] == '\t' {
+				spaces = TabWidth
+			}
+
+			for t := 0; t < spaces; t++ {
+				buf.WriteRune('~')
+			}
 		}
 		buf.WriteRune('\n')
 	}
