@@ -300,13 +300,13 @@ func (v *lexer) recognizeCharacterToken() {
 }
 
 func (v *lexer) recognizeOperatorToken() {
-	// stop := from being treated as an operator
-	// treat them as individual operators instead.
-	if v.peek(0) == ':' && v.peek(1) == '=' {
+	if strings.ContainsRune("=!><", v.peek(0)) && v.peek(1) == '=' {
+		v.consume()
 		v.consume()
 	} else {
+		// never consume ^ or = into an mixed/combined operator
 		v.consume()
-		if isOperator(v.peek(0)) && v.peek(0) != '^' {
+		if isOperator(v.peek(0)) && v.peek(0) != '^' && v.peek(0) != '=' {
 			v.consume()
 		}
 	}

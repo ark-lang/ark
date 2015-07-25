@@ -8,7 +8,6 @@ const (
 	OP_BITWISE
 	OP_LOGICAL
 	OP_ASSIGN
-	OP_ACCESS
 )
 
 func (v OpCategory) PrettyString() string {
@@ -23,8 +22,6 @@ func (v OpCategory) PrettyString() string {
 		return "logical"
 	case OP_ASSIGN:
 		return "assignment"
-	case OP_ACCESS:
-		return "access"
 	default:
 		panic("missing opcategory")
 	}

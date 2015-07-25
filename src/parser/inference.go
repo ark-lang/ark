@@ -185,6 +185,14 @@ func (v *AssignStat) infer(s *TypeInferer) {
 	v.Access.infer(s)
 }
 
+// BinopAssignStat
+
+func (v *BinopAssignStat) infer(s *TypeInferer) {
+	v.Assignment.setTypeHint(v.Access.GetType())
+	v.Assignment.infer(s)
+	v.Access.infer(s)
+}
+
 // LoopStat
 
 func (v *LoopStat) infer(s *TypeInferer) {

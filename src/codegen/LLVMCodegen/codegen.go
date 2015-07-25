@@ -287,6 +287,8 @@ func (v *Codegen) genStat(n parser.Stat) {
 		v.genCallStat(n.(*parser.CallStat))
 	case *parser.AssignStat:
 		v.genAssignStat(n.(*parser.AssignStat))
+	case *parser.BinopAssignStat:
+		v.genBinopAssignStat(n.(*parser.BinopAssignStat))
 	case *parser.IfStat:
 		v.genIfStat(n.(*parser.IfStat))
 	case *parser.LoopStat:
@@ -296,7 +298,7 @@ func (v *Codegen) genStat(n parser.Stat) {
 	case *parser.DeferStat:
 		v.genDeferStat(n.(*parser.DeferStat))
 	default:
-		panic("unimplimented stat")
+		panic("unimplemented stat")
 	}
 }
 
@@ -358,6 +360,16 @@ func (v *Codegen) genCallStat(n *parser.CallStat) {
 
 func (v *Codegen) genAssignStat(n *parser.AssignStat) {
 	v.builder.CreateStore(v.genExpr(n.Assignment), v.genAccessGEP(n.Access))
+}
+
+func (v *Codegen) genBinopAssignStat(n *parser.BinopAssignStat) {
+	storage := v.genAccessGEP(n.Access)
+
+	storageValue := v.builder.CreateLoad(storage, "")
+	assignmentValue := v.genExpr(n.Assignment)
+
+	value := v.genBinop(n.Operator, n.Access.GetType(), storageValue, assignmentValue)
+	v.builder.CreateStore(value, storage)
 }
 
 func (v *Codegen) genIfStat(n *parser.IfStat) {
@@ -850,49 +862,51 @@ func (v *Codegen) genStringLiteral(n *parser.StringLiteral) llvm.Value {
 }
 
 func (v *Codegen) genBinaryExpr(n *parser.BinaryExpr) llvm.Value {
-	var res llvm.Value
-
 	lhand := v.genExpr(n.Lhand)
 	rhand := v.genExpr(n.Rhand)
 
+	return v.genBinop(n.Op, n.GetType(), lhand, rhand)
+}
+
+func (v *Codegen) genBinop(operator parser.BinOpType, typ parser.Type, lhand, rhand llvm.Value) llvm.Value {
 	if lhand.IsNil() || rhand.IsNil() {
 		v.err("invalid binary expr")
 	} else {
-		switch n.Op {
+		switch operator {
 		// Arithmetic
 		case parser.BINOP_ADD:
-			if n.GetType().IsFloatingType() {
+			if typ.IsFloatingType() {
 				return v.builder.CreateFAdd(lhand, rhand, "")
 			} else {
 				return v.builder.CreateAdd(lhand, rhand, "")
 			}
 		case parser.BINOP_SUB:
-			if n.GetType().IsFloatingType() {
+			if typ.IsFloatingType() {
 				return v.builder.CreateFSub(lhand, rhand, "")
 			} else {
 				return v.builder.CreateSub(lhand, rhand, "")
 			}
 		case parser.BINOP_MUL:
-			if n.GetType().IsFloatingType() {
+			if typ.IsFloatingType() {
 				return v.builder.CreateFMul(lhand, rhand, "")
 			} else {
 				return v.builder.CreateMul(lhand, rhand, "")
 			}
 		case parser.BINOP_DIV:
-			if n.GetType().IsFloatingType() {
+			if typ.IsFloatingType() {
 				return v.builder.CreateFDiv(lhand, rhand, "")
 			} else {
-				if n.GetType().(parser.PrimitiveType).IsSigned() {
+				if typ.(parser.PrimitiveType).IsSigned() {
 					return v.builder.CreateSDiv(lhand, rhand, "")
 				} else {
 					return v.builder.CreateUDiv(lhand, rhand, "")
 				}
 			}
 		case parser.BINOP_MOD:
-			if n.GetType().IsFloatingType() {
+			if typ.IsFloatingType() {
 				return v.builder.CreateFRem(lhand, rhand, "")
 			} else {
-				if n.GetType().(parser.PrimitiveType).IsSigned() {
+				if typ.(parser.PrimitiveType).IsSigned() {
 					return v.builder.CreateSRem(lhand, rhand, "")
 				} else {
 					return v.builder.CreateURem(lhand, rhand, "")
@@ -901,10 +915,10 @@ func (v *Codegen) genBinaryExpr(n *parser.BinaryExpr) llvm.Value {
 
 		// Comparison
 		case parser.BINOP_GREATER, parser.BINOP_LESS, parser.BINOP_GREATER_EQ, parser.BINOP_LESS_EQ, parser.BINOP_EQ, parser.BINOP_NOT_EQ:
-			if n.Lhand.GetType().IsFloatingType() {
-				return v.builder.CreateFCmp(comparisonOpToFloatPredicate(n.Op), lhand, rhand, "")
+			if typ.IsFloatingType() {
+				return v.builder.CreateFCmp(comparisonOpToFloatPredicate(operator), lhand, rhand, "")
 			} else {
-				return v.builder.CreateICmp(comparisonOpToIntPredicate(n.Op, n.Lhand.GetType().IsSigned()), lhand, rhand, "")
+				return v.builder.CreateICmp(comparisonOpToIntPredicate(operator, typ.IsSigned()), lhand, rhand, "")
 			}
 
 		// Bitwise
@@ -920,7 +934,7 @@ func (v *Codegen) genBinaryExpr(n *parser.BinaryExpr) llvm.Value {
 			// TODO make sure both operands are same type (create type cast here?)
 			// TODO in semantic.go, make sure rhand is *unsigned* (LLVM always treats it that way)
 			// TODO doc this
-			if n.Lhand.GetType().IsSigned() {
+			if typ.IsSigned() {
 				return v.builder.CreateAShr(lhand, rhand, "")
 			} else {
 				return v.builder.CreateLShr(lhand, rhand, "")
@@ -937,7 +951,7 @@ func (v *Codegen) genBinaryExpr(n *parser.BinaryExpr) llvm.Value {
 		}
 	}
 
-	return res
+	panic("unreachable")
 }
 
 func comparisonOpToIntPredicate(op parser.BinOpType, signed bool) llvm.IntPredicate {
@@ -1005,7 +1019,7 @@ func (v *Codegen) genUnaryExpr(n *parser.UnaryExpr) llvm.Value {
 }
 
 func (v *Codegen) genCastExpr(n *parser.CastExpr) llvm.Value {
-	if n.GetType() == n.Expr.GetType() {
+	if n.GetType().Equals(n.Expr.GetType()) {
 		return v.genExpr(n.Expr)
 	}
 

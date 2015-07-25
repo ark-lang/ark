@@ -738,6 +738,8 @@ func (v *parser) parseStat() ParseNode {
 		res = callStat
 	} else if assignStat := v.parseAssignStat(); assignStat != nil {
 		res = assignStat
+	} else if binopAssignStat := v.parseBinopAssignStat(); binopAssignStat != nil {
+		res = binopAssignStat
 	}
 
 	return res
@@ -998,6 +1000,43 @@ func (v *parser) parseAssignStat() ParseNode {
 	endToken := v.expect(lexer.TOKEN_SEPARATOR, ";")
 
 	res := &AssignStatNode{Target: accessExpr, Value: value}
+	res.SetWhere(lexer.NewSpan(accessExpr.Where().Start(), endToken.Where.End()))
+	return res
+}
+
+func (v *parser) parseBinopAssignStat() ParseNode {
+	defer un(trace(v, "binopassignstat"))
+
+	startPos := v.currentToken
+
+	accessExpr := v.parseExpr()
+	if accessExpr == nil || !v.tokensMatch(lexer.TOKEN_OPERATOR, "", lexer.TOKEN_OPERATOR, "=") {
+		v.currentToken = startPos
+		return nil
+	}
+
+	typ := stringToBinOpType(v.peek(0).Contents)
+	if typ == BINOP_ERR || typ.Category() == OP_COMPARISON {
+		v.err("Invalid binary operator `%s`", v.peek(0).Contents)
+	}
+	v.consumeToken()
+
+	// consume '='
+	v.consumeToken()
+
+	var value ParseNode
+	value = v.parseCompositeLiteral()
+	if value == nil {
+		value = v.parseExpr()
+	}
+
+	if value == nil {
+		v.err("Expected valid expression in assignment statement")
+	}
+
+	endToken := v.expect(lexer.TOKEN_SEPARATOR, ";")
+
+	res := &BinopAssignStatNode{Target: accessExpr, Operator: typ, Value: value}
 	res.SetWhere(lexer.NewSpan(accessExpr.Where().Start(), endToken.Where.End()))
 	return res
 }
