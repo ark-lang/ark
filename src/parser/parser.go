@@ -1274,6 +1274,7 @@ func (v *parser) parsePrimaryExpr() ParseNode {
 		res = unaryExpr
 	} else if name := v.parseName(); name != nil {
 		res = &VariableAccessNode{Name: name}
+		res.SetWhere(lexer.NewSpan(name.Where().Start(), name.Where().End()))
 	}
 
 	return res
