@@ -114,6 +114,7 @@ type StructType struct {
 	Name         string
 	Variables    []*VariableDecl
 	attrs        AttrGroup
+	ParentEnum   *EnumType
 	ParentModule *Module
 }
 

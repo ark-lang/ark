@@ -359,8 +359,11 @@ func (v *EnumDeclNode) construct(c *Constructor) Node {
 			enumType.Members[idx].Type = c.constructType(mem.TupleBody)
 			enumType.Simple = false
 		} else if mem.StructBody != nil {
-			structType := &StructType{}
-			structType.Name = "_" + v.Name.Value + "::" + mem.Name.Value
+			structType := &StructType{
+				Name:       mem.Name.Value,
+				ParentEnum: enumType,
+			}
+
 			c.pushScope()
 			for _, member := range mem.StructBody.Members {
 				structType.addVariableDecl(c.constructNode(member).(*VariableDecl)) // TODO: Error message
