@@ -1059,8 +1059,11 @@ func (v *Codegen) genCastExpr(n *parser.CastExpr) llvm.Value {
 
 	if exprType.IsIntegerType() || exprType == parser.PRIMITIVE_rune {
 		if _, ok := castType.(parser.PointerType); ok {
-			// TODO: This might not be right in all cases
-			return v.builder.CreateIntToPtr(v.genExpr(n.Expr), v.typeToLLVMType(castType), "")
+			if _, ok := exprType.(parser.PointerType); ok {
+				return v.builder.CreateBitCast(v.genExpr(n.Expr), v.typeToLLVMType(castType), "")
+			} else {
+				return v.builder.CreateIntToPtr(v.genExpr(n.Expr), v.typeToLLVMType(castType), "")
+			}
 		} else if castType.IsIntegerType() || castType == parser.PRIMITIVE_rune {
 			exprBits := v.typeToLLVMType(exprType).IntTypeWidth()
 			castBits := v.typeToLLVMType(castType).IntTypeWidth()
