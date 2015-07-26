@@ -568,6 +568,23 @@ func (v *MatchStat) NodeName() string {
 	return "match statement"
 }
 
+// Default stat
+type DefaultStat struct {
+	nodePos
+
+	Target AccessExpr
+}
+
+func (v *DefaultStat) statNode() {}
+
+func (v *DefaultStat) String() string {
+	return "(" + util.Blue("DefaultStat") + ": " + v.Target.String() + ")"
+}
+
+func (v *DefaultStat) NodeName() string {
+	return "default statement"
+}
+
 /**
  * Expressions
  */
@@ -1118,6 +1135,30 @@ func (v *SizeofExpr) GetType() Type {
 
 func (v *SizeofExpr) NodeName() string {
 	return "sizeof expression"
+}
+
+// DefaultExpr
+
+type DefaultExpr struct {
+	nodePos
+
+	Type Type
+}
+
+func (v *DefaultExpr) exprNode() {}
+
+func (v *DefaultExpr) String() string {
+	ret := "(" + util.Blue("DefaultExpr") + ": "
+	ret += v.Type.TypeName()
+	return ret + ")"
+}
+
+func (v *DefaultExpr) GetType() Type {
+	return v.Type
+}
+
+func (v *DefaultExpr) NodeName() string {
+	return "default expression"
 }
 
 // DefaultMatchBranch

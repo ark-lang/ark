@@ -1,4 +1,6 @@
 [c] func printf(fmt: str, ...): int;
+[c] func malloc(size: uint): ^void;
+[c] func free(ptr: ^void);
 
 struct Test {
     x: int = 1,
@@ -8,27 +10,41 @@ struct Test {
 }
 
 func main(): int {
-    // To create without defaults -> t: Test = {};
-	t := default(Test);
+	x := default(int);
+	y := default(bool);
+
+	C::printf("x = %d\n", x);
+	if x != 0 {
+		return 1;
+	}
+
+	C::printf("y = %d\n", y);
+	if y != false {
+		return 2;
+	}
+
+	t := ^Test(C::malloc(sizeof(^Test)));
+	defer C::free(^void(t));
+	default(^t);
     
     C::printf("t.x = %d\n", t.x);
     if t.x != 1 {
-    	return 1;
+    	return 3;
     }
 
     C::printf("t.y = %d\n", t.y);
     if t.y != 2 {
-    	return 2;
+    	return 4;
     }
 
     C::printf("t.a = %d\n", t.a);
     if t.a != 3 {
-    	return 3;
+    	return 5;
     }
 
     C::printf("t.b = %d\n", t.b);
     if t.b != 4 {
-    	return 4;
+    	return 6;
     }
 
     return 0;
