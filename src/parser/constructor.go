@@ -361,7 +361,7 @@ func (v *EnumDeclNode) construct(c *Constructor) Node {
 
 		if mem.Value != nil {
 			// TODO: Check for overflow
-			lastValue = int(mem.Value.IntValue)
+			lastValue = int(mem.Value.IntValue.Int64())
 		}
 		enumType.Members[idx].Tag = lastValue
 		lastValue += 1

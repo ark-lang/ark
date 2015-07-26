@@ -5,6 +5,7 @@ package parser
 
 import (
 	"fmt"
+	"math/big"
 	"os"
 	"strconv"
 	"strings"
@@ -1129,7 +1130,7 @@ func (v *parser) parseArrayType() *ArrayTypeNode {
 	res := &ArrayTypeNode{MemberType: memberType}
 	if length != nil {
 		// TODO: Defend against overflow
-		res.Length = int(length.IntValue)
+		res.Length = int(length.IntValue.Int64())
 	}
 	res.SetWhere(lexer.NewSpan(startToken.Where.Start(), memberType.Where().End()))
 	return res
@@ -1257,7 +1258,7 @@ func (v *parser) parsePostfixExpr() ParseNode {
 
 			endToken := v.expect(lexer.TOKEN_OPERATOR, "|")
 
-			res := &TupleAccessNode{Tuple: expr, Index: int(index.IntValue)}
+			res := &TupleAccessNode{Tuple: expr, Index: int(index.IntValue.Int64())}
 			res.SetWhere(lexer.NewSpan(expr.Where().Start(), endToken.Where.End()))
 			expr = res
 		} else if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "(") {
@@ -1573,10 +1574,41 @@ func (v *parser) parseBoolLit() *BoolLitNode {
 	return res
 }
 
+func parseInt(num string, base int64) (*big.Int, bool) {
+	ret := big.NewInt(0)
+
+	for _, r := range num {
+		if r == '_' {
+			continue
+		}
+
+		ret.Mul(ret, big.NewInt(int64(base)))
+
+		var val int64
+
+		if r >= '0' && r <= '9' {
+			val = int64(r - '0')
+		} else if r >= 'a' && r <= 'f' {
+			val = 10 + int64(r-'a')
+		} else if r >= 'A' && r <= 'F' {
+			val = 10 + int64(r-'A')
+		} else {
+			return nil, false
+		}
+
+		if val >= base {
+			return nil, false
+		}
+
+		ret.Add(ret, big.NewInt(val))
+	}
+
+	return ret, true
+}
+
 func (v *parser) parseNumberLit() *NumberLitNode {
 	defer un(trace(v, "numberlit"))
 
-	// TODO: Arbitrary base numbers?
 	if !v.nextIs(lexer.TOKEN_NUMBER) {
 		return nil
 	}
@@ -1588,43 +1620,22 @@ func (v *parser) parseNumberLit() *NumberLitNode {
 	res := &NumberLitNode{}
 
 	if strings.HasPrefix(num, "0x") || strings.HasPrefix(num, "0X") {
-		// Hexadecimal integer
-		for _, r := range num[2:] {
-			if r == '_' {
-				continue
-			}
-			res.IntValue *= 16
-			if val := uint64(hexRuneToInt(r)); val >= 0 {
-				res.IntValue += val
-			} else {
-				v.err("Malformed hex literal: `%s`", num)
-			}
+		ok := false
+		res.IntValue, ok = parseInt(num[2:], 16)
+		if !ok {
+			v.err("Malformed hex literal: `%s`", num)
 		}
 	} else if strings.HasPrefix(num, "0b") {
-		// Binary integer
-		for _, r := range num[2:] {
-			if r == '_' {
-				continue
-			}
-			res.IntValue *= 2
-			if val := uint64(binRuneToInt(r)); val >= 0 {
-				res.IntValue += val
-			} else {
-				v.err("Malformed binary literal: `%s`", num)
-			}
+		ok := false
+		res.IntValue, ok = parseInt(num[2:], 2)
+		if !ok {
+			v.err("Malformed binary literal: `%s`", num)
 		}
 	} else if strings.HasPrefix(num, "0o") {
-		// Octal integer
-		for _, r := range num[2:] {
-			if r == '_' {
-				continue
-			}
-			res.IntValue *= 8
-			if val := uint64(octRuneToInt(r)); val >= 0 {
-				res.IntValue += val
-			} else {
-				v.err("Malformed octal literal: `%s`", num)
-			}
+		ok := false
+		res.IntValue, ok = parseInt(num[2:], 8)
+		if !ok {
+			v.err("Malformed octal literal: `%s`", num)
 		}
 	} else if lastRune := unicode.ToLower([]rune(num)[len([]rune(num))-1]); strings.ContainsRune(num, '.') || lastRune == 'f' || lastRune == 'd' || lastRune == 'q' {
 		if strings.Count(num, ".") > 1 {
@@ -1654,13 +1665,10 @@ func (v *parser) parseNumberLit() *NumberLitNode {
 			}
 		}
 	} else {
-		// Decimal integer
-		for _, r := range num {
-			if r == '_' {
-				continue
-			}
-			res.IntValue *= 10
-			res.IntValue += uint64(r - '0')
+		ok := false
+		res.IntValue, ok = parseInt(num, 10)
+		if !ok {
+			v.err("Malformed hex literal: `%s`", num)
 		}
 	}
 
