@@ -1308,10 +1308,10 @@ func (v *parser) parsePrimaryExpr() ParseNode {
 		res = addrofExpr
 	} else if litExpr := v.parseLitExpr(); litExpr != nil {
 		res = litExpr
-	} else if castExpr := v.parseCastExpr(); castExpr != nil {
-		res = castExpr
 	} else if unaryExpr := v.parseUnaryExpr(); unaryExpr != nil {
 		res = unaryExpr
+	} else if castExpr := v.parseCastExpr(); castExpr != nil {
+		res = castExpr
 	} else if name := v.parseName(); name != nil {
 		res = &VariableAccessNode{Name: name}
 		res.SetWhere(lexer.NewSpan(name.Where().Start(), name.Where().End()))
