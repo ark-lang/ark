@@ -211,9 +211,12 @@ func (v *TypeReferenceNode) construct(c *Constructor) Type {
 }
 
 func (v *StructDeclNode) construct(c *Constructor) Node {
-	structType := &StructType{}
-	structType.attrs = v.Attrs()
-	structType.Name = v.Name.Value
+	structType := &StructType{
+		attrs:        v.Attrs(),
+		Name:         v.Name.Value,
+		ParentModule: c.module,
+	}
+
 	c.pushScope()
 	for _, member := range v.Body.Members {
 		structType.addVariableDecl(c.constructNode(member).(*VariableDecl)) // TODO: Error message
@@ -245,9 +248,12 @@ func (v *UseDeclNode) construct(c *Constructor) Node {
 }
 
 func (v *TraitDeclNode) construct(c *Constructor) Node {
-	trait := &TraitType{}
-	trait.attrs = v.Attrs()
-	trait.Name = v.Name.Value
+	trait := &TraitType{
+		attrs:        v.Attrs(),
+		Name:         v.Name.Value,
+		ParentModule: c.module,
+	}
+
 	c.pushScope()
 	for _, member := range v.Members {
 		trait.addFunctionDecl(c.constructNode(member).(*FunctionDecl)) // TODO: Error message
@@ -270,7 +276,9 @@ func (v *ImplDeclNode) construct(c *Constructor) Node {
 	res.TraitName = v.TraitName.Value
 	c.pushScope()
 	for _, member := range v.Members {
-		res.Functions = append(res.Functions, c.constructNode(member).(*FunctionDecl)) // TODO: Error message
+		fn := c.constructNode(member).(*FunctionDecl)
+
+		res.Functions = append(res.Functions, fn) // TODO: Error message
 	}
 	c.popScope()
 	res.setPos(v.Where().Start())
@@ -278,10 +286,12 @@ func (v *ImplDeclNode) construct(c *Constructor) Node {
 }
 
 func (v *FunctionDeclNode) construct(c *Constructor) Node {
-	function := &Function{}
-	function.Name = v.Header.Name.Value
-	function.Attrs = v.Attrs()
-	function.IsVariadic = v.Header.Variadic
+	function := &Function{
+		Name:         v.Header.Name.Value,
+		Attrs:        v.Attrs(),
+		IsVariadic:   v.Header.Variadic,
+		ParentModule: c.module,
+	}
 
 	c.pushScope()
 	var arguments []ParseNode
@@ -295,9 +305,10 @@ func (v *FunctionDeclNode) construct(c *Constructor) Node {
 		function.ReturnType = c.constructType(v.Header.ReturnType)
 	}
 
-	res := &FunctionDecl{}
-	res.docs = v.DocComments()
-	res.Function = function
+	res := &FunctionDecl{
+		docs:     v.DocComments(),
+		Function: function,
+	}
 
 	if v.Expr != nil {
 		v.Stat = &ReturnStatNode{Value: v.Expr}
@@ -333,10 +344,13 @@ func (v *FunctionDeclNode) construct(c *Constructor) Node {
 }
 
 func (v *EnumDeclNode) construct(c *Constructor) Node {
-	enumType := &EnumType{}
-	enumType.Name = v.Name.Value
-	enumType.Simple = true
-	enumType.Members = make([]EnumTypeMember, len(v.Members))
+	enumType := &EnumType{
+		Name:         v.Name.Value,
+		Simple:       true,
+		Members:      make([]EnumTypeMember, len(v.Members)),
+		ParentModule: c.module,
+	}
+
 	lastValue := 0
 	for idx, mem := range v.Members {
 		enumType.Members[idx].Name = mem.Name.Value
@@ -378,10 +392,13 @@ func (v *EnumDeclNode) construct(c *Constructor) Node {
 }
 
 func (v *VarDeclNode) construct(c *Constructor) Node {
-	variable := &Variable{}
-	variable.Name = v.Name.Value
-	variable.Attrs = v.Attrs()
-	variable.Mutable = v.Mutable.Value != ""
+	variable := &Variable{
+		Name:         v.Name.Value,
+		Attrs:        v.Attrs(),
+		Mutable:      v.Mutable.Value != "",
+		ParentModule: c.module,
+	}
+
 	if v.Type != nil {
 		variable.Type = c.constructType(v.Type)
 	}

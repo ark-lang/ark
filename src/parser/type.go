@@ -111,9 +111,10 @@ func (v PrimitiveType) Equals(t Type) bool {
 // StructType
 
 type StructType struct {
-	Name      string
-	Variables []*VariableDecl
-	attrs     AttrGroup
+	Name         string
+	Variables    []*VariableDecl
+	attrs        AttrGroup
+	ParentModule *Module
 }
 
 func (v *StructType) String() string {
@@ -288,9 +289,10 @@ func (v ArrayType) Equals(t Type) bool {
 // TraitType
 
 type TraitType struct {
-	Name      string
-	Functions []*FunctionDecl
-	attrs     AttrGroup
+	Name         string
+	Functions    []*FunctionDecl
+	attrs        AttrGroup
+	ParentModule *Module
 }
 
 func (v *TraitType) String() string {
@@ -515,10 +517,11 @@ func (v *TupleType) Equals(t Type) bool {
 
 // EnumType
 type EnumType struct {
-	Name    string
-	Simple  bool
-	Members []EnumTypeMember
-	attrs   AttrGroup
+	Name         string
+	Simple       bool
+	Members      []EnumTypeMember
+	attrs        AttrGroup
+	ParentModule *Module
 }
 
 type EnumTypeMember struct {

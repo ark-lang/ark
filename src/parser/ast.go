@@ -77,6 +77,7 @@ type Variable struct {
 	scope        *Scope
 	Uses         int
 	ParentStruct *StructType
+	ParentModule *Module
 }
 
 func (v *Variable) String() string {
@@ -104,6 +105,9 @@ type Function struct {
 	Body       *Block
 	Uses       int
 	scope      *Scope
+
+	// TODO reference to parent struct
+	ParentModule *Module
 }
 
 func (v *Function) Scope() *Scope {
