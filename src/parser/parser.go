@@ -723,7 +723,9 @@ func (v *parser) parseStat() ParseNode {
 
 	var res ParseNode
 
-	if deferStat := v.parseDeferStat(); deferStat != nil {
+	if defaultStat := v.parseDefaultStat(); defaultStat != nil {
+		res = defaultStat
+	} else if deferStat := v.parseDeferStat(); deferStat != nil {
 		res = deferStat
 	} else if ifStat := v.parseIfStat(); ifStat != nil {
 		res = ifStat
@@ -743,6 +745,29 @@ func (v *parser) parseStat() ParseNode {
 		res = binopAssignStat
 	}
 
+	return res
+}
+
+func (v *parser) parseDefaultStat() *DefaultStatNode {
+	defer un(trace(v, "defaultstat"))
+
+	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_DEFAULT) {
+		return nil
+	}
+	startToken := v.consumeToken()
+
+	v.expect(lexer.TOKEN_SEPARATOR, "(")
+
+	target := v.parseExpr()
+	if target == nil {
+		v.err("Expected valid expression in default statement")
+	}
+
+	v.expect(lexer.TOKEN_SEPARATOR, ")")
+	endToken := v.expect(lexer.TOKEN_SEPARATOR, ";")
+
+	res := &DefaultStatNode{Target: target}
+	res.SetWhere(lexer.NewSpanFromTokens(startToken, endToken))
 	return res
 }
 
@@ -1304,6 +1329,8 @@ func (v *parser) parsePrimaryExpr() ParseNode {
 
 	if sizeofExpr := v.parseSizeofExpr(); sizeofExpr != nil {
 		res = sizeofExpr
+	} else if defaultExpr := v.parseDefaultExpr(); defaultExpr != nil {
+		res = defaultExpr
 	} else if addrofExpr := v.parseAddrofExpr(); addrofExpr != nil {
 		res = addrofExpr
 	} else if litExpr := v.parseLitExpr(); litExpr != nil {
@@ -1337,6 +1364,28 @@ func (v *parser) parseSizeofExpr() *SizeofExprNode {
 		if typ == nil {
 			v.err("Expected valid expression or type in sizeof expression")
 		}
+	}
+
+	endToken := v.expect(lexer.TOKEN_SEPARATOR, ")")
+
+	res := &SizeofExprNode{Value: value, Type: typ}
+	res.SetWhere(lexer.NewSpanFromTokens(startToken, endToken))
+	return res
+}
+
+func (v *parser) parseDefaultExpr() *DefaultExprNode {
+	defer un(trace(v, "defaultexpr"))
+
+	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_DEFAULT) {
+		return nil
+	}
+	startToken := v.consumeToken()
+
+	v.expect(lexer.TOKEN_SEPARATOR, "(")
+
+	target := v.parseType(true)
+	if target == nil {
+		v.err("Expected valid type in default expression")
 	}
 
 	endToken := v.expect(lexer.TOKEN_SEPARATOR, ")")

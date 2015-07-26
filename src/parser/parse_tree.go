@@ -151,6 +151,11 @@ type VarDeclNode struct {
 
 // statements
 
+type DefaultStatNode struct {
+	baseNode
+	Target ParseNode
+}
+
 type DeferStatNode struct {
 	baseNode
 	Call *CallExprNode
@@ -236,6 +241,11 @@ type SizeofExprNode struct {
 	baseNode
 	Value ParseNode
 	Type  ParseNode
+}
+
+type DefaultExprNode struct {
+	baseNode
+	Target ParseNode
 }
 
 type AddrofExprNode struct {

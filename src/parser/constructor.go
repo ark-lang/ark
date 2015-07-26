@@ -427,6 +427,13 @@ func (v *DeferStatNode) construct(c *Constructor) Node {
 	return res
 }
 
+func (v *DefaultStatNode) construct(c *Constructor) Node {
+	res := &DefaultStat{}
+	res.Target = c.constructExpr(v.Target).(AccessExpr)
+	res.setPos(v.Where().Start())
+	return res
+}
+
 func (v *IfStatNode) construct(c *Constructor) Node {
 	res := &IfStat{}
 	for _, part := range v.Parts {
@@ -577,6 +584,13 @@ func (v *SizeofExprNode) construct(c *Constructor) Expr {
 	} else if v.Type != nil {
 		res.Type = c.constructType(v.Type)
 	}
+	res.setPos(v.Where().Start())
+	return res
+}
+
+func (v *DefaultExprNode) construct(c *Constructor) Expr {
+	res := &DefaultExpr{}
+	res.Type = c.constructType(v.Target)
 	res.setPos(v.Where().Start())
 	return res
 }

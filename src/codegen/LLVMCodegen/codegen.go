@@ -296,6 +296,8 @@ func (v *Codegen) genStat(n parser.Stat) {
 		v.genMatchStat(n.(*parser.MatchStat))
 	case *parser.DeferStat:
 		v.genDeferStat(n.(*parser.DeferStat))
+	case *parser.DefaultStat:
+		v.genDefaultStat(n.(*parser.DefaultStat))
 	default:
 		panic("unimplemented stat")
 	}
@@ -459,6 +461,13 @@ func (v *Codegen) genMatchStat(n *parser.MatchStat) {
 	// TODO: implement
 }
 
+func (v *Codegen) genDefaultStat(n *parser.DefaultStat) {
+	target := v.genAccessGEP(n.Target)
+	value := v.genDefaultValue(n.Target.GetType())
+
+	v.builder.CreateStore(value, target)
+}
+
 func (v *Codegen) genDecl(n parser.Decl) {
 	switch n.(type) {
 	case *parser.FunctionDecl:
@@ -524,14 +533,6 @@ func (c *Codegen) genImplDecl(n *parser.ImplDecl) llvm.Value {
 func (v *Codegen) genVariableDecl(n *parser.VariableDecl, semicolon bool) llvm.Value {
 	var res llvm.Value
 
-	// Generate default struct values
-	if structType, ok := n.Variable.Type.(*parser.StructType); n.Assignment == nil && ok {
-		structLit := createStructInitializer(structType)
-		if structLit != nil {
-			n.Assignment = structLit
-		}
-	}
-
 	if v.inFunction {
 		mangledName := n.Variable.MangledName(parser.MANGLE_ARK_UNSTABLE)
 
@@ -574,32 +575,6 @@ func (v *Codegen) genVariableDecl(n *parser.VariableDecl, semicolon bool) llvm.V
 	return res
 }
 
-func createStructInitializer(typ *parser.StructType) *parser.StructLiteral {
-	lit := &parser.StructLiteral{Type: typ, Values: make(map[string]parser.Expr)}
-	hasDefaultValues := false
-
-	for _, decl := range typ.Variables {
-		vari := decl.Variable
-
-		var value parser.Expr
-		if subStruct, ok := vari.Type.(*parser.StructType); ok {
-			value = createStructInitializer(subStruct)
-		} else {
-			value = decl.Assignment
-		}
-
-		if value != nil {
-			hasDefaultValues = true
-			lit.Values[vari.Name] = value
-		}
-	}
-
-	if hasDefaultValues {
-		return lit
-	}
-	return nil
-}
-
 func (v *Codegen) genExpr(n parser.Expr) llvm.Value {
 	switch n.(type) {
 	case *parser.AddressOfExpr:
@@ -632,6 +607,8 @@ func (v *Codegen) genExpr(n parser.Expr) llvm.Value {
 		return v.genAccessExpr(n)
 	case *parser.SizeofExpr:
 		return v.genSizeofExpr(n.(*parser.SizeofExpr))
+	case *parser.DefaultExpr:
+		return v.genDefaultExpr(n.(*parser.DefaultExpr))
 	default:
 		log.Debug("codegen", "expr: %s\n", n)
 		panic("unimplemented expr")
@@ -1177,6 +1154,10 @@ func (v *Codegen) genSizeofExpr(n *parser.SizeofExpr) llvm.Value {
 	return llvm.ConstInt(llvm.IntType(32), v.targetData.TypeAllocSize(typ), false)
 }
 
+func (v *Codegen) genDefaultExpr(n *parser.DefaultExpr) llvm.Value {
+	return v.genDefaultValue(n.GetType())
+}
+
 func (v *Codegen) typeToLLVMType(typ parser.Type) llvm.Type {
 	switch typ.(type) {
 	case parser.PrimitiveType:
@@ -1233,6 +1214,57 @@ func (v *Codegen) enumTypeToLLVMType(typ *parser.EnumType) llvm.Type {
 		llvmType = v.curFile.Module.Context().StructCreateNamed(name)
 	}
 	return llvmType
+}
+
+func (v *Codegen) genDefaultValue(typ parser.Type) llvm.Value {
+	// Generate default struct values
+	if structType, ok := typ.(*parser.StructType); ok {
+		return v.genStructLiteral(createStructInitializer(structType))
+	}
+
+	if tupleType, ok := typ.(*parser.TupleType); ok {
+		values := make([]llvm.Value, len(tupleType.Members))
+		for idx, member := range tupleType.Members {
+			values[idx] = v.genDefaultValue(member)
+		}
+		return llvm.ConstStruct(values, false)
+	}
+
+	if typ.IsIntegerType() || typ == parser.PRIMITIVE_bool {
+		return llvm.ConstInt(v.typeToLLVMType(typ), 0, false)
+	}
+
+	if typ.IsFloatingType() {
+		return llvm.ConstFloat(v.typeToLLVMType(typ), 0)
+	}
+
+	panic("type does not have default value: " + typ.TypeName())
+}
+
+func createStructInitializer(typ *parser.StructType) *parser.StructLiteral {
+	lit := &parser.StructLiteral{Type: typ, Values: make(map[string]parser.Expr)}
+	hasDefaultValues := false
+
+	for _, decl := range typ.Variables {
+		vari := decl.Variable
+
+		var value parser.Expr
+		if subStruct, ok := vari.Type.(*parser.StructType); ok {
+			value = createStructInitializer(subStruct)
+		} else {
+			value = decl.Assignment
+		}
+
+		if value != nil {
+			hasDefaultValues = true
+			lit.Values[vari.Name] = value
+		}
+	}
+
+	if hasDefaultValues {
+		return lit
+	}
+	return nil
 }
 
 func primitiveTypeToLLVMType(typ parser.PrimitiveType) llvm.Type {

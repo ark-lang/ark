@@ -404,6 +404,12 @@ func (v *MatchStat) analyze(s *SemanticAnalyzer) {
 	}
 }
 
+// DefaultStat
+
+func (v *DefaultStat) analyze(s *SemanticAnalyzer) {
+	v.Target.analyze(s)
+}
+
 /*
  * Expressions
  */
@@ -767,4 +773,10 @@ func (v *EnumLiteral) analyze(s *SemanticAnalyzer) {
 
 func (v *DefaultMatchBranch) analyze(s *SemanticAnalyzer) {
 
+}
+
+// DefaultExpr
+
+func (v *DefaultExpr) analyze(s *SemanticAnalyzer) {
+	// noop
 }
