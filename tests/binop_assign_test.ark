@@ -4,7 +4,7 @@ mut glob: int = 5;
 
 func getGlob(): ^int {
 	glob += 1;
-    return &glob;
+	return &glob;
 }
 
 func main(): int {
