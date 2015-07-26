@@ -1,0 +1,17 @@
+[c] func printf(fmt: str, ...): int;
+
+glob: int = 5;
+
+func getGlob(): ^int {
+    return ^int(&glob);
+}
+
+func printGlob() {
+    C::printf("%d\n", ^getGlob());
+    C::printf("%d\n", ^(getGlob()));
+}
+
+func main(): int {
+	printGlob();
+	return 0;
+}
