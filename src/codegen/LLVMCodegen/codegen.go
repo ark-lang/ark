@@ -524,6 +524,14 @@ func (c *Codegen) genImplDecl(n *parser.ImplDecl) llvm.Value {
 func (v *Codegen) genVariableDecl(n *parser.VariableDecl, semicolon bool) llvm.Value {
 	var res llvm.Value
 
+	// Generate default struct values
+	if structType, ok := n.Variable.Type.(*parser.StructType); n.Assignment == nil && ok {
+		structLit := createStructInitializer(structType)
+		if structLit != nil {
+			n.Assignment = structLit
+		}
+	}
+
 	if v.inFunction {
 		mangledName := n.Variable.MangledName(parser.MANGLE_ARK_UNSTABLE)
 
@@ -564,6 +572,32 @@ func (v *Codegen) genVariableDecl(n *parser.VariableDecl, semicolon bool) llvm.V
 	}
 
 	return res
+}
+
+func createStructInitializer(typ *parser.StructType) *parser.StructLiteral {
+	lit := &parser.StructLiteral{Type: typ, Values: make(map[string]parser.Expr)}
+	hasDefaultValues := false
+
+	for _, decl := range typ.Variables {
+		vari := decl.Variable
+
+		var value parser.Expr
+		if subStruct, ok := vari.Type.(*parser.StructType); ok {
+			value = createStructInitializer(subStruct)
+		} else {
+			value = decl.Assignment
+		}
+
+		if value != nil {
+			hasDefaultValues = true
+			lit.Values[vari.Name] = value
+		}
+	}
+
+	if hasDefaultValues {
+		return lit
+	}
+	return nil
 }
 
 func (v *Codegen) genExpr(n parser.Expr) llvm.Value {
