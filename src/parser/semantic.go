@@ -480,7 +480,45 @@ func (v *BinaryExpr) analyze(s *SemanticAnalyzer) {
 
 // NumericLiteral
 
-func (v *NumericLiteral) analyze(s *SemanticAnalyzer) {}
+func (v *NumericLiteral) analyze(s *SemanticAnalyzer) {
+	if v.IsFloat {
+		// TODO
+	} else {
+		if v.Type.IsIntegerType() {
+			var bits int
+
+			switch v.Type {
+			case PRIMITIVE_int, PRIMITIVE_uint:
+				bits = 9000 // FIXME work out proper size
+			case PRIMITIVE_u8, PRIMITIVE_s8:
+				bits = 8
+			case PRIMITIVE_u16, PRIMITIVE_s16:
+				bits = 16
+			case PRIMITIVE_u32, PRIMITIVE_s32:
+				bits = 32
+			case PRIMITIVE_u64, PRIMITIVE_s64:
+				bits = 64
+			case PRIMITIVE_u128, PRIMITIVE_s128:
+				bits = 128
+			default:
+				panic("wrong type here: " + v.Type.TypeName())
+			}
+
+			/*if v.Type.IsSigned() {
+				bits -= 1
+				// FIXME this will give us a warning if a number is the lowest negative it can be
+				// because the `-` is a separate expression. eg:
+				// x: s8 = -128; // this gives a warning even though it's correct
+			}*/
+
+			if bits < v.IntValue.BitLen() {
+				s.warn(v, "Integer overflows %s", v.Type.TypeName())
+			}
+		} else {
+			// TODO something else here?
+		}
+	}
+}
 
 // StringLiteral
 
