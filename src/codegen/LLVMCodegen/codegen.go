@@ -1213,7 +1213,7 @@ func primitiveTypeToLLVMType(typ parser.PrimitiveType) llvm.Type {
 		return llvm.IntType(32)
 	case parser.PRIMITIVE_s64, parser.PRIMITIVE_u64:
 		return llvm.IntType(64)
-	case parser.PRIMITIVE_i128, parser.PRIMITIVE_u128:
+	case parser.PRIMITIVE_s128, parser.PRIMITIVE_u128:
 		return llvm.IntType(128)
 
 	case parser.PRIMITIVE_f32:
