@@ -133,7 +133,7 @@ func (v *Constructor) constructNode(node ParseNode) Node {
 		return node.(ConstructableNode).construct(v)
 
 	default:
-		println(reflect.TypeOf(node).String())
+		log.Infoln("constructor", "Type of node: %s", reflect.TypeOf(node))
 		panic("Encountered un-constructable node")
 	}
 }
@@ -144,7 +144,7 @@ func (v *Constructor) constructType(node ParseNode) Type {
 		return node.(ConstructableType).construct(v)
 
 	default:
-		println(reflect.TypeOf(node).String())
+		log.Infoln("constructor", "Type of node: %s", reflect.TypeOf(node))
 		panic("Encountered un-constructable node")
 	}
 }
@@ -155,7 +155,7 @@ func (v *Constructor) constructExpr(node ParseNode) Expr {
 		return node.(ConstructableExpr).construct(v)
 
 	default:
-		println(reflect.TypeOf(node).String())
+		log.Infoln("constructor", "Type of node: %s", reflect.TypeOf(node))
 		panic("Encountered un-constructable node")
 	}
 }

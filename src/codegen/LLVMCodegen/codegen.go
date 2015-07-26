@@ -31,6 +31,7 @@ type Codegen struct {
 	Compiler     string // defaults to cc
 	LinkerArgs   []string
 	Linker       string // defaults to cc
+	OptLevel     int
 
 	modules map[string]*parser.Module
 
@@ -81,8 +82,10 @@ func (v *Codegen) Generate(input []*parser.Module, modules map[string]*parser.Mo
 
 	passManager := llvm.NewPassManager()
 	passBuilder := llvm.NewPassManagerBuilder()
-	passBuilder.SetOptLevel(3)
-	//passBuilder.Populate(passManager) //leave this off until the compiler is better
+	if v.OptLevel > 0 {
+		passBuilder.SetOptLevel(v.OptLevel)
+		passBuilder.Populate(passManager)
+	}
 
 	v.modules = make(map[string]*parser.Module)
 	v.blockDeferData = make(map[*parser.Block][]*deferData)

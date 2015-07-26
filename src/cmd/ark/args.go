@@ -34,6 +34,7 @@ var (
 	buildStatic     = buildCom.Flag("static", "Pass the -static option to cc.").Bool()
 	buildRun        = buildCom.Flag("run", "Run the executable.").Bool()
 	buildOutputType = buildCom.Flag("output-type", "Codegen backend to use").Default("executable").Enum("executable", "assembly", "object", "llvm-ir", "llvm-bc")
+	buildOptLevel   = buildCom.Flag("opt-level", "LLVM optimization level").Short('O').Default("0").Int()
 
 	docgenCom    = app.Command("docgen", "Generate documentation.")
 	docgenDir    = docgenCom.Flag("dir", "Directory to place generated docs in.").Default("docgen").String()

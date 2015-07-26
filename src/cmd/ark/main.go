@@ -44,7 +44,7 @@ func main() {
 		}
 
 		outputType := parseOutputType(*buildOutputType)
-		build(*buildInputs, *buildOutput, *buildCodegen, ccArgs, outputType)
+		build(*buildInputs, *buildOutput, *buildCodegen, ccArgs, outputType, *buildOptLevel)
 		printFinishedMessage(startTime, buildCom.FullCommand(), len(*buildInputs))
 		if *buildRun {
 			if outputType != LLVMCodegen.OUTPUT_EXECUTABLE {
@@ -116,7 +116,7 @@ func parseFiles(files []string) ([]*parser.Module, map[string]*parser.Module) {
 	return constructedModules, modules
 }
 
-func build(files []string, outputFile string, cg string, ccArgs []string, outputType LLVMCodegen.OutputType) {
+func build(files []string, outputFile string, cg string, ccArgs []string, outputType LLVMCodegen.OutputType, optLevel int) {
 	constructedModules, modules := parseFiles(files)
 
 	// type inference
@@ -164,6 +164,7 @@ func build(files []string, outputFile string, cg string, ccArgs []string, output
 				OutputName:   outputFile,
 				CompilerArgs: ccArgs,
 				OutputType:   outputType,
+				OptLevel:     optLevel,
 			}
 		default:
 			log.Error("main", util.Red("error: ")+"Invalid backend choice `"+cg+"`")

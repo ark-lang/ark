@@ -343,8 +343,6 @@ func (v *EnumLiteral) resolve(res *Resolver, s *Scope) {
 func (v *DefaultMatchBranch) resolve(res *Resolver, s *Scope) {}
 
 func (v *DefaultExpr) resolve(res *Resolver, s *Scope) {
-	println(v)
-	println(v.Type)
 	v.Type = v.Type.resolveType(v, res, s)
 }
 
