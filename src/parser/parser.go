@@ -1330,14 +1330,18 @@ func (v *parser) parseSizeofExpr() *SizeofExprNode {
 
 	v.expect(lexer.TOKEN_SEPARATOR, "(")
 
+	var typ ParseNode
 	value := v.parseExpr()
 	if value == nil {
-		v.err("Expected valid expression in sizeof expression")
+		typ = v.parseType(true)
+		if typ == nil {
+			v.err("Expected valid expression or type in sizeof expression")
+		}
 	}
 
 	endToken := v.expect(lexer.TOKEN_SEPARATOR, ")")
 
-	res := &SizeofExprNode{Value: value}
+	res := &DefaultExprNode{Target: target}
 	res.SetWhere(lexer.NewSpanFromTokens(startToken, endToken))
 	return res
 }
