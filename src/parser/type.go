@@ -27,7 +27,7 @@ const (
 	PRIMITIVE_s16
 	PRIMITIVE_s32
 	PRIMITIVE_s64
-	PRIMITIVE_i128
+	PRIMITIVE_s128
 
 	PRIMITIVE_u8
 	PRIMITIVE_u16
@@ -52,7 +52,7 @@ const (
 
 func (v PrimitiveType) IsIntegerType() bool {
 	switch v {
-	case PRIMITIVE_s8, PRIMITIVE_s16, PRIMITIVE_s32, PRIMITIVE_s64, PRIMITIVE_i128,
+	case PRIMITIVE_s8, PRIMITIVE_s16, PRIMITIVE_s32, PRIMITIVE_s64, PRIMITIVE_s128,
 		PRIMITIVE_u8, PRIMITIVE_u16, PRIMITIVE_u32, PRIMITIVE_u64, PRIMITIVE_u128,
 		PRIMITIVE_int, PRIMITIVE_uint:
 		return true
@@ -72,7 +72,7 @@ func (v PrimitiveType) IsFloatingType() bool {
 
 func (v PrimitiveType) IsSigned() bool {
 	switch v {
-	case PRIMITIVE_s8, PRIMITIVE_s16, PRIMITIVE_s32, PRIMITIVE_s64, PRIMITIVE_i128, PRIMITIVE_int:
+	case PRIMITIVE_s8, PRIMITIVE_s16, PRIMITIVE_s32, PRIMITIVE_s64, PRIMITIVE_s128, PRIMITIVE_int:
 		return true
 	default:
 		return false
@@ -368,7 +368,7 @@ func (v *TraitType) Equals(t Type) bool {
 	panic("please implement the rest of this, if we ever need it")
 
 	// TODO: Check trait function types
-	return true
+	//return true
 }
 
 // PointerType
