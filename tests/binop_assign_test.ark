@@ -1,5 +1,12 @@
 [c] func printf(fmt: str, ...): int;
 
+mut glob: int = 5;
+
+func getGlob(): ^int {
+	glob += 1;
+    return &glob;
+}
+
 func main(): int {
 	mut x := 0;
 	x += 5;
@@ -13,7 +20,14 @@ func main(): int {
 
 	C::printf("x was `5`, became `%d`\n", x);
 	if x != 20 {
-		return 1;
+		return 2;
+	}
+
+	^getGlob() += 0;
+
+	C::printf("glob is `%d`\n", glob);
+	if glob != 6 {
+		return 3;
 	}
 
 	return 0;
