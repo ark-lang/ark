@@ -181,6 +181,10 @@ func (v *MatchStat) resolve(res *Resolver, s *Scope) {
 	}
 }
 
+func (v *DefaultStat) resolve(res *Resolver, s *Scope) {
+	v.Target.resolve(res, s)
+}
+
 /*
  * Expressions
  */
@@ -337,6 +341,12 @@ func (v *EnumLiteral) resolve(res *Resolver, s *Scope) {
 }
 
 func (v *DefaultMatchBranch) resolve(res *Resolver, s *Scope) {}
+
+func (v *DefaultExpr) resolve(res *Resolver, s *Scope) {
+	println(v)
+	println(v.Type)
+	v.Type = v.Type.resolveType(v, res, s)
+}
 
 /*
  * Types

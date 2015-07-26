@@ -219,6 +219,12 @@ func (v *MatchStat) infer(s *TypeInferer) {
 	}
 }
 
+// DefaultStat
+
+func (v *DefaultStat) infer(s *TypeInferer) {
+	v.Target.infer(s)
+}
+
 /*
  * Expressions
  */
@@ -608,4 +614,12 @@ func (v *DefaultMatchBranch) infer(s *TypeInferer) {
 }
 
 func (v *DefaultMatchBranch) setTypeHint(t Type) {
+}
+
+// DefaultExpr
+
+func (v *DefaultExpr) infer(s *TypeInferer) {
+}
+
+func (v *DefaultExpr) setTypeHint(t Type) {
 }
