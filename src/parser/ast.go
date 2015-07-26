@@ -2,8 +2,10 @@ package parser
 
 import (
 	"fmt"
-	"github.com/ark-lang/ark/src/lexer"
+	"math/big"
 	"strconv"
+
+	"github.com/ark-lang/ark/src/lexer"
 
 	"github.com/ark-lang/ark/src/util"
 )
@@ -591,7 +593,7 @@ func (v *RuneLiteral) NodeName() string {
 // NumericLiteral
 type NumericLiteral struct {
 	nodePos
-	IntValue   uint64
+	IntValue   *big.Int
 	FloatValue float64
 	IsFloat    bool
 	Type       Type
@@ -620,7 +622,7 @@ func (v *NumericLiteral) AsFloat() float64 {
 	if v.IsFloat {
 		return v.FloatValue
 	} else {
-		return float64(v.IntValue)
+		return float64(v.IntValue.Int64())
 	}
 }
 
@@ -629,7 +631,7 @@ func (v *NumericLiteral) AsInt() uint64 {
 		panic("downcasting floating point value to int")
 	}
 
-	return v.IntValue
+	return uint64(v.IntValue.Int64())
 }
 
 // StringLiteral

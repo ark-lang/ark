@@ -1,6 +1,8 @@
 package parser
 
 import (
+	"math/big"
+
 	"github.com/ark-lang/ark/src/lexer"
 )
 
@@ -308,7 +310,7 @@ type BoolLitNode struct {
 type NumberLitNode struct {
 	baseNode
 	IsFloat    bool
-	IntValue   uint64
+	IntValue   *big.Int
 	FloatValue float64
 	FloatSize  rune
 }
