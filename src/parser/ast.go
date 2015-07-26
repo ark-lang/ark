@@ -698,7 +698,12 @@ type TupleLiteral struct {
 func (v *TupleLiteral) exprNode() {}
 
 func (v *TupleLiteral) String() string {
-	return "tuple"
+	res := "(" + util.Blue("TupleLiteral") + ": "
+	for _, mem := range v.Members {
+		res += mem.String()
+		res += ", "
+	}
+	return res + ")"
 }
 
 func (v *TupleLiteral) GetType() Type {
@@ -720,7 +725,14 @@ type StructLiteral struct {
 func (v *StructLiteral) exprNode() {}
 
 func (v *StructLiteral) String() string {
-	return "struct"
+	res := "(" + util.Blue("StructLiteral") + ": "
+	for name, value := range v.Values {
+		res += name
+		res += ": "
+		res += value.String()
+		res += ", "
+	}
+	return res + ")"
 }
 
 func (v *StructLiteral) GetType() Type {

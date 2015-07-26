@@ -1517,7 +1517,7 @@ func (v *parser) parseStructLit() *StructLiteralNode {
 
 	startPos := v.currentToken
 	name := v.parseName()
-	if !v.tokensMatch(lexer.TOKEN_SEPARATOR, "{", lexer.TOKEN_IDENTIFIER, "", lexer.TOKEN_OPERATOR, ":") {
+	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "{") {
 		v.currentToken = startPos
 		return nil
 	}
@@ -1526,6 +1526,10 @@ func (v *parser) parseStructLit() *StructLiteralNode {
 	var members []LocatedString
 	var values []ParseNode
 	for {
+		if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, "") {
+			break
+		}
+
 		member := v.expect(lexer.TOKEN_IDENTIFIER, "")
 		members = append(members, NewLocatedString(member))
 

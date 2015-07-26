@@ -1,0 +1,35 @@
+[c] func printf(fmt: str, ...): int;
+
+struct Test {
+    x: int = 1,
+    y: int = 2,
+    a: int = 3,
+    b: int = 4
+}
+
+func main(): int {
+    // To create without defaults -> t: Test = {};
+	t: Test;
+    
+    C::printf("t.x = %d\n", t.x);
+    if t.x != 1 {
+    	return 1;
+    }
+
+    C::printf("t.y = %d\n", t.y);
+    if t.y != 2 {
+    	return 2;
+    }
+
+    C::printf("t.a = %d\n", t.a);
+    if t.a != 3 {
+    	return 3;
+    }
+
+    C::printf("t.b = %d\n", t.b);
+    if t.b != 4 {
+    	return 4;
+    }
+
+    return 0;
+}
