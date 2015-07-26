@@ -5,6 +5,8 @@ import (
 	"io/ioutil"
 	"path"
 	"strings"
+
+	"github.com/ark-lang/ark/src/util"
 )
 
 type Sourcefile struct {
@@ -63,7 +65,7 @@ func (s *Sourcefile) MarkPos(pos Position) string {
 			buf.WriteRune(' ')
 		}
 	}
-	buf.WriteRune('^')
+	buf.WriteString(util.TEXT_GREEN + util.TEXT_BOLD + "^" + util.TEXT_RESET)
 	buf.WriteRune('\n')
 
 	return buf.String()
@@ -71,6 +73,14 @@ func (s *Sourcefile) MarkPos(pos Position) string {
 }
 
 func (s *Sourcefile) MarkSpan(span Span) string {
+	// if the span is just one character, use MarkPos instead
+	spanEnd := span.End()
+	spanEnd.Char--
+	if span.Start() == spanEnd {
+		return s.MarkPos(span.Start())
+	}
+
+	// mark the span
 	buf := new(bytes.Buffer)
 
 	for line := span.StartLine; line <= span.EndLine; line++ {
@@ -105,6 +115,8 @@ func (s *Sourcefile) MarkSpan(span Span) string {
 				buf.WriteRune(' ')
 			}
 		}
+
+		buf.WriteString(util.TEXT_GREEN + util.TEXT_BOLD)
 		for i := 0; i < length; i++ {
 			// there must be a less repetitive way to do this but oh well
 			spaces := 1
@@ -117,6 +129,7 @@ func (s *Sourcefile) MarkSpan(span Span) string {
 				buf.WriteRune('~')
 			}
 		}
+		buf.WriteString(util.TEXT_RESET)
 		buf.WriteRune('\n')
 	}
 
