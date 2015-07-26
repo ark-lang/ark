@@ -193,7 +193,6 @@ func (v *Codegen) addEnumType(typ *parser.EnumType) {
 		}
 
 		if structType, ok := member.Type.(*parser.StructType); ok {
-			// TODO: Proper mangling of structs added from enums
 			// TODO: check recursive loop
 			v.addStructType(structType)
 		}
@@ -466,14 +465,12 @@ func (v *Codegen) genDecl(n parser.Decl) {
 		v.genFunctionDecl(n.(*parser.FunctionDecl))
 	case *parser.UseDecl:
 		v.genUseDecl(n.(*parser.UseDecl))
-	case *parser.StructDecl:
-		//return v.genStructDecl(n.(*parser.StructDecl)) not used
+	case *parser.StructDecl, *parser.EnumDecl:
+		// handled elsewhere
 	case *parser.TraitDecl:
 		// nothing to gen
 	case *parser.ImplDecl:
 		v.genImplDecl(n.(*parser.ImplDecl))
-	case *parser.EnumDecl:
-		// todo
 	case *parser.VariableDecl:
 		v.genVariableDecl(n.(*parser.VariableDecl), true)
 	default:
@@ -1163,10 +1160,9 @@ func (v *Codegen) typeToLLVMType(typ parser.Type) llvm.Type {
 }
 
 func (v *Codegen) tupleTypeToLLVMType(typ *parser.TupleType) llvm.Type {
-	// TODO: Maybe move to lookup table like struct
-	var fields []llvm.Type
-	for _, mem := range typ.Members {
-		fields = append(fields, v.typeToLLVMType(mem))
+	fields := make([]llvm.Type, len(typ.Members))
+	for idx, mem := range typ.Members {
+		fields[idx] = v.typeToLLVMType(mem)
 	}
 
 	return llvm.StructType(fields, false)
