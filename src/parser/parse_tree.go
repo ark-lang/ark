@@ -235,6 +235,7 @@ type BinaryExprNode struct {
 type SizeofExprNode struct {
 	baseNode
 	Value ParseNode
+	Type  ParseNode
 }
 
 type AddrofExprNode struct {

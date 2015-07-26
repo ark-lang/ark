@@ -1170,7 +1170,8 @@ func (v *Codegen) genSizeofExpr(n *parser.SizeofExpr) llvm.Value {
 		typ = v.typeToLLVMType(n.Type)
 	}
 
-	return llvm.ConstInt(v.targetData.IntPtrType(), v.targetData.TypeAllocSize(typ), false)
+	// TODO: return to v.targetData.IntPtrType(), once uint is register/address sized
+	return llvm.ConstInt(llvm.IntType(32), v.targetData.TypeAllocSize(typ), false)
 }
 
 func (v *Codegen) typeToLLVMType(typ parser.Type) llvm.Type {

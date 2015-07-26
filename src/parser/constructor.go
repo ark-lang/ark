@@ -548,8 +548,35 @@ func (v *BinaryExprNode) construct(c *Constructor) Expr {
 }
 
 func (v *SizeofExprNode) construct(c *Constructor) Expr {
+	depth := 0
+	var inner ParseNode
+	inner = v.Value
+	for {
+		if derefNode, ok := inner.(*UnaryExprNode); ok && derefNode.Operator == UNOP_DEREF {
+			inner = derefNode.Value
+			depth++
+			continue
+		} else if varAccNode, ok := inner.(*VariableAccessNode); ok {
+			typ := c.nameMap.TypeOfNameNode(varAccNode.Name)
+			if typ.IsType() {
+				var newType ParseNode
+				newType = &TypeReferenceNode{Reference: varAccNode.Name}
+				for i := 0; i < depth; i++ {
+					newType = &PointerTypeNode{TargetType: newType}
+				}
+				v.Type = newType
+				v.Value = nil
+			}
+		}
+		break
+	}
+
 	res := &SizeofExpr{}
-	res.Expr = c.constructExpr(v.Value)
+	if v.Value != nil {
+		res.Expr = c.constructExpr(v.Value)
+	} else if v.Type != nil {
+		res.Type = c.constructType(v.Type)
+	}
 	res.setPos(v.Where().Start())
 	return res
 }
