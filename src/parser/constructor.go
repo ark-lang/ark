@@ -562,7 +562,6 @@ func (v *AddrofExprNode) construct(c *Constructor) Expr {
 }
 
 func (v *CastExprNode) construct(c *Constructor) Expr {
-	// TODO: type(value) syntax
 	res := &CastExpr{}
 	res.Type = c.constructType(v.Type)
 	res.Expr = c.constructExpr(v.Value)
@@ -573,9 +572,15 @@ func (v *CastExprNode) construct(c *Constructor) Expr {
 func (v *UnaryExprNode) construct(c *Constructor) Expr {
 	var res Expr
 	if v.Operator == UNOP_DEREF {
-		res = &DerefAccessExpr{
-			Expr: c.constructExpr(v.Value),
+		expr := c.constructExpr(v.Value)
+		if castExpr, ok := expr.(*CastExpr); ok {
+			res = &CastExpr{Type: pointerTo(castExpr.Type), Expr: castExpr.Expr}
+		} else {
+			res = &DerefAccessExpr{
+				Expr: expr,
+			}
 		}
+
 	} else {
 		res = &UnaryExpr{
 			Expr: c.constructExpr(v.Value),
