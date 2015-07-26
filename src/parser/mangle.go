@@ -31,7 +31,7 @@ func TypeMangledName(mangleType MangleType, typ Type) string {
 func (v *Module) MangledName(typ MangleType) string {
 	switch typ {
 	case MANGLE_ARK_UNSTABLE:
-		result := fmt.Sprintf("_M_%d%s", len([]rune(v.Name)), v.Name)
+		result := fmt.Sprintf("_M%d%s", len([]rune(v.Name)), v.Name)
 
 		// TODO parent module
 
@@ -48,7 +48,7 @@ func (v *Function) MangledName(typ MangleType) string {
 
 	switch typ {
 	case MANGLE_ARK_UNSTABLE:
-		result := fmt.Sprintf("_F_%d%s", len([]rune(v.Name)), v.Name)
+		result := fmt.Sprintf("_F%d%s", len([]rune(v.Name)), v.Name)
 		for _, arg := range v.Parameters {
 			result += TypeMangledName(typ, arg.Variable.Type)
 		}
@@ -66,7 +66,7 @@ func (v *Function) MangledName(typ MangleType) string {
 func (v *Variable) MangledName(typ MangleType) string {
 	switch typ {
 	case MANGLE_ARK_UNSTABLE:
-		result := fmt.Sprintf("_V_%d%s", len([]rune(v.Name)), v.Name)
+		result := fmt.Sprintf("_V%d%s", len([]rune(v.Name)), v.Name)
 		if v.ParentStruct != nil {
 			result = v.ParentStruct.MangledName(typ) + result
 		} else {
@@ -81,9 +81,13 @@ func (v *Variable) MangledName(typ MangleType) string {
 func (v *StructType) MangledName(typ MangleType) string {
 	switch typ {
 	case MANGLE_ARK_UNSTABLE:
-		result := fmt.Sprintf("_S_%d%s", len([]rune(v.Name)), v.Name)
+		result := fmt.Sprintf("_S%d%s", len([]rune(v.Name)), v.Name)
 
-		result = v.ParentModule.MangledName(typ) + result
+		if v.ParentEnum != nil {
+			result = v.ParentEnum.MangledName(typ) + result
+		} else {
+			result = v.ParentModule.MangledName(typ) + result
+		}
 
 		return result
 	default:
@@ -94,7 +98,7 @@ func (v *StructType) MangledName(typ MangleType) string {
 func (v *TraitType) MangledName(typ MangleType) string {
 	switch typ {
 	case MANGLE_ARK_UNSTABLE:
-		result := fmt.Sprintf("_T_%d%s", len([]rune(v.Name)), v.Name)
+		result := fmt.Sprintf("_T%d%s", len([]rune(v.Name)), v.Name)
 
 		result = v.ParentModule.MangledName(typ) + result
 
@@ -107,7 +111,7 @@ func (v *TraitType) MangledName(typ MangleType) string {
 func (v *EnumType) MangledName(typ MangleType) string {
 	switch typ {
 	case MANGLE_ARK_UNSTABLE:
-		result := fmt.Sprintf("_E_%d%s", len([]rune(v.Name)), v.Name)
+		result := fmt.Sprintf("_E%d%s", len([]rune(v.Name)), v.Name)
 
 		result = v.ParentModule.MangledName(typ) + result
 
