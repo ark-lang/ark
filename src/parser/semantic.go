@@ -176,6 +176,17 @@ func (v *EnumDecl) analyze(s *SemanticAnalyzer) {
 		}
 		usedTags[mem.Tag] = true
 	}
+
+	if ok, path := isTypeRecursive(v.Enum); ok {
+		s.err(v, "Encountered recursive type definition")
+
+		log.Errorln("semantic", "Path taken:")
+		for _, typ := range path {
+			log.Error("semantic", typ.TypeName())
+			log.Error("semantic", " <- ")
+		}
+		log.Error("semantic", "%s\n\n", v.Enum.TypeName())
+	}
 }
 
 func (v *StructType) analyze(s *SemanticAnalyzer) {
@@ -260,6 +271,17 @@ func (v *VariableDecl) analyze(s *SemanticAnalyzer) {
 func (v *StructDecl) analyze(s *SemanticAnalyzer) {
 	v.Struct.analyze(s)
 	s.checkAttrsDistanceFromLine(v.Struct.Attrs(), v.Pos().Line, "type", v.Struct.TypeName())
+
+	if ok, path := isTypeRecursive(v.Struct); ok {
+		s.err(v, "Encountered recursive type definition")
+
+		log.Errorln("semantic", "Path taken:")
+		for _, typ := range path {
+			log.Error("semantic", typ.TypeName())
+			log.Error("semantic", " <- ")
+		}
+		log.Error("semantic", "%s\n\n", v.Struct.TypeName())
+	}
 }
 
 func (v *TraitDecl) analyze(s *SemanticAnalyzer) {
@@ -779,4 +801,54 @@ func (v *DefaultMatchBranch) analyze(s *SemanticAnalyzer) {
 
 func (v *DefaultExpr) analyze(s *SemanticAnalyzer) {
 	// noop
+}
+
+func isTypeRecursive(typ Type) (bool, []Type) {
+	var check func(current Type, path *[]Type, traversed map[Type]bool) bool
+	check = func(current Type, path *[]Type, traversed map[Type]bool) bool {
+		switch current.(type) {
+		case *StructType, *TupleType, *EnumType:
+			if traversed[current] {
+				return true
+			}
+			traversed[current] = true
+		}
+
+		switch current.(type) {
+		case *StructType:
+			st := current.(*StructType)
+			for _, decl := range st.Variables {
+				if check(decl.Variable.Type, path, traversed) {
+					*path = append(*path, decl.Variable.Type)
+					return true
+				}
+			}
+
+		case *TupleType:
+			// TODO: Check tuple types once we add named types for everything
+			tt := current.(*TupleType)
+			for _, mem := range tt.Members {
+				if check(mem, path, traversed) {
+					*path = append(*path, mem)
+					log.Info("semantic", "%s <- ", mem.TypeName())
+					return true
+				}
+			}
+
+		case *EnumType:
+			et := current.(*EnumType)
+			for _, mem := range et.Members {
+				if check(mem.Type, path, traversed) {
+					*path = append(*path, mem.Type)
+					return true
+				}
+			}
+
+			// TODO: Add array if we ever add embedded fixed size/static arrays
+		}
+		return false
+	}
+
+	var path []Type
+	return check(typ, &path, make(map[Type]bool)), path
 }

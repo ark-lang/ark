@@ -4,6 +4,7 @@ const (
 	KEYWORD_ALLOC    string = "alloc"
 	KEYWORD_AS       string = "as"
 	KEYWORD_BREAK    string = "break"
+	KEYWORD_C        string = "C"
 	KEYWORD_CAST     string = "cast"
 	KEYWORD_CONTINUE string = "continue"
 	KEYWORD_DEFAULT  string = "default"
@@ -41,6 +42,7 @@ func init() {
 	keywordMap[KEYWORD_ALLOC] = true
 	keywordMap[KEYWORD_AS] = true
 	keywordMap[KEYWORD_BREAK] = true
+	keywordMap[KEYWORD_C] = true
 	keywordMap[KEYWORD_CAST] = true
 	keywordMap[KEYWORD_CONTINUE] = true
 	keywordMap[KEYWORD_DEFAULT] = true
@@ -66,6 +68,7 @@ func init() {
 	keywordMap[KEYWORD_TRUE] = true
 	keywordMap[KEYWORD_USE] = true
 	keywordMap[KEYWORD_VOID] = true
+
 }
 
 func isReservedKeyword(s string) bool {
