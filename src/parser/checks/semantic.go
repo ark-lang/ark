@@ -63,10 +63,13 @@ func (v *SemanticAnalyzer) Analyze(modules map[string]*parser.Module) {
 		&TypeCheck{},
 		&UnusedCheck{},
 		&ImmutableAssignCheck{},
+		&UseBeforeDeclareCheck{},
 		&MiscCheck{},
 	}
 
+	v.EnterScope()
 	v.VisitNodes(v.Module.Nodes)
+	v.ExitScope()
 
 	if v.shouldExit {
 		os.Exit(util.EXIT_FAILURE_SEMANTIC)
