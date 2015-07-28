@@ -405,6 +405,11 @@ func (v *EnumType) resolveType(src Locatable, res *Resolver, s *Scope) Type {
 	return v
 }
 
+func (v *NamedType) resolveType(src Locatable, res *Resolver, s *Scope) Type {
+	v.Type = v.Type.resolveType(src, res, s)
+	return v
+}
+
 func (v *UnresolvedType) resolveType(src Locatable, res *Resolver, s *Scope) Type {
 	ident := s.GetIdent(v.Name)
 	if ident == nil {
