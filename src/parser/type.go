@@ -6,7 +6,6 @@ import (
 
 type Type interface {
 	TypeName() string
-	RawType() Type            // type disregarding pointers
 	LevelsOfIndirection() int // number of pointers you have to go through to get to the actual type
 	IsIntegerType() bool      // true for all int types
 	IsFloatingType() bool     // true for all floating-point types
@@ -15,7 +14,6 @@ type Type interface {
 	Attrs() AttrGroup         // fetches the attributes associated with the type
 	Equals(Type) bool         // compares whether two types are equal
 
-	// TODO: Should this be here?
 	resolveType(Locatable, *Resolver, *Scope) Type
 }
 
@@ -83,10 +81,6 @@ func (v PrimitiveType) TypeName() string {
 	return v.String()[10:]
 }
 
-func (v PrimitiveType) RawType() Type {
-	return v
-}
-
 func (v PrimitiveType) LevelsOfIndirection() int {
 	return 0
 }
@@ -132,10 +126,6 @@ func (v *StructType) String() string {
 
 func (v *StructType) TypeName() string {
 	return v.Name
-}
-
-func (v *StructType) RawType() Type {
-	return v
 }
 
 func (v *StructType) IsSigned() bool {
@@ -216,6 +206,52 @@ func (v *StructType) Equals(t Type) bool {
 	return true
 }
 
+// NamedType
+
+type NamedType struct {
+	Name string
+	Type Type
+}
+
+func (v *NamedType) String() string {
+	return "(" + util.Blue("NamedType") + ": " + v.Type.TypeName() + ")"
+}
+
+func (v *NamedType) TypeName() string {
+	return v.Name
+}
+func (v *NamedType) IsSigned() bool {
+	return v.Type.IsSigned()
+}
+
+func (v *NamedType) LevelsOfIndirection() int {
+	return v.Type.LevelsOfIndirection()
+}
+
+func (v *NamedType) IsIntegerType() bool {
+	return v.Type.IsIntegerType()
+}
+
+func (v *NamedType) IsFloatingType() bool {
+	return v.Type.IsFloatingType()
+}
+
+func (v *NamedType) CanCastTo(t Type) bool {
+	return false
+}
+
+func (v *NamedType) Attrs() AttrGroup {
+	return v.Type.Attrs()
+}
+
+func (v *NamedType) Equals(t Type) bool {
+	if other, ok := t.(*NamedType); ok {
+		return v == other
+	}
+
+	return v.Type.Equals(t)
+}
+
 // ArrayType
 
 type ArrayType struct {
@@ -240,10 +276,6 @@ func (v ArrayType) String() string {
 
 func (v ArrayType) TypeName() string {
 	return "[]" + v.MemberType.TypeName()
-}
-
-func (v ArrayType) RawType() Type {
-	return v
 }
 
 func (v ArrayType) IsSigned() bool {
@@ -310,10 +342,6 @@ func (v *TraitType) String() string {
 
 func (v *TraitType) TypeName() string {
 	return v.Name
-}
-
-func (v *TraitType) RawType() Type {
-	return v
 }
 
 func (v *TraitType) IsSigned() bool {
@@ -391,10 +419,6 @@ func (v PointerType) TypeName() string {
 	return "^" + v.Addressee.TypeName()
 }
 
-func (v PointerType) RawType() Type {
-	return v.Addressee.RawType()
-}
-
 func (v PointerType) LevelsOfIndirection() int {
 	return v.Addressee.LevelsOfIndirection() + 1
 }
@@ -427,7 +451,8 @@ func (v PointerType) Equals(t Type) bool {
 	if !ok {
 		return false
 	}
-	return v == other
+
+	return v.Addressee.Equals(other.Addressee)
 }
 
 // TupleType
@@ -463,10 +488,6 @@ func (v *TupleType) TypeName() string {
 	}
 	result += "|"
 	return result
-}
-
-func (v *TupleType) RawType() Type {
-	return v
 }
 
 func (v *TupleType) IsSigned() bool {
@@ -545,10 +566,6 @@ func (v *EnumType) String() string {
 
 func (v *EnumType) TypeName() string {
 	return v.Name
-}
-
-func (v *EnumType) RawType() Type {
-	return v
 }
 
 func (v *EnumType) IsSigned() bool {
@@ -630,10 +647,6 @@ func (v *UnresolvedType) String() string {
 
 func (v *UnresolvedType) TypeName() string {
 	return v.Name.String()
-}
-
-func (v *UnresolvedType) RawType() Type {
-	panic("RawType() invalid on UnresolvedType")
 }
 
 func (v *UnresolvedType) IsSigned() bool {

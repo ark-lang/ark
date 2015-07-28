@@ -1,0 +1,7 @@
+[c] func printf(fmt: str, ...): int;
+
+func main(): int {
+    C::printf("Named types test.\n");
+
+    return 0;
+}
