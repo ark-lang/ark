@@ -13,6 +13,9 @@ import (
 
 	"llvm.org/llvm/bindings/go/llvm"
 )
+import (
+	"github.com/ark-lang/ark/src/parser/checks"
+)
 
 const intSize = int(unsafe.Sizeof(C.int(0)))
 
@@ -385,7 +388,7 @@ func (v *Codegen) genIfStat(n *parser.IfStat) {
 		panic("tried to gen if stat not in function")
 	}
 
-	statTerm := parser.IsNodeTerminating(n)
+	statTerm := checks.IsNodeTerminating(n)
 
 	var end llvm.BasicBlock
 	if !statTerm {

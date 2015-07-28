@@ -60,10 +60,6 @@ func (v *Block) infer(s *TypeInferer) {
 	for _, n := range v.Nodes {
 		n.infer(s)
 	}
-
-	if len(v.Nodes) > 0 {
-		v.IsTerminating = IsNodeTerminating(v.Nodes[len(v.Nodes)-1])
-	}
 }
 
 func (v *Function) infer(s *TypeInferer) {
