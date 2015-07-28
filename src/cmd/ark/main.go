@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/ark-lang/ark/src/parser/checks"
 	"os"
 	"os/exec"
 	"time"
@@ -149,7 +150,7 @@ func build(files []string, outputFile string, cg string, ccArgs []string, output
 	timed("semantic analysis phase", func() {
 		// TODO: We're looping over a map, the order we get is thus random
 		for _, module := range modules {
-			sem := &parser.SemanticAnalyzer{Module: module}
+			sem := &checks.SemanticAnalyzer{Module: module}
 			sem.Analyze(modules)
 		}
 	})

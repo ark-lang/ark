@@ -293,21 +293,23 @@ func (v *FunctionDeclNode) construct(c *Constructor) Node {
 		ParentModule: c.module,
 	}
 
+	res := &FunctionDecl{
+		docs:     v.DocComments(),
+		Function: function,
+	}
+
 	c.pushScope()
 	var arguments []ParseNode
 	for _, arg := range v.Header.Arguments {
 		arguments = append(arguments, arg)
-		function.Parameters = append(function.Parameters, c.constructNode(arg).(*VariableDecl)) // TODO: Error message
+		decl := c.constructNode(arg).(*VariableDecl) // TODO: Error message
+		decl.Variable.ParentFunction = res
+		function.Parameters = append(function.Parameters, decl)
 	}
 	c.nameMap = MapNames(arguments, c.tree, c.treeFiles, c.nameMap)
 
 	if v.Header.ReturnType != nil {
 		function.ReturnType = c.constructType(v.Header.ReturnType)
-	}
-
-	res := &FunctionDecl{
-		docs:     v.DocComments(),
-		Function: function,
 	}
 
 	if v.Expr != nil {
@@ -507,6 +509,7 @@ func (v *BlockNode) construct(c *Constructor) Node {
 
 	res := &Block{}
 	res.scope = c.scope
+	res.NonScoping = v.NonScoping
 	if !v.NonScoping {
 		c.pushScope()
 	}
