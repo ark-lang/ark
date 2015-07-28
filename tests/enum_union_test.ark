@@ -6,12 +6,12 @@ enum Tree {
 }
 
 func main(): int {
-	x := Tree::Leaf(42);
-	y := Tree::Leaf(36);
-	z := Tree::Node{left: &x, right: &y};
+	[unused] x := Tree::Leaf(42);
+	//y := Tree::Leaf(36);
+	//z := Tree::Node{left: &x, right: &y};
 
-    C::printf("Leaf-tag: %d\n", x);
-    C::printf("Leaf-tag: %d\n", y);
-    C::printf("Node-tag: %d\n", z);
+    //C::printf("Leaf-tag: %d\n", x);
+    //C::printf("Leaf-tag: %d\n", y);
+    //C::printf("Node-tag: %d\n", z);
     return 0;
 }
