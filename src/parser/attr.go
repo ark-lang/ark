@@ -75,33 +75,6 @@ func (v *Attr) String() string {
 	return util.Green(result)
 }
 
-func (v *SemanticAnalyzer) checkAttrsDistanceFromLine(attrs AttrGroup, line int, declType, declName string) {
-	// Turn map into a list sorted by line number
-	var sorted []*Attr
-	for _, attr := range attrs {
-		index := 0
-		for idx, innerAttr := range sorted {
-			if attr.pos.Line >= innerAttr.pos.Line {
-				index = idx
-			}
-		}
-
-		sorted = append(sorted, nil)
-		copy(sorted[index+1:], sorted[index:])
-		sorted[index] = attr
-	}
-
-	for i := len(sorted) - 1; i >= 0; i-- {
-		if sorted[i].pos.Line < line-1 {
-			// mute warnings from attribute blocks
-			if !sorted[i].FromBlock {
-				v.warn(sorted[i], "Gap of %d lines between declaration of %s `%s` and `%s` attribute", line-sorted[i].pos.Line, declType, declName, sorted[i].Key)
-			}
-		}
-		line = sorted[i].pos.Line
-	}
-}
-
 func (v *parser) parseAttrs() AttrGroup {
 	ret := make(AttrGroup)
 	for v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "[") {

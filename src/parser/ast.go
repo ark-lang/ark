@@ -6,7 +6,6 @@ import (
 	"strconv"
 
 	"github.com/ark-lang/ark/src/lexer"
-
 	"github.com/ark-lang/ark/src/util"
 )
 
@@ -21,7 +20,6 @@ type Node interface {
 	NodeName() string
 	infer(*TypeInferer)
 	resolve(*Resolver, *Scope)
-	analyze(*SemanticAnalyzer)
 	Locatable
 }
 
@@ -70,14 +68,15 @@ type DocComment struct {
 }
 
 type Variable struct {
-	Type         Type
-	Name         string
-	Mutable      bool
-	Attrs        AttrGroup
-	scope        *Scope
-	Uses         int
-	ParentStruct *StructType
-	ParentModule *Module
+	Type           Type
+	Name           string
+	Mutable        bool
+	Attrs          AttrGroup
+	scope          *Scope
+	Uses           int
+	ParentStruct   *StructType
+	ParentModule   *Module
+	ParentFunction *FunctionDecl
 }
 
 func (v *Variable) String() string {
@@ -145,6 +144,7 @@ type Block struct {
 	Nodes         []Node
 	scope         *Scope
 	IsTerminating bool
+	NonScoping    bool
 }
 
 func (v *Block) String() string {
