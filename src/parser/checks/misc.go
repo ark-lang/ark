@@ -27,11 +27,17 @@ func (v *MiscCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
 			}
 			usedTags[mem.Tag] = true
 		}
+	}
 
-	case *parser.ReturnStat:
-		stat := n.(*parser.ReturnStat)
-		if s.Function == nil {
-			s.Err(stat, "Return statement must be in a function")
+	if s.Function == nil {
+		switch n.(type) {
+		case *parser.ReturnStat:
+			s.Err(n, "%s must be in function", n.NodeName())
+		}
+	} else {
+		switch n.(type) {
+		case *parser.TypeDecl:
+			s.Err(n, "%s must be in function", n.NodeName())
 		}
 	}
 }
