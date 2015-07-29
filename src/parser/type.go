@@ -13,6 +13,7 @@ type Type interface {
 	CanCastTo(Type) bool      // true if the receiver can be typecast to the parameter
 	Attrs() AttrGroup         // fetches the attributes associated with the type
 	Equals(Type) bool         // compares whether two types are equal
+	ActualType() Type         // returns the actual type disregarding named types
 
 	resolveType(Locatable, *Resolver, *Scope) Type
 }
@@ -99,7 +100,12 @@ func (v PrimitiveType) Equals(t Type) bool {
 	if !ok {
 		return false
 	}
+
 	return v == other
+}
+
+func (v PrimitiveType) ActualType() Type {
+	return v
 }
 
 // StructType
@@ -206,11 +212,19 @@ func (v *StructType) Equals(t Type) bool {
 	return true
 }
 
+func (v *StructType) ActualType() Type {
+	return v
+}
+
 // NamedType
 
 type NamedType struct {
 	Name string
 	Type Type
+}
+
+func (v *NamedType) ActualType() Type {
+	return v.Type.ActualType()
 }
 
 func (v *NamedType) String() string {
@@ -249,7 +263,7 @@ func (v *NamedType) Equals(t Type) bool {
 		return v == other
 	}
 
-	return v.Type.Equals(t)
+	return false
 }
 
 // ArrayType
@@ -317,6 +331,10 @@ func (v ArrayType) Equals(t Type) bool {
 	}
 
 	return true
+}
+
+func (v ArrayType) ActualType() Type {
+	return v
 }
 
 // TraitType
@@ -402,6 +420,10 @@ func (v *TraitType) Equals(t Type) bool {
 	//return true
 }
 
+func (v *TraitType) ActualType() Type {
+	return v
+}
+
 // PointerType
 
 type PointerType struct {
@@ -453,6 +475,10 @@ func (v PointerType) Equals(t Type) bool {
 	}
 
 	return v.Addressee.Equals(other.Addressee)
+}
+
+func (v PointerType) ActualType() Type {
+	return v
 }
 
 // TupleType
@@ -535,6 +561,10 @@ func (v *TupleType) Equals(t Type) bool {
 	}
 
 	return true
+}
+
+func (v *TupleType) ActualType() Type {
+	return v
 }
 
 // EnumType
@@ -636,6 +666,10 @@ func (v *EnumType) Equals(t Type) bool {
 	return true
 }
 
+func (v *EnumType) ActualType() Type {
+	return v
+}
+
 // UnresolvedType
 type UnresolvedType struct {
 	Name unresolvedName
@@ -675,4 +709,8 @@ func (v *UnresolvedType) Attrs() AttrGroup {
 
 func (v *UnresolvedType) Equals(t Type) bool {
 	panic("Equals() invalid on UnresolvedType")
+}
+
+func (v *UnresolvedType) ActualType() Type {
+	return v
 }

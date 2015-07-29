@@ -261,6 +261,25 @@ func (v *EnumDecl) DocComments() []*DocComment {
 	return nil // TODO
 }
 
+type TypeDecl struct {
+	nodePos
+	NamedType *NamedType
+}
+
+func (v *TypeDecl) declNode() {}
+
+func (v *TypeDecl) String() string {
+	return "(" + util.Blue("TypeDecl") + ": " + v.NamedType.String() + ")"
+}
+
+func (v *TypeDecl) NodeName() string {
+	return "named type declaration"
+}
+
+func (v *TypeDecl) DocComments() []*DocComment {
+	return nil // TODO
+}
+
 // ImplDecl
 
 type ImplDecl struct {
