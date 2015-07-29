@@ -1,9 +1,6 @@
 package util
 
-import (
-	"runtime"
-	"unicode"
-)
+import "runtime"
 
 var (
 	TEXT_RESET   string = ""
@@ -62,8 +59,4 @@ func Cyan(s string) string {
 
 func White(s string) string {
 	return TEXT_WHITE + s + TEXT_RESET
-}
-
-func CapitalizeFirst(s string) string {
-	return string(unicode.ToTitle([]rune(s)[0])) + s[1:]
 }
