@@ -20,9 +20,43 @@ func TypeMangledName(mangleType MangleType, typ Type) string {
 				typ = ptr.Addressee
 				res += "p"
 			} else {
-				return res + fmt.Sprintf("%d%s", len([]rune(typ.TypeName())), typ.TypeName())
+				break
 			}
 		}
+
+		switch typ.(type) {
+		case ArrayType:
+			at := typ.(ArrayType)
+			res += fmt.Sprintf("A%s", TypeMangledName(mangleType, at.MemberType))
+
+		case *EnumType:
+			et := typ.(*EnumType)
+			res += fmt.Sprintf("E%d", len(et.Members))
+			for _, mem := range et.Members {
+				res += TypeMangledName(mangleType, mem.Type)
+			}
+
+		case *StructType:
+			st := typ.(*StructType)
+			res += fmt.Sprintf("S%d", len(st.Variables))
+			for _, decl := range st.Variables {
+				res += TypeMangledName(mangleType, decl.Variable.Type)
+			}
+
+		case *TupleType:
+			tt := typ.(*TupleType)
+			res += fmt.Sprintf("T%d", len(tt.Members))
+			for _, mem := range tt.Members {
+				res += TypeMangledName(mangleType, mem)
+			}
+
+		default:
+			name := typ.TypeName()
+			return res + fmt.Sprintf("%d%s", len(name), name)
+
+		}
+
+		return res
 	default:
 		panic("")
 	}
