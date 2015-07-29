@@ -153,9 +153,9 @@ func (v *Codegen) declareDecls(nodes []parser.Node) {
 func (v *Codegen) addNamedType(n *parser.NamedType) {
 	switch n.Type.(type) {
 	case *parser.StructType:
-		v.addStructType(n.Type.(*parser.StructType), n.Name)
+		v.addStructType(n.Type.(*parser.StructType), n.MangledName(parser.MANGLE_ARK_UNSTABLE))
 	case *parser.EnumType:
-		v.addEnumType(n.Type.(*parser.EnumType), n.Name)
+		v.addEnumType(n.Type.(*parser.EnumType), n.MangledName(parser.MANGLE_ARK_UNSTABLE))
 	}
 }
 
@@ -323,10 +323,6 @@ func (v *Codegen) genDeferStat(n *parser.DeferStat) {
 func (v *Codegen) genBlock(n *parser.Block) {
 	for i, x := range n.Nodes {
 		v.currentBlock = n // set it on every iteration to overide sub-blocks
-
-		if i == len(n.Nodes)-1 && !n.IsTerminating {
-			fmt.Println("true")
-		}
 
 		v.genNode(x)
 
