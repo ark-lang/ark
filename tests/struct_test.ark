@@ -1,4 +1,4 @@
-struct EmptyStruct {}
+type EmptyStruct struct {};
 
 [c] func printf(fmt: str, ...): int;
 
@@ -31,15 +31,15 @@ func main(): int {
 }
 
 
-struct Test2 {
+type Test2 struct {
     x: int,
-}
+};
 
-struct Test {
+type Test struct {
     x: int = 1,
     y: int,
     z: f64,
     a: f32,
     e: str,
     test2: Test2,
-}
+};

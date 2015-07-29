@@ -2,10 +2,11 @@ package main
 
 import (
 	"fmt"
-	"github.com/ark-lang/ark/src/parser/checks"
 	"os"
 	"os/exec"
 	"time"
+
+	"github.com/ark-lang/ark/src/parser/checks"
 
 	"github.com/ark-lang/ark/src/util/log"
 

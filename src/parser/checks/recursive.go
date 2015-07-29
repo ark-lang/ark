@@ -13,19 +13,21 @@ func (v *RecursiveDefinitionCheck) ExitScope(s *SemanticAnalyzer)  {}
 
 func (v *RecursiveDefinitionCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
 	var typ parser.Type
-	switch n.(type) {
-	case *parser.EnumDecl:
-		decl := n.(*parser.EnumDecl)
-		typ = decl.Enum
 
-	case *parser.StructDecl:
-		decl := n.(*parser.StructDecl)
-		typ = decl.Struct
+	if typeDecl, ok := n.(*parser.TypeDecl); ok {
+		actualType := typeDecl.NamedType.ActualType()
+		switch actualType.(type) {
+		case *parser.EnumType:
+			typ = actualType.(*parser.EnumType)
 
-		// TODO: Check tuple types once we add named types for everything
+		case *parser.StructType:
+			typ = actualType.(*parser.StructType)
 
-	default:
-		return
+			// TODO: Check tuple types once we add named types for everything
+
+		default:
+			return
+		}
 	}
 
 	if ok, path := isTypeRecursive(typ); ok {

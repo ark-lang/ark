@@ -1,11 +1,11 @@
 [c] func printf(fmt: str, ...): int;
 
-struct Test {
+type Test struct {
     x: int,
     y: int,
     a: int,
     b: int
-}
+};
 
 func main(): int {
     i: int = 0;
@@ -15,7 +15,7 @@ func main(): int {
     a: u8 = 0;
     C::printf("sizeof a: %d\n", sizeof(a));
 
-    test: Test;
+    mut test: Test;
     C::printf("sizeof test: %d\n", sizeof(test));
 
     x: u8 = 0;

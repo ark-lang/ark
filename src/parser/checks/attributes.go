@@ -12,12 +12,15 @@ func (v *AttributeCheck) ExitScope(s *SemanticAnalyzer)  {}
 
 func (v *AttributeCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
 	switch n.(type) {
+	case *parser.TypeDecl:
+		typ := n.(*parser.TypeDecl).NamedType.Type
+		switch typ.(type) {
+		case *parser.StructType:
+			v.CheckStructType(s, typ.(*parser.StructType))
+		}
+
 	case *parser.FunctionDecl:
 		v.CheckFunctionDecl(s, n.(*parser.FunctionDecl))
-
-	case *parser.StructDecl:
-		v.CheckStructDecl(s, n.(*parser.StructDecl))
-
 	case *parser.TraitDecl:
 		v.CheckTraitDecl(s, n.(*parser.TraitDecl))
 
@@ -40,10 +43,8 @@ func (v *AttributeCheck) CheckFunctionDecl(s *SemanticAnalyzer, n *parser.Functi
 	}
 }
 
-func (v *AttributeCheck) CheckStructDecl(s *SemanticAnalyzer, n *parser.StructDecl) {
-	v.CheckAttrsDistanceFromLine(s, n.Struct.Attrs(), n.Pos().Line, "type", n.Struct.TypeName())
-
-	for _, attr := range n.Struct.Attrs() {
+func (v *AttributeCheck) CheckStructType(s *SemanticAnalyzer, n *parser.StructType) {
+	for _, attr := range n.Attrs() {
 		switch attr.Key {
 		case "packed":
 			if attr.Value != "" {
