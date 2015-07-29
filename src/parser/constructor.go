@@ -233,6 +233,25 @@ func (v *StructDeclNode) construct(c *Constructor) Node {
 	return res
 }
 
+func (v *TypeDeclNode) construct(c *Constructor) Node {
+	namedType := &NamedType{
+		Name: v.Name.Value,
+		Type: c.constructType(v.Type),
+	}
+
+	if c.scope.InsertType(namedType) != nil {
+		c.err(v.Where(), "Illegal redeclaration of type `%s`", namedType.Name)
+	}
+
+	res := &TypeDecl{
+		NamedType: namedType,
+	}
+
+	res.setPos(v.Where().Start())
+
+	return res
+}
+
 func (v *UseDeclNode) construct(c *Constructor) Node {
 	typ := c.nameMap.TypeOfNameNode(v.Module)
 	if typ != NODE_MODULE {
@@ -276,9 +295,9 @@ func (v *ImplDeclNode) construct(c *Constructor) Node {
 	res.TraitName = v.TraitName.Value
 	c.pushScope()
 	for _, member := range v.Members {
-		fn := c.constructNode(member).(*FunctionDecl)
+		fn := c.constructNode(member).(*FunctionDecl) // TODO: Error message
 
-		res.Functions = append(res.Functions, fn) // TODO: Error message
+		res.Functions = append(res.Functions, fn)
 	}
 	c.popScope()
 	res.setPos(v.Where().Start())

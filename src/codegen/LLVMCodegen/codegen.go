@@ -488,8 +488,10 @@ func (v *Codegen) genDecl(n parser.Decl) {
 		v.genImplDecl(n.(*parser.ImplDecl))
 	case *parser.VariableDecl:
 		v.genVariableDecl(n.(*parser.VariableDecl), true)
+	case *parser.TypeDecl:
+		// TODO nothing to gen?
 	default:
-		v.err("unimplimented decl found: `%s`", n.NodeName())
+		v.err("unimplemented decl found: `%s`", n.NodeName())
 	}
 }
 
@@ -1178,6 +1180,8 @@ func (v *Codegen) typeToLLVMType(typ parser.Type) llvm.Type {
 		return v.tupleTypeToLLVMType(typ.(*parser.TupleType))
 	case *parser.EnumType:
 		return v.enumTypeToLLVMType(typ.(*parser.EnumType))
+	case *parser.NamedType:
+		return v.typeToLLVMType(typ.(*parser.NamedType).Type)
 	default:
 		log.Debugln("codegen", "Type was %s", typ)
 		panic("Unimplemented type category in LLVM codegen")

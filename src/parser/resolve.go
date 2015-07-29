@@ -85,6 +85,10 @@ func (v *EnumDecl) resolve(res *Resolver, s *Scope) {
 	v.Enum = v.Enum.resolveType(v, res, s).(*EnumType)
 }
 
+func (v *TypeDecl) resolve(res *Resolver, s *Scope) {
+	v.NamedType = v.NamedType.resolveType(v, res, s).(*NamedType)
+}
+
 func (v *TraitDecl) resolve(res *Resolver, s *Scope) {
 	v.Trait = v.Trait.resolveType(v, res, s).(*TraitType)
 }

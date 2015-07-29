@@ -149,6 +149,12 @@ type VarDeclNode struct {
 	Mutable LocatedString
 }
 
+type TypeDeclNode struct {
+	baseNode
+	Name LocatedString
+	Type ParseNode
+}
+
 // statements
 
 type DefaultStatNode struct {

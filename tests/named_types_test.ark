@@ -1,7 +1,17 @@
 [c] func printf(fmt: str, ...): int;
 
+type thing int;
+
 func main(): int {
     C::printf("Named types test.\n");
 
+    fnVal: int = 7;
+    fn(thing(fnVal));
+    fn(8);
+
     return 0;
+}
+
+func fn(y: thing) {
+    C::printf("y: %d\n", y);
 }

@@ -281,7 +281,9 @@ func (v *parser) parseDecl() ParseNode {
 	docComments := v.parseDocComments()
 	attrs := v.parseAttributes()
 
-	if structDecl := v.parseStructDecl(); structDecl != nil {
+	if typeDecl := v.parseTypeDecl(); typeDecl != nil {
+		res = typeDecl
+	} else if structDecl := v.parseStructDecl(); structDecl != nil {
 		res = structDecl
 	} else if useDecl := v.parseUseDecl(); useDecl != nil {
 		res = useDecl
@@ -603,6 +605,33 @@ func (v *parser) parseEnumDecl() *EnumDeclNode {
 
 	res := &EnumDeclNode{Name: NewLocatedString(name), Members: members}
 	res.SetWhere(lexer.NewSpanFromTokens(startToken, endToken))
+	return res
+}
+
+func (v *parser) parseTypeDecl() *TypeDeclNode {
+	defer un(trace(v, "typdecl"))
+
+	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, "type") {
+		return nil
+	}
+
+	startToken := v.consumeToken()
+
+	name := v.expect(lexer.TOKEN_IDENTIFIER, "")
+	if isReservedKeyword(name.Contents) {
+		v.err("Cannot use reserved keyword `%s` as type name", name.Contents)
+	}
+
+	typ := v.parseType(true)
+
+	endToken := v.expect(lexer.TOKEN_SEPARATOR, ";")
+
+	res := &TypeDeclNode{
+		Name: NewLocatedString(name),
+		Type: typ,
+	}
+	res.SetWhere(lexer.NewSpanFromTokens(startToken, endToken))
+
 	return res
 }
 
