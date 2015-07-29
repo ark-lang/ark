@@ -199,27 +199,6 @@ func (v *VariableDecl) DocComments() []*DocComment {
 	return v.docs
 }
 
-// StructDecl
-
-type StructDecl struct {
-	nodePos
-	Struct *StructType
-}
-
-func (v *StructDecl) declNode() {}
-
-func (v *StructDecl) String() string {
-	return "(" + util.Blue("StructDecl") + ": " + v.Struct.String() + ")"
-}
-
-func (v *StructDecl) NodeName() string {
-	return "struct declaration"
-}
-
-func (v *StructDecl) DocComments() []*DocComment {
-	return nil // TODO
-}
-
 // TraitDecl
 
 type TraitDecl struct {
@@ -241,25 +220,7 @@ func (v *TraitDecl) DocComments() []*DocComment {
 	return nil // TODO
 }
 
-// EnumDecl
-type EnumDecl struct {
-	nodePos
-	Enum *EnumType
-}
-
-func (v *EnumDecl) declNode() {}
-
-func (v *EnumDecl) String() string {
-	return "(" + util.Blue("EnumDecl") + ": " + v.Enum.String() + ")"
-}
-
-func (v *EnumDecl) NodeName() string {
-	return "enum declaration"
-}
-
-func (v *EnumDecl) DocComments() []*DocComment {
-	return nil // TODO
-}
+// TypeDecl
 
 type TypeDecl struct {
 	nodePos

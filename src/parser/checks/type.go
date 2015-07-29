@@ -367,7 +367,7 @@ func (v *TypeCheck) CheckStructLiteral(s *SemanticAnalyzer, lit *parser.StructLi
 }
 
 func (v *TypeCheck) CheckEnumLiteral(s *SemanticAnalyzer, lit *parser.EnumLiteral) {
-	enumType, ok := lit.Type.(*parser.EnumType)
+	enumType, ok := lit.Type.ActualType().(*parser.EnumType)
 	if !ok {
 		panic("Type of enum literal was not `EnumType`")
 	}
@@ -375,7 +375,7 @@ func (v *TypeCheck) CheckEnumLiteral(s *SemanticAnalyzer, lit *parser.EnumLitera
 	memIdx := enumType.MemberIndex(lit.Member)
 
 	if memIdx < 0 || memIdx >= len(enumType.Members) {
-		s.Err(lit, "Enum `%s` has no member `%s`", enumType.Name, lit.Member)
+		s.Err(lit, "Enum `%s` has no member `%s`", lit.Type.TypeName(), lit.Member)
 		return
 	}
 }

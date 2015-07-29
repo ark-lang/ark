@@ -127,9 +127,8 @@ type FunctionDeclNode struct {
 	Expr   ParseNode
 }
 
-type EnumDeclNode struct {
+type EnumTypeNode struct {
 	baseNode
-	Name    LocatedString
 	Members []*EnumEntryNode
 }
 

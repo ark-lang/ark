@@ -186,14 +186,6 @@ func (v *SemanticAnalyzer) VisitChildren(n parser.Node) {
 		v.Visit(enumLiteral.StructLiteral)
 	}
 
-	if structDecl, ok := n.(*parser.StructDecl); ok {
-		v.EnterScope()
-		for _, decl := range structDecl.Struct.Variables {
-			v.Visit(decl)
-		}
-		v.ExitScope()
-	}
-
 	if blockStat, ok := n.(*parser.BlockStat); ok {
 		v.Visit(blockStat.Block)
 	}
