@@ -210,27 +210,23 @@ func (v *TypeReferenceNode) construct(c *Constructor) Type {
 	return res
 }
 
-func (v *StructDeclNode) construct(c *Constructor) Node {
+func (v *StructTypeNode) construct(c *Constructor) Type {
 	structType := &StructType{
 		attrs:        v.Attrs(),
-		Name:         v.Name.Value,
 		ParentModule: c.module,
 	}
 
 	c.pushScope()
-	for _, member := range v.Body.Members {
+	for _, member := range v.Members {
 		structType.addVariableDecl(c.constructNode(member).(*VariableDecl)) // TODO: Error message
 	}
 	c.popScope()
 
-	if c.scope.InsertType(structType) != nil {
-		c.err(v.Where(), "Illegal redeclaration of structure `%s`", structType.Name)
-	}
+	/*if c.scope.InsertType(structType) != nil {
+		c.err(v.Where(), "Illegal redeclaration of structure `%s`", structType.Name) // TODO I think we just remove this?
+	}*/
 
-	res := &StructDecl{}
-	res.Struct = structType
-	res.setPos(v.Where().Start())
-	return res
+	return structType
 }
 
 func (v *TypeDeclNode) construct(c *Constructor) Node {
@@ -381,7 +377,6 @@ func (v *EnumDeclNode) construct(c *Constructor) Node {
 			enumType.Simple = false
 		} else if mem.StructBody != nil {
 			structType := &StructType{
-				Name:       mem.Name.Value,
 				ParentEnum: enumType,
 			}
 
@@ -754,7 +749,7 @@ func (v *StructLiteralNode) construct(c *Constructor) Expr {
 		res.Values[member.Value] = c.constructExpr(v.Values[idx])
 	}
 
-	if v.Name == nil || c.nameMap.TypeOfNameNode(v.Name) == NODE_STRUCT {
+	if v.Name == nil {
 		return res
 	} else if typ := c.nameMap.TypeOfNameNode(v.Name); typ == NODE_ENUM_MEMBER {
 		enum := &EnumLiteral{}
