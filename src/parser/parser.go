@@ -291,8 +291,6 @@ func (v *parser) parseDecl() ParseNode {
 		res = implDecl
 	} else if funcDecl := v.parseFuncDecl(); funcDecl != nil {
 		res = funcDecl
-	} else if enumDecl := v.parseEnumDecl(); enumDecl != nil {
-		res = enumDecl
 	} else if varDecl := v.parseVarDecl(); varDecl != nil {
 		res = varDecl
 	}
@@ -508,46 +506,6 @@ func (v *parser) parseFuncHeader() *FunctionHeaderNode {
 	} else {
 		res.SetWhere(lexer.NewSpanFromTokens(startToken, maybeEndToken))
 	}
-	return res
-}
-
-func (v *parser) parseEnumDecl() *EnumDeclNode {
-	defer un(trace(v, "enumdecl"))
-
-	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_ENUM) {
-		return nil
-	}
-	startToken := v.consumeToken()
-
-	name := v.expect(lexer.TOKEN_IDENTIFIER, "")
-	if isReservedKeyword(name.Contents) {
-		v.err("Cannot use reserved keyword `%s` as name for enum", name.Contents)
-	}
-
-	v.expect(lexer.TOKEN_SEPARATOR, "{")
-
-	var members []*EnumEntryNode
-	for {
-		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "}") {
-			break
-		}
-
-		member := v.parseEnumEntry()
-		if member == nil {
-			v.err("Expected valid enum entry in enum")
-		}
-		members = append(members, member)
-
-		if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ",") {
-			break
-		}
-		v.consumeToken()
-	}
-
-	endToken := v.expect(lexer.TOKEN_SEPARATOR, "}")
-
-	res := &EnumDeclNode{Name: NewLocatedString(name), Members: members}
-	res.SetWhere(lexer.NewSpanFromTokens(startToken, endToken))
 	return res
 }
 
@@ -1051,10 +1009,48 @@ func (v *parser) parseType(doRefs bool) ParseNode {
 		res = v.parseArrayType()
 	} else if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_STRUCT) {
 		res = v.parseStructType(true)
+	} else if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_ENUM) {
+		res = v.parseEnumType()
 	} else if doRefs && v.nextIs(lexer.TOKEN_IDENTIFIER) {
 		res = v.parseTypeReference()
 	}
 
+	return res
+}
+
+func (v *parser) parseEnumType() *EnumTypeNode {
+	defer un(trace(v, "enumtype"))
+
+	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_ENUM) {
+		return nil
+	}
+	startToken := v.consumeToken()
+
+	v.expect(lexer.TOKEN_SEPARATOR, "{")
+
+	var members []*EnumEntryNode
+	for {
+		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "}") {
+			break
+		}
+
+		member := v.parseEnumEntry()
+		if member == nil {
+			v.err("Expected valid enum entry in enum")
+		}
+		members = append(members, member)
+
+		if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ",") {
+			break
+		}
+		v.consumeToken()
+	}
+
+	endToken := v.expect(lexer.TOKEN_SEPARATOR, "}")
+
+	res := &EnumTypeNode{Members: members}
+
+	res.SetWhere(lexer.NewSpanFromTokens(startToken, endToken))
 	return res
 }
 

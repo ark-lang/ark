@@ -70,7 +70,7 @@ func (v *Function) infer(s *TypeInferer) {
 	s.function = nil
 }
 
-func (v *EnumDecl) infer(s *TypeInferer) {
+func (v *EnumType) infer(s *TypeInferer) {
 	// We shouldn't need anything here
 }
 
@@ -113,10 +113,6 @@ func (v *VariableDecl) infer(s *TypeInferer) {
 			v.Variable.Type = v.Assignment.GetType()
 		}
 	}
-}
-
-func (v *StructDecl) infer(s *TypeInferer) {
-	v.Struct.infer(s)
 }
 
 func (v *TypeDecl) infer(s *TypeInferer) {
@@ -619,7 +615,7 @@ func (v *StructLiteral) setTypeHint(t Type) {
 
 // EnumLiteral
 func (v *EnumLiteral) infer(s *TypeInferer) {
-	if enumType, ok := v.Type.(*EnumType); ok {
+	if enumType, ok := v.Type.ActualType().(*EnumType); ok {
 		memIdx := enumType.MemberIndex(v.Member)
 
 		if memIdx < 0 || memIdx >= len(enumType.Members) {

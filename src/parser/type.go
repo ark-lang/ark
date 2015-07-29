@@ -128,15 +128,13 @@ func (v *StructType) String() string {
 }
 
 func (v *StructType) TypeName() string {
-	res := "struct { "
+	res := "struct {"
 
 	for i, variable := range v.Variables {
 		res += variable.Variable.Name + ": " + variable.Variable.Type.TypeName()
 
 		if i < len(v.Variables)-1 {
 			res += ", "
-		} else {
-			res += " "
 		}
 	}
 
@@ -574,7 +572,6 @@ func (v *TupleType) ActualType() Type {
 
 // EnumType
 type EnumType struct {
-	Name    string
 	Simple  bool
 	Members []EnumTypeMember
 	attrs   AttrGroup
@@ -591,15 +588,23 @@ func (v *EnumType) String() string {
 	for _, attr := range v.attrs {
 		result += attr.String() + " "
 	}
-	result += v.Name + "\n"
+
+	result += "\n"
+
 	for _, mem := range v.Members {
 		result += "\t" + mem.Name + ": " + mem.Type.TypeName() + "\n"
 	}
-	return result + util.Magenta(" <"+v.MangledName(MANGLE_ARK_UNSTABLE)+"> ") + ")"
+	return result + ")"
 }
 
 func (v *EnumType) TypeName() string {
-	return v.Name
+	res := "enum {"
+
+	for _, mem := range v.Members {
+		res += mem.Name + mem.Type.TypeName() + ", "
+	}
+
+	return res + "}"
 }
 
 func (v *EnumType) IsSigned() bool {
@@ -638,10 +643,6 @@ func (v *EnumType) Attrs() AttrGroup {
 func (v *EnumType) Equals(t Type) bool {
 	other, ok := t.(*EnumType)
 	if !ok {
-		return false
-	}
-
-	if v.Name != other.Name {
 		return false
 	}
 

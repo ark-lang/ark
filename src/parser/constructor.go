@@ -221,10 +221,6 @@ func (v *StructTypeNode) construct(c *Constructor) Type {
 	}
 	c.popScope()
 
-	/*if c.scope.InsertType(structType) != nil {
-		c.err(v.Where(), "Illegal redeclaration of structure `%s`", structType.Name) // TODO I think we just remove this?
-	}*/
-
 	return structType
 }
 
@@ -359,9 +355,8 @@ func (v *FunctionDeclNode) construct(c *Constructor) Node {
 	return res
 }
 
-func (v *EnumDeclNode) construct(c *Constructor) Node {
+func (v *EnumTypeNode) construct(c *Constructor) Type {
 	enumType := &EnumType{
-		Name:    v.Name.Value,
 		Simple:  true,
 		Members: make([]EnumTypeMember, len(v.Members)),
 	}
@@ -396,14 +391,22 @@ func (v *EnumDeclNode) construct(c *Constructor) Node {
 		lastValue += 1
 	}
 
-	if c.scope.InsertType(enumType) != nil {
-		c.err(v.Where(), "Illegal redeclaration of enum `%s`", enumType.Name)
+	// this should probably be somewhere else
+	usedNames := make(map[string]bool)
+	usedTags := make(map[int]bool)
+	for _, mem := range enumType.Members {
+		if usedNames[mem.Name] {
+			c.err(v.Where(), "Duplicate member name `%s`", mem.Name)
+		}
+		usedNames[mem.Name] = true
+
+		if usedTags[mem.Tag] {
+			c.err(v.Where(), "Duplciate enum tag `%d` on member `%s`", mem.Tag, mem.Name)
+		}
+		usedTags[mem.Tag] = true
 	}
 
-	res := &EnumDecl{}
-	res.Enum = enumType
-	res.setPos(v.Where().Start())
-	return res
+	return enumType
 }
 
 func (v *VarDeclNode) construct(c *Constructor) Node {

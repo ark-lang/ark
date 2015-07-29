@@ -16,13 +16,15 @@ const (
 	NODE_FUNCTION
 	NODE_ENUM
 	NODE_ENUM_MEMBER
+	NODE_STRUCT
+	NODE_STRUCT_STATIC
 	NODE_VARIABLE
 	NODE_MODULE
 	NODE_TYPE
 )
 
 func (v NodeType) IsType() bool {
-	return v == NODE_PRIMITIVE || v == NODE_ENUM || v == NODE_TYPE
+	return v == NODE_PRIMITIVE || v == NODE_ENUM || v == NODE_STRUCT || v == NODE_TYPE
 }
 
 func (v NodeType) String() string {
@@ -38,6 +40,12 @@ func (v NodeType) String() string {
 
 	case NODE_ENUM_MEMBER:
 		return "enum member"
+
+	case NODE_STRUCT:
+		return "struct"
+
+	case NODE_STRUCT_STATIC:
+		return "static struct member"
 
 	case NODE_VARIABLE:
 		return "variable"
@@ -117,6 +125,8 @@ func (v *NameMap) TypeOfNameNode(name *NameNode) NodeType {
 
 	if typ == NODE_ENUM {
 		return NODE_ENUM_MEMBER
+	} else if typ == NODE_STRUCT {
+		return NODE_STRUCT_STATIC
 	}
 
 	typ = mod.typeOf(name.Name)
@@ -184,10 +194,6 @@ func MapNames(nodes []ParseNode, tree *ParseTree, modules map[string]*ParseTree,
 				continue
 			}
 
-		case *EnumDeclNode:
-			edn := node.(*EnumDeclNode)
-			name, typ = edn.Name, NODE_ENUM
-
 		case *VarDeclNode:
 			vd := node.(*VarDeclNode)
 			name, typ = vd.Name, NODE_VARIABLE
@@ -195,6 +201,13 @@ func MapNames(nodes []ParseNode, tree *ParseTree, modules map[string]*ParseTree,
 		case *TypeDeclNode:
 			vd := node.(*TypeDeclNode)
 			name, typ = vd.Name, NODE_TYPE
+
+			switch vd.Type.(type) {
+			case *EnumTypeNode:
+				typ = NODE_ENUM
+			case *StructTypeNode:
+				typ = NODE_STRUCT
+			}
 
 		case *UseDeclNode:
 			udn := node.(*UseDeclNode)

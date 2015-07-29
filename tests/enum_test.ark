@@ -1,8 +1,8 @@
-enum Test {
+type Test enum {
 	VALUE,
 	ANOTHER = 4,
 	GG,
-}
+};
 
 func main(): int {
 	x := Test::VALUE;
