@@ -111,7 +111,6 @@ func (v PrimitiveType) ActualType() Type {
 // StructType
 
 type StructType struct {
-	Name         string
 	Variables    []*VariableDecl
 	attrs        AttrGroup
 	ParentEnum   *EnumType
@@ -123,15 +122,27 @@ func (v *StructType) String() string {
 	for _, attr := range v.attrs {
 		result += attr.String() + " "
 	}
-	result += v.Name + "\n"
+	result += "\n"
 	for _, decl := range v.Variables {
 		result += "\t" + decl.String() + "\n"
 	}
-	return result + util.Magenta(" <"+v.MangledName(MANGLE_ARK_UNSTABLE)+"> ") + ")"
+	return result + ")"
 }
 
 func (v *StructType) TypeName() string {
-	return v.Name
+	res := "struct { "
+
+	for i, variable := range v.Variables {
+		res += variable.Variable.Name + ": " + variable.Variable.Type.TypeName()
+
+		if i < len(v.Variables)-1 {
+			res += ", "
+		} else {
+			res += " "
+		}
+	}
+
+	return res + "}"
 }
 
 func (v *StructType) IsSigned() bool {
@@ -184,10 +195,6 @@ func (v *StructType) Attrs() AttrGroup {
 func (v *StructType) Equals(t Type) bool {
 	other, ok := t.(*StructType)
 	if !ok {
-		return false
-	}
-
-	if v.Name != other.Name {
 		return false
 	}
 

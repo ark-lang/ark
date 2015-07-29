@@ -269,13 +269,13 @@ func (v *VariableAccessExpr) resolve(res *Resolver, s *Scope) {
 func (v *StructAccessExpr) resolve(res *Resolver, s *Scope) {
 	v.Struct.resolve(res, s)
 
-	pointerType, ok := v.Struct.GetType().(PointerType)
+	pointerType, ok := v.Struct.GetType().ActualType().(PointerType)
 	if _, isStruct := pointerType.Addressee.(*StructType); ok && isStruct {
 		v.Struct = &DerefAccessExpr{Expr: v.Struct, Type: pointerType.Addressee}
 		v.resolve(res, s)
 	}
 
-	structType, ok := v.Struct.GetType().(*StructType)
+	structType, ok := v.Struct.GetType().ActualType().(*StructType)
 	if !ok {
 		if v.Struct.GetType() == nil {
 			res.err(v, "Type of access expression was nil")
