@@ -1071,7 +1071,10 @@ func (v *parser) parseStructType(requireKeyword bool) *StructTypeNode {
 
 		v.expect(lexer.TOKEN_SEPARATOR, "{")
 	} else {
-		startToken = v.expect(lexer.TOKEN_SEPARATOR, "{")
+		if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "{") {
+			return nil
+		}
+		startToken = v.consumeToken()
 	}
 
 	var members []*VarDeclNode
