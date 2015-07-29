@@ -799,7 +799,7 @@ func (v *Codegen) genTupleLiteral(n *parser.TupleLiteral) llvm.Value {
 }
 
 func (v *Codegen) genStructLiteral(n *parser.StructLiteral) llvm.Value {
-	structType := n.Type.(*parser.StructType)
+	structType := n.Type.ActualType().(*parser.StructType)
 	structLLVMType := v.typeToLLVMType(structType)
 
 	structValue := llvm.Undef(structLLVMType)
@@ -1234,6 +1234,8 @@ func (v *Codegen) enumTypeToLLVMType(typ *parser.EnumType) llvm.Type {
 }
 
 func (v *Codegen) genDefaultValue(typ parser.Type) llvm.Value {
+	typ = typ.ActualType()
+
 	// Generate default struct values
 	if structType, ok := typ.(*parser.StructType); ok {
 		return v.genStructLiteral(createStructInitializer(structType))
