@@ -539,9 +539,11 @@ func (v *SizeofExpr) setTypeHint(t Type) {
 func (v *TupleLiteral) infer(s *TypeInferer) {
 	var memberTypes []Type
 
-	tupleType, ok := v.Type.(*TupleType)
-	if ok {
-		memberTypes = tupleType.Members
+	if v.Type != nil {
+		tupleType, ok := v.Type.ActualType().(*TupleType)
+		if ok {
+			memberTypes = tupleType.Members
+		}
 	}
 
 	if len(v.Members) == len(memberTypes) {
@@ -572,9 +574,13 @@ func (v *TupleLiteral) infer(s *TypeInferer) {
 }
 
 func (v *TupleLiteral) setTypeHint(t Type) {
-	typ, ok := t.(*TupleType)
+	if t == nil {
+		return
+	}
+
+	_, ok := t.ActualType().(*TupleType)
 	if ok {
-		v.Type = typ
+		v.Type = t
 	}
 }
 

@@ -1,17 +1,30 @@
 [c] func printf(fmt: str, ...): int;
 
 type thing int;
+type tupleType (int, int);
 
 func main(): int {
     C::printf("Named types test.\n");
 
+    // primitive test
     fnVal: int = 7;
     fn(thing(fnVal));
     fn(8);
+
+    // tuple test
+    tupleVal: tupleType = (5, 6);
+    tupleTest(tupleVal);
+
+    tupleVal2 := (7, 8);
+    tupleTest(tupleType(tupleVal2));
 
     return 0;
 }
 
 func fn(y: thing) {
     C::printf("y: %d\n", y);
+}
+
+func tupleTest(y: tupleType) {
+    C::printf("(%d, %d)\n", y|0|, y|1|);
 }

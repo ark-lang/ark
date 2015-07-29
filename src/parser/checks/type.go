@@ -217,7 +217,7 @@ func (v *TypeCheck) CheckCallExpr(s *SemanticAnalyzer, expr *parser.CallExpr) {
 			}
 
 			// varargs take type promotions. If we don't do these, the whole thing fucks up.
-			switch arg.GetType() {
+			switch arg.GetType().ActualType() {
 			case parser.PRIMITIVE_f32:
 				expr.Arguments[i] = &parser.CastExpr{
 					Expr: arg,
@@ -253,7 +253,7 @@ func (v *TypeCheck) CheckArrayAccessExpr(s *SemanticAnalyzer, expr *parser.Array
 }
 
 func (v *TypeCheck) CheckTupleAccessExpr(s *SemanticAnalyzer, expr *parser.TupleAccessExpr) {
-	tupleType, ok := expr.Tuple.GetType().(*parser.TupleType)
+	tupleType, ok := expr.Tuple.GetType().ActualType().(*parser.TupleType)
 	if !ok {
 		s.Err(expr, "Cannot index type `%s` as a tuple", expr.Tuple.GetType().TypeName())
 	}
@@ -330,7 +330,7 @@ func (v *TypeCheck) CheckArrayLiteral(s *SemanticAnalyzer, lit *parser.ArrayLite
 }
 
 func (v *TypeCheck) CheckTupleLiteral(s *SemanticAnalyzer, lit *parser.TupleLiteral) {
-	tupleType, ok := lit.Type.(*parser.TupleType)
+	tupleType, ok := lit.Type.ActualType().(*parser.TupleType)
 	if !ok {
 		panic("Type of tuple literal was not `TupleType`")
 	}
