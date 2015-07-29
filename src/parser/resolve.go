@@ -77,14 +77,6 @@ func (v *VariableDecl) resolve(res *Resolver, s *Scope) {
 	}
 }
 
-func (v *StructDecl) resolve(res *Resolver, s *Scope) {
-	v.Struct = v.Struct.resolveType(v, res, s).(*StructType)
-}
-
-func (v *EnumDecl) resolve(res *Resolver, s *Scope) {
-	v.Enum = v.Enum.resolveType(v, res, s).(*EnumType)
-}
-
 func (v *TypeDecl) resolve(res *Resolver, s *Scope) {
 	v.NamedType = v.NamedType.resolveType(v, res, s).(*NamedType)
 }

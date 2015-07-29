@@ -166,23 +166,15 @@ func (v *Codegen) addStructType(typ *parser.StructType, name string) {
 
 	structure := v.curFile.Module.Context().StructCreateNamed(name)
 
+	v.structLookup_UseHelperFunction[typ] = structure
+
 	for _, field := range typ.Variables {
 		if named, ok := field.Variable.Type.(*parser.NamedType); ok {
 			v.addNamedType(named)
 		}
 	}
 
-	numOfFields := len(typ.Variables)
-	fields := make([]llvm.Type, numOfFields)
-	packed := typ.Attrs().Contains("packed")
-
-	for i, member := range typ.Variables {
-		memberType := v.typeToLLVMType(member.Variable.Type)
-		fields[i] = memberType
-	}
-
-	structure.StructSetBody(fields, packed)
-	v.structLookup_UseHelperFunction[typ] = structure
+	structure.StructSetBody(v.structTypeToLLVMTypeFields(typ), typ.Attrs().Contains("packed"))
 }
 
 func (v *Codegen) addEnumType(typ *parser.EnumType, name string) {
@@ -192,27 +184,17 @@ func (v *Codegen) addEnumType(typ *parser.EnumType, name string) {
 
 	enum := v.curFile.Module.Context().StructCreateNamed(name)
 
-	longestLength := uint64(0)
-	for _, member := range typ.Members {
-		if member.Type == parser.PRIMITIVE_void {
-			continue
-		}
+	v.enumLookup_UseHelperFunction[typ] = enum
 
+	for _, member := range typ.Members {
 		if named, ok := member.Type.(*parser.NamedType); ok {
 			v.addNamedType(named)
 		}
-
-		memLength := v.targetData.TypeAllocSize(v.typeToLLVMType(member.Type))
-		if memLength > longestLength {
-			longestLength = memLength
-		}
 	}
 
-	// TODO: verify no overflow
-	fields := []llvm.Type{llvm.IntType(32), llvm.ArrayType(llvm.IntType(8), int(longestLength))}
-	enum.StructSetBody(fields, false)
+	enum.StructSetBody(v.enumTypeToLLVMTypeFields(typ), false)
 
-	v.enumLookup_UseHelperFunction[typ] = enum
+	fmt.Println("add")
 }
 
 func (v *Codegen) declareFunctionDecl(n *parser.FunctionDecl) {
@@ -475,8 +457,6 @@ func (v *Codegen) genDecl(n parser.Decl) {
 		v.genFunctionDecl(n.(*parser.FunctionDecl))
 	case *parser.UseDecl:
 		v.genUseDecl(n.(*parser.UseDecl))
-	case *parser.StructDecl, *parser.EnumDecl:
-		// handled elsewhere
 	case *parser.TraitDecl:
 		// nothing to gen
 	case *parser.ImplDecl:
@@ -816,8 +796,8 @@ func (v *Codegen) genStructLiteral(n *parser.StructLiteral) llvm.Value {
 }
 
 func (v *Codegen) genEnumLiteral(n *parser.EnumLiteral) llvm.Value {
-	enumType := n.Type.(*parser.EnumType)
-	enumLLVMType := v.typeToLLVMType(n.Type)
+	enumType := n.Type.ActualType().(*parser.EnumType)
+	enumLLVMType := v.typeToLLVMType(n.Type.ActualType())
 
 	memberIdx := enumType.MemberIndex(n.Member)
 	member := enumType.Members[memberIdx]
@@ -1175,7 +1155,6 @@ func (v *Codegen) typeToLLVMType(typ parser.Type) llvm.Type {
 	case *parser.EnumType:
 		return v.enumTypeToLLVMType(typ.(*parser.EnumType))
 	case *parser.NamedType:
-		//return v.namedTypeToLLVMType(typ.(*parser.NamedType))
 		return v.typeToLLVMType(typ.(*parser.NamedType).Type)
 	default:
 		log.Debugln("codegen", "Type was %s", typ)
@@ -1203,16 +1182,19 @@ func (v *Codegen) structTypeToLLVMType(typ *parser.StructType) llvm.Type {
 		return t
 	}
 
+	return llvm.StructType(v.structTypeToLLVMTypeFields(typ), typ.Attrs().Contains("packed"))
+}
+
+func (v *Codegen) structTypeToLLVMTypeFields(typ *parser.StructType) []llvm.Type {
 	numOfFields := len(typ.Variables)
 	fields := make([]llvm.Type, numOfFields)
-	packed := typ.Attrs().Contains("packed")
 
 	for i, member := range typ.Variables {
 		memberType := v.typeToLLVMType(member.Variable.Type)
 		fields[i] = memberType
 	}
 
-	return llvm.StructType(fields, packed)
+	return fields
 }
 
 func (v *Codegen) enumTypeToLLVMType(typ *parser.EnumType) llvm.Type {
@@ -1221,12 +1203,28 @@ func (v *Codegen) enumTypeToLLVMType(typ *parser.EnumType) llvm.Type {
 		return llvm.IntType(32)
 	}
 
-	name := typ.MangledName(parser.MANGLE_ARK_UNSTABLE)
-	llvmType := v.curFile.Module.GetTypeByName(name)
-	if llvmType.IsNil() {
-		llvmType = v.curFile.Module.Context().StructCreateNamed(name)
+	if t, ok := v.enumLookup_UseHelperFunction[typ]; ok {
+		return t
 	}
-	return llvmType
+
+	return llvm.StructType(v.enumTypeToLLVMTypeFields(typ), false)
+}
+
+func (v *Codegen) enumTypeToLLVMTypeFields(typ *parser.EnumType) []llvm.Type {
+	longestLength := uint64(0)
+	for _, member := range typ.Members {
+		if member.Type == parser.PRIMITIVE_void {
+			continue
+		}
+
+		memLength := v.targetData.TypeAllocSize(v.typeToLLVMType(member.Type))
+		if memLength > longestLength {
+			longestLength = memLength
+		}
+	}
+
+	// TODO: verify no overflow
+	return []llvm.Type{llvm.IntType(32), llvm.ArrayType(llvm.IntType(8), int(longestLength))}
 }
 
 func (v *Codegen) genDefaultValue(typ parser.Type) llvm.Value {

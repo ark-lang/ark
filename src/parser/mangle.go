@@ -92,7 +92,3 @@ func (v *NamedType) MangledName(typ MangleType) string {
 func (v *TraitType) MangledName(typ MangleType) string {
 	return ""
 }
-
-func (v *EnumType) MangledName(typ MangleType) string {
-	return ""
-}

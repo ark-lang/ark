@@ -1,17 +1,17 @@
 [c] func printf(fmt: str, ...): int;
 
-enum Tree {
+type Tree enum {
     Node{left: ^Tree, right: ^Tree},
     Leaf(int)
-}
+};
 
 func main(): int {
-	[unused] x := Tree::Leaf(42);
-	//y := Tree::Leaf(36);
-	//z := Tree::Node{left: &x, right: &y};
+	x := Tree::Leaf(42);
+	y := Tree::Leaf(36);
+	z := Tree::Node{left: &x, right: &y};
 
-    //C::printf("Leaf-tag: %d\n", x);
-    //C::printf("Leaf-tag: %d\n", y);
-    //C::printf("Node-tag: %d\n", z);
+    C::printf("Leaf-tag: %d\n", x);
+    C::printf("Leaf-tag: %d\n", y);
+    C::printf("Node-tag: %d\n", z);
     return 0;
 }
