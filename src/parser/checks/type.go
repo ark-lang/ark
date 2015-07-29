@@ -348,7 +348,7 @@ func (v *TypeCheck) CheckTupleLiteral(s *SemanticAnalyzer, lit *parser.TupleLite
 }
 
 func (v *TypeCheck) CheckStructLiteral(s *SemanticAnalyzer, lit *parser.StructLiteral) {
-	structType, ok := lit.Type.(*parser.StructType)
+	structType, ok := lit.Type.ActualType().(*parser.StructType)
 	if !ok {
 		panic("Type of struct literal was not `StructType`")
 	}

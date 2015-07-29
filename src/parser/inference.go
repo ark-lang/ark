@@ -590,11 +590,15 @@ func (v *TupleLiteral) setTypeHint(t Type) {
 
 // StructLiteral
 func (v *StructLiteral) infer(s *TypeInferer) {
-	structType, ok := v.Type.(*StructType)
+	var ok bool
+
+	if v.Type != nil {
+		_, ok = v.Type.ActualType().(*StructType)
+	}
 
 	for name, mem := range v.Values {
 		if ok {
-			if decl := structType.GetVariableDecl(name); decl != nil {
+			if decl := v.Type.ActualType().(*StructType).GetVariableDecl(name); decl != nil {
 				mem.setTypeHint(decl.Variable.Type)
 			}
 		}
@@ -603,9 +607,13 @@ func (v *StructLiteral) infer(s *TypeInferer) {
 }
 
 func (v *StructLiteral) setTypeHint(t Type) {
-	typ, ok := t.(*StructType)
+	if t == nil {
+		return
+	}
+
+	_, ok := t.ActualType().(*StructType)
 	if ok {
-		v.Type = typ
+		v.Type = t
 	}
 }
 
