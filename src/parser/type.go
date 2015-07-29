@@ -111,10 +111,8 @@ func (v PrimitiveType) ActualType() Type {
 // StructType
 
 type StructType struct {
-	Variables    []*VariableDecl
-	attrs        AttrGroup
-	ParentEnum   *EnumType
-	ParentModule *Module
+	Variables []*VariableDecl
+	attrs     AttrGroup
 }
 
 func (v *StructType) String() string {
@@ -226,8 +224,9 @@ func (v *StructType) ActualType() Type {
 // NamedType
 
 type NamedType struct {
-	Name string
-	Type Type
+	Name         string
+	Type         Type
+	ParentModule *Module
 }
 
 func (v *NamedType) ActualType() Type {
@@ -347,10 +346,9 @@ func (v ArrayType) ActualType() Type {
 // TraitType
 
 type TraitType struct {
-	Name         string
-	Functions    []*FunctionDecl
-	attrs        AttrGroup
-	ParentModule *Module
+	Name      string
+	Functions []*FunctionDecl
+	attrs     AttrGroup
 }
 
 func (v *TraitType) String() string {
@@ -576,11 +574,10 @@ func (v *TupleType) ActualType() Type {
 
 // EnumType
 type EnumType struct {
-	Name         string
-	Simple       bool
-	Members      []EnumTypeMember
-	attrs        AttrGroup
-	ParentModule *Module
+	Name    string
+	Simple  bool
+	Members []EnumTypeMember
+	attrs   AttrGroup
 }
 
 type EnumTypeMember struct {

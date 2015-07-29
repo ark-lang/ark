@@ -212,8 +212,7 @@ func (v *TypeReferenceNode) construct(c *Constructor) Type {
 
 func (v *StructTypeNode) construct(c *Constructor) Type {
 	structType := &StructType{
-		attrs:        v.Attrs(),
-		ParentModule: c.module,
+		attrs: v.Attrs(),
 	}
 
 	c.pushScope()
@@ -231,8 +230,9 @@ func (v *StructTypeNode) construct(c *Constructor) Type {
 
 func (v *TypeDeclNode) construct(c *Constructor) Node {
 	namedType := &NamedType{
-		Name: v.Name.Value,
-		Type: c.constructType(v.Type),
+		Name:         v.Name.Value,
+		Type:         c.constructType(v.Type),
+		ParentModule: c.module,
 	}
 
 	if c.scope.InsertType(namedType) != nil {
@@ -264,9 +264,8 @@ func (v *UseDeclNode) construct(c *Constructor) Node {
 
 func (v *TraitDeclNode) construct(c *Constructor) Node {
 	trait := &TraitType{
-		attrs:        v.Attrs(),
-		Name:         v.Name.Value,
-		ParentModule: c.module,
+		attrs: v.Attrs(),
+		Name:  v.Name.Value,
 	}
 
 	c.pushScope()
@@ -362,10 +361,9 @@ func (v *FunctionDeclNode) construct(c *Constructor) Node {
 
 func (v *EnumDeclNode) construct(c *Constructor) Node {
 	enumType := &EnumType{
-		Name:         v.Name.Value,
-		Simple:       true,
-		Members:      make([]EnumTypeMember, len(v.Members)),
-		ParentModule: c.module,
+		Name:    v.Name.Value,
+		Simple:  true,
+		Members: make([]EnumTypeMember, len(v.Members)),
 	}
 
 	lastValue := 0
@@ -376,9 +374,7 @@ func (v *EnumDeclNode) construct(c *Constructor) Node {
 			enumType.Members[idx].Type = c.constructType(mem.TupleBody)
 			enumType.Simple = false
 		} else if mem.StructBody != nil {
-			structType := &StructType{
-				ParentEnum: enumType,
-			}
+			structType := &StructType{}
 
 			c.pushScope()
 			for _, member := range mem.StructBody.Members {
