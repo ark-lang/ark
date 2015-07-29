@@ -86,6 +86,15 @@ func (v *TraitType) infer(s *TypeInferer) {
 	}
 }
 
+func (v *NamedType) infer(s *TypeInferer) {
+	if typ, ok := v.Type.(*StructType); ok {
+		typ.infer(s)
+	} else if typ, ok := v.Type.(*TraitType); ok {
+		typ.infer(s)
+	}
+	// TODO add function types when done
+}
+
 func (v *Variable) infer(s *TypeInferer) {
 }
 
@@ -108,6 +117,10 @@ func (v *VariableDecl) infer(s *TypeInferer) {
 
 func (v *StructDecl) infer(s *TypeInferer) {
 	v.Struct.infer(s)
+}
+
+func (v *TypeDecl) infer(s *TypeInferer) {
+	v.NamedType.infer(s)
 }
 
 func (v *TraitDecl) infer(s *TypeInferer) {
@@ -342,8 +355,13 @@ func (v *BinaryExpr) setTypeHint(t Type) {
 func (v *NumericLiteral) infer(s *TypeInferer) {}
 
 func (v *NumericLiteral) setTypeHint(t Type) {
+	var actual Type
+	if t != nil {
+		actual = t.ActualType()
+	}
+
 	if v.IsFloat {
-		switch t {
+		switch actual {
 		case PRIMITIVE_f32, PRIMITIVE_f64, PRIMITIVE_f128:
 			v.Type = t
 
@@ -351,7 +369,7 @@ func (v *NumericLiteral) setTypeHint(t Type) {
 			v.Type = PRIMITIVE_f64
 		}
 	} else {
-		switch t {
+		switch actual {
 		case PRIMITIVE_int, PRIMITIVE_uint,
 			PRIMITIVE_s8, PRIMITIVE_s16, PRIMITIVE_s32, PRIMITIVE_s64, PRIMITIVE_s128,
 			PRIMITIVE_u8, PRIMITIVE_u16, PRIMITIVE_u32, PRIMITIVE_u64, PRIMITIVE_u128,

@@ -135,7 +135,7 @@ func (v *TypeCheck) CheckUnaryExpr(s *SemanticAnalyzer, expr *parser.UnaryExpr) 
 func (v *TypeCheck) CheckBinaryExpr(s *SemanticAnalyzer, expr *parser.BinaryExpr) {
 	switch expr.Op {
 	case parser.BINOP_EQ, parser.BINOP_NOT_EQ:
-		if expr.Lhand.GetType() != expr.Rhand.GetType() {
+		if !expr.Lhand.GetType().Equals(expr.Rhand.GetType()) {
 			s.Err(expr, "Operands for binary operator `%s` must have the same type, have `%s` and `%s`",
 				expr.Op.OpString(), expr.Lhand.GetType().TypeName(), expr.Rhand.GetType().TypeName())
 		} else if lht := expr.Lhand.GetType(); !(lht == parser.PRIMITIVE_bool || lht == parser.PRIMITIVE_rune || lht.IsIntegerType() || lht.IsFloatingType() || lht.LevelsOfIndirection() > 0) {
@@ -146,7 +146,7 @@ func (v *TypeCheck) CheckBinaryExpr(s *SemanticAnalyzer, expr *parser.BinaryExpr
 	case parser.BINOP_ADD, parser.BINOP_SUB, parser.BINOP_MUL, parser.BINOP_DIV, parser.BINOP_MOD,
 		parser.BINOP_GREATER, parser.BINOP_LESS, parser.BINOP_GREATER_EQ, parser.BINOP_LESS_EQ,
 		parser.BINOP_BIT_AND, parser.BINOP_BIT_OR, parser.BINOP_BIT_XOR:
-		if expr.Lhand.GetType() != expr.Rhand.GetType() {
+		if !expr.Lhand.GetType().Equals(expr.Rhand.GetType()) {
 			s.Err(expr, "Operands for binary operator `%s` must have the same type, have `%s` and `%s`",
 				expr.Op.OpString(), expr.Lhand.GetType().TypeName(), expr.Rhand.GetType().TypeName())
 		} else if lht := expr.Lhand.GetType(); !(lht == parser.PRIMITIVE_rune || lht.IsIntegerType() || lht.IsFloatingType() || lht.LevelsOfIndirection() > 0) {
@@ -235,8 +235,8 @@ func (v *TypeCheck) CheckCallExpr(s *SemanticAnalyzer, expr *parser.CallExpr) {
 				}
 			}
 		} else {
-			if arg.GetType() != expr.Function.Parameters[i].Variable.Type {
-				s.Err(arg, "Mismatched types in function call: `%s` and `%s`", arg.GetType(), expr.Function.Parameters[i].Variable.Type)
+			if !arg.GetType().Equals(expr.Function.Parameters[i].Variable.Type) {
+				s.Err(arg, "Mismatched types in function call: `%s` and `%s`", arg.GetType().TypeName(), expr.Function.Parameters[i].Variable.Type.TypeName())
 			}
 		}
 	}
@@ -284,7 +284,7 @@ func (v *TypeCheck) CheckNumericLiteral(s *SemanticAnalyzer, lit *parser.Numeric
 		// Guaranteed to be integer type and integer literal
 		var bits int
 
-		switch lit.Type {
+		switch lit.Type.ActualType() {
 		case parser.PRIMITIVE_int, parser.PRIMITIVE_uint:
 			bits = 9000 // FIXME work out proper size
 		case parser.PRIMITIVE_u8, parser.PRIMITIVE_s8:
