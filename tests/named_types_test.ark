@@ -15,7 +15,7 @@ func main(): int {
     tupleVal: tupleType = (5, 6);
     tupleTest(tupleVal);
 
-    tupleVal2 := (7, 8);
+    tupleVal2: (int, int)= (7, 8);
     tupleTest(tupleType(tupleVal2));
 
     return 0;
