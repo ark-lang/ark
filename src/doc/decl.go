@@ -15,7 +15,7 @@ type Decl struct {
 }
 
 func (v *Decl) process() {
-	v.ParsedDocs = template.HTML(parseMarkdown(v.Docs))
+	/*v.ParsedDocs = template.HTML(parseMarkdown(v.Docs))
 
 	switch v.Node.(type) {
 	case *parser.FunctionDecl:
@@ -30,10 +30,10 @@ func (v *Decl) process() {
 		v.Ident, v.Snippet = generateVariableDeclSnippet(v.Node.(*parser.VariableDecl))
 	default:
 		panic("unimplimented decl type in doc")
-	}
+	}*/
 }
 
-func generateFunctionDeclSnippet(decl *parser.FunctionDecl) (ident, snippet string) {
+/*func generateFunctionDeclSnippet(decl *parser.FunctionDecl) (ident, snippet string) {
 	ident = decl.Function.Name
 
 	snippet = parser.KEYWORD_FUNC + " " + ident + "("
@@ -103,4 +103,4 @@ func generateVariableDeclSnippet(decl *parser.VariableDecl) (ident, snippet stri
 		snippet += " = [TODO values]"
 	}
 	return
-}
+}*/

@@ -1,10 +1,11 @@
 package parser
 
 import (
+	"os"
+
 	"github.com/ark-lang/ark/src/lexer"
 	"github.com/ark-lang/ark/src/util"
 	"github.com/ark-lang/ark/src/util/log"
-	"os"
 )
 
 type NodeType int
@@ -19,10 +20,11 @@ const (
 	NODE_STRUCT_STATIC
 	NODE_VARIABLE
 	NODE_MODULE
+	NODE_TYPE
 )
 
 func (v NodeType) IsType() bool {
-	return v == NODE_PRIMITIVE || v == NODE_ENUM || v == NODE_STRUCT
+	return v == NODE_PRIMITIVE || v == NODE_ENUM || v == NODE_STRUCT || v == NODE_TYPE
 }
 
 func (v NodeType) String() string {
@@ -192,17 +194,20 @@ func MapNames(nodes []ParseNode, tree *ParseTree, modules map[string]*ParseTree,
 				continue
 			}
 
-		case *EnumDeclNode:
-			edn := node.(*EnumDeclNode)
-			name, typ = edn.Name, NODE_ENUM
-
-		case *StructDeclNode:
-			sdn := node.(*StructDeclNode)
-			name, typ = sdn.Name, NODE_STRUCT
-
 		case *VarDeclNode:
 			vd := node.(*VarDeclNode)
 			name, typ = vd.Name, NODE_VARIABLE
+
+		case *TypeDeclNode:
+			vd := node.(*TypeDeclNode)
+			name, typ = vd.Name, NODE_TYPE
+
+			switch vd.Type.(type) {
+			case *EnumTypeNode:
+				typ = NODE_ENUM
+			case *StructTypeNode:
+				typ = NODE_STRUCT
+			}
 
 		case *UseDeclNode:
 			udn := node.(*UseDeclNode)

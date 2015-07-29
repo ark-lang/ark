@@ -1,9 +1,9 @@
 [c] func printf(fmt: str, ...): int;
 
-enum Tree {
+type Tree enum {
     Node{left: ^Tree, right: ^Tree},
     Leaf(int)
-}
+};
 
 func main(): int {
 	x := Tree::Leaf(42);

@@ -199,27 +199,6 @@ func (v *VariableDecl) DocComments() []*DocComment {
 	return v.docs
 }
 
-// StructDecl
-
-type StructDecl struct {
-	nodePos
-	Struct *StructType
-}
-
-func (v *StructDecl) declNode() {}
-
-func (v *StructDecl) String() string {
-	return "(" + util.Blue("StructDecl") + ": " + v.Struct.String() + ")"
-}
-
-func (v *StructDecl) NodeName() string {
-	return "struct declaration"
-}
-
-func (v *StructDecl) DocComments() []*DocComment {
-	return nil // TODO
-}
-
 // TraitDecl
 
 type TraitDecl struct {
@@ -241,23 +220,24 @@ func (v *TraitDecl) DocComments() []*DocComment {
 	return nil // TODO
 }
 
-// EnumDecl
-type EnumDecl struct {
+// TypeDecl
+
+type TypeDecl struct {
 	nodePos
-	Enum *EnumType
+	NamedType *NamedType
 }
 
-func (v *EnumDecl) declNode() {}
+func (v *TypeDecl) declNode() {}
 
-func (v *EnumDecl) String() string {
-	return "(" + util.Blue("EnumDecl") + ": " + v.Enum.String() + ")"
+func (v *TypeDecl) String() string {
+	return "(" + util.Blue("TypeDecl") + ": " + v.NamedType.String() + ")"
 }
 
-func (v *EnumDecl) NodeName() string {
-	return "enum declaration"
+func (v *TypeDecl) NodeName() string {
+	return "named type declaration"
 }
 
-func (v *EnumDecl) DocComments() []*DocComment {
+func (v *TypeDecl) DocComments() []*DocComment {
 	return nil // TODO
 }
 
@@ -1038,7 +1018,7 @@ func (v *TupleAccessExpr) String() string {
 
 func (v *TupleAccessExpr) GetType() Type {
 	if v.Tuple.GetType() != nil {
-		return v.Tuple.GetType().(*TupleType).Members[v.Index]
+		return v.Tuple.GetType().ActualType().(*TupleType).Members[v.Index]
 	}
 	return nil
 }

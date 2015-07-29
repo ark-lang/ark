@@ -77,12 +77,8 @@ func (v *VariableDecl) resolve(res *Resolver, s *Scope) {
 	}
 }
 
-func (v *StructDecl) resolve(res *Resolver, s *Scope) {
-	v.Struct = v.Struct.resolveType(v, res, s).(*StructType)
-}
-
-func (v *EnumDecl) resolve(res *Resolver, s *Scope) {
-	v.Enum = v.Enum.resolveType(v, res, s).(*EnumType)
+func (v *TypeDecl) resolve(res *Resolver, s *Scope) {
+	v.NamedType = v.NamedType.resolveType(v, res, s).(*NamedType)
 }
 
 func (v *TraitDecl) resolve(res *Resolver, s *Scope) {
@@ -265,13 +261,14 @@ func (v *VariableAccessExpr) resolve(res *Resolver, s *Scope) {
 func (v *StructAccessExpr) resolve(res *Resolver, s *Scope) {
 	v.Struct.resolve(res, s)
 
-	pointerType, ok := v.Struct.GetType().(PointerType)
-	if _, isStruct := pointerType.Addressee.(*StructType); ok && isStruct {
-		v.Struct = &DerefAccessExpr{Expr: v.Struct, Type: pointerType.Addressee}
-		v.resolve(res, s)
+	if pointerType, ok := v.Struct.GetType().ActualType().(PointerType); ok {
+		if _, isStruct := pointerType.Addressee.ActualType().(*StructType); isStruct {
+			v.Struct = &DerefAccessExpr{Expr: v.Struct, Type: pointerType.Addressee}
+			v.resolve(res, s)
+		}
 	}
 
-	structType, ok := v.Struct.GetType().(*StructType)
+	structType, ok := v.Struct.GetType().ActualType().(*StructType)
 	if !ok {
 		if v.Struct.GetType() == nil {
 			res.err(v, "Type of access expression was nil")
@@ -402,6 +399,11 @@ func (v *EnumType) resolveType(src Locatable, res *Resolver, s *Scope) Type {
 	for _, mem := range v.Members {
 		mem.Type = mem.Type.resolveType(src, res, s)
 	}
+	return v
+}
+
+func (v *NamedType) resolveType(src Locatable, res *Resolver, s *Scope) Type {
+	v.Type = v.Type.resolveType(src, res, s)
 	return v
 }
 

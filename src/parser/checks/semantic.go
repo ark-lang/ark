@@ -10,12 +10,6 @@ import (
 	"github.com/ark-lang/ark/src/util/log"
 )
 
-// IMPORTANT NOTE for setTypeHint():
-// When implementing this function for an Expr, only set the Expr's Type if
-// you are on a lowest-level Expr, ie. a literal. That means, if you Expr
-// contains a pointer to another Expr(s), simple pass the type hint along to that
-// Expr(s) then return.
-
 type SemanticAnalyzer struct {
 	Module          *parser.Module
 	Function        *parser.Function // the function we're in, or nil if we aren't
@@ -190,14 +184,6 @@ func (v *SemanticAnalyzer) VisitChildren(n parser.Node) {
 	if enumLiteral, ok := n.(*parser.EnumLiteral); ok {
 		v.Visit(enumLiteral.TupleLiteral)
 		v.Visit(enumLiteral.StructLiteral)
-	}
-
-	if structDecl, ok := n.(*parser.StructDecl); ok {
-		v.EnterScope()
-		for _, decl := range structDecl.Struct.Variables {
-			v.Visit(decl)
-		}
-		v.ExitScope()
 	}
 
 	if blockStat, ok := n.(*parser.BlockStat); ok {

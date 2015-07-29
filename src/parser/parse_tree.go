@@ -82,13 +82,13 @@ type TypeReferenceNode struct {
 
 // decls
 
-type StructDeclNode struct {
+/*type StructDeclNode struct {
 	baseNode
 	Name LocatedString
 	Body *StructBodyNode
-}
+}*/
 
-type StructBodyNode struct {
+type StructTypeNode struct {
 	baseNode
 	Members []*VarDeclNode
 }
@@ -127,9 +127,8 @@ type FunctionDeclNode struct {
 	Expr   ParseNode
 }
 
-type EnumDeclNode struct {
+type EnumTypeNode struct {
 	baseNode
-	Name    LocatedString
 	Members []*EnumEntryNode
 }
 
@@ -138,7 +137,7 @@ type EnumEntryNode struct {
 	Name       LocatedString
 	Value      *NumberLitNode
 	TupleBody  *TupleTypeNode
-	StructBody *StructBodyNode
+	StructBody *StructTypeNode
 }
 
 type VarDeclNode struct {
@@ -147,6 +146,12 @@ type VarDeclNode struct {
 	Type    ParseNode
 	Value   ParseNode
 	Mutable LocatedString
+}
+
+type TypeDeclNode struct {
+	baseNode
+	Name LocatedString
+	Type ParseNode
 }
 
 // statements
