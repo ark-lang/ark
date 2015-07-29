@@ -1,6 +1,8 @@
 [c] func printf(fmt: str, ...): int;
 
 type thing int;
+type thing2 thing;
+
 type tupleType (int, int);
 
 func main(): int {
@@ -10,6 +12,11 @@ func main(): int {
     fnVal: int = 7;
     fn(thing(fnVal));
     fn(8);
+
+    t: thing2 = 5;
+    fn(thing(t));
+
+    fn2(-6);
 
     // tuple test
     tupleVal: tupleType = (5, 6);
@@ -25,6 +32,9 @@ func fn(y: thing) {
     C::printf("y: %d\n", y);
 }
 
+func fn2(y: thing2) {
+    C::printf("y: %d\n", y);
+}
 func tupleTest(y: tupleType) {
     C::printf("(%d, %d)\n", y|0|, y|1|);
 }
