@@ -133,10 +133,8 @@ func (v *Codegen) declareDecls(nodes []parser.Node) {
 	for _, node := range nodes {
 		if n, ok := node.(parser.Decl); ok {
 			switch n.(type) {
-			case *parser.StructDecl:
-				v.declareStructDecl(n.(*parser.StructDecl))
-			case *parser.EnumDecl:
-				v.declareEnumDecl(n.(*parser.EnumDecl))
+			case *parser.TypeDecl:
+				v.addNamedType(n.(*parser.TypeDecl).NamedType)
 			}
 
 		}
@@ -152,22 +150,25 @@ func (v *Codegen) declareDecls(nodes []parser.Node) {
 	}
 }
 
-func (v *Codegen) declareStructDecl(n *parser.StructDecl) {
-	v.addStructType(n.Struct)
+func (v *Codegen) addNamedType(n *parser.NamedType) {
+	switch n.Type.(type) {
+	case *parser.StructType:
+		v.addStructType(n.Type.(*parser.StructType), n.Name)
+	case *parser.EnumType:
+		v.addEnumType(n.Type.(*parser.EnumType), n.Name)
+	}
 }
 
-func (v *Codegen) declareEnumDecl(n *parser.EnumDecl) {
-	v.addEnumType(n.Enum)
-}
-
-func (v *Codegen) addStructType(typ *parser.StructType) {
+func (v *Codegen) addStructType(typ *parser.StructType, name string) {
 	if _, ok := v.structLookup_UseHelperFunction[typ]; ok {
 		return
 	}
 
+	structure := v.curFile.Module.Context().StructCreateNamed(name)
+
 	for _, field := range typ.Variables {
-		if struc, ok := field.Variable.Type.(*parser.StructType); ok {
-			v.addStructType(struc) // TODO check recursive loop
+		if named, ok := field.Variable.Type.(*parser.NamedType); ok {
+			v.addNamedType(named)
 		}
 	}
 
@@ -180,17 +181,16 @@ func (v *Codegen) addStructType(typ *parser.StructType) {
 		fields[i] = memberType
 	}
 
-	structure := v.curFile.Module.Context().StructCreateNamed(typ.MangledName(parser.MANGLE_ARK_UNSTABLE))
 	structure.StructSetBody(fields, packed)
 	v.structLookup_UseHelperFunction[typ] = structure
 }
 
-func (v *Codegen) addEnumType(typ *parser.EnumType) {
+func (v *Codegen) addEnumType(typ *parser.EnumType, name string) {
 	if _, ok := v.enumLookup_UseHelperFunction[typ]; ok || typ.Simple {
 		return
 	}
 
-	enum := v.curFile.Module.Context().StructCreateNamed(typ.MangledName(parser.MANGLE_ARK_UNSTABLE))
+	enum := v.curFile.Module.Context().StructCreateNamed(name)
 
 	longestLength := uint64(0)
 	for _, member := range typ.Members {
@@ -198,9 +198,8 @@ func (v *Codegen) addEnumType(typ *parser.EnumType) {
 			continue
 		}
 
-		if structType, ok := member.Type.(*parser.StructType); ok {
-			// TODO: check recursive loop
-			v.addStructType(structType)
+		if named, ok := member.Type.(*parser.NamedType); ok {
+			v.addNamedType(named)
 		}
 
 		memLength := v.targetData.TypeAllocSize(v.typeToLLVMType(member.Type))
@@ -641,7 +640,7 @@ func (v *Codegen) genAccessGEP(n parser.Expr) llvm.Value {
 		sae := n.(*parser.StructAccessExpr)
 
 		gep := v.genAccessGEP(sae.Struct)
-		index := sae.Struct.GetType().(*parser.StructType).VariableIndex(sae.Variable)
+		index := sae.Struct.GetType().ActualType().(*parser.StructType).VariableIndex(sae.Variable)
 		return v.builder.CreateStructGEP(gep, index, "")
 
 	case *parser.ArrayAccessExpr:
@@ -1180,6 +1179,7 @@ func (v *Codegen) typeToLLVMType(typ parser.Type) llvm.Type {
 	case *parser.EnumType:
 		return v.enumTypeToLLVMType(typ.(*parser.EnumType))
 	case *parser.NamedType:
+		//return v.namedTypeToLLVMType(typ.(*parser.NamedType))
 		return v.typeToLLVMType(typ.(*parser.NamedType).Type)
 	default:
 		log.Debugln("codegen", "Type was %s", typ)
@@ -1197,18 +1197,26 @@ func (v *Codegen) tupleTypeToLLVMType(typ *parser.TupleType) llvm.Type {
 }
 
 func (v *Codegen) arrayTypeToLLVMType(typ parser.ArrayType) llvm.Type {
-	fields := []llvm.Type{llvm.IntType(32), llvm.PointerType(llvm.ArrayType(v.typeToLLVMType(typ.MemberType), 0), 0)}
+	fields := []llvm.Type{llvm.IntType(32), llvm.PointerType(llvm.ArrayType(v.typeToLLVMType(typ.MemberType), 0), 0)} // TODO length size?
 
 	return llvm.StructType(fields, false)
 }
 
 func (v *Codegen) structTypeToLLVMType(typ *parser.StructType) llvm.Type {
-	name := typ.MangledName(parser.MANGLE_ARK_UNSTABLE)
-	llvmType := v.curFile.Module.GetTypeByName(name)
-	if llvmType.IsNil() {
-		llvmType = v.curFile.Module.Context().StructCreateNamed(name)
+	if t, ok := v.structLookup_UseHelperFunction[typ]; ok {
+		return t
 	}
-	return llvmType
+
+	numOfFields := len(typ.Variables)
+	fields := make([]llvm.Type, numOfFields)
+	packed := typ.Attrs().Contains("packed")
+
+	for i, member := range typ.Variables {
+		memberType := v.typeToLLVMType(member.Variable.Type)
+		fields[i] = memberType
+	}
+
+	return llvm.StructType(fields, packed)
 }
 
 func (v *Codegen) enumTypeToLLVMType(typ *parser.EnumType) llvm.Type {

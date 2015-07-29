@@ -82,13 +82,13 @@ type TypeReferenceNode struct {
 
 // decls
 
-type StructDeclNode struct {
+/*type StructDeclNode struct {
 	baseNode
 	Name LocatedString
 	Body *StructBodyNode
-}
+}*/
 
-type StructBodyNode struct {
+type StructTypeNode struct {
 	baseNode
 	Members []*VarDeclNode
 }
@@ -138,7 +138,7 @@ type EnumEntryNode struct {
 	Name       LocatedString
 	Value      *NumberLitNode
 	TupleBody  *TupleTypeNode
-	StructBody *StructBodyNode
+	StructBody *StructTypeNode
 }
 
 type VarDeclNode struct {
