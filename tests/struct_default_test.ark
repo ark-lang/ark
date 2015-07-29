@@ -1,16 +1,16 @@
 [c] func printf(fmt: str, ...): int;
 
-struct Test {
+type Test struct {
     x: int = 1,
     y: int = 2,
     a: int = 3,
     b: int = 4
-}
+};
 
 func main(): int {
     // To create without defaults -> t: Test = {};
 	t := default(Test);
-    
+
     C::printf("t.x = %d\n", t.x);
     if t.x != 1 {
     	return 1;

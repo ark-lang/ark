@@ -1,9 +1,10 @@
 package doc
 
 import (
-	"github.com/ark-lang/ark/src/util/log"
 	"os"
 	"time"
+
+	"github.com/ark-lang/ark/src/util/log"
 
 	"github.com/ark-lang/ark/src/parser"
 	"github.com/ark-lang/ark/src/util"
@@ -54,8 +55,8 @@ func (v *Docgen) traverse() {
 				switch n.(type) {
 				case *parser.FunctionDecl:
 					v.curOutput.FunctionDecls = append(v.curOutput.FunctionDecls, decl)
-				case *parser.StructDecl:
-					v.curOutput.StructDecls = append(v.curOutput.StructDecls, decl)
+				//case *parser.StructDecl:
+				//	v.curOutput.StructDecls = append(v.curOutput.StructDecls, decl)
 				case *parser.TraitDecl:
 					v.curOutput.TraitDecls = append(v.curOutput.TraitDecls, decl)
 				case *parser.ImplDecl:

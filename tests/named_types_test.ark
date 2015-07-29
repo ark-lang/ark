@@ -1,0 +1,62 @@
+[c] func printf(fmt: str, ...): int;
+
+type thing int;
+type thing2 thing;
+
+type tupleType (int, int);
+
+// TODO array types
+
+type structType struct {
+    x: int
+};
+
+func main(): int {
+    C::printf("Named types test.\n");
+
+    // primitive test
+    fnVal: int = 7;
+    fn(thing(fnVal));
+    fn(8);
+
+    t: thing2 = 5;
+    fn(thing(t));
+
+    fn2(-6);
+
+    // tuple test
+    tupleVal: tupleType = (5, 6);
+    tupleTest(tupleVal);
+
+    tupleVal2: (int, int) = (7, 8);
+    tupleTest(tupleType(tupleVal2));
+
+    // struct test
+    mut structVal: structType;
+    structVal.x = 6;
+
+    mut structAnon: struct {
+        z: int
+    };
+
+    structAnon.z = 100;
+    structAnonTest(structAnon);
+
+    return 0;
+}
+
+func fn(y: thing) {
+    C::printf("y: %d\n", y);
+}
+
+func fn2(y: thing2) {
+    C::printf("y: %d\n", y);
+}
+
+func tupleTest(y: tupleType) {
+    C::printf("(%d, %d)\n", y|0|, y|1|);
+}
+
+func structAnonTest(struct_: struct {z: int}) {
+    C::printf("%d\n", struct_.z);
+}

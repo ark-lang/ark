@@ -70,7 +70,7 @@ func (v *Function) infer(s *TypeInferer) {
 	s.function = nil
 }
 
-func (v *EnumDecl) infer(s *TypeInferer) {
+func (v *EnumType) infer(s *TypeInferer) {
 	// We shouldn't need anything here
 }
 
@@ -84,6 +84,15 @@ func (v *TraitType) infer(s *TypeInferer) {
 	for _, decl := range v.Functions {
 		decl.infer(s)
 	}
+}
+
+func (v *NamedType) infer(s *TypeInferer) {
+	if typ, ok := v.Type.(*StructType); ok {
+		typ.infer(s)
+	} else if typ, ok := v.Type.(*TraitType); ok {
+		typ.infer(s)
+	}
+	// TODO add function types when done
 }
 
 func (v *Variable) infer(s *TypeInferer) {
@@ -106,8 +115,8 @@ func (v *VariableDecl) infer(s *TypeInferer) {
 	}
 }
 
-func (v *StructDecl) infer(s *TypeInferer) {
-	v.Struct.infer(s)
+func (v *TypeDecl) infer(s *TypeInferer) {
+	v.NamedType.infer(s)
 }
 
 func (v *TraitDecl) infer(s *TypeInferer) {
@@ -230,6 +239,10 @@ func (v *DefaultStat) infer(s *TypeInferer) {
 func (v *UnaryExpr) infer(s *TypeInferer) {
 	v.Expr.infer(s)
 
+	if v.Expr.GetType() == nil {
+		return // come back on second inference
+	}
+
 	switch v.Op {
 	case UNOP_LOG_NOT:
 		if v.Expr.GetType() == PRIMITIVE_bool {
@@ -342,8 +355,13 @@ func (v *BinaryExpr) setTypeHint(t Type) {
 func (v *NumericLiteral) infer(s *TypeInferer) {}
 
 func (v *NumericLiteral) setTypeHint(t Type) {
+	var actual Type
+	if t != nil {
+		actual = t.ActualType()
+	}
+
 	if v.IsFloat {
-		switch t {
+		switch actual {
 		case PRIMITIVE_f32, PRIMITIVE_f64, PRIMITIVE_f128:
 			v.Type = t
 
@@ -351,7 +369,7 @@ func (v *NumericLiteral) setTypeHint(t Type) {
 			v.Type = PRIMITIVE_f64
 		}
 	} else {
-		switch t {
+		switch actual {
 		case PRIMITIVE_int, PRIMITIVE_uint,
 			PRIMITIVE_s8, PRIMITIVE_s16, PRIMITIVE_s32, PRIMITIVE_s64, PRIMITIVE_s128,
 			PRIMITIVE_u8, PRIMITIVE_u16, PRIMITIVE_u32, PRIMITIVE_u64, PRIMITIVE_u128,
@@ -521,9 +539,11 @@ func (v *SizeofExpr) setTypeHint(t Type) {
 func (v *TupleLiteral) infer(s *TypeInferer) {
 	var memberTypes []Type
 
-	tupleType, ok := v.Type.(*TupleType)
-	if ok {
-		memberTypes = tupleType.Members
+	if v.Type != nil {
+		tupleType, ok := v.Type.ActualType().(*TupleType)
+		if ok {
+			memberTypes = tupleType.Members
+		}
 	}
 
 	if len(v.Members) == len(memberTypes) {
@@ -554,19 +574,27 @@ func (v *TupleLiteral) infer(s *TypeInferer) {
 }
 
 func (v *TupleLiteral) setTypeHint(t Type) {
-	typ, ok := t.(*TupleType)
+	if t == nil {
+		return
+	}
+
+	_, ok := t.ActualType().(*TupleType)
 	if ok {
-		v.Type = typ
+		v.Type = t
 	}
 }
 
 // StructLiteral
 func (v *StructLiteral) infer(s *TypeInferer) {
-	structType, ok := v.Type.(*StructType)
+	var ok bool
+
+	if v.Type != nil {
+		_, ok = v.Type.ActualType().(*StructType)
+	}
 
 	for name, mem := range v.Values {
 		if ok {
-			if decl := structType.GetVariableDecl(name); decl != nil {
+			if decl := v.Type.ActualType().(*StructType).GetVariableDecl(name); decl != nil {
 				mem.setTypeHint(decl.Variable.Type)
 			}
 		}
@@ -575,15 +603,19 @@ func (v *StructLiteral) infer(s *TypeInferer) {
 }
 
 func (v *StructLiteral) setTypeHint(t Type) {
-	typ, ok := t.(*StructType)
+	if t == nil {
+		return
+	}
+
+	_, ok := t.ActualType().(*StructType)
 	if ok {
-		v.Type = typ
+		v.Type = t
 	}
 }
 
 // EnumLiteral
 func (v *EnumLiteral) infer(s *TypeInferer) {
-	if enumType, ok := v.Type.(*EnumType); ok {
+	if enumType, ok := v.Type.ActualType().(*EnumType); ok {
 		memIdx := enumType.MemberIndex(v.Member)
 
 		if memIdx < 0 || memIdx >= len(enumType.Members) {

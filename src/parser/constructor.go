@@ -210,26 +210,37 @@ func (v *TypeReferenceNode) construct(c *Constructor) Type {
 	return res
 }
 
-func (v *StructDeclNode) construct(c *Constructor) Node {
+func (v *StructTypeNode) construct(c *Constructor) Type {
 	structType := &StructType{
-		attrs:        v.Attrs(),
-		Name:         v.Name.Value,
-		ParentModule: c.module,
+		attrs: v.Attrs(),
 	}
 
 	c.pushScope()
-	for _, member := range v.Body.Members {
+	for _, member := range v.Members {
 		structType.addVariableDecl(c.constructNode(member).(*VariableDecl)) // TODO: Error message
 	}
 	c.popScope()
 
-	if c.scope.InsertType(structType) != nil {
-		c.err(v.Where(), "Illegal redeclaration of structure `%s`", structType.Name)
+	return structType
+}
+
+func (v *TypeDeclNode) construct(c *Constructor) Node {
+	namedType := &NamedType{
+		Name:         v.Name.Value,
+		Type:         c.constructType(v.Type),
+		ParentModule: c.module,
 	}
 
-	res := &StructDecl{}
-	res.Struct = structType
+	if c.scope.InsertType(namedType) != nil {
+		c.err(v.Where(), "Illegal redeclaration of type `%s`", namedType.Name)
+	}
+
+	res := &TypeDecl{
+		NamedType: namedType,
+	}
+
 	res.setPos(v.Where().Start())
+
 	return res
 }
 
@@ -249,9 +260,8 @@ func (v *UseDeclNode) construct(c *Constructor) Node {
 
 func (v *TraitDeclNode) construct(c *Constructor) Node {
 	trait := &TraitType{
-		attrs:        v.Attrs(),
-		Name:         v.Name.Value,
-		ParentModule: c.module,
+		attrs: v.Attrs(),
+		Name:  v.Name.Value,
 	}
 
 	c.pushScope()
@@ -276,9 +286,9 @@ func (v *ImplDeclNode) construct(c *Constructor) Node {
 	res.TraitName = v.TraitName.Value
 	c.pushScope()
 	for _, member := range v.Members {
-		fn := c.constructNode(member).(*FunctionDecl)
+		fn := c.constructNode(member).(*FunctionDecl) // TODO: Error message
 
-		res.Functions = append(res.Functions, fn) // TODO: Error message
+		res.Functions = append(res.Functions, fn)
 	}
 	c.popScope()
 	res.setPos(v.Where().Start())
@@ -345,12 +355,10 @@ func (v *FunctionDeclNode) construct(c *Constructor) Node {
 	return res
 }
 
-func (v *EnumDeclNode) construct(c *Constructor) Node {
+func (v *EnumTypeNode) construct(c *Constructor) Type {
 	enumType := &EnumType{
-		Name:         v.Name.Value,
-		Simple:       true,
-		Members:      make([]EnumTypeMember, len(v.Members)),
-		ParentModule: c.module,
+		Simple:  true,
+		Members: make([]EnumTypeMember, len(v.Members)),
 	}
 
 	lastValue := 0
@@ -361,10 +369,7 @@ func (v *EnumDeclNode) construct(c *Constructor) Node {
 			enumType.Members[idx].Type = c.constructType(mem.TupleBody)
 			enumType.Simple = false
 		} else if mem.StructBody != nil {
-			structType := &StructType{
-				Name:       mem.Name.Value,
-				ParentEnum: enumType,
-			}
+			structType := &StructType{}
 
 			c.pushScope()
 			for _, member := range mem.StructBody.Members {
@@ -386,14 +391,22 @@ func (v *EnumDeclNode) construct(c *Constructor) Node {
 		lastValue += 1
 	}
 
-	if c.scope.InsertType(enumType) != nil {
-		c.err(v.Where(), "Illegal redeclaration of enum `%s`", enumType.Name)
+	// this should probably be somewhere else
+	usedNames := make(map[string]bool)
+	usedTags := make(map[int]bool)
+	for _, mem := range enumType.Members {
+		if usedNames[mem.Name] {
+			c.err(v.Where(), "Duplicate member name `%s`", mem.Name)
+		}
+		usedNames[mem.Name] = true
+
+		if usedTags[mem.Tag] {
+			c.err(v.Where(), "Duplciate enum tag `%d` on member `%s`", mem.Tag, mem.Name)
+		}
+		usedTags[mem.Tag] = true
 	}
 
-	res := &EnumDecl{}
-	res.Enum = enumType
-	res.setPos(v.Where().Start())
-	return res
+	return enumType
 }
 
 func (v *VarDeclNode) construct(c *Constructor) Node {
@@ -735,7 +748,7 @@ func (v *StructLiteralNode) construct(c *Constructor) Expr {
 		res.Values[member.Value] = c.constructExpr(v.Values[idx])
 	}
 
-	if v.Name == nil || c.nameMap.TypeOfNameNode(v.Name) == NODE_STRUCT {
+	if v.Name == nil {
 		return res
 	} else if typ := c.nameMap.TypeOfNameNode(v.Name); typ == NODE_ENUM_MEMBER {
 		enum := &EnumLiteral{}

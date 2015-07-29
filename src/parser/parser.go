@@ -281,8 +281,8 @@ func (v *parser) parseDecl() ParseNode {
 	docComments := v.parseDocComments()
 	attrs := v.parseAttributes()
 
-	if structDecl := v.parseStructDecl(); structDecl != nil {
-		res = structDecl
+	if typeDecl := v.parseTypeDecl(); typeDecl != nil {
+		res = typeDecl
 	} else if useDecl := v.parseUseDecl(); useDecl != nil {
 		res = useDecl
 	} else if traitDecl := v.parseTraitDecl(); traitDecl != nil {
@@ -291,8 +291,6 @@ func (v *parser) parseDecl() ParseNode {
 		res = implDecl
 	} else if funcDecl := v.parseFuncDecl(); funcDecl != nil {
 		res = funcDecl
-	} else if enumDecl := v.parseEnumDecl(); enumDecl != nil {
-		res = enumDecl
 	} else if varDecl := v.parseVarDecl(); varDecl != nil {
 		res = varDecl
 	}
@@ -305,61 +303,6 @@ func (v *parser) parseDecl() ParseNode {
 		res.SetAttrs(attrs)
 	}
 
-	return res
-}
-
-func (v *parser) parseStructDecl() *StructDeclNode {
-	defer un(trace(v, "structdecl"))
-
-	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_STRUCT) {
-		return nil
-	}
-	startToken := v.consumeToken()
-
-	name := v.expect(lexer.TOKEN_IDENTIFIER, "")
-	if isReservedKeyword(name.Contents) {
-		v.err("Cannot use reserved keyword `%s` as name for struct", name.Contents)
-	}
-
-	body := v.parseStructBody()
-	if body == nil {
-		v.err("Expected starting `{` after struct name")
-	}
-
-	res := &StructDeclNode{Name: NewLocatedString(name), Body: body}
-	res.SetWhere(lexer.NewSpan(startToken.Where.Start(), body.Where().End()))
-	return res
-}
-
-func (v *parser) parseStructBody() *StructBodyNode {
-	defer un(trace(v, "structbody"))
-
-	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "{") {
-		return nil
-	}
-	startToken := v.consumeToken()
-
-	var members []*VarDeclNode
-	for {
-		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "}") {
-			break
-		}
-
-		member := v.parseVarDeclBody()
-		if member == nil {
-			v.err("Expected valid variable declaration in struct")
-		}
-		members = append(members, member)
-
-		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ",") {
-			v.consumeToken()
-		}
-	}
-
-	endToken := v.expect(lexer.TOKEN_SEPARATOR, "}")
-
-	res := &StructBodyNode{Members: members}
-	res.SetWhere(lexer.NewSpanFromTokens(startToken, endToken))
 	return res
 }
 
@@ -566,43 +509,30 @@ func (v *parser) parseFuncHeader() *FunctionHeaderNode {
 	return res
 }
 
-func (v *parser) parseEnumDecl() *EnumDeclNode {
-	defer un(trace(v, "enumdecl"))
+func (v *parser) parseTypeDecl() *TypeDeclNode {
+	defer un(trace(v, "typdecl"))
 
-	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_ENUM) {
+	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, "type") {
 		return nil
 	}
+
 	startToken := v.consumeToken()
 
 	name := v.expect(lexer.TOKEN_IDENTIFIER, "")
 	if isReservedKeyword(name.Contents) {
-		v.err("Cannot use reserved keyword `%s` as name for enum", name.Contents)
+		v.err("Cannot use reserved keyword `%s` as type name", name.Contents)
 	}
 
-	v.expect(lexer.TOKEN_SEPARATOR, "{")
+	typ := v.parseType(true)
 
-	var members []*EnumEntryNode
-	for {
-		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "}") {
-			break
-		}
+	endToken := v.expect(lexer.TOKEN_SEPARATOR, ";")
 
-		member := v.parseEnumEntry()
-		if member == nil {
-			v.err("Expected valid enum entry in enum")
-		}
-		members = append(members, member)
-
-		if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ",") {
-			break
-		}
-		v.consumeToken()
+	res := &TypeDeclNode{
+		Name: NewLocatedString(name),
+		Type: typ,
 	}
-
-	endToken := v.expect(lexer.TOKEN_SEPARATOR, "}")
-
-	res := &EnumDeclNode{Name: NewLocatedString(name), Members: members}
 	res.SetWhere(lexer.NewSpanFromTokens(startToken, endToken))
+
 	return res
 }
 
@@ -619,7 +549,7 @@ func (v *parser) parseEnumEntry() *EnumEntryNode {
 	}
 
 	var value *NumberLitNode
-	var structBody *StructBodyNode
+	var structBody *StructTypeNode
 	var tupleBody *TupleTypeNode
 	var lastPos lexer.Position
 	if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "=") {
@@ -632,7 +562,7 @@ func (v *parser) parseEnumEntry() *EnumEntryNode {
 		lastPos = value.Where().End()
 	} else if tupleBody = v.parseTupleType(); tupleBody != nil {
 		lastPos = tupleBody.Where().End()
-	} else if structBody = v.parseStructBody(); structBody != nil {
+	} else if structBody = v.parseStructType(false); structBody != nil {
 		lastPos = structBody.Where().End()
 	}
 
@@ -1077,10 +1007,93 @@ func (v *parser) parseType(doRefs bool) ParseNode {
 		res = v.parseTupleType()
 	} else if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "[") {
 		res = v.parseArrayType()
+	} else if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_STRUCT) {
+		res = v.parseStructType(true)
+	} else if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_ENUM) {
+		res = v.parseEnumType()
 	} else if doRefs && v.nextIs(lexer.TOKEN_IDENTIFIER) {
 		res = v.parseTypeReference()
 	}
 
+	return res
+}
+
+func (v *parser) parseEnumType() *EnumTypeNode {
+	defer un(trace(v, "enumtype"))
+
+	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_ENUM) {
+		return nil
+	}
+	startToken := v.consumeToken()
+
+	v.expect(lexer.TOKEN_SEPARATOR, "{")
+
+	var members []*EnumEntryNode
+	for {
+		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "}") {
+			break
+		}
+
+		member := v.parseEnumEntry()
+		if member == nil {
+			v.err("Expected valid enum entry in enum")
+		}
+		members = append(members, member)
+
+		if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ",") {
+			break
+		}
+		v.consumeToken()
+	}
+
+	endToken := v.expect(lexer.TOKEN_SEPARATOR, "}")
+
+	res := &EnumTypeNode{Members: members}
+
+	res.SetWhere(lexer.NewSpanFromTokens(startToken, endToken))
+	return res
+}
+
+func (v *parser) parseStructType(requireKeyword bool) *StructTypeNode {
+	defer un(trace(v, "structtype"))
+
+	var startToken *lexer.Token
+
+	if requireKeyword {
+		if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_STRUCT) {
+			return nil
+		}
+		startToken = v.consumeToken()
+
+		v.expect(lexer.TOKEN_SEPARATOR, "{")
+	} else {
+		if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "{") {
+			return nil
+		}
+		startToken = v.consumeToken()
+	}
+
+	var members []*VarDeclNode
+	for {
+		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "}") {
+			break
+		}
+
+		member := v.parseVarDeclBody()
+		if member == nil {
+			v.err("Expected valid variable declaration in struct")
+		}
+		members = append(members, member)
+
+		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ",") {
+			v.consumeToken()
+		}
+	}
+
+	endToken := v.expect(lexer.TOKEN_SEPARATOR, "}")
+
+	res := &StructTypeNode{Members: members}
+	res.SetWhere(lexer.NewSpanFromTokens(startToken, endToken))
 	return res
 }
 
