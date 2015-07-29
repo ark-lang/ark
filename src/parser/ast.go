@@ -1057,7 +1057,7 @@ func (v *TupleAccessExpr) String() string {
 
 func (v *TupleAccessExpr) GetType() Type {
 	if v.Tuple.GetType() != nil {
-		return v.Tuple.GetType().(*TupleType).Members[v.Index]
+		return v.Tuple.GetType().ActualType().(*TupleType).Members[v.Index]
 	}
 	return nil
 }

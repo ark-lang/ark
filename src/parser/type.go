@@ -251,7 +251,7 @@ func (v *NamedType) IsFloatingType() bool {
 }
 
 func (v *NamedType) CanCastTo(t Type) bool {
-	return false
+	return v.ActualType().CanCastTo(t)
 }
 
 func (v *NamedType) Attrs() AttrGroup {
@@ -503,7 +503,7 @@ func (v *TupleType) String() string {
 }
 
 func (v *TupleType) TypeName() string {
-	result := "|"
+	result := "("
 	for idx, mem := range v.Members {
 		result += mem.TypeName()
 
@@ -512,7 +512,7 @@ func (v *TupleType) TypeName() string {
 			result += ", "
 		}
 	}
-	result += "|"
+	result += ")"
 	return result
 }
 
@@ -533,7 +533,7 @@ func (v *TupleType) IsFloatingType() bool {
 }
 
 func (v *TupleType) CanCastTo(t Type) bool {
-	return false
+	return v != t && v.Equals(t.ActualType())
 }
 
 func (v *TupleType) addMember(decl Type) {

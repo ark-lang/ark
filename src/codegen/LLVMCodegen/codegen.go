@@ -783,8 +783,7 @@ func (v *Codegen) genArrayLiteral(n *parser.ArrayLiteral) llvm.Value {
 }
 
 func (v *Codegen) genTupleLiteral(n *parser.TupleLiteral) llvm.Value {
-	tupleType := n.Type.(*parser.TupleType)
-	tupleLLVMType := v.typeToLLVMType(tupleType)
+	tupleLLVMType := v.typeToLLVMType(n.Type)
 
 	tupleValue := llvm.Undef(tupleLLVMType)
 	for idx, mem := range n.Members {
@@ -1035,7 +1034,7 @@ func (v *Codegen) genUnaryExpr(n *parser.UnaryExpr) llvm.Value {
 }
 
 func (v *Codegen) genCastExpr(n *parser.CastExpr) llvm.Value {
-	if n.GetType().Equals(n.Expr.GetType()) {
+	if n.GetType().ActualType().Equals(n.Expr.GetType().ActualType()) {
 		return v.genExpr(n.Expr)
 	}
 
