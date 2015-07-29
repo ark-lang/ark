@@ -243,6 +243,10 @@ func (v *DefaultStat) infer(s *TypeInferer) {
 func (v *UnaryExpr) infer(s *TypeInferer) {
 	v.Expr.infer(s)
 
+	if v.Expr.GetType() == nil {
+		return // come back on second inference
+	}
+
 	switch v.Op {
 	case UNOP_LOG_NOT:
 		if v.Expr.GetType() == PRIMITIVE_bool {
