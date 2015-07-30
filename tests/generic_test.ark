@@ -1,0 +1,30 @@
+[c] func printf(fmt: str, ...): int;
+[c] func malloc(size: uint): ^void;
+
+type Option<T> enum {
+    None,
+    Some(int)
+};
+
+func alloc<T>(): ^int {
+    ptr := C::malloc(sizeof(int));
+    // ... // Check allocation success
+    return ^int(ptr);
+}
+
+func main(): int {
+	a: int = 0;
+	x := Option::None<int>;
+	y := Option::Some(a);
+
+	C::printf("x tag: %d\n", x);
+	C::printf("y tag: %d\n", y);
+
+	q := alloc<int>();
+	w: ^int = alloc();
+
+	C::printf("q addr: %x\n", q);
+	C::printf("w addr: %x\n", w);
+
+	return 0;
+}
