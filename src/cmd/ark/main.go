@@ -144,7 +144,14 @@ func build(files []string, outputFile string, cg string, ccArgs []string, output
 		for _, module := range modules {
 			inf := &parser.TypeInferer{Module: module}
 			inf.Infer(modules)
+
+			// Dump AST
+			log.Debugln("main", "AST of module `%s`:", module.Name)
+			for _, node := range module.Nodes {
+				log.Debugln("main", node.String())
+			}
 		}
+
 	})
 
 	// semantic analysis
