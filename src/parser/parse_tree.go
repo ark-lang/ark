@@ -77,7 +77,8 @@ type ArrayTypeNode struct {
 
 type TypeReferenceNode struct {
 	baseNode
-	Reference *NameNode
+	Reference      *NameNode
+	TypeParameters []ParseNode
 }
 
 // decls
@@ -113,10 +114,11 @@ type ImplDeclNode struct {
 
 type FunctionHeaderNode struct {
 	baseNode
-	Name       LocatedString
-	Arguments  []*VarDeclNode
-	ReturnType ParseNode
-	Variadic   bool
+	Name         LocatedString
+	GenericSigil *GenericSigilNode
+	Arguments    []*VarDeclNode
+	ReturnType   ParseNode
+	Variadic     bool
 }
 
 type FunctionDeclNode struct {
@@ -150,8 +152,20 @@ type VarDeclNode struct {
 
 type TypeDeclNode struct {
 	baseNode
-	Name LocatedString
-	Type ParseNode
+	Name         LocatedString
+	GenericSigil *GenericSigilNode
+	Type         ParseNode
+}
+
+type GenericSigilNode struct {
+	baseNode
+	Parameters []*TypeParameterNode
+}
+
+type TypeParameterNode struct {
+	baseNode
+	Name         LocatedString
+	Restrictions []*NameNode
 }
 
 // statements
@@ -274,6 +288,12 @@ type CallExprNode struct {
 	baseNode
 	Function  ParseNode
 	Arguments []ParseNode
+}
+
+type GenericNameNode struct {
+	baseNode
+	Name       *NameNode
+	Parameters []ParseNode
 }
 
 // access expressions

@@ -457,6 +457,7 @@ func (v *parser) parseFuncHeader() *FunctionHeaderNode {
 	startToken := v.consumeToken()
 
 	name := v.expect(lexer.TOKEN_IDENTIFIER, "")
+	genericSigil := v.parseGenericSigil()
 	v.expect(lexer.TOKEN_SEPARATOR, "(")
 
 	var args []*VarDeclNode
@@ -499,7 +500,7 @@ func (v *parser) parseFuncHeader() *FunctionHeaderNode {
 		}
 	}
 
-	res := &FunctionHeaderNode{Name: NewLocatedString(name), Arguments: args, Variadic: variadic}
+	res := &FunctionHeaderNode{Name: NewLocatedString(name), GenericSigil: genericSigil, Arguments: args, Variadic: variadic}
 	if returnType != nil {
 		res.ReturnType = returnType
 		res.SetWhere(lexer.NewSpan(startToken.Where.Start(), returnType.Where().End()))
@@ -523,16 +524,76 @@ func (v *parser) parseTypeDecl() *TypeDeclNode {
 		v.err("Cannot use reserved keyword `%s` as type name", name.Contents)
 	}
 
+	genericSigil := v.parseGenericSigil()
+
 	typ := v.parseType(true)
 
 	endToken := v.expect(lexer.TOKEN_SEPARATOR, ";")
 
 	res := &TypeDeclNode{
-		Name: NewLocatedString(name),
-		Type: typ,
+		Name:         NewLocatedString(name),
+		GenericSigil: genericSigil,
+		Type:         typ,
 	}
 	res.SetWhere(lexer.NewSpanFromTokens(startToken, endToken))
 
+	return res
+}
+
+func (v *parser) parseGenericSigil() *GenericSigilNode {
+	defer un(trace(v, "genericsigil"))
+
+	if !v.tokenMatches(0, lexer.TOKEN_OPERATOR, "<") {
+		return nil
+	}
+	startToken := v.consumeToken()
+
+	var parameters []*TypeParameterNode
+	for {
+		parameter := v.parseTypeParameter()
+		if parameter == nil {
+			v.err("Expected valid type parameter in generic sigil")
+		}
+		parameters = append(parameters, parameter)
+
+		if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ",") {
+			break
+		}
+		v.consumeToken()
+	}
+	endToken := v.expect(lexer.TOKEN_OPERATOR, ">")
+
+	res := &GenericSigilNode{Parameters: parameters}
+	res.SetWhere(lexer.NewSpanFromTokens(startToken, endToken))
+	return res
+}
+
+func (v *parser) parseTypeParameter() *TypeParameterNode {
+	name := v.expect(lexer.TOKEN_IDENTIFIER, "")
+
+	var restrictions []*NameNode
+	if v.tokenMatches(0, lexer.TOKEN_OPERATOR, ":") {
+		v.consumeToken()
+		for {
+			restriction := v.parseName()
+			if restriction == nil {
+				v.err("Expected valid name in type restriction")
+			}
+			restrictions = append(restrictions, restriction)
+
+			if !v.tokenMatches(0, lexer.TOKEN_OPERATOR, "&") {
+				break
+			}
+			v.consumeToken()
+		}
+	}
+
+	res := &TypeParameterNode{Name: NewLocatedString(name), Restrictions: restrictions}
+	if idx := len(restrictions) - 1; idx >= 0 {
+		res.SetWhere(lexer.NewSpan(name.Where.Start(), restrictions[idx].Where().End()))
+	} else {
+		res.SetWhere(lexer.NewSpanFromTokens(name, name))
+	}
 	return res
 }
 
@@ -1182,7 +1243,27 @@ func (v *parser) parseTypeReference() *TypeReferenceNode {
 		return nil
 	}
 
-	res := &TypeReferenceNode{Reference: name}
+	var typeParameters []ParseNode
+	if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "<") {
+		v.consumeToken()
+
+		for {
+			typ := v.parseType(true)
+			if typ == nil {
+				v.err("Expected valid type as type parameter")
+			}
+			typeParameters = append(typeParameters, typ)
+
+			if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ",") {
+				break
+			}
+			v.consumeToken()
+		}
+
+		v.expect(lexer.TOKEN_OPERATOR, ">")
+	}
+
+	res := &TypeReferenceNode{Reference: name, TypeParameters: typeParameters}
 	res.SetWhere(name.Where())
 	return res
 }
@@ -1353,6 +1434,34 @@ func (v *parser) parsePrimaryExpr() ParseNode {
 	} else if castExpr := v.parseCastExpr(); castExpr != nil {
 		res = castExpr
 	} else if name := v.parseName(); name != nil {
+		startPos := v.currentToken
+
+		if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "<") {
+			v.consumeToken()
+
+			var parameters []ParseNode
+			for {
+				typ := v.parseType(true)
+				if typ == nil {
+					break
+				}
+				parameters = append(parameters, typ)
+
+				if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ",") {
+					break
+				}
+				v.consumeToken()
+			}
+
+			if !v.tokenMatches(0, lexer.TOKEN_OPERATOR, ">") {
+				v.currentToken = startPos
+			} else {
+				endToken := v.consumeToken()
+				// TODO: Don't just discard the tokens
+				_ = endToken
+			}
+		}
+
 		res = &VariableAccessNode{Name: name}
 		res.SetWhere(lexer.NewSpan(name.Where().Start(), name.Where().End()))
 	}
