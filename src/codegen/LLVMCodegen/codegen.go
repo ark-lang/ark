@@ -827,11 +827,13 @@ func (v *Codegen) genEnumLiteral(n *parser.EnumLiteral) llvm.Value {
 		tagGep := v.builder.CreateStructGEP(alloc, 0, "")
 		v.builder.CreateStore(tagValue, tagGep)
 
-		dataGep := v.builder.CreateStructGEP(alloc, 1, "")
+		if !memberValue.IsNil() {
+			dataGep := v.builder.CreateStructGEP(alloc, 1, "")
 
-		dataGep = v.builder.CreateBitCast(dataGep, llvm.PointerType(memberLLVMType, 0), "")
+			dataGep = v.builder.CreateBitCast(dataGep, llvm.PointerType(memberLLVMType, 0), "")
 
-		v.builder.CreateStore(memberValue, dataGep)
+			v.builder.CreateStore(memberValue, dataGep)
+		}
 
 		return v.builder.CreateLoad(alloc, "")
 	} else {
