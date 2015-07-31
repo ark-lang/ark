@@ -204,9 +204,16 @@ func (v *Codegen) declareFunctionDecl(n *parser.FunctionDecl) {
 		v.err("function `%s` already exists in module", n.Function.Name)
 	} else {
 		numOfParams := len(n.Function.Parameters)
-		params := make([]llvm.Type, numOfParams)
-		for i, par := range n.Function.Parameters {
-			params[i] = v.typeToLLVMType(par.Variable.Type)
+		if n.Function.IsMethod && !n.Function.IsStatic {
+			numOfParams++
+		}
+
+		params := make([]llvm.Type, 0, numOfParams)
+		if n.Function.IsMethod && !n.Function.IsStatic {
+			params = append(params, v.typeToLLVMType(n.Function.Receiver.Variable.Type))
+		}
+		for _, par := range n.Function.Parameters {
+			params = append(params, v.typeToLLVMType(par.Variable.Type))
 		}
 
 		// attributes defaults
@@ -236,11 +243,11 @@ func (v *Codegen) declareFunctionDecl(n *parser.FunctionDecl) {
 		// add that shit
 		function = llvm.AddFunction(v.curFile.Module, functionName, funcType)
 
-		// do some magical shit for later
+		/*// do some magical shit for later
 		for i := 0; i < numOfParams; i++ {
 			funcParam := function.Param(i)
 			funcParam.SetName(n.Function.Parameters[i].Variable.MangledName(parser.MANGLE_ARK_UNSTABLE))
-		}
+		}*/
 
 		if cBinding {
 			function.SetFunctionCallConv(llvm.CCallConv)
@@ -457,10 +464,6 @@ func (v *Codegen) genDecl(n parser.Decl) {
 		v.genFunctionDecl(n.(*parser.FunctionDecl))
 	case *parser.UseDecl:
 		v.genUseDecl(n.(*parser.UseDecl))
-	case *parser.TraitDecl:
-		// nothing to gen
-	case *parser.ImplDecl:
-		v.genImplDecl(n.(*parser.ImplDecl))
 	case *parser.VariableDecl:
 		v.genVariableDecl(n.(*parser.VariableDecl), true)
 	case *parser.TypeDecl:
@@ -488,8 +491,14 @@ func (v *Codegen) genFunctionDecl(n *parser.FunctionDecl) llvm.Value {
 			block := llvm.AddBasicBlock(function, "entry")
 			v.builder.SetInsertPointAtEnd(block)
 
-			for i, par := range n.Function.Parameters {
-				alloc := v.builder.CreateAlloca(v.typeToLLVMType(par.Variable.Type), par.Variable.MangledName(parser.MANGLE_ARK_UNSTABLE))
+			pars := n.Function.Parameters
+
+			if n.Function.IsMethod && !n.Function.IsStatic {
+				pars = append(pars, n.Function.Receiver)
+			}
+
+			for i, par := range pars {
+				alloc := v.builder.CreateAlloca(v.typeToLLVMType(par.Variable.Type), par.Variable.Name)
 				v.variableLookup[par.Variable] = alloc
 
 				v.builder.CreateStore(function.Params()[i], alloc)
@@ -501,14 +510,6 @@ func (v *Codegen) genFunctionDecl(n *parser.FunctionDecl) llvm.Value {
 			v.inFunction = false
 		}
 	}
-
-	return res
-}
-
-func (c *Codegen) genImplDecl(n *parser.ImplDecl) llvm.Value {
-	var res llvm.Value
-
-	/*for _, fun := range n.Functions {}*/
 
 	return res
 }
@@ -1087,7 +1088,6 @@ func floatTypeBits(ty parser.PrimitiveType) int {
 }
 
 func (v *Codegen) genCallExprWithArgs(n *parser.CallExpr, args []llvm.Value) llvm.Value {
-	// todo dont use attributes, use that C:: shit
 	cBinding := false
 	if n.Function.Attrs != nil {
 		cBinding = n.Function.Attrs.Contains("c")
@@ -1117,7 +1117,17 @@ func (v *Codegen) genCallExprWithArgs(n *parser.CallExpr, args []llvm.Value) llv
 }
 
 func (v *Codegen) genCallExpr(n *parser.CallExpr) llvm.Value {
-	args := make([]llvm.Value, 0, len(n.Arguments))
+	numArgs := len(n.Arguments)
+	if n.Function.IsMethod && !n.Function.IsStatic {
+		numArgs++
+	}
+
+	args := make([]llvm.Value, 0, numArgs)
+
+	if n.Function.IsMethod && !n.Function.IsStatic {
+		args = append(args, v.genExpr(n.ReceiverAccess))
+	}
+
 	for _, arg := range n.Arguments {
 		args = append(args, v.genExpr(arg))
 	}

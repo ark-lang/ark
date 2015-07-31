@@ -81,7 +81,7 @@ func (v *TypeDecl) resolve(res *Resolver, s *Scope) {
 	v.NamedType = v.NamedType.resolveType(v, res, s).(*NamedType)
 }
 
-func (v *TraitDecl) resolve(res *Resolver, s *Scope) {
+/*func (v *TraitDecl) resolve(res *Resolver, s *Scope) {
 	v.Trait = v.Trait.resolveType(v, res, s).(*TraitType)
 }
 
@@ -89,7 +89,7 @@ func (v *ImplDecl) resolve(res *Resolver, s *Scope) {
 	for _, fun := range v.Functions {
 		fun.resolve(res, s)
 	}
-}
+}*/
 
 func (v *FunctionDecl) resolve(res *Resolver, s *Scope) {
 	for _, param := range v.Function.Parameters {
@@ -98,6 +98,14 @@ func (v *FunctionDecl) resolve(res *Resolver, s *Scope) {
 
 	if v.Function.ReturnType != nil {
 		v.Function.ReturnType = v.Function.ReturnType.resolveType(v, res, s)
+	}
+
+	if v.Function.IsMethod {
+		if v.Function.IsStatic {
+			v.Function.StaticReceiverType = v.Function.StaticReceiverType.resolveType(v, res, s)
+		} else {
+			v.Function.Receiver.resolve(res, s)
+		}
 	}
 
 	if !v.Prototype {
@@ -225,6 +233,10 @@ func (v *CallExpr) resolve(res *Resolver, s *Scope) {
 
 	default:
 		panic("Invalid function source (for now)")
+	}
+
+	if v.ReceiverAccess != nil {
+		v.ReceiverAccess.resolve(res, s)
 	}
 
 	ident := s.GetIdent(name)
@@ -367,7 +379,7 @@ func (v ArrayType) resolveType(src Locatable, res *Resolver, s *Scope) Type {
 	return arrayOf(v.MemberType.resolveType(src, res, s))
 }
 
-func (v *TraitType) resolveType(src Locatable, res *Resolver, s *Scope) Type {
+/*func (v *TraitType) resolveType(src Locatable, res *Resolver, s *Scope) Type {
 	if res.resolved[v] {
 		return v
 	}
@@ -377,7 +389,7 @@ func (v *TraitType) resolveType(src Locatable, res *Resolver, s *Scope) Type {
 		fun.resolve(res, s)
 	}
 	return v
-}
+}*/
 
 func (v PointerType) resolveType(src Locatable, res *Resolver, s *Scope) Type {
 	return pointerTo(v.Addressee.resolveType(src, res, s))

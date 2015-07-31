@@ -258,7 +258,7 @@ func (v *UseDeclNode) construct(c *Constructor) Node {
 	return res
 }
 
-func (v *TraitDeclNode) construct(c *Constructor) Node {
+/*func (v *TraitDeclNode) construct(c *Constructor) Node {
 	trait := &TraitType{
 		attrs: v.Attrs(),
 		Name:  v.Name.Value,
@@ -293,7 +293,7 @@ func (v *ImplDeclNode) construct(c *Constructor) Node {
 	c.popScope()
 	res.setPos(v.Where().Start())
 	return res
-}
+}*/
 
 func (v *FunctionDeclNode) construct(c *Constructor) Node {
 	function := &Function{
@@ -309,14 +309,36 @@ func (v *FunctionDeclNode) construct(c *Constructor) Node {
 	}
 
 	c.pushScope()
+	if v.Header.IsMethod {
+		function.IsMethod = true
+
+		if v.Header.IsStatic {
+			function.IsStatic = true
+			function.StaticReceiverType = c.constructType(v.Header.StaticReceiverType)
+		} else {
+			function.IsStatic = false
+			function.Receiver = c.constructNode(v.Header.Receiver).(*VariableDecl) // TODO: error
+			function.Receiver.Variable.ParentFunction = res
+			function.Receiver.Variable.Uses = 1 // silence warning
+
+			function.Name = function.Receiver.Variable.Type.TypeName() + "." + function.Name
+		}
+	}
+
 	var arguments []ParseNode
 	for _, arg := range v.Header.Arguments {
 		arguments = append(arguments, arg)
 		decl := c.constructNode(arg).(*VariableDecl) // TODO: Error message
 		decl.Variable.ParentFunction = res
+		decl.Variable.Uses = 1
 		function.Parameters = append(function.Parameters, decl)
 	}
-	c.nameMap = MapNames(arguments, c.tree, c.treeFiles, c.nameMap)
+
+	nameMapArgs := arguments
+	if v.Header.IsMethod && !v.Header.IsStatic {
+		nameMapArgs = append(arguments, v.Header.Receiver)
+	}
+	c.nameMap = MapNames(nameMapArgs, c.tree, c.treeFiles, c.nameMap)
 
 	if v.Header.ReturnType != nil {
 		function.ReturnType = c.constructType(v.Header.ReturnType)
@@ -650,34 +672,52 @@ func (v *UnaryExprNode) construct(c *Constructor) Expr {
 }
 
 func (v *CallExprNode) construct(c *Constructor) Expr {
-	van := v.Function.(*VariableAccessNode) // TODO: better error
-	typ := c.nameMap.TypeOfNameNode(van.Name)
-	if typ == NODE_FUNCTION {
-		res := &CallExpr{}
-		res.Arguments = c.constructExprs(v.Arguments)
-		res.functionSource = c.constructExpr(v.Function)
-		res.setPos(v.Where().Start())
-		return res
-	} else if typ == NODE_ENUM_MEMBER {
-		res := &EnumLiteral{}
-		res.Member = van.Name.Name.Value
-		res.Type = &UnresolvedType{Name: toParentName(van.Name)}
-		res.TupleLiteral = &TupleLiteral{Members: c.constructExprs(v.Arguments)}
-		res.setPos(v.Where().Start())
-		return res
-	} else if typ.IsType() {
-		if len(v.Arguments) > 1 {
-			c.errSpan(v.Where(), "Cast cannot recieve more that one argument")
+	// TODO: when we allow function types, allow all access forms (eg. `thing[0]()``)
+	if van, ok := v.Function.(*VariableAccessNode); ok {
+		typ := c.nameMap.TypeOfNameNode(van.Name)
+		if typ == NODE_FUNCTION {
+			res := &CallExpr{
+				Arguments:      c.constructExprs(v.Arguments),
+				functionSource: c.constructExpr(v.Function),
+			}
+			res.setPos(v.Where().Start())
+			return res
+		} else if typ == NODE_ENUM_MEMBER {
+			res := &EnumLiteral{
+				Member:       van.Name.Name.Value,
+				Type:         &UnresolvedType{Name: toParentName(van.Name)},
+				TupleLiteral: &TupleLiteral{Members: c.constructExprs(v.Arguments)},
+			}
+			res.setPos(v.Where().Start())
+			return res
+		} else if typ.IsType() {
+			if len(v.Arguments) > 1 {
+				c.errSpan(v.Where(), "Cast cannot recieve more that one argument")
+			}
+
+			res := &CastExpr{
+				Type: c.constructType(&TypeReferenceNode{Reference: van.Name}),
+				Expr: c.constructExpr(v.Arguments[0]),
+			}
+			res.setPos(v.Where().Start())
+			return res
+		} else {
+			log.Debugln("constructor", "`%s` was a `%s`", van.Name.Name.Value, typ)
+			c.errSpan(van.Name.Name.Where, "Name `%s` is not a function or a enum member", van.Name.Name.Value)
+			return nil
+		}
+	} else if sae, ok := v.Function.(*StructAccessNode); ok {
+		res := &CallExpr{
+			Arguments:      c.constructExprs(v.Arguments),
+			functionSource: c.constructExpr(v.Function),
 		}
 
-		res := &CastExpr{}
-		res.Type = c.constructType(&TypeReferenceNode{Reference: van.Name})
-		res.Expr = c.constructExpr(v.Arguments[0])
+		res.ReceiverAccess = sae.construct(c).(*StructAccessExpr).Struct
+
 		res.setPos(v.Where().Start())
 		return res
 	} else {
-		log.Debugln("constructor", "`%s` was a `%s`", van.Name.Name.Value, typ)
-		c.errSpan(van.Name.Name.Where, "Name `%s` is not a function or a enum member", van.Name.Name.Value)
+		c.err(van.Name.Name.Where, "Can't call function on this")
 		return nil
 	}
 }
