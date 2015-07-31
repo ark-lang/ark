@@ -1,0 +1,20 @@
+[c] func printf(fmt: str, ...): int;
+
+type Thing struct {
+    x: int
+};
+
+func (v: Thing) do() {
+    C::printf("did! %d\n", v.x);
+}
+
+func main(): int {
+    mut thing: Thing;
+    thing.x = 6;
+
+    C::printf("%x\n", thing);
+
+    thing.do();
+
+    return 0;
+}

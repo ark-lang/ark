@@ -226,22 +226,29 @@ func (v *SemanticAnalyzer) VisitChildren(n parser.Node) {
 		v.Visit(derefAccessExpr.Expr)
 	}
 
-	if traitDecl, ok := n.(*parser.TraitDecl); ok {
+	/*if traitDecl, ok := n.(*parser.TraitDecl); ok {
 		v.EnterScope()
 		for _, decl := range traitDecl.Trait.Functions {
 			v.Visit(decl)
 		}
 		v.ExitScope()
-	}
+	}*/
 
 	if functionDecl, ok := n.(*parser.FunctionDecl); ok {
 		v.EnterScope()
-		for _, param := range functionDecl.Function.Parameters {
+
+		fn := functionDecl.Function
+
+		if fn.IsMethod && !fn.IsStatic {
+			v.Visit(functionDecl.Function.Receiver)
+		}
+
+		for _, param := range fn.Parameters {
 			v.Visit(param)
 		}
 
-		v.Function = functionDecl.Function
-		v.Visit(functionDecl.Function.Body)
+		v.Function = fn
+		v.Visit(fn.Body)
 		v.Function = nil
 
 		v.ExitScope()
