@@ -82,12 +82,6 @@ type TypeReferenceNode struct {
 
 // decls
 
-/*type StructDeclNode struct {
-	baseNode
-	Name LocatedString
-	Body *StructBodyNode
-}*/
-
 type StructTypeNode struct {
 	baseNode
 	Members []*VarDeclNode
@@ -98,25 +92,17 @@ type UseDeclNode struct {
 	Module *NameNode
 }
 
-type TraitDeclNode struct {
-	baseNode
-	Name    LocatedString
-	Members []*FunctionDeclNode
-}
-
-type ImplDeclNode struct {
-	baseNode
-	StructName LocatedString
-	TraitName  LocatedString
-	Members    []*FunctionDeclNode
-}
-
 type FunctionHeaderNode struct {
 	baseNode
 	Name       LocatedString
 	Arguments  []*VarDeclNode
 	ReturnType ParseNode
 	Variadic   bool
+
+	IsMethod           bool
+	IsStatic           bool
+	StaticReceiverType *TypeReferenceNode // use this if static
+	Receiver           *VarDeclNode       // use this if not static. this would be so much nicer with tagged unions...
 }
 
 type FunctionDeclNode struct {

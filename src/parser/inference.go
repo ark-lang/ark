@@ -80,16 +80,10 @@ func (v *StructType) infer(s *TypeInferer) {
 	}
 }
 
-func (v *TraitType) infer(s *TypeInferer) {
-	for _, decl := range v.Functions {
-		decl.infer(s)
-	}
-}
-
 func (v *NamedType) infer(s *TypeInferer) {
 	if typ, ok := v.Type.(*StructType); ok {
 		typ.infer(s)
-	} else if typ, ok := v.Type.(*TraitType); ok {
+	} else if typ, ok := v.Type.(*EnumType); ok {
 		typ.infer(s)
 	}
 	// TODO add function types when done
@@ -117,14 +111,6 @@ func (v *VariableDecl) infer(s *TypeInferer) {
 
 func (v *TypeDecl) infer(s *TypeInferer) {
 	v.NamedType.infer(s)
-}
-
-func (v *TraitDecl) infer(s *TypeInferer) {
-	v.Trait.infer(s)
-}
-
-func (v *ImplDecl) infer(s *TypeInferer) {
-	// TODO
 }
 
 func (v *UseDecl) infer(s *TypeInferer) {

@@ -21,8 +21,8 @@ func (v *AttributeCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
 
 	case *parser.FunctionDecl:
 		v.CheckFunctionDecl(s, n.(*parser.FunctionDecl))
-	case *parser.TraitDecl:
-		v.CheckTraitDecl(s, n.(*parser.TraitDecl))
+	//case *parser.TraitDecl:
+	//	v.CheckTraitDecl(s, n.(*parser.TraitDecl))
 
 	case *parser.VariableDecl:
 		v.CheckVariableDecl(s, n.(*parser.VariableDecl))
@@ -58,7 +58,7 @@ func (v *AttributeCheck) CheckStructType(s *SemanticAnalyzer, n *parser.StructTy
 	}
 }
 
-func (v *AttributeCheck) CheckTraitDecl(s *SemanticAnalyzer, n *parser.TraitDecl) {
+/*func (v *AttributeCheck) CheckTraitDecl(s *SemanticAnalyzer, n *parser.TraitDecl) {
 	v.CheckAttrsDistanceFromLine(s, n.Trait.Attrs(), n.Pos().Line, "type", n.Trait.TypeName())
 
 	for _, attr := range n.Trait.Attrs() {
@@ -66,7 +66,7 @@ func (v *AttributeCheck) CheckTraitDecl(s *SemanticAnalyzer, n *parser.TraitDecl
 			s.Err(attr, "Invalid trait attribute key `%s`", attr.Key)
 		}
 	}
-}
+}*/
 
 func (v *AttributeCheck) CheckVariableDecl(s *SemanticAnalyzer, n *parser.VariableDecl) {
 	v.CheckAttrsDistanceFromLine(s, n.Variable.Attrs, n.Pos().Line, "variable", n.Variable.Name)
