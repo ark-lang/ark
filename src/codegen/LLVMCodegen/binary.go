@@ -21,7 +21,7 @@ const (
 )
 
 func (v *Codegen) createBitcode(file *parser.Module) string {
-	filename := file.Name + ".bc"
+	filename := v.OutputName + "-" + file.Name + ".bc"
 
 	fileHandle, err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
 	if err != nil {
@@ -82,7 +82,7 @@ func (v *Codegen) asmToObject(filename string) string {
 }
 
 func (v *Codegen) createIR(mod *parser.Module) string {
-	filename := mod.Name + ".ll"
+	filename := v.OutputName + ".ll"
 
 	err := ioutil.WriteFile(filename, []byte(mod.Module.String()), 0666)
 	if err != nil {
