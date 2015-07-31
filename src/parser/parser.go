@@ -285,10 +285,6 @@ func (v *parser) parseDecl() ParseNode {
 		res = typeDecl
 	} else if useDecl := v.parseUseDecl(); useDecl != nil {
 		res = useDecl
-	} else if traitDecl := v.parseTraitDecl(); traitDecl != nil {
-		res = traitDecl
-	} else if implDecl := v.parseImplDecl(); implDecl != nil {
-		res = implDecl
 	} else if funcDecl := v.parseFuncDecl(); funcDecl != nil {
 		res = funcDecl
 	} else if varDecl := v.parseVarDecl(); varDecl != nil {
@@ -322,89 +318,6 @@ func (v *parser) parseUseDecl() *UseDeclNode {
 	endToken := v.expect(lexer.TOKEN_SEPARATOR, ";")
 
 	res := &UseDeclNode{Module: module}
-	res.SetWhere(lexer.NewSpanFromTokens(startToken, endToken))
-	return res
-}
-
-func (v *parser) parseTraitDecl() *TraitDeclNode {
-	defer un(trace(v, "traitdecl"))
-
-	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_TRAIT) {
-		return nil
-	}
-	startToken := v.consumeToken()
-
-	name := v.expect(lexer.TOKEN_IDENTIFIER, "")
-	if isReservedKeyword(name.Contents) {
-		v.err("Cannot use reserved keyword `%s` as name for trait", name.Contents)
-	}
-
-	v.expect(lexer.TOKEN_IDENTIFIER, "{")
-
-	var members []*FunctionDeclNode
-	for {
-		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "}") {
-			break
-		}
-
-		member, ok := v.parseDecl().(*FunctionDeclNode)
-		if member == nil || !ok {
-			v.err("Expected valid function declaration in trait declaration")
-		}
-		members = append(members, member)
-	}
-
-	endToken := v.expect(lexer.TOKEN_SEPARATOR, "}")
-
-	res := &TraitDeclNode{Name: NewLocatedString(name), Members: members}
-	res.SetWhere(lexer.NewSpanFromTokens(startToken, endToken))
-	return res
-}
-
-func (v *parser) parseImplDecl() *ImplDeclNode {
-	defer un(trace(v, "impldecl"))
-
-	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_IMPL) {
-		return nil
-	}
-	startToken := v.consumeToken()
-
-	structName := v.expect(lexer.TOKEN_IDENTIFIER, "")
-	if isReservedKeyword(structName.Contents) {
-		v.err("Cannot use reserved keyword `%s` as struct name", structName.Contents)
-	}
-
-	var traitName *lexer.Token
-	if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_FOR) {
-		v.consumeToken()
-
-		traitName = v.expect(lexer.TOKEN_IDENTIFIER, "")
-		if isReservedKeyword(traitName.Contents) {
-			v.err("Cannot use reserved keyword `%s` as trait name", traitName.Contents)
-		}
-	}
-
-	v.expect(lexer.TOKEN_SEPARATOR, "{")
-
-	var members []*FunctionDeclNode
-	for {
-		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "}") {
-			break
-		}
-
-		member, ok := v.parseDecl().(*FunctionDeclNode)
-		if member == nil || !ok {
-			v.err("Expected valid function declaration in impl declaration")
-		}
-		members = append(members, member)
-	}
-
-	endToken := v.expect(lexer.TOKEN_SEPARATOR, "}")
-
-	res := &ImplDeclNode{StructName: NewLocatedString(structName), Members: members}
-	if traitName != nil {
-		res.TraitName = NewLocatedString(traitName)
-	}
 	res.SetWhere(lexer.NewSpanFromTokens(startToken, endToken))
 	return res
 }
@@ -456,6 +369,33 @@ func (v *parser) parseFuncHeader() *FunctionHeaderNode {
 	}
 	startToken := v.consumeToken()
 
+	res := &FunctionHeaderNode{}
+
+	if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "(") {
+		// we have a method receiver
+		v.consumeToken()
+
+		res.IsMethod = true
+
+		if v.tokensMatch(lexer.TOKEN_IDENTIFIER, "", lexer.TOKEN_SEPARATOR, ")") {
+			res.IsStatic = true
+
+			res.StaticReceiverType = v.parseTypeReference()
+			if res.StaticReceiverType == nil {
+				v.errToken("Expected type name in method receiver, found `%s`", v.peek(0).Contents)
+			}
+		} else {
+			res.IsStatic = false
+
+			res.Receiver = v.parseVarDeclBody()
+			if res.Receiver == nil {
+				v.errToken("Expected variable declaration in method receiver, found `%s`", v.peek(0).Contents)
+			}
+		}
+
+		v.expect(lexer.TOKEN_SEPARATOR, ")")
+	}
+
 	name := v.expect(lexer.TOKEN_IDENTIFIER, "")
 	v.expect(lexer.TOKEN_SEPARATOR, "(")
 
@@ -499,13 +439,17 @@ func (v *parser) parseFuncHeader() *FunctionHeaderNode {
 		}
 	}
 
-	res := &FunctionHeaderNode{Name: NewLocatedString(name), Arguments: args, Variadic: variadic}
+	res.Name = NewLocatedString(name)
+	res.Arguments = args
+	res.Variadic = variadic
+
 	if returnType != nil {
 		res.ReturnType = returnType
 		res.SetWhere(lexer.NewSpan(startToken.Where.Start(), returnType.Where().End()))
 	} else {
 		res.SetWhere(lexer.NewSpanFromTokens(startToken, maybeEndToken))
 	}
+
 	return res
 }
 
