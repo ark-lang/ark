@@ -105,8 +105,12 @@ type Function struct {
 	Uses       int
 	scope      *Scope
 
-	// TODO reference to parent struct
 	ParentModule *Module
+
+	IsMethod           bool
+	IsStatic           bool
+	Receiver           *VariableDecl // if not static
+	StaticReceiverType Type          // if static
 }
 
 func (v *Function) Scope() *Scope {
@@ -199,27 +203,6 @@ func (v *VariableDecl) DocComments() []*DocComment {
 	return v.docs
 }
 
-// TraitDecl
-
-type TraitDecl struct {
-	nodePos
-	Trait *TraitType
-}
-
-func (v *TraitDecl) declNode() {}
-
-func (v *TraitDecl) String() string {
-	return "(" + util.Blue("TraitDecl") + ": " + v.Trait.String() + ")"
-}
-
-func (v *TraitDecl) NodeName() string {
-	return "trait declaration"
-}
-
-func (v *TraitDecl) DocComments() []*DocComment {
-	return nil // TODO
-}
-
 // TypeDecl
 
 type TypeDecl struct {
@@ -238,33 +221,6 @@ func (v *TypeDecl) NodeName() string {
 }
 
 func (v *TypeDecl) DocComments() []*DocComment {
-	return nil // TODO
-}
-
-// ImplDecl
-
-type ImplDecl struct {
-	nodePos
-	StructName string
-	TraitName  string
-	Functions  []*FunctionDecl
-}
-
-func (v *ImplDecl) declNode() {}
-
-func (v *ImplDecl) String() string {
-	var result string
-	for _, decl := range v.Functions {
-		result += "\t" + decl.String() + "\n"
-	}
-	return "(" + util.Blue("ImplDecl") + ": " + result + ")"
-}
-
-func (v *ImplDecl) NodeName() string {
-	return "impl declaration"
-}
-
-func (v *ImplDecl) DocComments() []*DocComment {
 	return nil // TODO
 }
 
@@ -877,6 +833,7 @@ type CallExpr struct {
 	Function       *Function
 	functionSource Expr
 	Arguments      []Expr
+	ReceiverAccess Expr // nil if not method or if static
 }
 
 func (v *CallExpr) exprNode() {}
@@ -914,7 +871,7 @@ type VariableAccessExpr struct {
 func (v *VariableAccessExpr) exprNode() {}
 
 func (v *VariableAccessExpr) String() string {
-	result := "(" + util.Blue("VariableAccessExpr") + ": name"
+	result := "(" + util.Blue("VariableAccessExpr") + ": "
 	result += v.Name.String()
 	return result + ")"
 }

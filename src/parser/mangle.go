@@ -122,7 +122,3 @@ func (v *NamedType) MangledName(typ MangleType) string {
 		panic("")
 	}
 }
-
-func (v *TraitType) MangledName(typ MangleType) string {
-	return ""
-}
