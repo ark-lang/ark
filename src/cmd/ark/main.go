@@ -121,15 +121,6 @@ func parseFiles(files []string) ([]*parser.Module, map[string]*parser.Module) {
 func build(files []string, outputFile string, cg string, ccArgs []string, outputType LLVMCodegen.OutputType, optLevel int) {
 	constructedModules, modules := parseFiles(files)
 
-	// type inference
-	timed("primary type inference phase", func() {
-		// TODO: We're looping over a map, the order we get is thus random
-		for _, module := range modules {
-			inf := &parser.TypeInferer{Module: module}
-			inf.Infer(modules)
-		}
-	})
-
 	// resolve
 	timed("resolve phase", func() {
 		// TODO: We're looping over a map, the order we get is thus random
@@ -139,7 +130,8 @@ func build(files []string, outputFile string, cg string, ccArgs []string, output
 		}
 	})
 
-	timed("secondary type inference phase", func() {
+	// type inference
+	timed("inference phase", func() {
 		// TODO: We're looping over a map, the order we get is thus random
 		for _, module := range modules {
 			inf := &parser.TypeInferer{Module: module}
@@ -151,7 +143,6 @@ func build(files []string, outputFile string, cg string, ccArgs []string, output
 				log.Debugln("main", node.String())
 			}
 		}
-
 	})
 
 	// semantic analysis

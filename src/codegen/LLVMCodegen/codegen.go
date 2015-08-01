@@ -617,7 +617,14 @@ func (v *Codegen) genAccessGEP(n parser.Expr) llvm.Value {
 		sae := n.(*parser.StructAccessExpr)
 
 		gep := v.genAccessGEP(sae.Struct)
-		index := sae.Struct.GetType().ActualType().(*parser.StructType).VariableIndex(sae.Variable)
+
+		typ := sae.Struct.GetType().ActualType()
+		if pointerType, ok := typ.(parser.PointerType); ok {
+			typ = pointerType.Addressee.ActualType()
+			gep = v.builder.CreateLoad(gep, "")
+		}
+
+		index := typ.(*parser.StructType).VariableIndex(sae.Variable)
 		return v.builder.CreateStructGEP(gep, index, "")
 
 	case *parser.ArrayAccessExpr:
