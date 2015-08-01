@@ -272,30 +272,6 @@ func (v *VariableAccessExpr) resolve(res *Resolver, s *Scope) {
 
 func (v *StructAccessExpr) resolve(res *Resolver, s *Scope) {
 	v.Struct.resolve(res, s)
-
-	if pointerType, ok := v.Struct.GetType().ActualType().(PointerType); ok {
-		if _, isStruct := pointerType.Addressee.ActualType().(*StructType); isStruct {
-			v.Struct = &DerefAccessExpr{Expr: v.Struct, Type: pointerType.Addressee}
-			v.resolve(res, s)
-		}
-	}
-
-	structType, ok := v.Struct.GetType().ActualType().(*StructType)
-	if !ok {
-		if v.Struct.GetType() == nil {
-			res.err(v, "Type of access expression was nil")
-		} else {
-			res.err(v, "Cannot access member of type `%s`", v.Struct.GetType().TypeName())
-		}
-	}
-
-	// TODO check no mod access
-	decl := structType.GetVariableDecl(v.Member)
-	if decl == nil {
-		res.err(v, "Struct `%s` does not contain member `%s`", structType.TypeName(), v.Member)
-	}
-
-	v.Variable = decl.Variable
 }
 
 func (v *ArrayAccessExpr) resolve(res *Resolver, s *Scope) {

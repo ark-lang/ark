@@ -466,6 +466,28 @@ func (v *VariableAccessExpr) setTypeHint(t Type) {}
 // StructAccessExpr
 func (v *StructAccessExpr) infer(s *TypeInferer) {
 	v.Struct.infer(s)
+
+	if v.Struct.GetType() == nil {
+		s.err(v, "Type of access expression was nil")
+	}
+
+	typ := v.Struct.GetType().ActualType()
+	if pointerType, ok := typ.(PointerType); ok {
+		typ = pointerType.Addressee.ActualType()
+	}
+
+	structType, ok := typ.(*StructType)
+	if !ok {
+		s.err(v, "Cannot access member of type `%s`", v.Struct.GetType().TypeName())
+	}
+
+	// TODO check no mod access
+	decl := structType.GetVariableDecl(v.Member)
+	if decl == nil {
+		s.err(v, "Struct `%s` does not contain member `%s`", structType.TypeName(), v.Member)
+	}
+
+	v.Variable = decl.Variable
 }
 
 func (v *StructAccessExpr) setTypeHint(t Type) {}
