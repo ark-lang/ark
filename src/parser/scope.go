@@ -69,8 +69,16 @@ func NewGlobalScope() *Scope {
 	return s
 }
 
+func NewCScope() *Scope {
+	s := newScope(nil)
+	s.InsertType(&NamedType{Name: "uint", Type: PRIMITIVE_u32})
+	s.InsertType(&NamedType{Name: "int", Type: PRIMITIVE_s32})
+	return s
+}
+
 func (v *Scope) err(err string, stuff ...interface{}) {
 	// TODO: which log tag
+	// TODO: These errors are unacceptably shitty
 	log.Error("parser", util.TEXT_RED+util.TEXT_BOLD+"error:"+util.TEXT_RESET+" %s\n",
 		fmt.Sprintf(err, stuff...))
 	os.Exit(util.EXIT_FAILURE_CODEGEN)
