@@ -162,10 +162,10 @@ func (v *parser) expect(typ lexer.TokenType, val string) *lexer.Token {
 
 func (v *parser) parse() {
 	for v.peek(0) != nil {
-		if n := v.parseNode(); n != nil {
+		if n := v.parseDecl(); n != nil {
 			v.tree.AddNode(n)
 		} else {
-			panic("what's this over here?")
+			v.err("Unexpected token at toplevel: `%s` (%s)", v.peek(0).Contents, v.peek(0).Type)
 		}
 	}
 }
