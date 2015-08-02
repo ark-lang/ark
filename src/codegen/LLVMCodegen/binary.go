@@ -7,6 +7,8 @@ import (
 	"strings"
 
 	"github.com/ark-lang/ark/src/parser"
+	"github.com/ark-lang/ark/src/util/log"
+
 	"llvm.org/llvm/bindings/go/llvm"
 )
 
@@ -97,7 +99,9 @@ func (v *Codegen) createBinary() {
 
 	if v.OutputType == OUTPUT_LLVM_IR {
 		for _, file := range v.input {
-			v.createIR(file)
+			log.Timed("create ir "+file.Name, func() {
+				v.createIR(file)
+			})
 		}
 		return
 	}
@@ -107,7 +111,10 @@ func (v *Codegen) createBinary() {
 	bitcodeFiles := []string{}
 
 	for _, file := range v.input {
-		bitcodeFiles = append(bitcodeFiles, v.createBitcode(file))
+		log.Timed("create bitcode "+file.Name, func() {
+			bitcodeFiles = append(bitcodeFiles, v.createBitcode(file))
+		})
+
 	}
 
 	if v.OutputType == OUTPUT_LLVM_BC {
@@ -117,8 +124,10 @@ func (v *Codegen) createBinary() {
 	asmFiles := []string{}
 
 	for _, name := range bitcodeFiles {
-		asmName := v.bitcodeToASM(name)
-		asmFiles = append(asmFiles, asmName)
+		log.Timed("create asm "+name, func() {
+			asmName := v.bitcodeToASM(name)
+			asmFiles = append(asmFiles, asmName)
+		})
 	}
 
 	for _, bc := range bitcodeFiles {
@@ -134,10 +143,12 @@ func (v *Codegen) createBinary() {
 	objFiles := []string{}
 
 	for _, asmFile := range asmFiles {
-		objName := v.asmToObject(asmFile)
+		log.Timed("create obj "+asmFile, func() {
+			objName := v.asmToObject(asmFile)
 
-		objFiles = append(objFiles, objName)
-		linkArgs = append(linkArgs, objName)
+			objFiles = append(objFiles, objName)
+			linkArgs = append(linkArgs, objName)
+		})
 	}
 
 	for _, asmFile := range asmFiles {
@@ -158,10 +169,12 @@ func (v *Codegen) createBinary() {
 		v.Linker = "cc"
 	}
 
-	cmd := exec.Command(v.Linker, linkArgs...)
-	if out, err := cmd.CombinedOutput(); err != nil {
-		v.err("failed to link object files: `%s`\n%s", err.Error(), string(out))
-	}
+	log.Timed("link", func() {
+		cmd := exec.Command(v.Linker, linkArgs...)
+		if out, err := cmd.CombinedOutput(); err != nil {
+			v.err("failed to link object files: `%s`\n%s", err.Error(), string(out))
+		}
+	})
 
 	for _, objFile := range objFiles {
 		os.Remove(objFile)
