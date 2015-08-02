@@ -23,7 +23,7 @@ func main(): int {
 		return 2;
 	}
 
-	t := ^Test(C::malloc(sizeof(^Test)));
+	t := ^Test(C::malloc(sizeof(Test)));
 	defer C::free(^void(t));
 	default(^t);
 
