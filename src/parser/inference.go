@@ -466,6 +466,18 @@ func (v *CallExpr) infer(s *TypeInferer) {
 
 	// TODO: Is v.Function ever non-nil at this point
 	if v.Function != nil {
+		if v.Function.IsMethod && !v.Function.IsStatic {
+			recType := v.Function.Receiver.Variable.Type
+			accessType := v.ReceiverAccess.GetType()
+
+			if accessType.LevelsOfIndirection() == recType.LevelsOfIndirection()+1 {
+				v.ReceiverAccess = &DerefAccessExpr{
+					Type: v.ReceiverAccess.GetType().(PointerType).Addressee,
+					Expr: v.ReceiverAccess,
+				}
+			}
+		}
+
 		// attributes defaults
 		for i, arg := range v.Arguments {
 			if i >= len(v.Function.Parameters) { // we have a variadic arg
@@ -499,8 +511,8 @@ func (v *StructAccessExpr) infer(s *TypeInferer) {
 	}
 
 	typ := v.Struct.GetType().ActualType()
-	if pointerType, ok := typ.(PointerType); ok {
-		typ = pointerType.Addressee.ActualType()
+	if typ.LevelsOfIndirection() == 1 {
+		typ = typ.(PointerType).Addressee.ActualType()
 		v.Struct = &DerefAccessExpr{
 			Type: typ,
 			Expr: v.Struct,

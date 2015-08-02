@@ -22,6 +22,10 @@ func main(): int {
 
     thingptr := &thing;
     thingptr.dop();
+    thingptr.do();
+
+    thingptrptr := &thingptr;
+    thingptrptr.dop();
 
     return 0;
 }
