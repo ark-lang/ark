@@ -105,7 +105,7 @@ func Construct(tree *ParseTree, treeFiles map[string]*ParseTree, modules map[str
 		Nodes:       make([]Node, 0),
 		Path:        "", // not really a path for this module
 		Name:        "C",
-		GlobalScope: NewGlobalScope(),
+		GlobalScope: NewCScope(),
 	}
 	c.module.GlobalScope.UsedModules["C"] = cModule
 

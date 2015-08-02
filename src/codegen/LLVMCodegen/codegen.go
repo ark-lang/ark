@@ -1151,8 +1151,7 @@ func (v *Codegen) genSizeofExpr(n *parser.SizeofExpr) llvm.Value {
 		typ = v.typeToLLVMType(n.Type)
 	}
 
-	// TODO: return to v.targetData.IntPtrType(), once uint is register/address sized
-	return llvm.ConstInt(llvm.IntType(32), v.targetData.TypeAllocSize(typ), false)
+	return llvm.ConstInt(v.targetData.IntPtrType(), v.targetData.TypeAllocSize(typ), false)
 }
 
 func (v *Codegen) genDefaultExpr(n *parser.DefaultExpr) llvm.Value {
@@ -1162,7 +1161,7 @@ func (v *Codegen) genDefaultExpr(n *parser.DefaultExpr) llvm.Value {
 func (v *Codegen) typeToLLVMType(typ parser.Type) llvm.Type {
 	switch typ.(type) {
 	case parser.PrimitiveType:
-		return primitiveTypeToLLVMType(typ.(parser.PrimitiveType))
+		return v.primitiveTypeToLLVMType(typ.(parser.PrimitiveType))
 	case *parser.StructType:
 		return v.structTypeToLLVMType(typ.(*parser.StructType))
 	case parser.PointerType:
@@ -1246,6 +1245,44 @@ func (v *Codegen) enumTypeToLLVMTypeFields(typ *parser.EnumType) []llvm.Type {
 	return []llvm.Type{llvm.IntType(32), llvm.ArrayType(llvm.IntType(8), int(longestLength))}
 }
 
+func (v *Codegen) primitiveTypeToLLVMType(typ parser.PrimitiveType) llvm.Type {
+	switch typ {
+	case parser.PRIMITIVE_int, parser.PRIMITIVE_uint:
+		return v.targetData.IntPtrType()
+
+	case parser.PRIMITIVE_s8, parser.PRIMITIVE_u8:
+		return llvm.IntType(8)
+	case parser.PRIMITIVE_s16, parser.PRIMITIVE_u16:
+		return llvm.IntType(16)
+	case parser.PRIMITIVE_s32, parser.PRIMITIVE_u32:
+		return llvm.IntType(32)
+	case parser.PRIMITIVE_s64, parser.PRIMITIVE_u64:
+		return llvm.IntType(64)
+	case parser.PRIMITIVE_s128, parser.PRIMITIVE_u128:
+		return llvm.IntType(128)
+
+	case parser.PRIMITIVE_f32:
+		return llvm.FloatType()
+	case parser.PRIMITIVE_f64:
+		return llvm.DoubleType()
+	case parser.PRIMITIVE_f128:
+		return llvm.FP128Type()
+
+	case parser.PRIMITIVE_rune: // runes are signed 32-bit int
+		return llvm.IntType(32)
+	case parser.PRIMITIVE_bool:
+		return llvm.IntType(1)
+	case parser.PRIMITIVE_str:
+		return llvm.PointerType(llvm.IntType(8), 0)
+
+	case parser.PRIMITIVE_void:
+		return llvm.VoidType()
+
+	default:
+		panic("Unimplemented primitive type in LLVM codegen")
+	}
+}
+
 func (v *Codegen) genDefaultValue(typ parser.Type) llvm.Value {
 	typ = typ.ActualType()
 
@@ -1297,41 +1334,4 @@ func createStructInitializer(typ *parser.StructType) *parser.StructLiteral {
 		return lit
 	}
 	return nil
-}
-
-func primitiveTypeToLLVMType(typ parser.PrimitiveType) llvm.Type {
-	switch typ {
-	case parser.PRIMITIVE_int, parser.PRIMITIVE_uint:
-		return llvm.IntType(intSize * 8)
-	case parser.PRIMITIVE_s8, parser.PRIMITIVE_u8:
-		return llvm.IntType(8)
-	case parser.PRIMITIVE_s16, parser.PRIMITIVE_u16:
-		return llvm.IntType(16)
-	case parser.PRIMITIVE_s32, parser.PRIMITIVE_u32:
-		return llvm.IntType(32)
-	case parser.PRIMITIVE_s64, parser.PRIMITIVE_u64:
-		return llvm.IntType(64)
-	case parser.PRIMITIVE_s128, parser.PRIMITIVE_u128:
-		return llvm.IntType(128)
-
-	case parser.PRIMITIVE_f32:
-		return llvm.FloatType()
-	case parser.PRIMITIVE_f64:
-		return llvm.DoubleType()
-	case parser.PRIMITIVE_f128:
-		return llvm.FP128Type()
-
-	case parser.PRIMITIVE_rune: // runes are signed 32-bit int
-		return llvm.IntType(32)
-	case parser.PRIMITIVE_bool:
-		return llvm.IntType(1)
-	case parser.PRIMITIVE_str:
-		return llvm.PointerType(llvm.IntType(8), 0)
-
-	case parser.PRIMITIVE_void:
-		return llvm.VoidType()
-
-	default:
-		panic("Unimplemented primitive type in LLVM codegen")
-	}
 }

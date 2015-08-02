@@ -160,6 +160,9 @@ func MapNames(nodes []ParseNode, tree *ParseTree, modules map[string]*ParseTree,
 			types:   make(map[string]NodeType),
 			modules: make(map[string]*NameMap),
 		}
+		cModule.types["uint"] = NODE_TYPE
+		cModule.types["int"] = NODE_TYPE
+
 		nameMap.types["C"] = NODE_MODULE
 		nameMap.modules["C"] = cModule
 	} else {

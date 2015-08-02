@@ -1,0 +1,32 @@
+[c] func printf(fmt: str, ...): int;
+[c] func malloc(size: uint): ^void;
+[c] func free(ptr: ^void);
+
+type Test struct {
+    x: int = 1,
+    y: int = 2,
+    a: int = 3,
+    b: int = 4
+};
+
+func main(): int {
+	x: C::uint = 0;
+	y: C::int = 0;
+	z: uint = 0;
+	w: int = 0;
+	
+	C::printf("sizeof(C::uint) = %d\n", sizeof(x));
+	if sizeof(x) != 4 {
+		return 1;
+	}
+
+	C::printf("sizeof(C::int) = %d\n", sizeof(y));
+	if sizeof(y) != 4 {
+		return 2;
+	}
+
+	C::printf("sizeof(uint) = %d\n", sizeof(z));
+	C::printf("sizeof(int) = %d\n", sizeof(w));
+
+    return 0;
+}
