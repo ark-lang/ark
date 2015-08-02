@@ -120,7 +120,10 @@ func (v *Codegen) Generate(input []*parser.Module, modules map[string]*parser.Mo
 
 	passManager.Dispose()
 
-	v.createBinary()
+	log.Timed("create binary", func() {
+		v.createBinary()
+	})
+
 }
 
 func (v *Codegen) declareDecls(nodes []parser.Node) {
@@ -488,7 +491,10 @@ func (v *Codegen) genFunctionDecl(n *parser.FunctionDecl) llvm.Value {
 			pars := n.Function.Parameters
 
 			if n.Function.IsMethod && !n.Function.IsStatic {
-				pars = append(pars, n.Function.Receiver)
+				newPars := make([]*parser.VariableDecl, len(pars)+1)
+				newPars[0] = n.Function.Receiver
+				copy(newPars[1:], pars)
+				pars = newPars
 			}
 
 			for i, par := range pars {
@@ -1282,7 +1288,12 @@ func (v *Codegen) genDefaultValue(typ parser.Type) llvm.Value {
 
 	// Generate default struct values
 	if structType, ok := typ.(*parser.StructType); ok {
-		return v.genStructLiteral(createStructInitializer(structType))
+		lit := createStructInitializer(structType)
+		if lit != nil {
+			return v.genStructLiteral(lit)
+		} else {
+			return llvm.Undef(v.typeToLLVMType(structType))
+		}
 	}
 
 	if tupleType, ok := typ.(*parser.TupleType); ok {
