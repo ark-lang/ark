@@ -501,6 +501,10 @@ func (v *StructAccessExpr) infer(s *TypeInferer) {
 	typ := v.Struct.GetType().ActualType()
 	if pointerType, ok := typ.(PointerType); ok {
 		typ = pointerType.Addressee.ActualType()
+		v.Struct = &DerefAccessExpr{
+			Type: typ,
+			Expr: v.Struct,
+		}
 	}
 
 	structType, ok := typ.(*StructType)
