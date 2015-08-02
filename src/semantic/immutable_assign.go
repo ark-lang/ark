@@ -1,4 +1,4 @@
-package checks
+package semantic
 
 import (
 	"github.com/ark-lang/ark/src/parser"
