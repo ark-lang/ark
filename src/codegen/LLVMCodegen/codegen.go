@@ -120,7 +120,10 @@ func (v *Codegen) Generate(input []*parser.Module, modules map[string]*parser.Mo
 
 	passManager.Dispose()
 
-	v.createBinary()
+	log.Timed("create binary", func() {
+		v.createBinary()
+	})
+
 }
 
 func (v *Codegen) declareDecls(nodes []parser.Node) {
