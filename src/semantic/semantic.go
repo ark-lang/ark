@@ -59,6 +59,7 @@ func (v *SemanticAnalyzer) Analyze(modules map[string]*parser.Module) {
 		&ImmutableAssignCheck{},
 		&UseBeforeDeclareCheck{},
 		&MiscCheck{},
+		&BorrowCheck{},
 	}
 
 	v.EnterScope()
