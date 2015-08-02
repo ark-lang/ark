@@ -6,10 +6,6 @@ import (
 	"os/exec"
 	"time"
 
-	"github.com/ark-lang/ark/src/parser/checks"
-
-	"github.com/ark-lang/ark/src/util/log"
-
 	"gopkg.in/alecthomas/kingpin.v2"
 
 	"github.com/ark-lang/ark/src/codegen"
@@ -17,7 +13,9 @@ import (
 	"github.com/ark-lang/ark/src/doc"
 	"github.com/ark-lang/ark/src/lexer"
 	"github.com/ark-lang/ark/src/parser"
+	"github.com/ark-lang/ark/src/semantic"
 	"github.com/ark-lang/ark/src/util"
+	"github.com/ark-lang/ark/src/util/log"
 )
 
 const (
@@ -149,7 +147,7 @@ func build(files []string, outputFile string, cg string, ccArgs []string, output
 	timed("semantic analysis phase", func() {
 		// TODO: We're looping over a map, the order we get is thus random
 		for _, module := range modules {
-			sem := &checks.SemanticAnalyzer{Module: module}
+			sem := &semantic.SemanticAnalyzer{Module: module}
 			sem.Analyze(modules)
 		}
 	})

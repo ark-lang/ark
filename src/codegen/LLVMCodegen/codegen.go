@@ -1,23 +1,17 @@
 package LLVMCodegen
 
 import (
-	"C"
 	"fmt"
 	"os"
 	"time"
-	"unsafe"
 
 	"github.com/ark-lang/ark/src/parser"
+	"github.com/ark-lang/ark/src/semantic"
 	"github.com/ark-lang/ark/src/util"
 	"github.com/ark-lang/ark/src/util/log"
 
 	"llvm.org/llvm/bindings/go/llvm"
 )
-import (
-	"github.com/ark-lang/ark/src/parser/checks"
-)
-
-const intSize = int(unsafe.Sizeof(C.int(0)))
 
 type Codegen struct {
 	input   []*parser.Module
@@ -372,7 +366,7 @@ func (v *Codegen) genIfStat(n *parser.IfStat) {
 		panic("tried to gen if stat not in function")
 	}
 
-	statTerm := checks.IsNodeTerminating(n)
+	statTerm := semantic.IsNodeTerminating(n)
 
 	var end llvm.BasicBlock
 	if !statTerm {
