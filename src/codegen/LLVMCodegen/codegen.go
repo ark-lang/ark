@@ -1288,7 +1288,12 @@ func (v *Codegen) genDefaultValue(typ parser.Type) llvm.Value {
 
 	// Generate default struct values
 	if structType, ok := typ.(*parser.StructType); ok {
-		return v.genStructLiteral(createStructInitializer(structType))
+		lit := createStructInitializer(structType)
+		if lit != nil {
+			return v.genStructLiteral(lit)
+		} else {
+			return llvm.Undef(v.typeToLLVMType(structType))
+		}
 	}
 
 	if tupleType, ok := typ.(*parser.TupleType); ok {
