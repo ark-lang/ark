@@ -321,7 +321,7 @@ func (v *FunctionDeclNode) construct(c *Constructor) Node {
 			function.Receiver.Variable.ParentFunction = res
 			function.Receiver.Variable.Uses = 1 // silence warning
 
-			function.Name = TypeMangledName(MANGLE_ARK_UNSTABLE, function.Receiver.Variable.Type) + "." + function.Name
+			function.Name = TypeWithoutPointers(function.Receiver.Variable.Type).TypeName() + "." + function.Name
 		}
 	}
 

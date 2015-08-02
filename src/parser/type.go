@@ -633,3 +633,11 @@ func (v *UnresolvedType) Equals(t Type) bool {
 func (v *UnresolvedType) ActualType() Type {
 	return v
 }
+
+func TypeWithoutPointers(t Type) Type {
+	if ptr, ok := t.(PointerType); ok {
+		return TypeWithoutPointers(ptr.Addressee)
+	}
+
+	return t
+}

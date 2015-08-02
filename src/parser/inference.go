@@ -448,7 +448,7 @@ func (v *CallExpr) infer(s *TypeInferer) {
 		case *StructAccessExpr:
 			sae := v.functionSource.(*StructAccessExpr)
 			sae.Struct.infer(s)
-			name = unresolvedName{name: TypeMangledName(MANGLE_ARK_UNSTABLE, sae.Struct.GetType()) + "." + sae.Member}
+			name = unresolvedName{name: TypeWithoutPointers(sae.Struct.GetType()).TypeName() + "." + sae.Member}
 
 		default:
 			panic("Invalid function source (for now)")
