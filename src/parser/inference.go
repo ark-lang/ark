@@ -107,6 +107,7 @@ func (v *VariableDecl) infer(s *TypeInferer) {
 			v.Variable.Type = v.Assignment.GetType()
 		}
 	}
+
 }
 
 func (v *TypeDecl) infer(s *TypeInferer) {
@@ -437,6 +438,32 @@ func (v *CastExpr) setTypeHint(t Type) {}
 // CallExpr
 
 func (v *CallExpr) infer(s *TypeInferer) {
+	if v.Function == nil {
+		var name unresolvedName
+		switch v.functionSource.(type) {
+		case *VariableAccessExpr:
+			vae := v.functionSource.(*VariableAccessExpr)
+			name = vae.Name
+
+		case *StructAccessExpr:
+			sae := v.functionSource.(*StructAccessExpr)
+			sae.Struct.infer(s)
+			name = unresolvedName{name: TypeMangledName(MANGLE_ARK_UNSTABLE, sae.Struct.GetType()) + "." + sae.Member}
+
+		default:
+			panic("Invalid function source (for now)")
+		}
+
+		ident := s.Module.GlobalScope.GetIdent(name)
+		if ident == nil {
+			s.err(v, "Cannot resolve function source `%s`", name.String())
+		} else if ident.Type != IDENT_FUNCTION {
+			s.err(v, "Expected function identifier, found %s `%s`", ident.Type, name)
+		} else {
+			v.Function = ident.Value.(*Function)
+		}
+	}
+
 	// TODO: Is v.Function ever non-nil at this point
 	if v.Function != nil {
 		// attributes defaults

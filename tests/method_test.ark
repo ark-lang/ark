@@ -8,6 +8,10 @@ func (v: Thing) do() {
     C::printf("did! %d\n", v.x);
 }
 
+func (v: ^Thing) dop() {
+    C::printf("didp! %d\n", v.x);
+}
+
 func main(): int {
     mut thing: Thing;
     thing.x = 6;
@@ -15,6 +19,9 @@ func main(): int {
     C::printf("%x\n", thing);
 
     thing.do();
+
+    thingptr := &thing;
+    thingptr.dop();
 
     return 0;
 }
