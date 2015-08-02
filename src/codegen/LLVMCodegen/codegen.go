@@ -491,7 +491,10 @@ func (v *Codegen) genFunctionDecl(n *parser.FunctionDecl) llvm.Value {
 			pars := n.Function.Parameters
 
 			if n.Function.IsMethod && !n.Function.IsStatic {
-				pars = append(pars, n.Function.Receiver)
+				newPars := make([]*parser.VariableDecl, len(pars)+1)
+				newPars[0] = n.Function.Receiver
+				copy(newPars[1:], pars)
+				pars = newPars
 			}
 
 			for i, par := range pars {
