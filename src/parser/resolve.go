@@ -220,16 +220,11 @@ func (v *CastExpr) resolve(res *Resolver, s *Scope) {
 
 func (v *CallExpr) resolve(res *Resolver, s *Scope) {
 	// TODO: This will be cleaner once we get around to implementing function types
-	var name unresolvedName
 	switch v.functionSource.(type) {
 	case *VariableAccessExpr:
-		vae := v.functionSource.(*VariableAccessExpr)
-		name = vae.Name
-
 	case *StructAccessExpr:
 		sae := v.functionSource.(*StructAccessExpr)
 		sae.Struct.resolve(res, s)
-		name = unresolvedName{name: sae.Struct.GetType().TypeName() + "." + sae.Member}
 
 	default:
 		panic("Invalid function source (for now)")
@@ -237,15 +232,6 @@ func (v *CallExpr) resolve(res *Resolver, s *Scope) {
 
 	if v.ReceiverAccess != nil {
 		v.ReceiverAccess.resolve(res, s)
-	}
-
-	ident := s.GetIdent(name)
-	if ident == nil {
-		res.errCannotResolve(v, name)
-	} else if ident.Type != IDENT_FUNCTION {
-		res.err(v, "Expected function identifier, found %s `%s`", ident.Type, name)
-	} else {
-		v.Function = ident.Value.(*Function)
 	}
 
 	for _, arg := range v.Arguments {
@@ -266,7 +252,7 @@ func (v *VariableAccessExpr) resolve(res *Resolver, s *Scope) {
 	if v.Variable == nil {
 		res.errCannotResolve(v, v.Name)
 	} else if v.Variable.Type != nil {
-		v.Variable.Type.resolveType(v, res, s)
+		v.Variable.Type = v.Variable.Type.resolveType(v, res, s)
 	}
 }
 

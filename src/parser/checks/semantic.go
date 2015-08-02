@@ -159,6 +159,7 @@ func (v *SemanticAnalyzer) VisitChildren(n parser.Node) {
 	if callExpr, ok := n.(*parser.CallExpr); ok {
 		// TODO: Visit callExpr.FunctionSource? once we get lambda/function types
 		v.VisitNodes(exprsToNodes(callExpr.Arguments))
+		v.Visit(callExpr.ReceiverAccess)
 	}
 
 	if arrayAccessExpr, ok := n.(*parser.ArrayAccessExpr); ok {
