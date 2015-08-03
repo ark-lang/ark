@@ -12,6 +12,12 @@ func (v: ^Thing) dop() {
     C::printf("didp! %d\n", v.x);
 }
 
+type Thing2 int;
+
+func (v: Thing2) do() {
+    C::printf("did, from an int!\n");
+}
+
 func main(): int {
     mut thing: Thing;
     thing.x = 6;
@@ -26,6 +32,10 @@ func main(): int {
 
     thingptrptr := &thingptr;
     thingptrptr.dop();
+
+    mut thing2: Thing2;
+
+    thing2.do();
 
     return 0;
 }

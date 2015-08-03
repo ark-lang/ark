@@ -321,7 +321,7 @@ func (v *FunctionDeclNode) construct(c *Constructor) Node {
 			function.Receiver.Variable.ParentFunction = res
 			function.Receiver.Variable.Uses = 1 // silence warning
 
-			function.Name = TypeWithoutPointers(function.Receiver.Variable.Type).TypeName() + "." + function.Name
+			//function.Name = TypeWithoutPointers(function.Receiver.Variable.Type).TypeName() + "." + function.Name
 		}
 	}
 
@@ -360,17 +360,19 @@ func (v *FunctionDeclNode) construct(c *Constructor) Node {
 	c.nameMap = c.nameMap.parent
 	c.popScope()
 
-	scopeToInsertTo := c.scope
-	if function.Attrs.Contains("c") {
-		if mod, ok := c.module.GlobalScope.UsedModules["C"]; ok {
-			scopeToInsertTo = mod.GlobalScope
-		} else {
-			panic("Could not find C module to insert C binding into")
+	if !function.IsMethod {
+		scopeToInsertTo := c.scope
+		if function.Attrs.Contains("c") {
+			if mod, ok := c.module.GlobalScope.UsedModules["C"]; ok {
+				scopeToInsertTo = mod.GlobalScope
+			} else {
+				panic("Could not find C module to insert C binding into")
+			}
 		}
-	}
 
-	if scopeToInsertTo.InsertFunction(function) != nil {
-		c.err(v.Where(), "Illegal redeclaration of function `%s`", function.Name)
+		if scopeToInsertTo.InsertFunction(function) != nil {
+			c.err(v.Where(), "Illegal redeclaration of function `%s`", function.Name)
+		}
 	}
 
 	res.setPos(v.Where().Start())

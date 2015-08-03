@@ -103,8 +103,10 @@ func (v *FunctionDecl) resolve(res *Resolver, s *Scope) {
 	if v.Function.IsMethod {
 		if v.Function.IsStatic {
 			v.Function.StaticReceiverType = v.Function.StaticReceiverType.resolveType(v, res, s)
+			v.Function.StaticReceiverType.(*NamedType).addMethod(v.Function)
 		} else {
 			v.Function.Receiver.resolve(res, s)
+			TypeWithoutPointers(v.Function.Receiver.Variable.Type).(*NamedType).addMethod(v.Function)
 		}
 	}
 
@@ -378,6 +380,11 @@ func (v *EnumType) resolveType(src Locatable, res *Resolver, s *Scope) Type {
 
 func (v *NamedType) resolveType(src Locatable, res *Resolver, s *Scope) Type {
 	v.Type = v.Type.resolveType(src, res, s)
+	return v
+}
+
+func (v *InterfaceType) resolveType(src Locatable, res *Resolver, s *Scope) Type {
+
 	return v
 }
 

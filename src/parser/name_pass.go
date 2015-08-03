@@ -178,6 +178,10 @@ func MapNames(nodes []ParseNode, tree *ParseTree, modules map[string]*ParseTree,
 			fdn := node.(*FunctionDeclNode)
 			name, typ = fdn.Header.Name, NODE_FUNCTION
 
+			if fdn.Header.IsMethod {
+				continue // TODO is this right?
+			}
+
 			if fdn.Header.Attrs().Contains("c") || fdn.Attrs().Contains("c") {
 				_, occupied := nameMap.modules["C"].types[name.Value]
 				if occupied {
