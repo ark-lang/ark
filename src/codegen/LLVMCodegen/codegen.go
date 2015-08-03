@@ -18,7 +18,7 @@ type Codegen struct {
 	curFile *parser.Module
 
 	builder                        llvm.Builder
-	variableLookup                 []map[string]llvm.Value
+	variableLookup                 map[*parser.Variable]llvm.Value
 	structLookup_UseHelperFunction map[*parser.StructType]llvm.Type // use getStructDecl
 	enumLookup_UseHelperFunction   map[*parser.EnumType]llvm.Type
 
@@ -47,34 +47,6 @@ type Codegen struct {
 	targetData    llvm.TargetData
 }
 
-func (v *Codegen) pushVariableScope() {
-	v.variableLookup = append(v.variableLookup, make(map[string]llvm.Value))
-}
-
-func (v *Codegen) popVariableScope() {
-	if len(v.variableLookup) > 1 {
-		idx := len(v.variableLookup) - 1
-		v.variableLookup = v.variableLookup[:idx]
-	} else {
-		panic("Tried to pop global variable scope")
-	}
-}
-
-func (v *Codegen) setVariable(name string, value llvm.Value) {
-	idx := len(v.variableLookup) - 1
-	v.variableLookup[idx][name] = value
-}
-
-func (v *Codegen) getVariable(name string) (llvm.Value, bool) {
-	for idx := len(v.variableLookup) - 1; idx >= 0; idx-- {
-		value, ok := v.variableLookup[idx][name]
-		if ok {
-			return value, true
-		}
-	}
-	return llvm.Value{}, false
-}
-
 type deferData struct {
 	stat *parser.DeferStat
 	args []llvm.Value
@@ -89,7 +61,7 @@ func (v *Codegen) err(err string, stuff ...interface{}) {
 func (v *Codegen) Generate(input []*parser.Module, modules map[string]*parser.Module) {
 	v.input = input
 	v.builder = llvm.NewBuilder()
-	v.pushVariableScope()
+	v.variableLookup = make(map[*parser.Variable]llvm.Value)
 	v.structLookup_UseHelperFunction = make(map[*parser.StructType]llvm.Type)
 	v.enumLookup_UseHelperFunction = make(map[*parser.EnumType]llvm.Type)
 
@@ -335,7 +307,6 @@ func (v *Codegen) genDeferStat(n *parser.DeferStat) {
 }
 
 func (v *Codegen) genBlock(n *parser.Block) {
-	v.pushVariableScope()
 	for i, x := range n.Nodes {
 		v.currentBlock = n // set it on every iteration to overide sub-blocks
 
@@ -356,7 +327,7 @@ func (v *Codegen) genBlock(n *parser.Block) {
 	}
 
 	v.currentBlock = nil
-	v.popVariableScope()
+
 }
 
 func (v *Codegen) genReturnStat(n *parser.ReturnStat) {
@@ -526,10 +497,9 @@ func (v *Codegen) genFunctionDecl(n *parser.FunctionDecl) llvm.Value {
 				pars = newPars
 			}
 
-			v.pushVariableScope()
 			for i, par := range pars {
 				alloc := v.builder.CreateAlloca(v.typeToLLVMType(par.Variable.Type), par.Variable.Name)
-				v.setVariable(par.Variable.Name, alloc)
+				v.variableLookup[par.Variable] = alloc
 
 				v.builder.CreateStore(function.Params()[i], alloc)
 			}
@@ -538,7 +508,6 @@ func (v *Codegen) genFunctionDecl(n *parser.FunctionDecl) llvm.Value {
 			v.currentFunction = function
 			v.genBlock(n.Function.Body)
 			v.inFunction = false
-			v.popVariableScope()
 		}
 	}
 
@@ -568,7 +537,7 @@ func (v *Codegen) genVariableDecl(n *parser.VariableDecl, semicolon bool) llvm.V
 
 		allocBuilder.Dispose()
 
-		v.setVariable(n.Variable.Name, alloc)
+		v.variableLookup[n.Variable] = alloc
 
 		if n.Assignment != nil {
 			if value := v.genExpr(n.Assignment); !value.IsNil() {
@@ -584,8 +553,7 @@ func (v *Codegen) genVariableDecl(n *parser.VariableDecl, semicolon bool) llvm.V
 		if n.Assignment != nil {
 			value.SetInitializer(v.genExpr(n.Assignment))
 		}
-
-		v.setVariable(n.Variable.Name, value)
+		v.variableLookup[n.Variable] = value
 	}
 
 	return res
@@ -643,11 +611,7 @@ func (v *Codegen) genAccessGEP(n parser.Expr) llvm.Value {
 	switch n.(type) {
 	case *parser.VariableAccessExpr:
 		vae := n.(*parser.VariableAccessExpr)
-		variable, ok := v.getVariable(vae.Variable.Name)
-		if !ok {
-			v.err("No variable named `%s` found in scope", vae.Variable.Name)
-		}
-		return v.builder.CreateGEP(variable, []llvm.Value{llvm.ConstInt(llvm.Int32Type(), 0, false)}, "")
+		return v.builder.CreateGEP(v.variableLookup[vae.Variable], []llvm.Value{llvm.ConstInt(llvm.Int32Type(), 0, false)}, "")
 
 	case *parser.StructAccessExpr:
 		sae := n.(*parser.StructAccessExpr)
