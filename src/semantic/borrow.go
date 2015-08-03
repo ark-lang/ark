@@ -39,16 +39,6 @@ func (v *ParameterResource) HasOwnership(b *BorrowCheck) bool {
 	return v.Owned
 }
 
-func (v *BorrowCheck) CheckExpr(s *SemanticAnalyzer, n parser.Expr) {
-	if variableAccessExpr, ok := n.(*parser.VariableAccessExpr); ok {
-		v.CheckVariableAccessExpr(s, variableAccessExpr)
-	}
-
-	if callExpr, ok := n.(*parser.CallExpr); ok {
-		v.CheckCallExpr(s, callExpr)
-	}
-}
-
 func (v *BorrowCheck) CheckVariableAccessExpr(s *SemanticAnalyzer, n *parser.VariableAccessExpr) {
 	// it's an argument
 	if v.checkingCallExpr && !n.Variable.IsParameter {
@@ -71,18 +61,19 @@ func (v *BorrowCheck) CheckVariableAccessExpr(s *SemanticAnalyzer, n *parser.Var
 	}
 }
 
-func (v *BorrowCheck) CheckAccessExpr(s *SemanticAnalyzer, n parser.AccessExpr) {
-	switch n.(type) {
-	case *parser.VariableAccessExpr:
-		v.CheckVariableAccessExpr(s, n.(*parser.VariableAccessExpr))
-	}
+func (v *BorrowCheck) CheckFunctionDecl(s *SemanticAnalyzer, n *parser.FunctionDecl) {
+
 }
 
 func (v *BorrowCheck) CheckAssignStat(s *SemanticAnalyzer, n *parser.AssignStat) {
-	v.CheckAccessExpr(s, n.Access)
+
 }
 
 func (v *BorrowCheck) CheckCallExpr(s *SemanticAnalyzer, n *parser.CallExpr) {
+
+}
+
+func (v *BorrowCheck) CheckCallStat(s *SemanticAnalyzer, n *parser.CallStat) {
 
 }
 
@@ -92,7 +83,6 @@ func (v *BorrowCheck) CheckVariableDecl(s *SemanticAnalyzer, n *parser.VariableD
 		Owned:    true,
 	}
 	v.currentLifetime.resourceKeys = append(v.currentLifetime.resourceKeys, n.Variable.Name+"_VAR")
-	v.CheckExpr(s, n.Assignment)
 }
 
 func (v *BorrowCheck) Finalize() {}
@@ -124,12 +114,21 @@ func (v *BorrowCheck) ExitScope(s *SemanticAnalyzer) {
 
 func (v *BorrowCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
 	switch n.(type) {
+	case *parser.FunctionDecl:
+		v.CheckFunctionDecl(s, n.(*parser.FunctionDecl))
 	case *parser.VariableDecl:
 		v.CheckVariableDecl(s, n.(*parser.VariableDecl))
+
 	case *parser.CallStat:
 		v.checkingCallExpr = true
-		v.CheckExpr(s, n.(*parser.CallStat).Call)
-	case parser.AccessExpr:
-		v.CheckAccessExpr(s, n.(parser.AccessExpr))
+		v.CheckCallStat(s, n.(*parser.CallStat))
+	case *parser.AssignStat:
+		v.CheckAssignStat(s, n.(*parser.AssignStat))
+
+	case *parser.CallExpr:
+		v.CheckCallExpr(s, n.(*parser.CallExpr))
+
+	case *parser.VariableAccessExpr:
+		v.CheckVariableAccessExpr(s, n.(*parser.VariableAccessExpr))
 	}
 }
