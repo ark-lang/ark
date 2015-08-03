@@ -87,7 +87,13 @@ func (v *Function) MangledName(typ MangleType) string {
 			result += TypeMangledName(typ, arg.Variable.Type)
 		}
 
-		// TODO check parent struct
+		if v.IsMethod {
+			if v.IsStatic {
+				result = TypeMangledName(typ, v.StaticReceiverType) + result
+			} else {
+				result = TypeMangledName(typ, v.Receiver.Variable.Type) + result
+			}
+		}
 
 		result = v.ParentModule.MangledName(typ) + result
 

@@ -11,6 +11,8 @@ type RecursiveDefinitionCheck struct {
 func (v *RecursiveDefinitionCheck) EnterScope(s *SemanticAnalyzer) {}
 func (v *RecursiveDefinitionCheck) ExitScope(s *SemanticAnalyzer)  {}
 
+func (v *RecursiveDefinitionCheck) PostVisit(s *SemanticAnalyzer, n parser.Node) {}
+
 func (v *RecursiveDefinitionCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
 	var typ parser.Type
 
