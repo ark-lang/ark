@@ -445,27 +445,44 @@ func (v *CallExpr) infer(s *TypeInferer) {
 			vae := v.functionSource.(*VariableAccessExpr)
 			name = vae.Name
 
+			ident := s.Module.GlobalScope.GetIdent(name)
+			if ident == nil {
+				s.err(v, "Cannot resolve function source `%s`", name.String())
+			} else if ident.Type != IDENT_FUNCTION {
+				s.err(v, "Expected function identifier, found %s `%s`", ident.Type, name)
+			} else {
+				v.Function = ident.Value.(*Function)
+			}
+
 		case *StructAccessExpr:
 			sae := v.functionSource.(*StructAccessExpr)
 			sae.Struct.infer(s)
-			name = unresolvedName{name: TypeWithoutPointers(sae.Struct.GetType()).TypeName() + "." + sae.Member}
+
+			v.Function = TypeWithoutPointers(sae.Struct.GetType()).(*NamedType).GetMethod(sae.Member)
+			if v.Function == nil {
+				s.err(v, "Cannot resolve method `%s` of type `%s`", sae.Member, TypeWithoutPointers(sae.Struct.GetType()).TypeName())
+			}
 
 		default:
 			panic("Invalid function source (for now)")
 		}
 
-		ident := s.Module.GlobalScope.GetIdent(name)
-		if ident == nil {
-			s.err(v, "Cannot resolve function source `%s`", name.String())
-		} else if ident.Type != IDENT_FUNCTION {
-			s.err(v, "Expected function identifier, found %s `%s`", ident.Type, name)
-		} else {
-			v.Function = ident.Value.(*Function)
-		}
 	}
 
 	// TODO: Is v.Function ever non-nil at this point
 	if v.Function != nil {
+		if v.Function.IsMethod && !v.Function.IsStatic {
+			recType := v.Function.Receiver.Variable.Type
+			accessType := v.ReceiverAccess.GetType()
+
+			if accessType.LevelsOfIndirection() == recType.LevelsOfIndirection()+1 {
+				v.ReceiverAccess = &DerefAccessExpr{
+					Type: v.ReceiverAccess.GetType().(PointerType).Addressee,
+					Expr: v.ReceiverAccess,
+				}
+			}
+		}
+
 		// attributes defaults
 		for i, arg := range v.Arguments {
 			if i >= len(v.Function.Parameters) { // we have a variadic arg
@@ -499,8 +516,12 @@ func (v *StructAccessExpr) infer(s *TypeInferer) {
 	}
 
 	typ := v.Struct.GetType().ActualType()
-	if pointerType, ok := typ.(PointerType); ok {
-		typ = pointerType.Addressee.ActualType()
+	if typ.LevelsOfIndirection() == 1 {
+		typ = typ.(PointerType).Addressee.ActualType()
+		v.Struct = &DerefAccessExpr{
+			Type: typ,
+			Expr: v.Struct,
+		}
 	}
 
 	structType, ok := typ.(*StructType)

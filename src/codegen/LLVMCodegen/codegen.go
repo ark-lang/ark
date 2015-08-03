@@ -619,10 +619,6 @@ func (v *Codegen) genAccessGEP(n parser.Expr) llvm.Value {
 		gep := v.genAccessGEP(sae.Struct)
 
 		typ := sae.Struct.GetType().ActualType()
-		if pointerType, ok := typ.(parser.PointerType); ok {
-			typ = pointerType.Addressee.ActualType()
-			gep = v.builder.CreateLoad(gep, "")
-		}
 
 		index := typ.(*parser.StructType).VariableIndex(sae.Variable)
 		return v.builder.CreateStructGEP(gep, index, "")
@@ -1288,7 +1284,12 @@ func (v *Codegen) genDefaultValue(typ parser.Type) llvm.Value {
 
 	// Generate default struct values
 	if structType, ok := typ.(*parser.StructType); ok {
-		return v.genStructLiteral(createStructInitializer(structType))
+		lit := createStructInitializer(structType)
+		if lit != nil {
+			return v.genStructLiteral(lit)
+		} else {
+			return llvm.Undef(v.typeToLLVMType(structType))
+		}
 	}
 
 	if tupleType, ok := typ.(*parser.TupleType); ok {

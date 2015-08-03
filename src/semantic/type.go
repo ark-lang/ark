@@ -5,13 +5,28 @@ import (
 )
 
 type TypeCheck struct {
+	function []*parser.Function
+}
+
+func (v *TypeCheck) Function() *parser.Function {
+	return v.function[len(v.function)-1]
 }
 
 func (v *TypeCheck) EnterScope(s *SemanticAnalyzer) {}
 func (v *TypeCheck) ExitScope(s *SemanticAnalyzer)  {}
 
+func (v *TypeCheck) PostVisit(s *SemanticAnalyzer, n parser.Node) {
+	switch n.(type) {
+	case *parser.FunctionDecl:
+		v.function = v.function[:len(v.function)-1]
+	}
+}
+
 func (v *TypeCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
 	switch n.(type) {
+	case *parser.FunctionDecl:
+		v.function = append(v.function, n.(*parser.FunctionDecl).Function)
+
 	case *parser.VariableDecl:
 		v.CheckVariableDecl(s, n.(*parser.VariableDecl))
 
@@ -76,17 +91,17 @@ func (v *TypeCheck) CheckVariableDecl(s *SemanticAnalyzer, decl *parser.Variable
 
 func (v *TypeCheck) CheckReturnStat(s *SemanticAnalyzer, stat *parser.ReturnStat) {
 	if stat.Value == nil {
-		if s.Function.ReturnType != nil {
+		if v.Function().ReturnType != nil {
 			s.Err(stat.Value, "Cannot return void from function `%s` of type `%s`",
-				s.Function.Name, s.Function.ReturnType.TypeName())
+				v.Function().Name, v.Function().ReturnType.TypeName())
 		}
 	} else {
-		if s.Function.ReturnType == nil {
+		if v.Function().ReturnType == nil {
 			s.Err(stat.Value, "Cannot return expression from void function")
 		} else {
-			if !stat.Value.GetType().Equals(s.Function.ReturnType) {
+			if !stat.Value.GetType().Equals(v.Function().ReturnType) {
 				s.Err(stat.Value, "Cannot return expression of type `%s` from function `%s` of type `%s`",
-					stat.Value.GetType().TypeName(), s.Function.Name, s.Function.ReturnType.TypeName())
+					stat.Value.GetType().TypeName(), v.Function().Name, v.Function().ReturnType.TypeName())
 			}
 		}
 	}
