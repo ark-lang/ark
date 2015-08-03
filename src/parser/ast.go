@@ -19,7 +19,6 @@ type Node interface {
 	String() string
 	NodeName() string
 	infer(*TypeInferer)
-	resolve(*Resolver, *Scope)
 	Locatable
 }
 

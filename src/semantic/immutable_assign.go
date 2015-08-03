@@ -10,6 +10,8 @@ type ImmutableAssignCheck struct {
 func (v *ImmutableAssignCheck) EnterScope(s *SemanticAnalyzer) {}
 func (v *ImmutableAssignCheck) ExitScope(s *SemanticAnalyzer)  {}
 
+func (v *ImmutableAssignCheck) PostVisit(s *SemanticAnalyzer, n parser.Node) {}
+
 func (v *ImmutableAssignCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
 	switch n.(type) {
 	case *parser.VariableDecl:

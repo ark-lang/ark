@@ -10,6 +10,8 @@ type AttributeCheck struct {
 func (v *AttributeCheck) EnterScope(s *SemanticAnalyzer) {}
 func (v *AttributeCheck) ExitScope(s *SemanticAnalyzer)  {}
 
+func (v *AttributeCheck) PostVisit(s *SemanticAnalyzer, n parser.Node) {}
+
 func (v *AttributeCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
 	switch n.(type) {
 	case *parser.TypeDecl:
