@@ -1,16 +1,11 @@
-[c] func printf(fmt: str, ...): int;
-
-func do_stuff(mut x: int) {
-    x = 21;
+func do_stuff(mut argument: int) {
+    argument = 21;
 }
 
 func main(): int {
-    // lifetime
-    // list of owned values
-
-    mut x: int = 10; // new owned value
-    do_stuff(x); // new owned value points to previous owner, previous owner ownership = false
-    C::printf("mate you're a cunt %d\n", x); // if !ownership -> use of moved value
+    mut local: int = 10;
+    do_stuff(local);
+    local = 20;
 
     return 0;
 }
