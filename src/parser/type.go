@@ -225,6 +225,21 @@ type NamedType struct {
 	Name         string
 	Type         Type
 	ParentModule *Module
+	Methods      []*Function
+}
+
+func (v *NamedType) addMethod(fn *Function) {
+	v.Methods = append(v.Methods, fn)
+}
+
+func (v *NamedType) GetMethod(name string) *Function {
+	for _, fn := range v.Methods {
+		if fn.Name == name {
+			return fn
+		}
+	}
+
+	return nil
 }
 
 func (v *NamedType) ActualType() Type {
@@ -481,6 +496,89 @@ func (v *TupleType) Equals(t Type) bool {
 }
 
 func (v *TupleType) ActualType() Type {
+	return v
+}
+
+// InterfaceType
+
+type InterfaceType struct {
+	Functions []*Function
+}
+
+func (v *InterfaceType) String() string {
+	result := "(" + util.Blue("InterfaceType") + ": "
+	/*for _, mem := range v.Members {
+		result += "\t" + mem.TypeName() + "\n"
+	}*/
+	return result + ")"
+}
+
+func (v *InterfaceType) TypeName() string {
+	result := "interface {"
+	/*for idx, mem := range v.Members {
+		result += mem.TypeName()
+
+		// if we are not at the last component
+		if idx < len(v.Members)-1 {
+			result += ", "
+		}
+	}*/
+	result += "}"
+	return result
+}
+
+func (v *InterfaceType) IsSigned() bool {
+	return false
+}
+
+func (v *InterfaceType) LevelsOfIndirection() int {
+	return 0
+}
+
+func (v *InterfaceType) IsIntegerType() bool {
+	return false
+}
+
+func (v *InterfaceType) IsFloatingType() bool {
+	return false
+}
+
+func (v *InterfaceType) CanCastTo(t Type) bool {
+	return v != t && v.Equals(t.ActualType())
+}
+
+func (v *InterfaceType) addFunction(fn *Function) {
+	v.Functions = append(v.Functions, fn)
+}
+
+func (v *InterfaceType) MatchesType(t Type) {
+
+}
+
+func (v *InterfaceType) Attrs() AttrGroup {
+	return nil
+}
+
+func (v *InterfaceType) Equals(t Type) bool {
+	other, ok := t.(*InterfaceType)
+	if !ok {
+		return false
+	}
+
+	if len(v.Functions) != len(other.Functions) {
+		return false
+	}
+
+	for idx, mem := range v.Functions {
+		if mem != other.Functions[idx] {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (v *InterfaceType) ActualType() Type {
 	return v
 }
 
