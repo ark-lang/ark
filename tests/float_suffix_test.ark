@@ -1,13 +1,13 @@
 [c] func printf(fmt: str, ...): int;
 
 func main(): int {
-    t1 := 10f;
-    t2 := 0.4d;
-    [unused] t3 := 1214.935735q;
+    t1: f64 = 10f;
+    t2: f64 = 0.4d;
+    [unused] t3: f64 = 1214.935735q;
 
-    t4 := 10F;
-    t5 := 0.4D;
-    [unused] t6 := 1214.935735Q;
+    t4: f64 = 10F;
+    t5: f64 = 0.4D;
+    [unused] t6: f64 = 1214.935735Q;
 
     C::printf("%f %f %f %f\n", t1, t2, t4, t5);
 

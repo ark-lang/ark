@@ -83,9 +83,7 @@ func (v *BorrowCheck) CheckAssignStat(s *SemanticAnalyzer, n *parser.AssignStat)
 }
 
 func (v *BorrowCheck) CheckCallExpr(s *SemanticAnalyzer, n *parser.CallExpr) {
-	for _, arg := range n.Arguments {
-		v.CheckExpr(s, arg)
-	}
+
 }
 
 func (v *BorrowCheck) CheckVariableDecl(s *SemanticAnalyzer, n *parser.VariableDecl) {
@@ -100,7 +98,9 @@ func (v *BorrowCheck) CheckVariableDecl(s *SemanticAnalyzer, n *parser.VariableD
 func (v *BorrowCheck) Finalize() {}
 
 func (v *BorrowCheck) PostVisit(s *SemanticAnalyzer, n parser.Node) {
-	v.checkingCallExpr = false
+	if _, ok := n.(*parser.CallStat); ok {
+		v.checkingCallExpr = false
+	}
 }
 
 func (v *BorrowCheck) EnterScope(s *SemanticAnalyzer) {
