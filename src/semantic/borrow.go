@@ -46,10 +46,6 @@ func (v *BorrowCheck) CheckFunctionDecl(s *SemanticAnalyzer, n *parser.FunctionD
 	if n.Function.Body == nil {
 		return
 	}
-
-	for _, node := range n.Function.Body.Nodes {
-		v.Visit(s, node)
-	}
 }
 
 func (v *BorrowCheck) CheckExpr(s *SemanticAnalyzer, n parser.Expr) {
@@ -114,7 +110,9 @@ func (v *BorrowCheck) CheckVariableDecl(s *SemanticAnalyzer, n *parser.VariableD
 
 func (v *BorrowCheck) Finalize() {}
 
-func (v *BorrowCheck) PostVisit(s *SemanticAnalyzer, n parser.Node) {}
+func (v *BorrowCheck) PostVisit(s *SemanticAnalyzer, n parser.Node) {
+	v.swag = false
+}
 
 func (v *BorrowCheck) EnterScope(s *SemanticAnalyzer) {
 	v.currentLifetime = &Lifetime{
@@ -143,7 +141,6 @@ func (v *BorrowCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
 	case *parser.CallStat:
 		v.swag = true
 		v.CheckExpr(s, n.(*parser.CallStat).Call)
-		v.swag = false
 	case parser.AccessExpr:
 		v.CheckAccessExpr(s, n.(parser.AccessExpr))
 	}
