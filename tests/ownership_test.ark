@@ -1,21 +1,19 @@
+[c] func printf(fmt: str, ...): int;
+
 type Test struct {
     a: int,
 };
 
-func do_stuff(mut argument: int): int {
-    argument = 21;
-    return argument;
+func do_stuff(mut a: int): int {
+    a = 21;
+    return a;
 }
 
 func main(): int {
-    mut local: int = 10;
-    local = do_stuff(local);
-    local = 20;
-
     mut test: Test;
-    test.a = 21;
+    test.a = 32;
     test.a = do_stuff(test.a);
-    test.a = 31;
+    C::printf("a is %d\n", test.a);
 
     return 0;
 }

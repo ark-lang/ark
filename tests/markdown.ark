@@ -1,0 +1,43 @@
+[c] func printf(fmt: str, ...): int;
+
+type Markdown struct {
+    source: []u8 = [ 35, 102, 117, 99, 107, 32, 121, 111, 117, 0 ],
+    pos: int = 0,
+    current: u8 = 0,
+};
+
+func (md: ^Markdown) start() {
+    md.current = md.source[md.pos];
+    md.toHTML();
+}
+
+func (md: ^Markdown) toHTML() {
+    mut buffer: []u8 = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+    mut buffer_pos: uint = 0;
+
+    if md.current == 35 { 
+        buffer[buffer_pos] = md.consume();
+        buffer_pos = buffer_pos + 1;
+
+        // EOF or \n
+        for md.current != 0 || md.current != 10 {
+            buffer[buffer_pos] = md.consume();
+            buffer_pos = buffer_pos + 1;
+        }
+
+        C::printf("consumed a h1 %s\n", buffer);
+    }
+
+    C::printf("no idea, got `%d`\n", md.current);
+}
+
+func main(): int {
+    mut lol: Markdown;
+    mut md: ^Markdown = &lol;
+    default(^md);
+    md.start();
+
+    return 0;     
+}
