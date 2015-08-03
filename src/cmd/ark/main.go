@@ -137,7 +137,7 @@ func build(files []string, outputFile string, cg string, ccArgs []string, output
 			// Dump AST
 			log.Debugln("main", "AST of module `%s`:", module.Name)
 			for _, node := range module.Nodes {
-				log.Debugln("main", node.String())
+				log.Debugln("main", "%s", node.String())
 			}
 		}
 	})
