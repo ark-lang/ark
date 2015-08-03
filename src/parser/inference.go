@@ -26,7 +26,7 @@ type TypeInferer struct {
 func (v *TypeInferer) err(thing Locatable, err string, stuff ...interface{}) {
 	pos := thing.Pos()
 
-	log.Error("semantic", util.TEXT_RED+util.TEXT_BOLD+"Semantic error:"+util.TEXT_RESET+" [%s:%d:%d] %s\n",
+	log.Error("semantic", util.TEXT_RED+util.TEXT_BOLD+"error:"+util.TEXT_RESET+" [%s:%d:%d] %s\n",
 		pos.Filename, pos.Line, pos.Char, fmt.Sprintf(err, stuff...))
 
 	log.Error("semantic", v.Module.File.MarkPos(pos))
@@ -37,7 +37,7 @@ func (v *TypeInferer) err(thing Locatable, err string, stuff ...interface{}) {
 func (v *TypeInferer) warn(thing Locatable, err string, stuff ...interface{}) {
 	pos := thing.Pos()
 
-	log.Warning("semantic", util.TEXT_YELLOW+util.TEXT_BOLD+"Semantic warning:"+util.TEXT_RESET+" [%s:%d:%d] %s\n",
+	log.Warning("semantic", util.TEXT_YELLOW+util.TEXT_BOLD+"warning:"+util.TEXT_RESET+" [%s:%d:%d] %s\n",
 		pos.Filename, pos.Line, pos.Char, fmt.Sprintf(err, stuff...))
 
 	log.Warning("semantic", v.Module.File.MarkPos(pos))

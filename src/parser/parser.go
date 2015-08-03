@@ -62,7 +62,7 @@ func (v *parser) errPos(err string, stuff ...interface{}) {
 func (v *parser) errTokenSpecific(tok *lexer.Token, err string, stuff ...interface{}) {
 	v.dumpRules()
 	log.Errorln("parser",
-		util.TEXT_RED+util.TEXT_BOLD+"Parser error:"+util.TEXT_RESET+" [%s:%d:%d] %s",
+		util.TEXT_RED+util.TEXT_BOLD+"error:"+util.TEXT_RESET+" [%s:%d:%d] %s",
 		tok.Where.Filename, tok.Where.StartLine, tok.Where.StartChar,
 		fmt.Sprintf(err, stuff...))
 
@@ -74,7 +74,7 @@ func (v *parser) errTokenSpecific(tok *lexer.Token, err string, stuff ...interfa
 func (v *parser) errPosSpecific(pos lexer.Position, err string, stuff ...interface{}) {
 	v.dumpRules()
 	log.Errorln("parser",
-		util.TEXT_RED+util.TEXT_BOLD+"Parser error:"+util.TEXT_RESET+" [%s:%d:%d] %s",
+		util.TEXT_RED+util.TEXT_BOLD+"error:"+util.TEXT_RESET+" [%s:%d:%d] %s",
 		pos.Filename, pos.Line, pos.Char,
 		fmt.Sprintf(err, stuff...))
 

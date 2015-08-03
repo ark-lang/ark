@@ -9,7 +9,6 @@ import (
 	"github.com/ark-lang/ark/src/util"
 )
 
-//
 type Locatable interface {
 	Pos() lexer.Position
 	setPos(pos lexer.Position)

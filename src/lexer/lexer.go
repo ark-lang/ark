@@ -22,7 +22,7 @@ type lexer struct {
 }
 
 func (v *lexer) errPos(pos Position, err string, stuff ...interface{}) {
-	log.Errorln("lexer", util.TEXT_RED+util.TEXT_BOLD+"Lexer error:"+util.TEXT_RESET+" [%s:%d:%d] %s",
+	log.Errorln("lexer", util.TEXT_RED+util.TEXT_BOLD+"error:"+util.TEXT_RESET+" [%s:%d:%d] %s",
 		pos.Filename, pos.Line, pos.Char, fmt.Sprintf(err, stuff...))
 
 	log.Error("lexer", v.input.MarkPos(pos))
