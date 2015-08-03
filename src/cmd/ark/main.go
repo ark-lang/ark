@@ -150,6 +150,7 @@ func build(files []string, outputFile string, cg string, ccArgs []string, output
 			sem := semantic.NewSemanticAnalyzer(module, *buildOwnership)
 			vis := parser.NewASTVisitor(sem)
 			vis.VisitModule(module)
+			sem.Finalize()
 		}
 	})
 
