@@ -7,5 +7,5 @@ func main(): int {
     mut local: int = 10;
     do_stuff(local);
     local = 20;
-    return local;
+    return 0;
 }
