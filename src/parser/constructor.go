@@ -38,7 +38,7 @@ func (v *Constructor) err(pos lexer.Span, err string, stuff ...interface{}) {
 
 func (v *Constructor) errPos(pos lexer.Position, err string, stuff ...interface{}) {
 	log.Errorln("constructor",
-		util.TEXT_RED+util.TEXT_BOLD+"Constructor error:"+util.TEXT_RESET+" [%s:%d:%d] %s",
+		util.TEXT_RED+util.TEXT_BOLD+"error:"+util.TEXT_RESET+" [%s:%d:%d] %s",
 		pos.Filename, pos.Line, pos.Char,
 		fmt.Sprintf(err, stuff...))
 
@@ -49,7 +49,7 @@ func (v *Constructor) errPos(pos lexer.Position, err string, stuff ...interface{
 
 func (v *Constructor) errSpan(pos lexer.Span, err string, stuff ...interface{}) {
 	log.Errorln("constructor",
-		util.TEXT_RED+util.TEXT_BOLD+"Constructor error:"+util.TEXT_RESET+" [%s:%d:%d] %s",
+		util.TEXT_RED+util.TEXT_BOLD+"error:"+util.TEXT_RESET+" [%s:%d:%d] %s",
 		pos.Filename, pos.StartLine, pos.StartChar,
 		fmt.Sprintf(err, stuff...))
 
