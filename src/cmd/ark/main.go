@@ -123,7 +123,8 @@ func build(files []string, outputFile string, cg string, ccArgs []string, output
 		// TODO: We're looping over a map, the order we get is thus random
 		for _, module := range modules {
 			res := &parser.Resolver{Module: module}
-			res.Resolve(modules)
+			vis := parser.NewASTVisitor(res)
+			vis.VisitModule(module)
 		}
 	})
 
@@ -137,7 +138,7 @@ func build(files []string, outputFile string, cg string, ccArgs []string, output
 			// Dump AST
 			log.Debugln("main", "AST of module `%s`:", module.Name)
 			for _, node := range module.Nodes {
-				log.Debugln("main", node.String())
+				log.Debugln("main", "%s", node.String())
 			}
 		}
 	})
@@ -146,8 +147,9 @@ func build(files []string, outputFile string, cg string, ccArgs []string, output
 	log.Timed("semantic analysis phase", func() {
 		// TODO: We're looping over a map, the order we get is thus random
 		for _, module := range modules {
-			sem := &semantic.SemanticAnalyzer{Module: module}
-			sem.Analyze(modules)
+			sem := semantic.NewSemanticAnalyzer(module)
+			vis := parser.NewASTVisitor(sem)
+			vis.VisitModule(module)
 		}
 	})
 
