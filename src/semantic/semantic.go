@@ -44,7 +44,7 @@ func (v *SemanticAnalyzer) Warn(thing parser.Locatable, err string, stuff ...int
 	log.Warningln("semantic", v.Module.File.MarkPos(pos))
 }
 
-func NewSemanticAnalyzer(module *parser.Module) *SemanticAnalyzer {
+func NewSemanticAnalyzer(module *parser.Module, useOwnership bool) *SemanticAnalyzer {
 	res := &SemanticAnalyzer{}
 	res.shouldExit = false
 	res.Module = module
@@ -58,7 +58,11 @@ func NewSemanticAnalyzer(module *parser.Module) *SemanticAnalyzer {
 		&ImmutableAssignCheck{},
 		&UseBeforeDeclareCheck{},
 		&MiscCheck{},
-		&BorrowCheck{},
+	}
+
+	if useOwnership {
+		fmt.Println("btw ownership is being used")
+		res.Checks = append(res.Checks, &BorrowCheck{})
 	}
 
 	return res
