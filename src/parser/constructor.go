@@ -318,8 +318,7 @@ func (v *FunctionDeclNode) construct(c *Constructor) Node {
 		} else {
 			function.IsStatic = false
 			function.Receiver = c.constructNode(v.Header.Receiver).(*VariableDecl) // TODO: error
-			function.Receiver.Variable.ParentFunction = res
-			function.Receiver.Variable.Uses = 1 // silence warning
+			function.Receiver.Variable.IsParameter = true
 
 			//function.Name = TypeWithoutPointers(function.Receiver.Variable.Type).TypeName() + "." + function.Name
 		}
@@ -329,8 +328,7 @@ func (v *FunctionDeclNode) construct(c *Constructor) Node {
 	for _, arg := range v.Header.Arguments {
 		arguments = append(arguments, arg)
 		decl := c.constructNode(arg).(*VariableDecl) // TODO: Error message
-		decl.Variable.ParentFunction = res
-		decl.Variable.Uses = 1
+		decl.Variable.IsParameter = true
 		function.Parameters = append(function.Parameters, decl)
 	}
 

@@ -68,15 +68,15 @@ type DocComment struct {
 }
 
 type Variable struct {
-	Type           Type
-	Name           string
-	Mutable        bool
-	Attrs          AttrGroup
-	scope          *Scope
-	Uses           int
-	ParentStruct   *StructType
-	ParentModule   *Module
-	ParentFunction *FunctionDecl
+	Type         Type
+	Name         string
+	Mutable      bool
+	Attrs        AttrGroup
+	scope        *Scope
+	Uses         int
+	ParentStruct *StructType
+	ParentModule *Module
+	IsParameter  bool
 }
 
 func (v *Variable) String() string {
