@@ -349,9 +349,7 @@ func (v *FunctionDeclNode) construct(c *Constructor) Node {
 		v.Body = &BlockNode{Nodes: []ParseNode{v.Stat}}
 	}
 	if v.Body != nil {
-		c.pushScope()
 		function.Body = c.constructNode(v.Body).(*Block) // TODO: Error message
-		c.popScope()
 	} else {
 		res.Prototype = true
 	}

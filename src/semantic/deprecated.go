@@ -20,6 +20,8 @@ func (v *DeprecatedCheck) WarnDeprecated(s *SemanticAnalyzer, thing parser.Locat
 func (v *DeprecatedCheck) EnterScope(s *SemanticAnalyzer) {}
 func (v *DeprecatedCheck) ExitScope(s *SemanticAnalyzer)  {}
 
+func (v *DeprecatedCheck) PostVisit(s *SemanticAnalyzer, n parser.Node) {}
+
 func (v *DeprecatedCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
 	switch n.(type) {
 	case *parser.VariableDecl:

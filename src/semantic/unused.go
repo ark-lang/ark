@@ -28,6 +28,8 @@ func (v *UnusedCheck) ExitScope(s *SemanticAnalyzer) {
 	}
 }
 
+func (v *UnusedCheck) PostVisit(s *SemanticAnalyzer, n parser.Node) {}
+
 func (v *UnusedCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
 	switch n.(type) {
 	case *parser.VariableDecl:
