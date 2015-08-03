@@ -29,6 +29,8 @@ func (v *UseBeforeDeclareCheck) ExitScope(s *SemanticAnalyzer) {
 	}
 }
 
+func (v *UseBeforeDeclareCheck) PostVisit(s *SemanticAnalyzer, n parser.Node) {}
+
 func (v *UseBeforeDeclareCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
 	switch n.(type) {
 	case *parser.VariableDecl:

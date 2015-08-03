@@ -10,7 +10,9 @@ type UnreachableCheck struct {
 func (v *UnreachableCheck) EnterScope(s *SemanticAnalyzer) {}
 func (v *UnreachableCheck) ExitScope(s *SemanticAnalyzer)  {}
 
-func (v *UnreachableCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
+func (v *UnreachableCheck) Visit(s *SemanticAnalyzer, n parser.Node) {}
+
+func (v *UnreachableCheck) PostVisit(s *SemanticAnalyzer, n parser.Node) {
 	switch n.(type) {
 	case *parser.Block:
 		block := n.(*parser.Block)
@@ -34,11 +36,7 @@ func (v *UnreachableCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
 				decl.Function.Body.Nodes = append(decl.Function.Body.Nodes, &parser.ReturnStat{})
 			}
 		}
-
-	default:
-		return
 	}
-
 }
 
 func IsNodeTerminating(n parser.Node) bool {
