@@ -57,9 +57,8 @@ func (v *UnusedCheck) AnalyzeUsage(s *SemanticAnalyzer) {
 		switch node.(type) {
 		case *parser.VariableDecl:
 			decl := node.(*parser.VariableDecl)
-			fromPrototype := decl.Variable.ParentFunction != nil && decl.Variable.ParentFunction.Prototype
 			fromStruct := decl.Variable.ParentStruct != nil
-			if !decl.Variable.Attrs.Contains("unused") && !fromPrototype && !fromStruct && decl.Variable.Uses == 0 {
+			if !decl.Variable.Attrs.Contains("unused") && !decl.Variable.IsParameter && !fromStruct && decl.Variable.Uses == 0 {
 				s.Err(decl, "Unused variable `%s`", decl.Variable.Name)
 			}
 
