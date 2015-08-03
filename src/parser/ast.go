@@ -71,7 +71,6 @@ type Variable struct {
 	Mutable      bool
 	Attrs        AttrGroup
 	scope        *Scope
-	Uses         int
 	ParentStruct *StructType
 	ParentModule *Module
 	IsParameter  bool
@@ -100,7 +99,6 @@ type Function struct {
 	IsVariadic bool
 	Attrs      AttrGroup
 	Body       *Block
-	Uses       int
 	scope      *Scope
 
 	ParentModule *Module
