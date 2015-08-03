@@ -27,7 +27,7 @@ type SemanticCheck interface {
 func (v *SemanticAnalyzer) Err(thing parser.Locatable, err string, stuff ...interface{}) {
 	pos := thing.Pos()
 
-	log.Error("semantic", util.TEXT_RED+util.TEXT_BOLD+"Semantic error:"+util.TEXT_RESET+" [%s:%d:%d] %s\n",
+	log.Error("semantic", util.TEXT_RED+util.TEXT_BOLD+"error:"+util.TEXT_RESET+" [%s:%d:%d] %s\n",
 		pos.Filename, pos.Line, pos.Char, fmt.Sprintf(err, stuff...))
 
 	log.Errorln("semantic", v.Module.File.MarkPos(pos))
@@ -38,13 +38,13 @@ func (v *SemanticAnalyzer) Err(thing parser.Locatable, err string, stuff ...inte
 func (v *SemanticAnalyzer) Warn(thing parser.Locatable, err string, stuff ...interface{}) {
 	pos := thing.Pos()
 
-	log.Warning("semantic", util.TEXT_YELLOW+util.TEXT_BOLD+"Semantic warning:"+util.TEXT_RESET+" [%s:%d:%d] %s\n",
+	log.Warning("semantic", util.TEXT_YELLOW+util.TEXT_BOLD+"warning:"+util.TEXT_RESET+" [%s:%d:%d] %s\n",
 		pos.Filename, pos.Line, pos.Char, fmt.Sprintf(err, stuff...))
 
 	log.Warningln("semantic", v.Module.File.MarkPos(pos))
 }
 
-func NewSemanticAnalyzer(module *parser.Module) *SemanticAnalyzer {
+func NewSemanticAnalyzer(module *parser.Module, useOwnership bool) *SemanticAnalyzer {
 	res := &SemanticAnalyzer{}
 	res.shouldExit = false
 	res.Module = module
@@ -58,6 +58,11 @@ func NewSemanticAnalyzer(module *parser.Module) *SemanticAnalyzer {
 		&ImmutableAssignCheck{},
 		&UseBeforeDeclareCheck{},
 		&MiscCheck{},
+	}
+
+	if useOwnership {
+		fmt.Println("btw ownership is being used")
+		res.Checks = append(res.Checks, &BorrowCheck{})
 	}
 
 	return res

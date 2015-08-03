@@ -35,7 +35,7 @@ type Resolvable interface {
 func (v *Resolver) err(thing Locatable, err string, stuff ...interface{}) {
 	pos := thing.Pos()
 
-	log.Error("resolve", util.TEXT_RED+util.TEXT_BOLD+"Resolve error:"+util.TEXT_RESET+" [%s:%d:%d] %s\n",
+	log.Error("resolve", util.TEXT_RED+util.TEXT_BOLD+"error:"+util.TEXT_RESET+" [%s:%d:%d] %s\n",
 		pos.Filename, pos.Line, pos.Char, fmt.Sprintf(err, stuff...))
 
 	log.Error("resolve", v.Module.File.MarkPos(pos))

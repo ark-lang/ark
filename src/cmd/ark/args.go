@@ -35,6 +35,7 @@ var (
 	buildRun        = buildCom.Flag("run", "Run the executable.").Bool()
 	buildOutputType = buildCom.Flag("output-type", "Codegen backend to use").Default("executable").Enum("executable", "assembly", "object", "llvm-ir", "llvm-bc")
 	buildOptLevel   = buildCom.Flag("opt-level", "LLVM optimization level").Short('O').Default("0").Int()
+	buildOwnership  = buildCom.Flag("ownership", "Do ownership checks").Bool()
 
 	docgenCom    = app.Command("docgen", "Generate documentation.")
 	docgenDir    = docgenCom.Flag("dir", "Directory to place generated docs in.").Default("docgen").String()
