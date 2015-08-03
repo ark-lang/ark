@@ -445,23 +445,28 @@ func (v *CallExpr) infer(s *TypeInferer) {
 			vae := v.functionSource.(*VariableAccessExpr)
 			name = vae.Name
 
+			ident := s.Module.GlobalScope.GetIdent(name)
+			if ident == nil {
+				s.err(v, "Cannot resolve function source `%s`", name.String())
+			} else if ident.Type != IDENT_FUNCTION {
+				s.err(v, "Expected function identifier, found %s `%s`", ident.Type, name)
+			} else {
+				v.Function = ident.Value.(*Function)
+			}
+
 		case *StructAccessExpr:
 			sae := v.functionSource.(*StructAccessExpr)
 			sae.Struct.infer(s)
-			name = unresolvedName{name: TypeWithoutPointers(sae.Struct.GetType()).TypeName() + "." + sae.Member}
+
+			v.Function = TypeWithoutPointers(sae.Struct.GetType()).(*NamedType).GetMethod(sae.Member)
+			if v.Function == nil {
+				s.err(v, "Cannot resolve method `%s` of type `%s`", sae.Member, TypeWithoutPointers(sae.Struct.GetType()).TypeName())
+			}
 
 		default:
 			panic("Invalid function source (for now)")
 		}
 
-		ident := s.Module.GlobalScope.GetIdent(name)
-		if ident == nil {
-			s.err(v, "Cannot resolve function source `%s`", name.String())
-		} else if ident.Type != IDENT_FUNCTION {
-			s.err(v, "Expected function identifier, found %s `%s`", ident.Type, name)
-		} else {
-			v.Function = ident.Value.(*Function)
-		}
 	}
 
 	// TODO: Is v.Function ever non-nil at this point
