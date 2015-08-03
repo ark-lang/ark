@@ -5,13 +5,16 @@ import (
 )
 
 type BorrowCheck struct {
-	currentLifetime *Lifetime
-	swag            bool
+	currentLifetime  *Lifetime
+	checkingCallExpr bool
 }
 
 type Lifetime struct {
-	resources    map[string]Resource
+	// it's important that the hashmap can be iterated
+	// in the correct order, so we add the hashmap keys
+	// here and iterate over this instead.
 	resourceKeys []string
+	resources    map[string]Resource
 }
 
 type Resource interface {
@@ -48,7 +51,7 @@ func (v *BorrowCheck) CheckExpr(s *SemanticAnalyzer, n parser.Expr) {
 
 func (v *BorrowCheck) CheckVariableAccessExpr(s *SemanticAnalyzer, n *parser.VariableAccessExpr) {
 	// it's an argument
-	if v.swag && !n.Variable.IsParameter {
+	if v.checkingCallExpr && !n.Variable.IsParameter {
 		if variable, ok := v.currentLifetime.resources[n.Variable.Name+"_VAR"]; ok {
 			if varResource, ok := variable.(*VariableResource); ok {
 				varResource.Owned = false
@@ -97,7 +100,7 @@ func (v *BorrowCheck) CheckVariableDecl(s *SemanticAnalyzer, n *parser.VariableD
 func (v *BorrowCheck) Finalize() {}
 
 func (v *BorrowCheck) PostVisit(s *SemanticAnalyzer, n parser.Node) {
-	v.swag = false
+	v.checkingCallExpr = false
 }
 
 func (v *BorrowCheck) EnterScope(s *SemanticAnalyzer) {
@@ -124,7 +127,7 @@ func (v *BorrowCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
 	case *parser.VariableDecl:
 		v.CheckVariableDecl(s, n.(*parser.VariableDecl))
 	case *parser.CallStat:
-		v.swag = true
+		v.checkingCallExpr = true
 		v.CheckExpr(s, n.(*parser.CallStat).Call)
 	case parser.AccessExpr:
 		v.CheckAccessExpr(s, n.(parser.AccessExpr))
