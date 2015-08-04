@@ -2,9 +2,6 @@
 
 [Ark](//www.ark-lang.org) is a systems programming language somewhere in-between C and C++.
 
-## Ark RFC's
-We now have a repository for RFC's and Specifications, this is to keep everything separate from issues related to the compiler itself (in terms of implementations of features, bugs, etc). If you want to request a feature, or you want to help use decide how to integrate a feature into the language, or just change something in the language: please go visit [this repository](//github.com/ark-lang/ark-rfcs).
-
 ## Table Of Contents
 * [Example](#example)
 * [Resources](#resources)
@@ -20,7 +17,7 @@ We now have a repository for RFC's and Specifications, this is to keep everythin
 * [License](#license)
 
 ## <a name="example"></a> Example
-A small example program written in Ark.
+For a more complicated example, check out a port of my virtual machine MAC in Ark [here](//www.github.com/ark-lang/mac-ark). Or if you just want a small example program written in Ark.
 
 ```rust
 [c] func printf(fmt: str, ...);
@@ -35,18 +32,18 @@ func main(): int {
 ```
 
 ## <a name="resources"></a> Resources
-* [Reference](https://github.com/ark-lang/ark-docs/blob/master/REFERENCE.md)
+* [Reference](//github.com/ark-lang/ark-docs/blob/master/REFERENCE.md)
 * [Tests](/tests/)
 * [Libraries](/lib/)
 * [Contributing](/CONTRIBUTING.md)
-* [Ark Style Guide](https://github.com/ark-lang/ark-docs/blob/master/STYLEGUIDE.md)
+* [Ark Style Guide](//github.com/ark-lang/ark-docs/blob/master/STYLEGUIDE.md)
 
 ## <a name="installing"></a> Installing
 Installing Ark should be relatively easy, you'll need a few dependencies before
 you get started:
 
 ### <a name="dependencies"></a> Dependencies
-* Go installed and `$GOPATH` setup - [Instructions on setting up GOPATH](https://golang.org/doc/code.html#GOPATH)
+* Go installed and `$GOPATH` setup - [Instructions on setting up GOPATH](//golang.org/doc/code.html#GOPATH)
 * subversion
 * LLVM installed, with `llvm-config` and `llc` in your `$PATH`
 * a C++ compiler

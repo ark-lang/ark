@@ -6,7 +6,7 @@ We'd love your contributions to make Ark a better programming language.
 ## Interested in contributing?
 If you want to contribute to Ark, that's great! We encourage all
 developers to actively discuss Ark and its features/implementations
-on the IRC ([#ark-lang](http://webchat.freenode.net/?channels=%23ark-lang)).
+on the [Gitter](//badges.gitter.im/Join%20Chat.svg) or IRC ([#ark-lang](//webchat.freenode.net/?channels=%23ark-lang)). We're more active on Gitter than IRC, if you prefer IRC; you can get a Gitter to IRC bridge.
 
 ### What can I do to help?
 There are plenty of things you can do to help:
@@ -48,12 +48,12 @@ fix an existing bug; these steps will help you out.
   Typically, if theres a segmentation fault, or other bug
   that occurs on run-time, g/lldb is a good start.
 * Use Valgrind to track down memory leaks
-* Run the Ark code with the `-v` flag! This is the verbose
+* Run the Ark code with the `--loglevel=vebrose` flag! This is the verbose
   flag and can help you locate what stage the bug occurs (during lexical analysis, semantic analysis, parsing, etc).
 
 ## Writing Ark code
 Be it personal code, or you're contributing to the standard libraries,
-check out the [style guide](https://github.com/ark-lang/ark-docs/blob/master/STYLEGUIDE.md). Not only will this keep everything
+check out the [style guide](//github.com/ark-lang/ark-docs/blob/master/STYLEGUIDE.md). Not only will this keep everything
 consistent (if you're contributing to the std libraries that is), but it will
 also make the code a lot more readable and easier to maintain.
 
@@ -64,17 +64,19 @@ We now have a repository for RFC's and Specifications, this is to keep everythin
 
 ## Community
 Please do not post questions for help in the Issue Tracker _unless_ you think
-it's a bug related to the Ark compiler, or a feature. Instead, check out
+it's a bug related to the Ark compiler. Instead, check out
 the following communities:
+
+### Gitter
+[Gitter](//badges.gitter.im/Join%20Chat.svg) is where we're most active, feel free to ask someone on there for help.
+
+### Reddit
+We also have a subreddit, [here's the link](//www.reddit.com/r/ark_lang). Feel free to ask us questions on that, a lot of the developers are also Reddit addicts. So you should get a reply reasonably quickly.
 
 ### IRC
 You'll probably find one of the core super contributors on the IRC. If you have
-any questions, or just want to come talk to us; join the [#ark-lang](http://webchat.freenode.net/?channels=%23ark-lang)
+any questions, or just want to come talk to us; join the [#ark-lang](//webchat.freenode.net/?channels=%23ark-lang)
 channel on freenode.
 
 * ip: `irc.freenode.net`
 * channel: `#ark-lang`
-
-### Reddit
-We also have a subreddit, [here's the link](http://www.reddit.com/r/ark_lang). Feel free to ask us questions on that,
-a lot of the developers are also Reddit addicts.
