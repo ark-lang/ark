@@ -3,6 +3,7 @@ package parser
 import (
 	"fmt"
 	"os"
+	"reflect"
 
 	"github.com/ark-lang/ark/src/util"
 	"github.com/ark-lang/ark/src/util/log"
@@ -22,8 +23,8 @@ func (v unresolvedName) String() string {
 }
 
 type Resolver struct {
-	Module   *Module
-	resolved map[interface{}]bool
+	Module    *Module
+	resolving map[interface{}]bool
 
 	scope []*Scope
 }
@@ -52,8 +53,8 @@ func (v *Resolver) Scope() *Scope {
 }
 
 func (v *Resolver) EnterScope(s *Scope) {
-	if v.resolved == nil {
-		v.resolved = make(map[interface{}]bool)
+	if v.resolving == nil {
+		v.resolving = make(map[interface{}]bool)
 	}
 
 	if s != nil {
@@ -131,7 +132,7 @@ func (v *VariableDecl) resolve(res *Resolver, s *Scope) {
 }
 
 func (v *TypeDecl) resolve(res *Resolver, s *Scope) {
-	v.NamedType = v.NamedType.resolveType(v, res, s).(*NamedType)
+	// NOOP
 }
 
 func (v *CastExpr) resolve(res *Resolver, s *Scope) {
@@ -161,14 +162,16 @@ func (v PrimitiveType) resolveType(src Locatable, res *Resolver, s *Scope) Type 
 }
 
 func (v *StructType) resolveType(src Locatable, res *Resolver, s *Scope) Type {
-	if res.resolved[v] {
+	if res.resolving[v] {
 		return v
 	}
-	res.resolved[v] = true
+	res.resolving[v] = true
 
 	for _, vari := range v.Variables {
 		vari.resolve(res, s)
 	}
+
+	res.resolving[v] = false
 	return v
 }
 
@@ -188,19 +191,26 @@ func (v *TupleType) resolveType(src Locatable, res *Resolver, s *Scope) Type {
 }
 
 func (v *EnumType) resolveType(src Locatable, res *Resolver, s *Scope) Type {
-	if res.resolved[v] {
+	if res.resolving[v] {
 		return v
 	}
-	res.resolved[v] = true
+	res.resolving[v] = true
 
 	for _, mem := range v.Members {
 		mem.Type = mem.Type.resolveType(src, res, s)
 	}
+
+	res.resolving[v] = false
 	return v
 }
 
 func (v *NamedType) resolveType(src Locatable, res *Resolver, s *Scope) Type {
-	v.Type = v.Type.resolveType(src, res, s)
+	if len(v.Parameters) > 0 {
+		scope := newScope(s)
+		v.Type = v.Type.resolveType(src, res, scope)
+	} else {
+		v.Type = v.Type.resolveType(src, res, s)
+	}
 	return v
 }
 
@@ -208,17 +218,119 @@ func (v *InterfaceType) resolveType(src Locatable, res *Resolver, s *Scope) Type
 	return v
 }
 
+func (v *ParameterType) resolveType(src Locatable, res *Resolver, s *Scope) Type {
+	panic("We shouldn't reach this, right?")
+}
+
+func (v *SubstitutionType) resolveType(src Locatable, res *Resolver, s *Scope) Type {
+	return v.Type
+}
+
 func (v *UnresolvedType) resolveType(src Locatable, res *Resolver, s *Scope) Type {
 	ident := s.GetIdent(v.Name)
 	if ident == nil {
-		res.err(src, "Cannot resolve `%s`", v.Name)
+		res.errCannotResolve(src, v.Name)
 	} else if ident.Type != IDENT_TYPE {
 		res.err(src, "Expected type identifier, found %s `%s`", ident.Type, v.Name)
 	} else {
-		return ident.Value.(Type)
+		typ := ident.Value.(Type)
+
+		if namedType, ok := typ.(*NamedType); ok && len(v.Parameters) > 0 {
+			scope := newScope(s)
+			for idx, param := range namedType.Parameters {
+				paramType := &SubstitutionType{Name: param.Name, Type: v.Parameters[idx]}
+				scope.InsertType(paramType)
+			}
+			typ = typ.resolveType(src, res, scope)
+		} else {
+			typ = typ.resolveType(src, res, s)
+		}
+
+		return typ
 	}
 
 	panic("unreachable")
+}
+
+func ExtractTypeVariable(pattern Type, value Type) map[string]Type {
+	/*
+		Pointer($T), Pointer(int) -> {$T: int}
+		Arbitrary depth type => Stack containing breadth first traversal
+	*/
+	res := make(map[string]Type)
+
+	var (
+		ps []Type
+		vs []Type
+	)
+	ps = append(ps, pattern)
+	vs = append(vs, value)
+
+	for i := 0; i < len(ps); i++ {
+		ppart := ps[i]
+		vpart := vs[i]
+		log.Debugln("resovle", "\nP = `%s`, V = `%s`", ppart.TypeName(), vpart.TypeName())
+
+		ps = AddChildren(ppart, ps)
+		vs = AddChildren(vpart, vs)
+
+		if vari, ok := ppart.(*ParameterType); ok {
+			log.Debugln("resolve", "P was variable (Name: %s)", vari.Name)
+			res[vari.Name] = vpart
+			continue
+		}
+
+		switch ppart.(type) {
+		case PrimitiveType, *NamedType:
+			if !ppart.Equals(vpart) {
+				log.Errorln("resolve", "%s != %s", ppart.TypeName(), vpart.TypeName())
+				panic("Part of type did not match pattern")
+			}
+
+		default:
+			if reflect.TypeOf(ppart) != reflect.TypeOf(vpart) {
+				log.Errorln("resolve", "%T != %T", ppart, vpart)
+				panic("Part of type did not match pattern")
+			}
+		}
+	}
+
+	return res
+}
+
+func AddChildren(typ Type, dest []Type) []Type {
+	switch typ.(type) {
+	case *StructType:
+		st := typ.(*StructType)
+		for _, decl := range st.Variables {
+			dest = append(dest, decl.Variable.Type)
+		}
+
+	case *NamedType:
+		nt := typ.(*NamedType)
+		dest = append(dest, nt.Type)
+
+	case ArrayType:
+		at := typ.(ArrayType)
+		dest = append(dest, at.MemberType)
+
+	case PointerType:
+		pt := typ.(PointerType)
+		dest = append(dest, pt.Addressee)
+
+	case *TupleType:
+		tt := typ.(*TupleType)
+		for _, mem := range tt.Members {
+			dest = append(dest, mem)
+		}
+
+	case *EnumType:
+		et := typ.(*EnumType)
+		for _, mem := range et.Members {
+			dest = append(dest, mem.Type)
+		}
+	}
+	return dest
 }
 
 /*func (v *TraitDecl) resolve(res *Resolver, s *Scope) {
