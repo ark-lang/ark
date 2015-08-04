@@ -224,6 +224,7 @@ func (v *StructType) ActualType() Type {
 type NamedType struct {
 	Name         string
 	Type         Type
+	Parameters   []*ParameterType
 	ParentModule *Module
 	Methods      []*Function
 }
@@ -247,7 +248,18 @@ func (v *NamedType) ActualType() Type {
 }
 
 func (v *NamedType) String() string {
-	return "(" + util.Blue("NamedType") + ": " + v.Type.TypeName() + ")"
+	res := "(" + util.Blue("NamedType") + ": " + v.Name
+	if len(v.Parameters) > 0 {
+		res += "<"
+		for idx, param := range v.Parameters {
+			res += param.TypeName()
+			if idx < len(v.Parameters)-1 {
+				res += ", "
+			}
+		}
+		res += ">"
+	}
+	return res + " = " + v.Type.TypeName() + ")"
 }
 
 func (v *NamedType) TypeName() string {
@@ -612,8 +624,11 @@ func (v *EnumType) String() string {
 func (v *EnumType) TypeName() string {
 	res := "enum {"
 
-	for _, mem := range v.Members {
-		res += mem.Name + mem.Type.TypeName() + ", "
+	for idx, mem := range v.Members {
+		res += mem.Name + ": " + mem.Type.TypeName()
+		if idx < len(v.Members)-1 {
+			res += ", "
+		}
 	}
 
 	return res + "}"
@@ -687,45 +702,99 @@ func (v *EnumType) ActualType() Type {
 	return v
 }
 
+// MetaType
+type MetaType struct {
+}
+
+func (v *MetaType) IsSigned() bool {
+	panic("IsSigned() invalid on MetaType")
+}
+
+func (v *MetaType) LevelsOfIndirection() int {
+	panic("LevelsOfIndirection() invalid on MetaType")
+}
+
+func (v *MetaType) IsIntegerType() bool {
+	panic("IsIntegerType() invalid on MetaType")
+}
+
+func (v *MetaType) IsFloatingType() bool {
+	panic("IsFloatingType() invalid on MetaType")
+}
+
+func (v *MetaType) CanCastTo(t Type) bool {
+	panic("CanCastTo() invalid on MetaType")
+}
+
+func (v *MetaType) Attrs() AttrGroup {
+	panic("Attrs() invalid on MetaType")
+}
+
+func (v *MetaType) Equals(t Type) bool {
+	panic("Equals() invalid on MetaType")
+}
+
+// ParameterType
+type ParameterType struct {
+	MetaType
+	Name string
+}
+
+func (v *ParameterType) String() string {
+	return "(" + util.Blue("ParameterType") + ": " + v.Name + ")"
+}
+
+func (v *ParameterType) TypeName() string {
+	return v.Name
+}
+
+func (v *ParameterType) ActualType() Type {
+	return v
+}
+
+// SubstitutionType
+type SubstitutionType struct {
+	MetaType
+	Name string
+	Type Type
+}
+
+func (v *SubstitutionType) String() string {
+	return "(" + util.Blue("SubstitutionType") + ": " + v.Name + " = " + v.Type.TypeName() + ")"
+}
+
+func (v *SubstitutionType) TypeName() string {
+	return v.Name
+}
+
+func (v *SubstitutionType) ActualType() Type {
+	return v
+}
+
 // UnresolvedType
 type UnresolvedType struct {
-	Name unresolvedName
+	MetaType
+	Name       unresolvedName
+	Parameters []Type
 }
 
 func (v *UnresolvedType) String() string {
-	return "(" + util.Blue("UnresolvedType") + ": " + v.Name.String() + ")"
+	res := "(" + util.Blue("UnresolvedType") + ": " + v.Name.String()
+	if len(v.Parameters) > 0 {
+		res += "<"
+		for idx, param := range v.Parameters {
+			res += param.TypeName()
+			if idx < len(v.Parameters)-1 {
+				res += ", "
+			}
+		}
+		res += "> "
+	}
+	return res + ")"
 }
 
 func (v *UnresolvedType) TypeName() string {
 	return v.Name.String()
-}
-
-func (v *UnresolvedType) IsSigned() bool {
-	panic("IsSigned() invalid on UnresolvedType")
-}
-
-func (v *UnresolvedType) LevelsOfIndirection() int {
-	panic("LevelsOfIndirection() invalid on UnresolvedType")
-}
-
-func (v *UnresolvedType) IsIntegerType() bool {
-	panic("IsIntegerType() invalid on UnresolvedType")
-}
-
-func (v *UnresolvedType) IsFloatingType() bool {
-	panic("IsFloatingType() invalid on UnresolvedType")
-}
-
-func (v *UnresolvedType) CanCastTo(t Type) bool {
-	panic("CanCastTo() invalid on UnresolvedType")
-}
-
-func (v *UnresolvedType) Attrs() AttrGroup {
-	panic("Attrs() invalid on UnresolvedType")
-}
-
-func (v *UnresolvedType) Equals(t Type) bool {
-	panic("Equals() invalid on UnresolvedType")
 }
 
 func (v *UnresolvedType) ActualType() Type {

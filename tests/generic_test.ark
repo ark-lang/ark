@@ -3,7 +3,7 @@
 
 type Option<T> enum {
     None,
-    Some(int)
+    Some(T)
 };
 
 func alloc<T>() -> ^int {
@@ -15,7 +15,7 @@ func alloc<T>() -> ^int {
 func main() -> int {
 	a: int = 0;
 	x := Option::None<int>;
-	y := Option::Some(a);
+	y := Option::Some<int>(a);
 
 	C::printf("x tag: %d\n", x);
 	C::printf("y tag: %d\n", y);
