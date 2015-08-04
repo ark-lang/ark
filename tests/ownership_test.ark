@@ -12,8 +12,7 @@ func do_stuff(mut a: int): int {
 func main(): int {
     mut test: Test;
     test.a = 32;
-    do_stuff(test.a);
+    test.a = do_stuff(test.a);
     C::printf("a is %d\n", test.a);
-
     return 0;
 }
