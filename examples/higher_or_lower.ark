@@ -9,7 +9,7 @@ func println(mess: str) -> C::printf("%s\n", mess);
 func main(): int {
     println("Higher or lower game, in Ark!");
 
-    C::srand(cast(uint, C::time(0)));
+    C::srand(uint(C::time(0)));
 
     num := C::rand() % 100 + 1;
 
