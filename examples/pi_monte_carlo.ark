@@ -7,7 +7,7 @@
 func randFloat(): f64 {
     RAND_MAX := 2147483647; // hack for now
 
-    return cast(f64, C::rand()) / cast(f64, RAND_MAX);
+    return f64(C::rand()) / f64(RAND_MAX);
 }
 
 func calculate(iters: int): f64 {
@@ -28,7 +28,7 @@ func calculate(iters: int): f64 {
         i = i + 1;
     }
 
-    return 4.0 * cast(f64, totalInCircle) / cast(f64, iters);
+    return 4.0 * f64(totalInCircle) / f64(iters);
 }
 
 func main(): int {
