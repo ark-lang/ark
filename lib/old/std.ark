@@ -1,5 +1,0 @@
-[c] func printf(fmt: str, ...);
-
-func println(fmt: str) {
-    
-}
