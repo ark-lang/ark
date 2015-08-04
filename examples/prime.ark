@@ -32,8 +32,8 @@ func is_prime(n: int): int {
         return 0;
     }
 
-    upper: int = cast(int, C::sqrt(cast(f64, n)));
-    i: int = 3;
+    upper: int = int(C::sqrt(f64(n)));
+    mut i: int = 3;
 
     for i <= upper {
         if n % i == 0 {
@@ -46,9 +46,9 @@ func is_prime(n: int): int {
 }
 
 func main(): int {
-    no_primes: int = 0;
+    mut no_primes: int = 0;
     limit: int = 67108864;
-    n: int = 0;
+    mut n: int = 0;
 
     for n <= limit {
         if is_prime(n) >= 1 {
