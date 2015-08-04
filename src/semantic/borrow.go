@@ -44,6 +44,9 @@ func (v *BorrowCheck) CheckVariableAccessExpr(s *SemanticAnalyzer, n *parser.Var
 	if v.checkingCallExpr && !n.Variable.IsParameter {
 		if variable, ok := v.currentLifetime.resources[n.Variable.Name+"_VAR"]; ok {
 			if varResource, ok := variable.(*VariableResource); ok {
+				if varResource.HasOwnership(v) {
+					s.Err(n, "use of moved value %s", n.Variable.Name)
+				}
 				varResource.Owned = false
 			}
 		}
