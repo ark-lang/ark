@@ -1,6 +1,6 @@
-[c] func printf(fmt: str, ...): int;
+[c] func printf(fmt: str, ...) -> int;
 
-func main(): int {
+func main() -> int {
     t1: f64 = 10f;
     t2: f64 = 0.4d;
     [unused] t3: f64 = 1214.935735q;

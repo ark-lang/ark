@@ -1,7 +1,7 @@
-[c] func scanf(fmt: str, ...): int;
-[c] func printf(fmt: str, ...): int;
+[c] func scanf(fmt: str, ...) -> int;
+[c] func printf(fmt: str, ...) -> int;
 
-func main(): int {
+func main() -> int {
     mut x: s32 = 0;
 
     C::printf("Input a number: ");
