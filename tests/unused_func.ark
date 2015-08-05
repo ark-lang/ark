@@ -2,7 +2,7 @@ func add() {
 
 }
 
-func main(): int {
+func main() -> int {
     add();
     return 0;
 }

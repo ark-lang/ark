@@ -333,7 +333,7 @@ func (v *parser) parseFuncDecl() *FunctionDeclNode {
 	var body *BlockNode
 	var stat, expr ParseNode
 	var endPosition lexer.Position
-	if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "->") {
+	if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "=>") {
 		v.consumeToken()
 
 		if stat = v.parseStat(); stat != nil {
@@ -342,7 +342,7 @@ func (v *parser) parseFuncDecl() *FunctionDeclNode {
 			tok := v.expect(lexer.TOKEN_SEPARATOR, ";")
 			endPosition = tok.Where.End()
 		} else {
-			v.err("Expected valid statement or expression after `->` in function declaration")
+			v.err("Expected valid statement or expression after `=>` in function declaration")
 		}
 	} else {
 		body = v.parseBlock()
@@ -431,7 +431,7 @@ func (v *parser) parseFuncHeader() *FunctionHeaderNode {
 	maybeEndToken := v.expect(lexer.TOKEN_SEPARATOR, ")")
 
 	var returnType ParseNode
-	if v.tokenMatches(0, lexer.TOKEN_OPERATOR, ":") {
+	if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "->") {
 		v.consumeToken()
 
 		returnType = v.parseType(true)

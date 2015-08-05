@@ -1,6 +1,6 @@
-[c] func printf(fmt: str, ...): int;
+[c] func printf(fmt: str, ...) -> int;
 
-func main(): int {
+func main() -> int {
 	// oh god the horror
 	mut primes: []bool = [
 		false, true, true, true, true, true, true, true, true, true,
