@@ -1,4 +1,4 @@
-func main(): int {
+func main() -> int {
     trueTest := true;
     falseTest: bool = false;
 

@@ -1,6 +1,6 @@
-[c] func printf(fmt: str, ...): int;
+[c] func printf(fmt: str, ...) -> int;
 
-func main(): int {
+func main() -> int {
 	mut x: int = 5;
 	if x == 5 {
 		C::printf("this is a test\n");
