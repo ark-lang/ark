@@ -1,4 +1,4 @@
-func add(a: int, b: int): int {
+func add(a: int, b: int) -> int {
     return a + b;
 }
 
@@ -6,7 +6,7 @@ func this_is_void(swag: int) {
     [unused] x := swag;
 }
 
-func main(): int {
+func main() -> int {
     [unused] x: int = 5;
     [unused] z: int = add(5, 10);
     [unused] y: int = 19 - 25;

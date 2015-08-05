@@ -1,6 +1,6 @@
-[c] func printf(fmt: str, ...): int;
+[c] func printf(fmt: str, ...) -> int;
 
-func main(): int {
+func main() -> int {
     mut x := 9;
     y := &x;
 

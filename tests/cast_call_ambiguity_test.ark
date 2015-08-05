@@ -1,8 +1,8 @@
-[c] func printf(fmt: str, ...): int;
+[c] func printf(fmt: str, ...) -> int;
 
 glob: int = 5;
 
-func getGlob(): ^int {
+func getGlob() -> ^int {
     return ^int(&glob);
 }
 
@@ -11,7 +11,7 @@ func printGlob() {
     C::printf("%d\n", ^(getGlob()));
 }
 
-func main(): int {
+func main() -> int {
 	printGlob();
 	return 0;
 }
