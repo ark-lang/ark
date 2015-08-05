@@ -436,7 +436,7 @@ func (v *parser) parseFuncHeader() *FunctionHeaderNode {
 
 		returnType = v.parseType(true)
 		if returnType == nil {
-			v.err("Expected valid type after `:` in function header")
+			v.err("Expected valid type after `->` in function header")
 		}
 	}
 
@@ -812,7 +812,7 @@ func (v *parser) parseMatchStat() *MatchStatNode {
 			v.err("Expected valid expression as pattern in match statement")
 		}
 
-		v.expect(lexer.TOKEN_OPERATOR, "->")
+		v.expect(lexer.TOKEN_OPERATOR, "=>")
 
 		body := v.parseStat()
 		if body == nil {
