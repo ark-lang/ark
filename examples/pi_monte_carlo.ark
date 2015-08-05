@@ -1,16 +1,16 @@
 [c] func printf(fmt: str, ...);
 [c] func srand(seed: uint);
-[c] func time(ptr: u64): uint;
-[c] func rand(): int;
-[c] func sqrt(in: f64): f64;
+[c] func time(ptr: u64) -> uint;
+[c] func rand() -> int;
+[c] func sqrt(in: f64) -> f64;
 
-func randFloat(): f64 {
+func randFloat() -> f64 {
     RAND_MAX := 2147483647; // hack for now
 
     return f64(C::rand()) / f64(RAND_MAX);
 }
 
-func calculate(iters: int): f64 {
+func calculate(iters: int) -> f64 {
     radius: f64 = 10.0;
     width := radius * 2.0;
 
@@ -31,7 +31,7 @@ func calculate(iters: int): f64 {
     return 4.0 * f64(totalInCircle) / f64(iters);
 }
 
-func main(): int {
+func main() -> int {
     C::srand(C::time(0));
 
     iters := 20000000;

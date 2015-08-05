@@ -1,15 +1,15 @@
-[c] func printf(fmt: str, ...): int;
+[c] func printf(fmt: str, ...) -> int;
 
 type Test struct {
     a: int,
 };
 
-func do_stuff(mut a: int): int {
+func do_stuff(mut a: int) -> int {
     a = 21;
     return a;
 }
 
-func main(): int {
+func main() -> int {
     mut test: Test;
     test.a = 32;
     test.a = do_stuff(test.a);

@@ -1,4 +1,4 @@
-[c] func printf(fmt: str, ...): int;
+[c] func printf(fmt: str, ...) -> int;
 
 type Test struct {
     x: int,
@@ -7,7 +7,7 @@ type Test struct {
     b: int
 };
 
-func main(): int {
+func main() -> int {
     i: int = 0;
     C::printf("sizeof i: %d\n", sizeof(i));
     C::printf("sizeof &i: %d\n", sizeof(&i));

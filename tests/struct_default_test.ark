@@ -1,4 +1,4 @@
-[c] func printf(fmt: str, ...): int;
+[c] func printf(fmt: str, ...) -> int;
 
 type Test struct {
     x: int = 1,
@@ -7,7 +7,7 @@ type Test struct {
     b: int = 4
 };
 
-func main(): int {
+func main() -> int {
     // To create without defaults -> t: Test = {};
 	t := default(Test);
 

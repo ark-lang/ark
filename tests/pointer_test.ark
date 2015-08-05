@@ -1,4 +1,4 @@
-[c] func printf(fmt: str, ...): int;
+[c] func printf(fmt: str, ...) -> int;
 
 func swap(mut a: ^s32, mut b: ^s32) 
 {
@@ -7,7 +7,7 @@ func swap(mut a: ^s32, mut b: ^s32)
    ^b = temp;
 }
 
-func main(): int 
+func main() -> int 
 {
     a: s32 = 5;
     b: s32 = 6;
