@@ -1019,7 +1019,8 @@ func (v *DerefAccessExpr) Mutable() bool {
 
 type AddressOfExpr struct {
 	nodePos
-	Access Expr
+	Access   Expr
+	TypeHint Type
 }
 
 func (v *AddressOfExpr) exprNode() {}
@@ -1030,7 +1031,7 @@ func (v *AddressOfExpr) String() string {
 
 func (v *AddressOfExpr) GetType() Type {
 	if v.Access.GetType() != nil {
-		return pointerTo(v.Access.GetType())
+		return referenceTo(v.Access.GetType())
 	}
 	return nil
 }

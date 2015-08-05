@@ -176,6 +176,10 @@ func (v ArrayType) resolveType(src Locatable, res *Resolver, s *Scope) Type {
 	return arrayOf(v.MemberType.resolveType(src, res, s))
 }
 
+func (v ReferenceType) resolveType(src Locatable, res *Resolver, s *Scope) Type {
+	return referenceTo(v.Referrer.resolveType(src, res, s))
+}
+
 func (v PointerType) resolveType(src Locatable, res *Resolver, s *Scope) Type {
 	return pointerTo(v.Addressee.resolveType(src, res, s))
 }

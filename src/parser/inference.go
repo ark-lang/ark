@@ -476,9 +476,17 @@ func (v *CallExpr) infer(s *TypeInferer) {
 			accessType := v.ReceiverAccess.GetType()
 
 			if accessType.LevelsOfIndirection() == recType.LevelsOfIndirection()+1 {
-				v.ReceiverAccess = &DerefAccessExpr{
-					Type: v.ReceiverAccess.GetType().(PointerType).Addressee,
-					Expr: v.ReceiverAccess,
+				if ref, ok := v.ReceiverAccess.GetType().(ReferenceType); ok {
+					v.ReceiverAccess = &DerefAccessExpr{
+						Type: ref.Referrer,
+						Expr: v.ReceiverAccess,
+					}
+				}
+				if ptr, ok := v.ReceiverAccess.GetType().(PointerType); ok {
+					v.ReceiverAccess = &DerefAccessExpr{
+						Type: ptr.Addressee,
+						Expr: v.ReceiverAccess,
+					}
 				}
 			}
 		}
@@ -576,7 +584,8 @@ func (v *AddressOfExpr) infer(s *TypeInferer) {
 	v.Access.infer(s)
 }
 
-func (v *AddressOfExpr) setTypeHint(t Type) {}
+func (v *AddressOfExpr) setTypeHint(t Type) {
+}
 
 // SizeofExpr
 
