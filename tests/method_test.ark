@@ -1,4 +1,4 @@
-[c] func printf(fmt: str, ...): int;
+[c] func printf(fmt: str, ...) -> int;
 
 type Thing struct {
     x: int
@@ -18,7 +18,7 @@ func (v: Thing2) do() {
     C::printf("did, from an int!\n");
 }
 
-func main(): int {
+func main() -> int {
     mut thing: Thing;
     thing.x = 6;
 

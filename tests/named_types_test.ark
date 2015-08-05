@@ -1,4 +1,4 @@
-[c] func printf(fmt: str, ...): int;
+[c] func printf(fmt: str, ...) -> int;
 
 type thing int;
 type thing2 thing;
@@ -11,7 +11,7 @@ type structType struct {
     x: int
 };
 
-func main(): int {
+func main() -> int {
     C::printf("Named types test.\n");
 
     // primitive test
