@@ -1,7 +1,7 @@
-[c] func printf(fmt: str, ...): int;
+[c] func printf(fmt: str, ...) -> int;
 
 trait ToString {
-    func toString(): str;
+    func toString() -> str;
 }
 
 struct Foo {
@@ -20,7 +20,7 @@ impl Foo for ToString {
     }
 }
 
-func main(): int {
+func main() -> int {
     mut thing: Foo;
 
     return 0;

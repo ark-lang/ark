@@ -1,12 +1,12 @@
-[c] func printf(fmt: str, ...): int;
+[c] func printf(fmt: str, ...) -> int;
 
-func something(): (int, f32) {
+func something() -> (int, f32) {
     [unused] x := (4, 2.3); // inferred
     y: (int, f32) = (0, 2.4);
     return y;
 }
 
-func main(): int {
+func main() -> int {
     x := something();
     y := x|0|;
     [unused] z := x|1|;
