@@ -32,6 +32,7 @@ type Codegen struct {
 
 	modules map[string]*parser.Module
 
+	referenceAccess bool
 	inFunction      bool
 	currentFunction llvm.Value
 
@@ -611,6 +612,7 @@ func (v *Codegen) genAccessGEP(n parser.Expr) llvm.Value {
 	switch n.(type) {
 	case *parser.VariableAccessExpr:
 		vae := n.(*parser.VariableAccessExpr)
+		fmt.Println(vae.GetType().TypeName(), " is called ", vae.Name)
 		return v.builder.CreateGEP(v.variableLookup[vae.Variable], []llvm.Value{llvm.ConstInt(llvm.Int32Type(), 0, false)}, "")
 
 	case *parser.StructAccessExpr:
@@ -648,7 +650,6 @@ func (v *Codegen) genAccessGEP(n parser.Expr) llvm.Value {
 
 	case *parser.DerefAccessExpr:
 		dae := n.(*parser.DerefAccessExpr)
-
 		return v.genExpr(dae.Expr)
 
 	default:
@@ -1170,8 +1171,10 @@ func (v *Codegen) typeToLLVMType(typ parser.Type) llvm.Type {
 		return v.enumTypeToLLVMType(typ.(*parser.EnumType))
 	case *parser.NamedType:
 		return v.typeToLLVMType(typ.(*parser.NamedType).Type)
+	case parser.ReferenceType:
+		return llvm.PointerType(v.typeToLLVMType(typ.(parser.ReferenceType).Referrer), 0)
 	default:
-		log.Debugln("codegen", "Type was %s", typ)
+		log.Debugln("codegen", "Type was %s", typ.TypeName())
 		panic("Unimplemented type category in LLVM codegen")
 	}
 }

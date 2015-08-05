@@ -184,6 +184,11 @@ func (v *Constructor) constructExprs(nodes []ParseNode) []Expr {
 	return res
 }
 
+func (v *ReferenceTypeNode) construct(c *Constructor) Type {
+	targetType := c.constructType(v.TargetType)
+	return referenceTo(targetType)
+}
+
 func (v *PointerTypeNode) construct(c *Constructor) Type {
 	targetType := c.constructType(v.TargetType)
 	return pointerTo(targetType)

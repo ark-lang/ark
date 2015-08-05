@@ -1009,6 +1009,8 @@ func (v *parser) parseType(doRefs bool) ParseNode {
 	var res ParseNode
 	if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "^") {
 		res = v.parsePointerType()
+	} else if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "&") {
+		res = v.parseReferenceType()
 	} else if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "(") {
 		res = v.parseTupleType()
 	} else if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "[") {
@@ -1100,6 +1102,25 @@ func (v *parser) parseStructType(requireKeyword bool) *StructTypeNode {
 
 	res := &StructTypeNode{Members: members}
 	res.SetWhere(lexer.NewSpanFromTokens(startToken, endToken))
+	return res
+}
+
+func (v *parser) parseReferenceType() *ReferenceTypeNode {
+	defer un(trace(v, "referencetype"))
+
+	if !v.tokenMatches(0, lexer.TOKEN_OPERATOR, "&") {
+		return nil
+	}
+	startToken := v.consumeToken()
+
+	target := v.parseType(true)
+	if target == nil {
+		v.err("Expected valid type after '&' in reference type")
+	}
+
+	res := &ReferenceTypeNode{TargetType: target}
+	res.SetWhere(lexer.NewSpan(startToken.Where.Start(), target.Where().End()))
+
 	return res
 }
 
