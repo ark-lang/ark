@@ -356,6 +356,62 @@ func (v ArrayType) ActualType() Type {
 	return v
 }
 
+// ReferenceType
+
+type ReferenceType struct {
+	Referrer Type
+}
+
+func referenceTo(t Type) ReferenceType {
+	return ReferenceType{Referrer: t}
+}
+
+func (v ReferenceType) TypeName() string {
+	return "&" + v.Referrer.TypeName()
+}
+
+func (v ReferenceType) LevelsOfIndirection() int {
+	return v.Referrer.LevelsOfIndirection() + 1
+}
+
+func (v ReferenceType) IsIntegerType() bool {
+	return true
+}
+
+func (v ReferenceType) IsFloatingType() bool {
+	return false
+}
+
+func (v ReferenceType) CanCastTo(t Type) bool {
+	return t.IsIntegerType()
+}
+
+func (v ReferenceType) Attrs() AttrGroup {
+	return nil
+}
+
+func (v ReferenceType) IsSigned() bool {
+	return false
+}
+
+func (v ReferenceType) Equals(t Type) bool {
+	ref, ok := t.(ReferenceType)
+	if ok {
+		return v.Referrer.Equals(ref.Referrer)
+	}
+
+	ptr, ok := t.(PointerType)
+	if ok {
+		return v.Referrer.Equals(ptr.Addressee)
+	}
+
+	return false
+}
+
+func (v ReferenceType) ActualType() Type {
+	return v
+}
+
 // PointerType
 
 type PointerType struct {

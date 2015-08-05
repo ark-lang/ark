@@ -59,6 +59,11 @@ type NameNode struct {
 }
 
 // types
+type ReferenceTypeNode struct {
+	baseNode
+	TargetType ParseNode
+}
+
 type PointerTypeNode struct {
 	baseNode
 	TargetType ParseNode
