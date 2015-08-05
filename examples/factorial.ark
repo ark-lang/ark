@@ -1,14 +1,14 @@
-[c] func printf(fmt: str, ...): int;
+[c] func printf(fmt: str, ...) -> int;
 [c] func scanf(fmt: str, ...);
 
-func factorial(n: int): int {
+func factorial(n: int) -> int {
     if n == 0 {
         return 1;
     }
     return n * factorial(n - 1);
 }
 
-func main(): int {
+func main() -> int {
     number: int = 1;
     C::printf("Enter a number: \n");
     C::scanf("%d", &number);

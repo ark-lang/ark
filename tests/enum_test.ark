@@ -4,7 +4,7 @@ type Test enum {
 	GG,
 };
 
-func main(): int {
+func main() -> int {
 	x := Test::VALUE;
 	y := Test::ANOTHER;
 	z := Test::GG;

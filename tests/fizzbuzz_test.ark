@@ -2,10 +2,10 @@
 // %3 -> Fizz
 // %5 -> Buzz
 
-[c] func printf(fmt: str, ...): int;
+[c] func printf(fmt: str, ...) -> int;
 [c] func putchar(c: s8);
 
-func main(): int {
+func main() -> int {
     mut i := 1;
 
     for i <= 100 {

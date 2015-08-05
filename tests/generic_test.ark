@@ -1,18 +1,18 @@
-[c] func printf(fmt: str, ...): int;
-[c] func malloc(size: uint): ^void;
+[c] func printf(fmt: str, ...) -> int;
+[c] func malloc(size: uint) -> ^void;
 
 type Option<T> enum {
     None,
     Some(int)
 };
 
-func alloc<T>(): ^int {
+func alloc<T>() -> ^int {
     ptr := C::malloc(sizeof(int));
     // ... // Check allocation success
     return ^int(ptr);
 }
 
-func main(): int {
+func main() -> int {
 	a: int = 0;
 	x := Option::None<int>;
 	y := Option::Some(a);

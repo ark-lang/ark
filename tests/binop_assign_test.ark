@@ -1,13 +1,13 @@
-[c] func printf(fmt: str, ...): int;
+[c] func printf(fmt: str, ...) -> int;
 
 mut glob: int = 5;
 
-func getGlob(): ^int {
+func getGlob() -> ^int {
 	glob += 1;
 	return &glob;
 }
 
-func main(): int {
+func main() -> int {
 	mut x := 0;
 	x += 5;
 
