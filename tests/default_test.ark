@@ -1,5 +1,5 @@
-[c] func printf(fmt: str, ...): int;
-[c] func malloc(size: uint): ^void;
+[c] func printf(fmt: str, ...) -> int;
+[c] func malloc(size: uint) -> ^void;
 [c] func free(ptr: ^void);
 
 type Test struct {
@@ -9,7 +9,7 @@ type Test struct {
     b: int = 4
 };
 
-func main(): int {
+func main() -> int {
 	x := default(int);
 	y := default(bool);
 

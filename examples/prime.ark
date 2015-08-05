@@ -20,10 +20,10 @@ Close! We had no optimization passes either!
 
 **/
 
-[c] func printf(fmt: str, ...): int;
-[c] func sqrt(x: f64): f64;
+[c] func printf(fmt: str, ...) -> int;
+[c] func sqrt(x: f64) -> f64;
 
-func is_prime(n: int): int {
+func is_prime(n: int) -> int {
     if n < 2 {
         return 0;
     } else if n == 2 {
@@ -45,7 +45,7 @@ func is_prime(n: int): int {
     return i;
 }
 
-func main(): int {
+func main() -> int {
     mut no_primes: int = 0;
     limit: int = 67108864;
     mut n: int = 0;

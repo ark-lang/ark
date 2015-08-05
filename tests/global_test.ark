@@ -1,8 +1,8 @@
-[c] func printf(fmt: str, ...): int;
+[c] func printf(fmt: str, ...) -> int;
 
 mut x: int = 10;
 
-func main(): int {
+func main() -> int {
     x = 20;
     C::printf("%d\n", x);
     return 0;
