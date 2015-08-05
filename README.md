@@ -52,18 +52,15 @@ you get started:
 Replace `RELEASE_360` with the version of LLVM you have installed. For example, version 3.6.1 becomes `RELEASE_361`. You can find out your version of llvm by running `llvm-config --version`.
 
     $ svn co https://llvm.org/svn/llvm-project/llvm/tags/RELEASE_360/final \
-        $GOPATH/src/llvm.org/llvm
+    > $GOPATH/src/llvm.org/llvm
     $ export CGO_CPPFLAGS="`llvm-config --cppflags`"
     $ export CGO_LDFLAGS="`llvm-config --ldflags --libs --system-libs all`"
     $ export CGO_CXXFLAGS=-std=c++11
     $ go install -tags byollvm llvm.org/llvm/bindings/go/llvm
-    $ go get github.com/russross/blackfriday
-    $ go get gopkg.in/alecthomas/kingpin.v2
     $ go get github.com/ark-lang/ark
-    $ cd $GOPATH/github.com/ark-lang/ark
-    $ make
+    $ go install github.com/ark-lang/ark
 
-The `ark` binary will be built in `$GOPATH/bin`. To use the compiler, make sure `$GOPATH/bin` is in your `$PATH`.
+Make sure `$GOPATH/bin` is in your `$PATH`.
 
 To see the current state of the compiler, try running the [test script](#testing).
 
