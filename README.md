@@ -32,6 +32,7 @@ func main(): int {
 ```
 
 ## <a name="resources"></a> Resources
+* [Reference Book WIP](//felixangell.gitbooks.io/ark-reference/content/)
 * [Reference](//github.com/ark-lang/ark-docs/blob/master/REFERENCE.md)
 * [Tests](/tests/)
 * [Libraries](/lib/)
