@@ -1764,23 +1764,23 @@ func (v *parser) parseNumberLit() *NumberLitNode {
 		ok := false
 		res.IntValue, ok = parseInt(num[2:], 16)
 		if !ok {
-			v.err("Malformed hex literal: `%s`", num)
+			v.errTokenSpecific(token, "Malformed hex literal: `%s`", num)
 		}
 	} else if strings.HasPrefix(num, "0b") {
 		ok := false
 		res.IntValue, ok = parseInt(num[2:], 2)
 		if !ok {
-			v.err("Malformed binary literal: `%s`", num)
+			v.errTokenSpecific(token, "Malformed binary literal: `%s`", num)
 		}
 	} else if strings.HasPrefix(num, "0o") {
 		ok := false
 		res.IntValue, ok = parseInt(num[2:], 8)
 		if !ok {
-			v.err("Malformed octal literal: `%s`", num)
+			v.errTokenSpecific(token, "Malformed octal literal: `%s`", num)
 		}
 	} else if lastRune := unicode.ToLower([]rune(num)[len([]rune(num))-1]); strings.ContainsRune(num, '.') || lastRune == 'f' || lastRune == 'd' || lastRune == 'q' {
 		if strings.Count(num, ".") > 1 {
-			v.err("Floating-point cannot have multiple periods: `%s`", num)
+			v.errTokenSpecific(token, "Floating-point cannot have multiple periods: `%s`", num)
 			return nil
 		}
 		res.IsFloat = true
@@ -1798,18 +1798,18 @@ func (v *parser) parseNumberLit() *NumberLitNode {
 
 		if err != nil {
 			if err.(*strconv.NumError).Err == strconv.ErrSyntax {
-				v.err("Malformed floating-point literal: `%s`", num)
+				v.errTokenSpecific(token, "Malformed floating-point literal: `%s`", num)
 			} else if err.(*strconv.NumError).Err == strconv.ErrRange {
-				v.err("Floating-point literal cannot be represented: `%s`", num)
+				v.errTokenSpecific(token, "Floating-point literal cannot be represented: `%s`", num)
 			} else {
-				v.err("Unexpected error from floating-point literal: %s", err)
+				v.errTokenSpecific(token, "Unexpected error from floating-point literal: %s", err)
 			}
 		}
 	} else {
 		ok := false
 		res.IntValue, ok = parseInt(num, 10)
 		if !ok {
-			v.err("Malformed hex literal: `%s`", num)
+			v.errTokenSpecific(token, "Malformed hex literal: `%s`", num)
 		}
 	}
 
