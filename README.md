@@ -59,8 +59,6 @@ Replace `RELEASE_360` with the version of LLVM you have installed. For example, 
     $ export CGO_CXXFLAGS=-std=c++11
     $ go install -tags byollvm llvm.org/llvm/bindings/go/llvm
     $ go get github.com/ark-lang/ark/...
-    $ cd $GOPATH/github.com/ark-lang/ark
-    $ make
 
 The `ark` binary will be built in `$GOPATH/bin`. To use the compiler, make sure `$GOPATH/bin` is in your `$PATH`.
 
