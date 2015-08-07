@@ -21,7 +21,7 @@ For a more complicated example, check out a port of my virtual machine MAC in Ar
 
 ```rust
 [c] func printf(fmt: str, ...);
-func main(): int {
+func main() -> int {
     mut i := 0;
     for i < 5 {
         C::printf("i: %d\n", i);
