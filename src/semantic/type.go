@@ -274,7 +274,7 @@ func (v *TypeCheck) CheckArrayAccessExpr(s *SemanticAnalyzer, expr *parser.Array
 }
 
 func (v *TypeCheck) CheckTupleAccessExpr(s *SemanticAnalyzer, expr *parser.TupleAccessExpr) {
-	tupleType, ok := expr.Tuple.GetType().ActualType().(*parser.TupleType)
+	tupleType, ok := expr.Tuple.GetType().ActualType().(parser.TupleType)
 	if !ok {
 		s.Err(expr, "Cannot index type `%s` as a tuple", expr.Tuple.GetType().TypeName())
 	}
@@ -351,7 +351,7 @@ func (v *TypeCheck) CheckArrayLiteral(s *SemanticAnalyzer, lit *parser.ArrayLite
 }
 
 func (v *TypeCheck) CheckTupleLiteral(s *SemanticAnalyzer, lit *parser.TupleLiteral) {
-	tupleType, ok := lit.Type.ActualType().(*parser.TupleType)
+	tupleType, ok := lit.Type.ActualType().(parser.TupleType)
 	if !ok {
 		panic("Type of tuple literal was not `TupleType`")
 	}
@@ -369,7 +369,7 @@ func (v *TypeCheck) CheckTupleLiteral(s *SemanticAnalyzer, lit *parser.TupleLite
 }
 
 func (v *TypeCheck) CheckStructLiteral(s *SemanticAnalyzer, lit *parser.StructLiteral) {
-	structType, ok := lit.Type.ActualType().(*parser.StructType)
+	structType, ok := lit.Type.ActualType().(parser.StructType)
 	if !ok {
 		panic("Type of struct literal was not `StructType`")
 	}
@@ -388,7 +388,7 @@ func (v *TypeCheck) CheckStructLiteral(s *SemanticAnalyzer, lit *parser.StructLi
 }
 
 func (v *TypeCheck) CheckEnumLiteral(s *SemanticAnalyzer, lit *parser.EnumLiteral) {
-	enumType, ok := lit.Type.ActualType().(*parser.EnumType)
+	enumType, ok := lit.Type.ActualType().(parser.EnumType)
 	if !ok {
 		panic("Type of enum literal was not `EnumType`")
 	}

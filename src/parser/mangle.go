@@ -29,22 +29,22 @@ func TypeMangledName(mangleType MangleType, typ Type) string {
 			at := typ.(ArrayType)
 			res += fmt.Sprintf("A%s", TypeMangledName(mangleType, at.MemberType))
 
-		case *EnumType:
-			et := typ.(*EnumType)
+		case EnumType:
+			et := typ.(EnumType)
 			res += fmt.Sprintf("E%d", len(et.Members))
 			for _, mem := range et.Members {
 				res += TypeMangledName(mangleType, mem.Type)
 			}
 
-		case *StructType:
-			st := typ.(*StructType)
+		case StructType:
+			st := typ.(StructType)
 			res += fmt.Sprintf("S%d", len(st.Variables))
 			for _, decl := range st.Variables {
 				res += TypeMangledName(mangleType, decl.Variable.Type)
 			}
 
-		case *TupleType:
-			tt := typ.(*TupleType)
+		case TupleType:
+			tt := typ.(TupleType)
 			res += fmt.Sprintf("T%d", len(tt.Members))
 			for _, mem := range tt.Members {
 				res += TypeMangledName(mangleType, mem)
@@ -107,7 +107,7 @@ func (v *Variable) MangledName(typ MangleType) string {
 	switch typ {
 	case MANGLE_ARK_UNSTABLE:
 		result := fmt.Sprintf("_V%d%s", len(v.Name), v.Name)
-		if v.ParentStruct == nil {
+		if v.FromStruct {
 			result = v.ParentModule.MangledName(typ) + result
 		}
 		return result
