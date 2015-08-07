@@ -16,9 +16,9 @@ func (v *ImmutableAssignCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
 	switch n.(type) {
 	case *parser.VariableDecl:
 		decl := n.(*parser.VariableDecl)
-		_, isStructure := decl.Variable.Type.(*parser.StructType)
+		_, isStructure := decl.Variable.Type.(parser.StructType)
 
-		if decl.Assignment == nil && !decl.Variable.Mutable && decl.Variable.ParentStruct == nil && !isStructure && !decl.Variable.IsParameter {
+		if decl.Assignment == nil && !decl.Variable.Mutable && !decl.Variable.FromStruct && !isStructure && !decl.Variable.IsParameter {
 			// note the parent struct is nil!
 			// as well as if the type is a structure!!
 			// this is because we dont care if
