@@ -17,8 +17,8 @@ func (v *AttributeCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
 	case *parser.TypeDecl:
 		typ := n.(*parser.TypeDecl).NamedType.Type
 		switch typ.(type) {
-		case *parser.StructType:
-			v.CheckStructType(s, typ.(*parser.StructType))
+		case parser.StructType:
+			v.CheckStructType(s, typ.(parser.StructType))
 		}
 
 	case *parser.FunctionDecl:
@@ -45,7 +45,7 @@ func (v *AttributeCheck) CheckFunctionDecl(s *SemanticAnalyzer, n *parser.Functi
 	}
 }
 
-func (v *AttributeCheck) CheckStructType(s *SemanticAnalyzer, n *parser.StructType) {
+func (v *AttributeCheck) CheckStructType(s *SemanticAnalyzer, n parser.StructType) {
 	for _, attr := range n.Attrs() {
 		switch attr.Key {
 		case "packed":

@@ -70,20 +70,20 @@ func (v *Function) infer(s *TypeInferer) {
 	s.function = nil
 }
 
-func (v *EnumType) infer(s *TypeInferer) {
+func (v EnumType) infer(s *TypeInferer) {
 	// We shouldn't need anything here
 }
 
-func (v *StructType) infer(s *TypeInferer) {
+func (v StructType) infer(s *TypeInferer) {
 	for _, decl := range v.Variables {
 		decl.infer(s)
 	}
 }
 
 func (v *NamedType) infer(s *TypeInferer) {
-	if typ, ok := v.Type.(*StructType); ok {
+	if typ, ok := v.Type.(StructType); ok {
 		typ.infer(s)
-	} else if typ, ok := v.Type.(*EnumType); ok {
+	} else if typ, ok := v.Type.(EnumType); ok {
 		typ.infer(s)
 	}
 	// TODO add function types when done
@@ -524,7 +524,7 @@ func (v *StructAccessExpr) infer(s *TypeInferer) {
 		}
 	}
 
-	structType, ok := typ.(*StructType)
+	structType, ok := typ.(StructType)
 	if !ok {
 		s.err(v, "Cannot access member of type `%s`", v.Struct.GetType().TypeName())
 	}
@@ -533,9 +533,9 @@ func (v *StructAccessExpr) infer(s *TypeInferer) {
 	decl := structType.GetVariableDecl(v.Member)
 	if decl == nil {
 		s.err(v, "Struct `%s` does not contain member `%s`", structType.TypeName(), v.Member)
+	} else {
+		v.Variable = decl.Variable
 	}
-
-	v.Variable = decl.Variable
 }
 
 func (v *StructAccessExpr) setTypeHint(t Type) {}
@@ -596,7 +596,7 @@ func (v *TupleLiteral) infer(s *TypeInferer) {
 	var memberTypes []Type
 
 	if v.Type != nil {
-		tupleType, ok := v.Type.ActualType().(*TupleType)
+		tupleType, ok := v.Type.ActualType().(TupleType)
 		if ok {
 			memberTypes = tupleType.Members
 		}
@@ -634,7 +634,7 @@ func (v *TupleLiteral) setTypeHint(t Type) {
 		return
 	}
 
-	_, ok := t.ActualType().(*TupleType)
+	_, ok := t.ActualType().(TupleType)
 	if ok {
 		v.Type = t
 	}
@@ -645,12 +645,12 @@ func (v *StructLiteral) infer(s *TypeInferer) {
 	var ok bool
 
 	if v.Type != nil {
-		_, ok = v.Type.ActualType().(*StructType)
+		_, ok = v.Type.ActualType().(StructType)
 	}
 
 	for name, mem := range v.Values {
 		if ok {
-			if decl := v.Type.ActualType().(*StructType).GetVariableDecl(name); decl != nil {
+			if decl := v.Type.ActualType().(StructType).GetVariableDecl(name); decl != nil {
 				mem.setTypeHint(decl.Variable.Type)
 			}
 		}
@@ -663,7 +663,7 @@ func (v *StructLiteral) setTypeHint(t Type) {
 		return
 	}
 
-	_, ok := t.ActualType().(*StructType)
+	_, ok := t.ActualType().(StructType)
 	if ok {
 		v.Type = t
 	}
@@ -671,7 +671,7 @@ func (v *StructLiteral) setTypeHint(t Type) {
 
 // EnumLiteral
 func (v *EnumLiteral) infer(s *TypeInferer) {
-	if enumType, ok := v.Type.ActualType().(*EnumType); ok {
+	if enumType, ok := v.Type.ActualType().(EnumType); ok {
 		memIdx := enumType.MemberIndex(v.Member)
 
 		if memIdx < 0 || memIdx >= len(enumType.Members) {
@@ -679,10 +679,10 @@ func (v *EnumLiteral) infer(s *TypeInferer) {
 		}
 
 		memType := enumType.Members[memIdx].Type
-		if structType, ok := memType.(*StructType); ok && v.StructLiteral != nil {
+		if structType, ok := memType.(StructType); ok && v.StructLiteral != nil {
 			v.StructLiteral.setTypeHint(structType)
 			v.StructLiteral.infer(s)
-		} else if tupleType, ok := memType.(*TupleType); ok && v.TupleLiteral != nil {
+		} else if tupleType, ok := memType.(TupleType); ok && v.TupleLiteral != nil {
 			v.TupleLiteral.setTypeHint(tupleType)
 			v.TupleLiteral.infer(s)
 		}

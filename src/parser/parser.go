@@ -1381,10 +1381,10 @@ func (v *parser) parsePrimaryExpr() ParseNode {
 	} else if name := v.parseName(); name != nil {
 		startPos := v.currentToken
 
+		var parameters []ParseNode
 		if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "<") {
 			v.consumeToken()
 
-			var parameters []ParseNode
 			for {
 				typ := v.parseType(true)
 				if typ == nil {
@@ -1400,14 +1400,14 @@ func (v *parser) parsePrimaryExpr() ParseNode {
 
 			if !v.tokenMatches(0, lexer.TOKEN_OPERATOR, ">") {
 				v.currentToken = startPos
+				parameters = nil
 			} else {
 				endToken := v.consumeToken()
-				// TODO: Don't just discard the tokens
-				_ = endToken
+				_ = endToken // TODO: Do somethign with end token?
 			}
 		}
 
-		res = &VariableAccessNode{Name: name}
+		res = &VariableAccessNode{Name: name, Parameters: parameters}
 		res.SetWhere(lexer.NewSpan(name.Where().Start(), name.Where().End()))
 	}
 
