@@ -918,7 +918,7 @@ func (v *StructAccessExpr) NodeName() string {
 }
 
 func (v *StructAccessExpr) Mutable() bool {
-	return true
+	return v.Struct.Mutable()
 }
 
 // ArrayAccessExpr
