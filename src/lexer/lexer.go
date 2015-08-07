@@ -204,42 +204,46 @@ start:
 	v.discardBuffer()
 }
 
+func (v *lexer) lexNumberWithValidator(validator func(rune) bool) {
+	for {
+		if validator(v.peek(0)) || v.peek(0) == '_' {
+			v.consume()
+		} else if v.peek(0) == 'e' || v.peek(0) == 'E' {
+			v.consume()
+			if v.peek(0) == '-' {
+				v.consume()
+			}
+		} else {
+			v.pushToken(TOKEN_NUMBER)
+			return
+		}
+	}
+}
+
 func (v *lexer) recognizeNumberToken() {
 	v.consume()
 
 	if v.peek(0) == 'x' || v.peek(0) == 'X' {
 		// Hexadecimal
 		v.consume()
-		for isHexDigit(v.peek(0)) || v.peek(0) == '_' {
-			v.consume()
-		}
-		v.pushToken(TOKEN_NUMBER)
+		v.lexNumberWithValidator(isHexDigit)
 	} else if v.peek(0) == 'b' {
 		// Binary
 		v.consume()
-		for isBinaryDigit(v.peek(0)) || v.peek(0) == '_' {
-			v.consume()
-		}
-		v.pushToken(TOKEN_NUMBER)
+		v.lexNumberWithValidator(isBinaryDigit)
 	} else if v.peek(0) == 'o' {
 		// Octal
 		v.consume()
-		for isOctalDigit(v.peek(0)) || v.peek(0) == '_' {
-			v.consume()
-		}
-		v.pushToken(TOKEN_NUMBER)
+		v.lexNumberWithValidator(isOctalDigit)
 	} else {
 		// Decimal or floating
-		for {
-			if isDecimalDigit(v.peek(0)) || v.peek(0) == '_' || v.peek(0) == '.' {
-				v.consume()
-				continue
-			} else if peek := unicode.ToLower(v.peek(0)); peek == 'f' || peek == 'd' || peek == 'q' {
-				v.consume()
+		v.lexNumberWithValidator(func(r rune) bool {
+			if isDecimalDigit(r) || r == '.' {
+				return true
 			}
-			v.pushToken(TOKEN_NUMBER)
-			return
-		}
+			peek := unicode.ToLower(r)
+			return peek == 'f' || peek == 'd' || peek == 'q'
+		})
 	}
 }
 

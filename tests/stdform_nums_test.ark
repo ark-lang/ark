@@ -1,0 +1,21 @@
+[c] func printf(fmt: str, ...);
+
+func main() -> int {
+    if 2e3 != 2000 {
+        return 1;
+    }
+
+    if 2000e-3 != 2 {
+        return 2;
+    }
+
+    if 1.5e4 != 15000 {
+        return 3;
+    }
+
+    if 0.5e-2 != 0.005 {
+        return 4;
+    }
+
+    return 0;
+}

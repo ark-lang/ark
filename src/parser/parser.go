@@ -1698,33 +1698,50 @@ func (v *parser) parseBoolLit() *BoolLitNode {
 	return res
 }
 
-func parseInt(num string, base int64) (*big.Int, bool) {
+func parseInt(num string, base int) (*big.Int, bool) {
+	num = strings.ToLower(strings.Replace(num, "_", "", -1))
+
+	splitNum := strings.Split(num, "e")
+
+	if !(len(splitNum) == 1 || len(splitNum) == 2) {
+		return nil, false
+	}
+
+	numVal := splitNum[0]
+
 	ret := big.NewInt(0)
 
-	for _, r := range num {
-		if r == '_' {
-			continue
-		}
+	_, ok := ret.SetString(numVal, base)
+	if !ok {
+		return nil, false
+	}
 
-		ret.Mul(ret, big.NewInt(int64(base)))
+	// handle standard form
+	if len(splitNum) == 2 {
+		expVal := splitNum[1]
 
-		var val int64
-
-		if r >= '0' && r <= '9' {
-			val = int64(r - '0')
-		} else if r >= 'a' && r <= 'f' {
-			val = 10 + int64(r-'a')
-		} else if r >= 'A' && r <= 'F' {
-			val = 10 + int64(r-'A')
-		} else {
+		exp := big.NewInt(0)
+		_, ok = exp.SetString(expVal, base)
+		if !ok {
 			return nil, false
 		}
 
-		if val >= base {
-			return nil, false
+		if exp.BitLen() > 64 {
+			panic("TODO handle this better")
 		}
+		expInt := exp.Int64()
 
-		ret.Add(ret, big.NewInt(val))
+		ten := big.NewInt(10)
+
+		if expInt < 0 {
+			for ; expInt < 0; expInt++ {
+				ret.Div(ret, ten)
+			}
+		} else if expInt > 0 {
+			for ; expInt > 0; expInt-- {
+				ret.Mul(ret, ten)
+			}
+		}
 	}
 
 	return ret, true
