@@ -115,7 +115,7 @@ type StructType struct {
 	attrs     AttrGroup
 }
 
-func (v *StructType) String() string {
+func (v StructType) String() string {
 	result := "(" + util.Blue("StructType") + ": "
 	for _, attr := range v.attrs {
 		result += attr.String() + " "
@@ -127,7 +127,7 @@ func (v *StructType) String() string {
 	return result + ")"
 }
 
-func (v *StructType) TypeName() string {
+func (v StructType) TypeName() string {
 	res := "struct {"
 
 	for i, variable := range v.Variables {
@@ -141,27 +141,27 @@ func (v *StructType) TypeName() string {
 	return res + "}"
 }
 
-func (v *StructType) IsSigned() bool {
+func (v StructType) IsSigned() bool {
 	return false
 }
 
-func (v *StructType) LevelsOfIndirection() int {
+func (v StructType) LevelsOfIndirection() int {
 	return 0
 }
 
-func (v *StructType) IsIntegerType() bool {
+func (v StructType) IsIntegerType() bool {
 	return false
 }
 
-func (v *StructType) IsFloatingType() bool {
+func (v StructType) IsFloatingType() bool {
 	return false
 }
 
-func (v *StructType) CanCastTo(t Type) bool {
+func (v StructType) CanCastTo(t Type) bool {
 	return false
 }
 
-func (v *StructType) GetVariableDecl(s string) *VariableDecl {
+func (v StructType) GetVariableDecl(s string) *VariableDecl {
 	for _, decl := range v.Variables {
 		if decl.Variable.Name == s {
 			return decl
@@ -170,12 +170,14 @@ func (v *StructType) GetVariableDecl(s string) *VariableDecl {
 	return nil
 }
 
-func (v *StructType) addVariableDecl(decl *VariableDecl) {
+func (v StructType) addVariableDecl(decl *VariableDecl) StructType {
 	v.Variables = append(v.Variables, decl)
 	decl.Variable.ParentStruct = v
+	decl.Variable.FromStruct = true
+	return v
 }
 
-func (v *StructType) VariableIndex(d *Variable) int {
+func (v StructType) VariableIndex(d *Variable) int {
 	for i, decl := range v.Variables {
 		if decl.Variable == d {
 			return i
@@ -184,12 +186,12 @@ func (v *StructType) VariableIndex(d *Variable) int {
 	return -1
 }
 
-func (v *StructType) Attrs() AttrGroup {
+func (v StructType) Attrs() AttrGroup {
 	return v.attrs
 }
 
-func (v *StructType) Equals(t Type) bool {
-	other, ok := t.(*StructType)
+func (v StructType) Equals(t Type) bool {
+	other, ok := t.(StructType)
 	if !ok {
 		return false
 	}
@@ -215,7 +217,7 @@ func (v *StructType) Equals(t Type) bool {
 	return true
 }
 
-func (v *StructType) ActualType() Type {
+func (v StructType) ActualType() Type {
 	return v
 }
 
@@ -224,7 +226,7 @@ func (v *StructType) ActualType() Type {
 type NamedType struct {
 	Name         string
 	Type         Type
-	Parameters   []*ParameterType
+	Parameters   []ParameterType
 	ParentModule *Module
 	Methods      []*Function
 }
@@ -290,11 +292,20 @@ func (v *NamedType) Attrs() AttrGroup {
 }
 
 func (v *NamedType) Equals(t Type) bool {
-	if other, ok := t.(*NamedType); ok {
-		return v == other
+	other, ok := t.(*NamedType)
+	if !ok {
+		return false
 	}
 
-	return false
+	if v.ParentModule != other.ParentModule {
+		return false
+	}
+
+	if v.Name != other.Name {
+		return false
+	}
+
+	return true
 }
 
 // ArrayType
@@ -431,14 +442,14 @@ func tupleOf(types ...Type) Type {
 	if len(types) == 1 {
 		return types[0]
 	}
-	return &TupleType{Members: types}
+	return TupleType{Members: types}
 }
 
 type TupleType struct {
 	Members []Type
 }
 
-func (v *TupleType) String() string {
+func (v TupleType) String() string {
 	result := "(" + util.Blue("TupleType") + ": "
 	for _, mem := range v.Members {
 		result += "\t" + mem.TypeName() + "\n"
@@ -446,7 +457,7 @@ func (v *TupleType) String() string {
 	return result + ")"
 }
 
-func (v *TupleType) TypeName() string {
+func (v TupleType) TypeName() string {
 	result := "("
 	for idx, mem := range v.Members {
 		result += mem.TypeName()
@@ -460,36 +471,36 @@ func (v *TupleType) TypeName() string {
 	return result
 }
 
-func (v *TupleType) IsSigned() bool {
+func (v TupleType) IsSigned() bool {
 	return false
 }
 
-func (v *TupleType) LevelsOfIndirection() int {
+func (v TupleType) LevelsOfIndirection() int {
 	return 0
 }
 
-func (v *TupleType) IsIntegerType() bool {
+func (v TupleType) IsIntegerType() bool {
 	return false
 }
 
-func (v *TupleType) IsFloatingType() bool {
+func (v TupleType) IsFloatingType() bool {
 	return false
 }
 
-func (v *TupleType) CanCastTo(t Type) bool {
-	return v != t && v.Equals(t.ActualType())
+func (v TupleType) CanCastTo(t Type) bool {
+	return v.Equals(t.ActualType())
 }
 
-func (v *TupleType) addMember(decl Type) {
+func (v TupleType) addMember(decl Type) {
 	v.Members = append(v.Members, decl)
 }
 
-func (v *TupleType) Attrs() AttrGroup {
+func (v TupleType) Attrs() AttrGroup {
 	return nil
 }
 
-func (v *TupleType) Equals(t Type) bool {
-	other, ok := t.(*TupleType)
+func (v TupleType) Equals(t Type) bool {
+	other, ok := t.(TupleType)
 	if !ok {
 		return false
 	}
@@ -499,7 +510,7 @@ func (v *TupleType) Equals(t Type) bool {
 	}
 
 	for idx, mem := range v.Members {
-		if mem != other.Members[idx] {
+		if !mem.Equals(other.Members[idx]) {
 			return false
 		}
 	}
@@ -507,7 +518,7 @@ func (v *TupleType) Equals(t Type) bool {
 	return true
 }
 
-func (v *TupleType) ActualType() Type {
+func (v TupleType) ActualType() Type {
 	return v
 }
 
@@ -517,7 +528,7 @@ type InterfaceType struct {
 	Functions []*Function
 }
 
-func (v *InterfaceType) String() string {
+func (v InterfaceType) String() string {
 	result := "(" + util.Blue("InterfaceType") + ": "
 	/*for _, mem := range v.Members {
 		result += "\t" + mem.TypeName() + "\n"
@@ -525,7 +536,7 @@ func (v *InterfaceType) String() string {
 	return result + ")"
 }
 
-func (v *InterfaceType) TypeName() string {
+func (v InterfaceType) TypeName() string {
 	result := "interface {"
 	/*for idx, mem := range v.Members {
 		result += mem.TypeName()
@@ -539,40 +550,40 @@ func (v *InterfaceType) TypeName() string {
 	return result
 }
 
-func (v *InterfaceType) IsSigned() bool {
+func (v InterfaceType) IsSigned() bool {
 	return false
 }
 
-func (v *InterfaceType) LevelsOfIndirection() int {
+func (v InterfaceType) LevelsOfIndirection() int {
 	return 0
 }
 
-func (v *InterfaceType) IsIntegerType() bool {
+func (v InterfaceType) IsIntegerType() bool {
 	return false
 }
 
-func (v *InterfaceType) IsFloatingType() bool {
+func (v InterfaceType) IsFloatingType() bool {
 	return false
 }
 
-func (v *InterfaceType) CanCastTo(t Type) bool {
-	return v != t && v.Equals(t.ActualType())
+func (v InterfaceType) CanCastTo(t Type) bool {
+	return v.Equals(t.ActualType())
 }
 
-func (v *InterfaceType) addFunction(fn *Function) {
+func (v InterfaceType) addFunction(fn *Function) {
 	v.Functions = append(v.Functions, fn)
 }
 
-func (v *InterfaceType) MatchesType(t Type) {
+func (v InterfaceType) MatchesType(t Type) {
 
 }
 
-func (v *InterfaceType) Attrs() AttrGroup {
+func (v InterfaceType) Attrs() AttrGroup {
 	return nil
 }
 
-func (v *InterfaceType) Equals(t Type) bool {
-	other, ok := t.(*InterfaceType)
+func (v InterfaceType) Equals(t Type) bool {
+	other, ok := t.(InterfaceType)
 	if !ok {
 		return false
 	}
@@ -590,7 +601,7 @@ func (v *InterfaceType) Equals(t Type) bool {
 	return true
 }
 
-func (v *InterfaceType) ActualType() Type {
+func (v InterfaceType) ActualType() Type {
 	return v
 }
 
@@ -607,7 +618,7 @@ type EnumTypeMember struct {
 	Tag  int
 }
 
-func (v *EnumType) String() string {
+func (v EnumType) String() string {
 	result := "(" + util.Blue("EnumType") + ": "
 	for _, attr := range v.attrs {
 		result += attr.String() + " "
@@ -621,7 +632,7 @@ func (v *EnumType) String() string {
 	return result + ")"
 }
 
-func (v *EnumType) TypeName() string {
+func (v EnumType) TypeName() string {
 	res := "enum {"
 
 	for idx, mem := range v.Members {
@@ -634,27 +645,27 @@ func (v *EnumType) TypeName() string {
 	return res + "}"
 }
 
-func (v *EnumType) IsSigned() bool {
+func (v EnumType) IsSigned() bool {
 	return false
 }
 
-func (v *EnumType) LevelsOfIndirection() int {
+func (v EnumType) LevelsOfIndirection() int {
 	return 0
 }
 
-func (v *EnumType) IsIntegerType() bool {
+func (v EnumType) IsIntegerType() bool {
 	return v.Simple
 }
 
-func (v *EnumType) IsFloatingType() bool {
+func (v EnumType) IsFloatingType() bool {
 	return false
 }
 
-func (v *EnumType) CanCastTo(t Type) bool {
+func (v EnumType) CanCastTo(t Type) bool {
 	return v.Simple && t.IsIntegerType()
 }
 
-func (v *EnumType) MemberIndex(name string) int {
+func (v EnumType) MemberIndex(name string) int {
 	for idx, member := range v.Members {
 		if member.Name == name {
 			return idx
@@ -663,12 +674,12 @@ func (v *EnumType) MemberIndex(name string) int {
 	return -1
 }
 
-func (v *EnumType) Attrs() AttrGroup {
+func (v EnumType) Attrs() AttrGroup {
 	return v.attrs
 }
 
-func (v *EnumType) Equals(t Type) bool {
-	other, ok := t.(*EnumType)
+func (v EnumType) Equals(t Type) bool {
+	other, ok := t.(EnumType)
 	if !ok {
 		return false
 	}
@@ -698,7 +709,7 @@ func (v *EnumType) Equals(t Type) bool {
 	return true
 }
 
-func (v *EnumType) ActualType() Type {
+func (v EnumType) ActualType() Type {
 	return v
 }
 
@@ -706,31 +717,31 @@ func (v *EnumType) ActualType() Type {
 type MetaType struct {
 }
 
-func (v *MetaType) IsSigned() bool {
+func (v MetaType) IsSigned() bool {
 	panic("IsSigned() invalid on MetaType")
 }
 
-func (v *MetaType) LevelsOfIndirection() int {
+func (v MetaType) LevelsOfIndirection() int {
 	panic("LevelsOfIndirection() invalid on MetaType")
 }
 
-func (v *MetaType) IsIntegerType() bool {
+func (v MetaType) IsIntegerType() bool {
 	panic("IsIntegerType() invalid on MetaType")
 }
 
-func (v *MetaType) IsFloatingType() bool {
+func (v MetaType) IsFloatingType() bool {
 	panic("IsFloatingType() invalid on MetaType")
 }
 
-func (v *MetaType) CanCastTo(t Type) bool {
+func (v MetaType) CanCastTo(t Type) bool {
 	panic("CanCastTo() invalid on MetaType")
 }
 
-func (v *MetaType) Attrs() AttrGroup {
+func (v MetaType) Attrs() AttrGroup {
 	panic("Attrs() invalid on MetaType")
 }
 
-func (v *MetaType) Equals(t Type) bool {
+func (v MetaType) Equals(t Type) bool {
 	panic("Equals() invalid on MetaType")
 }
 
@@ -740,15 +751,15 @@ type ParameterType struct {
 	Name string
 }
 
-func (v *ParameterType) String() string {
+func (v ParameterType) String() string {
 	return "(" + util.Blue("ParameterType") + ": " + v.Name + ")"
 }
 
-func (v *ParameterType) TypeName() string {
+func (v ParameterType) TypeName() string {
 	return v.Name
 }
 
-func (v *ParameterType) ActualType() Type {
+func (v ParameterType) ActualType() Type {
 	return v
 }
 
@@ -759,15 +770,15 @@ type SubstitutionType struct {
 	Type Type
 }
 
-func (v *SubstitutionType) String() string {
+func (v SubstitutionType) String() string {
 	return "(" + util.Blue("SubstitutionType") + ": " + v.Name + " = " + v.Type.TypeName() + ")"
 }
 
-func (v *SubstitutionType) TypeName() string {
+func (v SubstitutionType) TypeName() string {
 	return v.Name
 }
 
-func (v *SubstitutionType) ActualType() Type {
+func (v SubstitutionType) ActualType() Type {
 	return v
 }
 
@@ -778,7 +789,7 @@ type UnresolvedType struct {
 	Parameters []Type
 }
 
-func (v *UnresolvedType) String() string {
+func (v UnresolvedType) String() string {
 	res := "(" + util.Blue("UnresolvedType") + ": " + v.Name.String()
 	if len(v.Parameters) > 0 {
 		res += "<"
@@ -793,11 +804,11 @@ func (v *UnresolvedType) String() string {
 	return res + ")"
 }
 
-func (v *UnresolvedType) TypeName() string {
+func (v UnresolvedType) TypeName() string {
 	return v.Name.String()
 }
 
-func (v *UnresolvedType) ActualType() Type {
+func (v UnresolvedType) ActualType() Type {
 	return v
 }
 

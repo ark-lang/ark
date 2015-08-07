@@ -190,7 +190,7 @@ func (v *PointerTypeNode) construct(c *Constructor) Type {
 }
 
 func (v *TupleTypeNode) construct(c *Constructor) Type {
-	res := &TupleType{}
+	res := TupleType{}
 	res.Members = c.constructTypes(v.MemberTypes)
 	return res
 }
@@ -208,18 +208,18 @@ func (v *TypeReferenceNode) construct(c *Constructor) Type {
 
 	parameters := c.constructTypes(v.TypeParameters)
 
-	res := &UnresolvedType{Name: toUnresolvedName(v.Reference), Parameters: parameters}
+	res := UnresolvedType{Name: toUnresolvedName(v.Reference), Parameters: parameters}
 	return res
 }
 
 func (v *StructTypeNode) construct(c *Constructor) Type {
-	structType := &StructType{
+	structType := StructType{
 		attrs: v.Attrs(),
 	}
 
 	c.pushScope()
 	for _, member := range v.Members {
-		structType.addVariableDecl(c.constructNode(member).(*VariableDecl)) // TODO: Error message
+		structType = structType.addVariableDecl(c.constructNode(member).(*VariableDecl)) // TODO: Error message
 	}
 	c.popScope()
 
@@ -246,7 +246,7 @@ func (v *TypeDeclNode) construct(c *Constructor) Node {
 
 	if v.GenericSigil != nil {
 		for _, param := range v.GenericSigil.Parameters {
-			typ := &ParameterType{Name: param.Name.Value}
+			typ := ParameterType{Name: param.Name.Value}
 			namedType.Parameters = append(namedType.Parameters, typ)
 		}
 	}
@@ -396,7 +396,7 @@ func (v *FunctionDeclNode) construct(c *Constructor) Node {
 }
 
 func (v *EnumTypeNode) construct(c *Constructor) Type {
-	enumType := &EnumType{
+	enumType := EnumType{
 		Simple:  true,
 		Members: make([]EnumTypeMember, len(v.Members)),
 	}
@@ -409,11 +409,11 @@ func (v *EnumTypeNode) construct(c *Constructor) Type {
 			enumType.Members[idx].Type = c.constructType(mem.TupleBody)
 			enumType.Simple = false
 		} else if mem.StructBody != nil {
-			structType := &StructType{}
+			structType := StructType{}
 
 			c.pushScope()
 			for _, member := range mem.StructBody.Members {
-				structType.addVariableDecl(c.constructNode(member).(*VariableDecl)) // TODO: Error message
+				structType = structType.addVariableDecl(c.constructNode(member).(*VariableDecl)) // TODO: Error message
 			}
 			c.popScope()
 
@@ -703,7 +703,7 @@ func (v *CallExprNode) construct(c *Constructor) Expr {
 		} else if typ == NODE_ENUM_MEMBER {
 			res := &EnumLiteral{
 				Member: van.Name.Name.Value,
-				Type: &UnresolvedType{
+				Type: UnresolvedType{
 					Name:       toParentName(van.Name),
 					Parameters: c.constructTypes(van.Parameters),
 				},
@@ -747,7 +747,7 @@ func (v *VariableAccessNode) construct(c *Constructor) Expr {
 	if c.nameMap.TypeOfNameNode(v.Name) == NODE_ENUM_MEMBER {
 		res := &EnumLiteral{}
 		res.Member = v.Name.Name.Value
-		res.Type = &UnresolvedType{
+		res.Type = UnresolvedType{
 			Name:       toParentName(v.Name),
 			Parameters: c.constructTypes(v.Parameters),
 		}
@@ -805,7 +805,7 @@ func (v *TupleLiteralNode) construct(c *Constructor) Expr {
 func (v *StructLiteralNode) construct(c *Constructor) Expr {
 	res := &StructLiteral{}
 	if v.Name != nil {
-		res.Type = &UnresolvedType{Name: toUnresolvedName(v.Name)}
+		res.Type = UnresolvedType{Name: toUnresolvedName(v.Name)}
 	}
 	res.Values = make(map[string]Expr)
 	for idx, member := range v.Members {
@@ -817,7 +817,7 @@ func (v *StructLiteralNode) construct(c *Constructor) Expr {
 	} else if typ := c.nameMap.TypeOfNameNode(v.Name); typ == NODE_ENUM_MEMBER {
 		enum := &EnumLiteral{}
 		enum.Member = v.Name.Name.Value
-		enum.Type = &UnresolvedType{Name: toParentName(v.Name)}
+		enum.Type = UnresolvedType{Name: toParentName(v.Name)}
 		enum.StructLiteral = res
 		enum.setPos(v.Where().Start())
 		return enum
