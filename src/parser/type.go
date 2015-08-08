@@ -714,40 +714,40 @@ func (v EnumType) ActualType() Type {
 }
 
 // MetaType
-type MetaType struct {
+type metaType struct {
 }
 
-func (v MetaType) IsSigned() bool {
-	panic("IsSigned() invalid on MetaType")
+func (v metaType) IsSigned() bool {
+	panic("IsSigned() invalid on metaType")
 }
 
-func (v MetaType) LevelsOfIndirection() int {
-	panic("LevelsOfIndirection() invalid on MetaType")
+func (v metaType) LevelsOfIndirection() int {
+	panic("LevelsOfIndirection() invalid on metaType")
 }
 
-func (v MetaType) IsIntegerType() bool {
-	panic("IsIntegerType() invalid on MetaType")
+func (v metaType) IsIntegerType() bool {
+	panic("IsIntegerType() invalid on metaType")
 }
 
-func (v MetaType) IsFloatingType() bool {
-	panic("IsFloatingType() invalid on MetaType")
+func (v metaType) IsFloatingType() bool {
+	panic("IsFloatingType() invalid on metaType")
 }
 
-func (v MetaType) CanCastTo(t Type) bool {
-	panic("CanCastTo() invalid on MetaType")
+func (v metaType) CanCastTo(t Type) bool {
+	panic("CanCastTo() invalid on metaType")
 }
 
-func (v MetaType) Attrs() AttrGroup {
-	panic("Attrs() invalid on MetaType")
+func (v metaType) Attrs() AttrGroup {
+	panic("Attrs() invalid on metaType")
 }
 
-func (v MetaType) Equals(t Type) bool {
-	panic("Equals() invalid on MetaType")
+func (v metaType) Equals(t Type) bool {
+	panic("Equals() invalid on metaType")
 }
 
 // ParameterType
 type ParameterType struct {
-	MetaType
+	metaType
 	Name string
 }
 
@@ -765,7 +765,7 @@ func (v ParameterType) ActualType() Type {
 
 // SubstitutionType
 type SubstitutionType struct {
-	MetaType
+	metaType
 	Name string
 	Type Type
 }
@@ -784,7 +784,7 @@ func (v SubstitutionType) ActualType() Type {
 
 // UnresolvedType
 type UnresolvedType struct {
-	MetaType
+	metaType
 	Name       unresolvedName
 	Parameters []Type
 }
