@@ -18,7 +18,7 @@ const (
 var tokenStrings = []string{"rune", "identifier", "separator", "operator", "number", "erroneous", "string", "unknowns", "doccomment", "eof"}
 
 func (v TokenType) String() string {
-	return tokenStrings[v] + " token"
+	return tokenStrings[v]
 }
 
 type Token struct {
