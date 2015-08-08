@@ -71,7 +71,8 @@ type Variable struct {
 	Mutable      bool
 	Attrs        AttrGroup
 	scope        *Scope
-	ParentStruct *StructType
+	FromStruct   bool
+	ParentStruct StructType
 	ParentModule *Module
 	IsParameter  bool
 }
@@ -917,7 +918,7 @@ func (v *StructAccessExpr) NodeName() string {
 }
 
 func (v *StructAccessExpr) Mutable() bool {
-	return true
+	return v.Struct.Mutable()
 }
 
 // ArrayAccessExpr
@@ -971,7 +972,7 @@ func (v *TupleAccessExpr) String() string {
 
 func (v *TupleAccessExpr) GetType() Type {
 	if v.Tuple.GetType() != nil {
-		return v.Tuple.GetType().ActualType().(*TupleType).Members[v.Index]
+		return v.Tuple.GetType().ActualType().(TupleType).Members[v.Index]
 	}
 	return nil
 }

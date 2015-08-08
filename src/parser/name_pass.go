@@ -216,6 +216,10 @@ func MapNames(nodes []ParseNode, tree *ParseTree, modules map[string]*ParseTree,
 				typ = NODE_STRUCT
 			}
 
+		case *TypeParameterNode:
+			tp := node.(*TypeParameterNode)
+			name, typ = tp.Name, NODE_TYPE
+
 		case *UseDeclNode:
 			udn := node.(*UseDeclNode)
 

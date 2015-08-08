@@ -19,11 +19,11 @@ func (v *RecursiveDefinitionCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
 	if typeDecl, ok := n.(*parser.TypeDecl); ok {
 		actualType := typeDecl.NamedType.ActualType()
 		switch actualType.(type) {
-		case *parser.EnumType:
-			typ = actualType.(*parser.EnumType)
+		case parser.EnumType:
+			typ = actualType.(parser.EnumType)
 
-		case *parser.StructType:
-			typ = actualType.(*parser.StructType)
+		case parser.StructType:
+			typ = actualType.(parser.StructType)
 
 			// TODO: Check tuple types once we add named types for everything
 
@@ -49,7 +49,7 @@ func isTypeRecursive(typ parser.Type) (bool, []parser.Type) {
 	var check func(current parser.Type, path *[]parser.Type, traversed map[parser.Type]bool) bool
 	check = func(current parser.Type, path *[]parser.Type, traversed map[parser.Type]bool) bool {
 		switch current.(type) {
-		case *parser.StructType, *parser.TupleType, *parser.EnumType:
+		case *parser.NamedType:
 			if traversed[current] {
 				return true
 			}
@@ -57,8 +57,8 @@ func isTypeRecursive(typ parser.Type) (bool, []parser.Type) {
 		}
 
 		switch current.(type) {
-		case *parser.StructType:
-			st := current.(*parser.StructType)
+		case parser.StructType:
+			st := current.(parser.StructType)
 			for _, decl := range st.Variables {
 				if check(decl.Variable.Type, path, traversed) {
 					*path = append(*path, decl.Variable.Type)
@@ -66,9 +66,8 @@ func isTypeRecursive(typ parser.Type) (bool, []parser.Type) {
 				}
 			}
 
-		case *parser.TupleType:
-
-			tt := current.(*parser.TupleType)
+		case parser.TupleType:
+			tt := current.(parser.TupleType)
 			for _, mem := range tt.Members {
 				if check(mem, path, traversed) {
 					*path = append(*path, mem)
@@ -76,13 +75,20 @@ func isTypeRecursive(typ parser.Type) (bool, []parser.Type) {
 				}
 			}
 
-		case *parser.EnumType:
-			et := current.(*parser.EnumType)
+		case parser.EnumType:
+			et := current.(parser.EnumType)
 			for _, mem := range et.Members {
 				if check(mem.Type, path, traversed) {
 					*path = append(*path, mem.Type)
 					return true
 				}
+			}
+
+		case *parser.NamedType:
+			nt := current.(*parser.NamedType)
+			if check(nt.Type, path, traversed) {
+				*path = append(*path, nt.Type)
+				return true
 			}
 
 			// TODO: Add array if we ever add embedded fixed size/static arrays

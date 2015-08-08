@@ -12,13 +12,12 @@ const (
 	TOKEN_STRING
 	TOKEN_UNKNOWNS
 	TOKEN_DOCCOMMENT
-	TOKEN_END_OF_FILE
 )
 
-var tokenStrings = []string{"rune", "identifier", "separator", "operator", "number", "erroneous", "string", "unknowns", "doccomment", "eof"}
+var tokenStrings = []string{"rune", "identifier", "separator", "operator", "number", "erroneous", "string", "unknowns", "doccomment"}
 
 func (v TokenType) String() string {
-	return tokenStrings[v] + " token"
+	return tokenStrings[v]
 }
 
 type Token struct {
