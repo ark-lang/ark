@@ -1,4 +1,4 @@
-## Ark [![Build Status](https://travis-ci.org/ark-lang/ark.png?branch=master)][1] [![license](http://img.shields.io/badge/license-MIT-green.svg)](https://raw.githubusercontent.com/ark-lang/ark/master/LICENSE) [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/ark-lang/ark?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+## Ark [![Build Status](https://api.travis-ci.org/ark-lang/ark.svg?branch=master)][1] [![license](http://img.shields.io/badge/license-MIT-brightgreen.svg)](https://raw.githubusercontent.com/ark-lang/ark/master/LICENSE) [![Gitter](https://img.shields.io/badge/gitter-join%20chat-brightgreen.svg)](https://gitter.im/ark-lang/ark?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
 [Ark](//www.ark-lang.org) is a systems programming language somewhere in-between C and C++.
 
@@ -21,7 +21,7 @@ For a more complicated example, check out a port of my virtual machine MAC in Ar
 
 ```rust
 [c] func printf(fmt: str, ...);
-func main(): int {
+func main() -> int {
     mut i := 0;
     for i < 5 {
         C::printf("i: %d\n", i);
@@ -32,6 +32,7 @@ func main(): int {
 ```
 
 ## <a name="resources"></a> Resources
+* [Reference Book WIP](//felixangell.gitbooks.io/ark-reference/content/)
 * [Reference](//github.com/ark-lang/ark-docs/blob/master/REFERENCE.md)
 * [Tests](/tests/)
 * [Libraries](/lib/)
@@ -57,9 +58,7 @@ Replace `RELEASE_360` with the version of LLVM you have installed. For example, 
     $ export CGO_LDFLAGS="`llvm-config --ldflags --libs --system-libs all`"
     $ export CGO_CXXFLAGS=-std=c++11
     $ go install -tags byollvm llvm.org/llvm/bindings/go/llvm
-    $ go get github.com/ark-lang/ark
-    $ cd $GOPATH/github.com/ark-lang/ark
-    $ make
+    $ go get github.com/ark-lang/ark/...
 
 The `ark` binary will be built in `$GOPATH/bin`. To use the compiler, make sure `$GOPATH/bin` is in your `$PATH`.
 
