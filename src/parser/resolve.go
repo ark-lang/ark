@@ -181,6 +181,11 @@ func (v StructType) resolveType(src Locatable, res *Resolver, s *Scope) Type {
 			docs:       vari.docs,
 		}
 		nv.Variables[idx].resolve(res, s)
+
+		if nv.Variables[idx].Assignment != nil {
+			visitor := &ASTVisitor{Visitor: res}
+			visitor.Visit(nv.Variables[idx].Assignment)
+		}
 	}
 
 	return nv
@@ -274,7 +279,6 @@ func (v UnresolvedType) resolveType(src Locatable, res *Resolver, s *Scope) Type
 				ParentModule: namedType.ParentModule,
 				Methods:      namedType.Methods,
 			}
-			log.Debugln("resolve", "Resolved named type: %s", typ)
 		} else {
 			typ = typ.resolveType(src, res, s)
 		}
