@@ -228,6 +228,10 @@ func (v InterfaceType) resolveType(src Locatable, res *Resolver, s *Scope) Type 
 	return v
 }
 
+func (v FunctionType) resolveType(src Locatable, res *Resolver, s *Scope) Type {
+	return v
+}
+
 func (v ParameterType) resolveType(src Locatable, res *Resolver, s *Scope) Type {
 	panic("We shouldn't reach this, right?")
 }
