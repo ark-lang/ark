@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	"time"
 	"unicode"
 
 	"github.com/ark-lang/ark/src/util/log"
@@ -70,11 +69,6 @@ func (v *lexer) discardBuffer() {
 	v.tokStart = v.curPos
 }
 
-// debugging func
-func (v *lexer) printBuffer() {
-	log.Debug("lexer", "[%d:%d] `%s`\n", v.startPos, v.endPos, string(v.input.Contents[v.startPos:v.endPos]))
-}
-
 func (v *lexer) pushToken(t TokenType) {
 	tok := &Token{
 		Type:     t,
@@ -84,7 +78,7 @@ func (v *lexer) pushToken(t TokenType) {
 
 	v.input.Tokens = append(v.input.Tokens, tok)
 
-	log.Verbose("lexer", "[%4d:%4d:%-17s] `%s`\n", v.startPos, v.endPos, tok.Type, tok.Contents)
+	log.Debug("lexer", "[%4d:%4d:%-17s] `%s`\n", v.startPos, v.endPos, tok.Type, tok.Contents)
 
 	v.discardBuffer()
 }
@@ -98,12 +92,10 @@ func Lex(input *Sourcefile) []*Token {
 		tokStart: Position{Filename: input.Name, Line: 1, Char: 1},
 	}
 
-	log.Verboseln("lexer", util.TEXT_BOLD+util.TEXT_GREEN+"Starting lexing "+util.TEXT_RESET+input.Name)
-	t := time.Now()
-	v.lex()
-	dur := time.Since(t)
-	log.Verbose("lexer", util.TEXT_BOLD+util.TEXT_GREEN+"Finished lexing"+util.TEXT_RESET+" %s (%.2fms)\n",
-		input.Name, float32(dur)/1000000)
+	log.Timed("lexing", input.Name, func() {
+		v.lex()
+	})
+
 	return v.input.Tokens
 }
 

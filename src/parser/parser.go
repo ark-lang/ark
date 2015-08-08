@@ -9,7 +9,6 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"time"
 	"unicode"
 
 	"github.com/ark-lang/ark/src/util/log"
@@ -35,14 +34,9 @@ func Parse(input *lexer.Sourcefile) *ParseTree {
 		tree:             &ParseTree{Source: input},
 	}
 
-	log.Verboseln("parser", util.TEXT_BOLD+util.TEXT_GREEN+"Started parsing "+util.TEXT_RESET+input.Name)
-	t := time.Now()
-
-	p.parse()
-
-	dur := time.Since(t)
-	log.Verbose("parser", util.TEXT_BOLD+util.TEXT_GREEN+"Finished parsing"+util.TEXT_RESET+" %s (%.2fms)\n",
-		input.Name, float32(dur.Nanoseconds())/1000000)
+	log.Timed("parsing", input.Name, func() {
+		p.parse()
+	})
 
 	return p.tree
 }

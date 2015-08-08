@@ -10,9 +10,18 @@ import (
 // magic
 var indent int = 0
 
-func Timed(title string, fn func()) {
+func Timed(titleColored, titleUncolored string, fn func()) {
+	var bold string
+	if indent == 0 {
+		bold = util.TEXT_BOLD
+	}
+
+	if titleUncolored != "" {
+		titleUncolored = " " + titleUncolored
+	}
+
 	Verbose("main", strings.Repeat(" ", indent))
-	Verboseln("main", util.TEXT_BOLD+util.TEXT_GREEN+"Started "+title+util.TEXT_RESET)
+	Verboseln("main", bold+util.TEXT_GREEN+"Started "+titleColored+util.TEXT_RESET+titleUncolored)
 	start := time.Now()
 
 	indent++
@@ -21,5 +30,5 @@ func Timed(title string, fn func()) {
 
 	duration := time.Since(start)
 	Verbose("main", strings.Repeat(" ", indent))
-	Verboseln("main", util.TEXT_BOLD+util.TEXT_GREEN+"Ended "+title+util.TEXT_RESET+" (%.2fms)", float32(duration)/1000000)
+	Verboseln("main", bold+util.TEXT_GREEN+"Ended "+titleColored+util.TEXT_RESET+titleUncolored+" (%.2fms)", float32(duration)/1000000)
 }
