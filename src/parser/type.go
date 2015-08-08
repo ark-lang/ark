@@ -713,6 +713,83 @@ func (v EnumType) ActualType() Type {
 	return v
 }
 
+// FunctionType
+type FunctionType struct {
+	attrs AttrGroup
+}
+
+func (v FunctionType) String() string {
+	result := "(" + util.Blue("FunctionType") + ": "
+	return result + ")"
+}
+
+func (v FunctionType) TypeName() string {
+	res := "func"
+
+	return res
+}
+
+func (v FunctionType) IsSigned() bool {
+	return false
+}
+
+func (v FunctionType) LevelsOfIndirection() int {
+	return 0
+}
+
+func (v FunctionType) IsIntegerType() bool {
+	return false
+}
+
+func (v FunctionType) IsFloatingType() bool {
+	return false
+}
+
+func (v FunctionType) CanCastTo(t Type) bool {
+	return false
+}
+
+func (v FunctionType) Attrs() AttrGroup {
+	return v.attrs
+}
+
+func (v FunctionType) Equals(t Type) bool {
+	/*other, ok := t.(FunctionType)
+	if !ok {
+		return false
+	}
+
+	if !v.Attrs().Equals(other.Attrs()) {
+		return false
+	}
+
+	if len(v.Members) != len(other.Members) {
+		return false
+	}
+
+	for idx, member := range v.Members {
+		otherMember := other.Members[idx]
+
+		if member.Name != otherMember.Name {
+			return false
+		}
+		if !member.Type.Equals(otherMember.Type) {
+			return false
+		}
+		if member.Tag != otherMember.Tag {
+			return false
+		}
+	}
+
+	return true*/
+
+	return false
+}
+
+func (v FunctionType) ActualType() Type {
+	return v
+}
+
 // MetaType
 type metaType struct {
 }
