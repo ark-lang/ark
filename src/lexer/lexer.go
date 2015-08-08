@@ -78,7 +78,7 @@ func (v *lexer) pushToken(t TokenType) {
 
 	v.input.Tokens = append(v.input.Tokens, tok)
 
-	log.Debug("lexer", "[%4d:%4d:%-17s] `%s`\n", v.startPos, v.endPos, tok.Type, tok.Contents)
+	log.Debug("lexer", "[%4d:%4d:% 11s] `%s`\n", v.startPos, v.endPos, tok.Type, tok.Contents)
 
 	v.discardBuffer()
 }
