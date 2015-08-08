@@ -290,7 +290,8 @@ type GenericNameNode struct {
 // access expressions
 type VariableAccessNode struct {
 	baseNode
-	Name *NameNode
+	Name       *NameNode
+	Parameters []ParseNode
 }
 
 type StructAccessNode struct {

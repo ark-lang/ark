@@ -17,10 +17,9 @@ type Codegen struct {
 	input   []*parser.Module
 	curFile *parser.Module
 
-	builder                        llvm.Builder
-	variableLookup                 map[*parser.Variable]llvm.Value
-	structLookup_UseHelperFunction map[*parser.StructType]llvm.Type // use getStructDecl
-	enumLookup_UseHelperFunction   map[*parser.EnumType]llvm.Type
+	builder         llvm.Builder
+	variableLookup  map[*parser.Variable]llvm.Value
+	namedTypeLookup map[string]llvm.Type
 
 	OutputName   string
 	OutputType   OutputType
@@ -63,8 +62,7 @@ func (v *Codegen) Generate(input []*parser.Module, modules map[string]*parser.Mo
 	v.input = input
 	v.builder = llvm.NewBuilder()
 	v.variableLookup = make(map[*parser.Variable]llvm.Value)
-	v.structLookup_UseHelperFunction = make(map[*parser.StructType]llvm.Type)
-	v.enumLookup_UseHelperFunction = make(map[*parser.EnumType]llvm.Type)
+	v.namedTypeLookup = make(map[string]llvm.Type)
 
 	// initialize llvm target
 	llvm.InitializeNativeTarget()
@@ -110,7 +108,7 @@ func (v *Codegen) Generate(input []*parser.Module, modules map[string]*parser.Mo
 
 		passManager.Run(infile.Module)
 
-		if log.AtLevel(log.LevelVerbose) {
+		if log.AtLevel(log.LevelDebug) {
 			infile.Module.Dump()
 		}
 
@@ -121,7 +119,7 @@ func (v *Codegen) Generate(input []*parser.Module, modules map[string]*parser.Mo
 
 	passManager.Dispose()
 
-	log.Timed("create binary", func() {
+	log.Timed("creating binary", "", func() {
 		v.createBinary()
 	})
 
@@ -149,22 +147,26 @@ func (v *Codegen) declareDecls(nodes []parser.Node) {
 }
 
 func (v *Codegen) addNamedType(n *parser.NamedType) {
+	if len(n.Parameters) > 0 {
+		return
+	}
+
 	switch n.Type.(type) {
-	case *parser.StructType:
-		v.addStructType(n.Type.(*parser.StructType), n.MangledName(parser.MANGLE_ARK_UNSTABLE))
-	case *parser.EnumType:
-		v.addEnumType(n.Type.(*parser.EnumType), n.MangledName(parser.MANGLE_ARK_UNSTABLE))
+	case parser.StructType:
+		v.addStructType(n.Type.(parser.StructType), n.MangledName(parser.MANGLE_ARK_UNSTABLE))
+	case parser.EnumType:
+		v.addEnumType(n.Type.(parser.EnumType), n.MangledName(parser.MANGLE_ARK_UNSTABLE))
 	}
 }
 
-func (v *Codegen) addStructType(typ *parser.StructType, name string) {
-	if _, ok := v.structLookup_UseHelperFunction[typ]; ok {
+func (v *Codegen) addStructType(typ parser.StructType, name string) {
+	if _, ok := v.namedTypeLookup[name]; ok {
 		return
 	}
 
 	structure := v.curFile.Module.Context().StructCreateNamed(name)
 
-	v.structLookup_UseHelperFunction[typ] = structure
+	v.namedTypeLookup[name] = structure
 
 	for _, field := range typ.Variables {
 		if named, ok := field.Variable.Type.(*parser.NamedType); ok {
@@ -175,24 +177,26 @@ func (v *Codegen) addStructType(typ *parser.StructType, name string) {
 	structure.StructSetBody(v.structTypeToLLVMTypeFields(typ), typ.Attrs().Contains("packed"))
 }
 
-func (v *Codegen) addEnumType(typ *parser.EnumType, name string) {
-	if _, ok := v.enumLookup_UseHelperFunction[typ]; ok || typ.Simple {
+func (v *Codegen) addEnumType(typ parser.EnumType, name string) {
+	if _, ok := v.namedTypeLookup[name]; ok {
 		return
 	}
 
-	enum := v.curFile.Module.Context().StructCreateNamed(name)
+	if typ.Simple {
+		// TODO: Handle other integer size, maybe dynamic depending on max value?
+		v.namedTypeLookup[name] = llvm.IntType(32)
+	} else {
+		enum := v.curFile.Module.Context().StructCreateNamed(name)
+		v.namedTypeLookup[name] = enum
 
-	v.enumLookup_UseHelperFunction[typ] = enum
-
-	for _, member := range typ.Members {
-		if named, ok := member.Type.(*parser.NamedType); ok {
-			v.addNamedType(named)
+		for _, member := range typ.Members {
+			if named, ok := member.Type.(*parser.NamedType); ok {
+				v.addNamedType(named)
+			}
 		}
+
+		enum.StructSetBody(v.enumTypeToLLVMTypeFields(typ), false)
 	}
-
-	enum.StructSetBody(v.enumTypeToLLVMTypeFields(typ), false)
-
-	fmt.Println("add")
 }
 
 func (v *Codegen) declareFunctionDecl(n *parser.FunctionDecl) {
@@ -534,7 +538,8 @@ func (v *Codegen) genVariableDecl(n *parser.VariableDecl, semicolon bool) llvm.V
 			allocBuilder.SetInsertPointBefore(funcEntry.LastInstruction())
 		}
 
-		alloc := allocBuilder.CreateAlloca(v.typeToLLVMType(n.Variable.Type), mangledName)
+		varType := v.typeToLLVMType(n.Variable.Type)
+		alloc := allocBuilder.CreateAlloca(varType, mangledName)
 
 		allocBuilder.Dispose()
 
@@ -622,7 +627,7 @@ func (v *Codegen) genAccessGEP(n parser.Expr) llvm.Value {
 
 		typ := sae.Struct.GetType().ActualType()
 
-		index := typ.(*parser.StructType).VariableIndex(sae.Variable)
+		index := typ.(parser.StructType).VariableIndex(sae.Variable)
 		return v.builder.CreateStructGEP(gep, index, "")
 
 	case *parser.ArrayAccessExpr:
@@ -780,8 +785,8 @@ func (v *Codegen) genTupleLiteral(n *parser.TupleLiteral) llvm.Value {
 }
 
 func (v *Codegen) genStructLiteral(n *parser.StructLiteral) llvm.Value {
-	structType := n.Type.ActualType().(*parser.StructType)
-	structLLVMType := v.typeToLLVMType(structType)
+	structType := n.Type.ActualType().(parser.StructType)
+	structLLVMType := v.typeToLLVMType(n.Type)
 
 	structValue := llvm.Undef(structLLVMType)
 
@@ -801,18 +806,18 @@ func (v *Codegen) genStructLiteral(n *parser.StructLiteral) llvm.Value {
 }
 
 func (v *Codegen) genEnumLiteral(n *parser.EnumLiteral) llvm.Value {
-	enumType := n.Type.ActualType().(*parser.EnumType)
-	enumLLVMType := v.typeToLLVMType(n.Type.ActualType())
+	enumType := n.Type.ActualType().(parser.EnumType)
+	enumLLVMType := v.typeToLLVMType(n.Type)
 
 	memberIdx := enumType.MemberIndex(n.Member)
 	member := enumType.Members[memberIdx]
 
+	if enumType.Simple {
+		return llvm.ConstInt(enumLLVMType, uint64(member.Tag), false)
+	}
+
 	// TODO: Handle other integer size, maybe dynamic depending on max value?
 	tagValue := llvm.ConstInt(llvm.IntType(32), uint64(member.Tag), false)
-
-	if enumType.Simple {
-		return tagValue
-	}
 
 	enumValue := llvm.Undef(enumLLVMType)
 	enumValue = v.builder.CreateInsertValue(enumValue, tagValue, 0, "")
@@ -1159,27 +1164,38 @@ func (v *Codegen) typeToLLVMType(typ parser.Type) llvm.Type {
 	switch typ.(type) {
 	case parser.PrimitiveType:
 		return v.primitiveTypeToLLVMType(typ.(parser.PrimitiveType))
-	case *parser.StructType:
-		return v.structTypeToLLVMType(typ.(*parser.StructType))
+	case parser.StructType:
+		return v.structTypeToLLVMType(typ.(parser.StructType))
 	case parser.PointerType:
 		return llvm.PointerType(v.typeToLLVMType(typ.(parser.PointerType).Addressee), 0)
 	case parser.ArrayType:
 		return v.arrayTypeToLLVMType(typ.(parser.ArrayType))
-	case *parser.TupleType:
-		return v.tupleTypeToLLVMType(typ.(*parser.TupleType))
-	case *parser.EnumType:
-		return v.enumTypeToLLVMType(typ.(*parser.EnumType))
+	case parser.TupleType:
+		return v.tupleTypeToLLVMType(typ.(parser.TupleType))
+	case parser.EnumType:
+		return v.enumTypeToLLVMType(typ.(parser.EnumType))
 	case *parser.NamedType:
 		return v.typeToLLVMType(typ.(*parser.NamedType).Type)
 	case parser.ReferenceType:
 		return llvm.PointerType(v.typeToLLVMType(typ.(parser.ReferenceType).Referrer), 0)
+		nt := typ.(*parser.NamedType)
+		switch nt.Type.(type) {
+		case parser.StructType, parser.EnumType:
+			v.addNamedType(nt)
+			lt := v.namedTypeLookup[nt.MangledName(parser.MANGLE_ARK_UNSTABLE)]
+			log.Debugln("codegen", "%s", lt.IsNil())
+			return lt
+
+		default:
+			return v.typeToLLVMType(nt.Type)
+		}
 	default:
 		log.Debugln("codegen", "Type was %s", typ.TypeName())
 		panic("Unimplemented type category in LLVM codegen")
 	}
 }
 
-func (v *Codegen) tupleTypeToLLVMType(typ *parser.TupleType) llvm.Type {
+func (v *Codegen) tupleTypeToLLVMType(typ parser.TupleType) llvm.Type {
 	fields := make([]llvm.Type, len(typ.Members))
 	for idx, mem := range typ.Members {
 		fields[idx] = v.typeToLLVMType(mem)
@@ -1194,15 +1210,11 @@ func (v *Codegen) arrayTypeToLLVMType(typ parser.ArrayType) llvm.Type {
 	return llvm.StructType(fields, false)
 }
 
-func (v *Codegen) structTypeToLLVMType(typ *parser.StructType) llvm.Type {
-	if t, ok := v.structLookup_UseHelperFunction[typ]; ok {
-		return t
-	}
-
+func (v *Codegen) structTypeToLLVMType(typ parser.StructType) llvm.Type {
 	return llvm.StructType(v.structTypeToLLVMTypeFields(typ), typ.Attrs().Contains("packed"))
 }
 
-func (v *Codegen) structTypeToLLVMTypeFields(typ *parser.StructType) []llvm.Type {
+func (v *Codegen) structTypeToLLVMTypeFields(typ parser.StructType) []llvm.Type {
 	numOfFields := len(typ.Variables)
 	fields := make([]llvm.Type, numOfFields)
 
@@ -1214,20 +1226,16 @@ func (v *Codegen) structTypeToLLVMTypeFields(typ *parser.StructType) []llvm.Type
 	return fields
 }
 
-func (v *Codegen) enumTypeToLLVMType(typ *parser.EnumType) llvm.Type {
+func (v *Codegen) enumTypeToLLVMType(typ parser.EnumType) llvm.Type {
 	if typ.Simple {
 		// TODO: Handle other integer size, maybe dynamic depending on max value? (1 / 2)
 		return llvm.IntType(32)
 	}
 
-	if t, ok := v.enumLookup_UseHelperFunction[typ]; ok {
-		return t
-	}
-
 	return llvm.StructType(v.enumTypeToLLVMTypeFields(typ), false)
 }
 
-func (v *Codegen) enumTypeToLLVMTypeFields(typ *parser.EnumType) []llvm.Type {
+func (v *Codegen) enumTypeToLLVMTypeFields(typ parser.EnumType) []llvm.Type {
 	longestLength := uint64(0)
 	for _, member := range typ.Members {
 		if member.Type == parser.PRIMITIVE_void {
@@ -1283,11 +1291,11 @@ func (v *Codegen) primitiveTypeToLLVMType(typ parser.PrimitiveType) llvm.Type {
 }
 
 func (v *Codegen) genDefaultValue(typ parser.Type) llvm.Value {
-	typ = typ.ActualType()
+	atyp := typ.ActualType()
 
 	// Generate default struct values
-	if structType, ok := typ.(*parser.StructType); ok {
-		lit := createStructInitializer(structType)
+	if structType, ok := atyp.(parser.StructType); ok {
+		lit := createStructInitializer(typ)
 		if lit != nil {
 			return v.genStructLiteral(lit)
 		} else {
@@ -1295,7 +1303,7 @@ func (v *Codegen) genDefaultValue(typ parser.Type) llvm.Value {
 		}
 	}
 
-	if tupleType, ok := typ.(*parser.TupleType); ok {
+	if tupleType, ok := atyp.(parser.TupleType); ok {
 		values := make([]llvm.Value, len(tupleType.Members))
 		for idx, member := range tupleType.Members {
 			values[idx] = v.genDefaultValue(member)
@@ -1303,27 +1311,29 @@ func (v *Codegen) genDefaultValue(typ parser.Type) llvm.Value {
 		return llvm.ConstStruct(values, false)
 	}
 
-	if typ.IsIntegerType() || typ == parser.PRIMITIVE_bool {
-		return llvm.ConstInt(v.typeToLLVMType(typ), 0, false)
+	if atyp.IsIntegerType() || atyp == parser.PRIMITIVE_bool {
+		return llvm.ConstInt(v.typeToLLVMType(atyp), 0, false)
 	}
 
-	if typ.IsFloatingType() {
-		return llvm.ConstFloat(v.typeToLLVMType(typ), 0)
+	if atyp.IsFloatingType() {
+		return llvm.ConstFloat(v.typeToLLVMType(atyp), 0)
 	}
 
-	panic("type does not have default value: " + typ.TypeName())
+	panic("type does not have default value: " + atyp.TypeName())
 }
 
-func createStructInitializer(typ *parser.StructType) *parser.StructLiteral {
+func createStructInitializer(typ parser.Type) *parser.StructLiteral {
 	lit := &parser.StructLiteral{Type: typ, Values: make(map[string]parser.Expr)}
 	hasDefaultValues := false
 
-	for _, decl := range typ.Variables {
+	structType := typ.ActualType().(parser.StructType)
+
+	for _, decl := range structType.Variables {
 		vari := decl.Variable
 
 		var value parser.Expr
-		if subStruct, ok := vari.Type.(*parser.StructType); ok {
-			value = createStructInitializer(subStruct)
+		if _, ok := vari.Type.ActualType().(parser.StructType); ok {
+			value = createStructInitializer(vari.Type)
 		} else {
 			value = decl.Assignment
 		}

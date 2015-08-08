@@ -75,7 +75,7 @@ func setupErr(err string, stuff ...interface{}) {
 func parseFiles(files []string) ([]*parser.Module, map[string]*parser.Module) {
 	// read source files
 	var sourcefiles []*lexer.Sourcefile
-	log.Timed("reading sourcefiles", func() {
+	log.Timed("reading sourcefiles", "", func() {
 		for _, file := range files {
 			sourcefile, err := lexer.NewSourcefile(file)
 			if err != nil {
@@ -86,7 +86,7 @@ func parseFiles(files []string) ([]*parser.Module, map[string]*parser.Module) {
 	})
 
 	// lexing
-	log.Timed("lexing phase", func() {
+	log.Timed("lexing phase", "", func() {
 		for _, file := range sourcefiles {
 			file.Tokens = lexer.Lex(file)
 		}
@@ -95,7 +95,7 @@ func parseFiles(files []string) ([]*parser.Module, map[string]*parser.Module) {
 	// parsing
 	var parsedFiles []*parser.ParseTree
 	parsedFileMap := make(map[string]*parser.ParseTree)
-	log.Timed("parsing phase", func() {
+	log.Timed("parsing phase", "", func() {
 		for _, file := range sourcefiles {
 			parsedFile := parser.Parse(file)
 			parsedFiles = append(parsedFiles, parsedFile)
@@ -106,7 +106,7 @@ func parseFiles(files []string) ([]*parser.Module, map[string]*parser.Module) {
 	// construction
 	var constructedModules []*parser.Module
 	modules := make(map[string]*parser.Module)
-	log.Timed("construction phase", func() {
+	log.Timed("construction phase", "", func() {
 		for _, file := range parsedFiles {
 			constructedModules = append(constructedModules, parser.Construct(file, parsedFileMap, modules))
 		}
@@ -119,7 +119,7 @@ func build(files []string, outputFile string, cg string, ccArgs []string, output
 	constructedModules, modules := parseFiles(files)
 
 	// resolve
-	log.Timed("resolve phase", func() {
+	log.Timed("resolve phase", "", func() {
 		// TODO: We're looping over a map, the order we get is thus random
 		for _, module := range modules {
 			res := &parser.Resolver{Module: module}
@@ -129,7 +129,7 @@ func build(files []string, outputFile string, cg string, ccArgs []string, output
 	})
 
 	// type inference
-	log.Timed("inference phase", func() {
+	log.Timed("inference phase", "", func() {
 		// TODO: We're looping over a map, the order we get is thus random
 		for _, module := range modules {
 			inf := &parser.TypeInferer{Module: module}
@@ -144,7 +144,7 @@ func build(files []string, outputFile string, cg string, ccArgs []string, output
 	})
 
 	// semantic analysis
-	log.Timed("semantic analysis phase", func() {
+	log.Timed("semantic analysis phase", "", func() {
 		// TODO: We're looping over a map, the order we get is thus random
 		for _, module := range modules {
 			sem := semantic.NewSemanticAnalyzer(module, *buildOwnership)
@@ -171,7 +171,7 @@ func build(files []string, outputFile string, cg string, ccArgs []string, output
 			os.Exit(1)
 		}
 
-		log.Timed("codegen phase", func() {
+		log.Timed("codegen phase", "", func() {
 			gen.Generate(constructedModules, modules)
 		})
 	}

@@ -9,7 +9,6 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"time"
 	"unicode"
 
 	"github.com/ark-lang/ark/src/util/log"
@@ -35,14 +34,9 @@ func Parse(input *lexer.Sourcefile) *ParseTree {
 		tree:             &ParseTree{Source: input},
 	}
 
-	log.Verboseln("parser", util.TEXT_BOLD+util.TEXT_GREEN+"Started parsing "+util.TEXT_RESET+input.Name)
-	t := time.Now()
-
-	p.parse()
-
-	dur := time.Since(t)
-	log.Verbose("parser", util.TEXT_BOLD+util.TEXT_GREEN+"Finished parsing"+util.TEXT_RESET+" %s (%.2fms)\n",
-		input.Name, float32(dur.Nanoseconds())/1000000)
+	log.Timed("parsing", input.Name, func() {
+		p.parse()
+	})
 
 	return p.tree
 }
@@ -1402,10 +1396,10 @@ func (v *parser) parsePrimaryExpr() ParseNode {
 	} else if name := v.parseName(); name != nil {
 		startPos := v.currentToken
 
+		var parameters []ParseNode
 		if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "<") {
 			v.consumeToken()
 
-			var parameters []ParseNode
 			for {
 				typ := v.parseType(true)
 				if typ == nil {
@@ -1421,14 +1415,14 @@ func (v *parser) parsePrimaryExpr() ParseNode {
 
 			if !v.tokenMatches(0, lexer.TOKEN_OPERATOR, ">") {
 				v.currentToken = startPos
+				parameters = nil
 			} else {
 				endToken := v.consumeToken()
-				// TODO: Don't just discard the tokens
-				_ = endToken
+				_ = endToken // TODO: Do somethign with end token?
 			}
 		}
 
-		res = &VariableAccessNode{Name: name}
+		res = &VariableAccessNode{Name: name, Parameters: parameters}
 		res.SetWhere(lexer.NewSpan(name.Where().Start(), name.Where().End()))
 	}
 
@@ -1719,33 +1713,50 @@ func (v *parser) parseBoolLit() *BoolLitNode {
 	return res
 }
 
-func parseInt(num string, base int64) (*big.Int, bool) {
+func parseInt(num string, base int) (*big.Int, bool) {
+	num = strings.ToLower(strings.Replace(num, "_", "", -1))
+
+	splitNum := strings.Split(num, "e")
+
+	if !(len(splitNum) == 1 || len(splitNum) == 2) {
+		return nil, false
+	}
+
+	numVal := splitNum[0]
+
 	ret := big.NewInt(0)
 
-	for _, r := range num {
-		if r == '_' {
-			continue
-		}
+	_, ok := ret.SetString(numVal, base)
+	if !ok {
+		return nil, false
+	}
 
-		ret.Mul(ret, big.NewInt(int64(base)))
+	// handle standard form
+	if len(splitNum) == 2 {
+		expVal := splitNum[1]
 
-		var val int64
-
-		if r >= '0' && r <= '9' {
-			val = int64(r - '0')
-		} else if r >= 'a' && r <= 'f' {
-			val = 10 + int64(r-'a')
-		} else if r >= 'A' && r <= 'F' {
-			val = 10 + int64(r-'A')
-		} else {
+		exp := big.NewInt(0)
+		_, ok = exp.SetString(expVal, base)
+		if !ok {
 			return nil, false
 		}
 
-		if val >= base {
-			return nil, false
+		if exp.BitLen() > 64 {
+			panic("TODO handle this better")
 		}
+		expInt := exp.Int64()
 
-		ret.Add(ret, big.NewInt(val))
+		ten := big.NewInt(10)
+
+		if expInt < 0 {
+			for ; expInt < 0; expInt++ {
+				ret.Div(ret, ten)
+			}
+		} else if expInt > 0 {
+			for ; expInt > 0; expInt-- {
+				ret.Mul(ret, ten)
+			}
+		}
 	}
 
 	return ret, true
@@ -1768,23 +1779,23 @@ func (v *parser) parseNumberLit() *NumberLitNode {
 		ok := false
 		res.IntValue, ok = parseInt(num[2:], 16)
 		if !ok {
-			v.err("Malformed hex literal: `%s`", num)
+			v.errTokenSpecific(token, "Malformed hex literal: `%s`", num)
 		}
 	} else if strings.HasPrefix(num, "0b") {
 		ok := false
 		res.IntValue, ok = parseInt(num[2:], 2)
 		if !ok {
-			v.err("Malformed binary literal: `%s`", num)
+			v.errTokenSpecific(token, "Malformed binary literal: `%s`", num)
 		}
 	} else if strings.HasPrefix(num, "0o") {
 		ok := false
 		res.IntValue, ok = parseInt(num[2:], 8)
 		if !ok {
-			v.err("Malformed octal literal: `%s`", num)
+			v.errTokenSpecific(token, "Malformed octal literal: `%s`", num)
 		}
 	} else if lastRune := unicode.ToLower([]rune(num)[len([]rune(num))-1]); strings.ContainsRune(num, '.') || lastRune == 'f' || lastRune == 'd' || lastRune == 'q' {
 		if strings.Count(num, ".") > 1 {
-			v.err("Floating-point cannot have multiple periods: `%s`", num)
+			v.errTokenSpecific(token, "Floating-point cannot have multiple periods: `%s`", num)
 			return nil
 		}
 		res.IsFloat = true
@@ -1802,18 +1813,18 @@ func (v *parser) parseNumberLit() *NumberLitNode {
 
 		if err != nil {
 			if err.(*strconv.NumError).Err == strconv.ErrSyntax {
-				v.err("Malformed floating-point literal: `%s`", num)
+				v.errTokenSpecific(token, "Malformed floating-point literal: `%s`", num)
 			} else if err.(*strconv.NumError).Err == strconv.ErrRange {
-				v.err("Floating-point literal cannot be represented: `%s`", num)
+				v.errTokenSpecific(token, "Floating-point literal cannot be represented: `%s`", num)
 			} else {
-				v.err("Unexpected error from floating-point literal: %s", err)
+				v.errTokenSpecific(token, "Unexpected error from floating-point literal: %s", err)
 			}
 		}
 	} else {
 		ok := false
 		res.IntValue, ok = parseInt(num, 10)
 		if !ok {
-			v.err("Malformed hex literal: `%s`", num)
+			v.errTokenSpecific(token, "Malformed hex literal: `%s`", num)
 		}
 	}
 
