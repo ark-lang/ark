@@ -14,7 +14,7 @@
 * [Utilities](#utilities)
     * [`make gen` and `make fmt`](#make-gen-and-make-fmt)
     * [Testing](#testing)
-* [License](#license)
+* [Code of Conduct](#coc)
 
 ## <a name="example"></a> Example
 For a more complicated example, check out a port of my virtual machine MAC in Ark [here](//www.github.com/ark-lang/mac-ark). Or if you just want a small example program written in Ark.
@@ -89,3 +89,8 @@ Requires `$GOPATH/bin` to be in your `$PATH` and Python 2.4 or newer.
     $ ./test.py
 
 [1]: https://travis-ci.org/ark-lang/ark "Build Status"
+
+## <a name="coc"></a> Code of Conduct
+This project adheres to No Code of Conduct.  We are all adults.  We accept everyone's contributions.  Nothing else matters.
+
+For more information please visit the [No Code of Conduct](https://github.com/domgetter/NCoC) homepage.
