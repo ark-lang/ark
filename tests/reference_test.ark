@@ -1,6 +1,6 @@
-[c] func printf(fmt: str, ...): int;
+[c] func printf(fmt: str, ...) -> int;
 
-func main(): int {
+func main() -> int {
     y: int = 21;
     x: &int = &y;
     C::printf("yo x has `%d`\n", x);
