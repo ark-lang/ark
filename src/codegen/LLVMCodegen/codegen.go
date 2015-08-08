@@ -1179,7 +1179,6 @@ func (v *Codegen) typeToLLVMType(typ parser.Type) llvm.Type {
 		case parser.StructType, parser.EnumType:
 			v.addNamedType(nt)
 			lt := v.namedTypeLookup[nt.MangledName(parser.MANGLE_ARK_UNSTABLE)]
-			log.Debugln("codegen", "%s", lt.IsNil())
 			return lt
 
 		default:
