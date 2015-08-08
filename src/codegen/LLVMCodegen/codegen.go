@@ -617,8 +617,15 @@ func (v *Codegen) genAccessGEP(n parser.Expr) llvm.Value {
 	switch n.(type) {
 	case *parser.VariableAccessExpr:
 		vae := n.(*parser.VariableAccessExpr)
-		fmt.Println(vae.GetType().TypeName(), " is called ", vae.Name)
-		return v.builder.CreateGEP(v.variableLookup[vae.Variable], []llvm.Value{llvm.ConstInt(llvm.Int32Type(), 0, false)}, "")
+
+		varType := v.variableLookup[vae.Variable]
+		gep := v.builder.CreateGEP(varType, []llvm.Value{llvm.ConstInt(llvm.Int32Type(), 0, false)}, "")
+
+		// dereference the reference
+		if ref, ok := vae.GetType().(parser.ReferenceType); ok {
+			return v.builder.CreateLoad(gep, "")
+		}
+		return gep
 
 	case *parser.StructAccessExpr:
 		sae := n.(*parser.StructAccessExpr)
@@ -1176,8 +1183,6 @@ func (v *Codegen) typeToLLVMType(typ parser.Type) llvm.Type {
 		return v.enumTypeToLLVMType(typ.(parser.EnumType))
 	case *parser.NamedType:
 		return v.typeToLLVMType(typ.(*parser.NamedType).Type)
-	case parser.ReferenceType:
-		return llvm.PointerType(v.typeToLLVMType(typ.(parser.ReferenceType).Referrer), 0)
 		nt := typ.(*parser.NamedType)
 		switch nt.Type.(type) {
 		case parser.StructType, parser.EnumType:
@@ -1188,6 +1193,8 @@ func (v *Codegen) typeToLLVMType(typ parser.Type) llvm.Type {
 		default:
 			return v.typeToLLVMType(nt.Type)
 		}
+	case parser.ReferenceType:
+		return llvm.PointerType(v.typeToLLVMType(typ.(parser.ReferenceType).Referrer), 0)
 	default:
 		log.Debugln("codegen", "Type was %s", typ.TypeName())
 		panic("Unimplemented type category in LLVM codegen")
