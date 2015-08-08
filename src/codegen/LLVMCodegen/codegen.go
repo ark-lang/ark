@@ -107,7 +107,7 @@ func (v *Codegen) Generate(input []*parser.Module, modules map[string]*parser.Mo
 
 		passManager.Run(infile.Module)
 
-		if log.AtLevel(log.LevelVerbose) {
+		if log.AtLevel(log.LevelDebug) {
 			infile.Module.Dump()
 		}
 
@@ -118,7 +118,7 @@ func (v *Codegen) Generate(input []*parser.Module, modules map[string]*parser.Mo
 
 	passManager.Dispose()
 
-	log.Timed("create binary", func() {
+	log.Timed("creating binary", "", func() {
 		v.createBinary()
 	})
 

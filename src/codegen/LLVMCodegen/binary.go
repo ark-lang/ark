@@ -99,7 +99,7 @@ func (v *Codegen) createBinary() {
 
 	if v.OutputType == OUTPUT_LLVM_IR {
 		for _, file := range v.input {
-			log.Timed("create ir "+file.Name, func() {
+			log.Timed("creating ir", file.Name, func() {
 				v.createIR(file)
 			})
 		}
@@ -111,10 +111,9 @@ func (v *Codegen) createBinary() {
 	bitcodeFiles := []string{}
 
 	for _, file := range v.input {
-		log.Timed("create bitcode "+file.Name, func() {
+		log.Timed("creating bitcode", file.Name, func() {
 			bitcodeFiles = append(bitcodeFiles, v.createBitcode(file))
 		})
-
 	}
 
 	if v.OutputType == OUTPUT_LLVM_BC {
@@ -124,7 +123,7 @@ func (v *Codegen) createBinary() {
 	asmFiles := []string{}
 
 	for _, name := range bitcodeFiles {
-		log.Timed("create asm "+name, func() {
+		log.Timed("creating asm", name, func() {
 			asmName := v.bitcodeToASM(name)
 			asmFiles = append(asmFiles, asmName)
 		})
@@ -143,7 +142,7 @@ func (v *Codegen) createBinary() {
 	objFiles := []string{}
 
 	for _, asmFile := range asmFiles {
-		log.Timed("create obj "+asmFile, func() {
+		log.Timed("creating object", asmFile, func() {
 			objName := v.asmToObject(asmFile)
 
 			objFiles = append(objFiles, objName)
@@ -169,7 +168,7 @@ func (v *Codegen) createBinary() {
 		v.Linker = "cc"
 	}
 
-	log.Timed("link", func() {
+	log.Timed("linking", "", func() {
 		cmd := exec.Command(v.Linker, linkArgs...)
 		if out, err := cmd.CombinedOutput(); err != nil {
 			v.err("failed to link object files: `%s`\n%s", err.Error(), string(out))

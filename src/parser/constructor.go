@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"reflect"
-	"time"
 
 	"github.com/ark-lang/ark/src/lexer"
 	"github.com/ark-lang/ark/src/util"
@@ -109,14 +108,9 @@ func Construct(tree *ParseTree, treeFiles map[string]*ParseTree, modules map[str
 	}
 	c.module.GlobalScope.UsedModules["C"] = cModule
 
-	log.Verboseln("constructor", util.TEXT_BOLD+util.TEXT_GREEN+"Started constructing "+util.TEXT_RESET+tree.Source.Name)
-	t := time.Now()
-
-	c.construct()
-
-	dur := time.Since(t)
-	log.Verbose("constructor", util.TEXT_BOLD+util.TEXT_GREEN+"Finished parsing"+util.TEXT_RESET+" %s (%.2fms)\n",
-		tree.Source.Name, float32(dur.Nanoseconds())/1000000)
+	log.Timed("constructing", tree.Source.Name, func() {
+		c.construct()
+	})
 
 	return c.module
 }
