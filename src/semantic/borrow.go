@@ -5,8 +5,9 @@ import (
 )
 
 type BorrowCheck struct {
-	currentLifetime  *Lifetime
-	checkingCallExpr bool
+	currentLifetime    *Lifetime
+	checkingCallExpr   bool
+	checkingAddrofExpr *parser.AddressOfExpr
 }
 
 type Lifetime struct {
@@ -39,7 +40,21 @@ func (v *ParameterResource) HasOwnership(b *BorrowCheck) bool {
 	return v.Owned
 }
 
+func (v *BorrowCheck) CheckAddrofExpr(s *SemanticAnalyzer, n *parser.AddressOfExpr) {
+	v.checkingAddrofExpr = n
+}
+
 func (v *BorrowCheck) CheckVariableAccessExpr(s *SemanticAnalyzer, n *parser.VariableAccessExpr) {
+	// really messy, but basically if this
+	// is not nil, we're checking variable access
+	// inside of an addr of
+	if v.checkingAddrofExpr != nil {
+		addrof := v.checkingAddrofExpr
+		if addrof.Mutable && !n.Variable.Mutable {
+			s.Err(n, "cannot create a mutable reference to an immutable variable `%s`", n.Variable.Name)
+		}
+	}
+
 	// it's an argument
 	if v.checkingCallExpr && !n.Variable.IsParameter {
 		if variable, ok := v.currentLifetime.resources[n.Variable.Name+"_VAR"]; ok {
@@ -94,6 +109,9 @@ func (v *BorrowCheck) PostVisit(s *SemanticAnalyzer, n parser.Node) {
 	if _, ok := n.(*parser.CallStat); ok {
 		v.checkingCallExpr = false
 	}
+	if _, ok := n.(*parser.AddressOfExpr); ok {
+		v.checkingAddrofExpr = nil
+	}
 }
 
 func (v *BorrowCheck) EnterScope(s *SemanticAnalyzer) {
@@ -130,6 +148,9 @@ func (v *BorrowCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
 
 	case *parser.CallExpr:
 		v.CheckCallExpr(s, n.(*parser.CallExpr))
+
+	case *parser.AddressOfExpr:
+		v.CheckAddrofExpr(s, n.(*parser.AddressOfExpr))
 
 	case *parser.VariableAccessExpr:
 		v.CheckVariableAccessExpr(s, n.(*parser.VariableAccessExpr))

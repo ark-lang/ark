@@ -476,7 +476,13 @@ func (v *CallExpr) infer(s *TypeInferer) {
 			accessType := v.ReceiverAccess.GetType()
 
 			if accessType.LevelsOfIndirection() == recType.LevelsOfIndirection()+1 {
-				if ref, ok := v.ReceiverAccess.GetType().(ReferenceType); ok {
+				if ref, ok := v.ReceiverAccess.GetType().(ConstantReferenceType); ok {
+					v.ReceiverAccess = &DerefAccessExpr{
+						Type: ref.Referrer,
+						Expr: v.ReceiverAccess,
+					}
+				}
+				if ref, ok := v.ReceiverAccess.GetType().(MutableReferenceType); ok {
 					v.ReceiverAccess = &DerefAccessExpr{
 						Type: ref.Referrer,
 						Expr: v.ReceiverAccess,
