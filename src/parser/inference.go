@@ -578,6 +578,14 @@ func (v *DerefAccessExpr) infer(s *TypeInferer) {
 	if pointerType, ok := v.Expr.GetType().(PointerType); ok {
 		v.Type = pointerType.Addressee
 	}
+
+	if mutRef, ok := v.Expr.GetType().(MutableReferenceType); ok {
+		v.Type = mutRef.Referrer
+	}
+
+	if constRef, ok := v.Expr.GetType().(ConstantReferenceType); ok {
+		v.Type = constRef.Referrer
+	}
 }
 
 func (v *DerefAccessExpr) setTypeHint(t Type) {

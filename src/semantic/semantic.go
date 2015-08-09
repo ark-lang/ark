@@ -61,7 +61,7 @@ func NewSemanticAnalyzer(module *parser.Module, useOwnership bool) *SemanticAnal
 	}
 
 	if useOwnership {
-		fmt.Println("warning: ownership is enabled, things may break")
+		fmt.Println(util.Bold(util.Red("warning:") + " ownership is enabled\n"))
 		res.Checks = append(res.Checks, &BorrowCheck{})
 	}
 

@@ -1,13 +1,17 @@
 [c] func printf(fmt: str, ...) -> int;
 
-func swag(x: &int) {
-    C::printf("swag %d\n", x);
+func change_ref(mut x: &mut int) {
+    // this is a hack to dereference the reference...
+    // eventually you should be able to do ^x
+    // you also wouldn't need to have the parameter
+    // as mutable
+    mut handle: ^int = ^int(&x);
+    ^handle = 21;
 }
 
 func main() -> int {
     mut x: int = 21;
-    swag(&x);
-    C::printf("mutable reference refers to %d\n", x);
-
+    change_ref(&mut x);
+    C::printf("x is %d\n", x);
     return 0;
 }
