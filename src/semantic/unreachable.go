@@ -7,6 +7,7 @@ import (
 type UnreachableCheck struct {
 }
 
+func (v *UnreachableCheck) Init(s *SemanticAnalyzer)       {}
 func (v *UnreachableCheck) EnterScope(s *SemanticAnalyzer) {}
 func (v *UnreachableCheck) ExitScope(s *SemanticAnalyzer)  {}
 

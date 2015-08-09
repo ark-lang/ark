@@ -3,9 +3,13 @@ package semantic
 import (
 	"fmt"
 	"github.com/ark-lang/ark/src/parser"
+	"github.com/ark-lang/ark/src/util"
 )
 
+var lifetimeIndex rune = 'a'
+
 type BorrowCheck struct {
+	lifetimes       map[string]*Lifetime
 	currentLifetime *Lifetime
 }
 
@@ -18,6 +22,8 @@ type Lifetime struct {
 
 	borrowKeys []string
 	borrows    map[string]Borrow
+
+	name string
 }
 
 type Resource struct {
@@ -54,21 +60,40 @@ func (v *BorrowCheck) CheckVariableDecl(s *SemanticAnalyzer, n *parser.VariableD
 
 }
 
-func (v *BorrowCheck) Finalize() {}
+func (v *BorrowCheck) Finalize() {
+
+}
 
 func (v *BorrowCheck) PostVisit(s *SemanticAnalyzer, n parser.Node) {
 
 }
 
 func (v *BorrowCheck) EnterScope(s *SemanticAnalyzer) {
-	v.currentLifetime = &Lifetime{
-		resources: make(map[string]Resource),
-		borrows:   make(map[string]Borrow),
-	}
+
 }
 
 func (v *BorrowCheck) ExitScope(s *SemanticAnalyzer) {
 
+}
+
+func (v *BorrowCheck) createLifetime(s *SemanticAnalyzer) {
+	v.currentLifetime = &Lifetime{
+		resources: make(map[string]Resource),
+		borrows:   make(map[string]Borrow),
+		name:      util.Bold("" + string(lifetimeIndex) + ""),
+	}
+	v.lifetimes[v.currentLifetime.name] = v.currentLifetime
+	lifetimeIndex++
+	fmt.Println("created lifetime for new scope " + v.currentLifetime.name)
+}
+
+func (v *BorrowCheck) destroyLifetime(s *SemanticAnalyzer) {
+	delete(v.lifetimes, v.currentLifetime.name)
+	fmt.Println("cleaning up lifetime " + v.currentLifetime.name)
+}
+
+func (v *BorrowCheck) Init(s *SemanticAnalyzer) {
+	v.lifetimes = make(map[string]*Lifetime)
 }
 
 func (v *BorrowCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
@@ -76,7 +101,10 @@ func (v *BorrowCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
 
 	switch n.(type) {
 	case *parser.FunctionDecl:
+		v.createLifetime(s)
 		v.CheckFunctionDecl(s, n.(*parser.FunctionDecl))
+		v.destroyLifetime(s)
+
 	case *parser.VariableDecl:
 		v.CheckVariableDecl(s, n.(*parser.VariableDecl))
 

@@ -18,6 +18,7 @@ type SemanticAnalyzer struct {
 }
 
 type SemanticCheck interface {
+	Init(s *SemanticAnalyzer)
 	EnterScope(s *SemanticAnalyzer)
 	ExitScope(s *SemanticAnalyzer)
 	Visit(*SemanticAnalyzer, parser.Node)
@@ -65,7 +66,15 @@ func NewSemanticAnalyzer(module *parser.Module, useOwnership bool) *SemanticAnal
 		res.Checks = append(res.Checks, &BorrowCheck{})
 	}
 
+	res.Init()
+
 	return res
+}
+
+func (v *SemanticAnalyzer) Init() {
+	for _, check := range v.Checks {
+		check.Init(v)
+	}
 }
 
 func (v *SemanticAnalyzer) Finalize() {

@@ -8,6 +8,7 @@ import (
 type RecursiveDefinitionCheck struct {
 }
 
+func (v *RecursiveDefinitionCheck) Init(s *SemanticAnalyzer)       {}
 func (v *RecursiveDefinitionCheck) EnterScope(s *SemanticAnalyzer) {}
 func (v *RecursiveDefinitionCheck) ExitScope(s *SemanticAnalyzer)  {}
 
