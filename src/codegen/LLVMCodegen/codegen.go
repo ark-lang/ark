@@ -1182,7 +1182,6 @@ func (v *Codegen) typeToLLVMType(typ parser.Type) llvm.Type {
 	case parser.EnumType:
 		return v.enumTypeToLLVMType(typ.(parser.EnumType))
 	case *parser.NamedType:
-		return v.typeToLLVMType(typ.(*parser.NamedType).Type)
 		nt := typ.(*parser.NamedType)
 		switch nt.Type.(type) {
 		case parser.StructType, parser.EnumType:
