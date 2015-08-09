@@ -12,6 +12,7 @@ func (v *TypeCheck) Function() *parser.Function {
 	return v.function[len(v.function)-1]
 }
 
+func (v *TypeCheck) Init(s *SemanticAnalyzer)       {}
 func (v *TypeCheck) EnterScope(s *SemanticAnalyzer) {}
 func (v *TypeCheck) ExitScope(s *SemanticAnalyzer)  {}
 
