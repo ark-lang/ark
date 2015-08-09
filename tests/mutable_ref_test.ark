@@ -1,9 +1,13 @@
 [c] func printf(fmt: str, ...) -> int;
 
+func swag(x: &int) {
+    C::printf("swag %d\n", x);
+}
+
 func main() -> int {
     mut x: int = 21;
-    y: &mut int = &mut x;
-    x = 32;
-    C::printf("mutable reference refers to %d\n", y);
+    swag(&x);
+    C::printf("mutable reference refers to %d\n", x);
+
     return 0;
 }
