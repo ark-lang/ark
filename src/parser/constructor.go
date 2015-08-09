@@ -423,7 +423,7 @@ func (v *EnumTypeNode) construct(c *Constructor) Type {
 			enumType.Members[idx].Type = structType
 			enumType.Simple = false
 		} else {
-			enumType.Members[idx].Type = PRIMITIVE_void
+			enumType.Members[idx].Type = tupleOf()
 		}
 
 		if mem.Value != nil {
