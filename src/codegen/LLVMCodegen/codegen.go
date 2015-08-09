@@ -622,7 +622,7 @@ func (v *Codegen) genAccessGEP(n parser.Expr) llvm.Value {
 		gep := v.builder.CreateGEP(varType, []llvm.Value{llvm.ConstInt(llvm.Int32Type(), 0, false)}, "")
 
 		// dereference the reference
-		if ref, ok := vae.GetType().(parser.ReferenceType); ok {
+		if _, ok := vae.GetType().(parser.ReferenceType); ok {
 			return v.builder.CreateLoad(gep, "")
 		}
 		return gep

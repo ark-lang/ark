@@ -26,11 +26,11 @@ func main() -> int {
 
     thing.do();
 
-    thingptr := ^Thing(&thing);
+    thingptr: ^Thing = ^Thing(&thing);
     thingptr.dop();
     thingptr.do();
 
-    thingptrptr := ^Thing(&thingptr);
+    thingptrptr: ^Thing = ^Thing(&thingptr);
     thingptrptr.dop();
 
     mut thing2: Thing2;
