@@ -1,3 +1,6 @@
 func main() -> int {
-    return 0;
+    x: int = 0;
+    y: int = x;
+    z: int = y;
+    return z;
 }

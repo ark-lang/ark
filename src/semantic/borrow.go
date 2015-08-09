@@ -27,9 +27,15 @@ type Lifetime struct {
 }
 
 type Resource struct {
+	Name      string
+	Mutable   bool
+	Ownership bool
 }
 
 type Borrow struct {
+	Lifetime *Lifetime
+	Name     string
+	Mutable  bool
 }
 
 func (v *BorrowCheck) CheckAddrofExpr(s *SemanticAnalyzer, n *parser.AddressOfExpr) {
@@ -57,7 +63,17 @@ func (v *BorrowCheck) CheckCallStat(s *SemanticAnalyzer, n *parser.CallStat) {
 }
 
 func (v *BorrowCheck) CheckVariableDecl(s *SemanticAnalyzer, n *parser.VariableDecl) {
+	if _, ok := n.Variable.Type.(*parser.MutableReferenceType); ok {
 
+	} else if _, ok := n.Variable.Type.(*parser.ConstantReferenceType); ok {
+
+	} else {
+		v.currentLifetime.addResource(Resource{
+			Name:      n.Variable.MangledName(parser.MANGLE_ARK_UNSTABLE),
+			Mutable:   n.Variable.Mutable,
+			Ownership: true,
+		})
+	}
 }
 
 func (v *BorrowCheck) Finalize() {
@@ -65,7 +81,10 @@ func (v *BorrowCheck) Finalize() {
 }
 
 func (v *BorrowCheck) PostVisit(s *SemanticAnalyzer, n parser.Node) {
-
+	// destroy the lifetime at the end of its scope.
+	if _, ok := n.(*parser.FunctionDecl); ok {
+		v.destroyLifetime(s)
+	}
 }
 
 func (v *BorrowCheck) EnterScope(s *SemanticAnalyzer) {
@@ -76,18 +95,31 @@ func (v *BorrowCheck) ExitScope(s *SemanticAnalyzer) {
 
 }
 
+func (l *Lifetime) addResource(r Resource) {
+	mangledName := r.Name + "_" + l.name
+	l.resources[mangledName] = r
+	l.resourceKeys = append(l.resourceKeys, mangledName)
+	fmt.Println("added resource " + mangledName + " to lifetime " + l.name)
+}
+
 func (v *BorrowCheck) createLifetime(s *SemanticAnalyzer) {
 	v.currentLifetime = &Lifetime{
 		resources: make(map[string]Resource),
 		borrows:   make(map[string]Borrow),
-		name:      util.Bold("" + string(lifetimeIndex) + ""),
+		name:      util.Bold("'" + string(lifetimeIndex) + ""),
 	}
 	v.lifetimes[v.currentLifetime.name] = v.currentLifetime
 	lifetimeIndex++
-	fmt.Println("created lifetime for new scope " + v.currentLifetime.name)
+	fmt.Println("created lifetime " + v.currentLifetime.name)
 }
 
 func (v *BorrowCheck) destroyLifetime(s *SemanticAnalyzer) {
+	for _, key := range v.currentLifetime.resourceKeys {
+		if res, ok := v.currentLifetime.resources[key]; ok {
+			fmt.Println("removing resource " + res.Name + " from lifetime " + v.currentLifetime.name)
+			delete(v.currentLifetime.resources, key)
+		}
+	}
 	delete(v.lifetimes, v.currentLifetime.name)
 	fmt.Println("cleaning up lifetime " + v.currentLifetime.name)
 }
@@ -97,13 +129,12 @@ func (v *BorrowCheck) Init(s *SemanticAnalyzer) {
 }
 
 func (v *BorrowCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
-	fmt.Printf("")
+	fmt.Printf("") // dummy so I can keep fmt in for now...
 
 	switch n.(type) {
 	case *parser.FunctionDecl:
 		v.createLifetime(s)
 		v.CheckFunctionDecl(s, n.(*parser.FunctionDecl))
-		v.destroyLifetime(s)
 
 	case *parser.VariableDecl:
 		v.CheckVariableDecl(s, n.(*parser.VariableDecl))
