@@ -379,46 +379,46 @@ func (v ArrayType) ActualType() Type {
 	return v
 }
 
-// ReferenceType
+// Constant Reference
 
-type ReferenceType struct {
+type ConstantReferenceType struct {
 	Referrer Type
 }
 
-func referenceTo(t Type) ReferenceType {
-	return ReferenceType{Referrer: t}
+func constantReferenceTo(t Type) ConstantReferenceType {
+	return ConstantReferenceType{Referrer: t}
 }
 
-func (v ReferenceType) TypeName() string {
+func (v ConstantReferenceType) TypeName() string {
 	return "&" + v.Referrer.TypeName()
 }
 
-func (v ReferenceType) LevelsOfIndirection() int {
+func (v ConstantReferenceType) LevelsOfIndirection() int {
 	return v.Referrer.LevelsOfIndirection() + 1
 }
 
-func (v ReferenceType) IsIntegerType() bool {
+func (v ConstantReferenceType) IsIntegerType() bool {
 	return true
 }
 
-func (v ReferenceType) IsFloatingType() bool {
+func (v ConstantReferenceType) IsFloatingType() bool {
 	return false
 }
 
-func (v ReferenceType) CanCastTo(t Type) bool {
+func (v ConstantReferenceType) CanCastTo(t Type) bool {
 	return t.IsIntegerType()
 }
 
-func (v ReferenceType) Attrs() AttrGroup {
+func (v ConstantReferenceType) Attrs() AttrGroup {
 	return nil
 }
 
-func (v ReferenceType) IsSigned() bool {
+func (v ConstantReferenceType) IsSigned() bool {
 	return false
 }
 
-func (v ReferenceType) Equals(t Type) bool {
-	ref, ok := t.(ReferenceType)
+func (v ConstantReferenceType) Equals(t Type) bool {
+	ref, ok := t.(ConstantReferenceType)
 	if ok {
 		return v.Referrer.Equals(ref.Referrer)
 	}
@@ -431,7 +431,62 @@ func (v ReferenceType) Equals(t Type) bool {
 	return false
 }
 
-func (v ReferenceType) ActualType() Type {
+func (v ConstantReferenceType) ActualType() Type {
+	return v
+}
+
+// Mutable Reference
+type MutableReferenceType struct {
+	Referrer Type
+}
+
+func mutableReferenceTo(t Type) MutableReferenceType {
+	return MutableReferenceType{Referrer: t}
+}
+
+func (v MutableReferenceType) TypeName() string {
+	return "&mut " + v.Referrer.TypeName()
+}
+
+func (v MutableReferenceType) LevelsOfIndirection() int {
+	return v.Referrer.LevelsOfIndirection() + 1
+}
+
+func (v MutableReferenceType) IsIntegerType() bool {
+	return true
+}
+
+func (v MutableReferenceType) IsFloatingType() bool {
+	return false
+}
+
+func (v MutableReferenceType) CanCastTo(t Type) bool {
+	return t.IsIntegerType()
+}
+
+func (v MutableReferenceType) Attrs() AttrGroup {
+	return nil
+}
+
+func (v MutableReferenceType) IsSigned() bool {
+	return false
+}
+
+func (v MutableReferenceType) Equals(t Type) bool {
+	ref, ok := t.(MutableReferenceType)
+	if ok {
+		return v.Referrer.Equals(ref.Referrer)
+	}
+
+	ptr, ok := t.(PointerType)
+	if ok {
+		return v.Referrer.Equals(ptr.Addressee)
+	}
+
+	return false
+}
+
+func (v MutableReferenceType) ActualType() Type {
 	return v
 }
 

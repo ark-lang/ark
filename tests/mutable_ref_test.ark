@@ -1,0 +1,9 @@
+[c] func printf(fmt: str, ...) -> int;
+
+func main() -> int {
+    mut x: int = 21;
+    y: &mut int = &mut x;
+    x = 32;
+    C::printf("mutable reference refers to %d\n", y);
+    return 0;
+}

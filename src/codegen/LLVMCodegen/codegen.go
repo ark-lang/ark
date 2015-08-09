@@ -621,10 +621,14 @@ func (v *Codegen) genAccessGEP(n parser.Expr) llvm.Value {
 		varType := v.variableLookup[vae.Variable]
 		gep := v.builder.CreateGEP(varType, []llvm.Value{llvm.ConstInt(llvm.Int32Type(), 0, false)}, "")
 
-		// dereference the reference
-		if _, ok := vae.GetType().(parser.ReferenceType); ok {
+		if _, ok := vae.GetType().(parser.MutableReferenceType); ok {
 			return v.builder.CreateLoad(gep, "")
 		}
+
+		if _, ok := vae.GetType().(parser.ConstantReferenceType); ok {
+			return v.builder.CreateLoad(gep, "")
+		}
+
 		return gep
 
 	case *parser.StructAccessExpr:
@@ -1192,8 +1196,10 @@ func (v *Codegen) typeToLLVMType(typ parser.Type) llvm.Type {
 		default:
 			return v.typeToLLVMType(nt.Type)
 		}
-	case parser.ReferenceType:
-		return llvm.PointerType(v.typeToLLVMType(typ.(parser.ReferenceType).Referrer), 0)
+	case parser.MutableReferenceType:
+		return llvm.PointerType(v.typeToLLVMType(typ.(parser.MutableReferenceType).Referrer), 0)
+	case parser.ConstantReferenceType:
+		return llvm.PointerType(v.typeToLLVMType(typ.(parser.ConstantReferenceType).Referrer), 0)
 	default:
 		log.Debugln("codegen", "Type was %s", typ.TypeName())
 		panic("Unimplemented type category in LLVM codegen")
