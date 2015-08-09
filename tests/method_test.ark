@@ -30,7 +30,7 @@ func main() -> int {
     thingptr.dop();
     thingptr.do();
 
-    thingptrptr: ^Thing = ^Thing(&thingptr);
+    thingptrptr: ^^Thing = ^^Thing(&thingptr);
     thingptrptr.dop();
 
     mut thing2: Thing2;
