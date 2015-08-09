@@ -1,5 +1,5 @@
 [c] func printf(fmt: str, ...) -> int;
-[c] func malloc(size: uint) -> ^void;
+[c] func malloc(size: uint) -> ^u8;
 
 type Option<T> enum {
     None,
