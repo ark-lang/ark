@@ -1,6 +1,6 @@
 [c] func printf(fmt: str, ...) -> int;
-[c] func malloc(size: uint) -> ^void;
-[c] func free(ptr: ^void);
+[c] func malloc(size: uint) -> ^C::void;
+[c] func free(ptr: ^C::void);
 
 type Test struct {
     x: int = 1,

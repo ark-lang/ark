@@ -1234,10 +1234,6 @@ func (v *Codegen) enumTypeToLLVMType(typ parser.EnumType) llvm.Type {
 func (v *Codegen) enumTypeToLLVMTypeFields(typ parser.EnumType) []llvm.Type {
 	longestLength := uint64(0)
 	for _, member := range typ.Members {
-		if member.Type == parser.PRIMITIVE_void {
-			continue
-		}
-
 		memLength := v.targetData.TypeAllocSize(v.typeToLLVMType(member.Type))
 		if memLength > longestLength {
 			longestLength = memLength
@@ -1277,9 +1273,6 @@ func (v *Codegen) primitiveTypeToLLVMType(typ parser.PrimitiveType) llvm.Type {
 		return llvm.IntType(1)
 	case parser.PRIMITIVE_str:
 		return llvm.PointerType(llvm.IntType(8), 0)
-
-	case parser.PRIMITIVE_void:
-		return llvm.VoidType()
 
 	default:
 		panic("Unimplemented primitive type in LLVM codegen")
