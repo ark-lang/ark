@@ -162,6 +162,7 @@ func MapNames(nodes []ParseNode, tree *ParseTree, modules map[string]*ParseTree,
 		}
 		cModule.types["uint"] = NODE_TYPE
 		cModule.types["int"] = NODE_TYPE
+		cModule.types["void"] = NODE_TYPE
 
 		nameMap.types["C"] = NODE_MODULE
 		nameMap.modules["C"] = cModule

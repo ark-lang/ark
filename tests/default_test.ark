@@ -1,6 +1,6 @@
 [c] func printf(fmt: str, ...) -> int;
-[c] func malloc(size: uint) -> ^u8;
-[c] func free(ptr: ^u8);
+[c] func malloc(size: uint) -> ^C::void;
+[c] func free(ptr: ^C::void);
 
 type Test struct {
     x: int = 1,
@@ -24,7 +24,7 @@ func main() -> int {
 	}
 
 	t := ^Test(C::malloc(sizeof(Test)));
-	defer C::free(^u8(t));
+	defer C::free(^C::void(t));
 	default(^t);
 
     C::printf("t.x = %d\n", t.x);

@@ -45,8 +45,6 @@ const (
 	PRIMITIVE_uint
 
 	PRIMITIVE_bool
-
-	PRIMITIVE_void
 )
 
 func (v PrimitiveType) IsIntegerType() bool {

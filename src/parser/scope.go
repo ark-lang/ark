@@ -73,6 +73,7 @@ func NewCScope() *Scope {
 	s := newScope(nil)
 	s.InsertType(&NamedType{Name: "uint", Type: PRIMITIVE_u32})
 	s.InsertType(&NamedType{Name: "int", Type: PRIMITIVE_s32})
+	s.InsertType(&NamedType{Name: "void", Type: PRIMITIVE_u8})
 	return s
 }
 
