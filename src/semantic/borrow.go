@@ -1,6 +1,7 @@
 package semantic
 
 import (
+	"fmt"
 	"github.com/ark-lang/ark/src/parser"
 )
 
@@ -56,15 +57,19 @@ func (v *BorrowCheck) CheckVariableAccessExpr(s *SemanticAnalyzer, n *parser.Var
 	}
 
 	// it's an argument
-	if v.checkingCallExpr && !n.Variable.IsParameter {
+	if v.checkingCallExpr && !n.Variable.IsParameter && v.checkingAddrofExpr == nil {
+		// variable exists in current lifetime
 		if variable, ok := v.currentLifetime.resources[n.Variable.Name+"_VAR"]; ok {
+			// set ownership to false
 			if varResource, ok := variable.(*VariableResource); ok {
-				if varResource.HasOwnership(v) {
+				if !varResource.HasOwnership(v) {
 					s.Err(n, "use of moved value %s", n.Variable.Name)
 				}
 				varResource.Owned = false
 			}
 		}
+
+		// parameter has ownership
 		v.currentLifetime.resources[n.Variable.Name+"_ARG"] = &ParameterResource{
 			Variable: n.Variable,
 			Owned:    true,
@@ -134,6 +139,8 @@ func (v *BorrowCheck) ExitScope(s *SemanticAnalyzer) {
 }
 
 func (v *BorrowCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
+	fmt.Printf("")
+
 	switch n.(type) {
 	case *parser.FunctionDecl:
 		v.CheckFunctionDecl(s, n.(*parser.FunctionDecl))
