@@ -17,6 +17,7 @@ func (v *DeprecatedCheck) WarnDeprecated(s *SemanticAnalyzer, thing parser.Locat
 	}
 }
 
+func (v *DeprecatedCheck) Init(s *SemanticAnalyzer)       {}
 func (v *DeprecatedCheck) EnterScope(s *SemanticAnalyzer) {}
 func (v *DeprecatedCheck) ExitScope(s *SemanticAnalyzer)  {}
 

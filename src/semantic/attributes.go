@@ -7,6 +7,7 @@ import (
 type AttributeCheck struct {
 }
 
+func (v *AttributeCheck) Init(s *SemanticAnalyzer)       {}
 func (v *AttributeCheck) EnterScope(s *SemanticAnalyzer) {}
 func (v *AttributeCheck) ExitScope(s *SemanticAnalyzer)  {}
 
