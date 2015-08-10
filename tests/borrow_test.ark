@@ -1,0 +1,7 @@
+[c] func printf(fmt: str, ...) -> int;
+
+func main() -> int {
+    x: int = 10;
+    y: &int = &x;
+    return 0;
+}
