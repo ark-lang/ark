@@ -63,10 +63,18 @@ func (v *BorrowCheck) CheckCallStat(s *SemanticAnalyzer, n *parser.CallStat) {
 }
 
 func (v *BorrowCheck) CheckVariableDecl(s *SemanticAnalyzer, n *parser.VariableDecl) {
-	if _, ok := n.Variable.Type.(*parser.MutableReferenceType); ok {
-
-	} else if _, ok := n.Variable.Type.(*parser.ConstantReferenceType); ok {
-
+	if _, ok := n.Variable.Type.(parser.MutableReferenceType); ok {
+		v.currentLifetime.addBorrow(Borrow{
+			Name:     n.Variable.MangledName(parser.MANGLE_ARK_UNSTABLE),
+			Mutable:  true,
+			Lifetime: v.currentLifetime,
+		})
+	} else if _, ok := n.Variable.Type.(parser.ConstantReferenceType); ok {
+		v.currentLifetime.addBorrow(Borrow{
+			Name:     n.Variable.MangledName(parser.MANGLE_ARK_UNSTABLE),
+			Mutable:  false,
+			Lifetime: v.currentLifetime,
+		})
 	} else {
 		v.currentLifetime.addResource(Resource{
 			Name:      n.Variable.MangledName(parser.MANGLE_ARK_UNSTABLE),
@@ -95,10 +103,19 @@ func (v *BorrowCheck) ExitScope(s *SemanticAnalyzer) {
 
 }
 
+func (l *Lifetime) addBorrow(b Borrow) {
+	mangledName := b.Name + "_" + l.name
+	l.borrows[mangledName] = b
+	l.borrowKeys = append(l.borrowKeys, mangledName)
+	b.Name = mangledName
+	fmt.Println("added borrow " + mangledName + " to lifetime " + l.name)
+}
+
 func (l *Lifetime) addResource(r Resource) {
 	mangledName := r.Name + "_" + l.name
 	l.resources[mangledName] = r
 	l.resourceKeys = append(l.resourceKeys, mangledName)
+	r.Name = mangledName
 	fmt.Println("added resource " + mangledName + " to lifetime " + l.name)
 }
 
@@ -121,7 +138,7 @@ func (v *BorrowCheck) destroyLifetime(s *SemanticAnalyzer) {
 		}
 	}
 	delete(v.lifetimes, v.currentLifetime.name)
-	fmt.Println("cleaning up lifetime " + v.currentLifetime.name)
+	fmt.Println("cleaning up lifetime " + v.currentLifetime.name + "\n")
 }
 
 func (v *BorrowCheck) Init(s *SemanticAnalyzer) {
