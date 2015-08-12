@@ -104,27 +104,28 @@ func (v *NameMap) Module(name LocatedString) *NameMap {
 }
 
 func (v *NameMap) TypeOfNameNode(name *NameNode) NodeType {
-	mod := v
-	typ := NODE_MODULE
+	mod, typ := v, NODE_MODULE
+
+	var modName LocatedString
 	for _, modName := range name.Modules {
-		if typ == NODE_MODULE && mod.typeOf(modName) == NODE_MODULE {
+		typ = mod.typeOf(modName)
+		if typ == NODE_MODULE {
 			mod = mod.Module(modName)
-			if mod == nil {
-				return NODE_UNKNOWN
-			}
 		} else {
-			startPos := modName.Where.Start()
-			log.Errorln("constructor", "[%s:%d:%d] Invalid use of `::`. `%s` is not a module. Was %s",
-				startPos.Filename, startPos.Line, startPos.Char, modName.Value, mod.typeOf(modName))
-			log.Error("constructor", v.tree.Source.MarkSpan(modName.Where))
-			return NODE_UNKNOWN
+			break
 		}
 	}
 
+	log.Debugln("main", "Type of node: %s", typ)
 	if typ == NODE_ENUM {
 		return NODE_ENUM_MEMBER
 	} else if typ == NODE_STRUCT {
 		return NODE_STRUCT_STATIC
+	} else if typ != NODE_MODULE {
+		log.Errorln("constructor", "[%s:%d:%d] Invalid use of `::`. `%s` is not a module. Was %s",
+			modName.Where.Filename, modName.Where.StartLine, modName.Where.StartChar, modName.Value, mod.typeOf(modName))
+		log.Error("constructor", v.tree.Source.MarkSpan(modName.Where))
+		return NODE_UNKNOWN
 	}
 
 	typ = mod.typeOf(name.Name)
