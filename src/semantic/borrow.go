@@ -1,5 +1,12 @@
 package semantic
 
+/**
+
+	This is the semantic check for the borrow checker,
+	_and_ the move semantics.
+
+**/
+
 import (
 	"fmt"
 	"github.com/ark-lang/ark/src/parser"
@@ -17,6 +24,8 @@ type Lifetime struct {
 	// it's important that the hashmap can be iterated
 	// in the correct order, so we add the hashmap keys
 	// here and iterate over this instead.
+	Outer *Lifetime
+
 	resourceKeys []string
 	resources    map[string]Resource
 
@@ -89,8 +98,12 @@ func (v *BorrowCheck) Finalize() {
 }
 
 func (v *BorrowCheck) PostVisit(s *SemanticAnalyzer, n parser.Node) {
-	// destroy the lifetime at the end of its scope.
+	// cleanup lifetimes
 	if _, ok := n.(*parser.FunctionDecl); ok {
+		v.destroyLifetime(s)
+	}
+
+	if _, ok := n.(*parser.BlockStat); ok {
 		v.destroyLifetime(s)
 	}
 }
@@ -120,14 +133,16 @@ func (l *Lifetime) addResource(r Resource) {
 }
 
 func (v *BorrowCheck) createLifetime(s *SemanticAnalyzer) {
+	temp := v.currentLifetime
 	v.currentLifetime = &Lifetime{
 		resources: make(map[string]Resource),
 		borrows:   make(map[string]Borrow),
 		name:      util.Bold("'" + string(lifetimeIndex) + ""),
+		Outer:     temp,
 	}
 	v.lifetimes[v.currentLifetime.name] = v.currentLifetime
 	lifetimeIndex++
-	fmt.Println("created lifetime " + v.currentLifetime.name)
+	fmt.Println("\ncreated lifetime " + v.currentLifetime.name)
 }
 
 func (v *BorrowCheck) destroyLifetime(s *SemanticAnalyzer) {
@@ -152,6 +167,9 @@ func (v *BorrowCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
 	case *parser.FunctionDecl:
 		v.createLifetime(s)
 		v.CheckFunctionDecl(s, n.(*parser.FunctionDecl))
+
+	case *parser.BlockStat:
+		v.createLifetime(s)
 
 	case *parser.VariableDecl:
 		v.CheckVariableDecl(s, n.(*parser.VariableDecl))

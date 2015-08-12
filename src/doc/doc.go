@@ -36,7 +36,8 @@ func (v *Docgen) Generate() {
 func (v *Docgen) traverse() {
 	for _, file := range v.Input {
 		v.curOutput = &File{
-			Name: file.Name,
+			// XXX: This might cause problems on windows (`:` not allowed in file names)
+			Name: file.Name.String(),
 		}
 
 		for _, n := range file.Nodes {
