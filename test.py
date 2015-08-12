@@ -90,10 +90,10 @@ for directory, filelist in dirs:
 		if show_output:
 			print(bold("Compiling ") + name + "...")
 
-		cmd = ["ark", "build"]
+		cmd = ["ark", "build", "-b", directory]
 		if be_verbose:
 			cmd.append("-v")
-		cmd.extend([os.path.join(directory, name), "-o", "tests/"+output_file])
+		cmd.extend([name.replace(".ark", ""), "-o", "tests/"+output_file])
 
 		if show_output:
 			compile_result = subprocess.call(cmd)
