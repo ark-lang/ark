@@ -1,6 +1,9 @@
 package parser
 
-import "fmt"
+import (
+	"bytes"
+	"fmt"
+)
 
 // In case we support multiple name mangling schemes
 type MangleType int
@@ -65,11 +68,14 @@ func TypeMangledName(mangleType MangleType, typ Type) string {
 func (v *Module) MangledName(typ MangleType) string {
 	switch typ {
 	case MANGLE_ARK_UNSTABLE:
-		result := fmt.Sprintf("_M%d%s", len(v.Name), v.Name)
+		buf := new(bytes.Buffer)
+		for _, mod := range v.Name.Parts {
+			buf.WriteString("_M")
+			buf.WriteString(fmt.Sprintf("%d", len(mod)))
+			buf.WriteString(mod)
+		}
 
-		// TODO parent module
-
-		return result
+		return buf.String()
 	default:
 		panic("")
 	}

@@ -23,12 +23,11 @@ type ConstructableExpr interface {
 }
 
 type Constructor struct {
-	tree      *ParseTree
-	treeFiles map[string]*ParseTree
-	module    *Module
-	modules   map[string]*Module
-	scope     *Scope
-	nameMap   *NameMap
+	tree    *ParseTree
+	module  *Module
+	modules *ModuleLookup
+	scope   *Scope
+	nameMap *NameMap
 }
 
 func (v *Constructor) err(pos lexer.Span, err string, stuff ...interface{}) {
@@ -68,34 +67,33 @@ func (v *Constructor) popScope() {
 	}
 }
 
-func (v *Constructor) useModule(name string) {
+func (v *Constructor) useModule(name *ModuleName) {
 	// check if the module exists in the modules that are
 	// parsed to avoid any weird errors
-	if moduleToUse, ok := v.modules[name]; ok {
+	if moduleToUse, err := v.modules.Get(name); err == nil {
 		if v.scope.Outer != nil {
-			v.scope.Outer.UsedModules[name] = moduleToUse
+			v.scope.Outer.UsedModules[name.Last()] = moduleToUse
 		} else {
-			v.scope.UsedModules[name] = moduleToUse
+			v.scope.UsedModules[name.Last()] = moduleToUse
 		}
 	}
 }
 
-func Construct(tree *ParseTree, treeFiles map[string]*ParseTree, modules map[string]*Module) *Module {
+func Construct(tree *ParseTree, modules *ModuleLookup) *Module {
 	c := &Constructor{
-		tree:      tree,
-		treeFiles: treeFiles,
+		tree: tree,
 		module: &Module{
 			Nodes: make([]Node, 0),
 			File:  tree.Source,
 			Path:  tree.Source.Path,
-			Name:  tree.Source.Name,
+			Name:  tree.Name,
 		},
 		scope:   NewGlobalScope(),
-		nameMap: MapNames(tree.Nodes, tree, treeFiles, nil),
+		nameMap: MapNames(tree.Nodes, tree, modules, nil),
 	}
 	c.module.GlobalScope = c.scope
 	c.modules = modules
-	modules[tree.Source.Name] = c.module
+	modules.Create(tree.Name).Module = c.module
 
 	// add a C module here which will contain
 	// all of the c bindings and what not to
@@ -103,10 +101,14 @@ func Construct(tree *ParseTree, treeFiles map[string]*ParseTree, modules map[str
 	cModule := &Module{
 		Nodes:       make([]Node, 0),
 		Path:        "", // not really a path for this module
-		Name:        "C",
+		Name:        &ModuleName{Parts: []string{"C"}},
 		GlobalScope: NewCScope(),
 	}
-	c.module.GlobalScope.UsedModules["C"] = cModule
+	c.module.GlobalScope.UsedModules["C"] = &ModuleLookup{
+		Name:     "C",
+		Module:   cModule,
+		Children: make(map[string]*ModuleLookup),
+	}
 
 	log.Timed("constructing", tree.Source.Name, func() {
 		c.construct()
@@ -239,7 +241,7 @@ func (v *TypeDeclNode) construct(c *Constructor) Node {
 		}
 	}
 
-	c.nameMap = MapNames(paramNodes, c.tree, c.treeFiles, c.nameMap)
+	c.nameMap = MapNames(paramNodes, c.tree, c.modules, c.nameMap)
 	namedType := &NamedType{
 		Name:         v.Name.Value,
 		Type:         c.constructType(v.Type),
@@ -276,7 +278,7 @@ func (v *UseDeclNode) construct(c *Constructor) Node {
 	res := &UseDecl{}
 	res.ModuleName = v.Module.Name.Value
 	res.Scope = c.scope
-	c.useModule(res.ModuleName)
+	c.useModule(NewModuleName(v.Module))
 	res.setPos(v.Where().Start())
 	return res
 }
@@ -359,7 +361,7 @@ func (v *FunctionDeclNode) construct(c *Constructor) Node {
 	if v.Header.IsMethod && !v.Header.IsStatic {
 		nameMapArgs = append(arguments, v.Header.Receiver)
 	}
-	c.nameMap = MapNames(nameMapArgs, c.tree, c.treeFiles, c.nameMap)
+	c.nameMap = MapNames(nameMapArgs, c.tree, c.modules, c.nameMap)
 
 	if v.Header.ReturnType != nil {
 		function.ReturnType = c.constructType(v.Header.ReturnType)
@@ -383,7 +385,7 @@ func (v *FunctionDeclNode) construct(c *Constructor) Node {
 		scopeToInsertTo := c.scope
 		if function.Attrs.Contains("c") {
 			if mod, ok := c.module.GlobalScope.UsedModules["C"]; ok {
-				scopeToInsertTo = mod.GlobalScope
+				scopeToInsertTo = mod.Module.GlobalScope
 			} else {
 				panic("Could not find C module to insert C binding into")
 			}
@@ -561,7 +563,7 @@ func (v *BlockStatNode) construct(c *Constructor) Node {
 }
 
 func (v *BlockNode) construct(c *Constructor) Node {
-	c.nameMap = MapNames(v.Nodes, c.tree, c.treeFiles, c.nameMap)
+	c.nameMap = MapNames(v.Nodes, c.tree, c.modules, c.nameMap)
 
 	res := &Block{}
 	res.scope = c.scope
