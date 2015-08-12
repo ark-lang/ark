@@ -16,11 +16,9 @@ import (
 // Expr(s) then return.
 
 type TypeInferer struct {
-	Module          *Module
-	function        *Function // the function we're in, or nil if we aren't
-	unresolvedNodes []Node
-	modules         map[string]*Module
-	shouldExit      bool
+	Module     *Module
+	function   *Function // the function we're in, or nil if we aren't
+	shouldExit bool
 }
 
 func (v *TypeInferer) err(thing Locatable, err string, stuff ...interface{}) {
@@ -43,8 +41,7 @@ func (v *TypeInferer) warn(thing Locatable, err string, stuff ...interface{}) {
 	log.Warning("semantic", v.Module.File.MarkPos(pos))
 }
 
-func (v *TypeInferer) Infer(modules map[string]*Module) {
-	v.modules = modules
+func (v *TypeInferer) Infer() {
 	v.shouldExit = false
 
 	for _, node := range v.Module.Nodes {
