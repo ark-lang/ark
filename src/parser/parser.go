@@ -25,9 +25,10 @@ type parser struct {
 	binOpPrecedences  map[BinOpType]int
 	curNodeTokenStart int
 	ruleStack         []string
+	deps              []*NameNode
 }
 
-func Parse(input *lexer.Sourcefile) *ParseTree {
+func Parse(input *lexer.Sourcefile) (*ParseTree, []*NameNode) {
 	p := &parser{
 		input:            input,
 		binOpPrecedences: newBinOpPrecedenceMap(),
@@ -38,7 +39,7 @@ func Parse(input *lexer.Sourcefile) *ParseTree {
 		p.parse()
 	})
 
-	return p.tree
+	return p.tree, p.deps
 }
 
 func (v *parser) err(err string, stuff ...interface{}) {
@@ -310,6 +311,9 @@ func (v *parser) parseUseDecl() *UseDeclNode {
 	}
 
 	endToken := v.expect(lexer.TOKEN_SEPARATOR, ";")
+
+	// Store dependency
+	v.deps = append(v.deps, module)
 
 	res := &UseDeclNode{Module: module}
 	res.SetWhere(lexer.NewSpanFromTokens(startToken, endToken))
