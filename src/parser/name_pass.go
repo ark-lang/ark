@@ -11,7 +11,7 @@ import (
 type NodeType int
 
 const (
-	NODE_UNKOWN NodeType = iota
+	NODE_UNKNOWN NodeType = iota
 	NODE_PRIMITIVE
 	NODE_FUNCTION
 	NODE_ENUM
@@ -54,7 +54,7 @@ func (v NodeType) String() string {
 		return "module"
 
 	default:
-		return "unkown"
+		return "unknown"
 	}
 }
 
@@ -75,7 +75,7 @@ func (v *NameMap) typeOf(name LocatedString) NodeType {
 
 func (v *NameMap) TypeOf(name LocatedString) NodeType {
 	typ := v.typeOf(name)
-	if typ == NODE_UNKOWN {
+	if typ == NODE_UNKNOWN {
 		startPos := name.Where.Start()
 		log.Errorln("constructor", "[%s:%d:%d] Undeclared name `%s`",
 			startPos.Filename, startPos.Line, startPos.Char, name.Value)
@@ -107,19 +107,17 @@ func (v *NameMap) TypeOfNameNode(name *NameNode) NodeType {
 	mod := v
 	typ := NODE_MODULE
 	for _, modName := range name.Modules {
-		if typ == NODE_MODULE {
-			typ = mod.typeOf(modName)
-			if typ == NODE_MODULE {
-				mod = mod.module(modName)
-				if mod == nil {
-					return NODE_UNKOWN
-				}
+		if typ == NODE_MODULE && mod.typeOf(modName) == NODE_MODULE {
+			mod = mod.Module(modName)
+			if mod == nil {
+				return NODE_UNKNOWN
 			}
 		} else {
 			startPos := modName.Where.Start()
-			log.Errorln("constructor", "[%s:%d:%d] Invalid use of `::`. `%s` is not a module",
-				startPos.Filename, startPos.Line, startPos.Char, modName.Value)
+			log.Errorln("constructor", "[%s:%d:%d] Invalid use of `::`. `%s` is not a module. Was %s",
+				startPos.Filename, startPos.Line, startPos.Char, modName.Value, mod.typeOf(modName))
 			log.Error("constructor", v.tree.Source.MarkSpan(modName.Where))
+			return NODE_UNKNOWN
 		}
 	}
 
@@ -130,7 +128,7 @@ func (v *NameMap) TypeOfNameNode(name *NameNode) NodeType {
 	}
 
 	typ = mod.typeOf(name.Name)
-	if typ == NODE_UNKOWN {
+	if typ == NODE_UNKNOWN {
 		startPos := name.Name.Where.Start()
 		log.Errorln("constructor", "[%s:%d:%d] Undeclared name `%s`",
 			startPos.Filename, startPos.Line, startPos.Char, name.Name.Value)
@@ -139,7 +137,39 @@ func (v *NameMap) TypeOfNameNode(name *NameNode) NodeType {
 	return typ
 }
 
-func MapNames(nodes []ParseNode, tree *ParseTree, modules map[string]*ParseTree, parent *NameMap) *NameMap {
+func (v *NameMap) mapModule(module *ModuleLookup, modules *ModuleLookup) {
+	v.types[module.Name] = NODE_MODULE
+
+	var nameMap *NameMap
+	if v.modules[module.Name] == nil && module.Tree != nil {
+		nameMap = MapNames(module.Tree.Nodes, module.Tree, modules, nil)
+	} else {
+		nameMap = &NameMap{
+			types:   make(map[string]NodeType),
+			modules: make(map[string]*NameMap),
+		}
+	}
+	v.modules[module.Name] = nameMap
+
+	for _, child := range module.Children {
+		nameMap.mapModule(child, modules)
+	}
+}
+
+func (v *NameMap) MapModule(tree *ParseTree, pos lexer.Span, modname *ModuleName, modules *ModuleLookup) bool {
+	mod, err := modules.Get(modname)
+	if err != nil {
+		log.Errorln("constructor", "[%s:%d:%d] Unknown module `%s`",
+			tree.Source.Path, pos.StartLine, pos.StartChar, modname.String())
+		log.Error("constructor", v.tree.Source.MarkSpan(pos))
+		return true
+	}
+
+	v.mapModule(mod, modules)
+	return false
+}
+
+func MapNames(nodes []ParseNode, tree *ParseTree, modules *ModuleLookup, parent *NameMap) *NameMap {
 	nameMap := &NameMap{}
 	nameMap.parent = parent
 	nameMap.tree = tree
@@ -224,35 +254,11 @@ func MapNames(nodes []ParseNode, tree *ParseTree, modules map[string]*ParseTree,
 		case *UseDeclNode:
 			udn := node.(*UseDeclNode)
 
-			baseModuleName := udn.Module.Name
-			if len(udn.Module.Modules) > 0 {
-				baseModuleName = udn.Module.Modules[0]
-			}
+			modname := NewModuleName(udn.Module)
+			nameMap.MapModule(tree, udn.Module.Where(), modname, modules)
 
-			mod, ok := modules[baseModuleName.Value]
-			if !ok {
-				startPos := baseModuleName.Where.Start()
-				log.Errorln("constructor", "[%s:%d:%d] Unknown module `%s`",
-					tree.Source.Path, startPos.Line, startPos.Char, baseModuleName.Value)
-				log.Error("constructor", tree.Source.MarkSpan(baseModuleName.Where))
-				shouldExit = true
-			}
-			nameMap.modules[baseModuleName.Value] = MapNames(mod.Nodes, mod, modules, nil)
-
-			modNameMap := nameMap.modules[baseModuleName.Value]
-			for _, mod := range udn.Module.Modules {
-				nextMap, ok := modNameMap.modules[mod.Value]
-				if !ok {
-					startPos := mod.Where.Start()
-					log.Errorln("constructor", "[%s:%d:%d] Unknown module `%s`",
-						tree.Source.Path, startPos.Line, startPos.Char, mod.Value)
-					log.Error("constructor", tree.Source.MarkSpan(mod.Where))
-					shouldExit = true
-					break
-				}
-				modNameMap = nextMap
-			}
-			name, typ = udn.Module.Name, NODE_MODULE
+			continue
+			//name, typ = udn.Module.Name, NODE_MODULE
 
 		default:
 			continue

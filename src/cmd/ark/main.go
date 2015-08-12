@@ -2,8 +2,11 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/exec"
+	"path/filepath"
+	"strings"
 	"time"
 
 	"gopkg.in/alecthomas/kingpin.v2"
@@ -72,47 +75,116 @@ func setupErr(err string, stuff ...interface{}) {
 	os.Exit(util.EXIT_FAILURE_SETUP)
 }
 
-func parseFiles(files []string) ([]*parser.Module, map[string]*parser.Module) {
-	// read source files
-	var sourcefiles []*lexer.Sourcefile
-	log.Timed("reading sourcefiles", "", func() {
-		for _, file := range files {
-			sourcefile, err := lexer.NewSourcefile(file)
+func parseFiles(inputs []string) ([]*parser.Module, *parser.ModuleLookup) {
+	_ = ioutil.NopCloser
+	_ = filepath.Split
+	_ = lexer.NewSpan
+
+	var modulesToRead []*parser.ModuleName
+	for _, input := range inputs {
+		if strings.ContainsAny(input, `\/.`) {
+			setupErr("Invalid module name: %s", input)
+		}
+
+		parts := strings.Split(input, "::")
+		modname := &parser.ModuleName{Parts: parts}
+		modulesToRead = append(modulesToRead, modname)
+	}
+
+	var parsedFiles []*parser.ParseTree
+	moduleLookup := parser.NewModuleLookup("")
+
+	log.Timed("read/lex/parse phase", "", func() {
+		for i := 0; i < len(modulesToRead); i++ {
+			modname := modulesToRead[i]
+			actualFile := filepath.Join(*buildBasedir, modname.ToPath())
+
+			var fi os.FileInfo
+			var err error
+			shouldBeDir := false
+
+			fi, err = os.Stat(actualFile + ".ark")
+			if os.IsNotExist(err) {
+				fi, err = os.Stat(actualFile)
+				shouldBeDir = true
+			}
+
 			if err != nil {
 				setupErr("%s", err.Error())
 			}
-			sourcefiles = append(sourcefiles, sourcefile)
-		}
-	})
 
-	// lexing
-	log.Timed("lexing phase", "", func() {
-		for _, file := range sourcefiles {
-			file.Tokens = lexer.Lex(file)
-		}
-	})
+			if !fi.IsDir() && shouldBeDir {
+				setupErr("Expected file `%s` to be directory, was file.", actualFile)
+			}
 
-	// parsing
-	var parsedFiles []*parser.ParseTree
-	parsedFileMap := make(map[string]*parser.ParseTree)
-	log.Timed("parsing phase", "", func() {
-		for _, file := range sourcefiles {
-			parsedFile := parser.Parse(file)
-			parsedFiles = append(parsedFiles, parsedFile)
-			parsedFileMap[parsedFile.Source.Name] = parsedFile
+			// Check lookup
+			ll := moduleLookup.Create(modname)
+			if ll.Tree == nil {
+				if shouldBeDir {
+					// Setup dummy parse tree
+					ll.Tree = &parser.ParseTree{}
+					ll.Tree.Name = modname
+
+					// Setup dummy module
+					ll.Module = &parser.Module{}
+					ll.Module.Path = actualFile
+					ll.Module.Name = modname
+					ll.Module.GlobalScope = parser.NewGlobalScope()
+
+					// Check module children
+					childFiles, err := ioutil.ReadDir(actualFile)
+					if err != nil {
+						setupErr("%s", err.Error())
+					}
+
+					for _, childFile := range childFiles {
+						if strings.HasPrefix(childFile.Name(), ".") {
+							continue
+						}
+
+						if childFile.IsDir() || strings.HasSuffix(childFile.Name(), ".ark") {
+							childmodname := parser.JoinModuleName(modname, strings.TrimSuffix(childFile.Name(), ".ark"))
+							modulesToRead = append(modulesToRead, childmodname)
+
+							ll.Module.GlobalScope.UsedModules[childmodname.Last()] = moduleLookup.Create(childmodname)
+						}
+					}
+				} else {
+					// Read
+					sourcefile, err := lexer.NewSourcefile(actualFile + ".ark")
+					if err != nil {
+						setupErr("%s", err.Error())
+					}
+
+					// Lex
+					sourcefile.Tokens = lexer.Lex(sourcefile)
+
+					// Parse
+					parsedFile, deps := parser.Parse(sourcefile)
+					parsedFile.Name = modname
+
+					parsedFiles = append(parsedFiles, parsedFile)
+					ll.Tree = parsedFile
+
+					// Add dependencies to parse array
+					for _, dep := range deps {
+						modname := parser.NewModuleName(dep)
+						modulesToRead = append(modulesToRead, modname)
+					}
+				}
+			}
 		}
 	})
 
 	// construction
 	var constructedModules []*parser.Module
-	modules := make(map[string]*parser.Module)
 	log.Timed("construction phase", "", func() {
 		for _, file := range parsedFiles {
-			constructedModules = append(constructedModules, parser.Construct(file, parsedFileMap, modules))
+			constructedModules = append(constructedModules, parser.Construct(file, moduleLookup))
 		}
 	})
 
-	return constructedModules, modules
+	return constructedModules, moduleLookup
 }
 
 func build(files []string, outputFile string, cg string, ccArgs []string, outputType LLVMCodegen.OutputType, optLevel int) {
@@ -120,8 +192,7 @@ func build(files []string, outputFile string, cg string, ccArgs []string, output
 
 	// resolve
 	log.Timed("resolve phase", "", func() {
-		// TODO: We're looping over a map, the order we get is thus random
-		for _, module := range modules {
+		for _, module := range constructedModules {
 			res := &parser.Resolver{Module: module}
 			vis := parser.NewASTVisitor(res)
 			vis.VisitModule(module)
@@ -130,23 +201,22 @@ func build(files []string, outputFile string, cg string, ccArgs []string, output
 
 	// type inference
 	log.Timed("inference phase", "", func() {
-		// TODO: We're looping over a map, the order we get is thus random
-		for _, module := range modules {
+		for _, module := range constructedModules {
 			inf := &parser.TypeInferer{Module: module}
-			inf.Infer(modules)
+			inf.Infer()
 
 			// Dump AST
 			log.Debugln("main", "AST of module `%s`:", module.Name)
 			for _, node := range module.Nodes {
 				log.Debugln("main", "%s", node.String())
 			}
+			log.Debugln("main", "")
 		}
 	})
 
 	// semantic analysis
 	log.Timed("semantic analysis phase", "", func() {
-		// TODO: We're looping over a map, the order we get is thus random
-		for _, module := range modules {
+		for _, module := range constructedModules {
 			sem := semantic.NewSemanticAnalyzer(module, *buildOwnership)
 			vis := parser.NewASTVisitor(sem)
 			vis.VisitModule(module)

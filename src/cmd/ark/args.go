@@ -29,6 +29,7 @@ var (
 
 	buildCom        = app.Command("build", "Build an executable.")
 	buildOutput     = buildCom.Flag("output", "Output binary name.").Short('o').Default("main").String()
+	buildBasedir    = buildCom.Flag("basedir", "Base directory of source files").Short('b').Default(".").String()
 	buildInputs     = newInputList(buildCom.Arg("input", "Ark source files."))
 	buildCodegen    = buildCom.Flag("codegen", "Codegen backend to use").Default("llvm").Enum("none", "llvm")
 	buildStatic     = buildCom.Flag("static", "Pass the -static option to cc.").Bool()
