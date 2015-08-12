@@ -23,7 +23,7 @@ const (
 )
 
 func (v *Codegen) createBitcode(file *parser.Module) string {
-	filename := v.OutputName + "-" + file.Name + ".bc"
+	filename := v.OutputName + "-" + file.Name.String() + ".bc"
 
 	fileHandle, err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
 	if err != nil {
@@ -32,7 +32,7 @@ func (v *Codegen) createBitcode(file *parser.Module) string {
 	defer fileHandle.Close()
 
 	if err := llvm.WriteBitcodeToFile(file.Module, fileHandle); err != nil {
-		v.err("failed to write bitcode to file for "+file.Name+": `%s`", err.Error())
+		v.err("failed to write bitcode to file for "+file.Name.String()+": `%s`", err.Error())
 	}
 
 	return filename
@@ -99,7 +99,7 @@ func (v *Codegen) createBinary() {
 
 	if v.OutputType == OUTPUT_LLVM_IR {
 		for _, file := range v.input {
-			log.Timed("creating ir", file.Name, func() {
+			log.Timed("creating ir", file.Name.String(), func() {
 				v.createIR(file)
 			})
 		}
@@ -111,7 +111,7 @@ func (v *Codegen) createBinary() {
 	bitcodeFiles := []string{}
 
 	for _, file := range v.input {
-		log.Timed("creating bitcode", file.Name, func() {
+		log.Timed("creating bitcode", file.Name.String(), func() {
 			bitcodeFiles = append(bitcodeFiles, v.createBitcode(file))
 		})
 	}

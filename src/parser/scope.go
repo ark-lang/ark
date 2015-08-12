@@ -42,14 +42,14 @@ type Scope struct {
 	Outer  *Scope
 	Idents map[string]*Ident
 
-	UsedModules map[string]*Module
+	UsedModules map[string]*ModuleLookup
 }
 
 func newScope(outer *Scope) *Scope {
 	return &Scope{
 		Outer:       outer,
 		Idents:      make(map[string]*Ident),
-		UsedModules: make(map[string]*Module),
+		UsedModules: make(map[string]*ModuleLookup),
 	}
 }
 
@@ -109,29 +109,26 @@ func (v *Scope) InsertFunction(t *Function) *Ident {
 }
 
 func (v *Scope) GetIdent(name unresolvedName) *Ident {
-	if len(name.moduleNames) > 0 {
-		moduleName := name.moduleNames[0]
+	scope := v
 
-		if module, ok := v.UsedModules[moduleName]; ok {
-			if r := module.GlobalScope.Idents[name.name]; r != nil {
-				return r
-			} else {
-				v.err("could not find identifier `%s` in module `%s`", name.name, moduleName)
-			}
-		} else if v.Outer != nil {
-			if module, ok := v.Outer.UsedModules[moduleName]; ok {
-				if r := module.GlobalScope.Idents[name.name]; r != nil {
-					return r
-				} else {
-					v.err("could not find identifier `%s` in module `%s`", name.name, moduleName)
-				}
+	for idx, modname := range name.moduleNames {
+		if module, ok := scope.UsedModules[modname]; ok {
+			scope = module.Module.GlobalScope
+		} else if scope.Outer != nil {
+			if module, ok := scope.Outer.UsedModules[modname]; ok {
+				scope = module.Module.GlobalScope
 			}
 		} else {
-			v.err("could not find `" + moduleName + "`, are you sure it's being used in this module?\n\n    `use " + moduleName + ";`\n")
+			if idx == 0 {
+				v.err("could not find `" + modname + "`, are you sure it's being used in this module?\n\n    `use " + modname + ";`\n")
+			} else {
+				// TODO: Better
+				v.err("could not find `" + modname + "`, are you sure it's being used in this module?\n")
+			}
 		}
 	}
 
-	if r := v.Idents[name.name]; r != nil {
+	if r := scope.Idents[name.name]; r != nil {
 		return r
 	} else if v.Outer != nil {
 		return v.Outer.GetIdent(name)
