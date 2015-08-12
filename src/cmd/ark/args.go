@@ -29,11 +29,12 @@ var (
 
 	buildCom        = app.Command("build", "Build an executable.")
 	buildOutput     = buildCom.Flag("output", "Output binary name.").Short('o').Default("main").String()
+	buildBasedir    = buildCom.Flag("basedir", "Base directory of source files").Short('b').Default(".").String()
 	buildInputs     = newInputList(buildCom.Arg("input", "Ark source files."))
 	buildCodegen    = buildCom.Flag("codegen", "Codegen backend to use").Default("llvm").Enum("none", "llvm")
 	buildStatic     = buildCom.Flag("static", "Pass the -static option to cc.").Bool()
 	buildRun        = buildCom.Flag("run", "Run the executable.").Bool()
-	buildOutputType = buildCom.Flag("output-type", "Codegen backend to use").Default("executable").Enum("executable", "assembly", "object", "llvm-ir", "llvm-bc")
+	buildOutputType = buildCom.Flag("output-type", "The format to produce after code generation").Default("executable").Enum("executable", "assembly", "object", "llvm-ir", "llvm-bc")
 	buildOptLevel   = buildCom.Flag("opt-level", "LLVM optimization level").Short('O').Default("0").Int()
 	buildOwnership  = buildCom.Flag("ownership", "Do ownership checks").Bool()
 	ignoreUnused    = buildCom.Flag("unused", "Do not error on unused declarations").Bool()

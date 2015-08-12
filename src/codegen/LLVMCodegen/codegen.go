@@ -3,7 +3,6 @@ package LLVMCodegen
 import (
 	"fmt"
 	"os"
-	"time"
 
 	"github.com/ark-lang/ark/src/parser"
 	"github.com/ark-lang/ark/src/semantic"
@@ -58,7 +57,7 @@ func (v *Codegen) err(err string, stuff ...interface{}) {
 	os.Exit(util.EXIT_FAILURE_CODEGEN)
 }
 
-func (v *Codegen) Generate(input []*parser.Module, modules map[string]*parser.Module) {
+func (v *Codegen) Generate(input []*parser.Module) {
 	v.input = input
 	v.builder = llvm.NewBuilder()
 	v.variableLookup = make(map[*parser.Variable]llvm.Value)
@@ -83,38 +82,30 @@ func (v *Codegen) Generate(input []*parser.Module, modules map[string]*parser.Mo
 		passBuilder.Populate(passManager)
 	}
 
-	v.modules = make(map[string]*parser.Module)
 	v.blockDeferData = make(map[*parser.Block][]*deferData)
 
 	for _, infile := range input {
-		log.Verboseln("codegen", util.TEXT_BOLD+util.TEXT_GREEN+"Started codegenning "+util.TEXT_RESET+infile.Name)
-		t := time.Now()
+		log.Timed("codegenning", infile.Name.String(), func() {
+			infile.Module = llvm.NewModule(infile.Name.String())
+			v.curFile = infile
 
-		infile.Module = llvm.NewModule(infile.Name)
-		v.curFile = infile
+			v.declareDecls(infile.Nodes)
 
-		v.modules[v.curFile.Name] = v.curFile
+			for _, node := range infile.Nodes {
+				v.genNode(node)
+			}
 
-		v.declareDecls(infile.Nodes)
+			if err := llvm.VerifyModule(infile.Module, llvm.ReturnStatusAction); err != nil {
+				infile.Module.Dump()
+				v.err("%s", err.Error())
+			}
 
-		for _, node := range infile.Nodes {
-			v.genNode(node)
-		}
+			passManager.Run(infile.Module)
 
-		if err := llvm.VerifyModule(infile.Module, llvm.ReturnStatusAction); err != nil {
-			infile.Module.Dump()
-			v.err("%s", err.Error())
-		}
-
-		passManager.Run(infile.Module)
-
-		if log.AtLevel(log.LevelDebug) {
-			infile.Module.Dump()
-		}
-
-		dur := time.Since(t)
-		log.Verbose("codegen", util.TEXT_BOLD+util.TEXT_GREEN+"Finished codegenning "+util.TEXT_RESET+infile.Name+" (%.2fms)\n",
-			float32(dur.Nanoseconds())/1000000)
+			if log.AtLevel(log.LevelDebug) {
+				infile.Module.Dump()
+			}
+		})
 	}
 
 	passManager.Dispose()
@@ -1127,10 +1118,10 @@ func (v *Codegen) genCallExprWithArgs(n *parser.CallExpr, args []llvm.Value) llv
 		if v.curFile.Module.NamedFunction(functionName).IsNil() {
 			panic("how did this happen")
 		}
+		function = v.curFile.Module.NamedFunction(functionName)
 	}
 
 	call := v.builder.CreateCall(function, args, "")
-
 	call.SetInstructionCallConv(function.FunctionCallConv())
 
 	return call
