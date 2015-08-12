@@ -23,7 +23,7 @@ const (
 )
 
 func (v *Codegen) createBitcode(file *parser.Module) string {
-	filename := v.OutputName + "-" + file.Name.String() + ".bc"
+	filename := v.OutputName + "-" + file.MangledName(parser.MANGLE_ARK_UNSTABLE) + ".bc"
 
 	fileHandle, err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
 	if err != nil {

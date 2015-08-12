@@ -3,11 +3,13 @@ package parser
 import (
 	"bytes"
 	"fmt"
-	"github.com/ark-lang/ark/src/lexer"
-	"github.com/ark-lang/ark/src/util/log"
-	"llvm.org/llvm/bindings/go/llvm"
 	"path/filepath"
 	"strings"
+
+	"llvm.org/llvm/bindings/go/llvm"
+
+	"github.com/ark-lang/ark/src/lexer"
+	"github.com/ark-lang/ark/src/util/log"
 )
 
 type Module struct {
@@ -17,8 +19,6 @@ type Module struct {
 	Name        *ModuleName
 	GlobalScope *Scope
 	Module      llvm.Module
-	Functions   []*FunctionDecl
-	Variables   []*VariableDecl
 }
 
 type ModuleLookup struct {

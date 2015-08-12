@@ -25,8 +25,7 @@ type parser struct {
 	binOpPrecedences  map[BinOpType]int
 	curNodeTokenStart int
 	ruleStack         []string
-
-	deps []*NameNode
+	deps              []*NameNode
 }
 
 func Parse(input *lexer.Sourcefile) (*ParseTree, []*NameNode) {
