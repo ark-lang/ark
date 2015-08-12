@@ -2,7 +2,6 @@ package parser
 
 import (
 	"bytes"
-
 	"fmt"
 )
 

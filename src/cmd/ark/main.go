@@ -76,18 +76,13 @@ func setupErr(err string, stuff ...interface{}) {
 }
 
 func parseFiles(inputs []string) ([]*parser.Module, *parser.ModuleLookup) {
-	_ = ioutil.NopCloser
-	_ = filepath.Split
-	_ = lexer.NewSpan
-
 	var modulesToRead []*parser.ModuleName
 	for _, input := range inputs {
 		if strings.ContainsAny(input, `\/.`) {
 			setupErr("Invalid module name: %s", input)
 		}
 
-		parts := strings.Split(input, "::")
-		modname := &parser.ModuleName{Parts: parts}
+		modname := &parser.ModuleName{Parts: strings.Split(input, "::")}
 		modulesToRead = append(modulesToRead, modname)
 	}
 
@@ -99,11 +94,8 @@ func parseFiles(inputs []string) ([]*parser.Module, *parser.ModuleLookup) {
 			modname := modulesToRead[i]
 			actualFile := filepath.Join(*buildBasedir, modname.ToPath())
 
-			var fi os.FileInfo
-			var err error
+			fi, err := os.Stat(actualFile + ".ark")
 			shouldBeDir := false
-
-			fi, err = os.Stat(actualFile + ".ark")
 			if os.IsNotExist(err) {
 				fi, err = os.Stat(actualFile)
 				shouldBeDir = true
@@ -188,7 +180,7 @@ func parseFiles(inputs []string) ([]*parser.Module, *parser.ModuleLookup) {
 }
 
 func build(files []string, outputFile string, cg string, ccArgs []string, outputType LLVMCodegen.OutputType, optLevel int) {
-	constructedModules, modules := parseFiles(files)
+	constructedModules, _ := parseFiles(files)
 
 	// resolve
 	log.Timed("resolve phase", "", func() {
@@ -242,7 +234,7 @@ func build(files []string, outputFile string, cg string, ccArgs []string, output
 		}
 
 		log.Timed("codegen phase", "", func() {
-			gen.Generate(constructedModules, modules)
+			gen.Generate(constructedModules)
 		})
 	}
 

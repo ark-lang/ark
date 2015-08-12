@@ -257,9 +257,7 @@ func MapNames(nodes []ParseNode, tree *ParseTree, modules *ModuleLookup, parent 
 
 			modname := NewModuleName(udn.Module)
 			nameMap.MapModule(tree, udn.Module.Where(), modname, modules)
-
 			continue
-			//name, typ = udn.Module.Name, NODE_MODULE
 
 		default:
 			continue

@@ -28,9 +28,6 @@ type Codegen struct {
 	Linker       string // defaults to cc
 	OptLevel     int
 
-	// TODO: Use *ModuleLookup
-	modules map[string]*parser.Module
-
 	inFunction      bool
 	currentFunction llvm.Value
 
@@ -57,8 +54,7 @@ func (v *Codegen) err(err string, stuff ...interface{}) {
 	os.Exit(util.EXIT_FAILURE_CODEGEN)
 }
 
-func (v *Codegen) Generate(input []*parser.Module, modules *parser.ModuleLookup) {
-	// TODO: Wait, why the fuck do we not use `modules`
+func (v *Codegen) Generate(input []*parser.Module) {
 	v.input = input
 	v.builder = llvm.NewBuilder()
 	v.variableLookup = make(map[*parser.Variable]llvm.Value)
@@ -83,15 +79,12 @@ func (v *Codegen) Generate(input []*parser.Module, modules *parser.ModuleLookup)
 		passBuilder.Populate(passManager)
 	}
 
-	v.modules = make(map[string]*parser.Module)
 	v.blockDeferData = make(map[*parser.Block][]*deferData)
 
 	for _, infile := range input {
 		log.Timed("codegenning", infile.Name.String(), func() {
 			infile.Module = llvm.NewModule(infile.Name.String())
 			v.curFile = infile
-
-			v.modules[v.curFile.Name.String()] = v.curFile
 
 			v.declareDecls(infile.Nodes)
 
