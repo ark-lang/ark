@@ -209,6 +209,9 @@ func (v *ASTVisitor) VisitChildren(n Node) {
 	} else if _, ok := n.(*DefaultMatchBranch); ok {
 		// noop
 
+	} else if _, ok := n.(*UseDecl); ok {
+		// noop
+
 	} else {
 		panic("Unhandled node: " + reflect.TypeOf(n).String())
 	}
