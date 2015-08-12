@@ -122,7 +122,7 @@ func (v *Scope) GetIdent(name unresolvedName) *Ident {
 			if idx == 0 {
 				v.err("could not find `" + modname + "`, are you sure it's being used in this module?\n\n    `use " + modname + ";`\n")
 			} else {
-				// TODO: Better
+				// TODO: Better error message
 				v.err("could not find `" + modname + "`, are you sure it's being used in this module?\n")
 			}
 		}

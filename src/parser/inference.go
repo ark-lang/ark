@@ -16,10 +16,9 @@ import (
 // Expr(s) then return.
 
 type TypeInferer struct {
-	Module          *Module
-	function        *Function // the function we're in, or nil if we aren't
-	unresolvedNodes []Node
-	shouldExit      bool
+	Module     *Module
+	function   *Function // the function we're in, or nil if we aren't
+	shouldExit bool
 }
 
 func (v *TypeInferer) err(thing Locatable, err string, stuff ...interface{}) {
