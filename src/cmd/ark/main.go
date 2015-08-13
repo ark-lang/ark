@@ -176,7 +176,7 @@ func parseFiles(inputs []string) ([]*parser.Module, *parser.ModuleLookup) {
 		if len(errs) > 0 {
 			log.Errorln("main", "error: Encountered cyclic dependecies:")
 			for _, cycle := range errs {
-				log.Errorln("main", "%s", cycle.Error())
+				log.Errorln("main", "%s", cycle)
 			}
 			os.Exit(util.EXIT_FAILURE_SETUP)
 		}
