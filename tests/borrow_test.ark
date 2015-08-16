@@ -1,11 +1,11 @@
-[c] func printf(fmt: str, ...) -> int;
+[c] func printf(fmt: str, ...) -> int; // A
 
-func main() -> int {
+func main() -> int { // B
     x: int = 10;
-    {
+    { // C
         z: int = 30;
         e: &int = &z;
-        {
+        { // D
             b: int = 32;
         }
     }
