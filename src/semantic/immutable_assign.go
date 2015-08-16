@@ -43,3 +43,7 @@ func (v *ImmutableAssignCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
 
 	}
 }
+
+func (v *ImmutableAssignCheck) Destroy(s *SemanticAnalyzer) {
+
+}

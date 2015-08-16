@@ -5,9 +5,6 @@ package semantic
 	This is the semantic check for the borrow checker,
 	_and_ the move semantics.
 
-	TODO(felix)
-	create a global lifetime, i.e. 'static
-
 **/
 
 import (
@@ -16,7 +13,7 @@ import (
 	"github.com/ark-lang/ark/src/util"
 )
 
-var lifetimeIndex rune = 'a'
+var lifetimeIndex rune = '0'
 
 type BorrowCheck struct {
 	lifetimes       map[string]*Lifetime
@@ -119,6 +116,11 @@ func (v *BorrowCheck) ExitScope(s *SemanticAnalyzer) {
 
 }
 
+func (v *BorrowCheck) Destroy(s *SemanticAnalyzer) {
+	// cleanup our static lifetime
+	v.destroyLifetime(s)
+}
+
 func (l *Lifetime) addBorrow(b Borrow) {
 	mangledName := b.Name + "_" + l.name
 	l.borrows[mangledName] = b
@@ -136,11 +138,18 @@ func (l *Lifetime) addResource(r Resource) {
 }
 
 func (v *BorrowCheck) createLifetime(s *SemanticAnalyzer) {
+	lifetimeName := string(lifetimeIndex)
+	// hack
+	if lifetimeIndex == '0' {
+		lifetimeName = "static"
+		lifetimeIndex = 'a'
+	}
+
 	temp := v.currentLifetime
 	v.currentLifetime = &Lifetime{
 		resources: make(map[string]Resource),
 		borrows:   make(map[string]Borrow),
-		name:      util.Bold("'" + string(lifetimeIndex) + ""),
+		name:      util.Bold("'" + lifetimeName),
 		Outer:     temp,
 	}
 	v.lifetimes[v.currentLifetime.name] = v.currentLifetime
@@ -175,6 +184,9 @@ func (v *BorrowCheck) destroyLifetime(s *SemanticAnalyzer) {
 
 func (v *BorrowCheck) Init(s *SemanticAnalyzer) {
 	v.lifetimes = make(map[string]*Lifetime)
+
+	// this is our global 'static lifetime
+	v.createLifetime(s)
 }
 
 func (v *BorrowCheck) Visit(s *SemanticAnalyzer, n parser.Node) {

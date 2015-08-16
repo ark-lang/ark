@@ -32,6 +32,10 @@ func (v *AttributeCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
 	}
 }
 
+func (v *AttributeCheck) Destroy(s *SemanticAnalyzer) {
+
+}
+
 func (v *AttributeCheck) CheckFunctionDecl(s *SemanticAnalyzer, n *parser.FunctionDecl) {
 	v.CheckAttrsDistanceFromLine(s, n.Function.Attrs, n.Pos().Line, "function", n.Function.Name)
 

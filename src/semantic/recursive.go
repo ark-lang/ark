@@ -46,6 +46,10 @@ func (v *RecursiveDefinitionCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
 
 }
 
+func (v *RecursiveDefinitionCheck) Destroy(s *SemanticAnalyzer) {
+
+}
+
 func isTypeRecursive(typ parser.Type) (bool, []parser.Type) {
 	var check func(current parser.Type, path *[]parser.Type, traversed map[parser.Type]bool) bool
 	check = func(current parser.Type, path *[]parser.Type, traversed map[parser.Type]bool) bool {
