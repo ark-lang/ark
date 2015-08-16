@@ -60,6 +60,10 @@ func (v *UnusedCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
 	}
 }
 
+func (v *UnusedCheck) Destroy(s *SemanticAnalyzer) {
+
+}
+
 func (v *UnusedCheck) AnalyzeUsage(s *SemanticAnalyzer) {
 	for _, node := range v.encountered {
 		switch node.(type) {

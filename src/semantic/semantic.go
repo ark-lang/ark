@@ -23,6 +23,7 @@ type SemanticCheck interface {
 	ExitScope(s *SemanticAnalyzer)
 	Visit(*SemanticAnalyzer, parser.Node)
 	PostVisit(*SemanticAnalyzer, parser.Node)
+	Destroy(*SemanticAnalyzer)
 }
 
 func (v *SemanticAnalyzer) Err(thing parser.Locatable, err string, stuff ...interface{}) {
@@ -74,13 +75,30 @@ func NewSemanticAnalyzer(module *parser.Module, useOwnership bool, ignoreUnused 
 	return res
 }
 
+// the initial check for a semantic pass
+// this will be called _once_ and should be
+// used to initialize things, etc...
 func (v *SemanticAnalyzer) Init() {
 	for _, check := range v.Checks {
 		check.Init(v)
 	}
 }
 
+// this is called when the semantic check
+// is finished, this should be used for
+// clearing up resources, logging, etc...
+func (v *SemanticAnalyzer) Destroy() {
+	for _, check := range v.Checks {
+		check.Destroy(v)
+	}
+}
+
 func (v *SemanticAnalyzer) Finalize() {
+	// destroy stuff before finalisation
+	for _, check := range v.Checks {
+		check.Destroy(v)
+	}
+
 	if v.shouldExit {
 		os.Exit(util.EXIT_FAILURE_SEMANTIC)
 	}
