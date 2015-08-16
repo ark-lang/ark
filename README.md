@@ -40,8 +40,7 @@ func main() -> int {
 * [Ark Style Guide](//github.com/ark-lang/ark-docs/blob/master/STYLEGUIDE.md)
 
 ## <a name="installing"></a> Installing
-Installing Ark should be relatively easy, you'll need a few dependencies before
-you get started:
+Installing Ark should be relatively easy, you'll need a few dependencies before you get started:
 
 ### <a name="dependencies"></a> Dependencies
 * Go installed and `$GOPATH` setup - [Instructions on setting up GOPATH](//golang.org/doc/code.html#GOPATH)
