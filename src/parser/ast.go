@@ -75,6 +75,7 @@ type Variable struct {
 	ParentStruct StructType
 	ParentModule *Module
 	IsParameter  bool
+	IsArgument   bool
 }
 
 func (v *Variable) String() string {
