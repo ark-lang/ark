@@ -5,6 +5,11 @@ package semantic
 	This is the semantic check for the borrow checker,
 	_and_ the move semantics.
 
+	For now the borrow checker will apply move semantics
+	to things on the stack as well as things allocated
+	on the heap. Note that this will change once we have
+	some kind of library for allocating memory...
+
 **/
 
 import (
@@ -18,6 +23,9 @@ var lifetimeIndex rune = '0'
 type BorrowCheck struct {
 	lifetimes       map[string]*Lifetime
 	currentLifetime *Lifetime
+
+	// state stuff for more context
+	callExpr *parser.CallExpr
 }
 
 type Lifetime struct {
@@ -52,7 +60,26 @@ func (v *BorrowCheck) CheckAddrofExpr(s *SemanticAnalyzer, n *parser.AddressOfEx
 }
 
 func (v *BorrowCheck) CheckVariableAccessExpr(s *SemanticAnalyzer, n *parser.VariableAccessExpr) {
+	// mangled name for resource checking
+	mangledResourceName := n.Variable.MangledName(parser.MANGLE_ARK_UNSTABLE) + "_" + v.currentLifetime.name
 
+	// some weird checks to see if we're passing an argument
+	if v.callExpr != nil && !n.Variable.IsParameter {
+		if variable, ok := v.currentLifetime.resources[mangledResourceName]; ok {
+			if !variable.Ownership {
+				s.Err(n, "use of moved value %s", n.Variable.Name)
+			} else {
+				fmt.Println("resource ", n.Variable.Name, " has been moved")
+				variable.Ownership = false
+			}
+		}
+	} else {
+		if variable, ok := v.currentLifetime.resources[mangledResourceName]; ok {
+			if !variable.Ownership {
+				s.Err(n, "use of moved value %s", n.Variable.Name)
+			}
+		}
+	}
 }
 
 func (v *BorrowCheck) CheckFunctionDecl(s *SemanticAnalyzer, n *parser.FunctionDecl) {
@@ -98,6 +125,10 @@ func (v *BorrowCheck) Finalize() {
 }
 
 func (v *BorrowCheck) PostVisit(s *SemanticAnalyzer, n parser.Node) {
+	if _, ok := n.(*parser.CallStat); ok {
+		v.callExpr = nil
+	}
+
 	// cleanup lifetimes
 	if _, ok := n.(*parser.FunctionDecl); ok {
 		v.destroyLifetime(s)
@@ -204,7 +235,9 @@ func (v *BorrowCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
 		v.CheckVariableDecl(s, n.(*parser.VariableDecl))
 
 	case *parser.CallStat:
+		v.callExpr = n.(*parser.CallStat).Call
 		v.CheckCallStat(s, n.(*parser.CallStat))
+
 	case *parser.AssignStat:
 		v.CheckAssignStat(s, n.(*parser.AssignStat))
 
