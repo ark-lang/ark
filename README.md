@@ -32,7 +32,7 @@ func main() -> int {
 ```
 
 ## <a name="resources"></a> Resources
-* [#ark-lang](//webchat.freenode.net/?channels=%23ark-lang) and [#ark-lang-dev](//webchat.freenode.net/?channels=%23ark-lang) on IRC
+* [#ark-lang](//webchat.freenode.net/?channels=%23ark-lang) and [#ark-lang-dev](//webchat.freenode.net/?channels=%23ark-lang-dev) on IRC
 * [Reference Book WIP](http://felixangell.gitbooks.io/ark-reference/content/)
 * [Reference](//github.com/ark-lang/ark-docs/blob/master/REFERENCE.md)
 * [Tests](/tests/)
