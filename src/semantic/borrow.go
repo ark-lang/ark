@@ -146,14 +146,20 @@ func (v *BorrowCheck) createLifetime(s *SemanticAnalyzer) {
 }
 
 func (v *BorrowCheck) destroyLifetime(s *SemanticAnalyzer) {
+	temp := v.currentLifetime.Outer
 	for _, key := range v.currentLifetime.resourceKeys {
 		if res, ok := v.currentLifetime.resources[key]; ok {
 			fmt.Println("removing resource " + res.Name + " from lifetime " + v.currentLifetime.name)
 			delete(v.currentLifetime.resources, key)
 		}
 	}
-	delete(v.lifetimes, v.currentLifetime.name)
 	fmt.Println("cleaning up lifetime " + v.currentLifetime.name + "\n")
+	delete(v.lifetimes, v.currentLifetime.name)
+
+	// outer exists, switch to that...
+	if temp != nil {
+		v.currentLifetime = temp
+	}
 }
 
 func (v *BorrowCheck) Init(s *SemanticAnalyzer) {

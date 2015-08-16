@@ -3,8 +3,13 @@
 func main() -> int {
     x: int = 10;
     {
-    
+        z: int = 30;
+        e: &int = &z;
+        {
+            b: int = 32;
+        }
     }
     y: &int = &x;
+
     return 0;
 }
