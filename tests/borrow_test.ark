@@ -1,7 +1,14 @@
 [c] func printf(fmt: str, ...) -> int; // A
 
+func move_something(a: int) {
+
+}
+
 func main() -> int { // B
     x: int = 10;
+    move_something(x);
+    move_something(x);
+
     { // C
         z: int = 30;
         e: &int = &z;
