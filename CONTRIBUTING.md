@@ -70,4 +70,4 @@ We have a subreddit, [here is the link](//www.reddit.com/r/ark_lang). Feel free 
 
 ### IRC
 You'll probably find one of the core contributors on IRC. If you have
-any questions, or just want to come talk to us; join the [#ark-lang](//webchat.freenode.net/?channels=%23ark-lang) channel on Freenode. For development discussion, please use [#ark-lang-dev](//webchat.freenode.net/?channels=%23ark-lang).
+any questions, or just want to come talk to us; join the [#ark-lang](//webchat.freenode.net/?channels=%23ark-lang) channel on Freenode. For development discussion, please use [#ark-lang-dev](//webchat.freenode.net/?channels=%23ark-lang-dev).
