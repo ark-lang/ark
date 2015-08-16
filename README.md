@@ -62,7 +62,7 @@ Replace `RELEASE_360` with the version of LLVM you have installed. For example, 
 
 The `ark` binary will be built in `$GOPATH/bin`. To use the compiler, make sure `$GOPATH/bin` is in your `$PATH`.
 
-To see the current state of the compiler, try running the [test script](#testing).
+To see the current state of the compiler, try running the [tests](#testing).
 
 ## <a name="usage"></a> Usage
 For detailed usage information, run `ark help`. For information on specific commands, use `ark help <command>`.

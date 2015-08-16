@@ -88,6 +88,7 @@ func parseFiles(inputs []string) ([]*parser.Module, *parser.ModuleLookup) {
 
 	var parsedFiles []*parser.ParseTree
 	moduleLookup := parser.NewModuleLookup("")
+	depGraph := parser.NewDependencyGraph()
 
 	log.Timed("read/lex/parse phase", "", func() {
 		for i := 0; i < len(modulesToRead); i++ {
@@ -160,11 +161,24 @@ func parseFiles(inputs []string) ([]*parser.Module, *parser.ModuleLookup) {
 
 					// Add dependencies to parse array
 					for _, dep := range deps {
-						modname := parser.NewModuleName(dep)
-						modulesToRead = append(modulesToRead, modname)
+						depname := parser.NewModuleName(dep)
+						modulesToRead = append(modulesToRead, depname)
+						depGraph.AddDependency(modname, depname)
 					}
 				}
 			}
+		}
+	})
+
+	// Check for cyclic dependencies (in modules)
+	log.Timed("cyclic dependency check", "", func() {
+		errs := depGraph.DetectCycles()
+		if len(errs) > 0 {
+			log.Errorln("main", "error: Encountered cyclic dependecies:")
+			for _, cycle := range errs {
+				log.Errorln("main", "%s", cycle)
+			}
+			os.Exit(util.EXIT_FAILURE_SETUP)
 		}
 	})
 
