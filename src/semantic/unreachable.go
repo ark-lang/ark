@@ -40,6 +40,10 @@ func (v *UnreachableCheck) PostVisit(s *SemanticAnalyzer, n parser.Node) {
 	}
 }
 
+func (v *UnreachableCheck) Destroy(s *SemanticAnalyzer) {
+
+}
+
 func IsNodeTerminating(n parser.Node) bool {
 	if block, ok := n.(*parser.Block); ok {
 		return block.IsTerminating

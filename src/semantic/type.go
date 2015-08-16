@@ -81,6 +81,10 @@ func (v *TypeCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
 	}
 }
 
+func (v *TypeCheck) Destroy(s *SemanticAnalyzer) {
+
+}
+
 func (v *TypeCheck) CheckVariableDecl(s *SemanticAnalyzer, decl *parser.VariableDecl) {
 	if decl.Assignment != nil {
 		if !decl.Variable.Type.Equals(decl.Assignment.GetType()) {

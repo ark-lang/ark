@@ -50,3 +50,7 @@ func (v *DeprecatedCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
 		}
 	}
 }
+
+func (v *DeprecatedCheck) Destroy(s *SemanticAnalyzer) {
+
+}

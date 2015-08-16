@@ -36,3 +36,7 @@ func (v *MiscCheck) PostVisit(s *SemanticAnalyzer, n parser.Node) {
 		v.InFunction--
 	}
 }
+
+func (v *MiscCheck) Destroy(s *SemanticAnalyzer) {
+
+}
