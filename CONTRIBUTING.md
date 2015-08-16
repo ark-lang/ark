@@ -4,9 +4,7 @@ We'd love your contributions to make Ark a better programming language.
 ***All code changes to the Go codebase must have `go fmt` run on them***
 
 ## Interested in contributing?
-If you want to contribute to Ark, that's great! We encourage all
-developers to actively discuss Ark and its features/implementations
-on the [Gitter](//badges.gitter.im/Join%20Chat.svg) or IRC ([#ark-lang](//webchat.freenode.net/?channels=%23ark-lang)). We're more active on Gitter than IRC, if you prefer IRC; you can get a Gitter to IRC bridge.
+If you want to contribute to Ark, that's great! We encourage all developers to actively discuss Ark and its features/implementations.
 
 ### What can I do to help?
 There are plenty of things you can do to help:
@@ -67,16 +65,9 @@ Please do not post questions for help in the Issue Tracker _unless_ you think
 it's a bug related to the Ark compiler. Instead, check out
 the following communities:
 
-### Gitter
-[Gitter](//badges.gitter.im/Join%20Chat.svg) is where we're most active, feel free to ask someone on there for help.
-
 ### Reddit
 We also have a subreddit, [here's the link](//www.reddit.com/r/ark_lang). Feel free to ask us questions on that, a lot of the developers are also Reddit addicts. So you should get a reply reasonably quickly.
 
 ### IRC
-You'll probably find one of the core super contributors on the IRC. If you have
-any questions, or just want to come talk to us; join the [#ark-lang](//webchat.freenode.net/?channels=%23ark-lang)
-channel on freenode.
-
-* ip: `irc.freenode.net`
-* channel: `#ark-lang`
+You'll probably find one of the core contributors on the IRC. If you have
+any questions, or just want to come talk to us; join the ([#ark-lang](//webchat.freenode.net/?channels=%23ark-lang)) on Freenode. For development discussion, please use ([#ark-lang-dev](//webchat.freenode.net/?channels=%23ark-lang)).
