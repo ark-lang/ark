@@ -66,8 +66,8 @@ it's a bug related to the Ark compiler. Instead, check out
 the following communities:
 
 ### Reddit
-We also have a subreddit, [here's the link](//www.reddit.com/r/ark_lang). Feel free to ask us questions on that, a lot of the developers are also Reddit addicts. So you should get a reply reasonably quickly.
+We have a subreddit, [here is the link](//www.reddit.com/r/ark_lang). Feel free to ask us questions on that, a lot of the developers are also Reddit addicts. So you should get a reply reasonably quickly.
 
 ### IRC
-You'll probably find one of the core contributors on the IRC. If you have
-any questions, or just want to come talk to us; join the ([#ark-lang](//webchat.freenode.net/?channels=%23ark-lang)) on Freenode. For development discussion, please use ([#ark-lang-dev](//webchat.freenode.net/?channels=%23ark-lang)).
+You'll probably find one of the core contributors on IRC. If you have
+any questions, or just want to come talk to us; join the ([#ark-lang](//webchat.freenode.net/?channels=%23ark-lang)) channel on Freenode. For development discussion, please use ([#ark-lang-dev](//webchat.freenode.net/?channels=%23ark-lang)).
