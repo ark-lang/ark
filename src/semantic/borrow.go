@@ -77,12 +77,15 @@ func (v *BorrowCheck) CheckVariableAccessExpr(s *SemanticAnalyzer, n *parser.Var
 				variable.Ownership = false
 			}
 		}
-	} else if v.addrofExpr != nil {
+	} else if v.addrofExpr != nil && v.callExpr == nil {
 		// this is the variable that is being borrowed!
+		// note this only borrows for actual references
+		// not stuff like a function call
 		if variable, ok := v.currentLifetime.resources[mangledName]; ok {
 			variable.Borrowed = true
 		}
 	} else {
+		// creates a new resource
 		if variable, ok := v.currentLifetime.resources[mangledName]; ok {
 			if !variable.Ownership {
 				s.Err(n, "use of moved value %s", n.Variable.Name)
@@ -219,7 +222,9 @@ func (v *BorrowCheck) destroyLifetime(s *SemanticAnalyzer) {
 
 	for _, key := range v.currentLifetime.resourceKeys {
 		if res, ok := v.currentLifetime.resources[key]; ok {
-			// I think this would work??
+			// this is a hack, and I don't think this will
+			// scale well or at all, but we'll cross that
+			// bridge when it fucks me over...
 			res.Borrowed = false
 
 			fmt.Println("removing resource " + res.Name + " from lifetime " + v.currentLifetime.name)
