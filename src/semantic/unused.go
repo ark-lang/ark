@@ -11,6 +11,8 @@ type UnusedCheck struct {
 	uses              map[interface{}]int
 }
 
+func (v *UnusedCheck) Init(s *SemanticAnalyzer) {}
+
 func (v *UnusedCheck) EnterScope(s *SemanticAnalyzer) {
 	if v.uses == nil {
 		v.uses = make(map[interface{}]int)
@@ -56,6 +58,10 @@ func (v *UnusedCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
 		expr := n.(*parser.StructAccessExpr)
 		v.uses[expr.Variable]++
 	}
+}
+
+func (v *UnusedCheck) Destroy(s *SemanticAnalyzer) {
+
 }
 
 func (v *UnusedCheck) AnalyzeUsage(s *SemanticAnalyzer) {

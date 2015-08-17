@@ -1,0 +1,6 @@
+func main() -> int {
+    x: int = 0;
+    y: int = x;
+    z: int = y;
+    return z;
+}

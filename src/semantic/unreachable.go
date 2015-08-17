@@ -7,6 +7,7 @@ import (
 type UnreachableCheck struct {
 }
 
+func (v *UnreachableCheck) Init(s *SemanticAnalyzer)       {}
 func (v *UnreachableCheck) EnterScope(s *SemanticAnalyzer) {}
 func (v *UnreachableCheck) ExitScope(s *SemanticAnalyzer)  {}
 
@@ -37,6 +38,10 @@ func (v *UnreachableCheck) PostVisit(s *SemanticAnalyzer, n parser.Node) {
 			}
 		}
 	}
+}
+
+func (v *UnreachableCheck) Destroy(s *SemanticAnalyzer) {
+
 }
 
 func IsNodeTerminating(n parser.Node) bool {

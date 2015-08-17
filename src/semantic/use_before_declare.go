@@ -9,6 +9,7 @@ type UseBeforeDeclareCheck struct {
 	scope  map[string]bool
 }
 
+func (v *UseBeforeDeclareCheck) Init(s *SemanticAnalyzer) {}
 func (v *UseBeforeDeclareCheck) EnterScope(s *SemanticAnalyzer) {
 	lastScope := v.scope
 	if v.scope != nil {
@@ -43,4 +44,8 @@ func (v *UseBeforeDeclareCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
 			s.Err(expr, "Use of variable before declaration: %s", expr.Variable.Name)
 		}
 	}
+}
+
+func (v *UseBeforeDeclareCheck) Destroy(s *SemanticAnalyzer) {
+
 }

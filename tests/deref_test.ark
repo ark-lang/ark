@@ -1,23 +1,23 @@
 [c] func printf(fmt: str, ...) -> int;
 
 func main() -> int {
-    mut x := 9;
-    y := &x;
+    mut x: s32 = 9;
+    y: ^s32 = ^s32(&x);
 
     C::printf("%d\n", ^y);
 
     x = 15;
-    z := &y;
+    z: ^^s32 = ^^s32(&y);
 
     C::printf("%d\n", ^^z);
 
     x = 9000;
 
-    a := &z;
-    b := &a;
-    c := &b;
-    d := &c;
-    e := &d;
+    a: ^^^s32 = ^^^s32(&z);
+    b: ^^^^s32 = ^^^^s32(&a);
+    c: ^^^^^s32 = ^^^^^s32(&b);
+    d: ^^^^^^s32 = ^^^^^^s32(&c);
+    e: ^^^^^^^s32 = ^^^^^^^s32(&d);
 
     C::printf("%d\n", ^^^^^^^e);
 

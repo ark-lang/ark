@@ -12,6 +12,7 @@ func (v *TypeCheck) Function() *parser.Function {
 	return v.function[len(v.function)-1]
 }
 
+func (v *TypeCheck) Init(s *SemanticAnalyzer)       {}
 func (v *TypeCheck) EnterScope(s *SemanticAnalyzer) {}
 func (v *TypeCheck) ExitScope(s *SemanticAnalyzer)  {}
 
@@ -78,6 +79,10 @@ func (v *TypeCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
 	case *parser.EnumLiteral:
 		v.CheckEnumLiteral(s, n.(*parser.EnumLiteral))
 	}
+}
+
+func (v *TypeCheck) Destroy(s *SemanticAnalyzer) {
+
 }
 
 func (v *TypeCheck) CheckVariableDecl(s *SemanticAnalyzer, decl *parser.VariableDecl) {
