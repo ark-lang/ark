@@ -1,5 +1,3 @@
-#allow_unused
-
 [c] func printf(fmt: str, ...) -> int; // A
 
 func move_something(a: int) {
