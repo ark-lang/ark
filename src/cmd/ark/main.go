@@ -222,7 +222,6 @@ func build(files []string, outputFile string, cg string, ccArgs []string, output
 
 	// semantic analysis
 	log.Timed("semantic analysis phase", "", func() {
-		// TODO: We're looping over a map, the order we get is thus random
 		for _, module := range constructedModules {
 			sem := semantic.NewSemanticAnalyzer(module, *buildOwnership, *ignoreUnused)
 			vis := parser.NewASTVisitor(sem)
