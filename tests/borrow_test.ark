@@ -11,12 +11,12 @@ func main() -> int { // B
 
     { // C
         z: int = 30;
-        e: &int = &z;
+        [unused] e: &int = &z;
         { // D
-            b: int = 32;
+            [unused] b: int = 32;
         }
     }
-    y: &int = &x;
+    [unused] y: &int = &x;
 
     return 0;
 }
