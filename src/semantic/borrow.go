@@ -35,10 +35,10 @@ type Lifetime struct {
 	Outer *Lifetime
 
 	resourceKeys []string
-	resources    map[string]Resource
+	resources    map[string]*Resource
 
 	borrowKeys []string
-	borrows    map[string]Borrow
+	borrows    map[string]*Borrow
 
 	name string
 }
@@ -66,6 +66,7 @@ func (v *BorrowCheck) CheckVariableAccessExpr(s *SemanticAnalyzer, n *parser.Var
 	// some weird checks to see if we're passing an argument
 	if v.callExpr != nil && !n.Variable.IsParameter {
 		if variable, ok := v.currentLifetime.resources[mangledResourceName]; ok {
+			fmt.Println(variable.Name, " o: ", variable.Ownership)
 			if !variable.Ownership {
 				s.Err(n, "use of moved value %s", n.Variable.Name)
 			} else {
@@ -100,19 +101,19 @@ func (v *BorrowCheck) CheckCallStat(s *SemanticAnalyzer, n *parser.CallStat) {
 
 func (v *BorrowCheck) CheckVariableDecl(s *SemanticAnalyzer, n *parser.VariableDecl) {
 	if _, ok := n.Variable.Type.(parser.MutableReferenceType); ok {
-		v.currentLifetime.addBorrow(Borrow{
+		v.currentLifetime.addBorrow(&Borrow{
 			Name:     n.Variable.MangledName(parser.MANGLE_ARK_UNSTABLE),
 			Mutable:  true,
 			Lifetime: v.currentLifetime,
 		})
 	} else if _, ok := n.Variable.Type.(parser.ConstantReferenceType); ok {
-		v.currentLifetime.addBorrow(Borrow{
+		v.currentLifetime.addBorrow(&Borrow{
 			Name:     n.Variable.MangledName(parser.MANGLE_ARK_UNSTABLE),
 			Mutable:  false,
 			Lifetime: v.currentLifetime,
 		})
 	} else {
-		v.currentLifetime.addResource(Resource{
+		v.currentLifetime.addResource(&Resource{
 			Name:      n.Variable.MangledName(parser.MANGLE_ARK_UNSTABLE),
 			Mutable:   n.Variable.Mutable,
 			Ownership: true,
@@ -152,7 +153,7 @@ func (v *BorrowCheck) Destroy(s *SemanticAnalyzer) {
 	v.destroyLifetime(s)
 }
 
-func (l *Lifetime) addBorrow(b Borrow) {
+func (l *Lifetime) addBorrow(b *Borrow) {
 	mangledName := b.Name + "_" + l.name
 	l.borrows[mangledName] = b
 	l.borrowKeys = append(l.borrowKeys, mangledName)
@@ -160,7 +161,7 @@ func (l *Lifetime) addBorrow(b Borrow) {
 	fmt.Println("added borrow " + mangledName + " to lifetime " + l.name)
 }
 
-func (l *Lifetime) addResource(r Resource) {
+func (l *Lifetime) addResource(r *Resource) {
 	mangledName := r.Name + "_" + l.name
 	l.resources[mangledName] = r
 	l.resourceKeys = append(l.resourceKeys, mangledName)
@@ -170,7 +171,11 @@ func (l *Lifetime) addResource(r Resource) {
 
 func (v *BorrowCheck) createLifetime(s *SemanticAnalyzer) {
 	lifetimeName := string(lifetimeIndex)
-	// hack
+
+	// hack for readability sakes
+	// will change 0 to static
+	// then set to a' for the initial
+	// lifetimes
 	if lifetimeIndex == '0' {
 		lifetimeName = "static"
 		lifetimeIndex = 'a'
@@ -178,13 +183,15 @@ func (v *BorrowCheck) createLifetime(s *SemanticAnalyzer) {
 
 	temp := v.currentLifetime
 	v.currentLifetime = &Lifetime{
-		resources: make(map[string]Resource),
-		borrows:   make(map[string]Borrow),
+		resources: make(map[string]*Resource),
+		borrows:   make(map[string]*Borrow),
 		name:      util.Bold("'" + lifetimeName),
 		Outer:     temp,
 	}
+
 	v.lifetimes[v.currentLifetime.name] = v.currentLifetime
 	lifetimeIndex++
+
 	fmt.Println("\ncreated lifetime " + v.currentLifetime.name)
 }
 
