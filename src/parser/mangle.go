@@ -32,6 +32,14 @@ func TypeMangledName(mangleType MangleType, typ Type) string {
 			at := typ.(ArrayType)
 			res += fmt.Sprintf("A%s", TypeMangledName(mangleType, at.MemberType))
 
+		case ConstantReferenceType:
+			crt := typ.(ConstantReferenceType)
+			res += fmt.Sprintf("RC%s", TypeMangledName(mangleType, crt.Referrer))
+
+		case MutableReferenceType:
+			mrt := typ.(MutableReferenceType)
+			res += fmt.Sprintf("RM%s", TypeMangledName(mangleType, mrt.Referrer))
+
 		case EnumType:
 			et := typ.(EnumType)
 			res += fmt.Sprintf("E%d", len(et.Members))
