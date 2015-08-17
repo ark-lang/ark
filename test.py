@@ -90,7 +90,7 @@ for directory, filelist in dirs:
 		if show_output:
 			print(bold("Compiling ") + name + "...")
 
-		cmd = ["ark", "build", "-b", directory]
+		cmd = ["ark", "build", "-b", directory, "--unused"]
 		if be_verbose:
 			cmd.append("-v")
 		cmd.extend([name.replace(".ark", ""), "-o", "tests/"+output_file])
