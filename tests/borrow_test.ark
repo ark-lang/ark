@@ -1,23 +1,20 @@
 [c] func printf(fmt: str, ...) -> int; // A
 
+func dont_move(a: &int) {
+
+}
+
 func move_something(a: int) {
 
 }
 
+func move_return_ownership(a: int) -> int{
+    return a;
+}
+
 func main() -> int { // B
-    x: int = 10;
-    move_something(x);
-
-    move_something(x);
-
-    { // C
-        z: int = 30;
-        [unused] e: &int = &z;
-        { // D
-            [unused] b: int = 32;
-        }
-    }
-    [unused] y: &int = &x;
-
+    mut x: int = 10;
+    dont_move(&x);
+    C::printf("x is %d\n", x);
     return 0;
 }
