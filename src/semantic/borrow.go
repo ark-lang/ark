@@ -25,7 +25,8 @@ type BorrowCheck struct {
 	currentLifetime *Lifetime
 
 	// state stuff for more context
-	callExpr *parser.CallExpr
+	callExpr   *parser.CallExpr
+	addrofExpr *parser.AddressOfExpr
 }
 
 type Lifetime struct {
@@ -56,7 +57,7 @@ type Borrow struct {
 }
 
 func (v *BorrowCheck) CheckAddrofExpr(s *SemanticAnalyzer, n *parser.AddressOfExpr) {
-
+	v.addrofExpr = n
 }
 
 func (v *BorrowCheck) CheckVariableAccessExpr(s *SemanticAnalyzer, n *parser.VariableAccessExpr) {
@@ -64,9 +65,8 @@ func (v *BorrowCheck) CheckVariableAccessExpr(s *SemanticAnalyzer, n *parser.Var
 	mangledResourceName := n.Variable.MangledName(parser.MANGLE_ARK_UNSTABLE) + "_" + v.currentLifetime.name
 
 	// some weird checks to see if we're passing an argument
-	if v.callExpr != nil && !n.Variable.IsParameter {
+	if v.callExpr != nil && v.addrofExpr == nil && !n.Variable.IsParameter {
 		if variable, ok := v.currentLifetime.resources[mangledResourceName]; ok {
-			fmt.Println(variable.Name, " o: ", variable.Ownership)
 			if !variable.Ownership {
 				s.Err(n, "use of moved value %s", n.Variable.Name)
 			} else {
@@ -128,6 +128,10 @@ func (v *BorrowCheck) Finalize() {
 func (v *BorrowCheck) PostVisit(s *SemanticAnalyzer, n parser.Node) {
 	if _, ok := n.(*parser.CallStat); ok {
 		v.callExpr = nil
+	}
+
+	if _, ok := n.(*parser.AddressOfExpr); ok {
+		v.addrofExpr = nil
 	}
 
 	// cleanup lifetimes
