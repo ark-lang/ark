@@ -8,7 +8,7 @@ type Tree enum {
 func main() -> int {
 	x := Tree::Leaf(42);
 	y := Tree::Leaf(36);
-	z := Tree::Node{left: &x, right: &y};
+	z := Tree::Node{left: ^Tree(&x), right: ^Tree(&y)};
 
     C::printf("Leaf-tag: %d\n", x);
     C::printf("Leaf-tag: %d\n", y);

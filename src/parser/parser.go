@@ -369,6 +369,7 @@ func (v *parser) parseFuncHeader() *FunctionHeaderNode {
 
 	res := &FunctionHeaderNode{}
 
+	// parses the function receiver if there is one.
 	if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "(") {
 		// we have a method receiver
 		v.consumeToken()
@@ -394,12 +395,14 @@ func (v *parser) parseFuncHeader() *FunctionHeaderNode {
 		v.expect(lexer.TOKEN_SEPARATOR, ")")
 	}
 
+	// parses the function identifier/name
 	name := v.expect(lexer.TOKEN_IDENTIFIER, "")
 	genericSigil := v.parseGenericSigil()
 	v.expect(lexer.TOKEN_SEPARATOR, "(")
 
 	var args []*VarDeclNode
 	variadic := false
+	// parse the function arguments
 	for {
 		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ")") {
 			break
@@ -1007,6 +1010,8 @@ func (v *parser) parseType(doRefs bool) ParseNode {
 	var res ParseNode
 	if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "^") {
 		res = v.parsePointerType()
+	} else if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "&") {
+		res = v.parseReferenceType()
 	} else if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "(") {
 		res = v.parseTupleType()
 	} else if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "[") {
@@ -1098,6 +1103,31 @@ func (v *parser) parseStructType(requireKeyword bool) *StructTypeNode {
 
 	res := &StructTypeNode{Members: members}
 	res.SetWhere(lexer.NewSpanFromTokens(startToken, endToken))
+	return res
+}
+
+func (v *parser) parseReferenceType() *ReferenceTypeNode {
+	defer un(trace(v, "referencetype"))
+
+	if !v.tokenMatches(0, lexer.TOKEN_OPERATOR, "&") {
+		return nil
+	}
+	startToken := v.consumeToken()
+
+	mutable := false
+	if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_MUT) {
+		v.consumeToken()
+		mutable = true
+	}
+
+	target := v.parseType(true)
+	if target == nil {
+		v.err("Expected valid type after '&' in reference type")
+	}
+
+	res := &ReferenceTypeNode{Mutable: mutable, TargetType: target}
+	res.SetWhere(lexer.NewSpan(startToken.Where.Start(), target.Where().End()))
+
 	return res
 }
 
@@ -1468,12 +1498,18 @@ func (v *parser) parseAddrofExpr() *AddrofExprNode {
 	}
 	startToken := v.consumeToken()
 
+	mutable := false
+	if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_MUT) {
+		v.consumeToken()
+		mutable = true
+	}
+
 	value := v.parseExpr()
 	if value == nil {
 		v.err("Expected valid expression after addrof expression")
 	}
 
-	res := &AddrofExprNode{Value: value}
+	res := &AddrofExprNode{Mutable: mutable, Value: value}
 	res.SetWhere(lexer.NewSpan(startToken.Where.Start(), value.Where().End()))
 	return res
 }

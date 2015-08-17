@@ -75,6 +75,7 @@ type Variable struct {
 	ParentStruct StructType
 	ParentModule *Module
 	IsParameter  bool
+	IsArgument   bool
 }
 
 func (v *Variable) String() string {
@@ -1020,7 +1021,9 @@ func (v *DerefAccessExpr) Mutable() bool {
 
 type AddressOfExpr struct {
 	nodePos
-	Access Expr
+	Mutable  bool
+	Access   Expr
+	TypeHint Type
 }
 
 func (v *AddressOfExpr) exprNode() {}
@@ -1031,7 +1034,11 @@ func (v *AddressOfExpr) String() string {
 
 func (v *AddressOfExpr) GetType() Type {
 	if v.Access.GetType() != nil {
-		return pointerTo(v.Access.GetType())
+		if v.Mutable {
+			return mutableReferenceTo(v.Access.GetType())
+		} else {
+			return constantReferenceTo(v.Access.GetType())
+		}
 	}
 	return nil
 }

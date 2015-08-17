@@ -473,9 +473,23 @@ func (v *CallExpr) infer(s *TypeInferer) {
 			accessType := v.ReceiverAccess.GetType()
 
 			if accessType.LevelsOfIndirection() == recType.LevelsOfIndirection()+1 {
-				v.ReceiverAccess = &DerefAccessExpr{
-					Type: v.ReceiverAccess.GetType().(PointerType).Addressee,
-					Expr: v.ReceiverAccess,
+				if ref, ok := v.ReceiverAccess.GetType().(ConstantReferenceType); ok {
+					v.ReceiverAccess = &DerefAccessExpr{
+						Type: ref.Referrer,
+						Expr: v.ReceiverAccess,
+					}
+				}
+				if ref, ok := v.ReceiverAccess.GetType().(MutableReferenceType); ok {
+					v.ReceiverAccess = &DerefAccessExpr{
+						Type: ref.Referrer,
+						Expr: v.ReceiverAccess,
+					}
+				}
+				if ptr, ok := v.ReceiverAccess.GetType().(PointerType); ok {
+					v.ReceiverAccess = &DerefAccessExpr{
+						Type: ptr.Addressee,
+						Expr: v.ReceiverAccess,
+					}
 				}
 			}
 		}
@@ -561,6 +575,14 @@ func (v *DerefAccessExpr) infer(s *TypeInferer) {
 	if pointerType, ok := v.Expr.GetType().(PointerType); ok {
 		v.Type = pointerType.Addressee
 	}
+
+	if mutRef, ok := v.Expr.GetType().(MutableReferenceType); ok {
+		v.Type = mutRef.Referrer
+	}
+
+	if constRef, ok := v.Expr.GetType().(ConstantReferenceType); ok {
+		v.Type = constRef.Referrer
+	}
 }
 
 func (v *DerefAccessExpr) setTypeHint(t Type) {
@@ -573,7 +595,8 @@ func (v *AddressOfExpr) infer(s *TypeInferer) {
 	v.Access.infer(s)
 }
 
-func (v *AddressOfExpr) setTypeHint(t Type) {}
+func (v *AddressOfExpr) setTypeHint(t Type) {
+}
 
 // SizeofExpr
 

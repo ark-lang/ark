@@ -60,6 +60,12 @@ type NameNode struct {
 }
 
 // types
+type ReferenceTypeNode struct {
+	baseNode
+	Mutable    bool
+	TargetType ParseNode
+}
+
 type PointerTypeNode struct {
 	baseNode
 	TargetType ParseNode
@@ -256,7 +262,8 @@ type DefaultExprNode struct {
 
 type AddrofExprNode struct {
 	baseNode
-	Value ParseNode
+	Mutable bool
+	Value   ParseNode
 }
 
 type CastExprNode struct {

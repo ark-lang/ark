@@ -7,6 +7,7 @@ import (
 type ImmutableAssignCheck struct {
 }
 
+func (v *ImmutableAssignCheck) Init(s *SemanticAnalyzer)       {}
 func (v *ImmutableAssignCheck) EnterScope(s *SemanticAnalyzer) {}
 func (v *ImmutableAssignCheck) ExitScope(s *SemanticAnalyzer)  {}
 
@@ -41,4 +42,8 @@ func (v *ImmutableAssignCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
 		}
 
 	}
+}
+
+func (v *ImmutableAssignCheck) Destroy(s *SemanticAnalyzer) {
+
 }
