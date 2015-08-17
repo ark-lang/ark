@@ -48,6 +48,7 @@ type Resource struct {
 	Name      string
 	Mutable   bool
 	Ownership bool
+	Borrowed  bool
 }
 
 type Borrow struct {
@@ -62,20 +63,27 @@ func (v *BorrowCheck) CheckAddrofExpr(s *SemanticAnalyzer, n *parser.AddressOfEx
 
 func (v *BorrowCheck) CheckVariableAccessExpr(s *SemanticAnalyzer, n *parser.VariableAccessExpr) {
 	// mangled name for resource checking
-	mangledResourceName := n.Variable.MangledName(parser.MANGLE_ARK_UNSTABLE) + "_" + v.currentLifetime.name
+	mangledName := n.Variable.MangledName(parser.MANGLE_ARK_UNSTABLE) + "_" + v.currentLifetime.name
 
 	// some weird checks to see if we're passing an argument
 	if v.callExpr != nil && v.addrofExpr == nil && !n.Variable.IsParameter {
-		if variable, ok := v.currentLifetime.resources[mangledResourceName]; ok {
+		if variable, ok := v.currentLifetime.resources[mangledName]; ok {
 			if !variable.Ownership {
 				s.Err(n, "use of moved value %s", n.Variable.Name)
+			} else if variable.Borrowed {
+				s.Err(n, "use of borrowed value %s", n.Variable.Name)
 			} else {
 				fmt.Println("resource ", n.Variable.Name, " has been moved")
 				variable.Ownership = false
 			}
 		}
+	} else if v.addrofExpr != nil {
+		// this is the variable that is being borrowed!
+		if variable, ok := v.currentLifetime.resources[mangledName]; ok {
+			variable.Borrowed = true
+		}
 	} else {
-		if variable, ok := v.currentLifetime.resources[mangledResourceName]; ok {
+		if variable, ok := v.currentLifetime.resources[mangledName]; ok {
 			if !variable.Ownership {
 				s.Err(n, "use of moved value %s", n.Variable.Name)
 			}
@@ -100,19 +108,20 @@ func (v *BorrowCheck) CheckCallStat(s *SemanticAnalyzer, n *parser.CallStat) {
 }
 
 func (v *BorrowCheck) CheckVariableDecl(s *SemanticAnalyzer, n *parser.VariableDecl) {
-	if _, ok := n.Variable.Type.(parser.MutableReferenceType); ok {
+	switch n.Variable.Type.(type) {
+	case parser.MutableReferenceType:
 		v.currentLifetime.addBorrow(&Borrow{
 			Name:     n.Variable.MangledName(parser.MANGLE_ARK_UNSTABLE),
 			Mutable:  true,
 			Lifetime: v.currentLifetime,
 		})
-	} else if _, ok := n.Variable.Type.(parser.ConstantReferenceType); ok {
+	case parser.ConstantReferenceType:
 		v.currentLifetime.addBorrow(&Borrow{
 			Name:     n.Variable.MangledName(parser.MANGLE_ARK_UNSTABLE),
 			Mutable:  false,
 			Lifetime: v.currentLifetime,
 		})
-	} else {
+	default:
 		v.currentLifetime.addResource(&Resource{
 			Name:      n.Variable.MangledName(parser.MANGLE_ARK_UNSTABLE),
 			Mutable:   n.Variable.Mutable,
@@ -210,6 +219,9 @@ func (v *BorrowCheck) destroyLifetime(s *SemanticAnalyzer) {
 
 	for _, key := range v.currentLifetime.resourceKeys {
 		if res, ok := v.currentLifetime.resources[key]; ok {
+			// I think this would work??
+			res.Borrowed = false
+
 			fmt.Println("removing resource " + res.Name + " from lifetime " + v.currentLifetime.name)
 			delete(v.currentLifetime.resources, key)
 		}
