@@ -25,7 +25,7 @@ func main() -> int {
     mut i := 0;
     for i < 5 {
         C::printf("i: %d\n", i);
-        i = i + 1;
+        i += 1;
     }
     return 0;
 }
