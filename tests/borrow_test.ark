@@ -1,22 +1,25 @@
 [c] func printf(fmt: str, ...) -> int; // A
 
-func move_something(a: int) {
+/**
 
+this will fail because we borrow x into y, then
+we try to use x later however the lifetime of y 
+hasn't ended so it's still being borrowed. 
+
+func main() -> int {
+    x: int = 21;
+    y: &int = &x;
+    C::printf("x is %d\n", x);
+    return 0;
 }
 
-func main() -> int { // B
-    x: int = 10;
-    move_something(x);
-    move_something(x);
+**/
 
-    { // C
-        z: int = 30;
-        [unused] e: &int = &z;
-        { // D
-            [unused] b: int = 32;
-        }
+func main() -> int {
+    x: int = 21;
+    {
+        y: &int = &x;
     }
-    [unused] y: &int = &x;
-
+    C::printf("x is %d\n", x);
     return 0;
 }
