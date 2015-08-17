@@ -27,7 +27,7 @@ func main() -> int {
 
 	h: u8 = 1;
 	mut i := default(RC<u8>);
-	i.val = &h;
+	i.val = ^u8(&h);
 	C::printf("sizeof(^i.val) = %d\n", sizeof(^i.val));
 	if sizeof(^i.val) != 1 {
 		return 1;
@@ -35,7 +35,7 @@ func main() -> int {
 
 	j: u16 = 1;
 	mut k := default(RC<u16>);
-	k.val = &j;
+	k.val = ^u16(&j);
 	C::printf("sizeof(^k.val) = %d\n", sizeof(^k.val));
 	if sizeof(^k.val) != 2 {
 		return 1;

@@ -7,6 +7,7 @@ import (
 type AttributeCheck struct {
 }
 
+func (v *AttributeCheck) Init(s *SemanticAnalyzer)       {}
 func (v *AttributeCheck) EnterScope(s *SemanticAnalyzer) {}
 func (v *AttributeCheck) ExitScope(s *SemanticAnalyzer)  {}
 
@@ -29,6 +30,10 @@ func (v *AttributeCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
 	case *parser.VariableDecl:
 		v.CheckVariableDecl(s, n.(*parser.VariableDecl))
 	}
+}
+
+func (v *AttributeCheck) Destroy(s *SemanticAnalyzer) {
+
 }
 
 func (v *AttributeCheck) CheckFunctionDecl(s *SemanticAnalyzer, n *parser.FunctionDecl) {

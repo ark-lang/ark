@@ -195,6 +195,14 @@ func (v ArrayType) resolveType(src Locatable, res *Resolver, s *Scope) Type {
 	return arrayOf(v.MemberType.resolveType(src, res, s))
 }
 
+func (v MutableReferenceType) resolveType(src Locatable, res *Resolver, s *Scope) Type {
+	return mutableReferenceTo(v.Referrer.resolveType(src, res, s))
+}
+
+func (v ConstantReferenceType) resolveType(src Locatable, res *Resolver, s *Scope) Type {
+	return constantReferenceTo(v.Referrer.resolveType(src, res, s))
+}
+
 func (v PointerType) resolveType(src Locatable, res *Resolver, s *Scope) Type {
 	return pointerTo(v.Addressee.resolveType(src, res, s))
 }

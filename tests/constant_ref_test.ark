@@ -1,0 +1,10 @@
+[c] func printf(fmt: str, ...) -> int;
+
+func main() -> int {
+    mut x: int = 1337;
+        [unused] y: &int = &x;
+    x = 32;
+    C::printf("%d\n", x);
+
+    return 0;
+}

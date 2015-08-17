@@ -70,7 +70,7 @@ func printFinishedMessage(startTime time.Time, command string, numFiles int) {
 }
 
 func setupErr(err string, stuff ...interface{}) {
-	log.Error("main", util.TEXT_RED+util.TEXT_BOLD+"Setup error:"+util.TEXT_RESET+" %s\n",
+	log.Error("main", util.TEXT_RED+util.TEXT_BOLD+"error:"+util.TEXT_RESET+" %s\n",
 		fmt.Sprintf(err, stuff...))
 	os.Exit(util.EXIT_FAILURE_SETUP)
 }
@@ -78,7 +78,7 @@ func setupErr(err string, stuff ...interface{}) {
 func parseFiles(inputs []string) ([]*parser.Module, *parser.ModuleLookup) {
 	var modulesToRead []*parser.ModuleName
 	for _, input := range inputs {
-		if strings.ContainsAny(input, `\/.`) {
+		if strings.ContainsAny(input, `\/. `) {
 			setupErr("Invalid module name: %s", input)
 		}
 
@@ -222,8 +222,9 @@ func build(files []string, outputFile string, cg string, ccArgs []string, output
 
 	// semantic analysis
 	log.Timed("semantic analysis phase", "", func() {
+		// TODO: We're looping over a map, the order we get is thus random
 		for _, module := range constructedModules {
-			sem := semantic.NewSemanticAnalyzer(module, *buildOwnership)
+			sem := semantic.NewSemanticAnalyzer(module, *buildOwnership, *ignoreUnused)
 			vis := parser.NewASTVisitor(sem)
 			vis.VisitModule(module)
 			sem.Finalize()
