@@ -1,0 +1,13 @@
+Name       = "mutable_ref"
+Sourcefile = "mutable_ref.ark"
+
+CompilerArgs = []
+RunArgs      = []
+
+CompilerError = 0
+RunError      = 0
+
+Input = ""
+
+CompilerOutput = ""
+RunOutput      = ""

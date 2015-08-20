@@ -1,0 +1,13 @@
+Name       = "enum_union"
+Sourcefile = "enum_union.ark"
+
+CompilerArgs = []
+RunArgs      = []
+
+CompilerError = 0
+RunError      = 0
+
+Input = ""
+
+CompilerOutput = ""
+RunOutput      = ""
