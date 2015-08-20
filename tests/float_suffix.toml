@@ -1,0 +1,13 @@
+Name       = "float_suffix"
+Sourcefile = "float_suffix.ark"
+
+CompilerArgs = []
+RunArgs      = []
+
+CompilerError = 0
+RunError      = 0
+
+Input = ""
+
+CompilerOutput = ""
+RunOutput      = ""

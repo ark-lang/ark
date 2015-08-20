@@ -1,0 +1,13 @@
+Name       = "single_line_func"
+Sourcefile = "single_line_func.ark"
+
+CompilerArgs = []
+RunArgs      = []
+
+CompilerError = 0
+RunError      = 0
+
+Input = ""
+
+CompilerOutput = ""
+RunOutput      = ""

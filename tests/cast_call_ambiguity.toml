@@ -1,0 +1,13 @@
+Name       = "cast_call_ambiguity"
+Sourcefile = "cast_call_ambiguity.ark"
+
+CompilerArgs = []
+RunArgs      = []
+
+CompilerError = 0
+RunError      = 0
+
+Input = ""
+
+CompilerOutput = ""
+RunOutput      = ""

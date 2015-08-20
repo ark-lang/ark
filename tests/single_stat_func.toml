@@ -1,0 +1,13 @@
+Name       = "single_stat_func"
+Sourcefile = "single_stat_func.ark"
+
+CompilerArgs = []
+RunArgs      = []
+
+CompilerError = 0
+RunError      = 0
+
+Input = ""
+
+CompilerOutput = ""
+RunOutput      = ""
