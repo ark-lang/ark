@@ -1,0 +1,13 @@
+Name       = "global"
+Sourcefile = "global.ark"
+
+CompilerArgs = []
+RunArgs      = []
+
+CompilerError = 0
+RunError      = 0
+
+Input = ""
+
+CompilerOutput = ""
+RunOutput      = ""

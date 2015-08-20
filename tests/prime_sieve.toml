@@ -1,0 +1,13 @@
+Name       = "prime_sieve"
+Sourcefile = "prime_sieve.ark"
+
+CompilerArgs = []
+RunArgs      = []
+
+CompilerError = 0
+RunError      = 0
+
+Input = ""
+
+CompilerOutput = ""
+RunOutput      = ""
