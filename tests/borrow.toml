@@ -1,7 +1,7 @@
 Name       = "borrow"
 Sourcefile = "borrow.ark"
 
-CompilerArgs = []
+CompilerArgs = ["--unused"]
 RunArgs      = []
 
 CompilerError = 0
