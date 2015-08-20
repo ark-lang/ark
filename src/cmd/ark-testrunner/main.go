@@ -48,10 +48,14 @@ var (
 
 func main() {
 	flag.Parse()
+	os.Exit(realmain())
+}
 
+func realmain() int {
 	var dirs []string
 	files := make(map[string][]string)
 
+	// Find all toml files in test directory
 	filepath.Walk(*testDirectory, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -71,13 +75,9 @@ func main() {
 			}
 
 			dirs = append(dirs, file)
-			return nil
-		}
-
-		if strings.HasSuffix(file, ".toml") {
+		} else if strings.HasSuffix(file, ".toml") {
 			files[dir] = append(files[dir], file)
 		}
-
 		return nil
 	})
 
@@ -92,10 +92,11 @@ func main() {
 		for _, file := range files[dir] {
 			path := filepath.Join(*testDirectory, dir, file)
 
+			// Parse job file
 			job, err := ParseJob(path)
 			if err != nil {
 				fmt.Printf("%s\n", err.Error())
-				os.Exit(1)
+				return 1
 			}
 			job.Sourcefile = filepath.Join(*testDirectory, dir, job.Sourcefile)
 
@@ -104,48 +105,30 @@ func main() {
 	}
 
 	// Do jobs
+	outBuf := new(bytes.Buffer)
 	var results []Result
 	for _, job := range jobs {
 		idx := strings.LastIndex(job.Sourcefile, ".ark")
-		basedir := filepath.Dir(job.Sourcefile)
-		module := filepath.Base(job.Sourcefile[:idx])
+		basedir, module := filepath.Split(job.Sourcefile[:idx])
 		outpath := filepath.Join(basedir, fmt.Sprintf("%s.test", module))
-
-		res := Result{Job: job}
 
 		// Compile the test program
 		buildArgs := []string{"build"}
 		buildArgs = append(buildArgs, job.CompilerArgs...)
 		buildArgs = append(buildArgs, []string{"-b", basedir, "-o", outpath, module}...)
-		buildCmd := exec.Command("ark", buildArgs...)
 
-		// Output handling
-		outBuf := new(bytes.Buffer)
+		outBuf.Reset()
 		if *showOutput {
 			fmt.Printf("Building test: %s\n", job.Name)
-			buildCmd.Stdout = io.MultiWriter(outBuf, os.Stdout)
-			buildCmd.Stderr = io.MultiWriter(outBuf, os.Stdout)
-		} else {
-			buildCmd.Stdout = outBuf
-			buildCmd.Stderr = outBuf
 		}
 
-		// Start the build
-		if err := buildCmd.Start(); err != nil {
-			fmt.Printf("Error while starting build command:\n%s\n", err.Error())
-			os.Exit(1)
-		}
+		var err error
+		res := Result{Job: job}
 
-		// Check the exit status
-		if err := buildCmd.Wait(); err != nil {
-			if exiterr, ok := err.(*exec.ExitError); ok {
-				if status, ok := exiterr.Sys().(syscall.WaitStatus); ok {
-					res.CompilerError = status.ExitStatus()
-				}
-			} else {
-				fmt.Printf("Error while running build command:\n%s\n", err.Error())
-				os.Exit(1)
-			}
+		res.CompilerError, err = runCommand(outBuf, "ark", buildArgs...)
+		if err != nil {
+			fmt.Printf("Error while building test:\n%s\n", err.Error())
+			return 1
 		}
 		res.CompilerOutput = outBuf.String()
 
@@ -156,35 +139,15 @@ func main() {
 		}
 
 		// Run the test program
-		runCmd := exec.Command(fmt.Sprintf("./%s", outpath), job.RunArgs...)
-
-		// Output handling
 		outBuf.Reset()
 		if *showOutput {
 			fmt.Printf("\nRunning test: %s\n", job.Name)
-			runCmd.Stdout = io.MultiWriter(outBuf, os.Stdout)
-			runCmd.Stderr = io.MultiWriter(outBuf, os.Stdout)
-		} else {
-			runCmd.Stdout = outBuf
-			runCmd.Stderr = outBuf
 		}
 
-		// Start the test
-		if err := runCmd.Start(); err != nil {
-			fmt.Printf("Error while starting test binary:\n%s\n", err.Error())
-			os.Exit(1)
-		}
-
-		// Check the exit status
-		if err := runCmd.Wait(); err != nil {
-			if exiterr, ok := err.(*exec.ExitError); ok {
-				if status, ok := exiterr.Sys().(syscall.WaitStatus); ok {
-					res.RunError = status.ExitStatus()
-				}
-			} else {
-				fmt.Printf("Error while running test binary:\n%s\n", err.Error())
-				os.Exit(1)
-			}
+		res.RunError, err = runCommand(outBuf, fmt.Sprintf("./%s", outpath), job.RunArgs...)
+		if err != nil {
+			fmt.Printf("Error while running test:\n%s\n", err.Error())
+			return 1
 		}
 		res.RunOutput = outBuf.String()
 
@@ -195,6 +158,7 @@ func main() {
 		// Remove test executable
 		if err := os.Remove(outpath); err != nil {
 			fmt.Printf("Error while removing test executable:\n%s\n", err.Error())
+			return 1
 		}
 
 		results = append(results, res)
@@ -203,9 +167,10 @@ func main() {
 	// Check results
 	numSucceses := 0
 
-	fmt.Printf("Test name       | Build error | Build output | Run error | Run output | Result \n")
-	fmt.Printf("----------------|-------------|--------------|-----------|------------|---------\n")
+	fmt.Printf("Test name       | Build error | Run error | Build output | Run output | Result  \n")
+	fmt.Printf("----------------|-------------|-----------|--------------|------------|---------\n")
 	for _, res := range results {
+		failure := false
 		if len(res.Job.Name) > 15 {
 			fmt.Printf("%s... |", res.Job.Name[:12])
 		} else {
@@ -213,49 +178,42 @@ func main() {
 		}
 
 		// Check build errors
-		buildWrongError := false
-		if res.CompilerError != res.Job.CompilerError {
-			buildWrongError = true
-			fmt.Printf("   %s%3d%s", util.TEXT_RED, res.CompilerError, util.TEXT_RESET)
+		if res.CompilerError == res.Job.CompilerError {
+			fmt.Printf("   %s%3d%s (%3d) |", util.TEXT_GREEN, res.CompilerError, util.TEXT_RESET, res.Job.CompilerError)
 		} else {
-			fmt.Printf("   %s%3d%s", util.TEXT_GREEN, res.CompilerError, util.TEXT_RESET)
-		}
-		fmt.Printf(" (%3d) |", res.Job.CompilerError)
-
-		// Check build output
-		buildWrongOutput := false
-		if res.Job.CompilerOutput == "" {
-			fmt.Printf("          n/a |")
-		} else if res.CompilerOutput != res.Job.CompilerOutput {
-			buildWrongOutput = true
-			fmt.Printf(" %sMismatch%s |", util.TEXT_RED, util.TEXT_RESET)
-		} else {
-			fmt.Printf("    %sMatch%s |", util.TEXT_GREEN, util.TEXT_RESET)
+			fmt.Printf("   %s%3d%s (%3d) |", util.TEXT_RED, res.CompilerError, util.TEXT_RESET, res.Job.CompilerError)
+			failure = true
 		}
 
 		// Check run errors
-		runWrongError := false
-		if res.RunError != res.Job.RunError {
-			runWrongError = true
-			fmt.Printf(" %s%3d%s", util.TEXT_RED, res.RunError, util.TEXT_RESET)
+		if res.RunError == res.Job.RunError {
+			fmt.Printf(" %s%3d%s (%3d) |", util.TEXT_GREEN, res.RunError, util.TEXT_RESET, res.Job.RunError)
 		} else {
-			fmt.Printf(" %s%3d%s", util.TEXT_GREEN, res.RunError, util.TEXT_RESET)
+			fmt.Printf(" %s%3d%s (%3d) |", util.TEXT_RED, res.RunError, util.TEXT_RESET, res.Job.RunError)
+			failure = true
 		}
-		fmt.Printf(" (%3d) |", res.Job.RunError)
+
+		// Check build output
+		if res.Job.CompilerOutput == "" {
+			fmt.Printf("          n/a |")
+		} else if res.CompilerOutput == res.Job.CompilerOutput {
+			fmt.Printf("    %sMatch%s |", util.TEXT_GREEN, util.TEXT_RESET)
+		} else {
+			fmt.Printf(" %sMismatch%s |", util.TEXT_RED, util.TEXT_RESET)
+			failure = true
+		}
 
 		// Check run output
-		runWrongOutput := false
 		if res.Job.RunOutput == "" {
 			fmt.Printf("        n/a |")
-		} else if res.RunOutput != res.Job.RunOutput {
-			runWrongOutput = true
-			fmt.Printf("   %sMismatch%s |", util.TEXT_RED, util.TEXT_RESET)
-		} else {
+		} else if res.RunOutput == res.Job.RunOutput {
 			fmt.Printf("      %sMatch%s |", util.TEXT_GREEN, util.TEXT_RESET)
+		} else {
+			fmt.Printf("   %sMismatch%s |", util.TEXT_RED, util.TEXT_RESET)
+			failure = true
 		}
 
 		// Output result
-		failure := buildWrongError || buildWrongOutput || runWrongError || runWrongOutput
 		if failure {
 			fmt.Printf(" %sFailure%s\n", util.TEXT_RED, util.TEXT_RESET)
 		} else {
@@ -265,9 +223,38 @@ func main() {
 	}
 
 	fmt.Printf("\nTotal: %d / %d tests ran succesfully\n", numSucceses, len(results))
-
 	if numSucceses < len(results) {
-		os.Exit(1)
+		return 1
 	}
-	os.Exit(0)
+	return 0
+}
+
+func runCommand(out io.Writer, cmd string, args ...string) (int, error) {
+	// Run the test program
+	command := exec.Command(cmd, args...)
+
+	// Output handling
+	ow := out
+	if *showOutput {
+		ow = io.MultiWriter(out, os.Stdout)
+	}
+	command.Stdout, command.Stderr = ow, ow
+
+	// Start the test
+	if err := command.Start(); err != nil {
+		return -1, err
+	}
+
+	// Check the exit status
+	if err := command.Wait(); err != nil {
+		if exiterr, ok := err.(*exec.ExitError); ok {
+			if status, ok := exiterr.Sys().(syscall.WaitStatus); ok {
+				return status.ExitStatus(), nil
+			}
+		} else {
+			return -1, err
+		}
+	}
+
+	return 0, nil
 }
