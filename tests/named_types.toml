@@ -1,0 +1,13 @@
+Name       = "named_types"
+Sourcefile = "named_types.ark"
+
+CompilerArgs = []
+RunArgs      = []
+
+CompilerError = 0
+RunError      = 0
+
+Input = ""
+
+CompilerOutput = ""
+RunOutput      = ""
