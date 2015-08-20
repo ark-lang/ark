@@ -265,4 +265,9 @@ func main() {
 	}
 
 	fmt.Printf("\nTotal: %d / %d tests ran succesfully\n", numSucceses, len(results))
+
+	if numSucceses < len(results) {
+		os.Exit(1)
+	}
+	os.Exit(0)
 }
