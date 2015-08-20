@@ -1,0 +1,13 @@
+Name       = "array_bound"
+Sourcefile = "array_bound.ark"
+
+CompilerArgs = []
+RunArgs      = []
+
+CompilerError = 0
+RunError      = -1
+
+Input = ""
+
+CompilerOutput = ""
+RunOutput      = ""
