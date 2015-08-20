@@ -1,0 +1,13 @@
+Name       = "borrow"
+Sourcefile = "borrow.ark"
+
+CompilerArgs = ["--unused"]
+RunArgs      = []
+
+CompilerError = 0
+RunError      = 0
+
+Input = ""
+
+CompilerOutput = ""
+RunOutput      = ""

@@ -1,0 +1,13 @@
+Name       = "binop_assign"
+Sourcefile = "binop_assign.ark"
+
+CompilerArgs = []
+RunArgs      = []
+
+CompilerError = 0
+RunError      = 0
+
+Input = ""
+
+CompilerOutput = ""
+RunOutput      = ""
