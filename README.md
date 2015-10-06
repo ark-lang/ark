@@ -1,5 +1,7 @@
 ## Ark [![Build Status](https://api.travis-ci.org/ark-lang/ark.svg?branch=master)][1] [![license](http://img.shields.io/badge/license-MIT-brightgreen.svg)](https://raw.githubusercontent.com/ark-lang/ark/master/LICENSE)
 
+[![forthebadge](http://forthebadge.com/images/badges/mom-made-pizza-rolls.svg)](http://forthebadge.com)
+
 [Ark](//www.ark-lang.org) is a systems programming language somewhere in-between C and C++.
 
 ## Table Of Contents
