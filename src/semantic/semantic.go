@@ -104,15 +104,15 @@ func (v *SemanticAnalyzer) Finalize() {
 	}
 }
 
-func (v *SemanticAnalyzer) Visit(n parser.Node) {
+func (v *SemanticAnalyzer) Visit(n *parser.Node) {
 	for _, check := range v.Checks {
-		check.Visit(v, n)
+		check.Visit(v, *n)
 	}
 }
 
-func (v *SemanticAnalyzer) PostVisit(n parser.Node) {
+func (v *SemanticAnalyzer) PostVisit(n *parser.Node) {
 	for _, check := range v.Checks {
-		check.PostVisit(v, n)
+		check.PostVisit(v, *n)
 	}
 }
 

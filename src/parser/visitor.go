@@ -8,8 +8,8 @@ type Visitor interface {
 	EnterScope(s *Scope)
 	ExitScope(s *Scope)
 
-	Visit(Node)
-	PostVisit(Node)
+	Visit(*Node)
+	PostVisit(*Node)
 }
 
 type ASTVisitor struct {
@@ -37,9 +37,9 @@ func (v *ASTVisitor) Visit(n Node) {
 		return
 	}
 
-	v.Visitor.Visit(n)
+	v.Visitor.Visit(&n)
 	v.VisitChildren(n)
-	v.Visitor.PostVisit(n)
+	v.Visitor.PostVisit(&n)
 }
 
 func (v *ASTVisitor) EnterScope(s *Scope) {
