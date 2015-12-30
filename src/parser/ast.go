@@ -226,14 +226,14 @@ func (v *TypeDecl) DocComments() []*DocComment {
 
 type UseDecl struct {
 	nodePos
-	ModuleName string
+	ModuleName unresolvedName
 	Scope      *Scope
 }
 
 func (v *UseDecl) declNode() {}
 
 func (v *UseDecl) String() string {
-	return "(" + util.Blue("UseDecl") + ": " + v.ModuleName + ")"
+	return "(" + util.Blue("UseDecl") + ": " + v.ModuleName.String() + ")"
 }
 
 func (v *UseDecl) NodeName() string {
@@ -671,6 +671,7 @@ type StructLiteral struct {
 	nodePos
 	Type   Type
 	Values map[string]Expr
+	InEnum bool
 }
 
 func (v *StructLiteral) exprNode() {}
@@ -832,6 +833,8 @@ type CallExpr struct {
 	functionSource Expr
 	Arguments      []Expr
 	ReceiverAccess Expr // nil if not method or if static
+
+	parameters []Type
 }
 
 func (v *CallExpr) exprNode() {}
@@ -864,6 +867,8 @@ type VariableAccessExpr struct {
 	Name unresolvedName
 
 	Variable *Variable
+
+	parameters []Type
 }
 
 func (v *VariableAccessExpr) exprNode() {}
