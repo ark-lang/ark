@@ -29,7 +29,7 @@ type Resolver struct {
 }
 
 type Resolvable interface {
-	resolve(*Resolver, *Scope)
+	resolve(*Resolver, *Scope) Node
 }
 
 func (v *Resolver) err(thing Locatable, err string, stuff ...interface{}) {
@@ -63,23 +63,23 @@ func (v *Resolver) ExitScope(s *Scope) {
 	}
 }
 
-func (v *Resolver) Visit(n Node) {
-	if resolveable, ok := n.(Resolvable); ok {
-		resolveable.resolve(v, v.Scope())
+func (v *Resolver) Visit(n *Node) {
+	if resolveable, ok := (*n).(Resolvable); ok {
+		*n = resolveable.resolve(v, v.Scope())
 	}
 
 }
 
-func (v *Resolver) PostVisit(n Node) {
-	switch n.(type) {
+func (v *Resolver) PostVisit(n *Node) {
+	switch (*n).(type) {
 	case *DerefAccessExpr:
-		dae := n.(*DerefAccessExpr)
+		dae := (*n).(*DerefAccessExpr)
 		if ptr, ok := dae.Expr.GetType().(PointerType); ok {
 			dae.Type = ptr.Addressee
 		}
 
 	case *FunctionDecl:
-		fd := n.(*FunctionDecl)
+		fd := (*n).(*FunctionDecl)
 		if fd.Function.IsMethod && !fd.Function.IsStatic {
 			TypeWithoutPointers(fd.Function.Receiver.Variable.Type).(*NamedType).addMethod(fd.Function)
 		}
@@ -90,7 +90,7 @@ func (v *Resolver) PostVisit(n Node) {
 // LATA
 ///
 
-func (v *FunctionDecl) resolve(res *Resolver, s *Scope) {
+func (v *FunctionDecl) resolve(res *Resolver, s *Scope) Node {
 	if v.Function.ReturnType != nil {
 		v.Function.ReturnType = v.Function.ReturnType.resolveType(v, res, s)
 	}
@@ -101,9 +101,10 @@ func (v *FunctionDecl) resolve(res *Resolver, s *Scope) {
 			v.Function.StaticReceiverType.(*NamedType).addMethod(v.Function)
 		}
 	}
+	return v
 }
 
-func (v *VariableAccessExpr) resolve(res *Resolver, s *Scope) {
+func (v *VariableAccessExpr) resolve(res *Resolver, s *Scope) Node {
 	ident := s.GetIdent(v.Name)
 	if ident == nil {
 		res.errCannotResolve(v, v.Name)
@@ -118,36 +119,43 @@ func (v *VariableAccessExpr) resolve(res *Resolver, s *Scope) {
 	} else if v.Variable.Type != nil {
 		v.Variable.Type = v.Variable.Type.resolveType(v, res, s)
 	}
+	return v
 }
 
-func (v *VariableDecl) resolve(res *Resolver, s *Scope) {
+func (v *VariableDecl) resolve(res *Resolver, s *Scope) Node {
 	if v.Variable.Type != nil {
 		v.Variable.Type = v.Variable.Type.resolveType(v, res, s)
 	}
+	return v
 }
 
-func (v *TypeDecl) resolve(res *Resolver, s *Scope) {
+func (v *TypeDecl) resolve(res *Resolver, s *Scope) Node {
 	if v.NamedType.Parameters == nil {
 		v.NamedType.Type = v.NamedType.Type.resolveType(v, res, s)
 	}
+	return v
 }
 
-func (v *CastExpr) resolve(res *Resolver, s *Scope) {
+func (v *CastExpr) resolve(res *Resolver, s *Scope) Node {
 	v.Type = v.Type.resolveType(v, res, s)
+	return v
 }
 
-func (v *SizeofExpr) resolve(res *Resolver, s *Scope) {
+func (v *SizeofExpr) resolve(res *Resolver, s *Scope) Node {
 	if v.Type != nil {
 		v.Type = v.Type.resolveType(v, res, s)
 	}
+	return v
 }
 
-func (v *EnumLiteral) resolve(res *Resolver, s *Scope) {
+func (v *EnumLiteral) resolve(res *Resolver, s *Scope) Node {
 	v.Type = v.Type.resolveType(v, res, s)
+	return v
 }
 
-func (v *DefaultExpr) resolve(res *Resolver, s *Scope) {
+func (v *DefaultExpr) resolve(res *Resolver, s *Scope) Node {
 	v.Type = v.Type.resolveType(v, res, s)
+	return v
 }
 
 /*
