@@ -27,7 +27,6 @@ type Constructor struct {
 	module  *Module
 	modules *ModuleLookup
 	scope   *Scope
-	nameMap *NameMap
 }
 
 func (v *Constructor) err(pos lexer.Span, err string, stuff ...interface{}) {
@@ -88,8 +87,7 @@ func Construct(tree *ParseTree, modules *ModuleLookup) *Module {
 			Path:  tree.Source.Path,
 			Name:  tree.Name,
 		},
-		scope:   NewGlobalScope(),
-		nameMap: MapNames(tree.Nodes, tree, modules, nil),
+		scope: NewGlobalScope(),
 	}
 	c.module.GlobalScope = c.scope
 	c.modules = modules
@@ -235,13 +233,11 @@ func (v *TypeDeclNode) construct(c *Constructor) Node {
 		}
 	}
 
-	c.nameMap = MapNames(paramNodes, c.tree, c.modules, c.nameMap)
 	namedType := &NamedType{
 		Name:         v.Name.Value,
 		Type:         c.constructType(v.Type),
 		ParentModule: c.module,
 	}
-	c.nameMap = c.nameMap.parent
 
 	if v.GenericSigil != nil {
 		for _, param := range v.GenericSigil.Parameters {
@@ -346,12 +342,6 @@ func (v *FunctionDeclNode) construct(c *Constructor) Node {
 		function.Parameters = append(function.Parameters, decl)
 	}
 
-	nameMapArgs := arguments
-	if v.Header.IsMethod && !v.Header.IsStatic {
-		nameMapArgs = append(arguments, v.Header.Receiver)
-	}
-	c.nameMap = MapNames(nameMapArgs, c.tree, c.modules, c.nameMap)
-
 	if v.Header.ReturnType != nil {
 		function.ReturnType = c.constructType(v.Header.ReturnType)
 	}
@@ -367,7 +357,6 @@ func (v *FunctionDeclNode) construct(c *Constructor) Node {
 	} else {
 		res.Prototype = true
 	}
-	c.nameMap = c.nameMap.parent
 	c.popScope()
 
 	if !function.IsMethod {
@@ -552,8 +541,6 @@ func (v *BlockStatNode) construct(c *Constructor) Node {
 }
 
 func (v *BlockNode) construct(c *Constructor) Node {
-	c.nameMap = MapNames(v.Nodes, c.tree, c.modules, c.nameMap)
-
 	res := &Block{}
 	res.scope = c.scope
 	res.NonScoping = v.NonScoping
@@ -566,8 +553,6 @@ func (v *BlockNode) construct(c *Constructor) Node {
 		c.popScope()
 	}
 	res.setPos(v.Where().Start())
-
-	c.nameMap = c.nameMap.parent
 	return res
 }
 
