@@ -111,7 +111,7 @@ func (v *Scope) InsertFunction(t *Function) *Ident {
 func (v *Scope) GetIdent(name unresolvedName) *Ident {
 	scope := v
 
-	for idx, modname := range name.moduleNames {
+	for _, modname := range name.moduleNames {
 		if module, ok := scope.UsedModules[modname]; ok {
 			scope = module.Module.GlobalScope
 		} else if scope.Outer != nil {
@@ -119,12 +119,7 @@ func (v *Scope) GetIdent(name unresolvedName) *Ident {
 				scope = module.Module.GlobalScope
 			}
 		} else {
-			if idx == 0 {
-				v.err("could not find `" + modname + "`, are you sure it's being used in this module?\n\n    `use " + modname + ";`\n")
-			} else {
-				// TODO: Better error message
-				v.err("could not find `" + modname + "`, are you sure it's being used in this module?\n")
-			}
+			return nil
 		}
 	}
 

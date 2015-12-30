@@ -22,6 +22,17 @@ func (v unresolvedName) String() string {
 	return ret + v.name
 }
 
+func (v unresolvedName) Split() (unresolvedName, string) {
+	if len(v.moduleNames) > 0 {
+		res := unresolvedName{}
+		res.moduleNames = v.moduleNames[:len(v.moduleNames)-1]
+		res.name = v.moduleNames[len(v.moduleNames)-1]
+		return res, v.name
+	} else {
+		return unresolvedName{}, ""
+	}
+}
+
 type Resolver struct {
 	Module *Module
 
@@ -29,7 +40,7 @@ type Resolver struct {
 }
 
 type Resolvable interface {
-	resolve(*Resolver, *Scope)
+	resolve(*Resolver, *Scope) Node
 }
 
 func (v *Resolver) err(thing Locatable, err string, stuff ...interface{}) {
@@ -63,23 +74,25 @@ func (v *Resolver) ExitScope(s *Scope) {
 	}
 }
 
-func (v *Resolver) Visit(n Node) {
-	if resolveable, ok := n.(Resolvable); ok {
-		resolveable.resolve(v, v.Scope())
+func (v *Resolver) Visit(n *Node) {
+	if resolveable, ok := (*n).(Resolvable); ok {
+		*n = resolveable.resolve(v, v.Scope())
 	}
 
 }
 
-func (v *Resolver) PostVisit(n Node) {
-	switch n.(type) {
+func (v *Resolver) PostVisit(n *Node) {
+	switch (*n).(type) {
 	case *DerefAccessExpr:
-		dae := n.(*DerefAccessExpr)
-		if ptr, ok := dae.Expr.GetType().(PointerType); ok {
+		dae := (*n).(*DerefAccessExpr)
+		if ce, ok := dae.Expr.(*CastExpr); ok {
+			*n = &CastExpr{Type: pointerTo(ce.Type), Expr: ce.Expr}
+		} else if ptr, ok := dae.Expr.GetType().(PointerType); ok {
 			dae.Type = ptr.Addressee
 		}
 
 	case *FunctionDecl:
-		fd := n.(*FunctionDecl)
+		fd := (*n).(*FunctionDecl)
 		if fd.Function.IsMethod && !fd.Function.IsStatic {
 			TypeWithoutPointers(fd.Function.Receiver.Variable.Type).(*NamedType).addMethod(fd.Function)
 		}
@@ -90,7 +103,7 @@ func (v *Resolver) PostVisit(n Node) {
 // LATA
 ///
 
-func (v *FunctionDecl) resolve(res *Resolver, s *Scope) {
+func (v *FunctionDecl) resolve(res *Resolver, s *Scope) Node {
 	if v.Function.ReturnType != nil {
 		v.Function.ReturnType = v.Function.ReturnType.resolveType(v, res, s)
 	}
@@ -101,9 +114,31 @@ func (v *FunctionDecl) resolve(res *Resolver, s *Scope) {
 			v.Function.StaticReceiverType.(*NamedType).addMethod(v.Function)
 		}
 	}
+	return v
 }
 
-func (v *VariableAccessExpr) resolve(res *Resolver, s *Scope) {
+func (v *VariableAccessExpr) resolve(res *Resolver, s *Scope) Node {
+	// NOTE: Here we check whether this is actually a variable access or an enum member.
+	if len(v.Name.moduleNames) > 0 {
+		enumName, memberName := v.Name.Split()
+		ident := s.GetIdent(enumName)
+		if ident.Type == IDENT_TYPE {
+			itype := ident.Value.(Type)
+			if _, ok := itype.ActualType().(EnumType); ok {
+
+				enum := &EnumLiteral{}
+				enum.Member = memberName
+				enum.Type = UnresolvedType{
+					Name:       enumName,
+					Parameters: v.parameters,
+				}
+				enum.Type = enum.Type.resolveType(v, res, s)
+				enum.setPos(v.Pos())
+				return enum
+			}
+		}
+	}
+
 	ident := s.GetIdent(v.Name)
 	if ident == nil {
 		res.errCannotResolve(v, v.Name)
@@ -118,36 +153,159 @@ func (v *VariableAccessExpr) resolve(res *Resolver, s *Scope) {
 	} else if v.Variable.Type != nil {
 		v.Variable.Type = v.Variable.Type.resolveType(v, res, s)
 	}
+	return v
 }
 
-func (v *VariableDecl) resolve(res *Resolver, s *Scope) {
+func (v *VariableDecl) resolve(res *Resolver, s *Scope) Node {
 	if v.Variable.Type != nil {
 		v.Variable.Type = v.Variable.Type.resolveType(v, res, s)
 	}
+	return v
 }
 
-func (v *TypeDecl) resolve(res *Resolver, s *Scope) {
+func (v *TypeDecl) resolve(res *Resolver, s *Scope) Node {
 	if v.NamedType.Parameters == nil {
 		v.NamedType.Type = v.NamedType.Type.resolveType(v, res, s)
 	}
+	return v
 }
 
-func (v *CastExpr) resolve(res *Resolver, s *Scope) {
+func (v *CastExpr) resolve(res *Resolver, s *Scope) Node {
 	v.Type = v.Type.resolveType(v, res, s)
+	return v
 }
 
-func (v *SizeofExpr) resolve(res *Resolver, s *Scope) {
+func (v *SizeofExpr) resolve(res *Resolver, s *Scope) Node {
+	if v.Expr != nil {
+		// NOTE: Here we recurse down any deref ops, to check whether we are dealing
+		// with a variable getting dereferenced, or a pointer type.
+		var inner Expr = v.Expr
+		depth := 0
+
+		for {
+			if unaryExpr, ok := inner.(*UnaryExpr); ok && unaryExpr.Op == UNOP_DEREF {
+				inner = unaryExpr.Expr
+				depth++
+				continue
+			} else if vaExpr, ok := inner.(*VariableAccessExpr); ok {
+				ident := s.GetIdent(vaExpr.Name)
+				if ident.Type == IDENT_TYPE {
+					// NOTE: If it turened out to be a pointer type we
+					// reconstruct the type based on the stored pointer depth
+					var newType Type = ident.Value.(Type)
+					for i := 0; i < depth; i++ {
+						newType = pointerTo(newType)
+					}
+					v.Type = newType
+					v.Expr = nil
+				}
+			}
+			break
+		}
+	}
+
 	if v.Type != nil {
 		v.Type = v.Type.resolveType(v, res, s)
 	}
+	return v
 }
 
-func (v *EnumLiteral) resolve(res *Resolver, s *Scope) {
+func (v *EnumLiteral) resolve(res *Resolver, s *Scope) Node {
 	v.Type = v.Type.resolveType(v, res, s)
+	return v
 }
 
-func (v *DefaultExpr) resolve(res *Resolver, s *Scope) {
+func (v *DefaultExpr) resolve(res *Resolver, s *Scope) Node {
 	v.Type = v.Type.resolveType(v, res, s)
+	return v
+}
+
+func (v *UseDecl) resolve(res *Resolver, s *Scope) Node {
+	ident := s.GetIdent(v.ModuleName)
+	if ident == nil {
+		// TODO: Verify whether this case can ever happen
+		res.errCannotResolve(v, v.ModuleName)
+	} else if ident.Type != IDENT_MODULE {
+		res.err(v, "Expected module name, found %s `%s`", ident.Type, v.ModuleName)
+	}
+	return v
+}
+
+func (v *StructLiteral) resolve(res *Resolver, s *Scope) Node {
+	if v.InEnum {
+		return v
+	}
+
+	// NOTE: Here we check if we are referencing an actual struct,
+	// or the struct part of an enum type
+	if name, ok := v.Type.(UnresolvedType); ok {
+		enumName, memberName := name.Name.Split()
+		if memberName != "" {
+			ident := s.GetIdent(enumName)
+			if ident.Type == IDENT_TYPE {
+				itype := ident.Value.(Type)
+				if _, ok := itype.ActualType().(EnumType); ok {
+					enum := &EnumLiteral{}
+					enum.Member = memberName
+					enum.Type = itype
+					enum.StructLiteral = v
+					enum.StructLiteral.InEnum = true
+					enum.setPos(v.Pos())
+					return enum
+				}
+			}
+		}
+	}
+
+	if v.Type != nil {
+		v.Type = v.Type.resolveType(v, res, s)
+	}
+	return v
+}
+
+func (v *CallExpr) resolve(res *Resolver, s *Scope) Node {
+	// NOTE: Here we check whether this is a call or an enum tuple lit.
+	if vae, ok := v.functionSource.(*VariableAccessExpr); ok {
+		if len(vae.Name.moduleNames) > 0 {
+			enumName, memberName := vae.Name.Split()
+			ident := s.GetIdent(enumName)
+			if ident != nil && ident.Type == IDENT_TYPE {
+				itype := ident.Value.(Type)
+				if _, ok := itype.ActualType().(EnumType); ok {
+
+					enum := &EnumLiteral{}
+					enum.Member = memberName
+					enum.Type = UnresolvedType{
+						Name:       enumName,
+						Parameters: v.parameters,
+					}
+					enum.Type = enum.Type.resolveType(v, res, s)
+					enum.TupleLiteral = &TupleLiteral{Members: v.Arguments}
+					enum.setPos(v.Pos())
+					return enum
+				}
+			}
+		}
+	}
+
+	// NOTE: Here we check whether this is a call or a cast
+	if vae, ok := v.functionSource.(*VariableAccessExpr); ok {
+		ident := s.GetIdent(vae.Name)
+		if ident != nil && ident.Type == IDENT_TYPE {
+			if len(v.Arguments) != 1 {
+				res.err(v, "Casts must recieve exactly one argument")
+			}
+
+			cast := &CastExpr{}
+			cast.Type = UnresolvedType{Name: vae.Name}
+			cast.Type = cast.Type.resolveType(v, res, s)
+			cast.Expr = v.Arguments[0]
+			cast.setPos(v.Pos())
+			return cast
+		}
+	}
+
+	return v
 }
 
 /*

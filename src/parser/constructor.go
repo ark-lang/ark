@@ -27,7 +27,6 @@ type Constructor struct {
 	module  *Module
 	modules *ModuleLookup
 	scope   *Scope
-	nameMap *NameMap
 }
 
 func (v *Constructor) err(pos lexer.Span, err string, stuff ...interface{}) {
@@ -88,8 +87,7 @@ func Construct(tree *ParseTree, modules *ModuleLookup) *Module {
 			Path:  tree.Source.Path,
 			Name:  tree.Name,
 		},
-		scope:   NewGlobalScope(),
-		nameMap: MapNames(tree.Nodes, tree, modules, nil),
+		scope: NewGlobalScope(),
 	}
 	c.module.GlobalScope = c.scope
 	c.modules = modules
@@ -206,13 +204,7 @@ func (v *ArrayTypeNode) construct(c *Constructor) Type {
 }
 
 func (v *TypeReferenceNode) construct(c *Constructor) Type {
-	typ := c.nameMap.TypeOfNameNode(v.Reference)
-	if !typ.IsType() {
-		c.errSpan(v.Reference.Name.Where, "Name `%s` is not a type", v.Reference.Name.Value)
-	}
-
 	parameters := c.constructTypes(v.TypeParameters)
-
 	res := UnresolvedType{Name: toUnresolvedName(v.Reference), Parameters: parameters}
 	return res
 }
@@ -241,13 +233,11 @@ func (v *TypeDeclNode) construct(c *Constructor) Node {
 		}
 	}
 
-	c.nameMap = MapNames(paramNodes, c.tree, c.modules, c.nameMap)
 	namedType := &NamedType{
 		Name:         v.Name.Value,
 		Type:         c.constructType(v.Type),
 		ParentModule: c.module,
 	}
-	c.nameMap = c.nameMap.parent
 
 	if v.GenericSigil != nil {
 		for _, param := range v.GenericSigil.Parameters {
@@ -270,13 +260,8 @@ func (v *TypeDeclNode) construct(c *Constructor) Node {
 }
 
 func (v *UseDeclNode) construct(c *Constructor) Node {
-	typ := c.nameMap.TypeOfNameNode(v.Module)
-	if typ != NODE_MODULE {
-		c.errSpan(v.Module.Name.Where, "Name `%s` is not a module", v.Module.Name)
-	}
-
 	res := &UseDecl{}
-	res.ModuleName = v.Module.Name.Value
+	res.ModuleName = toUnresolvedName(v.Module)
 	res.Scope = c.scope
 	c.useModule(NewModuleName(v.Module))
 	res.setPos(v.Where().Start())
@@ -357,12 +342,6 @@ func (v *FunctionDeclNode) construct(c *Constructor) Node {
 		function.Parameters = append(function.Parameters, decl)
 	}
 
-	nameMapArgs := arguments
-	if v.Header.IsMethod && !v.Header.IsStatic {
-		nameMapArgs = append(arguments, v.Header.Receiver)
-	}
-	c.nameMap = MapNames(nameMapArgs, c.tree, c.modules, c.nameMap)
-
 	if v.Header.ReturnType != nil {
 		function.ReturnType = c.constructType(v.Header.ReturnType)
 	}
@@ -378,7 +357,6 @@ func (v *FunctionDeclNode) construct(c *Constructor) Node {
 	} else {
 		res.Prototype = true
 	}
-	c.nameMap = c.nameMap.parent
 	c.popScope()
 
 	if !function.IsMethod {
@@ -563,8 +541,6 @@ func (v *BlockStatNode) construct(c *Constructor) Node {
 }
 
 func (v *BlockNode) construct(c *Constructor) Node {
-	c.nameMap = MapNames(v.Nodes, c.tree, c.modules, c.nameMap)
-
 	res := &Block{}
 	res.scope = c.scope
 	res.NonScoping = v.NonScoping
@@ -577,8 +553,6 @@ func (v *BlockNode) construct(c *Constructor) Node {
 		c.popScope()
 	}
 	res.setPos(v.Where().Start())
-
-	c.nameMap = c.nameMap.parent
 	return res
 }
 
@@ -616,29 +590,6 @@ func (v *BinaryExprNode) construct(c *Constructor) Expr {
 }
 
 func (v *SizeofExprNode) construct(c *Constructor) Expr {
-	depth := 0
-	var inner ParseNode
-	inner = v.Value
-	for {
-		if derefNode, ok := inner.(*UnaryExprNode); ok && derefNode.Operator == UNOP_DEREF {
-			inner = derefNode.Value
-			depth++
-			continue
-		} else if varAccNode, ok := inner.(*VariableAccessNode); ok {
-			typ := c.nameMap.TypeOfNameNode(varAccNode.Name)
-			if typ.IsType() {
-				var newType ParseNode
-				newType = &TypeReferenceNode{Reference: varAccNode.Name}
-				for i := 0; i < depth; i++ {
-					newType = &PointerTypeNode{TargetType: newType}
-				}
-				v.Type = newType
-				v.Value = nil
-			}
-		}
-		break
-	}
-
 	res := &SizeofExpr{}
 	if v.Value != nil {
 		res.Expr = c.constructExpr(v.Value)
@@ -677,6 +628,7 @@ func (v *UnaryExprNode) construct(c *Constructor) Expr {
 	if v.Operator == UNOP_DEREF {
 		expr := c.constructExpr(v.Value)
 		if castExpr, ok := expr.(*CastExpr); ok {
+			// TODO: Verify whether this case actually ever happens
 			res = &CastExpr{Type: pointerTo(castExpr.Type), Expr: castExpr.Expr}
 		} else {
 			res = &DerefAccessExpr{
@@ -698,41 +650,13 @@ func (v *UnaryExprNode) construct(c *Constructor) Expr {
 func (v *CallExprNode) construct(c *Constructor) Expr {
 	// TODO: when we allow function types, allow all access forms (eg. `thing[0]()``)
 	if van, ok := v.Function.(*VariableAccessNode); ok {
-		typ := c.nameMap.TypeOfNameNode(van.Name)
-		if typ == NODE_FUNCTION {
-			res := &CallExpr{
-				Arguments:      c.constructExprs(v.Arguments),
-				functionSource: c.constructExpr(v.Function),
-			}
-			res.setPos(v.Where().Start())
-			return res
-		} else if typ == NODE_ENUM_MEMBER {
-			res := &EnumLiteral{
-				Member: van.Name.Name.Value,
-				Type: UnresolvedType{
-					Name:       toParentName(van.Name),
-					Parameters: c.constructTypes(van.Parameters),
-				},
-				TupleLiteral: &TupleLiteral{Members: c.constructExprs(v.Arguments)},
-			}
-			res.setPos(v.Where().Start())
-			return res
-		} else if typ.IsType() {
-			if len(v.Arguments) > 1 {
-				c.errSpan(v.Where(), "Cast cannot recieve more that one argument")
-			}
-
-			res := &CastExpr{
-				Type: c.constructType(&TypeReferenceNode{Reference: van.Name}),
-				Expr: c.constructExpr(v.Arguments[0]),
-			}
-			res.setPos(v.Where().Start())
-			return res
-		} else {
-			log.Debugln("constructor", "`%s` was a `%s`", van.Name.Name.Value, typ)
-			c.errSpan(van.Name.Name.Where, "Name `%s` is not a function or a enum member", van.Name.Name.Value)
-			return nil
+		res := &CallExpr{
+			Arguments:      c.constructExprs(v.Arguments),
+			functionSource: c.constructExpr(v.Function),
+			parameters:     c.constructTypes(van.Parameters),
 		}
+		res.setPos(v.Where().Start())
+		return res
 	} else if sae, ok := v.Function.(*StructAccessNode); ok {
 		res := &CallExpr{
 			Arguments:      c.constructExprs(v.Arguments),
@@ -750,21 +674,11 @@ func (v *CallExprNode) construct(c *Constructor) Expr {
 }
 
 func (v *VariableAccessNode) construct(c *Constructor) Expr {
-	if c.nameMap.TypeOfNameNode(v.Name) == NODE_ENUM_MEMBER {
-		res := &EnumLiteral{}
-		res.Member = v.Name.Name.Value
-		res.Type = UnresolvedType{
-			Name:       toParentName(v.Name),
-			Parameters: c.constructTypes(v.Parameters),
-		}
-		res.setPos(v.Where().Start())
-		return res
-	} else {
-		res := &VariableAccessExpr{}
-		res.Name = toUnresolvedName(v.Name)
-		res.setPos(v.Where().Start())
-		return res
-	}
+	res := &VariableAccessExpr{}
+	res.Name = toUnresolvedName(v.Name)
+	res.parameters = c.constructTypes(v.Parameters)
+	res.setPos(v.Where().Start())
+	return res
 }
 
 func (v *StructAccessNode) construct(c *Constructor) Expr {
@@ -817,21 +731,7 @@ func (v *StructLiteralNode) construct(c *Constructor) Expr {
 	for idx, member := range v.Members {
 		res.Values[member.Value] = c.constructExpr(v.Values[idx])
 	}
-
-	if v.Name == nil {
-		return res
-	} else if typ := c.nameMap.TypeOfNameNode(v.Name); typ == NODE_ENUM_MEMBER {
-		enum := &EnumLiteral{}
-		enum.Member = v.Name.Name.Value
-		enum.Type = UnresolvedType{Name: toParentName(v.Name)}
-		enum.StructLiteral = res
-		enum.setPos(v.Where().Start())
-		return enum
-	} else {
-		log.Debugln("constructor", "`%s` was a `%s`", v.Name.Name.Value, typ)
-		c.errSpan(v.Name.Name.Where, "Name `%s` is not a struct or a enum member", v.Name.Name.Value)
-		return nil
-	}
+	return res
 }
 
 func (v *BoolLitNode) construct(c *Constructor) Expr {
