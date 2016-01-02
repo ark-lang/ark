@@ -13,8 +13,8 @@ import (
 )
 
 type Codegen struct {
-	input   []WrappedModule
-	curFile WrappedModule
+	input   []*WrappedModule
+	curFile *WrappedModule
 
 	builder         llvm.Builder
 	variableLookup  map[*parser.Variable]llvm.Value
@@ -61,9 +61,9 @@ func (v *Codegen) err(err string, stuff ...interface{}) {
 }
 
 func (v *Codegen) Generate(input []*parser.Module) {
-	v.input = make([]WrappedModule, len(input))
+	v.input = make([]*WrappedModule, len(input))
 	for idx, mod := range input {
-		v.input[idx] = WrappedModule{Module: mod}
+		v.input[idx] = &WrappedModule{Module: mod}
 	}
 
 	v.builder = llvm.NewBuilder()

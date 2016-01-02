@@ -22,7 +22,7 @@ const (
 	OUTPUT_EXECUTABLE
 )
 
-func (v *Codegen) createBitcode(file WrappedModule) string {
+func (v *Codegen) createBitcode(file *WrappedModule) string {
 	filename := v.OutputName + "-" + file.MangledName(parser.MANGLE_ARK_UNSTABLE) + ".bc"
 
 	fileHandle, err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
@@ -83,7 +83,7 @@ func (v *Codegen) asmToObject(filename string) string {
 	return objName
 }
 
-func (v *Codegen) createIR(mod WrappedModule) string {
+func (v *Codegen) createIR(mod *WrappedModule) string {
 	filename := v.OutputName + ".ll"
 
 	err := ioutil.WriteFile(filename, []byte(mod.LlvmModule.String()), 0666)
