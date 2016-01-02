@@ -16,7 +16,6 @@ type Module struct {
 	Path        string // this stores the path too, e.g src/main
 	Name        *ModuleName
 	GlobalScope *Scope
-	FileScopes  map[string]*Scope
 }
 
 type ModuleLookup struct {
