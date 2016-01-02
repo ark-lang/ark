@@ -61,13 +61,10 @@ become `RELEASE_361`, or `RELEASE_362` for 3.6.2, and so on.
 ```bash
 $ release=RELEASE_362 # set this to match your llvm-config --version
 $ svn co https://llvm.org/svn/llvm-project/llvm/tags/$release/final $GOPATH/src/llvm.org/llvm
-$ export CGO_CPPFLAGS="`llvm-config --cppflags`"
-$ export CGO_LDFLAGS="`llvm-config --ldflags --libs --system-libs all`"
-$ export CGO_CXXFLAGS=-std=c++11
-$ go install -tags byollvm llvm.org/llvm/bindings/go/llvm
-$ go get github.com/ark-lang/ark/...
 $ cd $GOPATH/src/llvm.org/llvm/bindings/go
 $ ./build.sh
+$ go install llvm.org/llvm/bindings/go/llvm
+$ go get github.com/ark-lang/ark/...
 ```
 
 The `ark` binary will be built in `$GOPATH/bin`. To use the compiler, 
