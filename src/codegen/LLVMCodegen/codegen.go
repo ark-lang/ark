@@ -13,8 +13,8 @@ import (
 )
 
 type Codegen struct {
-	input   []*parser.Module
-	curFile *parser.Module
+	input   []WrappedModule
+	curFile WrappedModule
 
 	builder         llvm.Builder
 	variableLookup  map[*parser.Variable]llvm.Value
@@ -27,8 +27,6 @@ type Codegen struct {
 	LinkerArgs   []string
 	Linker       string // defaults to cc
 	OptLevel     int
-
-	modules map[string]*parser.Module
 
 	referenceAccess bool
 	inFunction      bool
@@ -46,6 +44,11 @@ type Codegen struct {
 	targetData    llvm.TargetData
 }
 
+type WrappedModule struct {
+	*parser.Module
+	LlvmModule llvm.Module
+}
+
 type deferData struct {
 	stat *parser.DeferStat
 	args []llvm.Value
@@ -58,7 +61,11 @@ func (v *Codegen) err(err string, stuff ...interface{}) {
 }
 
 func (v *Codegen) Generate(input []*parser.Module) {
-	v.input = input
+	v.input = make([]WrappedModule, len(input))
+	for idx, mod := range input {
+		v.input[idx] = WrappedModule{Module: mod}
+	}
+
 	v.builder = llvm.NewBuilder()
 	v.variableLookup = make(map[*parser.Variable]llvm.Value)
 	v.namedTypeLookup = make(map[string]llvm.Type)
@@ -84,9 +91,9 @@ func (v *Codegen) Generate(input []*parser.Module) {
 
 	v.blockDeferData = make(map[*parser.Block][]*deferData)
 
-	for _, infile := range input {
+	for _, infile := range v.input {
 		log.Timed("codegenning", infile.Name.String(), func() {
-			infile.Module = llvm.NewModule(infile.Name.String())
+			infile.LlvmModule = llvm.NewModule(infile.Name.String())
 			v.curFile = infile
 
 			v.declareDecls(infile.Nodes)
@@ -95,15 +102,15 @@ func (v *Codegen) Generate(input []*parser.Module) {
 				v.genNode(node)
 			}
 
-			if err := llvm.VerifyModule(infile.Module, llvm.ReturnStatusAction); err != nil {
-				infile.Module.Dump()
+			if err := llvm.VerifyModule(infile.LlvmModule, llvm.ReturnStatusAction); err != nil {
+				infile.LlvmModule.Dump()
 				v.err("%s", err.Error())
 			}
 
-			passManager.Run(infile.Module)
+			passManager.Run(infile.LlvmModule)
 
 			if log.AtLevel(log.LevelDebug) {
-				infile.Module.Dump()
+				infile.LlvmModule.Dump()
 			}
 		})
 	}
@@ -155,7 +162,7 @@ func (v *Codegen) addStructType(typ parser.StructType, name string) {
 		return
 	}
 
-	structure := v.curFile.Module.Context().StructCreateNamed(name)
+	structure := v.curFile.LlvmModule.Context().StructCreateNamed(name)
 
 	v.namedTypeLookup[name] = structure
 
@@ -177,7 +184,7 @@ func (v *Codegen) addEnumType(typ parser.EnumType, name string) {
 		// TODO: Handle other integer size, maybe dynamic depending on max value?
 		v.namedTypeLookup[name] = llvm.IntType(32)
 	} else {
-		enum := v.curFile.Module.Context().StructCreateNamed(name)
+		enum := v.curFile.LlvmModule.Context().StructCreateNamed(name)
 		v.namedTypeLookup[name] = enum
 
 		for _, member := range typ.Members {
@@ -192,7 +199,7 @@ func (v *Codegen) addEnumType(typ parser.EnumType, name string) {
 
 func (v *Codegen) declareFunctionDecl(n *parser.FunctionDecl) {
 	mangledName := n.Function.MangledName(parser.MANGLE_ARK_UNSTABLE)
-	function := v.curFile.Module.NamedFunction(mangledName)
+	function := v.curFile.LlvmModule.NamedFunction(mangledName)
 	if !function.IsNil() {
 		v.err("function `%s` already exists in module", n.Function.Name)
 	} else {
@@ -234,7 +241,7 @@ func (v *Codegen) declareFunctionDecl(n *parser.FunctionDecl) {
 		}
 
 		// add that shit
-		function = llvm.AddFunction(v.curFile.Module, functionName, funcType)
+		function = llvm.AddFunction(v.curFile.LlvmModule, functionName, funcType)
 
 		/*// do some magical shit for later
 		for i := 0; i < numOfParams; i++ {
@@ -474,7 +481,7 @@ func (v *Codegen) genFunctionDecl(n *parser.FunctionDecl) llvm.Value {
 	var res llvm.Value
 
 	mangledName := n.Function.MangledName(parser.MANGLE_ARK_UNSTABLE)
-	function := v.curFile.Module.NamedFunction(mangledName)
+	function := v.curFile.LlvmModule.NamedFunction(mangledName)
 	if function.IsNil() {
 		//v.err("genning function `%s` doesn't exist in module", n.Function.Name)
 		// hmmmm seems we just ignore this here
@@ -544,7 +551,7 @@ func (v *Codegen) genVariableDecl(n *parser.VariableDecl, semicolon bool) llvm.V
 	} else {
 		mangledName := n.Variable.MangledName(parser.MANGLE_ARK_UNSTABLE)
 		varType := v.typeToLLVMType(n.Variable.Type)
-		value := llvm.AddGlobal(v.curFile.Module, varType, mangledName)
+		value := llvm.AddGlobal(v.curFile.LlvmModule, varType, mangledName)
 		value.SetLinkage(llvm.InternalLinkage)
 		value.SetGlobalConstant(!n.Variable.Mutable)
 		if n.Assignment != nil {
@@ -698,12 +705,12 @@ func (v *Codegen) genBoundsCheck(limit llvm.Value, index llvm.Value, indexType p
 }
 
 func (v *Codegen) genRaiseSegfault() {
-	fn := v.curFile.Module.NamedFunction("raise")
+	fn := v.curFile.LlvmModule.NamedFunction("raise")
 	intType := v.typeToLLVMType(parser.PRIMITIVE_int)
 
 	if fn.IsNil() {
 		fnType := llvm.FunctionType(intType, []llvm.Type{intType}, false)
-		fn = llvm.AddFunction(v.curFile.Module, "raise", fnType)
+		fn = llvm.AddFunction(v.curFile.LlvmModule, "raise", fnType)
 	}
 
 	v.builder.CreateCall(fn, []llvm.Value{llvm.ConstInt(intType, 11, false)}, "segfault")
@@ -755,7 +762,7 @@ func (v *Codegen) genArrayLiteral(n *parser.ArrayLiteral) llvm.Value {
 		backName := fmt.Sprintf("_globarr_back_%d", v.arrayIndex)
 		v.arrayIndex++
 
-		backingArray := llvm.AddGlobal(v.curFile.Module, llvm.ArrayType(memberLLVMType, len(n.Members)), backName)
+		backingArray := llvm.AddGlobal(v.curFile.LlvmModule, llvm.ArrayType(memberLLVMType, len(n.Members)), backName)
 		backingArray.SetLinkage(llvm.InternalLinkage)
 		backingArray.SetGlobalConstant(false)
 		backingArray.SetInitializer(llvm.ConstArray(memberLLVMType, arrayValues))
@@ -1111,14 +1118,14 @@ func (v *Codegen) genCallExprWithArgs(n *parser.CallExpr, args []llvm.Value) llv
 		functionName = n.Function.Name
 	}
 
-	function := v.curFile.Module.NamedFunction(functionName)
+	function := v.curFile.LlvmModule.NamedFunction(functionName)
 	if function.IsNil() {
 		v.declareFunctionDecl(&parser.FunctionDecl{Function: n.Function, Prototype: true})
 
-		if v.curFile.Module.NamedFunction(functionName).IsNil() {
+		if v.curFile.LlvmModule.NamedFunction(functionName).IsNil() {
 			panic("how did this happen")
 		}
-		function = v.curFile.Module.NamedFunction(functionName)
+		function = v.curFile.LlvmModule.NamedFunction(functionName)
 	}
 
 	call := v.builder.CreateCall(function, args, "")

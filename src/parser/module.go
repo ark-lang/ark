@@ -6,8 +6,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"llvm.org/llvm/bindings/go/llvm"
-
 	"github.com/ark-lang/ark/src/lexer"
 	"github.com/ark-lang/ark/src/util/log"
 )
@@ -18,7 +16,7 @@ type Module struct {
 	Path        string // this stores the path too, e.g src/main
 	Name        *ModuleName
 	GlobalScope *Scope
-	Module      llvm.Module
+	FileScopes  map[string]*Scope
 }
 
 type ModuleLookup struct {

@@ -22,7 +22,7 @@ const (
 	OUTPUT_EXECUTABLE
 )
 
-func (v *Codegen) createBitcode(file *parser.Module) string {
+func (v *Codegen) createBitcode(file WrappedModule) string {
 	filename := v.OutputName + "-" + file.MangledName(parser.MANGLE_ARK_UNSTABLE) + ".bc"
 
 	fileHandle, err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
@@ -31,7 +31,7 @@ func (v *Codegen) createBitcode(file *parser.Module) string {
 	}
 	defer fileHandle.Close()
 
-	if err := llvm.WriteBitcodeToFile(file.Module, fileHandle); err != nil {
+	if err := llvm.WriteBitcodeToFile(file.LlvmModule, fileHandle); err != nil {
 		v.err("failed to write bitcode to file for "+file.Name.String()+": `%s`", err.Error())
 	}
 
@@ -83,10 +83,10 @@ func (v *Codegen) asmToObject(filename string) string {
 	return objName
 }
 
-func (v *Codegen) createIR(mod *parser.Module) string {
+func (v *Codegen) createIR(mod WrappedModule) string {
 	filename := v.OutputName + ".ll"
 
-	err := ioutil.WriteFile(filename, []byte(mod.Module.String()), 0666)
+	err := ioutil.WriteFile(filename, []byte(mod.LlvmModule.String()), 0666)
 	if err != nil {
 		v.err("Couldn't write IR file "+filename+": `%s`", err.Error())
 	}
