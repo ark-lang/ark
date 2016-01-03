@@ -14,10 +14,16 @@ func main() -> int {
 	// iterate thru array
 	// this doesn't work as it should yet...
 /*	foo := [0, 1, 2, 3];
+
+	// i haven't looked into it 
+	// but #foo seems to just be
+	// a copy of the foo array or something? ...
 	foo_len := #foo;
 	C::printf("foo is %d long\n", foo_len);
 
 	i = 0;
+	// ... because here we have to sub it like
+	// an array haha
 	for i < uint(foo_len[1]) {
 		C::printf("foo contains %d at %d\n", foo[i], i);
 		i += 1;
