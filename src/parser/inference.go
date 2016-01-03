@@ -598,6 +598,17 @@ func (v *AddressOfExpr) infer(s *TypeInferer) {
 func (v *AddressOfExpr) setTypeHint(t Type) {
 }
 
+// ArrayLenExpr
+
+func (v *ArrayLenExpr) infer(s *TypeInferer) {
+	if v.Expr != nil {
+		v.Expr.setTypeHint(nil)
+		v.Expr.infer(s)
+	}
+}
+
+func (v *ArrayLenExpr) setTypeHint(t Type) {}
+
 // SizeofExpr
 
 func (v *SizeofExpr) infer(s *TypeInferer) {

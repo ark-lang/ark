@@ -1052,6 +1052,33 @@ func (v *AddressOfExpr) NodeName() string {
 	return "address-of expression"
 }
 
+type ArrayLenExpr struct {
+	nodePos
+
+	Expr Expr
+	Type Type
+}
+
+func (v *ArrayLenExpr) exprNode() {}
+
+func (v *ArrayLenExpr) String() string {
+	ret := "(" + util.Blue("ArrayLenExpr") + ": "
+	if v.Expr != nil {
+		ret += v.Expr.String()
+	} else {
+		ret += v.Type.TypeName()
+	}
+	return ret + ")"
+}
+
+func (v *ArrayLenExpr) GetType() Type {
+	return PRIMITIVE_uint
+}
+
+func (v *ArrayLenExpr) NodeName() string {
+	return "array length expr"
+}
+
 // SizeofExpr
 
 type SizeofExpr struct {

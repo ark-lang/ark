@@ -589,6 +589,15 @@ func (v *BinaryExprNode) construct(c *Constructor) Expr {
 	return res
 }
 
+func (v *ArrayLenExprNode) construct(c *Constructor) Expr {
+	res := &ArrayLenExpr{}
+	if v.ArrayLit != nil {
+		res.Expr = c.constructExpr(v.ArrayLit)
+	}
+	res.setPos(v.Where().Start())
+	return res
+}
+
 func (v *SizeofExprNode) construct(c *Constructor) Expr {
 	res := &SizeofExpr{}
 	if v.Value != nil {

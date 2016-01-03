@@ -177,6 +177,9 @@ func (v *ASTVisitor) VisitChildren(n Node) {
 		// TODO: Maybe visit sizeofExpr.Type at some point?
 		sizeofExpr.Expr = v.VisitExpr(sizeofExpr.Expr)
 
+	} else if arrayLenExpr, ok := n.(*ArrayLenExpr); ok {
+		arrayLenExpr.Expr = v.VisitExpr(arrayLenExpr.Expr)
+
 	} else if tupleLiteral, ok := n.(*TupleLiteral); ok {
 		tupleLiteral.Members = v.VisitExprs(tupleLiteral.Members)
 

@@ -175,6 +175,13 @@ func (v *CastExpr) resolve(res *Resolver, s *Scope) Node {
 	return v
 }
 
+func (v* ArrayLenExpr) resolve(res *Resolver, s *Scope) Node {
+	if v.Type != nil {
+		v.Type = v.Type.resolveType(v, res, s)
+	}
+	return v
+}
+
 func (v *SizeofExpr) resolve(res *Resolver, s *Scope) Node {
 	if v.Expr != nil {
 		// NOTE: Here we recurse down any deref ops, to check whether we are dealing

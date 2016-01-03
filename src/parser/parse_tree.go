@@ -249,6 +249,11 @@ type BinaryExprNode struct {
 	Operator BinOpType
 }
 
+type ArrayLenExprNode struct {
+	baseNode
+	ArrayLit ParseNode
+}
+
 type SizeofExprNode struct {
 	baseNode
 	Value ParseNode

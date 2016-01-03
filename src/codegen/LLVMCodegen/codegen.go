@@ -595,6 +595,8 @@ func (v *Codegen) genExpr(n parser.Expr) llvm.Value {
 		return v.genAccessExpr(n)
 	case *parser.SizeofExpr:
 		return v.genSizeofExpr(n.(*parser.SizeofExpr))
+	case *parser.ArrayLenExpr:
+		return v.genArrayLenExpr(n.(*parser.ArrayLenExpr))
 	case *parser.DefaultExpr:
 		return v.genDefaultExpr(n.(*parser.DefaultExpr))
 	default:
@@ -1151,6 +1153,15 @@ func (v *Codegen) genCallExpr(n *parser.CallExpr) llvm.Value {
 	}
 
 	return v.genCallExprWithArgs(n, args)
+}
+
+func (v *Codegen) genArrayLenExpr(n *parser.ArrayLenExpr) llvm.Value {
+	if n.Expr == nil {
+		v.err("shit")
+	}
+	arrayLit := n.Expr.(*parser.ArrayLiteral)
+	arrayLen := len(arrayLit.Members)
+	return llvm.ConstInt(llvm.IntType(64), uint64(arrayLen), false)
 }
 
 func (v *Codegen) genSizeofExpr(n *parser.SizeofExpr) llvm.Value {

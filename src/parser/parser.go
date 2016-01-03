@@ -1396,6 +1396,8 @@ func (v *parser) parsePrimaryExpr() ParseNode {
 
 	if sizeofExpr := v.parseSizeofExpr(); sizeofExpr != nil {
 		res = sizeofExpr
+	} else if arrayLenExpr := v.parseArrayLenExpr(); arrayLenExpr != nil {
+		res = arrayLenExpr
 	} else if defaultExpr := v.parseDefaultExpr(); defaultExpr != nil {
 		res = defaultExpr
 	} else if addrofExpr := v.parseAddrofExpr(); addrofExpr != nil {
@@ -1439,6 +1441,24 @@ func (v *parser) parsePrimaryExpr() ParseNode {
 		res.SetWhere(lexer.NewSpan(name.Where().Start(), name.Where().End()))
 	}
 
+	return res
+}
+
+func (v *parser) parseArrayLenExpr() *ArrayLenExprNode {
+	defer un(trace(v, "arraylenexpr"))
+
+	if !v.tokenMatches(0, lexer.TOKEN_OPERATOR, "#") {
+		return nil
+	}
+	startToken := v.consumeToken()
+
+	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "[") {
+		return nil
+	}
+	arrayLit := v.parseArrayLit()
+
+	res := &ArrayLenExprNode{ArrayLit: arrayLit}
+	res.SetWhere(lexer.NewSpan(startToken.Where.Start(), arrayLit.Where().End()))
 	return res
 }
 
