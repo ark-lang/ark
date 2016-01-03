@@ -1,8 +1,6 @@
 package semantic
 
-import (
-	"github.com/ark-lang/ark/src/parser"
-)
+import "github.com/ark-lang/ark/src/parser"
 
 type TypeCheck struct {
 	function []*parser.Function
@@ -39,6 +37,9 @@ func (v *TypeCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
 
 	case *parser.AssignStat:
 		v.CheckAssignStat(s, n.(*parser.AssignStat))
+
+	case *parser.ArrayLenExpr:
+		v.CheckArrayLenExpr(s, n.(*parser.ArrayLenExpr))
 
 	case *parser.BinopAssignStat:
 		v.CheckBinopAssignStat(s, n.(*parser.BinopAssignStat))
@@ -131,6 +132,10 @@ func (v *TypeCheck) CheckBinopAssignStat(s *SemanticAnalyzer, stat *parser.Binop
 	if !stat.Access.GetType().Equals(stat.Assignment.GetType()) {
 		s.Err(stat, "Mismatched types: `%s` and `%s`", stat.Access.GetType().TypeName(), stat.Assignment.GetType().TypeName())
 	}
+}
+
+func (v *TypeCheck) CheckArrayLenExpr(s *SemanticAnalyzer, expr *parser.ArrayLenExpr) {
+
 }
 
 func (v *TypeCheck) CheckUnaryExpr(s *SemanticAnalyzer, expr *parser.UnaryExpr) {

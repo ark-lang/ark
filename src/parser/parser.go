@@ -1452,13 +1452,16 @@ func (v *parser) parseArrayLenExpr() *ArrayLenExprNode {
 	}
 	startToken := v.consumeToken()
 
-	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "[") {
-		return nil
+	array := v.parseCompositeLiteral()
+	if array == nil {
+		array = v.parseExpr()
 	}
-	arrayLit := v.parseArrayLit()
+	if array == nil {
+		v.err("Expected valid expression in array length expression")
+	}
 
-	res := &ArrayLenExprNode{ArrayLit: arrayLit}
-	res.SetWhere(lexer.NewSpan(startToken.Where.Start(), arrayLit.Where().End()))
+	res := &ArrayLenExprNode{ArrayExpr: array}
+	res.SetWhere(lexer.NewSpan(startToken.Where.Start(), array.Where().End()))
 	return res
 }
 

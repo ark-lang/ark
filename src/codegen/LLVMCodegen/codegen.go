@@ -746,7 +746,7 @@ func (v *Codegen) genArrayLiteral(n *parser.ArrayLiteral) llvm.Value {
 		arrayValues[idx] = value
 	}
 
-	lengthValue := llvm.ConstInt(llvm.IntType(32), uint64(len(n.Members)), false)
+	lengthValue := llvm.ConstInt(v.typeToLLVMType(parser.PRIMITIVE_uint), uint64(len(n.Members)), false)
 	var backingArrayPointer llvm.Value
 
 	if v.inFunction {
@@ -1156,12 +1156,15 @@ func (v *Codegen) genCallExpr(n *parser.CallExpr) llvm.Value {
 }
 
 func (v *Codegen) genArrayLenExpr(n *parser.ArrayLenExpr) llvm.Value {
-	if n.Expr == nil {
-		v.err("shit")
+	if arrayLit, ok := n.Expr.(*parser.ArrayLiteral); ok {
+		arrayLen := len(arrayLit.Members)
+
+		return llvm.ConstInt(llvm.IntType(64), uint64(arrayLen), false)
 	}
-	arrayLit := n.Expr.(*parser.ArrayLiteral)
-	arrayLen := len(arrayLit.Members)
-	return llvm.ConstInt(llvm.IntType(64), uint64(arrayLen), false)
+
+	gep := v.genAccessGEP(n.Expr)
+	gep = v.builder.CreateLoad(v.builder.CreateStructGEP(gep, 0, ""), "")
+	return gep
 }
 
 func (v *Codegen) genSizeofExpr(n *parser.SizeofExpr) llvm.Value {
@@ -1225,7 +1228,8 @@ func (v *Codegen) tupleTypeToLLVMType(typ parser.TupleType) llvm.Type {
 }
 
 func (v *Codegen) arrayTypeToLLVMType(typ parser.ArrayType) llvm.Type {
-	fields := []llvm.Type{llvm.IntType(32), llvm.PointerType(llvm.ArrayType(v.typeToLLVMType(typ.MemberType), 0), 0)} // TODO length size?
+	fields := []llvm.Type{v.typeToLLVMType(parser.PRIMITIVE_uint),
+		llvm.PointerType(llvm.ArrayType(v.typeToLLVMType(typ.MemberType), 0), 0)}
 
 	return llvm.StructType(fields, false)
 }

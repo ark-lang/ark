@@ -591,8 +591,8 @@ func (v *BinaryExprNode) construct(c *Constructor) Expr {
 
 func (v *ArrayLenExprNode) construct(c *Constructor) Expr {
 	res := &ArrayLenExpr{}
-	if v.ArrayLit != nil {
-		res.Expr = c.constructExpr(v.ArrayLit)
+	if v.ArrayExpr != nil {
+		res.Expr = c.constructExpr(v.ArrayExpr)
 	}
 	res.setPos(v.Where().Start())
 	return res

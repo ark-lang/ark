@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
-	"github.com/ark-lang/ark/src/util"
 	"io"
 	"os"
 	"os/exec"
@@ -12,6 +11,8 @@ import (
 	"sort"
 	"strings"
 	"syscall"
+
+	"github.com/ark-lang/ark/src/util"
 
 	"github.com/BurntSushi/toml"
 )
