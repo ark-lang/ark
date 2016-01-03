@@ -252,6 +252,7 @@ type BinaryExprNode struct {
 type ArrayLenExprNode struct {
 	baseNode
 	ArrayLit ParseNode
+	Value ParseNode
 }
 
 type SizeofExprNode struct {

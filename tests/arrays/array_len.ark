@@ -1,0 +1,28 @@
+[c] func printf(fmt: str, ...) -> int;
+
+func main() -> int {
+	C::printf("this is a test\n");
+
+	// iterates 15 times
+	z : uint = #[0, 1, 2] + 12;
+	mut i: uint = 0;
+	for i < z {
+		C::printf("iter %d\n", i);
+		i += 1;
+	}
+
+	// iterate thru array
+	// this doesn't work as it should yet...
+/*	foo := [0, 1, 2, 3];
+	foo_len := #foo;
+	C::printf("foo is %d long\n", foo_len);
+
+	i = 0;
+	for i < uint(foo_len[1]) {
+		C::printf("foo contains %d at %d\n", foo[i], i);
+		i += 1;
+	}
+*/
+
+	return 0;
+}
