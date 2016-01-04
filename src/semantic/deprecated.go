@@ -2,6 +2,7 @@ package semantic
 
 import (
 	"fmt"
+
 	"github.com/ark-lang/ark/src/parser"
 )
 
@@ -24,29 +25,25 @@ func (v *DeprecatedCheck) ExitScope(s *SemanticAnalyzer)  {}
 func (v *DeprecatedCheck) PostVisit(s *SemanticAnalyzer, n parser.Node) {}
 
 func (v *DeprecatedCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
-	switch n.(type) {
+	switch n := n.(type) {
 	case *parser.VariableDecl:
-		decl := n.(*parser.VariableDecl)
-		if dep := decl.Variable.Type.Attrs().Get("deprecated"); dep != nil {
-			v.WarnDeprecated(s, decl, "type", decl.Variable.Type.TypeName(), dep.Value)
+		if dep := n.Variable.Type.Attrs().Get("deprecated"); dep != nil {
+			v.WarnDeprecated(s, n, "type", n.Variable.Type.TypeName(), dep.Value)
 		}
 
 	case *parser.CallExpr:
-		expr := n.(*parser.CallExpr)
-		if dep := expr.Function.Attrs.Get("deprecated"); dep != nil {
-			v.WarnDeprecated(s, expr, "function", expr.Function.Name, dep.Value)
+		if dep := n.Function.Attrs.Get("deprecated"); dep != nil {
+			v.WarnDeprecated(s, n, "function", n.Function.Name, dep.Value)
 		}
 
 	case *parser.VariableAccessExpr:
-		expr := n.(*parser.VariableAccessExpr)
-		if dep := expr.Variable.Attrs.Get("deprecated"); dep != nil {
-			v.WarnDeprecated(s, expr, "variable", expr.Variable.Name, dep.Value)
+		if dep := n.Variable.Attrs.Get("deprecated"); dep != nil {
+			v.WarnDeprecated(s, n, "variable", n.Variable.Name, dep.Value)
 		}
 
 	case *parser.StructAccessExpr:
-		expr := n.(*parser.StructAccessExpr)
-		if dep := expr.Variable.Attrs.Get("deprecated"); dep != nil {
-			v.WarnDeprecated(s, expr, "variable", expr.Variable.Name, dep.Value)
+		if dep := n.Variable.Attrs.Get("deprecated"); dep != nil {
+			v.WarnDeprecated(s, n, "variable", n.Variable.Name, dep.Value)
 		}
 	}
 }

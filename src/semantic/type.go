@@ -22,63 +22,63 @@ func (v *TypeCheck) PostVisit(s *SemanticAnalyzer, n parser.Node) {
 }
 
 func (v *TypeCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
-	switch n.(type) {
+	switch n := n.(type) {
 	case *parser.FunctionDecl:
-		v.function = append(v.function, n.(*parser.FunctionDecl).Function)
+		v.function = append(v.function, n.Function)
 
 	case *parser.VariableDecl:
-		v.CheckVariableDecl(s, n.(*parser.VariableDecl))
+		v.CheckVariableDecl(s, n)
 
 	case *parser.ReturnStat:
-		v.CheckReturnStat(s, n.(*parser.ReturnStat))
+		v.CheckReturnStat(s, n)
 
 	case *parser.IfStat:
-		v.CheckIfStat(s, n.(*parser.IfStat))
+		v.CheckIfStat(s, n)
 
 	case *parser.AssignStat:
-		v.CheckAssignStat(s, n.(*parser.AssignStat))
+		v.CheckAssignStat(s, n)
 
 	case *parser.ArrayLenExpr:
-		v.CheckArrayLenExpr(s, n.(*parser.ArrayLenExpr))
+		v.CheckArrayLenExpr(s, n)
 
 	case *parser.BinopAssignStat:
-		v.CheckBinopAssignStat(s, n.(*parser.BinopAssignStat))
+		v.CheckBinopAssignStat(s, n)
 
 	case *parser.UnaryExpr:
-		v.CheckUnaryExpr(s, n.(*parser.UnaryExpr))
+		v.CheckUnaryExpr(s, n)
 
 	case *parser.BinaryExpr:
-		v.CheckBinaryExpr(s, n.(*parser.BinaryExpr))
+		v.CheckBinaryExpr(s, n)
 
 	case *parser.CastExpr:
-		v.CheckCastExpr(s, n.(*parser.CastExpr))
+		v.CheckCastExpr(s, n)
 
 	case *parser.CallExpr:
-		v.CheckCallExpr(s, n.(*parser.CallExpr))
+		v.CheckCallExpr(s, n)
 
 	case *parser.ArrayAccessExpr:
-		v.CheckArrayAccessExpr(s, n.(*parser.ArrayAccessExpr))
+		v.CheckArrayAccessExpr(s, n)
 
 	case *parser.TupleAccessExpr:
-		v.CheckTupleAccessExpr(s, n.(*parser.TupleAccessExpr))
+		v.CheckTupleAccessExpr(s, n)
 
 	case *parser.DerefAccessExpr:
-		v.CheckDerefAccessExpr(s, n.(*parser.DerefAccessExpr))
+		v.CheckDerefAccessExpr(s, n)
 
 	case *parser.NumericLiteral:
-		v.CheckNumericLiteral(s, n.(*parser.NumericLiteral))
+		v.CheckNumericLiteral(s, n)
 
 	case *parser.ArrayLiteral:
-		v.CheckArrayLiteral(s, n.(*parser.ArrayLiteral))
+		v.CheckArrayLiteral(s, n)
 
 	case *parser.TupleLiteral:
-		v.CheckTupleLiteral(s, n.(*parser.TupleLiteral))
+		v.CheckTupleLiteral(s, n)
 
 	case *parser.StructLiteral:
-		v.CheckStructLiteral(s, n.(*parser.StructLiteral))
+		v.CheckStructLiteral(s, n)
 
 	case *parser.EnumLiteral:
-		v.CheckEnumLiteral(s, n.(*parser.EnumLiteral))
+		v.CheckEnumLiteral(s, n)
 	}
 }
 

@@ -19,12 +19,12 @@ func (v *RecursiveDefinitionCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
 
 	if typeDecl, ok := n.(*parser.TypeDecl); ok {
 		actualType := typeDecl.NamedType.ActualType()
-		switch actualType.(type) {
+		switch actualType := actualType.(type) {
 		case parser.EnumType:
-			typ = actualType.(parser.EnumType)
+			typ = actualType
 
 		case parser.StructType:
-			typ = actualType.(parser.StructType)
+			typ = actualType
 
 			// TODO: Check tuple types once we add named types for everything
 

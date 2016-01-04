@@ -14,6 +14,7 @@ package semantic
 
 import (
 	"fmt"
+
 	"github.com/ark-lang/ark/src/parser"
 	"github.com/ark-lang/ark/src/util"
 )
@@ -251,31 +252,31 @@ func (v *BorrowCheck) Init(s *SemanticAnalyzer) {
 func (v *BorrowCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
 	fmt.Printf("") // dummy so I can keep fmt in for now...
 
-	switch n.(type) {
+	switch n := n.(type) {
 	case *parser.FunctionDecl:
 		v.createLifetime(s)
-		v.CheckFunctionDecl(s, n.(*parser.FunctionDecl))
+		v.CheckFunctionDecl(s, n)
 
 	case *parser.BlockStat:
 		v.createLifetime(s)
 
 	case *parser.VariableDecl:
-		v.CheckVariableDecl(s, n.(*parser.VariableDecl))
+		v.CheckVariableDecl(s, n)
 
 	case *parser.CallStat:
-		v.callExpr = n.(*parser.CallStat).Call
-		v.CheckCallStat(s, n.(*parser.CallStat))
+		v.callExpr = n.Call
+		v.CheckCallStat(s, n)
 
 	case *parser.AssignStat:
-		v.CheckAssignStat(s, n.(*parser.AssignStat))
+		v.CheckAssignStat(s, n)
 
 	case *parser.CallExpr:
-		v.CheckCallExpr(s, n.(*parser.CallExpr))
+		v.CheckCallExpr(s, n)
 
 	case *parser.AddressOfExpr:
-		v.CheckAddrofExpr(s, n.(*parser.AddressOfExpr))
+		v.CheckAddrofExpr(s, n)
 
 	case *parser.VariableAccessExpr:
-		v.CheckVariableAccessExpr(s, n.(*parser.VariableAccessExpr))
+		v.CheckVariableAccessExpr(s, n)
 	}
 }

@@ -14,21 +14,21 @@ func (v *AttributeCheck) ExitScope(s *SemanticAnalyzer)  {}
 func (v *AttributeCheck) PostVisit(s *SemanticAnalyzer, n parser.Node) {}
 
 func (v *AttributeCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
-	switch n.(type) {
+	switch n := n.(type) {
 	case *parser.TypeDecl:
-		typ := n.(*parser.TypeDecl).NamedType.Type
+		typ := n.NamedType.Type
 		switch typ.(type) {
 		case parser.StructType:
 			v.CheckStructType(s, typ.(parser.StructType))
 		}
 
 	case *parser.FunctionDecl:
-		v.CheckFunctionDecl(s, n.(*parser.FunctionDecl))
+		v.CheckFunctionDecl(s, n)
 	//case *parser.TraitDecl:
-	//	v.CheckTraitDecl(s, n.(*parser.TraitDecl))
+	//	v.CheckTraitDecl(s, n)
 
 	case *parser.VariableDecl:
-		v.CheckVariableDecl(s, n.(*parser.VariableDecl))
+		v.CheckVariableDecl(s, n)
 	}
 }
 
