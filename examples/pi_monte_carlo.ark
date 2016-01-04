@@ -22,10 +22,10 @@ func calculate(iters: int) -> f64 {
 		dy := randFloat() * width - radius;
 
 		if C::sqrt(dx*dx+dy*dy) < radius {
-			totalInCircle = totalInCircle + 1;
+			totalInCircle += 1;
 		}
 
-        i = i + 1;
+        i += 1;
     }
 
     return 4.0 * f64(totalInCircle) / f64(iters);
