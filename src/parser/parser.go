@@ -159,9 +159,43 @@ func (v *parser) parse() {
 	for v.peek(0) != nil {
 		if n := v.parseDecl(); n != nil {
 			v.tree.AddNode(n)
+		} else if n := v.parseToplevelDirective(); n != nil {
+			v.tree.AddNode(n)
 		} else {
 			v.err("Unexpected token at toplevel: `%s` (%s)", v.peek(0).Contents, v.peek(0).Type)
 		}
+	}
+}
+
+func (v *parser) parseToplevelDirective() ParseNode {
+	defer un(trace(v, "toplevel-directive"))
+
+	if !v.tokensMatch(lexer.TOKEN_OPERATOR, "#", lexer.TOKEN_IDENTIFIER, "") {
+		return nil
+	}
+	start := v.expect(lexer.TOKEN_OPERATOR, "#")
+
+	directive := v.expect(lexer.TOKEN_IDENTIFIER, "")
+	switch directive.Contents {
+	case "link":
+		library := v.expect(lexer.TOKEN_STRING, "")
+		res := &LinkDirectiveNode{Library: NewLocatedString(library)}
+		res.SetWhere(lexer.NewSpanFromTokens(start, library))
+		return res
+
+	case "use":
+		module := v.parseName()
+		if module == nil {
+			v.errPosSpecific(directive.Where.End(), "Expected name after use directive")
+		}
+
+		res := &UseDirectiveNode{Module: module}
+		res.SetWhere(lexer.NewSpan(start.Where.Start(), module.Where().End()))
+		return res
+
+	default:
+		v.errTokenSpecific(directive, "No such directive `%s`", directive.Contents)
+		return nil
 	}
 }
 
@@ -278,8 +312,6 @@ func (v *parser) parseDecl() ParseNode {
 
 	if typeDecl := v.parseTypeDecl(); typeDecl != nil {
 		res = typeDecl
-	} else if useDecl := v.parseUseDecl(); useDecl != nil {
-		res = useDecl
 	} else if funcDecl := v.parseFuncDecl(); funcDecl != nil {
 		res = funcDecl
 	} else if varDecl := v.parseVarDecl(); varDecl != nil {
@@ -294,29 +326,6 @@ func (v *parser) parseDecl() ParseNode {
 		res.SetAttrs(attrs)
 	}
 
-	return res
-}
-
-func (v *parser) parseUseDecl() *UseDeclNode {
-	defer un(trace(v, "usedecl"))
-
-	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_USE) {
-		return nil
-	}
-	startToken := v.consumeToken()
-
-	module := v.parseName()
-	if module == nil {
-		v.err("Expected valid module name after `use` keyword")
-	}
-
-	endToken := v.expect(lexer.TOKEN_SEPARATOR, ";")
-
-	// Store dependency
-	v.deps = append(v.deps, module)
-
-	res := &UseDeclNode{Module: module}
-	res.SetWhere(lexer.NewSpanFromTokens(startToken, endToken))
 	return res
 }
 

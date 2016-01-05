@@ -1,6 +1,7 @@
 package LLVMCodegen
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -106,14 +107,25 @@ func (v *Codegen) createBinary() {
 		return
 	}
 
-	linkArgs := append(v.LinkerArgs, "-fno-PIE", "-nodefaultlibs", "-lc", "-lm")
+	linkArgs := append(v.LinkerArgs, "-fno-PIE", "-nodefaultlibs")
+	libraries := map[string]bool{
+		"c": true,
+		"m": true,
+	}
 
 	bitcodeFiles := []string{}
-
 	for _, file := range v.input {
 		log.Timed("creating bitcode", file.Name.String(), func() {
+			for _, lib := range file.LinkedLibraries {
+				libraries[lib] = true
+			}
 			bitcodeFiles = append(bitcodeFiles, v.createBitcode(file))
 		})
+	}
+
+	for lib, _ := range libraries {
+		log.Warningln("codegen", "Adding libary for linking `%s`", lib)
+		linkArgs = append(linkArgs, fmt.Sprintf("-l%s", lib))
 	}
 
 	if v.OutputType == OUTPUT_LLVM_BC {

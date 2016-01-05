@@ -59,6 +59,17 @@ type NameNode struct {
 	Name    LocatedString
 }
 
+// directives
+type LinkDirectiveNode struct {
+	baseNode
+	Library LocatedString
+}
+
+type UseDirectiveNode struct {
+	baseNode
+	Module *NameNode
+}
+
 // types
 type ReferenceTypeNode struct {
 	baseNode
@@ -93,11 +104,6 @@ type TypeReferenceNode struct {
 type StructTypeNode struct {
 	baseNode
 	Members []*VarDeclNode
-}
-
-type UseDeclNode struct {
-	baseNode
-	Module *NameNode
 }
 
 type FunctionHeaderNode struct {
