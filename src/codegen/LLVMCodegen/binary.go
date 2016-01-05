@@ -107,25 +107,15 @@ func (v *Codegen) createBinary() {
 		return
 	}
 
-	linkArgs := append(v.LinkerArgs, "-fno-PIE", "-nodefaultlibs")
-	libraries := map[string]bool{
-		"c": true,
-		"m": true,
-	}
+	linkArgs := append(v.LinkerArgs, "-fno-PIE", "-nodefaultlibs", "-lc", "-lm")
+	libraries := [][]string{}
 
 	bitcodeFiles := []string{}
 	for _, file := range v.input {
 		log.Timed("creating bitcode", file.Name.String(), func() {
-			for _, lib := range file.LinkedLibraries {
-				libraries[lib] = true
-			}
+			libraries = append(libraries, file.LinkedLibraries)
 			bitcodeFiles = append(bitcodeFiles, v.createBitcode(file))
 		})
-	}
-
-	for lib, _ := range libraries {
-		log.Warningln("codegen", "Adding libary for linking `%s`", lib)
-		linkArgs = append(linkArgs, fmt.Sprintf("-l%s", lib))
 	}
 
 	if v.OutputType == OUTPUT_LLVM_BC {
@@ -153,11 +143,14 @@ func (v *Codegen) createBinary() {
 
 	objFiles := []string{}
 
-	for _, asmFile := range asmFiles {
+	for idx, asmFile := range asmFiles {
 		log.Timed("creating object", asmFile, func() {
 			objName := v.asmToObject(asmFile)
-
 			objFiles = append(objFiles, objName)
+
+			for _, lib := range libraries[idx] {
+				linkArgs = append(linkArgs, fmt.Sprintf("-l%s", lib))
+			}
 			linkArgs = append(linkArgs, objName)
 		})
 	}
