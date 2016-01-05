@@ -1301,6 +1301,8 @@ func (v *Codegen) primitiveTypeToLLVMType(typ parser.PrimitiveType) llvm.Type {
 		return llvm.IntType(1)
 	case parser.PRIMITIVE_str:
 		return llvm.PointerType(llvm.IntType(8), 0)
+	case parser.PRIMITIVE_void:
+		return llvm.VoidType()
 
 	default:
 		panic("Unimplemented primitive type in LLVM codegen")

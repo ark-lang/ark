@@ -14,6 +14,7 @@ type Type interface {
 	Attrs() AttrGroup         // fetches the attributes associated with the type
 	Equals(Type) bool         // compares whether two types are equal
 	ActualType() Type         // returns the actual type disregarding named types
+	IsVoidType() bool
 
 	resolveType(Locatable, *Resolver, *Scope) Type
 }
@@ -45,7 +46,12 @@ const (
 	PRIMITIVE_uint
 
 	PRIMITIVE_bool
+	PRIMITIVE_void
 )
+
+func (v PrimitiveType) IsVoidType() bool {
+	return v == PRIMITIVE_void;
+}
 
 func (v PrimitiveType) IsIntegerType() bool {
 	switch v {
@@ -148,6 +154,10 @@ func (v StructType) LevelsOfIndirection() int {
 }
 
 func (v StructType) IsIntegerType() bool {
+	return false
+}
+
+func (v StructType) IsVoidType() bool {
 	return false
 }
 
@@ -273,6 +283,10 @@ func (v *NamedType) LevelsOfIndirection() int {
 	return v.Type.LevelsOfIndirection()
 }
 
+func (v *NamedType) IsVoidType() bool {
+	return v.Type.IsVoidType()
+}
+
 func (v *NamedType) IsIntegerType() bool {
 	return v.Type.IsIntegerType()
 }
@@ -340,6 +354,10 @@ func (v ArrayType) LevelsOfIndirection() int {
 	return 0
 }
 
+func (v ArrayType) IsVoidType() bool {
+	return false
+}
+
 func (v ArrayType) IsIntegerType() bool {
 	return false
 }
@@ -403,6 +421,10 @@ func (v ConstantReferenceType) IsFloatingType() bool {
 	return false
 }
 
+func (v ConstantReferenceType) IsVoidType() bool {
+	return false
+}
+
 func (v ConstantReferenceType) CanCastTo(t Type) bool {
 	return t.IsIntegerType()
 }
@@ -455,6 +477,10 @@ func (v MutableReferenceType) IsIntegerType() bool {
 }
 
 func (v MutableReferenceType) IsFloatingType() bool {
+	return false
+}
+
+func (v MutableReferenceType) IsVoidType() bool {
 	return false
 }
 
@@ -514,6 +540,10 @@ func (v PointerType) IsIntegerType() bool {
 }
 
 func (v PointerType) IsFloatingType() bool {
+	return false
+}
+
+func (v PointerType) IsVoidType() bool {
 	return false
 }
 
@@ -596,6 +626,10 @@ func (v TupleType) IsFloatingType() bool {
 	return false
 }
 
+func (v TupleType) IsVoidType() bool {
+	return false
+}
+
 func (v TupleType) CanCastTo(t Type) bool {
 	return v.Equals(t.ActualType())
 }
@@ -673,6 +707,10 @@ func (v InterfaceType) IsIntegerType() bool {
 
 func (v InterfaceType) IsFloatingType() bool {
 	return false
+}
+
+func (v InterfaceType) IsVoidType() bool {
+	return false	
 }
 
 func (v InterfaceType) CanCastTo(t Type) bool {
@@ -770,6 +808,10 @@ func (v EnumType) IsFloatingType() bool {
 	return false
 }
 
+func (v EnumType) IsVoidType() bool {
+	return false
+}
+
 func (v EnumType) CanCastTo(t Type) bool {
 	return v.Simple && t.IsIntegerType()
 }
@@ -854,6 +896,10 @@ func (v FunctionType) IsFloatingType() bool {
 	return false
 }
 
+func (v FunctionType) IsVoidType() bool {
+	return false
+}
+
 func (v FunctionType) CanCastTo(t Type) bool {
 	return false
 }
@@ -917,6 +963,10 @@ func (v metaType) IsIntegerType() bool {
 
 func (v metaType) IsFloatingType() bool {
 	panic("IsFloatingType() invalid on metaType")
+}
+
+func (v metaType) IsVoidType() bool {
+	panic("IsVoidType() invalid on metaType")
 }
 
 func (v metaType) CanCastTo(t Type) bool {

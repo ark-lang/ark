@@ -31,7 +31,7 @@ func (v *UnreachableCheck) PostVisit(s *SemanticAnalyzer, n parser.Node) {
 	case *parser.FunctionDecl:
 		decl := n.(*parser.FunctionDecl)
 		if !decl.Prototype && !decl.Function.Body.IsTerminating {
-			if decl.Function.ReturnType != nil {
+			if decl.Function.ReturnType != nil && !decl.Function.ReturnType.IsVoidType() {
 				s.Err(decl, "Missing return statement")
 			} else {
 				decl.Function.Body.Nodes = append(decl.Function.Body.Nodes, &parser.ReturnStat{})

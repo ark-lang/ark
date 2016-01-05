@@ -1452,7 +1452,8 @@ func (v *parser) parseArrayLenExpr() *ArrayLenExprNode {
 	}
 	startToken := v.consumeToken()
 
-	array := v.parseCompositeLiteral()
+	var array ParseNode
+	array = v.parseCompositeLiteral()
 	if array == nil {
 		array = v.parseExpr()
 	}
@@ -1460,8 +1461,9 @@ func (v *parser) parseArrayLenExpr() *ArrayLenExprNode {
 		v.err("Expected valid expression in array length expression")
 	}
 
+	end := v.peek(0)
 	res := &ArrayLenExprNode{ArrayExpr: array}
-	res.SetWhere(lexer.NewSpan(startToken.Where.Start(), array.Where().End()))
+	res.SetWhere(lexer.NewSpan(startToken.Where.Start(), end.Where.End()))
 	return res
 }
 
@@ -1694,6 +1696,7 @@ func (v *parser) parseStructLit() *StructLiteralNode {
 
 	startPos := v.currentToken
 	name := v.parseName()
+
 	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "{") {
 		v.currentToken = startPos
 		return nil

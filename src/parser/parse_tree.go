@@ -2,7 +2,7 @@ package parser
 
 import (
 	"math/big"
-
+	
 	"github.com/ark-lang/ark/src/lexer"
 )
 
@@ -252,7 +252,6 @@ type BinaryExprNode struct {
 type ArrayLenExprNode struct {
 	baseNode
 	ArrayExpr ParseNode
-	//Value     ParseNode
 }
 
 type SizeofExprNode struct {
