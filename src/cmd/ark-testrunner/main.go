@@ -216,9 +216,9 @@ func realmain() int {
 
 		// Output result
 		if failure {
-			fmt.Printf(" %sSucc%s\n", util.TEXT_RED, util.TEXT_RESET)
+			fmt.Printf(" %sFail%s\n", util.TEXT_RED, util.TEXT_RESET)
 		} else {
-			fmt.Printf(" %sFail%s\n", util.TEXT_GREEN, util.TEXT_RESET)
+			fmt.Printf(" %sSucc%s\n", util.TEXT_GREEN, util.TEXT_RESET)
 			numSucceses += 1
 		}
 	}
