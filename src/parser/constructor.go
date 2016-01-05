@@ -117,7 +117,10 @@ func Construct(tree *ParseTree, modules *ModuleLookup) *Module {
 
 func (v *Constructor) construct() {
 	for _, node := range v.tree.Nodes {
-		v.module.Nodes = append(v.module.Nodes, v.constructNode(node))
+		cnode := v.constructNode(node)
+		if cnode != nil {
+			v.module.Nodes = append(v.module.Nodes, cnode)
+		}
 	}
 }
 
@@ -259,7 +262,12 @@ func (v *TypeDeclNode) construct(c *Constructor) Node {
 	return res
 }
 
-func (v *UseDeclNode) construct(c *Constructor) Node {
+func (v *LinkDirectiveNode) construct(c *Constructor) Node {
+	c.module.LinkedLibraries = append(c.module.LinkedLibraries, v.Library.Value)
+	return nil
+}
+
+func (v *UseDirectiveNode) construct(c *Constructor) Node {
 	res := &UseDecl{}
 	res.ModuleName = toUnresolvedName(v.Module)
 	res.Scope = c.scope

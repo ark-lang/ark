@@ -1,6 +1,7 @@
 package LLVMCodegen
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -107,11 +108,12 @@ func (v *Codegen) createBinary() {
 	}
 
 	linkArgs := append(v.LinkerArgs, "-fno-PIE", "-nodefaultlibs", "-lc", "-lm")
+	libraries := [][]string{}
 
 	bitcodeFiles := []string{}
-
 	for _, file := range v.input {
 		log.Timed("creating bitcode", file.Name.String(), func() {
+			libraries = append(libraries, file.LinkedLibraries)
 			bitcodeFiles = append(bitcodeFiles, v.createBitcode(file))
 		})
 	}
@@ -141,11 +143,14 @@ func (v *Codegen) createBinary() {
 
 	objFiles := []string{}
 
-	for _, asmFile := range asmFiles {
+	for idx, asmFile := range asmFiles {
 		log.Timed("creating object", asmFile, func() {
 			objName := v.asmToObject(asmFile)
-
 			objFiles = append(objFiles, objName)
+
+			for _, lib := range libraries[idx] {
+				linkArgs = append(linkArgs, fmt.Sprintf("-l%s", lib))
+			}
 			linkArgs = append(linkArgs, objName)
 		})
 	}

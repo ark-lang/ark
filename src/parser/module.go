@@ -11,11 +11,12 @@ import (
 )
 
 type Module struct {
-	Nodes       []Node
-	File        *lexer.Sourcefile
-	Path        string // this stores the path too, e.g src/main
-	Name        *ModuleName
-	GlobalScope *Scope
+	Nodes           []Node
+	File            *lexer.Sourcefile
+	Path            string // this stores the path too, e.g src/main
+	Name            *ModuleName
+	GlobalScope     *Scope
+	LinkedLibraries []string
 }
 
 type ModuleLookup struct {
