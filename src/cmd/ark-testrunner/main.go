@@ -168,14 +168,14 @@ func realmain() int {
 	// Check results
 	numSucceses := 0
 
-	fmt.Printf("Test name       | Build error | Run error | Build output | Run output | Result  \n")
-	fmt.Printf("----------------|-------------|-----------|--------------|------------|---------\n")
+	fmt.Printf("Test name              | Build error | Run error | B. output | R. output | Res  \n")
+	fmt.Printf("-----------------------|-------------|-----------|-----------|-----------|------\n")
 	for _, res := range results {
 		failure := false
-		if len(res.Job.Name) > 15 {
-			fmt.Printf("%s... |", res.Job.Name[:12])
+		if len(res.Job.Name) > 22 {
+			fmt.Printf("%s... |", res.Job.Name[:19])
 		} else {
-			fmt.Printf("%-15s |", res.Job.Name)
+			fmt.Printf("%-22s |", res.Job.Name)
 		}
 
 		// Check build errors
@@ -196,29 +196,29 @@ func realmain() int {
 
 		// Check build output
 		if res.Job.CompilerOutput == "" {
-			fmt.Printf("          n/a |")
+			fmt.Printf("       n/a |")
 		} else if res.CompilerOutput == res.Job.CompilerOutput {
-			fmt.Printf("    %sMatch%s |", util.TEXT_GREEN, util.TEXT_RESET)
+			fmt.Printf("     %sMatch%s |", util.TEXT_GREEN, util.TEXT_RESET)
 		} else {
-			fmt.Printf(" %sMismatch%s |", util.TEXT_RED, util.TEXT_RESET)
+			fmt.Printf("  %sMismatch%s |", util.TEXT_RED, util.TEXT_RESET)
 			failure = true
 		}
 
 		// Check run output
 		if res.Job.RunOutput == "" {
-			fmt.Printf("        n/a |")
+			fmt.Printf("       n/a |")
 		} else if res.RunOutput == res.Job.RunOutput {
-			fmt.Printf("      %sMatch%s |", util.TEXT_GREEN, util.TEXT_RESET)
+			fmt.Printf("     %sMatch%s |", util.TEXT_GREEN, util.TEXT_RESET)
 		} else {
-			fmt.Printf("   %sMismatch%s |", util.TEXT_RED, util.TEXT_RESET)
+			fmt.Printf("  %sMismatch%s |", util.TEXT_RED, util.TEXT_RESET)
 			failure = true
 		}
 
 		// Output result
 		if failure {
-			fmt.Printf(" %sFailure%s\n", util.TEXT_RED, util.TEXT_RESET)
+			fmt.Printf(" %sSucc%s\n", util.TEXT_RED, util.TEXT_RESET)
 		} else {
-			fmt.Printf(" %sSuccess%s\n", util.TEXT_GREEN, util.TEXT_RESET)
+			fmt.Printf(" %sFail%s\n", util.TEXT_GREEN, util.TEXT_RESET)
 			numSucceses += 1
 		}
 	}
