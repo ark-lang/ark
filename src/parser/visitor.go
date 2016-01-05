@@ -8,7 +8,7 @@ type Visitor interface {
 	EnterScope(s *Scope)
 	ExitScope(s *Scope)
 
-	Visit(*Node)
+	Visit(*Node) bool
 	PostVisit(*Node)
 }
 
@@ -22,7 +22,7 @@ func NewASTVisitor(visitor Visitor) *ASTVisitor {
 
 func (v *ASTVisitor) VisitModule(module *Module) {
 	v.EnterScope(module.GlobalScope)
-	v.VisitNodes(module.Nodes)
+	module.Nodes = v.VisitNodes(module.Nodes)
 	v.ExitScope(module.GlobalScope)
 }
 
@@ -55,9 +55,11 @@ func (v *ASTVisitor) Visit(n Node) Node {
 		return nil
 	}
 
-	v.Visitor.Visit(&n)
-	v.VisitChildren(n)
-	v.Visitor.PostVisit(&n)
+	if v.Visitor.Visit(&n) {
+		v.VisitChildren(n)
+		v.Visitor.PostVisit(&n)
+	}
+
 	return n
 }
 
@@ -67,9 +69,10 @@ func (v *ASTVisitor) VisitExpr(e Expr) Expr {
 	}
 
 	n := e.(Node)
-	v.Visitor.Visit(&n)
-	v.VisitChildren(n)
-	v.Visitor.PostVisit(&n)
+	if v.Visitor.Visit(&n) {
+		v.VisitChildren(n)
+		v.Visitor.PostVisit(&n)
+	}
 
 	if n != nil {
 		return n.(Expr)
@@ -84,9 +87,10 @@ func (v *ASTVisitor) VisitBlock(b *Block) *Block {
 	}
 
 	n := Node(b)
-	v.Visitor.Visit(&n)
-	v.VisitChildren(n)
-	v.Visitor.PostVisit(&n)
+	if v.Visitor.Visit(&n) {
+		v.VisitChildren(n)
+		v.Visitor.PostVisit(&n)
+	}
 
 	if n != nil {
 		return n.(*Block)

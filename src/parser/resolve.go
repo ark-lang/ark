@@ -74,11 +74,11 @@ func (v *Resolver) ExitScope(s *Scope) {
 	}
 }
 
-func (v *Resolver) Visit(n *Node) {
+func (v *Resolver) Visit(n *Node) bool {
 	if resolveable, ok := (*n).(Resolvable); ok {
 		*n = resolveable.resolve(v, v.Scope())
 	}
-
+	return true
 }
 
 func (v *Resolver) PostVisit(n *Node) {
@@ -175,7 +175,7 @@ func (v *CastExpr) resolve(res *Resolver, s *Scope) Node {
 	return v
 }
 
-func (v* ArrayLenExpr) resolve(res *Resolver, s *Scope) Node {
+func (v *ArrayLenExpr) resolve(res *Resolver, s *Scope) Node {
 	if v.Type != nil {
 		v.Type = v.Type.resolveType(v, res, s)
 	}
