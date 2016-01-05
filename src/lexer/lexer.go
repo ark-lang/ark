@@ -253,14 +253,15 @@ func (v *lexer) recognizeStringToken() {
 	pos := v.curPos
 
 	v.expect('"')
+	v.discardBuffer()
 
 	for {
 		if v.peek(0) == '\\' && v.peek(1) == '"' {
 			v.consume()
 			v.consume()
 		} else if v.peek(0) == '"' {
-			v.consume()
 			v.pushToken(TOKEN_STRING)
+			v.consume()
 			return
 		} else if isEOF(v.peek(0)) {
 			v.errPos(pos, "Unterminated string literal")

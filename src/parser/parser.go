@@ -1881,8 +1881,7 @@ func (v *parser) parseStringLit() *StringLitNode {
 		return nil
 	}
 	token := v.consumeToken()
-	strLen := len(token.Contents)
-	res := &StringLitNode{Value: UnescapeString(token.Contents[1 : strLen-1])}
+	res := &StringLitNode{Value: UnescapeString(token.Contents)}
 	res.SetWhere(token.Where)
 	return res
 }
