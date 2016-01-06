@@ -853,7 +853,7 @@ func (v *parser) parseLoopStat() *LoopStatNode {
 
 	body := v.parseBlock()
 	if body == nil {
-		v.err("Expected valid block as body of loop statement")
+		v.err("Expected valid block as body of loop statement ", v.peek(0))
 	}
 
 	res := &LoopStatNode{Condition: condition, Body: body}
@@ -1462,7 +1462,7 @@ func (v *parser) parseArrayLenExpr() *ArrayLenExprNode {
 	startToken := v.consumeToken()
 
 	var array ParseNode
-	array = v.parseCompositeLiteral()
+	array = v.parseArrayLenExpr()
 	if array == nil {
 		array = v.parseExpr()
 	}
@@ -1472,7 +1472,7 @@ func (v *parser) parseArrayLenExpr() *ArrayLenExprNode {
 
 	end := v.peek(0)
 	res := &ArrayLenExprNode{ArrayExpr: array}
-	res.SetWhere(lexer.NewSpan(startToken.Where.Start(), end.Where.End()))
+	res.SetWhere(lexer.NewSpan(startToken.Where.Start(), end.Where.Start()))
 	return res
 }
 
