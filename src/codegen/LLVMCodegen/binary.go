@@ -146,12 +146,11 @@ func (v *Codegen) createBinary() {
 	for idx, asmFile := range asmFiles {
 		log.Timed("creating object", asmFile, func() {
 			objName := v.asmToObject(asmFile)
-			objFiles = append(objFiles, objName)
-
+			objFiles = append(objFiles, objName)		
+			linkArgs = append(linkArgs, objName)
 			for _, lib := range libraries[idx] {
 				linkArgs = append(linkArgs, fmt.Sprintf("-l%s", lib))
 			}
-			linkArgs = append(linkArgs, objName)
 		})
 	}
 
