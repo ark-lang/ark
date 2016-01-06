@@ -50,7 +50,7 @@ const (
 )
 
 func (v PrimitiveType) IsVoidType() bool {
-	return v == PRIMITIVE_void;
+	return v == PRIMITIVE_void
 }
 
 func (v PrimitiveType) IsIntegerType() bool {
@@ -710,7 +710,7 @@ func (v InterfaceType) IsFloatingType() bool {
 }
 
 func (v InterfaceType) IsVoidType() bool {
-	return false	
+	return false
 }
 
 func (v InterfaceType) CanCastTo(t Type) bool {

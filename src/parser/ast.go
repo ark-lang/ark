@@ -97,7 +97,6 @@ type Function struct {
 	Name       string
 	Parameters []*VariableDecl
 	ReturnType Type
-	Mutable    bool
 	IsVariadic bool
 	Attrs      AttrGroup
 	Body       *Block
@@ -117,9 +116,6 @@ func (v *Function) Scope() *Scope {
 
 func (v *Function) String() string {
 	result := "(" + util.Blue("Function") + ": "
-	if v.Mutable {
-		result += util.Green("[mutable] ")
-	}
 	for _, attr := range v.Attrs {
 		result += attr.String() + " "
 	}
