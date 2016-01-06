@@ -125,8 +125,11 @@ func (v *Scope) GetIdent(name unresolvedName) *Ident {
 
 	if r := scope.Idents[name.name]; r != nil {
 		return r
+	} else if r := scope.UsedModules[name.name]; r != nil {
+		return &Ident{IDENT_MODULE, r}
 	} else if v.Outer != nil {
 		return v.Outer.GetIdent(name)
 	}
+
 	return nil
 }

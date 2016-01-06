@@ -49,9 +49,9 @@ func main() {
 		// build the files
 		outputType := parseOutputType(*buildOutputType)
 		build(*buildInputs, *buildOutput, *buildCodegen, ccArgs, outputType, *buildOptLevel)
-		
+
 		printFinishedMessage(startTime, buildCom.FullCommand(), len(*buildInputs))
-		
+
 		// attempt to run what we built
 		if *buildRun {
 			if outputType != LLVMCodegen.OUTPUT_EXECUTABLE {

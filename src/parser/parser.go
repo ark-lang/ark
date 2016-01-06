@@ -189,6 +189,8 @@ func (v *parser) parseToplevelDirective() ParseNode {
 			v.errPosSpecific(directive.Where.End(), "Expected name after use directive")
 		}
 
+		v.deps = append(v.deps, module)
+
 		res := &UseDirectiveNode{Module: module}
 		res.SetWhere(lexer.NewSpan(start.Where.Start(), module.Where().End()))
 		return res
