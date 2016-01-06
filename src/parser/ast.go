@@ -95,10 +95,8 @@ func (v *Variable) Scope() *Scope {
 
 type Function struct {
 	Name       string
+	Type       FunctionType
 	Parameters []*VariableDecl
-	ReturnType Type
-	IsVariadic bool
-	Attrs      AttrGroup
 	Body       *Block
 	scope      *Scope
 
@@ -116,15 +114,15 @@ func (v *Function) Scope() *Scope {
 
 func (v *Function) String() string {
 	result := "(" + util.Blue("Function") + ": "
-	for _, attr := range v.Attrs {
+	for _, attr := range v.Type.Attrs() {
 		result += attr.String() + " "
 	}
 	result += v.Name
 	for _, par := range v.Parameters {
 		result += " " + par.String()
 	}
-	if v.ReturnType != nil {
-		result += ": " + util.Green(v.ReturnType.TypeName()) + " "
+	if v.Type.Return != nil {
+		result += ": " + util.Green(v.Type.Return.TypeName()) + " "
 	}
 
 	if v.Body != nil {
@@ -848,7 +846,7 @@ func (v *CallExpr) String() string {
 
 func (v *CallExpr) GetType() Type {
 	if v.Function != nil {
-		return v.Function.ReturnType
+		return v.Function.Type.Return
 	}
 	return nil
 }

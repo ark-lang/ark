@@ -127,8 +127,8 @@ func (v *ReturnStat) infer(s *TypeInferer) {
 		s.err(v, "Return statement must be in a function")
 	}
 
-	if s.function.ReturnType != nil {
-		v.Value.setTypeHint(s.function.ReturnType)
+	if s.function.Type.Return != nil {
+		v.Value.setTypeHint(s.function.Type.Return)
 		v.Value.infer(s)
 	}
 }

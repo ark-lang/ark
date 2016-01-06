@@ -37,9 +37,9 @@ func (v *AttributeCheck) Destroy(s *SemanticAnalyzer) {
 }
 
 func (v *AttributeCheck) CheckFunctionDecl(s *SemanticAnalyzer, n *parser.FunctionDecl) {
-	v.CheckAttrsDistanceFromLine(s, n.Function.Attrs, n.Pos().Line, "function", n.Function.Name)
+	v.CheckAttrsDistanceFromLine(s, n.Function.Type.Attrs(), n.Pos().Line, "function", n.Function.Name)
 
-	for _, attr := range n.Function.Attrs {
+	for _, attr := range n.Function.Type.Attrs() {
 		switch attr.Key {
 		case "deprecated":
 		case "unused":

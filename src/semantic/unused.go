@@ -79,7 +79,7 @@ func (v *UnusedCheck) AnalyzeUsage(s *SemanticAnalyzer) {
 				continue
 			}
 
-			if !decl.Function.Attrs.Contains("unused") && v.uses[decl.Function] == 0 {
+			if !decl.Function.Type.Attrs().Contains("unused") && v.uses[decl.Function] == 0 {
 				// TODO add compiler option for this?
 				//s.Err(decl, "Unused function `%s`", decl.Function.Name)
 			}

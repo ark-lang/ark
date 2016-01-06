@@ -1,0 +1,11 @@
+[c] func printf(fmt: str, ...) -> int;
+
+func do(thing: func(str) int) {
+
+}
+
+func main() -> int {
+    C::printf("Func ptr test\n");
+
+    return 0;
+}

@@ -32,7 +32,7 @@ func (v *DeprecatedCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
 		}
 
 	case *parser.CallExpr:
-		if dep := n.Function.Attrs.Get("deprecated"); dep != nil {
+		if dep := n.Function.Type.Attrs().Get("deprecated"); dep != nil {
 			v.WarnDeprecated(s, n, "function", n.Function.Name, dep.Value)
 		}
 

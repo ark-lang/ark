@@ -1017,7 +1017,9 @@ func (v *parser) parseType(doRefs bool) ParseNode {
 	defer un(trace(v, "type"))
 
 	var res ParseNode
-	if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "^") {
+	if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_FUNC) {
+		res = v.parseFunctionType()
+	} else if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "^") {
 		res = v.parsePointerType()
 	} else if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "&") {
 		res = v.parseReferenceType()
@@ -1136,6 +1138,74 @@ func (v *parser) parseReferenceType() *ReferenceTypeNode {
 
 	res := &ReferenceTypeNode{Mutable: mutable, TargetType: target}
 	res.SetWhere(lexer.NewSpan(startToken.Where.Start(), target.Where().End()))
+
+	return res
+}
+
+func (v *parser) parseFunctionType() *FunctionTypeNode {
+	defer un(trace(v, "functiontype"))
+
+	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_FUNC) {
+		return nil
+	}
+	startToken := v.consumeToken()
+
+	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "(") {
+		v.err("Expected `(` after `func` keyword")
+	}
+	lastParens := v.consumeToken()
+
+	var pars []ParseNode
+	variadic := false
+
+	for {
+		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ")") {
+			lastParens = v.consumeToken()
+			break
+		}
+
+		if v.tokensMatch(lexer.TOKEN_SEPARATOR, ".", lexer.TOKEN_SEPARATOR, ".", lexer.TOKEN_SEPARATOR, ".") {
+			v.consumeTokens(3)
+			if !variadic {
+				variadic = true
+				break
+			} else {
+				v.err("Duplicate `...`")
+			}
+		}
+
+		par := v.parseType(true)
+		if par == nil {
+			v.err("Expected type, found `%s`", v.peek(0))
+		}
+
+		pars = append(pars, par)
+
+		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ",") {
+			v.consumeToken()
+			continue
+		} else if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ")") {
+			lastParens = v.consumeToken()
+			break
+		} else {
+			v.err("Unexpected `%s`", v.peek(0))
+		}
+	}
+
+	returnType := v.parseType(true)
+
+	var end lexer.Position
+	if returnType != nil {
+		end = returnType.Where().End()
+	} else {
+		end = lastParens.Where.End()
+	}
+
+	res := &FunctionTypeNode{
+		ParameterTypes: pars,
+		ReturnType:     returnType,
+	}
+	res.SetWhere(lexer.NewSpan(startToken.Where.Start(), end))
 
 	return res
 }

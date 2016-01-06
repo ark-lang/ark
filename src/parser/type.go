@@ -867,6 +867,10 @@ func (v EnumType) ActualType() Type {
 // FunctionType
 type FunctionType struct {
 	attrs AttrGroup
+
+	Parameters []Type
+	Return     Type
+	IsVariadic bool
 }
 
 func (v FunctionType) String() string {
@@ -909,7 +913,7 @@ func (v FunctionType) Attrs() AttrGroup {
 }
 
 func (v FunctionType) Equals(t Type) bool {
-	/*other, ok := t.(FunctionType)
+	other, ok := t.(FunctionType)
 	if !ok {
 		return false
 	}
@@ -918,27 +922,25 @@ func (v FunctionType) Equals(t Type) bool {
 		return false
 	}
 
-	if len(v.Members) != len(other.Members) {
+	if v.IsVariadic != other.IsVariadic {
 		return false
 	}
 
-	for idx, member := range v.Members {
-		otherMember := other.Members[idx]
+	if !v.Return.Equals(other.Return) {
+		return false
+	}
 
-		if member.Name != otherMember.Name {
-			return false
-		}
-		if !member.Type.Equals(otherMember.Type) {
-			return false
-		}
-		if member.Tag != otherMember.Tag {
+	if len(v.Parameters) != len(other.Parameters) {
+		return false
+	}
+
+	for i, par := range v.Parameters {
+		if !par.Equals(other.Parameters[i]) {
 			return false
 		}
 	}
 
-	return true*/
-
-	return false
+	return true
 }
 
 func (v FunctionType) ActualType() Type {

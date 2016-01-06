@@ -97,17 +97,17 @@ func (v *TypeCheck) CheckVariableDecl(s *SemanticAnalyzer, decl *parser.Variable
 
 func (v *TypeCheck) CheckReturnStat(s *SemanticAnalyzer, stat *parser.ReturnStat) {
 	if stat.Value == nil {
-		if v.Function().ReturnType != nil {
+		if v.Function().Type.Return != nil {
 			s.Err(stat.Value, "Cannot return void from function `%s` of type `%s`",
-				v.Function().Name, v.Function().ReturnType.TypeName())
+				v.Function().Name, v.Function().Type.Return.TypeName())
 		}
 	} else {
-		if v.Function().ReturnType == nil {
+		if v.Function().Type.Return == nil {
 			s.Err(stat.Value, "Cannot return expression from void function")
 		} else {
-			if !stat.Value.GetType().Equals(v.Function().ReturnType) {
+			if !stat.Value.GetType().Equals(v.Function().Type.Return) {
 				s.Err(stat.Value, "Cannot return expression of type `%s` from function `%s` of type `%s`",
-					stat.Value.GetType().TypeName(), v.Function().Name, v.Function().ReturnType.TypeName())
+					stat.Value.GetType().TypeName(), v.Function().Name, v.Function().Type.Return.TypeName())
 			}
 		}
 	}
@@ -214,12 +214,12 @@ func (v *TypeCheck) CheckCallExpr(s *SemanticAnalyzer, expr *parser.CallExpr) {
 	paramLen := len(expr.Function.Parameters)
 
 	// attributes defaults
-	isVariadic := expr.Function.IsVariadic
+	isVariadic := expr.Function.Type.IsVariadic
 	c := false // if we're calling a C function
 
 	// find them attributes yo
-	if expr.Function.Attrs != nil {
-		c = expr.Function.Attrs.Contains("c")
+	if expr.Function.Type.Attrs() != nil {
+		c = expr.Function.Type.Attrs().Contains("c")
 	}
 
 	if argLen < paramLen {

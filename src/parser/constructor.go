@@ -201,6 +201,15 @@ func (v *TupleTypeNode) construct(c *Constructor) Type {
 	return res
 }
 
+func (v *FunctionTypeNode) construct(c *Constructor) Type {
+	res := FunctionType{
+		IsVariadic: v.IsVariadic,
+		Parameters: c.constructTypes(v.ParameterTypes),
+		Return:     c.constructType(v.ReturnType),
+	}
+	return res
+}
+
 func (v *ArrayTypeNode) construct(c *Constructor) Type {
 	memberType := c.constructType(v.MemberType)
 	return arrayOf(memberType)
@@ -316,9 +325,11 @@ func (v *ImplDeclNode) construct(c *Constructor) Node {
 func (v *FunctionDeclNode) construct(c *Constructor) Node {
 	function := &Function{
 		Name:         v.Header.Name.Value,
-		Attrs:        v.Attrs(),
-		IsVariadic:   v.Header.Variadic,
 		ParentModule: c.module,
+		Type: FunctionType{
+			IsVariadic: v.Header.Variadic,
+			attrs:      v.Attrs(),
+		},
 	}
 
 	res := &FunctionDecl{
@@ -351,7 +362,7 @@ func (v *FunctionDeclNode) construct(c *Constructor) Node {
 	}
 
 	if v.Header.ReturnType != nil {
-		function.ReturnType = c.constructType(v.Header.ReturnType)
+		function.Type.Return = c.constructType(v.Header.ReturnType)
 	}
 
 	if v.Expr != nil {
@@ -369,7 +380,7 @@ func (v *FunctionDeclNode) construct(c *Constructor) Node {
 
 	if !function.IsMethod {
 		scopeToInsertTo := c.scope
-		if function.Attrs.Contains("c") {
+		if function.Type.Attrs().Contains("c") {
 			if mod, ok := c.module.GlobalScope.UsedModules["C"]; ok {
 				scopeToInsertTo = mod.Module.GlobalScope
 			} else {

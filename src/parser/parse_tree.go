@@ -2,7 +2,7 @@ package parser
 
 import (
 	"math/big"
-	
+
 	"github.com/ark-lang/ark/src/lexer"
 )
 
@@ -85,6 +85,13 @@ type PointerTypeNode struct {
 type TupleTypeNode struct {
 	baseNode
 	MemberTypes []ParseNode
+}
+
+type FunctionTypeNode struct {
+	baseNode
+	ParameterTypes []ParseNode
+	ReturnType     ParseNode
+	IsVariadic     bool
 }
 
 type ArrayTypeNode struct {

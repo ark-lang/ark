@@ -220,20 +220,20 @@ func (v *Codegen) declareFunctionDecl(n *parser.FunctionDecl) {
 		cBinding := false
 
 		// find them attributes yo
-		if n.Function.Attrs != nil {
-			cBinding = n.Function.Attrs.Contains("c")
+		if n.Function.Type.Attrs() != nil {
+			cBinding = n.Function.Type.Attrs().Contains("c")
 		}
 
 		// assume it's void
 		funcTypeRaw := llvm.VoidType()
 
 		// oo theres a type, let's try figure it out
-		if n.Function.ReturnType != nil {
-			funcTypeRaw = v.typeToLLVMType(n.Function.ReturnType)
+		if n.Function.Type.Return != nil {
+			funcTypeRaw = v.typeToLLVMType(n.Function.Type.Return)
 		}
 
 		// create the function type
-		funcType := llvm.FunctionType(funcTypeRaw, params, n.Function.IsVariadic)
+		funcType := llvm.FunctionType(funcTypeRaw, params, n.Function.Type.IsVariadic)
 
 		functionName := mangledName
 		if cBinding {
@@ -1109,8 +1109,8 @@ func floatTypeBits(ty parser.PrimitiveType) int {
 
 func (v *Codegen) genCallExprWithArgs(n *parser.CallExpr, args []llvm.Value) llvm.Value {
 	cBinding := false
-	if n.Function.Attrs != nil {
-		cBinding = n.Function.Attrs.Contains("c")
+	if n.Function.Type.Attrs() != nil {
+		cBinding = n.Function.Type.Attrs().Contains("c")
 	}
 
 	// eww

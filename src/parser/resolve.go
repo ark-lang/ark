@@ -104,8 +104,8 @@ func (v *Resolver) PostVisit(n *Node) {
 ///
 
 func (v *FunctionDecl) resolve(res *Resolver, s *Scope) Node {
-	if v.Function.ReturnType != nil {
-		v.Function.ReturnType = v.Function.ReturnType.resolveType(v, res, s)
+	if v.Function.Type.Return != nil {
+		v.Function.Type.Return = v.Function.Type.Return.resolveType(v, res, s)
 	}
 
 	if v.Function.IsMethod {
