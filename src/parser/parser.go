@@ -1462,7 +1462,7 @@ func (v *parser) parseArrayLenExpr() *ArrayLenExprNode {
 	startToken := v.consumeToken()
 
 	var array ParseNode
-	array = v.parseArrayLenExpr()
+	array = v.parseCompositeLiteral()
 	if array == nil {
 		array = v.parseExpr()
 	}
