@@ -40,7 +40,7 @@ func (v *UseBeforeDeclareCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
 
 	case *parser.VariableAccessExpr:
 		expr := n.(*parser.VariableAccessExpr)
-		if !v.scope[expr.Variable.Name] {
+		if !v.scope[expr.Variable.Name] && expr.Variable.ParentModule == s.Module {
 			s.Err(expr, "Use of variable before declaration: %s", expr.Variable.Name)
 		}
 	}
