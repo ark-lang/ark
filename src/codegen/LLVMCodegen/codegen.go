@@ -95,7 +95,6 @@ func (v *Codegen) Generate(input []*parser.Module) {
 		log.Timed("codegenning", infile.Name.String(), func() {
 			infile.LlvmModule = llvm.NewModule(infile.Name.String())
 			v.curFile = infile
-
 			v.declareDecls(infile.Nodes)
 
 			for _, node := range infile.Nodes {
@@ -255,6 +254,22 @@ func (v *Codegen) declareFunctionDecl(n *parser.FunctionDecl) {
 			function.SetFunctionCallConv(llvm.FastCallConv)
 		}
 	}
+}
+
+func (v *Codegen) getVariable(vari *parser.Variable) llvm.Value {
+	if value, ok := v.variableLookup[vari]; ok {
+		return value
+	}
+
+	if vari.ParentModule != v.curFile.Module {
+		value := llvm.AddGlobal(v.curFile.LlvmModule, v.typeToLLVMType(vari.Type), vari.MangledName(parser.MANGLE_ARK_UNSTABLE))
+		value.SetLinkage(llvm.ExternalLinkage)
+		v.variableLookup[vari] = value
+		return value
+	}
+
+	v.err("Encountered undeclared variable `%s` in same modules", vari.Name)
+	return llvm.Value{}
 }
 
 func (v *Codegen) genNode(n parser.Node) {
@@ -552,7 +567,8 @@ func (v *Codegen) genVariableDecl(n *parser.VariableDecl, semicolon bool) llvm.V
 		mangledName := n.Variable.MangledName(parser.MANGLE_ARK_UNSTABLE)
 		varType := v.typeToLLVMType(n.Variable.Type)
 		value := llvm.AddGlobal(v.curFile.LlvmModule, varType, mangledName)
-		value.SetLinkage(llvm.InternalLinkage)
+		// TODO: External by default to export everything, change once we get access specifiers
+		value.SetLinkage(llvm.ExternalLinkage)
 		value.SetGlobalConstant(!n.Variable.Mutable)
 		if n.Assignment != nil {
 			value.SetInitializer(v.genExpr(n.Assignment))
@@ -618,7 +634,11 @@ func (v *Codegen) genAccessGEP(n parser.Expr) llvm.Value {
 	case *parser.VariableAccessExpr:
 		vae := n.(*parser.VariableAccessExpr)
 
-		varType := v.variableLookup[vae.Variable]
+		varType := v.getVariable(vae.Variable)
+		log.Debugln("codegen", "%v => %v", vae.Variable, varType)
+		if varType.IsNil() {
+			panic("varType was nil")
+		}
 		gep := v.builder.CreateGEP(varType, []llvm.Value{llvm.ConstInt(llvm.Int32Type(), 0, false)}, "")
 
 		if _, ok := vae.GetType().(parser.MutableReferenceType); ok {
