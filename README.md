@@ -12,6 +12,7 @@ due to backwards compatibility.
 * [Installing](#installing)
     * [Dependencies](#dependencies)
     * [Building](#building)
+    * [Compiling Ark code](#compiling-ark-code)
 
 ## <a name="getting-involed"></a> Getting Involved
 Check out the [contributing guide](/CONTRIBUTING.md), there's a lot of information
@@ -70,3 +71,38 @@ $ go get github.com/ark-lang/ark/...
 
 The `ark` binary will be built in `$GOPATH/bin`. To use the compiler, 
 make sure `$GOPATH/bin` is in your `$PATH`.
+
+### <a name="compiling-ark-code"></a> Compiling Ark code
+Currently the module system Ark uses is a work in progress. As of writing this,
+each ark file represents a module. A module has a child-module "C" which
+contains all of the C functions and other bindings you may write.
+
+Given the following project structure:
+
+    src/
+      - main.ark
+      - entity.ark
+      - player.ark
+
+To compile this, you would pass through the file which contains the main
+entry point (main function) to your program, which is most likely going to
+be called "main.ark". 
+However, because our projects source files are in another directory ("src/"), 
+we need to set the "base directory" -- the base directory is where the ark compiler
+will scan for other modules.
+
+To do this we use the `--basedir` flag, which can be shortened to `-b`. We can 
+then pass in the main module after this, and any flags you want to use:
+
+    ark build -b src main --loglevel=debug
+
+This should compile your code, and produce an executable called "main", which 
+you can then run.
+
+For more information on the module system and how it works,
+refer to the ["Modules and Dependencies"](http://book.ark-lang.org/modules.html)
+section in the Ark reference. 
+
+For more information on program flags, refer to the
+["Program Input"](http://book.ark-lang.org/source.html), section in the Ark
+reference.
