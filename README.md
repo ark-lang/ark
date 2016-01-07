@@ -22,6 +22,8 @@ Ark is still a work in progress, this code sample reflects what Ark can
 do *currently*, though the way you write the following will likely change
 in the near future.
 
+More examples can be found [here](/examples).
+
 ```rust
 // binding to printf
 [c] func printf(fmt: str, ...);
