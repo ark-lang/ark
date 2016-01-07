@@ -1,5 +1,5 @@
-Name       = "negative_float"
-Sourcefile = "negative_float.ark"
+Name       = "float_ops"
+Sourcefile = "float_ops.ark"
 
 CompilerArgs = []
 RunArgs      = []

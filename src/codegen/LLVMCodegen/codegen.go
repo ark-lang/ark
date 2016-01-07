@@ -1045,7 +1045,14 @@ func (v *Codegen) genUnaryExpr(n *parser.UnaryExpr) llvm.Value {
 	case parser.UNOP_BIT_NOT, parser.UNOP_LOG_NOT:
 		return v.builder.CreateNot(expr, "")
 	case parser.UNOP_NEGATIVE:
-		return v.builder.CreateNeg(expr, "")
+		if n.Expr.GetType().IsFloatingType() {
+			return v.builder.CreateFNeg(expr, "")
+		} else if n.Expr.GetType().IsIntegerType() {
+			return v.builder.CreateNeg(expr, "")
+		} else {
+			panic("internal: UNOP_NEGATIVE on non-numeric type")
+		}
+
 	default:
 		panic("unimplimented unary op")
 	}

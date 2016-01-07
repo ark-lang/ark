@@ -2,6 +2,11 @@ func do_stuff(a: f32) {
 }
 
 func main() -> int {
+	mut foo: f32 = 42.0;
     do_stuff(-120);
+    do_stuff(-foo);
+
+    foo = foo / 24;
+
     return 0;
 }
