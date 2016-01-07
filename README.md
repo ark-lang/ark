@@ -23,11 +23,10 @@ program written in Ark.
 
 ```rust
 [c] func printf(fmt: str, ...);
-func main() -> int {
+func main(args: []str) -> int {
     mut i := 0;
-    for i < 5 {
-        C::printf("i: %d\n", i);
-        i += 1;
+    for i < #args {
+        C::printf("%s\n", args[i]);
     }
     return 0;
 }
@@ -83,18 +82,5 @@ $ ark build tests/big_test.ark -o out_name
 ```
 
 _If the `-o` option is not specified, the binary name will default to `main`._
-
-## <a name="utilities"></a> Utilities
-### <a name="make-gen-and-make-fmt"></a> `make gen` and `make fmt`
-The targets `gen` and `fmt` are included for the convenience of the developers. 
-They run `go generate` and `go fmt` respectively on all the modules in Ark. 
-Please run `make fmt` before creating a pull request.
-
-### <a name="testing"></a> Testing
-Requires `$GOPATH/bin` to be in your `$PATH` and Python 2.4 or newer.
-
-```bash
-$ ./test.py
-```
 
 [1]: https://travis-ci.org/ark-lang/ark "Build Status"

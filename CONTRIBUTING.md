@@ -5,6 +5,19 @@ We'd love your contributions to make Ark a better programming language.
 If you want to contribute to Ark, that's great! We encourage all developers
 to actively discuss Ark and its features/implementations.
 
+## <a name="utilities"></a> Utilities
+### <a name="make-gen-and-make-fmt"></a> `make gen` and `make fmt`
+The targets `gen` and `fmt` are included for the convenience of the developers. 
+They run `go generate` and `go fmt` respectively on all the modules in Ark. 
+Please run `make fmt` before creating a pull request.
+
+### <a name="testing"></a> Testing
+Requires `$GOPATH/bin` to be in your `$PATH` and Python 2.4 or newer.
+
+```bash
+$ ./test.py
+```
+
 ### What can I do to help?
 There are plenty of things you can do to help, here are some
 examples of things you can help us out with:
