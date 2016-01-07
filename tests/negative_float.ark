@@ -1,0 +1,7 @@
+func do_stuff(a: f32) {
+}
+
+func main() -> int {
+    do_stuff(-120);
+    return 0;
+}

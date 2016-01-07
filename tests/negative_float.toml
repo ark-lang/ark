@@ -1,0 +1,13 @@
+Name       = "negative_float"
+Sourcefile = "negative_float.ark"
+
+CompilerArgs = []
+RunArgs      = []
+
+CompilerError = 0
+RunError      = 0
+
+Input = ""
+
+CompilerOutput = ""
+RunOutput      = ""

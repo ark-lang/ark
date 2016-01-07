@@ -653,20 +653,26 @@ func (v *CastExprNode) construct(c *Constructor) Expr {
 
 func (v *UnaryExprNode) construct(c *Constructor) Expr {
 	var res Expr
+	subExpr := c.constructExpr(v.Value)
 	if v.Operator == UNOP_DEREF {
-		expr := c.constructExpr(v.Value)
-		if castExpr, ok := expr.(*CastExpr); ok {
+		if castExpr, ok := subExpr.(*CastExpr); ok {
 			// TODO: Verify whether this case actually ever happens
 			res = &CastExpr{Type: pointerTo(castExpr.Type), Expr: castExpr.Expr}
 		} else {
 			res = &DerefAccessExpr{
-				Expr: expr,
+				Expr: subExpr,
 			}
 		}
-
+	} else if numlit, ok := subExpr.(*NumericLiteral); ok && v.Operator == UNOP_NEGATIVE {
+		if numlit.IsFloat {
+			numlit.FloatValue *= -1
+		} else {
+			numlit.IntValue.Neg(numlit.IntValue)
+		}
+		res = numlit
 	} else {
 		res = &UnaryExpr{
-			Expr: c.constructExpr(v.Value),
+			Expr: subExpr,
 			Op:   v.Operator,
 		}
 	}
