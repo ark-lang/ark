@@ -1,5 +1,7 @@
 PACKAGES = src/{codegen{/LLVMCodegen,},lexer,parser{/checks,},util,cmd/ark}
 
+.PHONY: all fmt gen wc
+
 all:
 	@go install github.com/ark-lang/ark/src/...
 
