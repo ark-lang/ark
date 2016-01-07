@@ -17,7 +17,7 @@ some helpful things to know if you are working on the compiler.
 	* [Testing](#testing)
 	* [Writing Tests](#writing-tests)
 
-## <a name=""></a> Other Links
+## <a name="other-links"></a> Other Links
 * [/r/ark_lang](//reddit.com/r/ark_lang)
 * [ark documentation](//book.ark-lang.org)
 * [ark website](//ark-lang.org)
