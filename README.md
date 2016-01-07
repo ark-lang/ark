@@ -14,7 +14,7 @@ due to backwards compatibility.
     * [Building](#building)
 
 ## <a name="getting-involed"></a> Getting Involved
-Check out the [contributing](/CONTRIBUTING.md), there's a lot of information
+Check out the [contributing guide](/CONTRIBUTING.md), there's a lot of information
 there to give you ideas of how you can help out.
 
 ## <a name="example"></a> Example
