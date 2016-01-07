@@ -1,37 +1,49 @@
-# Contributing
-We'd love your contributions to make Ark a better programming language.
+# Contributing to Ark
+First of all, thanks for your interest in contributing to Ark! This
+document is outlines ways in which you can contribute to Ark, and also
+some helpful things to know if you are working on the compiler.
 
-## Interested in contributing?
-If you want to contribute to Ark, that's great! We encourage all developers
-to actively discuss Ark and its features/implementations.
+## Index
+* [Other Links](#other-links)
+* [Communication](#communication)
+	* [IRC](#irc)
+	* [Reddit](#reddit)
+* [Direct Contribution](#direct-contribution)
+	* [GitHub Issues](#github-issues)
+		* [Issue Labels](#issue-labels)
+	* [Pull Requests](#pull-requests)
+* [Utilities](#utilities)
+	* [`make gen` and `make fmt`](#make-gen-and-make-fmt)
+	* [Testing](#testing)
+	* [Writing Tests](#writing-tests)
 
-## <a name="utilities"></a> Utilities
-### <a name="make-gen-and-make-fmt"></a> `make gen` and `make fmt`
-The targets `gen` and `fmt` are included for the convenience of the developers. 
-They run `go generate` and `go fmt` respectively on all the modules in Ark. 
-Please run `make fmt` before creating a pull request.
+## <a name=""></a> Other Links
+* [/r/ark_lang](//reddit.com/r/ark_lang)
+* [ark documentation](//book.ark-lang.org)
+* [ark website](//ark-lang.org)
 
-### <a name="testing"></a> Testing
-Requires `$GOPATH/bin` to be in your `$PATH` and Python 2.4 or newer.
+## <a name="communication"></a> Communication
+### <a name="irc"></a> IRC
+The preferred method of communication between developers is
+the IRC, this is on the `irc.freenode.net` server, and our 
+channel is `#ark-lang`.
 
-```bash
-$ ./test.py
-```
+### <a name="reddit"></a> Reddit
+We also have a sub-reddit for discussion, help, and more. A lot
+of the developers are Reddit addicts, so we can help you out
+with any questions. We usually post ocassional updates to the
+subreddit.
 
-### What can I do to help?
-There are plenty of things you can do to help, here are some
-examples of things you can help us out with:
+## <a name="direct-contribution"></a> Direct Contribution
+### <a name="github-issues"></a> GitHub Issues
+This is a more formal method of communcation, any bugs, errors,
+or discussion that should be documented in some way goes here.
 
-* **Report bugs/other issues (big help!)**
-* Comment on issues, your voice helps us make the language better!
-* Fix bugs/implement features in the issue tracker
-* Create/fix/modify documentation
-* Work on the compiler
-* RFC/Specs
-
-## Issue Label Documentation
+#### <a name="issue-labels"></a> Issue Labels
 To keep things organized, we have introduced various labels that contributors with 
-sufficient permissions can add labels to issues. 
+sufficient permissions can add to issues. **This also means that anyone
+who is new and looking for issues related to a specific field, or complexity
+can easily filter the issues to their advantage!**.
 
 Labels are prefixed with a letter, the letter denotes the category of label:
 
@@ -42,57 +54,24 @@ Labels are prefixed with a letter, the letter denotes the category of label:
 * S: The stage in which the issue occurs (note not all issues have stages)
 * A: An area in which the issue is relevant to, e.g. A-tests is for issues related to tests
 
-## Pull Requests
-We love Pull Requests! If you are planning on contributing, 
-please read this list:
+### <a name="pull-requests"></a> Pull Requests
+We love Pull Requests! To keep everything in working order, make
+sure you follow these guidelines:
 
-* Run `go fmt` on your code
-* Work on a separate branch
-* Make sure your patch is up-to-date with the master branch, if not, please rebase
-* If you are implementing a feature of some kind, please add a test if there is not an existing one already
-* Please add a summary or brief description of your PR, however, the more detail the better
+* Run `make fmt` on your code before you submit a PR
+* Work on a separate branch, named appropriately e.g. `for-loop-codegen-fix`
+* If your patch is not up to date with the master branch, please rebase
+* If you are implementing a feature, make sure there is a text if there is not an existing one already
+* Please add a summary/description of your pull request, the more detail the better.
 
-## Fixing Bugs
-If you've found a bug when implementing a feature, or want to
-fix an existing bug; these steps will help you out.
+Once your PR has been submitted, one of the developers will review your code
+and merge it if everything is ok!
 
-* Run it through a debugger, e.g. `lldb`/`gdb`.
-  Typically, if theres a segmentation fault, or other bug
-  that occurs on run-time, g/lldb is a good start.
-* Use Valgrind to track down memory leaks
-* Run the Ark code with the `--loglevel=vebrose` flag! This is the verbose
-  flag and can help you locate what stage the bug occurs (during lexical analysis, semantic analysis, parsing, etc).
+## <a name="utilities"></a> Utilities
+### <a name="make-gen-and-make-fmt"></a> `make gen` and `make fmt`
+The targets `gen` and `fmt` are included for the convenience of the developers. 
+They run `go generate` and `go fmt` respectively on all the modules in Ark. 
+Please run `make fmt` before creating a pull request.
 
-## Writing Ark code
-Be it personal code, or you're contributing to the standard libraries,
-check out the [style guide](//github.com/ark-lang/ark-docs/blob/master/STYLEGUIDE.md). 
-Not only will this keep everything consistent (if you're contributing to the std 
-libraries that is), but it will also make the code a lot more readable 
-and easier to maintain.
-
-## Ark RFCs/Specs
-If you want to request a feature, or improve upon an existing feature, keep reading. If 
-you want to help decide how to integrate an unimplemented feature, or give ideas on how 
-it would work, keep reading. 
-
-We now have a repository for RFC's and Specifications, this is to keep everything 
-separate from issues related to the compiler itself (in terms of implementations of 
-features, bugs, etc). If you want to request a feature, or you want to help use decide 
-how to integrate a feature into the language, or just change something in the language: 
-please go visit [this repository](//github.com/ark-lang/ark-rfcs).
-
-## Community
-Please do not post questions for help in the Issue Tracker _unless_ you think
-it's a bug related to the Ark compiler. Instead, check out
-the following communities:
-
-### Reddit
-We have a subreddit, [here is the link](//www.reddit.com/r/ark_lang). Feel free to ask us 
-questions on that, a lot of the developers are also Reddit addicts. So you should get a 
-reply reasonably quickly.
-
-### IRC
-You'll probably find one of the core contributors on IRC. If you have
-any questions, or just want to come talk to us; join the 
-[#ark-lang](//webchat.freenode.net/?channels=%23ark-lang) channel on Freenode. 
-For development discussion, please use [#ark-lang-dev](//webchat.freenode.net/?channels=%23ark-lang-dev).
+### <a name="testing"></a> Testing
+Requires `$GOPATH/bin` to be in your `$PATH` and Python 2.4 or newer.

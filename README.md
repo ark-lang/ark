@@ -1,45 +1,43 @@
 ## Ark [![Build Status](https://api.travis-ci.org/ark-lang/ark.svg?branch=master)][1] [![license](http://img.shields.io/badge/license-MIT-brightgreen.svg)](https://raw.githubusercontent.com/ark-lang/ark/master/LICENSE)
+[1]: https://travis-ci.org/ark-lang/ark "Build Status"
 
-[Ark](//www.ark-lang.org) is a systems programming language somewhere in-between C and C++.
+[Ark](//www.ark-lang.org) is a systems programming language is a systems
+programming language somewhere inbetween C and C++. It's goals are to
+modernize the C language, yet remove the cruft that is present in C++
+due to backwards compatibility.
 
 ## Index
+* [Getting Involved](#getting-involved)
 * [Example](#example)
-* [Resources](#resources)
 * [Installing](#installing)
     * [Dependencies](#dependencies)
-* [Building](#building)
-* [Usage](#usage)
-    * [Compiling Ark Code](#compiling-ark-code)
-    * [Generating Documentation](#docgen)
-* [Utilities](#utilities)
-    * [`make gen` and `make fmt`](#make-gen-and-make-fmt)
-    * [Testing](#testing)
-* [Code of Conduct](#coc)
+    * [Building](#building)
+
+## <a name="getting-involed"></a> Getting Involved
+Check out the [contributing](/CONTRIBUTING.md), there's a lot of information
+there to give you ideas of how you can help out.
 
 ## <a name="example"></a> Example
-For a more complicated example, check out a port of my virtual machine MAC in Ark
-[here](//www.github.com/ark-lang/mac-ark). Or if you just want a small example 
-program written in Ark.
+Ark is still a work in progress, this code sample reflects what Ark can
+do *currently*, though the way you write the following will likely change
+in the near future.
 
 ```rust
+// binding to printf
 [c] func printf(fmt: str, ...);
+
 func main(args: []str) -> int {
+    // mutable i, type inferred
     mut i := 0;
+
+    // #args gets the length of an array
     for i < #args {
+        // accessed via the C module
         C::printf("%s\n", args[i]);
     }
     return 0;
 }
 ```
-
-## <a name="resources"></a> Resources
-* [#ark-lang](//webchat.freenode.net/?channels=%23ark-lang)
-* [Reference Book (WIP)](http://felixangell.gitbooks.io/ark-reference/content/)
-* [Reference](//github.com/ark-lang/ark-docs/blob/master/REFERENCE.md)
-* [Contributing](/CONTRIBUTING.md)
-* [Ark Style Guide](//github.com/ark-lang/ark-docs/blob/master/STYLEGUIDE.md)
-* [Tests](/tests/)
-* [Libraries (WIP)](/lib/)
 
 ## <a name="installing"></a> Installing
 Installing Ark is simple, you'll need a few dependencies 
@@ -52,7 +50,7 @@ before you get started:
 * a C++ compiler
 * `libedit-dev` installed
 
-## <a name="building"></a> Building
+### <a name="building"></a> Building
 Replace `release` to match your llvm release. You can check by running 
 the `llvm-config --version` command. If you are on 3.6.1, `release` would
 become `RELEASE_361`, or `RELEASE_362` for 3.6.2, and so on.
@@ -68,19 +66,3 @@ $ go get github.com/ark-lang/ark/...
 
 The `ark` binary will be built in `$GOPATH/bin`. To use the compiler, 
 make sure `$GOPATH/bin` is in your `$PATH`.
-
-## <a name="usage"></a> Usage
-For detailed usage information, run `ark help`. For information
-on specific commands, use `ark help <command>`.
-
-### <a name="compiling-ark-code"></a> Compiling Ark Code
-To compile ark code, pass a module to the executable
-sub-command `build`:
-
-```bash
-$ ark build tests/big_test.ark -o out_name
-```
-
-_If the `-o` option is not specified, the binary name will default to `main`._
-
-[1]: https://travis-ci.org/ark-lang/ark "Build Status"
