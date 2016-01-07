@@ -36,6 +36,8 @@ func main(args: []str) -> int {
     for i < #args {
         // accessed via the C module
         C::printf("%s\n", args[i]);
+
+        i += 1;
     }
     return 0;
 }
