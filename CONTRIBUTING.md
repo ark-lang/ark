@@ -75,3 +75,34 @@ Please run `make fmt` before creating a pull request.
 
 ### <a name="testing"></a> Testing
 Requires `$GOPATH/bin` to be in your `$PATH` and Python 2.4 or newer.
+
+### <a name="writing-tests"></a> Writing Tests
+Writings tests are very important. The tests are located
+in the `tests/` directory in this repository. Each test has
+an ark module, and its corresponding TOML file.
+
+In the TOML test file, you specify various arguments such as
+what sourcefile to target, the compiler arguments to pass, and
+so on.
+
+Below is an example test file:
+
+	Name       = "my_test"
+	Sourcefile = "my_test.ark"
+
+	CompilerArgs = []
+	RunArgs      = []
+
+	CompilerError = 0
+	RunError      = 0
+
+	Input = ""
+
+	CompilerOutput = ""
+	RunOutput      = ""
+
+A test file should have a name that is meaningful, and shows
+the developer at first glance, what is being tested.
+
+You can run these tests by executing the `ark-testrunner` command
+in your terminal (assuming `$GOPATH/bin` is in your `$PATH`).
