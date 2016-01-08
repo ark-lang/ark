@@ -360,18 +360,6 @@ func (v *FunctionDeclNode) construct(c *Constructor) Node {
 	}
 
 	c.pushScope()
-	/*if v.Header.IsMethod {
-		function.Type.IsMethod = true
-
-		if v.Header.IsStatic {
-			function.IsStatic = true
-			function.StaticReceiverType = c.constructType(v.Header.StaticReceiverType)
-		} else {
-			function.IsStatic = false
-			function.Receiver = c.constructNode(v.Header.Receiver).(*VariableDecl) // TODO: error
-			function.Receiver.Variable.IsParameter = true
-		}
-	}*/
 
 	if v.Header.Receiver != nil {
 		function.Receiver = c.constructNode(v.Header.Receiver).(*VariableDecl) // TODO: error

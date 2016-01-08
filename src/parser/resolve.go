@@ -108,13 +108,11 @@ func (v *FunctionDecl) resolve(res *Resolver, s *Scope) Node {
 		v.Function.Type.Return = v.Function.Type.Return.resolveType(v, res, s)
 	}
 
-	if v.Function.Type.Receiver != nil {
-		if v.Function.StaticReceiverType != nil { //v.Function.IsStatic {
-			fmt.Println("good!")
-			v.Function.StaticReceiverType = v.Function.StaticReceiverType.resolveType(v, res, s)
-			v.Function.StaticReceiverType.(*NamedType).addMethod(v.Function)
-		}
+	if v.Function.StaticReceiverType != nil {
+		v.Function.StaticReceiverType = v.Function.StaticReceiverType.resolveType(v, res, s)
+		v.Function.StaticReceiverType.(*NamedType).addMethod(v.Function)
 	}
+
 	return v
 }
 
