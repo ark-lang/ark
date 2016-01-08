@@ -1,6 +1,6 @@
 [c] func printf(fmt: str, ...) -> int;
 
-func do(thing: func(int) int) {
+func do(thing: func(str, ...)) {
 
 }
 

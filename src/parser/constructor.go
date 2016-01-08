@@ -205,7 +205,12 @@ func (v *FunctionTypeNode) construct(c *Constructor) Type {
 	res := FunctionType{
 		IsVariadic: v.IsVariadic,
 		Parameters: c.constructTypes(v.ParameterTypes),
-		Return:     c.constructType(v.ReturnType),
+	}
+
+	if v.ReturnType != nil {
+		res.Return = c.constructType(v.ReturnType)
+	} else {
+		res.Return = PRIMITIVE_void
 	}
 	return res
 }

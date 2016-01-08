@@ -1206,22 +1206,25 @@ func (v *parser) parseFunctionPointerType() *PointerTypeNode {
 			break
 		}
 
+		if variadic {
+			v.err("Elipses must come last")
+		}
+
 		if v.tokensMatch(lexer.TOKEN_SEPARATOR, ".", lexer.TOKEN_SEPARATOR, ".", lexer.TOKEN_SEPARATOR, ".") {
 			v.consumeTokens(3)
 			if !variadic {
 				variadic = true
-				break
 			} else {
 				v.err("Duplicate `...`")
 			}
-		}
+		} else {
+			par := v.parseType(true)
+			if par == nil {
+				v.err("Expected type, found `%s`", v.peek(0).Contents)
+			}
 
-		par := v.parseType(true)
-		if par == nil {
-			v.err("Expected type, found `%s`", v.peek(0))
+			pars = append(pars, par)
 		}
-
-		pars = append(pars, par)
 
 		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ",") {
 			v.consumeToken()
@@ -1230,11 +1233,21 @@ func (v *parser) parseFunctionPointerType() *PointerTypeNode {
 			lastParens = v.consumeToken()
 			break
 		} else {
-			v.err("Unexpected `%s`", v.peek(0))
+			v.err("Unexpected `%s`", v.peek(0).Contents)
 		}
 	}
 
-	returnType := v.parseType(true)
+	fmt.Println(v.peek(0).Contents)
+	fmt.Println(v.peek(1).Contents)
+
+	var returnType ParseNode
+	if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "->") {
+		v.consumeToken()
+		returnType = v.parseType(true)
+		if returnType == nil {
+			v.err("Expected return type, found `%s`", v.peek(0).Contents)
+		}
+	}
 
 	var end lexer.Position
 	if returnType != nil {
