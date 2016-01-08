@@ -1,35 +1,36 @@
 package parser
 
 const (
-	KEYWORD_ALLOC    string = "alloc"
-	KEYWORD_AS       string = "as"
-	KEYWORD_BREAK    string = "break"
-	KEYWORD_C        string = "C"
-	KEYWORD_CAST     string = "cast"
-	KEYWORD_CONTINUE string = "continue"
-	KEYWORD_DEFAULT  string = "default"
-	KEYWORD_DEFER    string = "defer"
-	KEYWORD_DO       string = "do"
-	KEYWORD_ELSE     string = "else"
-	KEYWORD_ENUM     string = "enum"
-	KEYWORD_EXT      string = "ext"
-	KEYWORD_FALSE    string = "false"
-	KEYWORD_FOR      string = "for"
-	KEYWORD_FREE     string = "free"
-	KEYWORD_FUNC     string = "func"
-	KEYWORD_IF       string = "if"
-	KEYWORD_IMPL     string = "impl"
-	KEYWORD_MATCH    string = "match"
-	KEYWORD_MODULE   string = "module"
-	KEYWORD_MUT      string = "mut"
-	KEYWORD_RETURN   string = "return"
-	KEYWORD_SET      string = "set"
-	KEYWORD_SIZEOF   string = "sizeof"
-	KEYWORD_STRUCT   string = "struct"
-	KEYWORD_TRAIT    string = "trait"
-	KEYWORD_TRUE     string = "true"
-	KEYWORD_USE      string = "use"
-	KEYWORD_VOID     string = "void"
+	KEYWORD_ALLOC     string = "alloc"
+	KEYWORD_AS        string = "as"
+	KEYWORD_BREAK     string = "break"
+	KEYWORD_C         string = "C"
+	KEYWORD_CAST      string = "cast"
+	KEYWORD_CONTINUE  string = "continue"
+	KEYWORD_DEFAULT   string = "default"
+	KEYWORD_DEFER     string = "defer"
+	KEYWORD_DO        string = "do"
+	KEYWORD_ELSE      string = "else"
+	KEYWORD_ENUM      string = "enum"
+	KEYWORD_EXT       string = "ext"
+	KEYWORD_FALSE     string = "false"
+	KEYWORD_FOR       string = "for"
+	KEYWORD_FREE      string = "free"
+	KEYWORD_FUNC      string = "func"
+	KEYWORD_IF        string = "if"
+	KEYWORD_IMPL      string = "impl"
+	KEYWORD_MATCH     string = "match"
+	KEYWORD_MODULE    string = "module"
+	KEYWORD_MUT       string = "mut"
+	KEYWORD_RETURN    string = "return"
+	KEYWORD_SET       string = "set"
+	KEYWORD_SIZEOF    string = "sizeof"
+	KEYWORD_STRUCT    string = "struct"
+	KEYWORD_INTERFACE string = "interface"
+	KEYWORD_TRAIT     string = "trait"
+	KEYWORD_TRUE      string = "true"
+	KEYWORD_USE       string = "use"
+	KEYWORD_VOID      string = "void"
 )
 
 // Contains a map with all keywords as keys, and true as values
@@ -64,6 +65,7 @@ func init() {
 	keywordMap[KEYWORD_SET] = true
 	keywordMap[KEYWORD_SIZEOF] = true
 	keywordMap[KEYWORD_STRUCT] = true
+	keywordMap[KEYWORD_INTERFACE] = true
 	keywordMap[KEYWORD_TRAIT] = true
 	keywordMap[KEYWORD_TRUE] = true
 	keywordMap[KEYWORD_USE] = true
@@ -76,7 +78,7 @@ func isReservedKeyword(s string) bool {
 		return true
 	}
 
-	// names starting with a _ followed by an uppercase letter 
+	// names starting with a _ followed by an uppercase letter
 	// are reserved as then can interfere with name mangling
 	if len(s) >= 2 && s[0] == '_' && (s[1] >= 'A' && s[1] <= 'Z') {
 		return true

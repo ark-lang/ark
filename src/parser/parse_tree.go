@@ -108,6 +108,11 @@ type TypeReferenceNode struct {
 
 // decls
 
+type InterfaceTypeNode struct {
+	baseNode
+	Functions []*FunctionHeaderNode
+}
+
 type StructTypeNode struct {
 	baseNode
 	Members []*VarDeclNode

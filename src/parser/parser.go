@@ -1029,6 +1029,8 @@ func (v *parser) parseType(doRefs bool) ParseNode {
 		res = v.parseTupleType()
 	} else if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "[") {
 		res = v.parseArrayType()
+	} else if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_INTERFACE) {
+		res = v.parseInterfaceType()
 	} else if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_STRUCT) {
 		res = v.parseStructType(true)
 	} else if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_ENUM) {
@@ -1072,6 +1074,43 @@ func (v *parser) parseEnumType() *EnumTypeNode {
 
 	res := &EnumTypeNode{Members: members}
 
+	res.SetWhere(lexer.NewSpanFromTokens(startToken, endToken))
+	return res
+}
+
+func (v *parser) parseInterfaceType() *InterfaceTypeNode {
+	defer un(trace(v, "interfacetype"))
+
+	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_INTERFACE) {
+		return nil
+	}
+
+	startToken := v.consumeToken()
+	v.expect(lexer.TOKEN_SEPARATOR, "{")
+
+	// when we hit a };
+	// this means our interface is done...
+	var functions []*FunctionHeaderNode
+	for {
+		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "}") && v.tokenMatches(1, lexer.TOKEN_SEPARATOR, ";") {
+			break
+		}
+
+		function := v.parseFuncHeader()
+		if function != nil {
+			// TODO trailing comma
+			v.expect(lexer.TOKEN_SEPARATOR, ",")
+			functions = append(functions, function)
+		} else {
+			v.err("Failed to parse function in interface")
+		}
+	}
+
+	endToken := v.expect(lexer.TOKEN_SEPARATOR, "}")
+
+	res := &InterfaceTypeNode{
+		Functions: functions,
+	}
 	res.SetWhere(lexer.NewSpanFromTokens(startToken, endToken))
 	return res
 }

@@ -221,6 +221,28 @@ func (v *TypeReferenceNode) construct(c *Constructor) Type {
 	return res
 }
 
+func (v *InterfaceTypeNode) construct(c *Constructor) Type {
+	interfaceType := InterfaceType{
+		attrs: v.Attrs(),
+	}
+
+	c.pushScope()
+	for _, function := range v.Functions {
+		funcData := &Function{
+			Name:         function.Name.Value,
+			ParentModule: c.module,
+			Type: FunctionType{
+				IsVariadic: function.Variadic,
+				attrs:      v.Attrs(),
+			},
+		}
+		interfaceType = interfaceType.addFunction(funcData)
+	}
+	c.popScope()
+
+	return interfaceType
+}
+
 func (v *StructTypeNode) construct(c *Constructor) Type {
 	structType := StructType{
 		attrs: v.Attrs(),

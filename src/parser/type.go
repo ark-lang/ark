@@ -669,26 +669,23 @@ func (v TupleType) ActualType() Type {
 
 type InterfaceType struct {
 	Functions []*Function
+	attrs     AttrGroup
 }
 
 func (v InterfaceType) String() string {
 	result := "(" + util.Blue("InterfaceType") + ": "
-	/*for _, mem := range v.Members {
-		result += "\t" + mem.TypeName() + "\n"
-	}*/
+	for _, function := range v.Functions {
+		result += "\t" + function.String() + "\n"
+	}
+	result += "}"
 	return result + ")"
 }
 
 func (v InterfaceType) TypeName() string {
-	result := "interface {"
-	/*for idx, mem := range v.Members {
-		result += mem.TypeName()
-
-		// if we are not at the last component
-		if idx < len(v.Members)-1 {
-			result += ", "
-		}
-	}*/
+	result := "interface {\n"
+	for _, function := range v.Functions {
+		result += "\t" + function.String() + "\n"
+	}
 	result += "}"
 	return result
 }
@@ -717,8 +714,9 @@ func (v InterfaceType) CanCastTo(t Type) bool {
 	return v.Equals(t.ActualType())
 }
 
-func (v InterfaceType) addFunction(fn *Function) {
+func (v InterfaceType) addFunction(fn *Function) InterfaceType {
 	v.Functions = append(v.Functions, fn)
+	return v
 }
 
 func (v InterfaceType) MatchesType(t Type) {
