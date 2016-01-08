@@ -363,6 +363,9 @@ func (v *FunctionDeclNode) construct(c *Constructor) Node {
 
 	if v.Header.ReturnType != nil {
 		function.Type.Return = c.constructType(v.Header.ReturnType)
+	} else {
+		// set it to void since we haven't specified a type
+		function.Type.Return = PRIMITIVE_void
 	}
 
 	if v.Expr != nil {

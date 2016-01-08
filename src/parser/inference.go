@@ -102,6 +102,9 @@ func (v *VariableDecl) infer(s *TypeInferer) {
 
 		if v.Variable.Type == nil {
 			v.Variable.Type = v.Assignment.GetType()
+			if v.Variable.Type.IsVoidType() {
+				s.err(v, "variable has incomplete type `void`")
+			}
 		}
 	}
 
@@ -463,11 +466,10 @@ func (v *CallExpr) infer(s *TypeInferer) {
 		default:
 			panic("Invalid function source (for now)")
 		}
-
 	}
 
 	// TODO: Is v.Function ever non-nil at this point
-	if v.Function != nil {
+	if v.Function != nil {	
 		if v.Function.IsMethod && !v.Function.IsStatic {
 			recType := v.Function.Receiver.Variable.Type
 			accessType := v.ReceiverAccess.GetType()

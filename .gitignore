@@ -4,6 +4,8 @@
 *.obj
 *.elf
 
+local/
+
 # Ark executables
 main
 main.o
