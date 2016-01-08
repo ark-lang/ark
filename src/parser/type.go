@@ -1,8 +1,6 @@
 package parser
 
-import (
-	"github.com/ark-lang/ark/src/util"
-)
+import "github.com/ark-lang/ark/src/util"
 
 type Type interface {
 	TypeName() string
@@ -944,7 +942,7 @@ func (v FunctionType) Equals(t Type) bool {
 		return false
 	}
 
-	if !v.Receiver.Equals(other.Receiver) {
+	if v.Receiver != nil && !v.Receiver.Equals(other.Receiver) {
 		return false
 	}
 

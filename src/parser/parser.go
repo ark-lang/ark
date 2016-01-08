@@ -332,9 +332,33 @@ func (v *parser) parseDecl() ParseNode {
 }
 
 func (v *parser) parseFuncDecl() *FunctionDeclNode {
-	defer un(trace(v, "funcdecl"))
+	fn := v.parseFunc(false)
+	if fn == nil {
+		return nil
+	}
 
-	funcHeader := v.parseFuncHeader()
+	res := &FunctionDeclNode{Function: fn}
+	res.SetWhere(fn.Where())
+	return res
+}
+
+func (v *parser) parseLambdaExpr() *LambdaExprNode {
+	fn := v.parseFunc(true)
+	if fn == nil {
+		return nil
+	}
+
+	res := &LambdaExprNode{Function: fn}
+	res.SetWhere(fn.Where())
+	return res
+}
+
+// If lambda is true, we're parsing an expression.
+// If lambda is false, we're parsing a proper function declaration.
+func (v *parser) parseFunc(lambda bool) *FunctionNode {
+	defer un(trace(v, "func"))
+
+	funcHeader := v.parseFuncHeader(lambda)
 	if funcHeader == nil {
 		return nil
 	}
@@ -365,12 +389,13 @@ func (v *parser) parseFuncDecl() *FunctionDeclNode {
 		endPosition = tok.Where.End()
 	}
 
-	res := &FunctionDeclNode{Header: funcHeader, Body: body, Stat: stat, Expr: expr}
+	res := &FunctionNode{Header: funcHeader, Body: body, Stat: stat, Expr: expr}
 	res.SetWhere(lexer.NewSpan(funcHeader.Where().Start(), endPosition))
 	return res
 }
 
-func (v *parser) parseFuncHeader() *FunctionHeaderNode {
+// If lambda is true, don't parse name and set Anonymous to true.
+func (v *parser) parseFuncHeader(lambda bool) *FunctionHeaderNode {
 	defer un(trace(v, "funcheader"))
 
 	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_FUNC) {
@@ -380,28 +405,32 @@ func (v *parser) parseFuncHeader() *FunctionHeaderNode {
 
 	res := &FunctionHeaderNode{}
 
-	// parses the function receiver if there is one.
-	if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "(") {
-		// we have a method receiver
-		v.consumeToken()
+	if !lambda {
+		// parses the function receiver if there is one.
+		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "(") {
+			// we have a method receiver
+			v.consumeToken()
 
-		if v.tokensMatch(lexer.TOKEN_IDENTIFIER, "", lexer.TOKEN_SEPARATOR, ")") {
-			res.StaticReceiverType = v.parseTypeReference()
-			if res.StaticReceiverType == nil {
-				v.errToken("Expected type name in method receiver, found `%s`", v.peek(0).Contents)
+			if v.tokensMatch(lexer.TOKEN_IDENTIFIER, "", lexer.TOKEN_SEPARATOR, ")") {
+				res.StaticReceiverType = v.parseTypeReference()
+				if res.StaticReceiverType == nil {
+					v.errToken("Expected type name in method receiver, found `%s`", v.peek(0).Contents)
+				}
+			} else {
+				res.Receiver = v.parseVarDeclBody()
+				if res.Receiver == nil {
+					v.errToken("Expected variable declaration in method receiver, found `%s`", v.peek(0).Contents)
+				}
 			}
-		} else {
-			res.Receiver = v.parseVarDeclBody()
-			if res.Receiver == nil {
-				v.errToken("Expected variable declaration in method receiver, found `%s`", v.peek(0).Contents)
-			}
+
+			v.expect(lexer.TOKEN_SEPARATOR, ")")
 		}
 
-		v.expect(lexer.TOKEN_SEPARATOR, ")")
+		// parses the function identifier/name
+		name := v.expect(lexer.TOKEN_IDENTIFIER, "")
+		res.Name = NewLocatedString(name)
 	}
 
-	// parses the function identifier/name
-	name := v.expect(lexer.TOKEN_IDENTIFIER, "")
 	genericSigil := v.parseGenericSigil()
 	v.expect(lexer.TOKEN_SEPARATOR, "(")
 
@@ -446,10 +475,10 @@ func (v *parser) parseFuncHeader() *FunctionHeaderNode {
 		}
 	}
 
-	res.Name = NewLocatedString(name)
 	res.Arguments = args
 	res.Variadic = variadic
 	res.GenericSigil = genericSigil
+	res.Anonymous = lambda
 
 	if returnType != nil {
 		res.ReturnType = returnType
@@ -1090,7 +1119,7 @@ func (v *parser) parseInterfaceType() *InterfaceTypeNode {
 			break
 		}
 
-		function := v.parseFuncHeader()
+		function := v.parseFuncHeader(false)
 		if function != nil {
 			// TODO trailing comma
 			v.expect(lexer.TOKEN_SEPARATOR, ",")
@@ -1528,6 +1557,8 @@ func (v *parser) parsePrimaryExpr() ParseNode {
 		res = addrofExpr
 	} else if litExpr := v.parseLitExpr(); litExpr != nil {
 		res = litExpr
+	} else if lambdaExpr := v.parseLambdaExpr(); lambdaExpr != nil {
+		res = lambdaExpr
 	} else if unaryExpr := v.parseUnaryExpr(); unaryExpr != nil {
 		res = unaryExpr
 	} else if castExpr := v.parseCastExpr(); castExpr != nil {

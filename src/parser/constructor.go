@@ -349,22 +349,27 @@ func (v *ImplDeclNode) construct(c *Constructor) Node {
 	return res
 }*/
 
-func (v *FunctionDeclNode) construct(c *Constructor) Node {
+func (v *FunctionNode) construct(c *Constructor) *Function {
 	function := &Function{
 		Name:         v.Header.Name.Value,
 		ParentModule: c.module,
 		Type: FunctionType{
 			IsVariadic: v.Header.Variadic,
-			attrs:      v.Attrs(),
+			//attrs:      v.Attrs(),
 		},
 	}
 
-	res := &FunctionDecl{
-		docs:     v.DocComments(),
-		Function: function,
+	if len(v.attrs) != 0 {
+		panic("functionnode shouldn't have attributes")
 	}
 
-	c.pushScope()
+	oldScope := c.scope
+	if v.Header.Anonymous {
+		c.scope = c.module.GlobalScope
+		c.pushScope()
+	} else {
+		c.pushScope()
+	}
 
 	if v.Header.Receiver != nil {
 		function.Receiver = c.constructNode(v.Header.Receiver).(*VariableDecl) // TODO: error
@@ -398,14 +403,22 @@ func (v *FunctionDeclNode) construct(c *Constructor) Node {
 	}
 	if v.Body != nil {
 		function.Body = c.constructNode(v.Body).(*Block) // TODO: Error message
-	} else {
-		res.Prototype = true
+	} else if v.Header.Anonymous {
+		c.err(v.Where(), "Lambda cannot be prototype")
 	}
-	c.popScope()
+
+	c.scope = oldScope
+
+	return function
+}
+
+func (v *FunctionDeclNode) construct(c *Constructor) Node {
+	function := v.Function.construct(c)
+	function.Type.attrs = v.Attrs()
 
 	if function.Type.Receiver == nil {
 		scopeToInsertTo := c.scope
-		if function.Type.Attrs().Contains("c") {
+		if v.Attrs().Contains("c") {
 			if mod, ok := c.module.GlobalScope.UsedModules["C"]; ok {
 				scopeToInsertTo = mod.Module.GlobalScope
 			} else {
@@ -416,6 +429,24 @@ func (v *FunctionDeclNode) construct(c *Constructor) Node {
 		if scopeToInsertTo.InsertFunction(function) != nil {
 			c.err(v.Where(), "Illegal redeclaration of function `%s`", function.Name)
 		}
+	}
+
+	res := &FunctionDecl{
+		docs:      v.DocComments(),
+		Function:  function,
+		Prototype: v.Function.Body == nil,
+	}
+
+	res.setPos(v.Where().Start())
+	return res
+}
+
+func (v *LambdaExprNode) construct(c *Constructor) Expr {
+	function := v.Function.construct(c)
+	function.Type.attrs = v.Attrs()
+
+	res := &LambdaExpr{
+		Function: function,
 	}
 
 	res.setPos(v.Where().Start())

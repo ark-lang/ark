@@ -16,9 +16,28 @@ import (
 // Expr(s) then return.
 
 type TypeInferer struct {
-	Module     *Module
-	function   *Function // the function we're in, or nil if we aren't
-	shouldExit bool
+	Module        *Module
+	functionStack []*Function
+	function      *Function // the function we're in, or nil if we aren't
+	shouldExit    bool
+}
+
+func (v *TypeInferer) pushFunction(f *Function) {
+	v.functionStack = append(v.functionStack, f)
+	v.function = f
+}
+
+func (v *TypeInferer) popFunction() {
+	if len(v.functionStack) == 0 {
+		panic("tried to pop empty function stack")
+	}
+
+	v.functionStack = v.functionStack[:len(v.functionStack)-1]
+	if len(v.functionStack) == 0 {
+		v.function = nil
+	} else {
+		v.function = v.functionStack[len(v.functionStack)-1]
+	}
 }
 
 func (v *TypeInferer) err(thing Locatable, err string, stuff ...interface{}) {
@@ -60,11 +79,11 @@ func (v *Block) infer(s *TypeInferer) {
 }
 
 func (v *Function) infer(s *TypeInferer) {
-	s.function = v
+	s.pushFunction(v)
 	if v.Body != nil {
 		v.Body.infer(s)
 	}
-	s.function = nil
+	s.popFunction()
 }
 
 func (v EnumType) infer(s *TypeInferer) {
@@ -610,6 +629,14 @@ func (v *ArrayLenExpr) infer(s *TypeInferer) {
 }
 
 func (v *ArrayLenExpr) setTypeHint(t Type) {}
+
+// LambdaExpr
+
+func (v *LambdaExpr) infer(s *TypeInferer) {
+	v.Function.infer(s)
+}
+
+func (v LambdaExpr) setTypeHint(t Type) {}
 
 // SizeofExpr
 

@@ -225,6 +225,9 @@ func (v *ASTVisitor) VisitChildren(n Node) {
 	} else if castExpr, ok := n.(*CastExpr); ok {
 		castExpr.Expr = v.VisitExpr(castExpr.Expr)
 
+	} else if lambdaExpr, ok := n.(*LambdaExpr); ok {
+		v.VisitFunction(lambdaExpr.Function)
+
 	} else if unaryExpr, ok := n.(*UnaryExpr); ok {
 		unaryExpr.Expr = v.VisitExpr(unaryExpr.Expr)
 
@@ -238,22 +241,7 @@ func (v *ASTVisitor) VisitChildren(n Node) {
 		derefAccessExpr.Expr = v.VisitExpr(derefAccessExpr.Expr)
 
 	} else if functionDecl, ok := n.(*FunctionDecl); ok {
-		// TODO: Scope?
-		v.EnterScope(nil)
-		fn := functionDecl.Function
-
-		if fn.Type.Receiver != nil {
-			functionDecl.Function.Receiver = v.Visit(functionDecl.Function.Receiver).(*VariableDecl)
-		}
-
-		for idx, param := range fn.Parameters {
-			fn.Parameters[idx] = v.Visit(param).(*VariableDecl)
-		}
-
-		if !functionDecl.Prototype {
-			fn.Body = v.Visit(fn.Body).(*Block)
-		}
-		v.ExitScope(nil)
+		v.VisitFunction(functionDecl.Function)
 
 	} else if variableDecl, ok := n.(*VariableDecl); ok {
 		variableDecl.Assignment = v.VisitExpr(variableDecl.Assignment)
@@ -288,6 +276,24 @@ func (v *ASTVisitor) VisitChildren(n Node) {
 	} else {
 		panic("Unhandled node: " + reflect.TypeOf(n).String())
 	}
+}
+
+func (v *ASTVisitor) VisitFunction(fn *Function) {
+	// TODO: Scope?
+	v.EnterScope(nil)
+
+	if fn.Type.Receiver != nil {
+		fn.Receiver = v.Visit(fn.Receiver).(*VariableDecl)
+	}
+
+	for idx, param := range fn.Parameters {
+		fn.Parameters[idx] = v.Visit(param).(*VariableDecl)
+	}
+
+	if fn.Body != nil {
+		fn.Body = v.Visit(fn.Body).(*Block)
+	}
+	v.ExitScope(nil)
 }
 
 func isNil(a interface{}) bool {

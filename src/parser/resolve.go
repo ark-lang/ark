@@ -114,6 +114,11 @@ func (v *FunctionDecl) resolve(res *Resolver, s *Scope) Node {
 	return v
 }
 
+func (v *LambdaExpr) resolve(res *Resolver, s *Scope) Node {
+	v.Function.Type = v.Function.Type.resolveType(v, res, s).(FunctionType)
+	return v
+}
+
 func (v *VariableAccessExpr) resolve(res *Resolver, s *Scope) Node {
 	// NOTE: Here we check whether this is actually a variable access or an enum member.
 	if len(v.Name.moduleNames) > 0 {

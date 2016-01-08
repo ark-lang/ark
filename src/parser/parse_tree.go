@@ -120,6 +120,7 @@ type StructTypeNode struct {
 
 type FunctionHeaderNode struct {
 	baseNode
+	Anonymous    bool
 	Name         LocatedString
 	GenericSigil *GenericSigilNode
 	Arguments    []*VarDeclNode
@@ -130,12 +131,22 @@ type FunctionHeaderNode struct {
 	Receiver           *VarDeclNode       // use this if not static. this would be so much nicer with tagged unions...
 }
 
-type FunctionDeclNode struct {
+type FunctionNode struct {
 	baseNode
 	Header *FunctionHeaderNode
 	Body   *BlockNode
 	Stat   ParseNode
 	Expr   ParseNode
+}
+
+type FunctionDeclNode struct {
+	baseNode
+	Function *FunctionNode
+}
+
+type LambdaExprNode struct {
+	baseNode
+	Function *FunctionNode
 }
 
 type EnumTypeNode struct {

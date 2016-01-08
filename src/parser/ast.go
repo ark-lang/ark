@@ -1046,6 +1046,28 @@ func (v *AddressOfExpr) NodeName() string {
 	return "address-of expression"
 }
 
+type LambdaExpr struct {
+	nodePos
+
+	Function *Function
+}
+
+func (_ LambdaExpr) exprNode() {}
+
+func (v LambdaExpr) String() string {
+	ret := "(" + util.Blue("LambdaExpr") + ": "
+	ret += v.Function.String()
+	return ret + ")"
+}
+
+func (v LambdaExpr) GetType() Type {
+	return v.Function.Type
+}
+
+func (v LambdaExpr) NodeName() string {
+	return "lambda expr"
+}
+
 type ArrayLenExpr struct {
 	nodePos
 
