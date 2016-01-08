@@ -126,8 +126,6 @@ type FunctionHeaderNode struct {
 	ReturnType   ParseNode
 	Variadic     bool
 
-	IsMethod           bool
-	IsStatic           bool
 	StaticReceiverType *TypeReferenceNode // use this if static
 	Receiver           *VarDeclNode       // use this if not static. this would be so much nicer with tagged unions...
 }

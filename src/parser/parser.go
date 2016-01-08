@@ -385,18 +385,12 @@ func (v *parser) parseFuncHeader() *FunctionHeaderNode {
 		// we have a method receiver
 		v.consumeToken()
 
-		res.IsMethod = true
-
 		if v.tokensMatch(lexer.TOKEN_IDENTIFIER, "", lexer.TOKEN_SEPARATOR, ")") {
-			res.IsStatic = true
-
 			res.StaticReceiverType = v.parseTypeReference()
 			if res.StaticReceiverType == nil {
 				v.errToken("Expected type name in method receiver, found `%s`", v.peek(0).Contents)
 			}
 		} else {
-			res.IsStatic = false
-
 			res.Receiver = v.parseVarDeclBody()
 			if res.Receiver == nil {
 				v.errToken("Expected variable declaration in method receiver, found `%s`", v.peek(0).Contents)
@@ -1235,9 +1229,6 @@ func (v *parser) parseFunctionType() *FunctionTypeNode {
 			v.err("Unexpected `%s`", v.peek(0).Contents)
 		}
 	}
-
-	fmt.Println(v.peek(0).Contents)
-	fmt.Println(v.peek(1).Contents)
 
 	var returnType ParseNode
 	if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "->") {
