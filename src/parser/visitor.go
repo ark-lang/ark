@@ -108,172 +108,150 @@ func (v *ASTVisitor) ExitScope(s *Scope) {
 }
 
 func (v *ASTVisitor) VisitChildren(n Node) {
-	if block, ok := n.(*Block); ok {
-		if !block.NonScoping {
-			v.EnterScope(block.scope)
+	switch n := n.(type) {
+	case *Block:
+		if !n.NonScoping {
+			v.EnterScope(n.scope)
 		}
 
-		block.Nodes = v.VisitNodes(block.Nodes)
+		n.Nodes = v.VisitNodes(n.Nodes)
 
-		if !block.NonScoping {
-			v.ExitScope(block.scope)
+		if !n.NonScoping {
+			v.ExitScope(n.scope)
 		}
 
-	} else if returnStat, ok := n.(*ReturnStat); ok {
-		returnStat.Value = v.VisitExpr(returnStat.Value)
+	case *ReturnStat:
+		n.Value = v.VisitExpr(n.Value)
 
-	} else if ifStat, ok := n.(*IfStat); ok {
-		ifStat.Exprs = v.VisitExprs(ifStat.Exprs)
-		ifStat.Bodies = v.VisitBlocks(ifStat.Bodies)
-		ifStat.Else = v.VisitBlock(ifStat.Else)
+	case *IfStat:
+		n.Exprs = v.VisitExprs(n.Exprs)
+		n.Bodies = v.VisitBlocks(n.Bodies)
+		n.Else = v.VisitBlock(n.Else)
 
-	} else if assignStat, ok := n.(*AssignStat); ok {
-		assignStat.Assignment = v.VisitExpr(assignStat.Assignment)
-		assignStat.Access = v.Visit(assignStat.Access).(AccessExpr)
+	case *AssignStat:
+		n.Assignment = v.VisitExpr(n.Assignment)
+		n.Access = v.Visit(n.Access).(AccessExpr)
 
-	} else if binopAssignStat, ok := n.(*BinopAssignStat); ok {
-		binopAssignStat.Assignment = v.VisitExpr(binopAssignStat.Assignment)
-		binopAssignStat.Access = v.Visit(binopAssignStat.Access).(AccessExpr)
+	case *BinopAssignStat:
+		n.Assignment = v.VisitExpr(n.Assignment)
+		n.Access = v.Visit(n.Access).(AccessExpr)
 
-	} else if loopStat, ok := n.(*LoopStat); ok {
-		loopStat.Body = v.Visit(loopStat.Body).(*Block)
+	case *LoopStat:
+		n.Body = v.Visit(n.Body).(*Block)
 
-		switch loopStat.LoopType {
+		switch n.LoopType {
 		case LOOP_TYPE_INFINITE:
 		case LOOP_TYPE_CONDITIONAL:
-			loopStat.Condition = v.VisitExpr(loopStat.Condition)
+			n.Condition = v.VisitExpr(n.Condition)
 		default:
 			panic("invalid loop type")
 		}
 
-	} else if matchStat, ok := n.(*MatchStat); ok {
-		matchStat.Target = v.VisitExpr(matchStat.Target)
+	case *MatchStat:
+		n.Target = v.VisitExpr(n.Target)
 
 		res := make(map[Expr]Node)
-		for pattern, stmt := range matchStat.Branches {
+		for pattern, stmt := range n.Branches {
 			res[v.VisitExpr(pattern)] = v.Visit(stmt)
 		}
-		matchStat.Branches = res
+		n.Branches = res
 
-	} else if binaryExpr, ok := n.(*BinaryExpr); ok {
-		binaryExpr.Lhand = v.VisitExpr(binaryExpr.Lhand)
-		binaryExpr.Rhand = v.VisitExpr(binaryExpr.Rhand)
+	case *BinaryExpr:
+		n.Lhand = v.VisitExpr(n.Lhand)
+		n.Rhand = v.VisitExpr(n.Rhand)
 
-	} else if arrayLiteral, ok := n.(*ArrayLiteral); ok {
-		arrayLiteral.Members = v.VisitExprs(arrayLiteral.Members)
+	case *ArrayLiteral:
+		n.Members = v.VisitExprs(n.Members)
 
-	} else if callExpr, ok := n.(*CallExpr); ok {
-		switch callExpr.functionSource.(type) {
+	case *CallExpr:
+		switch n.functionSource.(type) {
 		case *StructAccessExpr:
-			callExpr.functionSource.(*StructAccessExpr).Struct =
-				v.Visit(callExpr.functionSource.(*StructAccessExpr).Struct).(AccessExpr)
+			n.functionSource.(*StructAccessExpr).Struct =
+				v.Visit(n.functionSource.(*StructAccessExpr).Struct).(AccessExpr)
 		}
 
 		// TODO: Visit callExpr.FunctionSource? once we get lambda/function types
-		callExpr.Arguments = v.VisitExprs(callExpr.Arguments)
-		callExpr.ReceiverAccess = v.VisitExpr(callExpr.ReceiverAccess)
+		n.Arguments = v.VisitExprs(n.Arguments)
+		n.ReceiverAccess = v.VisitExpr(n.ReceiverAccess)
 
-	} else if arrayAccessExpr, ok := n.(*ArrayAccessExpr); ok {
-		arrayAccessExpr.Array = v.Visit(arrayAccessExpr.Array).(AccessExpr)
-		arrayAccessExpr.Subscript = v.VisitExpr(arrayAccessExpr.Subscript)
+	case *ArrayAccessExpr:
+		n.Array = v.Visit(n.Array).(AccessExpr)
+		n.Subscript = v.VisitExpr(n.Subscript)
 
-	} else if sizeofExpr, ok := n.(*SizeofExpr); ok {
+	case *SizeofExpr:
 		// TODO: Maybe visit sizeofExpr.Type at some point?
-		sizeofExpr.Expr = v.VisitExpr(sizeofExpr.Expr)
+		n.Expr = v.VisitExpr(n.Expr)
 
-	} else if arrayLenExpr, ok := n.(*ArrayLenExpr); ok {
-		arrayLenExpr.Expr = v.VisitExpr(arrayLenExpr.Expr)
+	case *ArrayLenExpr:
+		n.Expr = v.VisitExpr(n.Expr)
 
-	} else if tupleLiteral, ok := n.(*TupleLiteral); ok {
-		tupleLiteral.Members = v.VisitExprs(tupleLiteral.Members)
+	case *TupleLiteral:
+		n.Members = v.VisitExprs(n.Members)
 
-	} else if structLiteral, ok := n.(*StructLiteral); ok {
-		for key, value := range structLiteral.Values {
-			structLiteral.Values[key] = v.VisitExpr(value)
+	case *StructLiteral:
+		for key, value := range n.Values {
+			n.Values[key] = v.VisitExpr(value)
 		}
 
-	} else if enumLiteral, ok := n.(*EnumLiteral); ok {
-		n1 := v.Visit(enumLiteral.TupleLiteral)
+	case *EnumLiteral:
+		n1 := v.Visit(n.TupleLiteral)
 		if n1 == nil {
-			enumLiteral.TupleLiteral = nil
+			n.TupleLiteral = nil
 		} else {
-			enumLiteral.TupleLiteral = n1.(*TupleLiteral)
+			n.TupleLiteral = n1.(*TupleLiteral)
 		}
 
-		n2 := v.Visit(enumLiteral.StructLiteral)
+		n2 := v.Visit(n.StructLiteral)
 		if n2 == nil {
-			enumLiteral.StructLiteral = nil
+			n.StructLiteral = nil
 		} else {
-			enumLiteral.StructLiteral = n2.(*StructLiteral)
+			n.StructLiteral = n2.(*StructLiteral)
 		}
 
-	} else if blockStat, ok := n.(*BlockStat); ok {
-		blockStat.Block = v.VisitBlock(blockStat.Block)
+	case *BlockStat:
+		n.Block = v.VisitBlock(n.Block)
 
-	} else if callStat, ok := n.(*CallStat); ok {
-		callStat.Call = v.Visit(callStat.Call).(*CallExpr)
+	case *CallStat:
+		n.Call = v.Visit(n.Call).(*CallExpr)
 
-	} else if deferStat, ok := n.(*DeferStat); ok {
-		deferStat.Call = v.Visit(deferStat.Call).(*CallExpr)
+	case *DeferStat:
+		n.Call = v.Visit(n.Call).(*CallExpr)
 
-	} else if defaultStat, ok := n.(*DefaultStat); ok {
-		defaultStat.Target = v.Visit(defaultStat.Target).(AccessExpr)
+	case *DefaultStat:
+		n.Target = v.Visit(n.Target).(AccessExpr)
 
-	} else if addressOfExpr, ok := n.(*AddressOfExpr); ok {
-		addressOfExpr.Access = v.VisitExpr(addressOfExpr.Access)
+	case *AddressOfExpr:
+		n.Access = v.VisitExpr(n.Access)
 
-	} else if castExpr, ok := n.(*CastExpr); ok {
-		castExpr.Expr = v.VisitExpr(castExpr.Expr)
+	case *CastExpr:
+		n.Expr = v.VisitExpr(n.Expr)
 
-	} else if lambdaExpr, ok := n.(*LambdaExpr); ok {
-		v.VisitFunction(lambdaExpr.Function)
+	case *LambdaExpr:
+		v.VisitFunction(n.Function)
 
-	} else if unaryExpr, ok := n.(*UnaryExpr); ok {
-		unaryExpr.Expr = v.VisitExpr(unaryExpr.Expr)
+	case *UnaryExpr:
+		n.Expr = v.VisitExpr(n.Expr)
 
-	} else if structAccessExpr, ok := n.(*StructAccessExpr); ok {
-		structAccessExpr.Struct = v.Visit(structAccessExpr.Struct).(AccessExpr)
+	case *StructAccessExpr:
+		n.Struct = v.Visit(n.Struct).(AccessExpr)
 
-	} else if tupleAccessExpr, ok := n.(*TupleAccessExpr); ok {
-		tupleAccessExpr.Tuple = v.Visit(tupleAccessExpr.Tuple).(AccessExpr)
+	case *TupleAccessExpr:
+		n.Tuple = v.Visit(n.Tuple).(AccessExpr)
 
-	} else if derefAccessExpr, ok := n.(*DerefAccessExpr); ok {
-		derefAccessExpr.Expr = v.VisitExpr(derefAccessExpr.Expr)
+	case *DerefAccessExpr:
+		n.Expr = v.VisitExpr(n.Expr)
 
-	} else if functionDecl, ok := n.(*FunctionDecl); ok {
-		v.VisitFunction(functionDecl.Function)
+	case *FunctionDecl:
+		v.VisitFunction(n.Function)
 
-	} else if variableDecl, ok := n.(*VariableDecl); ok {
-		variableDecl.Assignment = v.VisitExpr(variableDecl.Assignment)
+	case *VariableDecl:
+		n.Assignment = v.VisitExpr(n.Assignment)
 
-	} else if _, ok := n.(*NumericLiteral); ok {
-		// noop
+	case *NumericLiteral, *StringLiteral, *BoolLiteral, *RuneLiteral, *VariableAccessExpr,
+		*TypeDecl, *DefaultExpr, *DefaultMatchBranch, *UseDecl:
+		// do nothing
 
-	} else if _, ok := n.(*StringLiteral); ok {
-		// noop
-
-	} else if _, ok := n.(*BoolLiteral); ok {
-		// noop
-
-	} else if _, ok := n.(*RuneLiteral); ok {
-		// noop
-
-	} else if _, ok := n.(*VariableAccessExpr); ok {
-		// noop
-
-	} else if _, ok := n.(*TypeDecl); ok {
-		// noop
-
-	} else if _, ok := n.(*DefaultExpr); ok {
-		// noop
-
-	} else if _, ok := n.(*DefaultMatchBranch); ok {
-		// noop
-
-	} else if _, ok := n.(*UseDecl); ok {
-		// noop
-
-	} else {
+	default:
 		panic("Unhandled node: " + reflect.TypeOf(n).String())
 	}
 }
