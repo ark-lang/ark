@@ -20,6 +20,7 @@ type Codegen struct {
 	builder         llvm.Builder
 	variableLookup  map[*parser.Variable]llvm.Value
 	namedTypeLookup map[string]llvm.Type
+	lambdaID        int
 
 	OutputName   string
 	OutputType   OutputType
@@ -43,6 +44,12 @@ type Codegen struct {
 	target        llvm.Target
 	targetMachine llvm.TargetMachine
 	targetData    llvm.TargetData
+}
+
+func (v *Codegen) nextLambdaID() int {
+	id := v.lambdaID
+	v.lambdaID++
+	return id
 }
 
 type WrappedModule struct {
@@ -258,40 +265,40 @@ func (v *Codegen) getVariable(vari *parser.Variable) llvm.Value {
 }
 
 func (v *Codegen) genNode(n parser.Node) {
-	switch n.(type) {
+	switch n := n.(type) {
 	case parser.Decl:
-		v.genDecl(n.(parser.Decl))
+		v.genDecl(n)
 	case parser.Expr:
-		v.genExpr(n.(parser.Expr))
+		v.genExpr(n)
 	case parser.Stat:
-		v.genStat(n.(parser.Stat))
+		v.genStat(n)
 	case *parser.Block:
-		v.genBlock(n.(*parser.Block))
+		v.genBlock(n)
 	}
 }
 
 func (v *Codegen) genStat(n parser.Stat) {
-	switch n.(type) {
+	switch n := n.(type) {
 	case *parser.ReturnStat:
-		v.genReturnStat(n.(*parser.ReturnStat))
+		v.genReturnStat(n)
 	case *parser.BlockStat:
-		v.genBlockStat(n.(*parser.BlockStat))
+		v.genBlockStat(n)
 	case *parser.CallStat:
-		v.genCallStat(n.(*parser.CallStat))
+		v.genCallStat(n)
 	case *parser.AssignStat:
-		v.genAssignStat(n.(*parser.AssignStat))
+		v.genAssignStat(n)
 	case *parser.BinopAssignStat:
-		v.genBinopAssignStat(n.(*parser.BinopAssignStat))
+		v.genBinopAssignStat(n)
 	case *parser.IfStat:
-		v.genIfStat(n.(*parser.IfStat))
+		v.genIfStat(n)
 	case *parser.LoopStat:
-		v.genLoopStat(n.(*parser.LoopStat))
+		v.genLoopStat(n)
 	case *parser.MatchStat:
-		v.genMatchStat(n.(*parser.MatchStat))
+		v.genMatchStat(n)
 	case *parser.DeferStat:
-		v.genDeferStat(n.(*parser.DeferStat))
+		v.genDeferStat(n)
 	case *parser.DefaultStat:
-		v.genDefaultStat(n.(*parser.DefaultStat))
+		v.genDefaultStat(n)
 	default:
 		panic("unimplemented stat")
 	}
@@ -459,13 +466,13 @@ func (v *Codegen) genDefaultStat(n *parser.DefaultStat) {
 }
 
 func (v *Codegen) genDecl(n parser.Decl) {
-	switch n.(type) {
+	switch n := n.(type) {
 	case *parser.FunctionDecl:
-		v.genFunctionDecl(n.(*parser.FunctionDecl))
+		v.genFunctionDecl(n)
 	case *parser.UseDecl:
-		v.genUseDecl(n.(*parser.UseDecl))
+		v.genUseDecl(n)
 	case *parser.VariableDecl:
-		v.genVariableDecl(n.(*parser.VariableDecl), true)
+		v.genVariableDecl(n, true)
 	case *parser.TypeDecl:
 		// TODO nothing to gen?
 	default:
@@ -565,46 +572,51 @@ func (v *Codegen) genVariableDecl(n *parser.VariableDecl, semicolon bool) llvm.V
 }
 
 func (v *Codegen) genExpr(n parser.Expr) llvm.Value {
-	switch n.(type) {
+	switch n := n.(type) {
 	case *parser.AddressOfExpr:
-		return v.genAddressOfExpr(n.(*parser.AddressOfExpr))
+		return v.genAddressOfExpr(n)
 	case *parser.RuneLiteral:
-		return v.genRuneLiteral(n.(*parser.RuneLiteral))
+		return v.genRuneLiteral(n)
 	case *parser.NumericLiteral:
-		return v.genNumericLiteral(n.(*parser.NumericLiteral))
+		return v.genNumericLiteral(n)
 	case *parser.StringLiteral:
-		return v.genStringLiteral(n.(*parser.StringLiteral))
+		return v.genStringLiteral(n)
 	case *parser.BoolLiteral:
-		return v.genBoolLiteral(n.(*parser.BoolLiteral))
+		return v.genBoolLiteral(n)
 	case *parser.TupleLiteral:
-		return v.genTupleLiteral(n.(*parser.TupleLiteral))
+		return v.genTupleLiteral(n)
 	case *parser.ArrayLiteral:
-		return v.genArrayLiteral(n.(*parser.ArrayLiteral))
+		return v.genArrayLiteral(n)
 	case *parser.EnumLiteral:
-		return v.genEnumLiteral(n.(*parser.EnumLiteral))
+		return v.genEnumLiteral(n)
 	case *parser.StructLiteral:
-		return v.genStructLiteral(n.(*parser.StructLiteral))
+		return v.genStructLiteral(n)
 	case *parser.BinaryExpr:
-		return v.genBinaryExpr(n.(*parser.BinaryExpr))
+		return v.genBinaryExpr(n)
 	case *parser.UnaryExpr:
-		return v.genUnaryExpr(n.(*parser.UnaryExpr))
+		return v.genUnaryExpr(n)
 	case *parser.CastExpr:
-		return v.genCastExpr(n.(*parser.CastExpr))
+		return v.genCastExpr(n)
 	case *parser.CallExpr:
-		return v.genCallExpr(n.(*parser.CallExpr))
+		return v.genCallExpr(n)
 	case *parser.VariableAccessExpr, *parser.StructAccessExpr, *parser.ArrayAccessExpr, *parser.TupleAccessExpr, *parser.DerefAccessExpr:
 		return v.genAccessExpr(n)
 	case *parser.SizeofExpr:
-		return v.genSizeofExpr(n.(*parser.SizeofExpr))
+		return v.genSizeofExpr(n)
 	case *parser.ArrayLenExpr:
-		return v.genArrayLenExpr(n.(*parser.ArrayLenExpr))
+		return v.genArrayLenExpr(n)
 	case *parser.DefaultExpr:
-		return v.genDefaultExpr(n.(*parser.DefaultExpr))
+		return v.genDefaultExpr(n)
 	default:
 		log.Debug("codegen", "expr: %s\n", n)
 		panic("unimplemented expr")
 	}
 }
+
+/*func (v *Codegen) genLambdaExpr(n *parser.LambdaExpr) llvm.Value {
+	var val llvm.Value
+	return val
+}*/
 
 func (v *Codegen) genAddressOfExpr(n *parser.AddressOfExpr) llvm.Value {
 	return v.genAccessGEP(n.Access)
