@@ -869,6 +869,8 @@ type FunctionType struct {
 	Parameters []Type
 	Return     Type
 	IsVariadic bool
+
+	Receiver Type // non-nil if non-static method
 }
 
 func (v FunctionType) String() string {
@@ -936,6 +938,14 @@ func (v FunctionType) Equals(t Type) bool {
 		if !par.Equals(other.Parameters[i]) {
 			return false
 		}
+	}
+
+	if (v.Receiver == nil) != (other.Receiver == nil) {
+		return false
+	}
+
+	if !v.Receiver.Equals(other.Receiver) {
+		return false
 	}
 
 	return true

@@ -470,7 +470,7 @@ func (v *CallExpr) infer(s *TypeInferer) {
 
 	// TODO: Is v.Function ever non-nil at this point
 	if v.Function != nil {
-		if v.Function.IsMethod && !v.Function.IsStatic {
+		if v.Function.Type.Receiver != nil {
 			recType := v.Function.Receiver.Variable.Type
 			accessType := v.ReceiverAccess.GetType()
 

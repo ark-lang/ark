@@ -203,12 +203,12 @@ func (v *Codegen) declareFunctionDecl(n *parser.FunctionDecl) {
 		v.err("function `%s` already exists in module", n.Function.Name)
 	} else {
 		numOfParams := len(n.Function.Parameters)
-		if n.Function.IsMethod && !n.Function.IsStatic {
+		if n.Function.Type.Receiver != nil {
 			numOfParams++
 		}
 
 		params := make([]llvm.Type, 0, numOfParams)
-		if n.Function.IsMethod && !n.Function.IsStatic {
+		if n.Function.Type.Receiver != nil {
 			params = append(params, v.typeToLLVMType(n.Function.Receiver.Variable.Type))
 		}
 		for _, par := range n.Function.Parameters {
@@ -508,7 +508,7 @@ func (v *Codegen) genFunctionDecl(n *parser.FunctionDecl) llvm.Value {
 
 			pars := n.Function.Parameters
 
-			if n.Function.IsMethod && !n.Function.IsStatic {
+			if n.Function.Type.Receiver != nil {
 				newPars := make([]*parser.VariableDecl, len(pars)+1)
 				newPars[0] = n.Function.Receiver
 				copy(newPars[1:], pars)
@@ -1165,13 +1165,13 @@ func (v *Codegen) genCallExprWithArgs(n *parser.CallExpr, args []llvm.Value) llv
 
 func (v *Codegen) genCallExpr(n *parser.CallExpr) llvm.Value {
 	numArgs := len(n.Arguments)
-	if n.Function.IsMethod && !n.Function.IsStatic {
+	if n.Function.Type.Receiver != nil {
 		numArgs++
 	}
 
 	args := make([]llvm.Value, 0, numArgs)
 
-	if n.Function.IsMethod && !n.Function.IsStatic {
+	if n.Function.Type.Receiver != nil {
 		args = append(args, v.genExpr(n.ReceiverAccess))
 	}
 

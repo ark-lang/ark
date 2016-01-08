@@ -93,7 +93,7 @@ func (v *Resolver) PostVisit(n *Node) {
 
 	case *FunctionDecl:
 		fd := (*n).(*FunctionDecl)
-		if fd.Function.IsMethod && !fd.Function.IsStatic {
+		if fd.Function.Type.Receiver != nil {
 			TypeWithoutPointers(fd.Function.Receiver.Variable.Type).(*NamedType).addMethod(fd.Function)
 		}
 	}
@@ -108,8 +108,9 @@ func (v *FunctionDecl) resolve(res *Resolver, s *Scope) Node {
 		v.Function.Type.Return = v.Function.Type.Return.resolveType(v, res, s)
 	}
 
-	if v.Function.IsMethod {
-		if v.Function.IsStatic {
+	if v.Function.Type.Receiver != nil {
+		if v.Function.StaticReceiverType != nil { //v.Function.IsStatic {
+			fmt.Println("good!")
 			v.Function.StaticReceiverType = v.Function.StaticReceiverType.resolveType(v, res, s)
 			v.Function.StaticReceiverType.(*NamedType).addMethod(v.Function)
 		}

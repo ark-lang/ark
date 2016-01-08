@@ -231,7 +231,7 @@ func (v *TypeCheck) CheckCallExpr(s *SemanticAnalyzer, expr *parser.CallExpr) {
 			expr.Function.Name, paramLen, argLen)
 	}
 
-	if expr.Function.IsMethod && !expr.Function.IsStatic {
+	if expr.Function.Type.Receiver != nil {
 		if expr.ReceiverAccess.GetType() != expr.Function.Receiver.Variable.Type {
 			s.Err(expr, "Mismatched receiver types for call to `%s`: `%s` and `%s`", expr.Function.Name, expr.ReceiverAccess.GetType().TypeName(), expr.Function.Receiver.Variable.Type.TypeName())
 		}

@@ -101,12 +101,10 @@ func (v *Function) MangledName(typ MangleType) string {
 			result += TypeMangledName(typ, arg.Variable.Type)
 		}
 
-		if v.IsMethod {
-			if v.IsStatic {
-				result = TypeMangledName(typ, v.StaticReceiverType) + result
-			} else {
-				result = TypeMangledName(typ, v.Receiver.Variable.Type) + result
-			}
+		if v.Type.Receiver != nil {
+			result = TypeMangledName(typ, v.Receiver.Variable.Type) + result
+		} else if v.StaticReceiverType != nil {
+			result = TypeMangledName(typ, v.StaticReceiverType) + result
 		}
 
 		result = v.ParentModule.MangledName(typ) + result

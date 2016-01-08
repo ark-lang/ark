@@ -93,6 +93,7 @@ func (v *Variable) Scope() *Scope {
 	return v.scope
 }
 
+// Note that for static methods, ``
 type Function struct {
 	Name       string
 	Type       FunctionType
@@ -102,10 +103,9 @@ type Function struct {
 
 	ParentModule *Module
 
-	IsMethod           bool
-	IsStatic           bool
-	Receiver           *VariableDecl // if not static
-	StaticReceiverType Type          // if static
+	Receiver *VariableDecl // non-nil if non-static method
+
+	StaticReceiverType Type // non-nil if static
 }
 
 func (v *Function) Scope() *Scope {

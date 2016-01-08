@@ -242,7 +242,7 @@ func (v *ASTVisitor) VisitChildren(n Node) {
 		v.EnterScope(nil)
 		fn := functionDecl.Function
 
-		if fn.IsMethod && !fn.IsStatic {
+		if fn.Type.Receiver != nil {
 			functionDecl.Function.Receiver = v.Visit(functionDecl.Function.Receiver).(*VariableDecl)
 		}
 

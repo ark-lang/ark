@@ -360,8 +360,8 @@ func (v *FunctionDeclNode) construct(c *Constructor) Node {
 	}
 
 	c.pushScope()
-	if v.Header.IsMethod {
-		function.IsMethod = true
+	/*if v.Header.IsMethod {
+		function.Type.IsMethod = true
 
 		if v.Header.IsStatic {
 			function.IsStatic = true
@@ -370,9 +370,15 @@ func (v *FunctionDeclNode) construct(c *Constructor) Node {
 			function.IsStatic = false
 			function.Receiver = c.constructNode(v.Header.Receiver).(*VariableDecl) // TODO: error
 			function.Receiver.Variable.IsParameter = true
-
-			//function.Name = TypeWithoutPointers(function.Receiver.Variable.Type).TypeName() + "." + function.Name
 		}
+	}*/
+
+	if v.Header.Receiver != nil {
+		function.Receiver = c.constructNode(v.Header.Receiver).(*VariableDecl) // TODO: error
+		function.Type.Receiver = function.Receiver.Variable.Type
+		function.Receiver.Variable.IsParameter = true
+	} else if v.Header.StaticReceiverType != nil {
+		function.StaticReceiverType = c.constructType(v.Header.StaticReceiverType)
 	}
 
 	var arguments []ParseNode
@@ -403,7 +409,7 @@ func (v *FunctionDeclNode) construct(c *Constructor) Node {
 	}
 	c.popScope()
 
-	if !function.IsMethod {
+	if function.Type.Receiver == nil {
 		scopeToInsertTo := c.scope
 		if function.Type.Attrs().Contains("c") {
 			if mod, ok := c.module.GlobalScope.UsedModules["C"]; ok {
