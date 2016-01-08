@@ -186,13 +186,39 @@ func parseFiles(inputs []string) ([]*parser.Module, *parser.ModuleLookup) {
 		}
 	})
 
+	hasMainFunc := false
 	// construction
 	var constructedModules []*parser.Module
 	log.Timed("construction phase", "", func() {
 		for _, file := range parsedFiles {
-			constructedModules = append(constructedModules, parser.Construct(file, moduleLookup))
+			mod := parser.Construct(file, moduleLookup)
+			constructedModules = append(constructedModules, mod)
+
+			// not terribly efficient, but it's best
+			// to catch out earlier on if we have
+			// a main function or not rather than
+			// figuring out at the codegen phase??
+			// maybe??
+			// TODO FIXME MAKEPRETTY
+			for _, node := range mod.Nodes {
+				switch node := node.(type) {
+				case *parser.FunctionDecl:
+					if node.Function.Name == "main" {
+						hasMainFunc = true
+						break
+					}
+				default:
+				}
+			}
 		}
 	})
+
+	// and here we check if we should
+	// bother continuing any further...
+	if !hasMainFunc {
+		log.Error("main", util.Red("error: ")+"main function not found\n")
+		os.Exit(1)
+	}
 
 	return constructedModules, moduleLookup
 }
