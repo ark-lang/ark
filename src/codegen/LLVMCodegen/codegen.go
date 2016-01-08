@@ -3,6 +3,7 @@ package LLVMCodegen
 import (
 	"fmt"
 	"os"
+	"reflect"
 
 	"github.com/ark-lang/ark/src/parser"
 	"github.com/ark-lang/ark/src/semantic"
@@ -1211,21 +1212,23 @@ func (v *Codegen) genDefaultExpr(n *parser.DefaultExpr) llvm.Value {
 }
 
 func (v *Codegen) typeToLLVMType(typ parser.Type) llvm.Type {
-	switch typ.(type) {
+	switch typ := typ.(type) {
 	case parser.PrimitiveType:
-		return v.primitiveTypeToLLVMType(typ.(parser.PrimitiveType))
+		return v.primitiveTypeToLLVMType(typ)
+	case parser.FunctionType:
+		return v.functionTypeToLLVMType(typ)
 	case parser.StructType:
-		return v.structTypeToLLVMType(typ.(parser.StructType))
+		return v.structTypeToLLVMType(typ)
 	case parser.PointerType:
-		return llvm.PointerType(v.typeToLLVMType(typ.(parser.PointerType).Addressee), 0)
+		return llvm.PointerType(v.typeToLLVMType(typ.Addressee), 0)
 	case parser.ArrayType:
-		return v.arrayTypeToLLVMType(typ.(parser.ArrayType))
+		return v.arrayTypeToLLVMType(typ)
 	case parser.TupleType:
-		return v.tupleTypeToLLVMType(typ.(parser.TupleType))
+		return v.tupleTypeToLLVMType(typ)
 	case parser.EnumType:
-		return v.enumTypeToLLVMType(typ.(parser.EnumType))
+		return v.enumTypeToLLVMType(typ)
 	case *parser.NamedType:
-		nt := typ.(*parser.NamedType)
+		nt := typ
 		switch nt.Type.(type) {
 		case parser.StructType, parser.EnumType:
 			v.addNamedType(nt)
@@ -1236,11 +1239,11 @@ func (v *Codegen) typeToLLVMType(typ parser.Type) llvm.Type {
 			return v.typeToLLVMType(nt.Type)
 		}
 	case parser.MutableReferenceType:
-		return llvm.PointerType(v.typeToLLVMType(typ.(parser.MutableReferenceType).Referrer), 0)
+		return llvm.PointerType(v.typeToLLVMType(typ.Referrer), 0)
 	case parser.ConstantReferenceType:
-		return llvm.PointerType(v.typeToLLVMType(typ.(parser.ConstantReferenceType).Referrer), 0)
+		return llvm.PointerType(v.typeToLLVMType(typ.Referrer), 0)
 	default:
-		log.Debugln("codegen", "Type was %s", typ.TypeName())
+		log.Debugln("codegen", "Type was %s (%s)", typ.TypeName(), reflect.TypeOf(typ))
 		panic("Unimplemented type category in LLVM codegen")
 	}
 }
@@ -1297,6 +1300,35 @@ func (v *Codegen) enumTypeToLLVMTypeFields(typ parser.EnumType) []llvm.Type {
 
 	// TODO: verify no overflow
 	return []llvm.Type{llvm.IntType(32), llvm.ArrayType(llvm.IntType(8), int(longestLength))}
+}
+
+func (v *Codegen) functionTypeToLLVMType(typ parser.FunctionType) llvm.Type {
+	numOfParams := len(typ.Parameters)
+	if typ.Receiver != nil {
+		numOfParams++
+	}
+
+	params := make([]llvm.Type, 0, numOfParams)
+	if typ.Receiver != nil {
+		params = append(params, v.typeToLLVMType(typ.Receiver))
+	}
+	for _, par := range typ.Parameters {
+		params = append(params, v.typeToLLVMType(par))
+	}
+
+	var returnType llvm.Type
+
+	// oo theres a type, let's try figure it out
+	if typ.Return != nil {
+		returnType = v.typeToLLVMType(typ.Return)
+	} else {
+		returnType = llvm.VoidType()
+	}
+
+	// create the function type
+	funcType := llvm.FunctionType(returnType, params, typ.IsVariadic)
+
+	return funcType
 }
 
 func (v *Codegen) primitiveTypeToLLVMType(typ parser.PrimitiveType) llvm.Type {

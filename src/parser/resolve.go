@@ -504,36 +504,38 @@ func ExtractTypeVariable(pattern Type, value Type) map[string]Type {
 }
 
 func AddChildren(typ Type, dest []Type) []Type {
-	switch typ.(type) {
+	switch typ := typ.(type) {
 	case StructType:
-		st := typ.(StructType)
-		for _, decl := range st.Variables {
+		for _, decl := range typ.Variables {
 			dest = append(dest, decl.Variable.Type)
 		}
 
 	case *NamedType:
-		nt := typ.(*NamedType)
-		dest = append(dest, nt.Type)
+		dest = append(dest, typ.Type)
 
 	case ArrayType:
-		at := typ.(ArrayType)
-		dest = append(dest, at.MemberType)
+		dest = append(dest, typ.MemberType)
 
 	case PointerType:
-		pt := typ.(PointerType)
-		dest = append(dest, pt.Addressee)
+		dest = append(dest, typ.Addressee)
 
 	case TupleType:
-		tt := typ.(TupleType)
-		for _, mem := range tt.Members {
-			dest = append(dest, mem)
-		}
+		dest = append(dest, typ.Members...)
 
 	case EnumType:
-		et := typ.(EnumType)
-		for _, mem := range et.Members {
+		for _, mem := range typ.Members {
 			dest = append(dest, mem.Type)
 		}
+
+	case FunctionType:
+		if typ.Receiver != nil {
+			dest = append(dest, typ.Receiver)
+		}
+		dest = append(dest, typ.Parameters...)
+		if typ.Return != nil { // TODO: can it ever be nil?
+			dest = append(dest, typ.Return)
+		}
+
 	}
 	return dest
 }

@@ -1051,7 +1051,7 @@ func (v UnresolvedType) String() string {
 }
 
 func (v UnresolvedType) TypeName() string {
-	return v.Name.String()
+	return "unresolved(" + v.Name.String() + ")"
 }
 
 func (v UnresolvedType) ActualType() Type {
