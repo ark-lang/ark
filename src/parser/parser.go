@@ -1020,7 +1020,7 @@ func (v *parser) parseType(doRefs bool) ParseNode {
 
 	var res ParseNode
 	if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_FUNC) {
-		res = v.parseFunctionType()
+		res = v.parseFunctionPointerType()
 	} else if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "^") {
 		res = v.parsePointerType()
 	} else if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "&") {
@@ -1183,7 +1183,8 @@ func (v *parser) parseReferenceType() *ReferenceTypeNode {
 	return res
 }
 
-func (v *parser) parseFunctionType() *FunctionTypeNode {
+// return a function pointer, not a raw function type
+func (v *parser) parseFunctionPointerType() *PointerTypeNode {
 	defer un(trace(v, "functiontype"))
 
 	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_FUNC) {
@@ -1248,7 +1249,10 @@ func (v *parser) parseFunctionType() *FunctionTypeNode {
 	}
 	res.SetWhere(lexer.NewSpan(startToken.Where.Start(), end))
 
-	return res
+	ptr := &PointerTypeNode{TargetType: res}
+	ptr.SetWhere(res.Where())
+
+	return ptr
 }
 
 func (v *parser) parsePointerType() *PointerTypeNode {
