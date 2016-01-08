@@ -217,7 +217,7 @@ func (v *Codegen) declareFunctionDecl(n *parser.FunctionDecl) {
 		}
 
 		// create the function type
-		funcType := v.typeToLLVMType(n.Function.Type)
+		funcType := v.functionTypeToLLVMType(n.Function.Type, false)
 
 		functionName := mangledName
 		if cBinding {
@@ -1200,7 +1200,7 @@ func (v *Codegen) typeToLLVMType(typ parser.Type) llvm.Type {
 	case parser.PrimitiveType:
 		return v.primitiveTypeToLLVMType(typ)
 	case parser.FunctionType:
-		return v.functionTypeToLLVMType(typ)
+		return v.functionTypeToLLVMType(typ, true)
 	case parser.StructType:
 		return v.structTypeToLLVMType(typ)
 	case parser.PointerType:
@@ -1286,7 +1286,7 @@ func (v *Codegen) enumTypeToLLVMTypeFields(typ parser.EnumType) []llvm.Type {
 	return []llvm.Type{llvm.IntType(32), llvm.ArrayType(llvm.IntType(8), int(longestLength))}
 }
 
-func (v *Codegen) functionTypeToLLVMType(typ parser.FunctionType) llvm.Type {
+func (v *Codegen) functionTypeToLLVMType(typ parser.FunctionType, ptr bool) llvm.Type {
 	numOfParams := len(typ.Parameters)
 	if typ.Receiver != nil {
 		numOfParams++
@@ -1311,6 +1311,10 @@ func (v *Codegen) functionTypeToLLVMType(typ parser.FunctionType) llvm.Type {
 
 	// create the function type
 	funcType := llvm.FunctionType(returnType, params, typ.IsVariadic)
+
+	if ptr {
+		funcType = llvm.PointerType(funcType, 0)
+	}
 
 	return funcType
 }
