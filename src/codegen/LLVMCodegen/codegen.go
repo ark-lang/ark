@@ -203,18 +203,10 @@ func (v *Codegen) declareFunctionDecl(n *parser.FunctionDecl) {
 	if !function.IsNil() {
 		v.err("function `%s` already exists in module", n.Function.Name)
 	} else {
-		numOfParams := len(n.Function.Parameters)
+		/*numOfParams := len(n.Function.Parameters)
 		if n.Function.Type.Receiver != nil {
 			numOfParams++
-		}
-
-		params := make([]llvm.Type, 0, numOfParams)
-		if n.Function.Type.Receiver != nil {
-			params = append(params, v.typeToLLVMType(n.Function.Receiver.Variable.Type))
-		}
-		for _, par := range n.Function.Parameters {
-			params = append(params, v.typeToLLVMType(par.Variable.Type))
-		}
+		}*/
 
 		// attributes defaults
 		cBinding := false
@@ -224,16 +216,8 @@ func (v *Codegen) declareFunctionDecl(n *parser.FunctionDecl) {
 			cBinding = n.Function.Type.Attrs().Contains("c")
 		}
 
-		// assume it's void
-		funcTypeRaw := llvm.VoidType()
-
-		// oo theres a type, let's try figure it out
-		if n.Function.Type.Return != nil {
-			funcTypeRaw = v.typeToLLVMType(n.Function.Type.Return)
-		}
-
 		// create the function type
-		funcType := llvm.FunctionType(funcTypeRaw, params, n.Function.Type.IsVariadic)
+		funcType := v.typeToLLVMType(n.Function.Type)
 
 		functionName := mangledName
 		if cBinding {

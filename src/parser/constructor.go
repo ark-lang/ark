@@ -375,6 +375,7 @@ func (v *FunctionDeclNode) construct(c *Constructor) Node {
 		decl := c.constructNode(arg).(*VariableDecl) // TODO: Error message
 		decl.Variable.IsParameter = true
 		function.Parameters = append(function.Parameters, decl)
+		function.Type.Parameters = append(function.Type.Parameters, decl.Variable.Type)
 	}
 
 	if v.Header.ReturnType != nil {

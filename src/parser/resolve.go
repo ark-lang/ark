@@ -104,9 +104,7 @@ func (v *Resolver) PostVisit(n *Node) {
 ///
 
 func (v *FunctionDecl) resolve(res *Resolver, s *Scope) Node {
-	if v.Function.Type.Return != nil {
-		v.Function.Type.Return = v.Function.Type.Return.resolveType(v, res, s)
-	}
+	v.Function.Type = v.Function.Type.resolveType(v, res, s).(FunctionType)
 
 	if v.Function.StaticReceiverType != nil {
 		v.Function.StaticReceiverType = v.Function.StaticReceiverType.resolveType(v, res, s)
