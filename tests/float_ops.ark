@@ -1,12 +1,33 @@
 func do_stuff(a: f32) {
 }
 
+// use this to prevent LLVM constant-folding away numbers
+func get5() -> f32 {
+	return 5;
+}
+
 func main() -> int {
 	mut foo: f32 = 42.0;
     do_stuff(-120);
     do_stuff(-foo);
 
     foo = foo / 24;
+
+	if get5() / 5 != 1 {
+		return 1;
+	}
+
+	if get5() + 10 != 15 {
+		return 2;
+	}
+
+	if get5() * 10 != 50 {
+		return 3;
+	}
+
+	if get5() - 3 != 2 {
+		return 4;
+	}
 
     return 0;
 }
