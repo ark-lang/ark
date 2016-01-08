@@ -406,7 +406,22 @@ func (v InterfaceType) resolveType(src Locatable, res *Resolver, s *Scope) Type 
 }
 
 func (v FunctionType) resolveType(src Locatable, res *Resolver, s *Scope) Type {
-	return v
+	nv := FunctionType{
+		attrs:      v.attrs,
+		IsVariadic: v.IsVariadic,
+	}
+
+	for _, par := range v.Parameters {
+		nv.Parameters = append(nv.Parameters, par.resolveType(src, res, s))
+	}
+	if v.Receiver != nil {
+		nv.Receiver = v.Receiver.resolveType(src, res, s)
+	}
+	if v.Return != nil { // TODO can this ever be nil
+		nv.Return = v.Return.resolveType(src, res, s)
+	}
+
+	return nv
 }
 
 func (v ParameterType) resolveType(src Locatable, res *Resolver, s *Scope) Type {
