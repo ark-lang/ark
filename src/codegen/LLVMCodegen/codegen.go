@@ -20,6 +20,7 @@ type Codegen struct {
 	curFile *WrappedModule
 
 	builders        map[llvm.Value]llvm.Builder
+	globalBuilder   llvm.Builder // used non-function stuff
 	variableLookup  map[*parser.Variable]llvm.Value
 	namedTypeLookup map[string]llvm.Type
 
@@ -49,6 +50,9 @@ type Codegen struct {
 }
 
 func (v *Codegen) builder() llvm.Builder {
+	if !v.inFunction() {
+		return v.globalBuilder
+	}
 	return v.builders[v.currentFunction()]
 }
 
@@ -92,6 +96,8 @@ func (v *Codegen) err(err string, stuff ...interface{}) {
 
 func (v *Codegen) Generate(input []*parser.Module) {
 	v.builders = make(map[llvm.Value]llvm.Builder)
+	v.globalBuilder = llvm.NewBuilder()
+	defer v.globalBuilder.Dispose()
 
 	v.input = make([]*WrappedModule, len(input))
 	for idx, mod := range input {
@@ -548,6 +554,7 @@ func (v *Codegen) genFunctionBody(fn *parser.Function, llvmFn llvm.Value) {
 	}
 
 	v.genBlock(fn.Body)
+	v.builder().Dispose()
 	delete(v.builders, v.currentFunction())
 	v.popFunction()
 }
