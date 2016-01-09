@@ -1,5 +1,12 @@
 [c] func printf(fmt: str, ...) -> int;
 
+mut globInt := 0;
+
+func do() -> bool {
+	globInt += 1;
+	return false;
+}
+
 func main() -> int {
 	mut x: int = 5;
 	if x == 5 {
@@ -8,6 +15,15 @@ func main() -> int {
 	C::printf("always printed\n");
 
 	if 5 == 6 {
+		return 1;
+	}
+
+	if do() && do() {
+
+	}
+
+	C::printf("%d\n", globInt);
+	if globInt != 1 {
 		return 1;
 	}
 
