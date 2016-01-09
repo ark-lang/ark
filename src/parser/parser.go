@@ -382,17 +382,19 @@ func (v *parser) parseFunc(lambda bool, topLevelNode bool) *FunctionNode {
 	} else if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "=>") {
 		v.consumeToken()
 
+		isCond := false
 		if stat = v.parseStat(); stat != nil {
 			end = stat.Where().End()
 		} else if stat = v.parseConditionalStat(); stat != nil {
 			end = stat.Where().End()
+			isCond = true
 		} else if expr = v.parseExpr(); expr != nil {
 			end = expr.Where().End()
 		} else {
 			v.err("Expected valid statement or expression after => operator in function declaration")
 		}
 
-		if topLevelNode {
+		if topLevelNode && !isCond {
 			v.expect(lexer.TOKEN_SEPARATOR, ";")
 		}
 	} else {
