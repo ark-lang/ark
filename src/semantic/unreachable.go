@@ -14,28 +14,33 @@ func (v *UnreachableCheck) ExitScope(s *SemanticAnalyzer)  {}
 func (v *UnreachableCheck) Visit(s *SemanticAnalyzer, n parser.Node) {}
 
 func (v *UnreachableCheck) PostVisit(s *SemanticAnalyzer, n parser.Node) {
-	switch n.(type) {
+	switch n := n.(type) {
 	case *parser.Block:
-		block := n.(*parser.Block)
-
-		for i, c := range block.Nodes {
-			if i < len(block.Nodes)-1 && IsNodeTerminating(c) {
-				s.Err(block.Nodes[i+1], "Unreachable code")
+		for i, c := range n.Nodes {
+			if i < len(n.Nodes)-1 && IsNodeTerminating(c) {
+				s.Err(n.Nodes[i+1], "Unreachable code")
 			}
 		}
 
-		if len(block.Nodes) > 0 {
-			block.IsTerminating = IsNodeTerminating(block.Nodes[len(block.Nodes)-1])
+		if len(n.Nodes) > 0 {
+			n.IsTerminating = IsNodeTerminating(n.Nodes[len(n.Nodes)-1])
 		}
 
 	case *parser.FunctionDecl:
-		decl := n.(*parser.FunctionDecl)
-		if !decl.Prototype && !decl.Function.Body.IsTerminating {
-			if decl.Function.Type.Return != nil && !decl.Function.Type.Return.IsVoidType() {
-				s.Err(decl, "Missing return statement")
-			} else {
-				decl.Function.Body.Nodes = append(decl.Function.Body.Nodes, &parser.ReturnStat{})
-			}
+		v.visitFunction(s, n, n.Function)
+
+	case *parser.LambdaExpr:
+		v.visitFunction(s, n, n.Function)
+	}
+
+}
+
+func (v *UnreachableCheck) visitFunction(s *SemanticAnalyzer, loc parser.Locatable, fn *parser.Function) {
+	if fn.Body != nil && !fn.Body.IsTerminating {
+		if fn.Type.Return != nil && !fn.Type.Return.IsVoidType() {
+			s.Err(loc, "Missing return statement")
+		} else {
+			fn.Body.Nodes = append(fn.Body.Nodes, &parser.ReturnStat{})
 		}
 	}
 }
@@ -58,10 +63,6 @@ func IsNodeTerminating(n parser.Node) bool {
 			if !body.IsTerminating {
 				return false
 			}
-		}
-
-		if ifStat.Else != nil && !ifStat.Else.IsTerminating {
-			return false
 		}
 
 		return true

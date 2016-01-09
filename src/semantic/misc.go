@@ -14,7 +14,8 @@ func (v *MiscCheck) EnterScope(s *SemanticAnalyzer) {}
 func (v *MiscCheck) ExitScope(s *SemanticAnalyzer)  {}
 
 func (v *MiscCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
-	if _, ok := n.(*parser.FunctionDecl); ok {
+	switch n.(type) {
+	case *parser.FunctionDecl, *parser.LambdaExpr:
 		v.InFunction++
 	}
 
@@ -32,7 +33,8 @@ func (v *MiscCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
 }
 
 func (v *MiscCheck) PostVisit(s *SemanticAnalyzer, n parser.Node) {
-	if _, ok := n.(*parser.FunctionDecl); ok {
+	switch n.(type) {
+	case *parser.FunctionDecl, *parser.LambdaExpr:
 		v.InFunction--
 	}
 }
