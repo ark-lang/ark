@@ -17,7 +17,6 @@ import (
 	"github.com/ark-lang/ark/src/util"
 )
 
-
 type parser struct {
 	input        *lexer.Sourcefile
 	currentToken int
@@ -405,7 +404,6 @@ func (v *parser) parseFunc(lambda bool, topLevelNode bool) *FunctionNode {
 		end = body.Where().End()
 	}
 
-	
 	res := &FunctionNode{Header: funcHeader, Body: body, Stat: stat, Expr: expr}
 	res.SetWhere(lexer.NewSpan(funcHeader.Where().Start(), end))
 	return res
@@ -877,7 +875,7 @@ func (v *parser) parseMatchStat() *MatchStatNode {
 		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "{") {
 			body = v.parseBlock()
 		} else {
-			body = v.parseStat()			
+			body = v.parseStat()
 		}
 		if body == nil {
 			v.err("Expected valid arm statement in match clause")
