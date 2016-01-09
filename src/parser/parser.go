@@ -323,7 +323,7 @@ func (v *parser) parseDecl(isTopLevel bool) ParseNode {
 
 	if typeDecl := v.parseTypeDecl(); typeDecl != nil {
 		res = typeDecl
-	} else if funcDecl := v.parseFuncDecl(); funcDecl != nil {
+	} else if funcDecl := v.parseFuncDecl(isTopLevel); funcDecl != nil {
 		res = funcDecl
 	} else if varDecl := v.parseVarDecl(isTopLevel); varDecl != nil {
 		res = varDecl
@@ -340,8 +340,8 @@ func (v *parser) parseDecl(isTopLevel bool) ParseNode {
 	return res
 }
 
-func (v *parser) parseFuncDecl() *FunctionDeclNode {
-	fn := v.parseFunc(false)
+func (v *parser) parseFuncDecl(isTopLevel bool) *FunctionDeclNode {
+	fn := v.parseFunc(false, isTopLevel)
 	if fn == nil {
 		return nil
 	}
@@ -352,7 +352,7 @@ func (v *parser) parseFuncDecl() *FunctionDeclNode {
 }
 
 func (v *parser) parseLambdaExpr() *LambdaExprNode {
-	fn := v.parseFunc(true)
+	fn := v.parseFunc(true, false)
 	if fn == nil {
 		return nil
 	}
@@ -364,7 +364,7 @@ func (v *parser) parseLambdaExpr() *LambdaExprNode {
 
 // If lambda is true, we're parsing an expression.
 // If lambda is false, we're parsing a proper function declaration.
-func (v *parser) parseFunc(lambda bool) *FunctionNode {
+func (v *parser) parseFunc(lambda bool, topLevelNode bool) *FunctionNode {
 	defer un(trace(v, "func"))
 
 	funcHeader := v.parseFuncHeader(lambda)
@@ -382,8 +382,9 @@ func (v *parser) parseFunc(lambda bool) *FunctionNode {
 	} else if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "=>") {
 		v.consumeToken()
 
-
 		if stat = v.parseStat(); stat != nil {
+			end = stat.Where().End()
+		} else if stat = v.parseConditionalStat(); stat != nil {
 			end = stat.Where().End()
 		} else if expr = v.parseExpr(); expr != nil {
 			end = expr.Where().End()
@@ -391,7 +392,9 @@ func (v *parser) parseFunc(lambda bool) *FunctionNode {
 			v.err("Expected valid statement or expression after => operator in function declaration")
 		}
 
-		v.expect(lexer.TOKEN_SEPARATOR, ";")
+		if topLevelNode {
+			v.expect(lexer.TOKEN_SEPARATOR, ";")
+		}
 	} else {
 		body = v.parseBlock()
 		if body == nil {
