@@ -3,11 +3,19 @@ package semantic
 import "github.com/ark-lang/ark/src/parser"
 
 type TypeCheck struct {
-	function []*parser.Function
+	functions []*parser.Function
+}
+
+func (v *TypeCheck) pushFunction(fn *parser.Function) {
+	v.functions = append(v.functions, fn)
+}
+
+func (v *TypeCheck) popFunction() {
+	v.functions = v.functions[:len(v.functions)-1]
 }
 
 func (v *TypeCheck) Function() *parser.Function {
-	return v.function[len(v.function)-1]
+	return v.functions[len(v.functions)-1]
 }
 
 func (v *TypeCheck) Init(s *SemanticAnalyzer)       {}
@@ -16,15 +24,18 @@ func (v *TypeCheck) ExitScope(s *SemanticAnalyzer)  {}
 
 func (v *TypeCheck) PostVisit(s *SemanticAnalyzer, n parser.Node) {
 	switch n.(type) {
-	case *parser.FunctionDecl:
-		v.function = v.function[:len(v.function)-1]
+	case *parser.FunctionDecl, *parser.LambdaExpr:
+		v.popFunction()
 	}
 }
 
 func (v *TypeCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
 	switch n := n.(type) {
 	case *parser.FunctionDecl:
-		v.function = append(v.function, n.Function)
+		v.pushFunction(n.Function)
+
+	case *parser.LambdaExpr:
+		v.pushFunction(n.Function)
 
 	case *parser.VariableDecl:
 		v.CheckVariableDecl(s, n)
