@@ -7,7 +7,7 @@ func do(thing: func(str, ...) -> int) {
 func main() -> int {
     C::printf("Func ptr test\n");
 
-    [unused] fn := func(fmt: str, ...) -> int {return 6;};
+    [unused] fn := func() -> int {return 6;};
 
     return 0;
 }

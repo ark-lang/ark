@@ -13,14 +13,15 @@ import (
 	"llvm.org/llvm/bindings/go/llvm"
 )
 
+const defaultCallConv = llvm.FastCallConv
+
 type Codegen struct {
 	input   []*WrappedModule
 	curFile *WrappedModule
 
-	builder         llvm.Builder
+	builders        map[llvm.Value]llvm.Builder
 	variableLookup  map[*parser.Variable]llvm.Value
 	namedTypeLookup map[string]llvm.Type
-	lambdaID        int
 
 	OutputName   string
 	OutputType   OutputType
@@ -31,8 +32,9 @@ type Codegen struct {
 	OptLevel     int
 
 	referenceAccess bool
-	inFunction      bool
-	currentFunction llvm.Value
+	inFunctions     []llvm.Value
+
+	lambdaID int
 
 	currentBlock   *parser.Block
 	blockDeferData map[*parser.Block][]*deferData
@@ -44,6 +46,26 @@ type Codegen struct {
 	target        llvm.Target
 	targetMachine llvm.TargetMachine
 	targetData    llvm.TargetData
+}
+
+func (v *Codegen) builder() llvm.Builder {
+	return v.builders[v.currentFunction()]
+}
+
+func (v *Codegen) pushFunction(fn llvm.Value) {
+	v.inFunctions = append(v.inFunctions, fn)
+}
+
+func (v *Codegen) popFunction() {
+	v.inFunctions = v.inFunctions[:len(v.inFunctions)-1]
+}
+
+func (v *Codegen) inFunction() bool {
+	return len(v.inFunctions) > 0
+}
+
+func (v *Codegen) currentFunction() llvm.Value {
+	return v.inFunctions[len(v.inFunctions)-1]
 }
 
 func (v *Codegen) nextLambdaID() int {
@@ -69,12 +91,13 @@ func (v *Codegen) err(err string, stuff ...interface{}) {
 }
 
 func (v *Codegen) Generate(input []*parser.Module) {
+	v.builders = make(map[llvm.Value]llvm.Builder)
+
 	v.input = make([]*WrappedModule, len(input))
 	for idx, mod := range input {
 		v.input[idx] = &WrappedModule{Module: mod}
 	}
 
-	v.builder = llvm.NewBuilder()
 	v.variableLookup = make(map[*parser.Variable]llvm.Value)
 	v.namedTypeLookup = make(map[string]llvm.Type)
 
@@ -243,7 +266,7 @@ func (v *Codegen) declareFunctionDecl(n *parser.FunctionDecl) {
 		if cBinding {
 			function.SetFunctionCallConv(llvm.CCallConv)
 		} else {
-			function.SetFunctionCallConv(llvm.FastCallConv)
+			function.SetFunctionCallConv(defaultCallConv)
 		}
 	}
 }
@@ -342,9 +365,9 @@ func (v *Codegen) genBlock(n *parser.Block) {
 
 func (v *Codegen) genReturnStat(n *parser.ReturnStat) {
 	if n.Value == nil {
-		v.builder.CreateRetVoid()
+		v.builder().CreateRetVoid()
 	} else {
-		v.builder.CreateRet(v.genExpr(n.Value))
+		v.builder().CreateRet(v.genExpr(n.Value))
 	}
 }
 
@@ -357,17 +380,17 @@ func (v *Codegen) genCallStat(n *parser.CallStat) {
 }
 
 func (v *Codegen) genAssignStat(n *parser.AssignStat) {
-	v.builder.CreateStore(v.genExpr(n.Assignment), v.genAccessGEP(n.Access))
+	v.builder().CreateStore(v.genExpr(n.Assignment), v.genAccessGEP(n.Access))
 }
 
 func (v *Codegen) genBinopAssignStat(n *parser.BinopAssignStat) {
 	storage := v.genAccessGEP(n.Access)
 
-	storageValue := v.builder.CreateLoad(storage, "")
+	storageValue := v.builder().CreateLoad(storage, "")
 	assignmentValue := v.genExpr(n.Assignment)
 
 	value := v.genBinop(n.Operator, n.Access.GetType(), n.Access.GetType(), n.Assignment.GetType(), storageValue, assignmentValue)
-	v.builder.CreateStore(value, storage)
+	v.builder().CreateStore(value, storage)
 }
 
 func (v *Codegen) genIfStat(n *parser.IfStat) {
@@ -375,7 +398,7 @@ func (v *Codegen) genIfStat(n *parser.IfStat) {
 	// This function is complicated, but theoretically it should never need to
 	// be changed again. God help the soul who has to edit this.
 
-	if !v.inFunction {
+	if !v.inFunction() {
 		panic("tried to gen if stat not in function")
 	}
 
@@ -383,25 +406,25 @@ func (v *Codegen) genIfStat(n *parser.IfStat) {
 
 	var end llvm.BasicBlock
 	if !statTerm {
-		end = llvm.AddBasicBlock(v.currentFunction, "end")
+		end = llvm.AddBasicBlock(v.currentFunction(), "end")
 	}
 
 	for i, expr := range n.Exprs {
 		cond := v.genExpr(expr)
 
-		ifTrue := llvm.AddBasicBlock(v.currentFunction, "if_true")
-		ifFalse := llvm.AddBasicBlock(v.currentFunction, "if_false")
+		ifTrue := llvm.AddBasicBlock(v.currentFunction(), "if_true")
+		ifFalse := llvm.AddBasicBlock(v.currentFunction(), "if_false")
 
-		v.builder.CreateCondBr(cond, ifTrue, ifFalse)
+		v.builder().CreateCondBr(cond, ifTrue, ifFalse)
 
-		v.builder.SetInsertPointAtEnd(ifTrue)
+		v.builder().SetInsertPointAtEnd(ifTrue)
 		v.genBlock(n.Bodies[i])
 
 		if !statTerm && !n.Bodies[i].IsTerminating {
-			v.builder.CreateBr(end)
+			v.builder().CreateBr(end)
 		}
 
-		v.builder.SetInsertPointAtEnd(ifFalse)
+		v.builder().SetInsertPointAtEnd(ifFalse)
 
 		if !statTerm {
 			end.MoveAfter(ifFalse)
@@ -413,42 +436,42 @@ func (v *Codegen) genIfStat(n *parser.IfStat) {
 	}
 
 	if !statTerm && (n.Else == nil || !n.Else.IsTerminating) {
-		v.builder.CreateBr(end)
+		v.builder().CreateBr(end)
 	}
 
 	if !statTerm {
-		v.builder.SetInsertPointAtEnd(end)
+		v.builder().SetInsertPointAtEnd(end)
 	}
 }
 
 func (v *Codegen) genLoopStat(n *parser.LoopStat) {
 	switch n.LoopType {
 	case parser.LOOP_TYPE_INFINITE:
-		loopBlock := llvm.AddBasicBlock(v.currentFunction, "")
-		v.builder.CreateBr(loopBlock)
-		v.builder.SetInsertPointAtEnd(loopBlock)
+		loopBlock := llvm.AddBasicBlock(v.currentFunction(), "")
+		v.builder().CreateBr(loopBlock)
+		v.builder().SetInsertPointAtEnd(loopBlock)
 
 		v.genBlock(n.Body)
 
-		v.builder.CreateBr(loopBlock)
-		afterBlock := llvm.AddBasicBlock(v.currentFunction, "")
-		v.builder.SetInsertPointAtEnd(afterBlock)
+		v.builder().CreateBr(loopBlock)
+		afterBlock := llvm.AddBasicBlock(v.currentFunction(), "")
+		v.builder().SetInsertPointAtEnd(afterBlock)
 	case parser.LOOP_TYPE_CONDITIONAL:
-		evalBlock := llvm.AddBasicBlock(v.currentFunction, "")
-		v.builder.CreateBr(evalBlock)
+		evalBlock := llvm.AddBasicBlock(v.currentFunction(), "")
+		v.builder().CreateBr(evalBlock)
 
-		loopBlock := llvm.AddBasicBlock(v.currentFunction, "")
-		afterBlock := llvm.AddBasicBlock(v.currentFunction, "")
+		loopBlock := llvm.AddBasicBlock(v.currentFunction(), "")
+		afterBlock := llvm.AddBasicBlock(v.currentFunction(), "")
 
-		v.builder.SetInsertPointAtEnd(evalBlock)
+		v.builder().SetInsertPointAtEnd(evalBlock)
 		cond := v.genExpr(n.Condition)
-		v.builder.CreateCondBr(cond, loopBlock, afterBlock)
+		v.builder().CreateCondBr(cond, loopBlock, afterBlock)
 
-		v.builder.SetInsertPointAtEnd(loopBlock)
+		v.builder().SetInsertPointAtEnd(loopBlock)
 		v.genBlock(n.Body)
-		v.builder.CreateBr(evalBlock)
+		v.builder().CreateBr(evalBlock)
 
-		v.builder.SetInsertPointAtEnd(afterBlock)
+		v.builder().SetInsertPointAtEnd(afterBlock)
 	default:
 		panic("invalid loop type")
 	}
@@ -462,7 +485,7 @@ func (v *Codegen) genDefaultStat(n *parser.DefaultStat) {
 	target := v.genAccessGEP(n.Target)
 	value := v.genDefaultValue(n.Target.GetType())
 
-	v.builder.CreateStore(value, target)
+	v.builder().CreateStore(value, target)
 }
 
 func (v *Codegen) genDecl(n parser.Decl) {
@@ -493,51 +516,56 @@ func (v *Codegen) genFunctionDecl(n *parser.FunctionDecl) llvm.Value {
 		//v.err("genning function `%s` doesn't exist in module", n.Function.Name)
 		// hmmmm seems we just ignore this here
 	} else {
-
 		if !n.Prototype {
-			block := llvm.AddBasicBlock(function, "entry")
-			v.builder.SetInsertPointAtEnd(block)
-
-			pars := n.Function.Parameters
-
-			if n.Function.Type.Receiver != nil {
-				newPars := make([]*parser.VariableDecl, len(pars)+1)
-				newPars[0] = n.Function.Receiver
-				copy(newPars[1:], pars)
-				pars = newPars
-			}
-
-			for i, par := range pars {
-				alloc := v.builder.CreateAlloca(v.typeToLLVMType(par.Variable.Type), par.Variable.Name)
-				v.variableLookup[par.Variable] = alloc
-
-				v.builder.CreateStore(function.Params()[i], alloc)
-			}
-
-			v.inFunction = true
-			v.currentFunction = function
-			v.genBlock(n.Function.Body)
-			v.inFunction = false
+			v.genFunctionBody(n.Function, function)
 		}
 	}
 
 	return res
 }
 
+func (v *Codegen) genFunctionBody(fn *parser.Function, llvmFn llvm.Value) {
+	block := llvm.AddBasicBlock(llvmFn, "entry")
+
+	v.pushFunction(llvmFn)
+	v.builders[v.currentFunction()] = llvm.NewBuilder()
+	v.builder().SetInsertPointAtEnd(block)
+
+	pars := fn.Parameters
+
+	if fn.Type.Receiver != nil {
+		newPars := make([]*parser.VariableDecl, len(pars)+1)
+		newPars[0] = fn.Receiver
+		copy(newPars[1:], pars)
+		pars = newPars
+	}
+
+	for i, par := range pars {
+		alloc := v.builder().CreateAlloca(v.typeToLLVMType(par.Variable.Type), par.Variable.Name)
+		v.variableLookup[par.Variable] = alloc
+
+		v.builder().CreateStore(llvmFn.Params()[i], alloc)
+	}
+
+	v.genBlock(fn.Body)
+	delete(v.builders, v.currentFunction())
+	v.popFunction()
+}
+
 func (v *Codegen) genVariableDecl(n *parser.VariableDecl, semicolon bool) llvm.Value {
 	var res llvm.Value
 
-	if v.inFunction {
+	if v.inFunction() {
 		mangledName := n.Variable.MangledName(parser.MANGLE_ARK_UNSTABLE)
 
-		funcEntry := v.currentFunction.EntryBasicBlock()
+		funcEntry := v.currentFunction().EntryBasicBlock()
 
-		// use this builder for the variable alloca
+		// use this builder() for the variable alloca
 		// this means all allocas go at the start of the function
 		// so each variable is only allocated once
 		allocBuilder := llvm.NewBuilder()
 
-		if funcEntry == v.builder.GetInsertBlock() {
+		if funcEntry == v.builder().GetInsertBlock() {
 			allocBuilder.SetInsertPointAtEnd(funcEntry)
 		} else {
 			allocBuilder.SetInsertPointBefore(funcEntry.LastInstruction())
@@ -552,7 +580,7 @@ func (v *Codegen) genVariableDecl(n *parser.VariableDecl, semicolon bool) llvm.V
 
 		if n.Assignment != nil {
 			if value := v.genExpr(n.Assignment); !value.IsNil() {
-				v.builder.CreateStore(value, alloc)
+				v.builder().CreateStore(value, alloc)
 			}
 		}
 	} else {
@@ -607,23 +635,31 @@ func (v *Codegen) genExpr(n parser.Expr) llvm.Value {
 		return v.genArrayLenExpr(n)
 	case *parser.DefaultExpr:
 		return v.genDefaultExpr(n)
+	case *parser.LambdaExpr:
+		return v.genLambdaExpr(n)
 	default:
 		log.Debug("codegen", "expr: %s\n", n)
 		panic("unimplemented expr")
 	}
 }
 
-/*func (v *Codegen) genLambdaExpr(n *parser.LambdaExpr) llvm.Value {
-	var val llvm.Value
-	return val
-}*/
+func (v *Codegen) genLambdaExpr(n *parser.LambdaExpr) llvm.Value {
+	typ := v.functionTypeToLLVMType(n.Function.Type, false)
+	mod := v.curFile.LlvmModule
+	fn := llvm.AddFunction(mod, fmt.Sprintf("_Lambda%d", v.nextLambdaID()), typ)
+	fn.SetFunctionCallConv(defaultCallConv)
+
+	v.genFunctionBody(n.Function, fn)
+
+	return fn
+}
 
 func (v *Codegen) genAddressOfExpr(n *parser.AddressOfExpr) llvm.Value {
 	return v.genAccessGEP(n.Access)
 }
 
 func (v *Codegen) genAccessExpr(n parser.Expr) llvm.Value {
-	return v.builder.CreateLoad(v.genAccessGEP(n), "")
+	return v.builder().CreateLoad(v.genAccessGEP(n), "")
 }
 
 func (v *Codegen) genAccessGEP(n parser.Expr) llvm.Value {
@@ -636,14 +672,14 @@ func (v *Codegen) genAccessGEP(n parser.Expr) llvm.Value {
 		if varType.IsNil() {
 			panic("varType was nil")
 		}
-		gep := v.builder.CreateGEP(varType, []llvm.Value{llvm.ConstInt(llvm.Int32Type(), 0, false)}, "")
+		gep := v.builder().CreateGEP(varType, []llvm.Value{llvm.ConstInt(llvm.Int32Type(), 0, false)}, "")
 
 		if _, ok := vae.GetType().(parser.MutableReferenceType); ok {
-			return v.builder.CreateLoad(gep, "")
+			return v.builder().CreateLoad(gep, "")
 		}
 
 		if _, ok := vae.GetType().(parser.ConstantReferenceType); ok {
-			return v.builder.CreateLoad(gep, "")
+			return v.builder().CreateLoad(gep, "")
 		}
 
 		return gep
@@ -656,7 +692,7 @@ func (v *Codegen) genAccessGEP(n parser.Expr) llvm.Value {
 		typ := sae.Struct.GetType().ActualType()
 
 		index := typ.(parser.StructType).VariableIndex(sae.Variable)
-		return v.builder.CreateStructGEP(gep, index, "")
+		return v.builder().CreateStructGEP(gep, index, "")
 
 	case *parser.ArrayAccessExpr:
 		aae := n.(*parser.ArrayAccessExpr)
@@ -664,14 +700,14 @@ func (v *Codegen) genAccessGEP(n parser.Expr) llvm.Value {
 		gep := v.genAccessGEP(aae.Array)
 		subscriptExpr := v.genExpr(aae.Subscript)
 
-		v.genBoundsCheck(v.builder.CreateLoad(v.builder.CreateStructGEP(gep, 0, ""), ""), subscriptExpr, aae.Subscript.GetType())
+		v.genBoundsCheck(v.builder().CreateLoad(v.builder().CreateStructGEP(gep, 0, ""), ""), subscriptExpr, aae.Subscript.GetType())
 
-		gep = v.builder.CreateStructGEP(gep, 1, "")
+		gep = v.builder().CreateStructGEP(gep, 1, "")
 
-		load := v.builder.CreateLoad(gep, "")
+		load := v.builder().CreateLoad(gep, "")
 
 		gepIndexes := []llvm.Value{llvm.ConstInt(llvm.Int32Type(), 0, false), subscriptExpr}
-		return v.builder.CreateGEP(load, gepIndexes, "")
+		return v.builder().CreateGEP(load, gepIndexes, "")
 
 	case *parser.TupleAccessExpr:
 		tae := n.(*parser.TupleAccessExpr)
@@ -679,7 +715,7 @@ func (v *Codegen) genAccessGEP(n parser.Expr) llvm.Value {
 		gep := v.genAccessGEP(tae.Tuple)
 
 		// TODO: Check overflow
-		return v.builder.CreateStructGEP(gep, int(tae.Index), "")
+		return v.builder().CreateStructGEP(gep, int(tae.Index), "")
 
 	case *parser.DerefAccessExpr:
 		dae := n.(*parser.DerefAccessExpr)
@@ -691,36 +727,36 @@ func (v *Codegen) genAccessGEP(n parser.Expr) llvm.Value {
 }
 
 func (v *Codegen) genBoundsCheck(limit llvm.Value, index llvm.Value, indexType parser.Type) {
-	segvBlock := llvm.AddBasicBlock(v.currentFunction, "boundscheck_segv")
-	endBlock := llvm.AddBasicBlock(v.currentFunction, "boundscheck_end")
-	upperCheckBlock := llvm.AddBasicBlock(v.currentFunction, "boundscheck_upper_block")
+	segvBlock := llvm.AddBasicBlock(v.currentFunction(), "boundscheck_segv")
+	endBlock := llvm.AddBasicBlock(v.currentFunction(), "boundscheck_end")
+	upperCheckBlock := llvm.AddBasicBlock(v.currentFunction(), "boundscheck_upper_block")
 
-	tooLow := v.builder.CreateICmp(llvm.IntSGT, llvm.ConstInt(index.Type(), 0, false), index, "boundscheck_lower")
-	v.builder.CreateCondBr(tooLow, segvBlock, upperCheckBlock)
+	tooLow := v.builder().CreateICmp(llvm.IntSGT, llvm.ConstInt(index.Type(), 0, false), index, "boundscheck_lower")
+	v.builder().CreateCondBr(tooLow, segvBlock, upperCheckBlock)
 
-	v.builder.SetInsertPointAtEnd(upperCheckBlock)
+	v.builder().SetInsertPointAtEnd(upperCheckBlock)
 
 	// make sure limit and index have same width
 	castedLimit := limit
 	castedIndex := index
 	if index.Type().IntTypeWidth() < limit.Type().IntTypeWidth() {
 		if indexType.IsSigned() {
-			castedIndex = v.builder.CreateSExt(index, limit.Type(), "")
+			castedIndex = v.builder().CreateSExt(index, limit.Type(), "")
 		} else {
-			castedIndex = v.builder.CreateZExt(index, limit.Type(), "")
+			castedIndex = v.builder().CreateZExt(index, limit.Type(), "")
 		}
 	} else if index.Type().IntTypeWidth() > limit.Type().IntTypeWidth() {
-		castedLimit = v.builder.CreateZExt(limit, index.Type(), "")
+		castedLimit = v.builder().CreateZExt(limit, index.Type(), "")
 	}
 
-	tooHigh := v.builder.CreateICmp(llvm.IntSLE, castedLimit, castedIndex, "boundscheck_upper")
-	v.builder.CreateCondBr(tooHigh, segvBlock, endBlock)
+	tooHigh := v.builder().CreateICmp(llvm.IntSLE, castedLimit, castedIndex, "boundscheck_upper")
+	v.builder().CreateCondBr(tooHigh, segvBlock, endBlock)
 
-	v.builder.SetInsertPointAtEnd(segvBlock)
+	v.builder().SetInsertPointAtEnd(segvBlock)
 	v.genRaiseSegfault()
-	v.builder.CreateUnreachable()
+	v.builder().CreateUnreachable()
 
-	v.builder.SetInsertPointAtEnd(endBlock)
+	v.builder().SetInsertPointAtEnd(endBlock)
 }
 
 func (v *Codegen) genRaiseSegfault() {
@@ -732,7 +768,7 @@ func (v *Codegen) genRaiseSegfault() {
 		fn = llvm.AddFunction(v.curFile.LlvmModule, "raise", fnType)
 	}
 
-	v.builder.CreateCall(fn, []llvm.Value{llvm.ConstInt(intType, 11, false)}, "segfault")
+	v.builder().CreateCall(fn, []llvm.Value{llvm.ConstInt(intType, 11, false)}, "segfault")
 }
 
 func (v *Codegen) genBoolLiteral(n *parser.BoolLiteral) llvm.Value {
@@ -757,7 +793,7 @@ func (v *Codegen) genArrayLiteral(n *parser.ArrayLiteral) llvm.Value {
 	arrayValues := make([]llvm.Value, len(n.Members))
 	for idx, mem := range n.Members {
 		value := v.genExpr(mem)
-		if !v.inFunction && !value.IsConstant() {
+		if !v.inFunction() && !value.IsConstant() {
 			v.err("Encountered non-constant value in global array")
 		}
 		arrayValues[idx] = value
@@ -766,17 +802,17 @@ func (v *Codegen) genArrayLiteral(n *parser.ArrayLiteral) llvm.Value {
 	lengthValue := llvm.ConstInt(v.typeToLLVMType(parser.PRIMITIVE_uint), uint64(len(n.Members)), false)
 	var backingArrayPointer llvm.Value
 
-	if v.inFunction {
+	if v.inFunction() {
 		// allocate backing array
-		backingArray := v.builder.CreateAlloca(llvm.ArrayType(memberLLVMType, len(n.Members)), "")
+		backingArray := v.builder().CreateAlloca(llvm.ArrayType(memberLLVMType, len(n.Members)), "")
 
 		// copy the constant array to the backing array
 		for idx, value := range arrayValues {
-			gep := v.builder.CreateStructGEP(backingArray, idx, "")
-			v.builder.CreateStore(value, gep)
+			gep := v.builder().CreateStructGEP(backingArray, idx, "")
+			v.builder().CreateStore(value, gep)
 		}
 
-		backingArrayPointer = v.builder.CreateBitCast(backingArray, llvm.PointerType(llvm.ArrayType(memberLLVMType, 0), 0), "")
+		backingArrayPointer = v.builder().CreateBitCast(backingArray, llvm.PointerType(llvm.ArrayType(memberLLVMType, 0), 0), "")
 	} else {
 		backName := fmt.Sprintf("_globarr_back_%d", v.arrayIndex)
 		v.arrayIndex++
@@ -790,8 +826,8 @@ func (v *Codegen) genArrayLiteral(n *parser.ArrayLiteral) llvm.Value {
 	}
 
 	structValue := llvm.Undef(arrayLLVMType)
-	structValue = v.builder.CreateInsertValue(structValue, lengthValue, 0, "")
-	structValue = v.builder.CreateInsertValue(structValue, backingArrayPointer, 1, "")
+	structValue = v.builder().CreateInsertValue(structValue, lengthValue, 0, "")
+	structValue = v.builder().CreateInsertValue(structValue, backingArrayPointer, 1, "")
 	return structValue
 }
 
@@ -802,11 +838,11 @@ func (v *Codegen) genTupleLiteral(n *parser.TupleLiteral) llvm.Value {
 	for idx, mem := range n.Members {
 		memberValue := v.genExpr(mem)
 
-		if !v.inFunction && !memberValue.IsConstant() {
+		if !v.inFunction() && !memberValue.IsConstant() {
 			v.err("Encountered non-constant value in global tuple literal")
 		}
 
-		tupleValue = v.builder.CreateInsertValue(tupleValue, memberValue, idx, "")
+		tupleValue = v.builder().CreateInsertValue(tupleValue, memberValue, idx, "")
 	}
 
 	return tupleValue
@@ -823,11 +859,11 @@ func (v *Codegen) genStructLiteral(n *parser.StructLiteral) llvm.Value {
 		idx := structType.VariableIndex(vari)
 
 		memberValue := v.genExpr(value)
-		if !v.inFunction && !memberValue.IsConstant() {
+		if !v.inFunction() && !memberValue.IsConstant() {
 			v.err("Encountered non-constant value in global struct literal")
 		}
 
-		structValue = v.builder.CreateInsertValue(structValue, v.genExpr(value), idx, "")
+		structValue = v.builder().CreateInsertValue(structValue, v.genExpr(value), idx, "")
 	}
 
 	return structValue
@@ -848,7 +884,7 @@ func (v *Codegen) genEnumLiteral(n *parser.EnumLiteral) llvm.Value {
 	tagValue := llvm.ConstInt(llvm.IntType(32), uint64(member.Tag), false)
 
 	enumValue := llvm.Undef(enumLLVMType)
-	enumValue = v.builder.CreateInsertValue(enumValue, tagValue, 0, "")
+	enumValue = v.builder().CreateInsertValue(enumValue, tagValue, 0, "")
 
 	memberLLVMType := v.typeToLLVMType(member.Type)
 
@@ -859,21 +895,21 @@ func (v *Codegen) genEnumLiteral(n *parser.EnumLiteral) llvm.Value {
 		memberValue = v.genStructLiteral(n.StructLiteral)
 	}
 
-	if v.inFunction {
-		alloc := v.builder.CreateAlloca(enumLLVMType, "")
+	if v.inFunction() {
+		alloc := v.builder().CreateAlloca(enumLLVMType, "")
 
-		tagGep := v.builder.CreateStructGEP(alloc, 0, "")
-		v.builder.CreateStore(tagValue, tagGep)
+		tagGep := v.builder().CreateStructGEP(alloc, 0, "")
+		v.builder().CreateStore(tagValue, tagGep)
 
 		if !memberValue.IsNil() {
-			dataGep := v.builder.CreateStructGEP(alloc, 1, "")
+			dataGep := v.builder().CreateStructGEP(alloc, 1, "")
 
-			dataGep = v.builder.CreateBitCast(dataGep, llvm.PointerType(memberLLVMType, 0), "")
+			dataGep = v.builder().CreateBitCast(dataGep, llvm.PointerType(memberLLVMType, 0), "")
 
-			v.builder.CreateStore(memberValue, dataGep)
+			v.builder().CreateStore(memberValue, dataGep)
 		}
 
-		return v.builder.CreateLoad(alloc, "")
+		return v.builder().CreateLoad(alloc, "")
 	} else {
 		panic("unimplemented: global enum literal")
 	}
@@ -888,7 +924,7 @@ func (v *Codegen) genNumericLiteral(n *parser.NumericLiteral) llvm.Value {
 }
 
 func (v *Codegen) genStringLiteral(n *parser.StringLiteral) llvm.Value {
-	return v.builder.CreateGlobalStringPtr(n.Value, "str")
+	return v.builder().CreateGlobalStringPtr(n.Value, "str")
 }
 
 func (v *Codegen) genBinaryExpr(n *parser.BinaryExpr) llvm.Value {
@@ -906,75 +942,75 @@ func (v *Codegen) genBinop(operator parser.BinOpType, resType, lhandType, rhandT
 		// Arithmetic
 		case parser.BINOP_ADD:
 			if resType.IsFloatingType() {
-				return v.builder.CreateFAdd(lhand, rhand, "")
+				return v.builder().CreateFAdd(lhand, rhand, "")
 			} else {
-				return v.builder.CreateAdd(lhand, rhand, "")
+				return v.builder().CreateAdd(lhand, rhand, "")
 			}
 		case parser.BINOP_SUB:
 			if resType.IsFloatingType() {
-				return v.builder.CreateFSub(lhand, rhand, "")
+				return v.builder().CreateFSub(lhand, rhand, "")
 			} else {
-				return v.builder.CreateSub(lhand, rhand, "")
+				return v.builder().CreateSub(lhand, rhand, "")
 			}
 		case parser.BINOP_MUL:
 			if resType.IsFloatingType() {
-				return v.builder.CreateFMul(lhand, rhand, "")
+				return v.builder().CreateFMul(lhand, rhand, "")
 			} else {
-				return v.builder.CreateMul(lhand, rhand, "")
+				return v.builder().CreateMul(lhand, rhand, "")
 			}
 		case parser.BINOP_DIV:
 			if resType.IsFloatingType() {
-				return v.builder.CreateFDiv(lhand, rhand, "")
+				return v.builder().CreateFDiv(lhand, rhand, "")
 			} else {
 				if resType.(parser.PrimitiveType).IsSigned() {
-					return v.builder.CreateSDiv(lhand, rhand, "")
+					return v.builder().CreateSDiv(lhand, rhand, "")
 				} else {
-					return v.builder.CreateUDiv(lhand, rhand, "")
+					return v.builder().CreateUDiv(lhand, rhand, "")
 				}
 			}
 		case parser.BINOP_MOD:
 			if resType.IsFloatingType() {
-				return v.builder.CreateFRem(lhand, rhand, "")
+				return v.builder().CreateFRem(lhand, rhand, "")
 			} else {
 				if resType.(parser.PrimitiveType).IsSigned() {
-					return v.builder.CreateSRem(lhand, rhand, "")
+					return v.builder().CreateSRem(lhand, rhand, "")
 				} else {
-					return v.builder.CreateURem(lhand, rhand, "")
+					return v.builder().CreateURem(lhand, rhand, "")
 				}
 			}
 
 		// Comparison
 		case parser.BINOP_GREATER, parser.BINOP_LESS, parser.BINOP_GREATER_EQ, parser.BINOP_LESS_EQ, parser.BINOP_EQ, parser.BINOP_NOT_EQ:
 			if lhandType.IsFloatingType() {
-				return v.builder.CreateFCmp(comparisonOpToFloatPredicate(operator), lhand, rhand, "")
+				return v.builder().CreateFCmp(comparisonOpToFloatPredicate(operator), lhand, rhand, "")
 			} else {
-				return v.builder.CreateICmp(comparisonOpToIntPredicate(operator, lhandType.IsSigned()), lhand, rhand, "")
+				return v.builder().CreateICmp(comparisonOpToIntPredicate(operator, lhandType.IsSigned()), lhand, rhand, "")
 			}
 
 		// Bitwise
 		case parser.BINOP_BIT_AND:
-			return v.builder.CreateAnd(lhand, rhand, "")
+			return v.builder().CreateAnd(lhand, rhand, "")
 		case parser.BINOP_BIT_OR:
-			return v.builder.CreateOr(lhand, rhand, "")
+			return v.builder().CreateOr(lhand, rhand, "")
 		case parser.BINOP_BIT_XOR:
-			return v.builder.CreateXor(lhand, rhand, "")
+			return v.builder().CreateXor(lhand, rhand, "")
 		case parser.BINOP_BIT_LEFT:
-			return v.builder.CreateShl(lhand, rhand, "")
+			return v.builder().CreateShl(lhand, rhand, "")
 		case parser.BINOP_BIT_RIGHT:
 			// TODO make sure both operands are same type (create type cast here?)
 			// TODO in semantic.go, make sure rhand is *unsigned* (LLVM always treats it that way)
 			// TODO doc this
 			if lhandType.IsSigned() {
-				return v.builder.CreateAShr(lhand, rhand, "")
+				return v.builder().CreateAShr(lhand, rhand, "")
 			} else {
-				return v.builder.CreateLShr(lhand, rhand, "")
+				return v.builder().CreateLShr(lhand, rhand, "")
 			}
 
 		// Logical
 		case parser.BINOP_LOG_AND:
-			return v.builder.CreateAnd(lhand, rhand, "")
+			return v.builder().CreateAnd(lhand, rhand, "")
 		case parser.BINOP_LOG_OR:
-			return v.builder.CreateOr(lhand, rhand, "")
+			return v.builder().CreateOr(lhand, rhand, "")
 
 		default:
 			panic("umimplented binop")
@@ -1040,12 +1076,12 @@ func (v *Codegen) genUnaryExpr(n *parser.UnaryExpr) llvm.Value {
 
 	switch n.Op {
 	case parser.UNOP_BIT_NOT, parser.UNOP_LOG_NOT:
-		return v.builder.CreateNot(expr, "")
+		return v.builder().CreateNot(expr, "")
 	case parser.UNOP_NEGATIVE:
 		if n.Expr.GetType().IsFloatingType() {
-			return v.builder.CreateFNeg(expr, "")
+			return v.builder().CreateFNeg(expr, "")
 		} else if n.Expr.GetType().IsIntegerType() {
-			return v.builder.CreateNeg(expr, "")
+			return v.builder().CreateNeg(expr, "")
 		} else {
 			panic("internal: UNOP_NEGATIVE on non-numeric type")
 		}
@@ -1066,9 +1102,9 @@ func (v *Codegen) genCastExpr(n *parser.CastExpr) llvm.Value {
 	if exprType.IsIntegerType() || exprType == parser.PRIMITIVE_rune {
 		if _, ok := castType.(parser.PointerType); ok {
 			if _, ok := exprType.(parser.PointerType); ok {
-				return v.builder.CreateBitCast(v.genExpr(n.Expr), v.typeToLLVMType(castType), "")
+				return v.builder().CreateBitCast(v.genExpr(n.Expr), v.typeToLLVMType(castType), "")
 			} else {
-				return v.builder.CreateIntToPtr(v.genExpr(n.Expr), v.typeToLLVMType(castType), "")
+				return v.builder().CreateIntToPtr(v.genExpr(n.Expr), v.typeToLLVMType(castType), "")
 			}
 		} else if castType.IsIntegerType() || castType == parser.PRIMITIVE_rune {
 			exprBits := v.typeToLLVMType(exprType).IntTypeWidth()
@@ -1077,30 +1113,30 @@ func (v *Codegen) genCastExpr(n *parser.CastExpr) llvm.Value {
 				return v.genExpr(n.Expr)
 			} else if exprBits > castBits {
 				/*shiftConst := llvm.ConstInt(v.typeToLLVMType(exprType), uint64(exprBits-castBits), false)
-				shl := v.builder.CreateShl(v.genExpr(n.Expr), shiftConst, "")
-				shr := v.builder.CreateAShr(shl, shiftConst, "")
-				return v.builder.CreateTrunc(shr, v.typeToLLVMType(castType), "")*/
-				return v.builder.CreateTrunc(v.genExpr(n.Expr), v.typeToLLVMType(castType), "") // TODO get this to work right!
+				shl := v.builder().CreateShl(v.genExpr(n.Expr), shiftConst, "")
+				shr := v.builder().CreateAShr(shl, shiftConst, "")
+				return v.builder().CreateTrunc(shr, v.typeToLLVMType(castType), "")*/
+				return v.builder().CreateTrunc(v.genExpr(n.Expr), v.typeToLLVMType(castType), "") // TODO get this to work right!
 			} else if exprBits < castBits {
 				if exprType.IsSigned() {
-					return v.builder.CreateSExt(v.genExpr(n.Expr), v.typeToLLVMType(castType), "") // TODO doc this
+					return v.builder().CreateSExt(v.genExpr(n.Expr), v.typeToLLVMType(castType), "") // TODO doc this
 				} else {
-					return v.builder.CreateZExt(v.genExpr(n.Expr), v.typeToLLVMType(castType), "")
+					return v.builder().CreateZExt(v.genExpr(n.Expr), v.typeToLLVMType(castType), "")
 				}
 			}
 		} else if castType.IsFloatingType() {
 			if exprType.IsSigned() {
-				return v.builder.CreateSIToFP(v.genExpr(n.Expr), v.typeToLLVMType(castType), "")
+				return v.builder().CreateSIToFP(v.genExpr(n.Expr), v.typeToLLVMType(castType), "")
 			} else {
-				return v.builder.CreateUIToFP(v.genExpr(n.Expr), v.typeToLLVMType(castType), "")
+				return v.builder().CreateUIToFP(v.genExpr(n.Expr), v.typeToLLVMType(castType), "")
 			}
 		}
 	} else if exprType.IsFloatingType() {
 		if castType.IsIntegerType() || castType == parser.PRIMITIVE_rune {
 			if exprType.IsSigned() {
-				return v.builder.CreateFPToSI(v.genExpr(n.Expr), v.typeToLLVMType(castType), "")
+				return v.builder().CreateFPToSI(v.genExpr(n.Expr), v.typeToLLVMType(castType), "")
 			} else {
-				return v.builder.CreateFPToUI(v.genExpr(n.Expr), v.typeToLLVMType(castType), "")
+				return v.builder().CreateFPToUI(v.genExpr(n.Expr), v.typeToLLVMType(castType), "")
 			}
 		} else if castType.IsFloatingType() {
 			exprBits := floatTypeBits(exprType.(parser.PrimitiveType))
@@ -1108,9 +1144,9 @@ func (v *Codegen) genCastExpr(n *parser.CastExpr) llvm.Value {
 			if exprBits == castBits {
 				return v.genExpr(n.Expr)
 			} else if exprBits > castBits {
-				return v.builder.CreateFPTrunc(v.genExpr(n.Expr), v.typeToLLVMType(castType), "") // TODO get this to work right!
+				return v.builder().CreateFPTrunc(v.genExpr(n.Expr), v.typeToLLVMType(castType), "") // TODO get this to work right!
 			} else if exprBits < castBits {
-				return v.builder.CreateFPExt(v.genExpr(n.Expr), v.typeToLLVMType(castType), "")
+				return v.builder().CreateFPExt(v.genExpr(n.Expr), v.typeToLLVMType(castType), "")
 			}
 		}
 	}
@@ -1154,7 +1190,7 @@ func (v *Codegen) genCallExprWithArgs(n *parser.CallExpr, args []llvm.Value) llv
 		function = v.curFile.LlvmModule.NamedFunction(functionName)
 	}
 
-	call := v.builder.CreateCall(function, args, "")
+	call := v.builder().CreateCall(function, args, "")
 	call.SetInstructionCallConv(function.FunctionCallConv())
 
 	return call
@@ -1187,7 +1223,7 @@ func (v *Codegen) genArrayLenExpr(n *parser.ArrayLenExpr) llvm.Value {
 	}
 
 	gep := v.genAccessGEP(n.Expr)
-	gep = v.builder.CreateLoad(v.builder.CreateStructGEP(gep, 0, ""), "")
+	gep = v.builder().CreateLoad(v.builder().CreateStructGEP(gep, 0, ""), "")
 	return gep
 }
 
