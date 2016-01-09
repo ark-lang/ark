@@ -17,6 +17,7 @@ import (
 	"github.com/ark-lang/ark/src/util"
 )
 
+
 type parser struct {
 	input        *lexer.Sourcefile
 	currentToken int
@@ -157,7 +158,7 @@ func (v *parser) expect(typ lexer.TokenType, val string) *lexer.Token {
 
 func (v *parser) parse() {
 	for v.peek(0) != nil {
-		if n := v.parseDecl(); n != nil {
+		if n := v.parseDecl(true); n != nil {
 			v.tree.AddNode(n)
 		} else if n := v.parseToplevelDirective(); n != nil {
 			v.tree.AddNode(n)
@@ -201,18 +202,26 @@ func (v *parser) parseToplevelDirective() ParseNode {
 	}
 }
 
-func (v *parser) parseNode() ParseNode {
+func (v *parser) parseNode() (ParseNode, bool) {
 	defer un(trace(v, "node"))
 
 	var ret ParseNode
 
-	if decl := v.parseDecl(); decl != nil {
+	is_cond := false
+
+	if decl := v.parseDecl(false); decl != nil {
 		ret = decl
 	} else if stat := v.parseStat(); stat != nil {
 		ret = stat
+	} else if cond := v.parseConditionalStat(); cond != nil {
+		ret = cond
+		is_cond = true
+	} else if blockStat := v.parseBlockStat(); blockStat != nil {
+		ret = blockStat
+		is_cond = true
 	}
 
-	return ret
+	return ret, is_cond
 }
 
 func (v *parser) parseDocComments() []*DocComment {
@@ -305,7 +314,7 @@ func (v *parser) parseName() *NameNode {
 	return res
 }
 
-func (v *parser) parseDecl() ParseNode {
+func (v *parser) parseDecl(isTopLevel bool) ParseNode {
 	defer un(trace(v, "decl"))
 
 	var res ParseNode
@@ -316,7 +325,7 @@ func (v *parser) parseDecl() ParseNode {
 		res = typeDecl
 	} else if funcDecl := v.parseFuncDecl(); funcDecl != nil {
 		res = funcDecl
-	} else if varDecl := v.parseVarDecl(); varDecl != nil {
+	} else if varDecl := v.parseVarDecl(isTopLevel); varDecl != nil {
 		res = varDecl
 	}
 
@@ -365,32 +374,35 @@ func (v *parser) parseFunc(lambda bool) *FunctionNode {
 
 	var body *BlockNode
 	var stat, expr ParseNode
-	var endPosition lexer.Position
-	if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "=>") {
+	var end lexer.Position
+
+	if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ";") {
+		terminator := v.consumeToken()
+		end = terminator.Where.End()
+	} else if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "=>") {
 		v.consumeToken()
 
+
 		if stat = v.parseStat(); stat != nil {
-			endPosition = stat.Where().End()
+			end = stat.Where().End()
 		} else if expr = v.parseExpr(); expr != nil {
-			tok := v.expect(lexer.TOKEN_SEPARATOR, ";")
-			endPosition = tok.Where.End()
+			end = expr.Where().End()
 		} else {
-			v.err("Expected valid statement or expression after `=>` in function declaration")
+			v.err("Expected valid statement or expression after => operator in function declaration")
 		}
+
+		v.expect(lexer.TOKEN_SEPARATOR, ";")
 	} else {
 		body = v.parseBlock()
-		if body != nil {
-			endPosition = body.Where().End()
+		if body == nil {
+			v.err("Expected block after function declaration, or terminating semi-colon")
 		}
+		end = body.Where().End()
 	}
 
-	if body == nil && stat == nil && expr == nil {
-		tok := v.expect(lexer.TOKEN_SEPARATOR, ";")
-		endPosition = tok.Where.End()
-	}
-
-	res := &FunctionNode{Header: funcHeader, Body: body, Stat: stat, Expr: expr}
-	res.SetWhere(lexer.NewSpan(funcHeader.Where().Start(), endPosition))
+	
+	res := &FunctionNode{Header: funcHeader, Body: body, Expr: expr}
+	res.SetWhere(lexer.NewSpan(funcHeader.Where().Start(), end))
 	return res
 }
 
@@ -515,7 +527,7 @@ func (v *parser) parseTypeDecl() *TypeDeclNode {
 		GenericSigil: genericSigil,
 		Type:         typ,
 	}
-	res.SetWhere(lexer.NewSpanFromTokens(startToken, endToken))
+	res.SetWhere(lexer.NewSpan(startToken.Where.Start(), endToken.Where.End()))
 
 	return res
 }
@@ -616,18 +628,19 @@ func (v *parser) parseEnumEntry() *EnumEntryNode {
 	return res
 }
 
-func (v *parser) parseVarDecl() *VarDeclNode {
+func (v *parser) parseVarDecl(isTopLevel bool) *VarDeclNode {
 	defer un(trace(v, "vardecl"))
 
 	body := v.parseVarDeclBody()
 	if body == nil {
 		return nil
 	}
-
-	endToken := v.expect(lexer.TOKEN_SEPARATOR, ";")
+	if isTopLevel {
+		v.expect(lexer.TOKEN_SEPARATOR, ";")
+	}
 
 	res := body
-	res.SetWhere(lexer.NewSpan(body.Where().Start(), endToken.Where.End()))
+	res.SetWhere(lexer.NewSpan(body.Where().Start(), body.Where().End()))
 	return res
 }
 
@@ -689,6 +702,23 @@ func (v *parser) parseVarDeclBody() *VarDeclNode {
 	return res
 }
 
+func (v *parser) parseConditionalStat() ParseNode {
+	defer un(trace(v, "conditionalstat"))
+
+	var res ParseNode
+
+	// conditional structures
+	if ifStat := v.parseIfStat(); ifStat != nil {
+		res = ifStat
+	} else if matchStat := v.parseMatchStat(); matchStat != nil {
+		res = matchStat
+	} else if loopStat := v.parseLoopStat(); loopStat != nil {
+		res = loopStat
+	}
+
+	return res
+}
+
 func (v *parser) parseStat() ParseNode {
 	defer un(trace(v, "stat"))
 
@@ -698,16 +728,8 @@ func (v *parser) parseStat() ParseNode {
 		res = defaultStat
 	} else if deferStat := v.parseDeferStat(); deferStat != nil {
 		res = deferStat
-	} else if ifStat := v.parseIfStat(); ifStat != nil {
-		res = ifStat
-	} else if matchStat := v.parseMatchStat(); matchStat != nil {
-		res = matchStat
-	} else if loopStat := v.parseLoopStat(); loopStat != nil {
-		res = loopStat
 	} else if returnStat := v.parseReturnStat(); returnStat != nil {
 		res = returnStat
-	} else if blockStat := v.parseBlockStat(); blockStat != nil {
-		res = blockStat
 	} else if callStat := v.parseCallStat(); callStat != nil {
 		res = callStat
 	} else if assignStat := v.parseAssignStat(); assignStat != nil {
@@ -734,8 +756,7 @@ func (v *parser) parseDefaultStat() *DefaultStatNode {
 		v.err("Expected valid expression in default statement")
 	}
 
-	v.expect(lexer.TOKEN_SEPARATOR, ")")
-	endToken := v.expect(lexer.TOKEN_SEPARATOR, ";")
+	endToken := v.expect(lexer.TOKEN_SEPARATOR, ")")
 
 	res := &DefaultStatNode{Target: target}
 	res.SetWhere(lexer.NewSpanFromTokens(startToken, endToken))
@@ -755,10 +776,8 @@ func (v *parser) parseDeferStat() *DeferStatNode {
 		v.err("Expected valid call expression in defer statement")
 	}
 
-	endToken := v.expect(lexer.TOKEN_SEPARATOR, ";")
-
 	res := &DeferStatNode{Call: call}
-	res.SetWhere(lexer.NewSpanFromTokens(startToken, endToken))
+	res.SetWhere(lexer.NewSpan(startToken.Where.Start(), call.Where().End()))
 	return res
 }
 
@@ -849,10 +868,17 @@ func (v *parser) parseMatchStat() *MatchStatNode {
 
 		v.expect(lexer.TOKEN_OPERATOR, "=>")
 
-		body := v.parseStat()
-		if body == nil {
-			v.err("Expected valid statement as body in match statement")
+		var body ParseNode
+		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "{") {
+			body = v.parseBlock()
+		} else {
+			body = v.parseStat()			
 		}
+		if body == nil {
+			v.err("Expected valid arm statement in match clause")
+		}
+
+		v.expect(lexer.TOKEN_SEPARATOR, ",")
 
 		caseNode := &MatchCaseNode{Pattern: pattern, Body: body}
 		caseNode.SetWhere(lexer.NewSpan(pattern.Where().Start(), body.Where().End()))
@@ -896,10 +922,8 @@ func (v *parser) parseReturnStat() *ReturnStatNode {
 
 	value := v.parseExpr()
 
-	endToken := v.expect(lexer.TOKEN_SEPARATOR, ";")
-
 	res := &ReturnStatNode{Value: value}
-	res.SetWhere(lexer.NewSpanFromTokens(startToken, endToken))
+	res.SetWhere(lexer.NewSpan(startToken.Where.Start(), value.Where().End()))
 	return res
 }
 
@@ -938,9 +962,12 @@ func (v *parser) parseBlock() *BlockNode {
 
 	var nodes []ParseNode
 	for {
-		node := v.parseNode()
+		node, is_cond := v.parseNode()
 		if node == nil {
 			break
+		}
+		if !is_cond {
+			v.expect(lexer.TOKEN_SEPARATOR, ";")
 		}
 		nodes = append(nodes, node)
 	}
@@ -963,10 +990,8 @@ func (v *parser) parseCallStat() *CallStatNode {
 		return nil
 	}
 
-	endToken := v.expect(lexer.TOKEN_SEPARATOR, ";")
-
 	res := &CallStatNode{Call: callExpr}
-	res.SetWhere(lexer.NewSpan(callExpr.Where().Start(), endToken.Where.End()))
+	res.SetWhere(lexer.NewSpan(callExpr.Where().Start(), callExpr.Where().End()))
 	return res
 }
 
@@ -990,14 +1015,13 @@ func (v *parser) parseAssignStat() ParseNode {
 		value = v.parseExpr()
 	}
 
+	// not a composite or expr = error
 	if value == nil {
 		v.err("Expected valid expression in assignment statement")
 	}
 
-	endToken := v.expect(lexer.TOKEN_SEPARATOR, ";")
-
 	res := &AssignStatNode{Target: accessExpr, Value: value}
-	res.SetWhere(lexer.NewSpan(accessExpr.Where().Start(), endToken.Where.End()))
+	res.SetWhere(lexer.NewSpan(accessExpr.Where().Start(), value.Where().End()))
 	return res
 }
 
@@ -1027,14 +1051,13 @@ func (v *parser) parseBinopAssignStat() ParseNode {
 		value = v.parseExpr()
 	}
 
+	// no composite and no expr = err
 	if value == nil {
 		v.err("Expected valid expression in assignment statement")
 	}
 
-	endToken := v.expect(lexer.TOKEN_SEPARATOR, ";")
-
 	res := &BinopAssignStatNode{Target: accessExpr, Operator: typ, Value: value}
-	res.SetWhere(lexer.NewSpan(accessExpr.Where().Start(), endToken.Where.End()))
+	res.SetWhere(lexer.NewSpan(accessExpr.Where().Start(), value.Where().End()))
 	return res
 }
 
