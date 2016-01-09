@@ -401,7 +401,7 @@ func (v *parser) parseFunc(lambda bool) *FunctionNode {
 	}
 
 	
-	res := &FunctionNode{Header: funcHeader, Body: body, Expr: expr}
+	res := &FunctionNode{Header: funcHeader, Body: body, Stat: stat, Expr: expr}
 	res.SetWhere(lexer.NewSpan(funcHeader.Where().Start(), end))
 	return res
 }

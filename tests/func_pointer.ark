@@ -11,5 +11,7 @@ func main() -> int {
         return 5;
     };
 
+    [unused] another := func() -> int => return 6;
+
     return 0;
 }
