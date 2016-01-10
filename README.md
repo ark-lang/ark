@@ -5,7 +5,7 @@
 
 _Ark rendering a triangle using GLFW and Opengl [source here](//github.com/ark-lang/ark-gl)_
 
-[Ark](//www.ark-lang.org) is a systems programming language is a systems
+[Ark](//www.ark-lang.org) is a systems
 programming language somewhere inbetween C and C++. It's goals are to
 modernize the C language, yet remove the cruft that is present in C++
 due to backwards compatibility.
