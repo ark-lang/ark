@@ -82,7 +82,7 @@ func (v *Scope) err(err string, stuff ...interface{}) {
 	// TODO: These errors are unacceptably shitty
 	log.Error("parser", util.TEXT_RED+util.TEXT_BOLD+"error:"+util.TEXT_RESET+" %s\n",
 		fmt.Sprintf(err, stuff...))
-	os.Exit(util.EXIT_FAILURE_CODEGEN)
+	os.Exit(util.EXIT_FAILURE_PARSE)
 }
 
 func (v *Scope) InsertIdent(value interface{}, name string, typ IdentType) *Ident {
