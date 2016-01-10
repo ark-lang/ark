@@ -80,39 +80,42 @@ func (v *parser) parseAttrs() AttrGroup {
 	for v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "[") {
 		// eat the opening bracket
 		v.consumeToken()
-	thing:
-		attr := &Attr{
-			Key: v.consumeToken().Contents,
-		}
-		attr.setPos(v.peek(0).Where.Start())
 
-		if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "=") {
-			v.consumeToken() // eat =
-
-			if v.tokenMatches(0, lexer.TOKEN_STRING, "") {
-				attr.Value = v.consumeToken().Contents
-				attr.Value = attr.Value[1 : len(attr.Value)-1]
-			} else {
-				v.err("Expected attribute value, found `%s`", v.peek(0).Contents)
+		for {
+			attr := &Attr{
+				Key: v.consumeToken().Contents,
 			}
-		}
+			attr.setPos(v.peek(0).Where.Start())
 
-		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ",") {
-			v.consumeToken()
-			if ret.Set(attr.Key, attr) {
-				v.err("Duplicate attribute `%s`", attr.Key)
+			if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "=") {
+				v.consumeToken() // eat =
+
+				if v.tokenMatches(0, lexer.TOKEN_STRING, "") {
+					attr.Value = v.consumeToken().Contents
+					attr.Value = attr.Value[1 : len(attr.Value)-1]
+				} else {
+					v.err("Expected attribute value, found `%s`", v.peek(0).Contents)
+				}
 			}
-			goto thing // hey, it works
-		} else if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "]") {
+
+			if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ",") {
+				v.consumeToken()
+				if ret.Set(attr.Key, attr) {
+					v.err("Duplicate attribute `%s`", attr.Key)
+				}
+				continue
+			} else if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "]") {
+				// eat the closing bracket
+				v.consumeToken()
+
+				if ret.Set(attr.Key, attr) {
+					v.err("Duplicate attribute `%s`", attr.Key)
+				}
+				break
+			}
 			v.err("Expected `]` at the end of attribute, found `%s`", v.peek(0).Contents)
 		}
 
-		// eat the closing bracket
-		v.consumeToken()
-
-		if ret.Set(attr.Key, attr) {
-			v.err("Duplicate attribute `%s`", attr.Key)
-		}
 	}
 	return ret
 }
