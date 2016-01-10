@@ -934,7 +934,46 @@ func (v *Codegen) genStringLiteral(n *parser.StringLiteral) llvm.Value {
 	return v.builder().CreateGlobalStringPtr(n.Value, "str")
 }
 
+func (v *Codegen) genLogicalBinop(n *parser.BinaryExpr) llvm.Value {
+	and := n.Op == parser.BINOP_LOG_AND
+
+	first := v.builder().GetInsertBlock()
+	next := llvm.AddBasicBlock(v.currentFunction(), "and_next")
+	exit := llvm.AddBasicBlock(v.currentFunction(), "and_exit")
+
+	b1 := v.genExpr(n.Lhand)
+	first = v.builder().GetInsertBlock()
+	if and {
+		v.builder().CreateCondBr(b1, next, exit)
+	} else {
+		v.builder().CreateCondBr(b1, exit, next)
+	}
+
+	v.builder().SetInsertPointAtEnd(next)
+	b2 := v.genExpr(n.Rhand)
+	next = v.builder().GetInsertBlock()
+	v.builder().CreateBr(exit)
+
+	v.builder().SetInsertPointAtEnd(exit)
+	phi := v.builder().CreatePHI(b2.Type(), "and_phi")
+
+	var testIncVal uint64
+	if and {
+		testIncVal = 0
+	} else {
+		testIncVal = 1
+	}
+
+	phi.AddIncoming([]llvm.Value{llvm.ConstInt(llvm.IntType(1), testIncVal, false), b2}, []llvm.BasicBlock{first, next})
+
+	return phi
+}
+
 func (v *Codegen) genBinaryExpr(n *parser.BinaryExpr) llvm.Value {
+	if n.Op.Category() == parser.OP_LOGICAL {
+		return v.genLogicalBinop(n)
+	}
+
 	lhand := v.genExpr(n.Lhand)
 	rhand := v.genExpr(n.Rhand)
 
@@ -1012,12 +1051,6 @@ func (v *Codegen) genBinop(operator parser.BinOpType, resType, lhandType, rhandT
 			} else {
 				return v.builder().CreateLShr(lhand, rhand, "")
 			}
-
-		// Logical
-		case parser.BINOP_LOG_AND:
-			return v.builder().CreateAnd(lhand, rhand, "")
-		case parser.BINOP_LOG_OR:
-			return v.builder().CreateOr(lhand, rhand, "")
 
 		default:
 			panic("umimplented binop")

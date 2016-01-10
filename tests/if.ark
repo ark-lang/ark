@@ -7,6 +7,21 @@ func do() -> bool {
 	return false;
 }
 
+mut globInt2 := 0;
+
+func do2() -> bool {
+	globInt2 += 1;
+	return true;
+}
+
+mut globInt3 := 0;
+
+func do3() -> bool {
+	globInt3 += 1;
+	return false;
+}
+
+// TODO create a separate logical binop test
 func main() -> int {
 	mut x: int = 5;
 	if x == 5 {
@@ -18,7 +33,7 @@ func main() -> int {
 		return 1;
 	}
 
-	if do() && do() {
+	if do() && false && do() && do() {
 
 	}
 
@@ -27,7 +42,24 @@ func main() -> int {
 		return 1;
 	}
 
+	if do2() || do2() {
+
+	}
+
+	if globInt2 != 1 {
+		return 2;
+	}
+
+	if do3() || do3() {
+
+	}
+
+	if globInt3 != 2 {
+		return 3;
+	}
+
 	if 1 == 1 {
+		C::printf("if.ark test is a success!\n");
 		return 0;
 	} else {
 		if 1 == 2 {
