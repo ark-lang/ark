@@ -49,7 +49,7 @@ func main(args: []str) -> int {
 ```
 
 ## <a name="installing"></a> Installing
-Installing Ark is simple, you'll need a few dependencies 
+Installing Ark is simple, you'll need a few dependencies
 before you get started:
 
 ### <a name="dependencies"></a> Dependencies
@@ -60,7 +60,7 @@ before you get started:
 * `libedit-dev` installed
 
 ### <a name="building"></a> Building
-Replace `release` to match your llvm release. You can check by running 
+Replace `release` to match your llvm release. You can check by running
 the `llvm-config --version` command. If you are on 3.6.1, `release` would
 become `RELEASE_361`, or `RELEASE_362` for 3.6.2, and so on.
 
@@ -73,7 +73,7 @@ $ go install llvm.org/llvm/bindings/go/llvm
 $ go get github.com/ark-lang/ark/...
 ```
 
-The `ark` binary will be built in `$GOPATH/bin`. To use the compiler, 
+The `ark` binary will be built in `$GOPATH/bin`. To use the compiler,
 make sure `$GOPATH/bin` is in your `$PATH`.
 
 ### <a name="compiling-ark-code"></a> Compiling Ark code
@@ -90,22 +90,22 @@ Given the following project structure:
 
 To compile this, you would pass through the file which contains the main
 entry point (main function) to your program, which is most likely going to
-be called "main.ark". 
-However, because our projects source files are in another directory ("src/"), 
+be called "main.ark".
+However, because our projects source files are in another directory ("src/"),
 we need to set the "base directory" -- the base directory is where the ark compiler
 will scan for other modules.
 
-To do this we use the `--basedir` flag, which can be shortened to `-b`. We can 
+To do this we use the `--basedir` flag, which can be shortened to `-b`. We can
 then pass in the main module after this, and any flags you want to use:
 
     ark build -b src main --loglevel=debug
 
-This should compile your code, and produce an executable called "main", which 
+This should compile your code, and produce an executable called "main", which
 you can then run.
 
 For more information on the module system and how it works,
 refer to the ["Modules and Dependencies"](http://book.ark-lang.org/modules.html)
-section in the Ark reference. 
+section in the Ark reference.
 
 For more information on program flags, refer to the
 ["Program Input"](http://book.ark-lang.org/source.html), section in the Ark
