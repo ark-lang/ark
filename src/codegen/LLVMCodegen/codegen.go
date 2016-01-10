@@ -937,12 +937,11 @@ func (v *Codegen) genStringLiteral(n *parser.StringLiteral) llvm.Value {
 func (v *Codegen) genLogicalBinop(n *parser.BinaryExpr) llvm.Value {
 	and := n.Op == parser.BINOP_LOG_AND
 
-	first := v.builder().GetInsertBlock()
 	next := llvm.AddBasicBlock(v.currentFunction(), "and_next")
 	exit := llvm.AddBasicBlock(v.currentFunction(), "and_exit")
 
 	b1 := v.genExpr(n.Lhand)
-	first = v.builder().GetInsertBlock()
+	first := v.builder().GetInsertBlock()
 	if and {
 		v.builder().CreateCondBr(b1, next, exit)
 	} else {
