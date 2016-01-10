@@ -2,9 +2,18 @@
   /* nested comments */
   /* Because
     /* Why not? */
+    // yup
   */
 */
 
+
+// thing
+
+
+/* hi */
+
 func main() -> int {
-	return 0;
+	return 0; //hi /* yup */
 }
+
+/* hi */ //thi

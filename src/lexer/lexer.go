@@ -126,14 +126,8 @@ func (v *lexer) lex() {
 	}
 }
 
-func (v *lexer) skipLayoutAndComments() {
-start:
-	for isLayout(v.peek(0)) {
-		v.consume()
-	}
-
-	v.discardBuffer()
-
+// returns true if a comment was skipped
+func (v *lexer) skipComment() bool {
 	pos := v.curPos
 
 	// Block comments
@@ -169,7 +163,7 @@ start:
 		} else {
 			v.discardBuffer()
 		}
-		goto start
+		return true
 	}
 
 	// Single-line comments
@@ -186,9 +180,24 @@ start:
 					v.discardBuffer()
 				}
 				v.consume()
-				goto start
+				return true
 			}
 			v.consume()
+		}
+	}
+
+	return false
+}
+
+func (v *lexer) skipLayoutAndComments() {
+	for {
+		for isLayout(v.peek(0)) {
+			v.consume()
+		}
+		v.discardBuffer()
+
+		if !v.skipComment() {
+			break
 		}
 	}
 
