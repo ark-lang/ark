@@ -608,6 +608,12 @@ func (v *ReturnStatNode) construct(c *Constructor) Node {
 	return res
 }
 
+func (v *BreakStatNode) construct(c *Constructor) Node {
+	res := &BreakStat{}
+	res.setPos(v.Where().Start())
+	return res
+}
+
 func (v *BlockStatNode) construct(c *Constructor) Node {
 	res := &BlockStat{}
 	res.Block = c.constructNode(v.Body).(*Block) // TODO: Error message

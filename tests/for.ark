@@ -8,5 +8,23 @@ func main() -> int {
         i = i + 1;
     }
 
+    mut x := 0;
+
+    for x < 10 {
+        C::printf("x: %d\n", x);
+
+        x += 1;
+
+        for {
+            break;
+        }
+
+        if x == 5 {
+            break;
+        } else {
+            C::printf("else\n");
+        }
+    }
+
     return 0;
 }

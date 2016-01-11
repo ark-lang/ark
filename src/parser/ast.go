@@ -163,6 +163,14 @@ func (v *Block) NodeName() string {
 	return "block"
 }
 
+// nil if no nodes
+func (v Block) LastNode() Node {
+	if len(v.Nodes) == 0 {
+		return nil
+	}
+	return v.Nodes[len(v.Nodes)-1]
+}
+
 /**
  * Declarations
  */
@@ -318,6 +326,23 @@ func (v *ReturnStat) String() string {
 
 func (v *ReturnStat) NodeName() string {
 	return "return statement"
+}
+
+// BreakStat
+
+type BreakStat struct {
+	nodePos
+	Value Expr
+}
+
+func (v *BreakStat) statNode() {}
+
+func (v *BreakStat) String() string {
+	return "(" + util.Blue("BreakStat") + ")"
+}
+
+func (v *BreakStat) NodeName() string {
+	return "break statement"
 }
 
 // CallStat

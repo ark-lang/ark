@@ -19,7 +19,9 @@ type Codegen struct {
 	input   []*WrappedModule
 	curFile *WrappedModule
 
-	builders        map[llvm.Value]llvm.Builder
+	builders     map[llvm.Value]llvm.Builder      // map of functions to builders
+	curLoopExits map[llvm.Value][]llvm.BasicBlock // map of functions to slices of blocks, where each block is the exit block for current loops
+
 	globalBuilder   llvm.Builder // used non-function stuff
 	variableLookup  map[*parser.Variable]llvm.Value
 	namedTypeLookup map[string]llvm.Type
@@ -98,6 +100,8 @@ func (v *Codegen) Generate(input []*parser.Module) {
 	v.builders = make(map[llvm.Value]llvm.Builder)
 	v.globalBuilder = llvm.NewBuilder()
 	defer v.globalBuilder.Dispose()
+
+	v.curLoopExits = make(map[llvm.Value][]llvm.BasicBlock)
 
 	v.input = make([]*WrappedModule, len(input))
 	for idx, mod := range input {
@@ -310,6 +314,8 @@ func (v *Codegen) genStat(n parser.Stat) {
 	switch n := n.(type) {
 	case *parser.ReturnStat:
 		v.genReturnStat(n)
+	case *parser.BreakStat:
+		v.genBreakStat(n)
 	case *parser.BlockStat:
 		v.genBlockStat(n)
 	case *parser.CallStat:
@@ -331,6 +337,11 @@ func (v *Codegen) genStat(n parser.Stat) {
 	default:
 		panic("unimplemented stat")
 	}
+}
+
+func (v *Codegen) genBreakStat(n *parser.BreakStat) {
+	curExits := v.curLoopExits[v.currentFunction()]
+	v.builder().CreateBr(curExits[len(curExits)-1])
 }
 
 func (v *Codegen) genDeferStat(n *parser.DeferStat) {
@@ -399,6 +410,15 @@ func (v *Codegen) genBinopAssignStat(n *parser.BinopAssignStat) {
 	v.builder().CreateStore(value, storage)
 }
 
+// TODO add continue
+func isBreakOrContinue(n parser.Node) bool {
+	switch n.(type) {
+	case *parser.BreakStat:
+		return true
+	}
+	return false
+}
+
 func (v *Codegen) genIfStat(n *parser.IfStat) {
 	// Warning to all who tread here:
 	// This function is complicated, but theoretically it should never need to
@@ -426,7 +446,7 @@ func (v *Codegen) genIfStat(n *parser.IfStat) {
 		v.builder().SetInsertPointAtEnd(ifTrue)
 		v.genBlock(n.Bodies[i])
 
-		if !statTerm && !n.Bodies[i].IsTerminating {
+		if !statTerm && !n.Bodies[i].IsTerminating && !isBreakOrContinue(n.Bodies[i].LastNode()) {
 			v.builder().CreateBr(end)
 		}
 
@@ -441,7 +461,7 @@ func (v *Codegen) genIfStat(n *parser.IfStat) {
 		v.genBlock(n.Else)
 	}
 
-	if !statTerm && (n.Else == nil || !n.Else.IsTerminating) {
+	if !statTerm && (n.Else == nil || (!n.Else.IsTerminating && !isBreakOrContinue(n.Else.LastNode()))) {
 		v.builder().CreateBr(end)
 	}
 
@@ -451,23 +471,28 @@ func (v *Codegen) genIfStat(n *parser.IfStat) {
 }
 
 func (v *Codegen) genLoopStat(n *parser.LoopStat) {
+	curfn := v.currentFunction()
+	afterBlock := llvm.AddBasicBlock(v.currentFunction(), "loop_exit")
+	v.curLoopExits[curfn] = append(v.curLoopExits[curfn], afterBlock)
+
 	switch n.LoopType {
 	case parser.LOOP_TYPE_INFINITE:
-		loopBlock := llvm.AddBasicBlock(v.currentFunction(), "")
+		loopBlock := llvm.AddBasicBlock(v.currentFunction(), "loop_body")
 		v.builder().CreateBr(loopBlock)
 		v.builder().SetInsertPointAtEnd(loopBlock)
 
 		v.genBlock(n.Body)
 
-		v.builder().CreateBr(loopBlock)
-		afterBlock := llvm.AddBasicBlock(v.currentFunction(), "")
+		if !isBreakOrContinue(n.Body.LastNode()) {
+			v.builder().CreateBr(loopBlock)
+		}
+
 		v.builder().SetInsertPointAtEnd(afterBlock)
 	case parser.LOOP_TYPE_CONDITIONAL:
-		evalBlock := llvm.AddBasicBlock(v.currentFunction(), "")
+		evalBlock := llvm.AddBasicBlock(v.currentFunction(), "loop_condeval")
 		v.builder().CreateBr(evalBlock)
 
-		loopBlock := llvm.AddBasicBlock(v.currentFunction(), "")
-		afterBlock := llvm.AddBasicBlock(v.currentFunction(), "")
+		loopBlock := llvm.AddBasicBlock(v.currentFunction(), "loop_body")
 
 		v.builder().SetInsertPointAtEnd(evalBlock)
 		cond := v.genExpr(n.Condition)
@@ -475,12 +500,17 @@ func (v *Codegen) genLoopStat(n *parser.LoopStat) {
 
 		v.builder().SetInsertPointAtEnd(loopBlock)
 		v.genBlock(n.Body)
-		v.builder().CreateBr(evalBlock)
+
+		if !isBreakOrContinue(n.Body.LastNode()) {
+			v.builder().CreateBr(evalBlock)
+		}
 
 		v.builder().SetInsertPointAtEnd(afterBlock)
 	default:
 		panic("invalid loop type")
 	}
+
+	v.curLoopExits[curfn] = v.curLoopExits[curfn][:len(v.curLoopExits[curfn])-1]
 }
 
 func (v *Codegen) genMatchStat(n *parser.MatchStat) {
@@ -556,6 +586,7 @@ func (v *Codegen) genFunctionBody(fn *parser.Function, llvmFn llvm.Value) {
 	v.genBlock(fn.Body)
 	v.builder().Dispose()
 	delete(v.builders, v.currentFunction())
+	delete(v.curLoopExits, v.currentFunction())
 	v.popFunction()
 }
 

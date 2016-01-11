@@ -268,6 +268,10 @@ type BinopAssignStatNode struct {
 	Value    ParseNode
 }
 
+type BreakStatNode struct {
+	baseNode
+}
+
 // expressions
 type BinaryExprNode struct {
 	baseNode

@@ -727,7 +727,9 @@ func (v *parser) parseStat() ParseNode {
 
 	var res ParseNode
 
-	if defaultStat := v.parseDefaultStat(); defaultStat != nil {
+	if breakStat := v.parseBreakStat(); breakStat != nil {
+		res = breakStat
+	} else if defaultStat := v.parseDefaultStat(); defaultStat != nil {
 		res = defaultStat
 	} else if deferStat := v.parseDeferStat(); deferStat != nil {
 		res = deferStat
@@ -927,6 +929,19 @@ func (v *parser) parseReturnStat() *ReturnStatNode {
 
 	res := &ReturnStatNode{Value: value}
 	res.SetWhere(lexer.NewSpan(startToken.Where.Start(), value.Where().End()))
+	return res
+}
+
+func (v *parser) parseBreakStat() *BreakStatNode {
+	defer un(trace(v, "breakstat"))
+
+	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_BREAK) {
+		return nil
+	}
+	startToken := v.consumeToken()
+
+	res := &BreakStatNode{}
+	res.SetWhere(startToken.Where)
 	return res
 }
 

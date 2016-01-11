@@ -155,6 +155,8 @@ func (v *ReturnStat) infer(s *TypeInferer) {
 	}
 }
 
+func (_ BreakStat) infer(s *TypeInferer) {}
+
 func (v *IfStat) infer(s *TypeInferer) {
 	for _, expr := range v.Exprs {
 		expr.setTypeHint(PRIMITIVE_bool)
