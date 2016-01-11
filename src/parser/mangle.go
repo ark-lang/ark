@@ -96,7 +96,14 @@ func (v *Function) MangledName(typ MangleType) string {
 
 	switch typ {
 	case MANGLE_ARK_UNSTABLE:
-		result := fmt.Sprintf("_F%d%s", len(v.Name), v.Name)
+		var prefix string
+		if v.Type.Receiver != nil {
+			prefix = "m"
+		} else if v.StaticReceiverType != nil {
+			prefix = "s"
+		}
+
+		result := fmt.Sprintf("_%sF%d%s", prefix, len(v.Name), v.Name)
 		for _, arg := range v.Parameters {
 			result += TypeMangledName(typ, arg.Variable.Type)
 		}

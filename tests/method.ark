@@ -18,6 +18,11 @@ func (v: Thing2) do() {
     C::printf("did, from an int!\n");
 }
 
+func (Thing2) do() -> int {
+    C::printf("did from a static method!\n");
+    return 0;
+}
+
 func main() -> int {
     mut thing: Thing;
     thing.x = 6;
@@ -37,5 +42,5 @@ func main() -> int {
 
     thing2.do();
 
-    return 0;
+    return Thing2::do();
 }
