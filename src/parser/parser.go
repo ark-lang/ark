@@ -729,6 +729,8 @@ func (v *parser) parseStat() ParseNode {
 
 	if breakStat := v.parseBreakStat(); breakStat != nil {
 		res = breakStat
+	} else if nextStat := v.parseNextStat(); nextStat != nil {
+		res = nextStat
 	} else if defaultStat := v.parseDefaultStat(); defaultStat != nil {
 		res = defaultStat
 	} else if deferStat := v.parseDeferStat(); deferStat != nil {
@@ -941,6 +943,19 @@ func (v *parser) parseBreakStat() *BreakStatNode {
 	startToken := v.consumeToken()
 
 	res := &BreakStatNode{}
+	res.SetWhere(startToken.Where)
+	return res
+}
+
+func (v *parser) parseNextStat() *NextStatNode {
+	defer un(trace(v, "nextstat"))
+
+	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_NEXT) {
+		return nil
+	}
+	startToken := v.consumeToken()
+
+	res := &NextStatNode{}
 	res.SetWhere(startToken.Where)
 	return res
 }

@@ -332,7 +332,6 @@ func (v *ReturnStat) NodeName() string {
 
 type BreakStat struct {
 	nodePos
-	Value Expr
 }
 
 func (v *BreakStat) statNode() {}
@@ -343,6 +342,22 @@ func (v *BreakStat) String() string {
 
 func (v *BreakStat) NodeName() string {
 	return "break statement"
+}
+
+// NextStat
+
+type NextStat struct {
+	nodePos
+}
+
+func (v *NextStat) statNode() {}
+
+func (v *NextStat) String() string {
+	return "(" + util.Blue("NextStat") + ")"
+}
+
+func (v *NextStat) NodeName() string {
+	return "next statement"
 }
 
 // CallStat

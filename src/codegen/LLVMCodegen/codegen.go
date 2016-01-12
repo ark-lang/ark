@@ -21,6 +21,7 @@ type Codegen struct {
 
 	builders     map[llvm.Value]llvm.Builder      // map of functions to builders
 	curLoopExits map[llvm.Value][]llvm.BasicBlock // map of functions to slices of blocks, where each block is the exit block for current loops
+	curLoopNexts map[llvm.Value][]llvm.BasicBlock // map of functions to slices of blocks, where each block is the eval block for current loops
 
 	globalBuilder   llvm.Builder // used non-function stuff
 	variableLookup  map[*parser.Variable]llvm.Value
@@ -102,6 +103,7 @@ func (v *Codegen) Generate(input []*parser.Module) {
 	defer v.globalBuilder.Dispose()
 
 	v.curLoopExits = make(map[llvm.Value][]llvm.BasicBlock)
+	v.curLoopNexts = make(map[llvm.Value][]llvm.BasicBlock)
 
 	v.input = make([]*WrappedModule, len(input))
 	for idx, mod := range input {
@@ -316,6 +318,8 @@ func (v *Codegen) genStat(n parser.Stat) {
 		v.genReturnStat(n)
 	case *parser.BreakStat:
 		v.genBreakStat(n)
+	case *parser.NextStat:
+		v.genNextStat(n)
 	case *parser.BlockStat:
 		v.genBlockStat(n)
 	case *parser.CallStat:
@@ -342,6 +346,11 @@ func (v *Codegen) genStat(n parser.Stat) {
 func (v *Codegen) genBreakStat(n *parser.BreakStat) {
 	curExits := v.curLoopExits[v.currentFunction()]
 	v.builder().CreateBr(curExits[len(curExits)-1])
+}
+
+func (v *Codegen) genNextStat(n *parser.NextStat) {
+	curNexts := v.curLoopNexts[v.currentFunction()]
+	v.builder().CreateBr(curNexts[len(curNexts)-1])
 }
 
 func (v *Codegen) genDeferStat(n *parser.DeferStat) {
@@ -410,10 +419,9 @@ func (v *Codegen) genBinopAssignStat(n *parser.BinopAssignStat) {
 	v.builder().CreateStore(value, storage)
 }
 
-// TODO add continue
-func isBreakOrContinue(n parser.Node) bool {
+func isBreakOrNext(n parser.Node) bool {
 	switch n.(type) {
-	case *parser.BreakStat:
+	case *parser.BreakStat, *parser.NextStat:
 		return true
 	}
 	return false
@@ -446,7 +454,7 @@ func (v *Codegen) genIfStat(n *parser.IfStat) {
 		v.builder().SetInsertPointAtEnd(ifTrue)
 		v.genBlock(n.Bodies[i])
 
-		if !statTerm && !n.Bodies[i].IsTerminating && !isBreakOrContinue(n.Bodies[i].LastNode()) {
+		if !statTerm && !n.Bodies[i].IsTerminating && !isBreakOrNext(n.Bodies[i].LastNode()) {
 			v.builder().CreateBr(end)
 		}
 
@@ -461,7 +469,7 @@ func (v *Codegen) genIfStat(n *parser.IfStat) {
 		v.genBlock(n.Else)
 	}
 
-	if !statTerm && (n.Else == nil || (!n.Else.IsTerminating && !isBreakOrContinue(n.Else.LastNode()))) {
+	if !statTerm && (n.Else == nil || (!n.Else.IsTerminating && !isBreakOrNext(n.Else.LastNode()))) {
 		v.builder().CreateBr(end)
 	}
 
@@ -478,12 +486,13 @@ func (v *Codegen) genLoopStat(n *parser.LoopStat) {
 	switch n.LoopType {
 	case parser.LOOP_TYPE_INFINITE:
 		loopBlock := llvm.AddBasicBlock(v.currentFunction(), "loop_body")
+		v.curLoopNexts[curfn] = append(v.curLoopNexts[curfn], loopBlock)
 		v.builder().CreateBr(loopBlock)
 		v.builder().SetInsertPointAtEnd(loopBlock)
 
 		v.genBlock(n.Body)
 
-		if !isBreakOrContinue(n.Body.LastNode()) {
+		if !isBreakOrNext(n.Body.LastNode()) {
 			v.builder().CreateBr(loopBlock)
 		}
 
@@ -491,6 +500,7 @@ func (v *Codegen) genLoopStat(n *parser.LoopStat) {
 	case parser.LOOP_TYPE_CONDITIONAL:
 		evalBlock := llvm.AddBasicBlock(v.currentFunction(), "loop_condeval")
 		v.builder().CreateBr(evalBlock)
+		v.curLoopNexts[curfn] = append(v.curLoopNexts[curfn], evalBlock)
 
 		loopBlock := llvm.AddBasicBlock(v.currentFunction(), "loop_body")
 
@@ -501,7 +511,7 @@ func (v *Codegen) genLoopStat(n *parser.LoopStat) {
 		v.builder().SetInsertPointAtEnd(loopBlock)
 		v.genBlock(n.Body)
 
-		if !isBreakOrContinue(n.Body.LastNode()) {
+		if !isBreakOrNext(n.Body.LastNode()) {
 			v.builder().CreateBr(evalBlock)
 		}
 
@@ -511,6 +521,7 @@ func (v *Codegen) genLoopStat(n *parser.LoopStat) {
 	}
 
 	v.curLoopExits[curfn] = v.curLoopExits[curfn][:len(v.curLoopExits[curfn])-1]
+	v.curLoopNexts[curfn] = v.curLoopNexts[curfn][:len(v.curLoopNexts[curfn])-1]
 }
 
 func (v *Codegen) genMatchStat(n *parser.MatchStat) {
@@ -587,6 +598,7 @@ func (v *Codegen) genFunctionBody(fn *parser.Function, llvmFn llvm.Value) {
 	v.builder().Dispose()
 	delete(v.builders, v.currentFunction())
 	delete(v.curLoopExits, v.currentFunction())
+	delete(v.curLoopNexts, v.currentFunction())
 	v.popFunction()
 }
 

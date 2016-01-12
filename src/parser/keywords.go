@@ -6,7 +6,6 @@ const (
 	KEYWORD_BREAK     string = "break"
 	KEYWORD_C         string = "C"
 	KEYWORD_CAST      string = "cast"
-	KEYWORD_CONTINUE  string = "continue"
 	KEYWORD_DEFAULT   string = "default"
 	KEYWORD_DEFER     string = "defer"
 	KEYWORD_DO        string = "do"
@@ -23,6 +22,7 @@ const (
 	KEYWORD_MATCH     string = "match"
 	KEYWORD_MODULE    string = "module"
 	KEYWORD_MUT       string = "mut"
+	KEYWORD_NEXT      string = "next"
 	KEYWORD_RETURN    string = "return"
 	KEYWORD_SET       string = "set"
 	KEYWORD_SIZEOF    string = "sizeof"
@@ -40,7 +40,6 @@ var keywordList = []string{
 	KEYWORD_BREAK,
 	KEYWORD_C,
 	KEYWORD_CAST,
-	KEYWORD_CONTINUE,
 	KEYWORD_DEFAULT,
 	KEYWORD_DEFER,
 	KEYWORD_DO,
@@ -57,6 +56,7 @@ var keywordList = []string{
 	KEYWORD_MATCH,
 	KEYWORD_MODULE,
 	KEYWORD_MUT,
+	KEYWORD_NEXT,
 	KEYWORD_RETURN,
 	KEYWORD_SET,
 	KEYWORD_SIZEOF,

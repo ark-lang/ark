@@ -26,5 +26,16 @@ func main() -> int {
         }
     }
 
+    mut y := 0;
+    for y <= 100 {
+        C::printf("y: %d\n", y);
+        y += 1;
+        if y < 5 {
+            next;
+        } else {
+            break;
+        }
+    }
+
     return 0;
 }

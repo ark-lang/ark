@@ -272,6 +272,10 @@ type BreakStatNode struct {
 	baseNode
 }
 
+type NextStatNode struct {
+	baseNode
+}
+
 // expressions
 type BinaryExprNode struct {
 	baseNode
