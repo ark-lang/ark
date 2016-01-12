@@ -1,7 +1,7 @@
 ## Ark [![Build Status](https://api.travis-ci.org/ark-lang/ark.svg?branch=master)][1] [![license](http://img.shields.io/badge/license-MIT-brightgreen.svg)](https://raw.githubusercontent.com/ark-lang/ark/master/LICENSE)
 [1]: https://travis-ci.org/ark-lang/ark "Build Status"
 
-<center><img width="70%" style="display: block; margin:40px auto;" src="http://felixangell.com/img/ark-opengl.gif"></center>
+<center><img width="100%" style="display: block; margin:40px auto;" src="http://i.imgur.com/umU2JrV.gif"></center>
 
 _Ark rendering a triangle using GLFW and Opengl [source here](//github.com/ark-lang/ark-gl)_
 
