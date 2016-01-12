@@ -38,7 +38,8 @@ func main(args: []str) -> int {
     mut i := 0;
 
     // #args gets the length of an array
-    for i < #args {
+    arg_len := #args;
+    for i < arg_len {
         // accessed via the C module
         C::printf("%s\n", args[i]);
 
