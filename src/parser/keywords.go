@@ -17,6 +17,7 @@ const (
 	KEYWORD_FOR       string = "for"
 	KEYWORD_FREE      string = "free"
 	KEYWORD_FUNC      string = "func"
+	KEYWORD_LEN       string = "len"
 	KEYWORD_IF        string = "if"
 	KEYWORD_IMPL      string = "impl"
 	KEYWORD_MATCH     string = "match"
@@ -33,6 +34,40 @@ const (
 	KEYWORD_VOID      string = "void"
 )
 
+var keywordList = []string{
+	KEYWORD_ALLOC,
+	KEYWORD_AS,
+	KEYWORD_BREAK,
+	KEYWORD_C,
+	KEYWORD_CAST,
+	KEYWORD_CONTINUE,
+	KEYWORD_DEFAULT,
+	KEYWORD_DEFER,
+	KEYWORD_DO,
+	KEYWORD_ELSE,
+	KEYWORD_ENUM,
+	KEYWORD_EXT,
+	KEYWORD_FALSE,
+	KEYWORD_FOR,
+	KEYWORD_FREE,
+	KEYWORD_FUNC,
+	KEYWORD_LEN,
+	KEYWORD_IF,
+	KEYWORD_IMPL,
+	KEYWORD_MATCH,
+	KEYWORD_MODULE,
+	KEYWORD_MUT,
+	KEYWORD_RETURN,
+	KEYWORD_SET,
+	KEYWORD_SIZEOF,
+	KEYWORD_STRUCT,
+	KEYWORD_INTERFACE,
+	KEYWORD_TRAIT,
+	KEYWORD_TRUE,
+	KEYWORD_USE,
+	KEYWORD_VOID,
+}
+
 // Contains a map with all keywords as keys, and true as values
 // Uses a map for quick lookup time when checking for reserved vars
 var keywordMap map[string]bool
@@ -40,37 +75,9 @@ var keywordMap map[string]bool
 func init() {
 	keywordMap = make(map[string]bool)
 
-	keywordMap[KEYWORD_ALLOC] = true
-	keywordMap[KEYWORD_AS] = true
-	keywordMap[KEYWORD_BREAK] = true
-	keywordMap[KEYWORD_C] = true
-	keywordMap[KEYWORD_CAST] = true
-	keywordMap[KEYWORD_CONTINUE] = true
-	keywordMap[KEYWORD_DEFAULT] = true
-	keywordMap[KEYWORD_DEFER] = true
-	keywordMap[KEYWORD_DO] = true
-	keywordMap[KEYWORD_ELSE] = true
-	keywordMap[KEYWORD_ENUM] = true
-	keywordMap[KEYWORD_EXT] = true
-	keywordMap[KEYWORD_FALSE] = true
-	keywordMap[KEYWORD_FOR] = true
-	keywordMap[KEYWORD_FREE] = true
-	keywordMap[KEYWORD_FUNC] = true
-	keywordMap[KEYWORD_IF] = true
-	keywordMap[KEYWORD_IMPL] = true
-	keywordMap[KEYWORD_MATCH] = true
-	keywordMap[KEYWORD_MODULE] = true
-	keywordMap[KEYWORD_MUT] = true
-	keywordMap[KEYWORD_RETURN] = true
-	keywordMap[KEYWORD_SET] = true
-	keywordMap[KEYWORD_SIZEOF] = true
-	keywordMap[KEYWORD_STRUCT] = true
-	keywordMap[KEYWORD_INTERFACE] = true
-	keywordMap[KEYWORD_TRAIT] = true
-	keywordMap[KEYWORD_TRUE] = true
-	keywordMap[KEYWORD_USE] = true
-	keywordMap[KEYWORD_VOID] = true
-
+	for _, key := range keywordList {
+		keywordMap[key] = true
+	}
 }
 
 func isReservedKeyword(s string) bool {
@@ -79,7 +86,7 @@ func isReservedKeyword(s string) bool {
 	}
 
 	// names starting with a _ followed by an uppercase letter
-	// are reserved as then can interfere with name mangling
+	// are reserved as they can interfere with name mangling
 	if len(s) >= 2 && s[0] == '_' && (s[1] >= 'A' && s[1] <= 'Z') {
 		return true
 	}

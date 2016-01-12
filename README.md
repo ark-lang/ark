@@ -33,14 +33,15 @@ More examples can be found [here](/examples).
 // binding to printf
 [c] func printf(fmt: str, ...);
 
-func main(args: []str) -> int {
+func main(argc: int, argv: ^str) -> int {
+    // accessed via the C module
+    C::printf("Running %s\n", ^argv);
+
     // mutable i, type inferred
     mut i := 0;
 
-    // #args gets the length of an array
-    for i < #args {
-        // accessed via the C module
-        C::printf("%s\n", args[i]);
+    for i < 5 {
+        C::printf("%d\n", i);
 
         i += 1;
     }

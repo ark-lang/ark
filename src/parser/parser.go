@@ -1643,10 +1643,12 @@ func (v *parser) parsePrimaryExpr() ParseNode {
 func (v *parser) parseArrayLenExpr() *ArrayLenExprNode {
 	defer un(trace(v, "arraylenexpr"))
 
-	if !v.tokenMatches(0, lexer.TOKEN_OPERATOR, "#") {
+	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_LEN) {
 		return nil
 	}
 	startToken := v.consumeToken()
+
+	v.expect(lexer.TOKEN_SEPARATOR, "(")
 
 	var array ParseNode
 	array = v.parseCompositeLiteral()
@@ -1656,6 +1658,8 @@ func (v *parser) parseArrayLenExpr() *ArrayLenExprNode {
 	if array == nil {
 		v.err("Expected valid expression in array length expression")
 	}
+
+	v.expect(lexer.TOKEN_SEPARATOR, ")")
 
 	end := v.peek(0)
 	res := &ArrayLenExprNode{ArrayExpr: array}

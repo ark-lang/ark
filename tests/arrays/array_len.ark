@@ -4,7 +4,7 @@ func main() -> int {
 	C::printf("this is a test\n");
 
 	// iterates 15 times
-	z : uint = #[0, 1, 2] + 12;
+	z : uint = len([0, 1, 2]) + 12;
 	mut i: uint = 0;
 	for i < z {
 		C::printf("iter %d\n", i);
@@ -18,13 +18,11 @@ func main() -> int {
 	// i haven't looked into it
 	// but #foo seems to just be
 	// a copy of the foo array or something? ...
-	foo_len := #foo;
+	foo_len := len(foo);
 	C::printf("foo is %d long\n", foo_len);
 
 	i = 0;
-	// ... because here we have to sub it like
-	// an array haha
-	for i < foo_len {
+	for i < len(foo) {
 		C::printf("foo contains %d at %d\n", foo[i], i);
 		i += 1;
 	}
