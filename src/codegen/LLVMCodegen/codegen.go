@@ -16,6 +16,14 @@ import (
 const defaultCallConv = llvm.FastCallConv
 
 type Codegen struct {
+	// public options
+	OutputName string
+	OutputType OutputType
+	LinkerArgs []string
+	Linker     string // defaults to cc
+	OptLevel   int
+
+	// private stuff
 	input   []*WrappedModule
 	curFile *WrappedModule
 
@@ -26,14 +34,6 @@ type Codegen struct {
 	globalBuilder   llvm.Builder // used non-function stuff
 	variableLookup  map[*parser.Variable]llvm.Value
 	namedTypeLookup map[string]llvm.Type
-
-	OutputName   string
-	OutputType   OutputType
-	CompilerArgs []string
-	Compiler     string // defaults to cc
-	LinkerArgs   []string
-	Linker       string // defaults to cc
-	OptLevel     int
 
 	referenceAccess bool
 	inFunctions     []llvm.Value
@@ -115,6 +115,7 @@ func (v *Codegen) Generate(input []*parser.Module) {
 
 	// initialize llvm target
 	llvm.InitializeNativeTarget()
+	llvm.InitializeNativeAsmPrinter()
 
 	// setup target stuff
 	var err error

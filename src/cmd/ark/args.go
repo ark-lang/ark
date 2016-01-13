@@ -32,9 +32,8 @@ var (
 	buildBasedir    = buildCom.Flag("basedir", "Base directory of source files").Short('b').Default(".").String()
 	buildInputs     = newInputList(buildCom.Arg("input", "Ark source files."))
 	buildCodegen    = buildCom.Flag("codegen", "Codegen backend to use").Default("llvm").Enum("none", "llvm")
-	buildStatic     = buildCom.Flag("static", "Pass the -static option to cc.").Bool()
 	buildRun        = buildCom.Flag("run", "Run the executable.").Bool()
-	buildOutputType = buildCom.Flag("output-type", "The format to produce after code generation").Default("executable").Enum("executable", "assembly", "object", "llvm-ir", "llvm-bc")
+	buildOutputType = buildCom.Flag("output-type", "The format to produce after code generation").Default("executable").Enum("executable", "assembly", "object", "llvm-ir")
 	buildOptLevel   = buildCom.Flag("opt-level", "LLVM optimization level").Short('O').Default("0").Int()
 	buildOwnership  = buildCom.Flag("ownership", "Do ownership checks").Bool()
 	ignoreUnused    = buildCom.Flag("unused", "Do not error on unused declarations").Bool()
@@ -54,8 +53,6 @@ func parseOutputType(name string) LLVMCodegen.OutputType {
 		return LLVMCodegen.OUTPUT_OBJECT
 	case "llvm-ir":
 		return LLVMCodegen.OUTPUT_LLVM_IR
-	case "llvm-bc":
-		return LLVMCodegen.OUTPUT_LLVM_BC
 	default:
 		panic("unimplemented output type")
 	}

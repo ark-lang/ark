@@ -41,14 +41,9 @@ func main() {
 			setupErr("No input files passed.")
 		}
 
-		ccArgs := []string{}
-		if *buildStatic {
-			ccArgs = append(ccArgs, "-static")
-		}
-
 		// build the files
 		outputType := parseOutputType(*buildOutputType)
-		build(*buildInputs, *buildOutput, *buildCodegen, ccArgs, outputType, *buildOptLevel)
+		build(*buildInputs, *buildOutput, *buildCodegen, outputType, *buildOptLevel)
 
 		printFinishedMessage(startTime, buildCom.FullCommand(), len(*buildInputs))
 
@@ -223,7 +218,7 @@ func parseFiles(inputs []string) ([]*parser.Module, *parser.ModuleLookup) {
 	return constructedModules, moduleLookup
 }
 
-func build(files []string, outputFile string, cg string, ccArgs []string, outputType LLVMCodegen.OutputType, optLevel int) {
+func build(files []string, outputFile string, cg string, outputType LLVMCodegen.OutputType, optLevel int) {
 	constructedModules, _ := parseFiles(files)
 
 	// resolve
@@ -267,10 +262,9 @@ func build(files []string, outputFile string, cg string, ccArgs []string, output
 		switch cg {
 		case "llvm":
 			gen = &LLVMCodegen.Codegen{
-				OutputName:   outputFile,
-				CompilerArgs: ccArgs,
-				OutputType:   outputType,
-				OptLevel:     optLevel,
+				OutputName: outputFile,
+				OutputType: outputType,
+				OptLevel:   optLevel,
 			}
 		default:
 			log.Error("main", util.Red("error: ")+"Invalid backend choice `"+cg+"`")

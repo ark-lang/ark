@@ -5,12 +5,11 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
-	"strings"
+
+	"llvm.org/llvm/bindings/go/llvm"
 
 	"github.com/ark-lang/ark/src/parser"
 	"github.com/ark-lang/ark/src/util/log"
-
-	"llvm.org/llvm/bindings/go/llvm"
 )
 
 type OutputType int
@@ -19,70 +18,8 @@ const (
 	OUTPUT_ASSEMBLY OutputType = iota
 	OUTPUT_OBJECT
 	OUTPUT_LLVM_IR
-	OUTPUT_LLVM_BC
 	OUTPUT_EXECUTABLE
 )
-
-func (v *Codegen) createBitcode(file *WrappedModule) string {
-	filename := v.OutputName + "-" + file.MangledName(parser.MANGLE_ARK_UNSTABLE) + ".bc"
-
-	fileHandle, err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
-	if err != nil {
-		v.err("Couldn't create bitcode file "+filename+": `%s`", err.Error())
-	}
-	defer fileHandle.Close()
-
-	if err := llvm.WriteBitcodeToFile(file.LlvmModule, fileHandle); err != nil {
-		v.err("failed to write bitcode to file for "+file.Name.String()+": `%s`", err.Error())
-	}
-
-	return filename
-}
-
-func (v *Codegen) bitcodeToASM(filename string) string {
-	asmName := filename
-
-	if strings.HasSuffix(filename, ".bc") {
-		asmName = asmName[:len(asmName)-3]
-	}
-
-	asmName += ".s"
-
-	cmd := exec.Command("llc", filename, "-o", asmName)
-	if out, err := cmd.CombinedOutput(); err != nil {
-		v.err("Failed to convert bitcode to assembly: `%s`\n%s", err.Error(), string(out))
-	}
-
-	return asmName
-}
-
-func (v *Codegen) asmToObject(filename string) string {
-	objName := filename
-
-	if strings.HasSuffix(filename, ".s") {
-		objName = objName[:len(objName)-2]
-	}
-
-	objName += ".o"
-
-	if v.Compiler == "" {
-		envcc := os.Getenv("CC")
-		if envcc != "" {
-			v.Compiler = envcc
-		} else {
-			v.Compiler = "cc"
-		}
-	}
-
-	args := append(v.CompilerArgs, "-fno-PIE", "-c", filename, "-o", objName)
-
-	cmd := exec.Command(v.Compiler, args...)
-	if out, err := cmd.CombinedOutput(); err != nil {
-		v.err("Failed to convert assembly to object file: `%s`\n%s", err.Error(), string(out))
-	}
-
-	return objName
-}
 
 func (v *Codegen) createIR(mod *WrappedModule) string {
 	filename := v.OutputName + ".ll"
@@ -95,67 +32,57 @@ func (v *Codegen) createIR(mod *WrappedModule) string {
 	return filename
 }
 
-func (v *Codegen) createBinary() {
-	// god this is a long and ugly function
+func (v *Codegen) createObjectOrAssembly(mod *WrappedModule, typ llvm.CodeGenFileType) string {
+	filename := v.OutputName + "-" + mod.MangledName(parser.MANGLE_ARK_UNSTABLE)
+	if typ == llvm.AssemblyFile {
+		filename += ".s"
+	} else {
+		filename += ".o"
+	}
 
+	membuf, err := v.targetMachine.EmitToMemoryBuffer(mod.LlvmModule, typ)
+	if err != nil {
+		v.err("Couldn't generate file "+filename+": `%s`", err.Error())
+	}
+
+	err = ioutil.WriteFile(filename, membuf.Bytes(), 0666)
+	if err != nil {
+		v.err("Couldn't create file "+filename+": `%s`", err.Error())
+	}
+
+	return filename
+}
+
+func (v *Codegen) createBinary() {
 	if v.OutputType == OUTPUT_LLVM_IR {
-		for _, file := range v.input {
-			log.Timed("creating ir", file.Name.String(), func() {
-				v.createIR(file)
+		for _, mod := range v.input {
+			log.Timed("creating ir", mod.Name.String(), func() {
+				v.createIR(mod)
+			})
+		}
+		return
+	} else if v.OutputType == OUTPUT_ASSEMBLY {
+		for _, mod := range v.input {
+			log.Timed("creating assembly", mod.Name.String(), func() {
+				v.createObjectOrAssembly(mod, llvm.AssemblyFile)
 			})
 		}
 		return
 	}
 
 	linkArgs := append(v.LinkerArgs, "-fno-PIE", "-nodefaultlibs", "-lc", "-lm")
-	libraries := [][]string{}
-
-	bitcodeFiles := []string{}
-	for _, file := range v.input {
-		log.Timed("creating bitcode", file.Name.String(), func() {
-			libraries = append(libraries, file.LinkedLibraries)
-			bitcodeFiles = append(bitcodeFiles, v.createBitcode(file))
-		})
-	}
-
-	if v.OutputType == OUTPUT_LLVM_BC {
-		return
-	}
-
-	asmFiles := []string{}
-
-	for _, name := range bitcodeFiles {
-		log.Timed("creating asm", name, func() {
-			asmName := v.bitcodeToASM(name)
-			asmFiles = append(asmFiles, asmName)
-		})
-	}
-
-	for _, bc := range bitcodeFiles {
-		if err := os.Remove(bc); err != nil {
-			v.err("Failed to remove "+bc+": `%s`", err.Error())
-		}
-	}
-
-	if v.OutputType == OUTPUT_ASSEMBLY {
-		return
-	}
 
 	objFiles := []string{}
 
-	for idx, asmFile := range asmFiles {
-		log.Timed("creating object", asmFile, func() {
-			objName := v.asmToObject(asmFile)
+	for _, mod := range v.input {
+		log.Timed("creating object", mod.Name.String(), func() {
+			objName := v.createObjectOrAssembly(mod, llvm.ObjectFile)
 			objFiles = append(objFiles, objName)
 			linkArgs = append(linkArgs, objName)
-			for _, lib := range libraries[idx] {
+			for _, lib := range mod.LinkedLibraries {
 				linkArgs = append(linkArgs, fmt.Sprintf("-l%s", lib))
 			}
 		})
-	}
-
-	for _, asmFile := range asmFiles {
-		os.Remove(asmFile)
 	}
 
 	if v.OutputType == OUTPUT_OBJECT {
