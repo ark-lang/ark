@@ -285,7 +285,7 @@ func (v *TypeCheck) CheckCallExpr(s *SemanticAnalyzer, expr *parser.CallExpr) {
 }
 
 func (v *TypeCheck) CheckArrayAccessExpr(s *SemanticAnalyzer, expr *parser.ArrayAccessExpr) {
-	if _, ok := expr.Array.GetType().(parser.ArrayType); !ok {
+	if _, ok := expr.Array.GetType().ActualType().(parser.ArrayType); !ok {
 		s.Err(expr, "Cannot index type `%s` as an array", expr.Array.GetType().TypeName())
 	}
 
@@ -358,7 +358,7 @@ func (v *TypeCheck) CheckNumericLiteral(s *SemanticAnalyzer, lit *parser.Numeric
 
 func (v *TypeCheck) CheckArrayLiteral(s *SemanticAnalyzer, lit *parser.ArrayLiteral) {
 	// TODO: check array length once we get around to that stuff
-	arrayType, ok := lit.Type.(parser.ArrayType)
+	arrayType, ok := lit.Type.ActualType().(parser.ArrayType)
 	if !ok {
 		panic("Type of array literal was not `ArrayType`")
 	}

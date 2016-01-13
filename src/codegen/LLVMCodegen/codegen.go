@@ -838,7 +838,7 @@ func (v *Codegen) genRuneLiteral(n *parser.RuneLiteral) llvm.Value {
 // Allocates a literal array on the stack
 func (v *Codegen) genArrayLiteral(n *parser.ArrayLiteral) llvm.Value {
 	arrayLLVMType := v.typeToLLVMType(n.Type)
-	memberLLVMType := v.typeToLLVMType(n.Type.(parser.ArrayType).MemberType)
+	memberLLVMType := v.typeToLLVMType(n.Type.ActualType().(parser.ArrayType).MemberType)
 
 	arrayValues := make([]llvm.Value, len(n.Members))
 	for idx, mem := range n.Members {

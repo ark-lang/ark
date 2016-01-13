@@ -980,7 +980,7 @@ func (v *ArrayAccessExpr) String() string {
 
 func (v *ArrayAccessExpr) GetType() Type {
 	if v.Array.GetType() != nil {
-		return v.Array.GetType().(ArrayType).MemberType
+		return v.Array.GetType().ActualType().(ArrayType).MemberType
 	}
 	return nil
 }

@@ -414,7 +414,7 @@ func (v *ArrayLiteral) infer(s *TypeInferer) {
 	if v.Type == nil {
 		memType = nil
 	} else {
-		arrayType, ok := v.Type.(ArrayType)
+		arrayType, ok := v.Type.ActualType().(ArrayType)
 		if !ok {
 			s.err(v, "Invalid type")
 		}

@@ -5,7 +5,7 @@ type thing2 thing;
 
 type tupleType (int, int);
 
-// TODO array types
+type arrayType [4]u8;
 
 type structType struct {
     x: int
@@ -31,6 +31,13 @@ func main() -> int {
     tupleVal2: (int, int) = (7, 8);
     tupleTest(tupleType(tupleVal2));
 
+    // array test
+    mut arrayVal: arrayType = [1, 2, 3, 4];
+
+    arrayVal[0] = 5;
+
+    arrayTest(arrayVal);
+
     // struct test
     mut structVal: structType;
     structVal.x = 6;
@@ -51,6 +58,10 @@ func fn(y: thing) {
 
 func fn2(y: thing2) {
     C::printf("y: %d\n", y);
+}
+
+func arrayTest(y: arrayType) {
+    C::printf("[%d, %d, %d, %d]\n", y[0], y[1], y[2], y[3]);
 }
 
 func tupleTest(y: tupleType) {
