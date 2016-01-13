@@ -1,15 +1,15 @@
 ## Ark [![Build Status](https://api.travis-ci.org/ark-lang/ark.svg?branch=master)][1] [![license](http://img.shields.io/badge/license-MIT-brightgreen.svg)](https://raw.githubusercontent.com/ark-lang/ark/master/LICENSE)
 [1]: https://travis-ci.org/ark-lang/ark "Build Status"
 
-<figure>
-   <img width="50%" align="right" style="display: block; margin:40px auto;" src="https://raw.githubusercontent.com/ark-lang/ark-gl/master/example.gif">
-   <figcaption>Ark rendering a triangle using GLFW and Opengl [source here](//github.com/ark-lang/ark-gl)</figcaption>
-</figure>
+<img width="50%" align="right" style="display: block; margin:40px auto;" src="https://raw.githubusercontent.com/ark-lang/ark-gl/master/example.gif">
 
 [Ark](//www.ark-lang.org) is a systems
 programming language somewhere inbetween C and C++. It's goals are to
 modernize the C language, yet remove the cruft that is present in C++
 due to backwards compatibility.
+
+On the right is a gif of an example program [ark-gl](//github.com/ark-lang/ark-gl)
+written in Ark using OpenGL and GLFW.
 
 ## Index
 * [Getting Involved](#getting-involved)
