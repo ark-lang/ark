@@ -56,7 +56,7 @@ before you get started:
 ### <a name="dependencies"></a> Dependencies
 * Go installed and `$GOPATH` setup - [Instructions on setting up GOPATH](//golang.org/doc/code.html#GOPATH)
 * subversion
-* LLVM installed, with `llvm-config` and `llc` in your `$PATH`
+* LLVM installed, with `llvm-config` in your `$PATH`
 * a C++ compiler
 * `libedit-dev` installed
 
