@@ -523,9 +523,11 @@ func (v *VarDeclNode) construct(c *Constructor) Node {
 		c.err(v.Where(), "Illegal redeclaration of variable `%s`", variable.Name)
 	}
 
-	res := &VariableDecl{}
-	res.docs = v.DocComments()
-	res.Variable = variable
+	res := &VariableDecl{
+		docs:     v.DocComments(),
+		Variable: variable,
+	}
+
 	if v.Value != nil {
 		res.Assignment = c.constructExpr(v.Value)
 	}
@@ -659,19 +661,21 @@ func (v *AssignStatNode) construct(c *Constructor) Node {
 }
 
 func (v *BinopAssignStatNode) construct(c *Constructor) Node {
-	res := &BinopAssignStat{}
+	res := &BinopAssignStat{
+		Operator:   v.Operator,
+		Assignment: c.constructExpr(v.Value),
+	}
 	res.Access = c.constructExpr(v.Target).(AccessExpr) // TODO: Error message
-	res.Operator = v.Operator
-	res.Assignment = c.constructExpr(v.Value)
 	res.setPos(v.Where().Start())
 	return res
 }
 
 func (v *BinaryExprNode) construct(c *Constructor) Expr {
-	res := &BinaryExpr{}
-	res.Lhand = c.constructExpr(v.Lhand)
-	res.Rhand = c.constructExpr(v.Rhand)
-	res.Op = v.Operator
+	res := &BinaryExpr{
+		Lhand: c.constructExpr(v.Lhand),
+		Rhand: c.constructExpr(v.Rhand),
+		Op:    v.Operator,
+	}
 	res.setPos(v.Where().Start())
 	return res
 }
@@ -697,24 +701,27 @@ func (v *SizeofExprNode) construct(c *Constructor) Expr {
 }
 
 func (v *DefaultExprNode) construct(c *Constructor) Expr {
-	res := &DefaultExpr{}
-	res.Type = c.constructType(v.Target)
+	res := &DefaultExpr{
+		Type: c.constructType(v.Target),
+	}
 	res.setPos(v.Where().Start())
 	return res
 }
 
 func (v *AddrofExprNode) construct(c *Constructor) Expr {
-	res := &AddressOfExpr{}
-	res.Mutable = v.Mutable
-	res.Access = c.constructExpr(v.Value)
+	res := &AddressOfExpr{
+		Mutable: v.Mutable,
+		Access:  c.constructExpr(v.Value),
+	}
 	res.setPos(v.Where().Start())
 	return res
 }
 
 func (v *CastExprNode) construct(c *Constructor) Expr {
-	res := &CastExpr{}
-	res.Type = c.constructType(v.Type)
-	res.Expr = c.constructExpr(v.Value)
+	res := &CastExpr{
+		Type: c.constructType(v.Type),
+		Expr: c.constructExpr(v.Value),
+	}
 	res.setPos(v.Where().Start())
 	return res
 }
@@ -776,47 +783,53 @@ func (v *CallExprNode) construct(c *Constructor) Expr {
 }
 
 func (v *VariableAccessNode) construct(c *Constructor) Expr {
-	res := &VariableAccessExpr{}
-	res.Name = toUnresolvedName(v.Name)
-	res.parameters = c.constructTypes(v.Parameters)
+	res := &VariableAccessExpr{
+		Name:       toUnresolvedName(v.Name),
+		parameters: c.constructTypes(v.Parameters),
+	}
 	res.setPos(v.Where().Start())
 	return res
 }
 
 func (v *StructAccessNode) construct(c *Constructor) Expr {
-	res := &StructAccessExpr{}
+	res := &StructAccessExpr{
+		Member: v.Member.Value,
+	}
 	res.Struct = c.constructExpr(v.Struct).(AccessExpr) // TODO: Error message
-	res.Member = v.Member.Value
 	res.setPos(v.Where().Start())
 	return res
 }
 
 func (v *ArrayAccessNode) construct(c *Constructor) Expr {
-	res := &ArrayAccessExpr{}
+	res := &ArrayAccessExpr{
+		Subscript: c.constructExpr(v.Index),
+	}
 	res.Array = c.constructExpr(v.Array).(AccessExpr) // TODO: Error message
-	res.Subscript = c.constructExpr(v.Index)
 	res.setPos(v.Where().Start())
 	return res
 }
 
 func (v *TupleAccessNode) construct(c *Constructor) Expr {
-	res := &TupleAccessExpr{}
+	res := &TupleAccessExpr{
+		Index: uint64(v.Index),
+	}
 	res.Tuple = c.constructExpr(v.Tuple).(AccessExpr) // TODO: Error message
-	res.Index = uint64(v.Index)
 	res.setPos(v.Where().Start())
 	return res
 }
 
 func (v *ArrayLiteralNode) construct(c *Constructor) Expr {
-	res := &ArrayLiteral{}
-	res.Members = c.constructExprs(v.Values)
+	res := &ArrayLiteral{
+		Members: c.constructExprs(v.Values),
+	}
 	res.setPos(v.Where().Start())
 	return res
 }
 
 func (v *TupleLiteralNode) construct(c *Constructor) Expr {
-	res := &TupleLiteral{}
-	res.Members = c.constructExprs(v.Values)
+	res := &TupleLiteral{
+		Members: c.constructExprs(v.Values),
+	}
 	if len(res.Members) == 1 {
 		return res.Members[0]
 	}
@@ -837,17 +850,17 @@ func (v *StructLiteralNode) construct(c *Constructor) Expr {
 }
 
 func (v *BoolLitNode) construct(c *Constructor) Expr {
-	res := &BoolLiteral{}
-	res.Value = v.Value
+	res := &BoolLiteral{Value: v.Value}
 	res.setPos(v.Where().Start())
 	return res
 }
 
 func (v *NumberLitNode) construct(c *Constructor) Expr {
-	res := &NumericLiteral{}
-	res.IsFloat = v.IsFloat
-	res.IntValue = v.IntValue
-	res.FloatValue = v.FloatValue
+	res := &NumericLiteral{
+		IsFloat:    v.IsFloat,
+		IntValue:   v.IntValue,
+		FloatValue: v.FloatValue,
+	}
 
 	switch v.FloatSize {
 	case 'f':
@@ -864,22 +877,19 @@ func (v *NumberLitNode) construct(c *Constructor) Expr {
 }
 
 func (v *StringLitNode) construct(c *Constructor) Expr {
-	res := &StringLiteral{}
-	res.Value = v.Value
+	res := &StringLiteral{Value: v.Value}
 	res.setPos(v.Where().Start())
 	return res
 }
 
 func (v *RuneLitNode) construct(c *Constructor) Expr {
-	res := &RuneLiteral{}
-	res.Value = v.Value
+	res := &RuneLiteral{Value: v.Value}
 	res.setPos(v.Where().Start())
 	return res
 }
 
 func toUnresolvedName(node *NameNode) unresolvedName {
-	res := unresolvedName{}
-	res.name = node.Name.Value
+	res := unresolvedName{name: node.Name.Value}
 	for _, module := range node.Modules {
 		res.moduleNames = append(res.moduleNames, module.Value)
 	}
