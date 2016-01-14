@@ -279,7 +279,7 @@ func (v *StructLiteral) resolve(res *Resolver, s *Scope) Node {
 
 func (v *CallExpr) resolve(res *Resolver, s *Scope) Node {
 	// NOTE: Here we check whether this is a call or an enum tuple lit.
-	if vae, ok := v.functionSource.(*VariableAccessExpr); ok {
+	if vae, ok := v.Function.(*VariableAccessExpr); ok {
 		if len(vae.Name.moduleNames) > 0 {
 			enumName, memberName := vae.Name.Split()
 			ident := s.GetIdent(enumName)
@@ -303,7 +303,7 @@ func (v *CallExpr) resolve(res *Resolver, s *Scope) Node {
 	}
 
 	// NOTE: Here we check whether this is a call or a cast
-	if vae, ok := v.functionSource.(*VariableAccessExpr); ok {
+	if vae, ok := v.Function.(*VariableAccessExpr); ok {
 		ident := s.GetIdent(vae.Name)
 		if ident != nil && ident.Type == IDENT_TYPE {
 			if len(v.Arguments) != 1 {

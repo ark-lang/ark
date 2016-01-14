@@ -863,8 +863,7 @@ func (v *CastExpr) NodeName() string {
 
 type CallExpr struct {
 	nodePos
-	Function       *Function
-	functionSource Expr
+	Function       Expr
 	Arguments      []Expr
 	ReceiverAccess Expr // nil if not method or if static
 
@@ -874,7 +873,7 @@ type CallExpr struct {
 func (v *CallExpr) exprNode() {}
 
 func (v *CallExpr) String() string {
-	result := "(" + util.Blue("CallExpr") + ": " + v.Function.Name
+	result := "(" + util.Blue("CallExpr") + ": " + v.Function.String()
 	for _, arg := range v.Arguments {
 		result += " " + arg.String()
 	}
@@ -886,7 +885,7 @@ func (v *CallExpr) String() string {
 
 func (v *CallExpr) GetType() Type {
 	if v.Function != nil {
-		return v.Function.Type.Return
+		return v.Function.GetType().(FunctionType).Return
 	}
 	return nil
 }

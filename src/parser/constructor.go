@@ -753,16 +753,16 @@ func (v *CallExprNode) construct(c *Constructor) Expr {
 	// TODO: when we allow function types, allow all access forms (eg. `thing[0]()``)
 	if van, ok := v.Function.(*VariableAccessNode); ok {
 		res := &CallExpr{
-			Arguments:      c.constructExprs(v.Arguments),
-			functionSource: c.constructExpr(v.Function),
-			parameters:     c.constructTypes(van.Parameters),
+			Arguments:  c.constructExprs(v.Arguments),
+			Function:   c.constructExpr(v.Function),
+			parameters: c.constructTypes(van.Parameters),
 		}
 		res.setPos(v.Where().Start())
 		return res
 	} else if sae, ok := v.Function.(*StructAccessNode); ok {
 		res := &CallExpr{
-			Arguments:      c.constructExprs(v.Arguments),
-			functionSource: c.constructExpr(v.Function),
+			Arguments: c.constructExprs(v.Arguments),
+			Function:  c.constructExpr(v.Function),
 		}
 
 		res.ReceiverAccess = sae.construct(c).(*StructAccessExpr).Struct

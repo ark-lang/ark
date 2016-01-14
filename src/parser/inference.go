@@ -460,40 +460,21 @@ func (v *CastExpr) setTypeHint(t Type) {}
 // CallExpr
 
 func (v *CallExpr) infer(s *TypeInferer) {
-	if v.Function == nil {
-		var name unresolvedName
-		switch v.functionSource.(type) {
-		case *VariableAccessExpr:
-			vae := v.functionSource.(*VariableAccessExpr)
-			name = vae.Name
 
-			ident := s.Module.GlobalScope.GetIdent(name)
-			if ident == nil {
-				s.err(v, "Cannot resolve function source `%s`", name.String())
-			} else if ident.Type != IDENT_FUNCTION {
-				s.err(v, "Expected function identifier, found %s `%s`", ident.Type, name)
-			} else {
-				v.Function = ident.Value.(*Function)
-			}
-
-		case *StructAccessExpr:
-			sae := v.functionSource.(*StructAccessExpr)
-			sae.Struct.infer(s)
-
-			v.Function = TypeWithoutPointers(sae.Struct.GetType()).(*NamedType).GetMethod(sae.Member)
-			if v.Function == nil {
-				s.err(v, "Cannot resolve method `%s` of type `%s`", sae.Member, TypeWithoutPointers(sae.Struct.GetType()).TypeName())
-			}
-
-		default:
-			panic("Invalid function source (for now)")
+	if sae, ok := v.Function.(*StructAccessExpr); ok {
+		sae.Struct.infer(s)
+		fn := TypeWithoutPointers(sae.Struct.GetType()).(*NamedType).GetMethod(sae.Member)
+		v.Function = &FunctionAccessExpr{Function: fn}
+		if v.Function == nil {
+			//s.err(v, "Cannot resolve method `%s` of type `%s`", sae.Member, TypeWithoutPointers(sae.Struct.GetType()).TypeName())
 		}
+	} else {
+		v.Function.infer(s)
 	}
 
-	// TODO: Is v.Function ever non-nil at this point
 	if v.Function != nil {
-		if v.Function.Type.Receiver != nil {
-			recType := v.Function.Receiver.Variable.Type
+		if v.Function.GetType().(FunctionType).Receiver != nil {
+			recType := v.Function.GetType().(FunctionType).Receiver
 			accessType := v.ReceiverAccess.GetType()
 
 			if accessType.LevelsOfIndirection() == recType.LevelsOfIndirection()+1 {
@@ -520,10 +501,10 @@ func (v *CallExpr) infer(s *TypeInferer) {
 
 		// attributes defaults
 		for i, arg := range v.Arguments {
-			if i >= len(v.Function.Parameters) { // we have a variadic arg
+			if i >= len(v.Function.GetType().(FunctionType).Parameters) { // we have a variadic arg
 				arg.setTypeHint(nil)
 			} else {
-				arg.setTypeHint(v.Function.Parameters[i].Variable.Type)
+				arg.setTypeHint(v.Function.GetType().(FunctionType).Parameters[i])
 			}
 		}
 	}

@@ -221,35 +221,45 @@ func (v *TypeCheck) CheckCastExpr(s *SemanticAnalyzer, expr *parser.CastExpr) {
 }
 
 func (v *TypeCheck) CheckCallExpr(s *SemanticAnalyzer, expr *parser.CallExpr) {
+	fnType := expr.Function.GetType().(parser.FunctionType)
+
 	argLen := len(expr.Arguments)
-	paramLen := len(expr.Function.Parameters)
+	paramLen := len(fnType.Parameters)
 
 	// attributes defaults
-	isVariadic := expr.Function.Type.IsVariadic
+	isVariadic := fnType.IsVariadic
 	c := false // if we're calling a C function
 
 	// find them attributes yo
-	if expr.Function.Type.Attrs() != nil {
-		c = expr.Function.Type.Attrs().Contains("c")
+	if fnType.Attrs() != nil {
+		c = fnType.Attrs().Contains("c")
+	}
+
+	var fnName string
+	if fae, ok := expr.Function.(*parser.FunctionAccessExpr); ok {
+		fnName = fae.Function.Name
+	} else {
+		fnName = "some func"
 	}
 
 	if argLen < paramLen {
 		s.Err(expr, "Call to `%s` has too few arguments, expects %d, have %d",
-			expr.Function.Name, paramLen, argLen)
+			fnName, paramLen, argLen)
 	} else if !isVariadic && argLen > paramLen {
 		// we only care if it's not variadic
 		s.Err(expr, "Call to `%s` has too many arguments, expects %d, have %d",
-			expr.Function.Name, paramLen, argLen)
+			fnName, paramLen, argLen)
 	}
 
-	if expr.Function.Type.Receiver != nil {
-		if expr.ReceiverAccess.GetType() != expr.Function.Receiver.Variable.Type {
-			s.Err(expr, "Mismatched receiver types for call to `%s`: `%s` and `%s`", expr.Function.Name, expr.ReceiverAccess.GetType().TypeName(), expr.Function.Receiver.Variable.Type.TypeName())
+	if fnType.Receiver != nil {
+		if expr.ReceiverAccess.GetType() != fnType.Receiver {
+			s.Err(expr, "Mismatched receiver types for call to `%s`: `%s` and `%s`",
+				fnName, expr.ReceiverAccess.GetType().TypeName(), fnType.Receiver.TypeName())
 		}
 	}
 
 	for i, arg := range expr.Arguments {
-		if i >= len(expr.Function.Parameters) { // we have a variadic arg
+		if i >= len(fnType.Parameters) { // we have a variadic arg
 			if !isVariadic {
 				panic("woah")
 			}
@@ -277,8 +287,10 @@ func (v *TypeCheck) CheckCallExpr(s *SemanticAnalyzer, expr *parser.CallExpr) {
 				}
 			}
 		} else {
-			if !arg.GetType().Equals(expr.Function.Parameters[i].Variable.Type) {
-				s.Err(arg, "Mismatched types in function call: `%s` and `%s`", arg.GetType().TypeName(), expr.Function.Parameters[i].Variable.Type.TypeName())
+			par := fnType.Parameters[i]
+			if !arg.GetType().Equals(par) {
+				s.Err(arg, "Mismatched types in function call: `%s` and `%s`",
+					arg.GetType().TypeName(), par.TypeName())
 			}
 		}
 	}

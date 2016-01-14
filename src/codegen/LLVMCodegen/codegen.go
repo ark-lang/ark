@@ -12,8 +12,6 @@ import (
 	"llvm.org/llvm/bindings/go/llvm"
 )
 
-const defaultCallConv = llvm.FastCallConv
-
 type Codegen struct {
 	// public options
 	OutputName string
@@ -274,12 +272,6 @@ func (v *Codegen) declareFunctionDecl(n *parser.FunctionDecl) {
 			funcParam := function.Param(i)
 			funcParam.SetName(n.Function.Parameters[i].Variable.MangledName(parser.MANGLE_ARK_UNSTABLE))
 		}*/
-
-		if cBinding {
-			function.SetFunctionCallConv(llvm.CCallConv)
-		} else {
-			function.SetFunctionCallConv(defaultCallConv)
-		}
 	}
 }
 
@@ -699,7 +691,6 @@ func (v *Codegen) genLambdaExpr(n *parser.LambdaExpr) llvm.Value {
 	typ := v.functionTypeToLLVMType(n.Function.Type, false)
 	mod := v.curFile.LlvmModule
 	fn := llvm.AddFunction(mod, fmt.Sprintf("_Lambda%d", v.nextLambdaID()), typ)
-	fn.SetFunctionCallConv(defaultCallConv)
 
 	v.genFunctionBody(n.Function, fn)
 
@@ -712,10 +703,25 @@ func (v *Codegen) genAddressOfExpr(n *parser.AddressOfExpr) llvm.Value {
 
 func (v *Codegen) genAccessExpr(n parser.Expr) llvm.Value {
 	if fae, ok := n.(*parser.FunctionAccessExpr); ok {
-		fn := v.curFile.LlvmModule.NamedFunction(fae.Function.MangledName(parser.MANGLE_ARK_UNSTABLE))
+		fnName := fae.Function.MangledName(parser.MANGLE_ARK_UNSTABLE)
+
+		cBinding := false
+		if fae.Function.Type.Attrs() != nil {
+			cBinding = fae.Function.Type.Attrs().Contains("c")
+		}
+		if cBinding {
+			fnName = fae.Function.Name
+		}
+
+		fn := v.curFile.LlvmModule.NamedFunction(fnName)
 
 		if fn.IsNil() {
-			panic("fn is nil")
+			v.declareFunctionDecl(&parser.FunctionDecl{Function: fae.Function, Prototype: true})
+
+			if v.curFile.LlvmModule.NamedFunction(fnName).IsNil() {
+				panic("how did this happen")
+			}
+			fn = v.curFile.LlvmModule.NamedFunction(fnName)
 		}
 
 		return fn
@@ -1241,43 +1247,21 @@ func (v *Codegen) genCastExpr(n *parser.CastExpr) llvm.Value {
 }
 
 func (v *Codegen) genCallExprWithArgs(n *parser.CallExpr, args []llvm.Value) llvm.Value {
-	cBinding := false
-	if n.Function.Type.Attrs() != nil {
-		cBinding = n.Function.Type.Attrs().Contains("c")
-	}
-
-	// eww
-	mangledName := n.Function.MangledName(parser.MANGLE_ARK_UNSTABLE)
-	functionName := mangledName
-	if cBinding {
-		functionName = n.Function.Name
-	}
-
-	function := v.curFile.LlvmModule.NamedFunction(functionName)
-	if function.IsNil() {
-		v.declareFunctionDecl(&parser.FunctionDecl{Function: n.Function, Prototype: true})
-
-		if v.curFile.LlvmModule.NamedFunction(functionName).IsNil() {
-			panic("how did this happen")
-		}
-		function = v.curFile.LlvmModule.NamedFunction(functionName)
-	}
-
-	call := v.builder().CreateCall(function, args, "")
-	call.SetInstructionCallConv(function.FunctionCallConv())
+	call := v.builder().CreateCall(v.genAccessExpr(n.Function), args, "")
 
 	return call
 }
 
 func (v *Codegen) genCallExpr(n *parser.CallExpr) llvm.Value {
+	fnType := n.Function.GetType().(parser.FunctionType)
 	numArgs := len(n.Arguments)
-	if n.Function.Type.Receiver != nil {
+	if fnType.Receiver != nil {
 		numArgs++
 	}
 
 	args := make([]llvm.Value, 0, numArgs)
 
-	if n.Function.Type.Receiver != nil {
+	if fnType.Receiver != nil {
 		args = append(args, v.genExpr(n.ReceiverAccess))
 	}
 

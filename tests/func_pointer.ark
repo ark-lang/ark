@@ -1,22 +1,33 @@
 [c] func printf(fmt: str, ...) -> int;
 
 func do(thing: int) {
-
+    C::printf("%d\n", thing);
 }
 
 func main() -> int {
     C::printf("Func ptr test\n");
 
-    [unused] fn := func() -> int {
+    fn := func() -> int {
         return 5;
     };
 
-    [unused] another := func() -> int => return 6;
+    another := func() -> int => return 6;
 
-    [unused] mut dofn: func(int);
+    mut dofn: func(int);
     dofn = do;
 
     [unused] dofn2 := do;
 
+    dofn(fn());
+    dofn(another());
+
+    runFunc(func() {
+        C::printf("Printing from a lambda!\n");
+    });
+
     return 0;
+}
+
+func runFunc(fn: func()) {
+    fn();
 }
