@@ -53,6 +53,7 @@ func NewSemanticAnalyzer(module *parser.Module, useOwnership bool, ignoreUnused 
 	res.Checks = []SemanticCheck{
 		&AttributeCheck{},
 		&UnreachableCheck{},
+		&BreakAndNextCheck{},
 		&DeprecatedCheck{},
 		&RecursiveDefinitionCheck{},
 		&TypeCheck{},
