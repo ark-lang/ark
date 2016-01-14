@@ -164,13 +164,6 @@ func (v *ASTVisitor) VisitChildren(n Node) {
 		n.Members = v.VisitExprs(n.Members)
 
 	case *CallExpr:
-		/*switch n.functionSource.(type) {
-		case *StructAccessExpr:
-			n.functionSource.(*StructAccessExpr).Struct =
-				v.Visit(n.functionSource.(*StructAccessExpr).Struct).(AccessExpr)
-		}
-
-		// TODO: Visit callExpr.FunctionSource? once we get lambda/function types*/
 		n.Function = v.VisitExpr(n.Function)
 
 		n.Arguments = v.VisitExprs(n.Arguments)
