@@ -895,6 +895,34 @@ func (v *CallExpr) NodeName() string {
 	return "call expression"
 }
 
+// FunctionAccessExpr
+type FunctionAccessExpr struct {
+	nodePos
+
+	Function *Function
+
+	parameters []Type
+}
+
+func (v *FunctionAccessExpr) exprNode() {}
+
+func (v *FunctionAccessExpr) String() string {
+	result := "(" + util.Blue("FunctionAccessExpr") + ": "
+	result += v.Function.Name
+	return result + ")"
+}
+
+func (v *FunctionAccessExpr) GetType() Type {
+	if v.Function != nil {
+		return v.Function.Type
+	}
+	return nil
+}
+
+func (v *FunctionAccessExpr) NodeName() string {
+	return "function access expression"
+}
+
 // VariableAccessExpr
 type VariableAccessExpr struct {
 	nodePos

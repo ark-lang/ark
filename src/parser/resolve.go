@@ -144,10 +144,15 @@ func (v *VariableAccessExpr) resolve(res *Resolver, s *Scope) Node {
 	ident := s.GetIdent(v.Name)
 	if ident == nil {
 		res.errCannotResolve(v, v.Name)
-	} else if ident.Type != IDENT_VARIABLE {
-		res.err(v, "Expected variable identifier, found %s `%s`", ident.Type, v.Name)
-	} else {
+	} else if ident.Type == IDENT_FUNCTION {
+		return &FunctionAccessExpr{
+			Function:   ident.Value.(*Function),
+			parameters: v.parameters,
+		}
+	} else if ident.Type == IDENT_VARIABLE {
 		v.Variable = ident.Value.(*Variable)
+	} else {
+		res.err(v, "Expected variable identifier, found %s `%s`", ident.Type, v.Name)
 	}
 
 	if v.Variable == nil {

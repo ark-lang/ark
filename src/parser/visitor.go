@@ -247,8 +247,9 @@ func (v *ASTVisitor) VisitChildren(n Node) {
 	case *VariableDecl:
 		n.Assignment = v.VisitExpr(n.Assignment)
 
-	case *NumericLiteral, *StringLiteral, *BoolLiteral, *RuneLiteral, *VariableAccessExpr,
-		*TypeDecl, *DefaultExpr, *DefaultMatchBranch, *UseDecl, *BreakStat, *NextStat:
+	case *NumericLiteral, *StringLiteral, *BoolLiteral, *RuneLiteral,
+		*VariableAccessExpr, *TypeDecl, *DefaultExpr, *DefaultMatchBranch,
+		*UseDecl, *BreakStat, *NextStat, *FunctionAccessExpr:
 		// do nothing
 
 	default:

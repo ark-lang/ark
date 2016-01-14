@@ -542,6 +542,10 @@ func (v *VariableAccessExpr) infer(s *TypeInferer) {
 
 func (v *VariableAccessExpr) setTypeHint(t Type) {}
 
+// FunctionAccessExpr
+func (_ FunctionAccessExpr) infer(s *TypeInferer) {}
+func (_ FunctionAccessExpr) setTypeHint(t Type)   {}
+
 // StructAccessExpr
 func (v *StructAccessExpr) infer(s *TypeInferer) {
 	v.Struct.infer(s)

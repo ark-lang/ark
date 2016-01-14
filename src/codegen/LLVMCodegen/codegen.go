@@ -677,7 +677,9 @@ func (v *Codegen) genExpr(n parser.Expr) llvm.Value {
 		return v.genCastExpr(n)
 	case *parser.CallExpr:
 		return v.genCallExpr(n)
-	case *parser.VariableAccessExpr, *parser.StructAccessExpr, *parser.ArrayAccessExpr, *parser.TupleAccessExpr, *parser.DerefAccessExpr:
+	case *parser.VariableAccessExpr, *parser.StructAccessExpr,
+		*parser.ArrayAccessExpr, *parser.TupleAccessExpr,
+		*parser.DerefAccessExpr, *parser.FunctionAccessExpr:
 		return v.genAccessExpr(n)
 	case *parser.SizeofExpr:
 		return v.genSizeofExpr(n)
@@ -709,48 +711,53 @@ func (v *Codegen) genAddressOfExpr(n *parser.AddressOfExpr) llvm.Value {
 }
 
 func (v *Codegen) genAccessExpr(n parser.Expr) llvm.Value {
+	if fae, ok := n.(*parser.FunctionAccessExpr); ok {
+		fn := v.curFile.LlvmModule.NamedFunction(fae.Function.MangledName(parser.MANGLE_ARK_UNSTABLE))
+
+		if fn.IsNil() {
+			panic("fn is nil")
+		}
+
+		return fn
+	}
+
 	return v.builder().CreateLoad(v.genAccessGEP(n), "")
 }
 
 func (v *Codegen) genAccessGEP(n parser.Expr) llvm.Value {
-	switch n.(type) {
+	switch access := n.(type) {
 	case *parser.VariableAccessExpr:
-		vae := n.(*parser.VariableAccessExpr)
-
-		varType := v.getVariable(vae.Variable)
-		log.Debugln("codegen", "%v => %v", vae.Variable, varType)
+		varType := v.getVariable(access.Variable)
+		log.Debugln("codegen", "%v => %v", access.Variable, varType)
 		if varType.IsNil() {
 			panic("varType was nil")
 		}
 		gep := v.builder().CreateGEP(varType, []llvm.Value{llvm.ConstInt(llvm.Int32Type(), 0, false)}, "")
 
-		if _, ok := vae.GetType().(parser.MutableReferenceType); ok {
+		if _, ok := access.GetType().(parser.MutableReferenceType); ok {
 			return v.builder().CreateLoad(gep, "")
 		}
 
-		if _, ok := vae.GetType().(parser.ConstantReferenceType); ok {
+		if _, ok := access.GetType().(parser.ConstantReferenceType); ok {
 			return v.builder().CreateLoad(gep, "")
 		}
 
 		return gep
 
 	case *parser.StructAccessExpr:
-		sae := n.(*parser.StructAccessExpr)
+		gep := v.genAccessGEP(access.Struct)
 
-		gep := v.genAccessGEP(sae.Struct)
+		typ := access.Struct.GetType().ActualType()
 
-		typ := sae.Struct.GetType().ActualType()
-
-		index := typ.(parser.StructType).VariableIndex(sae.Variable)
+		index := typ.(parser.StructType).VariableIndex(access.Variable)
 		return v.builder().CreateStructGEP(gep, index, "")
 
 	case *parser.ArrayAccessExpr:
-		aae := n.(*parser.ArrayAccessExpr)
+		gep := v.genAccessGEP(access.Array)
+		subscriptExpr := v.genExpr(access.Subscript)
 
-		gep := v.genAccessGEP(aae.Array)
-		subscriptExpr := v.genExpr(aae.Subscript)
-
-		v.genBoundsCheck(v.builder().CreateLoad(v.builder().CreateStructGEP(gep, 0, ""), ""), subscriptExpr, aae.Subscript.GetType())
+		v.genBoundsCheck(v.builder().CreateLoad(v.builder().CreateStructGEP(gep, 0, ""), ""),
+			subscriptExpr, access.Subscript.GetType())
 
 		gep = v.builder().CreateStructGEP(gep, 1, "")
 
@@ -760,16 +767,13 @@ func (v *Codegen) genAccessGEP(n parser.Expr) llvm.Value {
 		return v.builder().CreateGEP(load, gepIndexes, "")
 
 	case *parser.TupleAccessExpr:
-		tae := n.(*parser.TupleAccessExpr)
-
-		gep := v.genAccessGEP(tae.Tuple)
+		gep := v.genAccessGEP(access.Tuple)
 
 		// TODO: Check overflow
-		return v.builder().CreateStructGEP(gep, int(tae.Index), "")
+		return v.builder().CreateStructGEP(gep, int(access.Index), "")
 
 	case *parser.DerefAccessExpr:
-		dae := n.(*parser.DerefAccessExpr)
-		return v.genExpr(dae.Expr)
+		return v.genExpr(access.Expr)
 
 	default:
 		panic("unhandled access type")
