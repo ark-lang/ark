@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 	"time"
@@ -46,14 +45,6 @@ func main() {
 		build(*buildInputs, *buildOutput, *buildCodegen, outputType, *buildOptLevel)
 
 		printFinishedMessage(startTime, buildCom.FullCommand(), len(*buildInputs))
-
-		// attempt to run what we built
-		if *buildRun {
-			if outputType != LLVMCodegen.OUTPUT_EXECUTABLE {
-				setupErr("Can only use --run flag when building executable")
-			}
-			run(*buildOutput)
-		}
 
 	case docgenCom.FullCommand():
 		docgen(*docgenInputs, *docgenDir)
@@ -276,14 +267,6 @@ func build(files []string, outputFile string, cg string, outputType LLVMCodegen.
 		})
 	}
 
-}
-
-func run(output string) {
-	cmd := exec.Command("./" + output)
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	cmd.Run()
 }
 
 func docgen(input []string, dir string) {

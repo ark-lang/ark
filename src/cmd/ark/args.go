@@ -32,7 +32,6 @@ var (
 	buildBasedir    = buildCom.Flag("basedir", "Base directory of source files").Short('b').Default(".").String()
 	buildInputs     = newInputList(buildCom.Arg("input", "Ark source files."))
 	buildCodegen    = buildCom.Flag("codegen", "Codegen backend to use").Default("llvm").Enum("none", "llvm")
-	buildRun        = buildCom.Flag("run", "Run the executable.").Bool()
 	buildOutputType = buildCom.Flag("output-type", "The format to produce after code generation").Default("executable").Enum("executable", "assembly", "object", "llvm-ir")
 	buildOptLevel   = buildCom.Flag("opt-level", "LLVM optimization level").Short('O').Default("0").Int()
 	buildOwnership  = buildCom.Flag("ownership", "Do ownership checks").Bool()
