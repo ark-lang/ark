@@ -60,6 +60,7 @@ before you get started:
 * LLVM installed, with `llvm-config` in your `$PATH`
 * a C++ compiler
 * `libedit-dev` installed
+* `CMake` installed
 
 ### <a name="building"></a> Building
 Replace `release` to match your llvm release. You can check by running
