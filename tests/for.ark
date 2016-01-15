@@ -1,9 +1,5 @@
 [c] func printf(fmt: str, ...) -> int;
 
-/*func do() { // TODO make this not panic the compiler
-    break;
-}*/
-
 func main() -> int {
     mut i := 0;
 
