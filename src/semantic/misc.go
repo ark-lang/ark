@@ -28,6 +28,11 @@ func (v *MiscCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
 		switch n.(type) {
 		case *parser.TypeDecl:
 			s.Err(n, "%s must not be in function", util.CapitalizeFirst(n.NodeName()))
+
+		case *parser.FunctionDecl:
+			if v.InFunction > 1 {
+				s.Err(n, "%s must not be in function", util.CapitalizeFirst(n.NodeName()))
+			}
 		}
 	}
 }
