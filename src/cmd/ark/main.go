@@ -115,14 +115,15 @@ func parseFiles(inputs []string) ([]*parser.Module, *parser.ModuleLookup) {
 		modulesToRead = append(modulesToRead, modname)
 	}
 
+	moduleSearchpaths := append(*buildSearchpaths, *buildBasedir)
+
 	log.Timed("read/lex/parse phase", "", func() {
 		for i := 0; i < len(modulesToRead); i++ {
 			modname := modulesToRead[i]
-			dirpath := filepath.Join(*buildBasedir, modname.ToPath())
 
-			fi, err := os.Stat(dirpath)
-			if err != nil {
-				setupErr("%s", err.Error())
+			fi, dirpath := findModuleDir(moduleSearchpaths, modname.ToPath())
+			if fi == nil {
+				setupErr("Couldn't find module `%s`", modname)
 			}
 
 			if !fi.IsDir() {
@@ -207,6 +208,22 @@ func parseFiles(inputs []string) ([]*parser.Module, *parser.ModuleLookup) {
 	}
 
 	return modules, moduleLookup
+}
+
+func findModuleDir(searchPaths []string, modulePath string) (fi os.FileInfo, path string) {
+	for _, searchPath := range searchPaths {
+		path := filepath.Join(searchPath, modulePath)
+		fi, err := os.Stat(path)
+		if err == nil {
+			return fi, path
+		}
+
+		if !os.IsNotExist(err) {
+			setupErr("%s\n", err)
+		}
+	}
+
+	return nil, ""
 }
 
 func build(files []string, outputFile string, cg string, outputType LLVMCodegen.OutputType, optLevel int) {

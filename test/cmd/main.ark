@@ -1,0 +1,8 @@
+// build using `ark build -I lib -b test cmd`
+
+//#use std // uncomment this line to fail
+#use std::io
+
+func main() {
+    io::println("hi");
+}
