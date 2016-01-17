@@ -475,12 +475,14 @@ func (v UnresolvedType) resolveType(src Locatable, res *Resolver, s *Scope) Type
 			}
 			name += ">"
 
+			res.EnterScope(scope)
 			typ = &NamedType{
 				Name:         name,
 				Type:         namedType.Type.resolveType(src, res, scope),
 				ParentModule: namedType.ParentModule,
 				Methods:      namedType.Methods,
 			}
+			res.ExitScope(scope)
 		} else {
 			typ = typ.resolveType(src, res, s)
 		}
