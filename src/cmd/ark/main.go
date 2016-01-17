@@ -227,13 +227,13 @@ func findModuleDir(searchPaths []string, modulePath string) (fi os.FileInfo, pat
 }
 
 func build(files []string, outputFile string, cg string, outputType LLVMCodegen.OutputType, optLevel int) {
-	constructedModules, _ := parseFiles(files)
+	constructedModules, moduleLookup := parseFiles(files)
 
 	// resolve
 	log.Timed("resolve phase", "", func() {
 		for _, module := range constructedModules {
 			for _, submod := range module.Parts {
-				res := &parser.Resolver{Submodule: submod}
+				res := &parser.Resolver{Submodule: submod, ModuleLookup: moduleLookup}
 				vis := parser.NewASTVisitor(res)
 				vis.VisitSubmodule(submod)
 			}

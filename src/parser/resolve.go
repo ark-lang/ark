@@ -34,7 +34,8 @@ func (v UnresolvedName) Split() (UnresolvedName, string) {
 }
 
 type Resolver struct {
-	Submodule *Submodule
+	Submodule    *Submodule
+	ModuleLookup *ModuleLookup
 
 	scope []*Scope
 }
@@ -246,12 +247,12 @@ func (v *DefaultExpr) resolve(res *Resolver, s *Scope) Node {
 }
 
 func (v *UseDecl) resolve(res *Resolver, s *Scope) Node {
-	ident := res.GetIdent(v.ModuleName)
-	if ident == nil {
-		// TODO: Verify whether this case can ever happen
-		res.errCannotResolve(v, v.ModuleName)
-	} else if ident.Type != IDENT_MODULE {
-		res.err(v, "Expected module name, found %s `%s`", ident.Type, v.ModuleName)
+	modname := &ModuleName{}
+	modname.Parts = append(modname.Parts, v.ModuleName.ModuleNames...)
+	modname.Parts = append(modname.Parts, v.ModuleName.Name)
+	_, err := res.ModuleLookup.Get(modname)
+	if err != nil {
+		panic("INTERNAL ERROR: Used module not loaded")
 	}
 	return v
 }
