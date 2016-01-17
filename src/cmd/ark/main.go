@@ -121,6 +121,11 @@ func parseFiles(inputs []string) ([]*parser.Module, *parser.ModuleLookup) {
 		for i := 0; i < len(modulesToRead); i++ {
 			modname := modulesToRead[i]
 
+			// Skip already loaded modules
+			if _, err := moduleLookup.Get(modname); err == nil {
+				continue
+			}
+
 			fi, dirpath := findModuleDir(moduleSearchpaths, modname.ToPath())
 			if fi == nil {
 				setupErr("Couldn't find module `%s`", modname)
@@ -170,20 +175,7 @@ func parseFiles(inputs []string) ([]*parser.Module, *parser.ModuleLookup) {
 				}
 			}
 
-			// this just prevents the same module being added to the module list twice.
-			// the same module will still be parsed more than once if used more than once.
-			// TODO parse each module only one time, even if used more than once.
-			alreadyUsed := false
-			for _, m := range modules {
-				if m.Name.String() == module.Name.String() {
-					alreadyUsed = true
-					break
-				}
-			}
-
-			if !alreadyUsed {
-				modules = append(modules, module)
-			}
+			modules = append(modules, module)
 		}
 	})
 
