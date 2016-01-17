@@ -136,7 +136,7 @@ func (v *VariableAccessExpr) resolve(res *Resolver, s *Scope) Node {
 	if len(v.Name.ModuleNames) > 0 {
 		enumName, memberName := v.Name.Split()
 		ident := res.GetIdent(enumName)
-		if ident.Type == IDENT_TYPE {
+		if ident != nil && ident.Type == IDENT_TYPE {
 			itype := ident.Value.(Type)
 			if _, ok := itype.ActualType().(EnumType); ok {
 
