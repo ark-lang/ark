@@ -115,7 +115,7 @@ func realmain() int {
 		buildArgs := []string{"build"}
 		buildArgs = append(buildArgs, job.CompilerArgs...)
 
-		buildArgs = append(buildArgs, []string{"-b", *testDirectory, "-o", outpath, job.Sourcefile}...)
+		buildArgs = append(buildArgs, []string{"-I", "lib", "-b", *testDirectory, "-o", outpath, job.Sourcefile}...)
 
 		outBuf.Reset()
 		if *showOutput {
