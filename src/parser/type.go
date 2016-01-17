@@ -1029,7 +1029,7 @@ func (v SubstitutionType) ActualType() Type {
 // UnresolvedType
 type UnresolvedType struct {
 	metaType
-	Name       unresolvedName
+	Name       UnresolvedName
 	Parameters []Type
 }
 

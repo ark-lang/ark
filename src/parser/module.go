@@ -11,17 +11,23 @@ import (
 )
 
 type Module struct {
-	Nodes           []Node
-	File            *lexer.Sourcefile
-	Path            string // this stores the path too, e.g src/main
 	Name            *ModuleName
-	GlobalScope     *Scope
+	ModScope        *Scope
+	Dirpath         string
+	Trees           []*ParseTree
+	Parts           map[string]*Submodule
 	LinkedLibraries []string
+}
+
+type Submodule struct {
+	Parent   *Module
+	UseScope *Scope
+	File     *lexer.Sourcefile
+	Nodes    []Node
 }
 
 type ModuleLookup struct {
 	Name     string
-	Tree     *ParseTree
 	Module   *Module
 	Children map[string]*ModuleLookup
 }

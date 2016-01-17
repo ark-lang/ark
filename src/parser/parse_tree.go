@@ -45,7 +45,7 @@ type ParseTree struct {
 	baseNode
 	Source *lexer.Sourcefile
 	Nodes  []ParseNode
-	Name   *ModuleName
+	//Name   string
 }
 
 func (v *ParseTree) AddNode(node ParseNode) {

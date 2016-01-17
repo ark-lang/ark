@@ -136,10 +136,13 @@ func (v *Codegen) Generate(input []*parser.Module) {
 		log.Timed("codegenning", infile.Name.String(), func() {
 			infile.LlvmModule = llvm.NewModule(infile.Name.String())
 			v.curFile = infile
-			v.declareDecls(infile.Nodes)
 
-			for _, node := range infile.Nodes {
-				v.genNode(node)
+			for _, submod := range infile.Parts {
+				v.declareDecls(submod.Nodes)
+
+				for _, node := range submod.Nodes {
+					v.genNode(node)
+				}
 			}
 
 			if err := llvm.VerifyModule(infile.LlvmModule, llvm.ReturnStatusAction); err != nil {

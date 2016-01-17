@@ -228,7 +228,7 @@ func (v *TypeDecl) DocComments() []*DocComment {
 
 type UseDecl struct {
 	nodePos
-	ModuleName unresolvedName
+	ModuleName UnresolvedName
 	Scope      *Scope
 }
 
@@ -925,7 +925,7 @@ func (v *FunctionAccessExpr) NodeName() string {
 // VariableAccessExpr
 type VariableAccessExpr struct {
 	nodePos
-	Name unresolvedName
+	Name UnresolvedName
 
 	Variable *Variable
 

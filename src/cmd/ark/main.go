@@ -66,8 +66,47 @@ func setupErr(err string, stuff ...interface{}) {
 }
 
 func parseFiles(inputs []string) ([]*parser.Module, *parser.ModuleLookup) {
+	if len(inputs) != 1 {
+		setupErr("Please specify only one file or module to build")
+	}
+
 	var modulesToRead []*parser.ModuleName
-	for _, input := range inputs {
+	var modules []*parser.Module
+	moduleLookup := parser.NewModuleLookup("")
+	depGraph := parser.NewDependencyGraph()
+
+	input := inputs[0]
+	if strings.HasSuffix(input, ".ark") {
+		// Handle the special case of a single .ark file
+		modname := &parser.ModuleName{Parts: []string{"__main"}}
+		module := &parser.Module{
+			Name:    modname,
+			Dirpath: "",
+		}
+		moduleLookup.Create(modname).Module = module
+
+		// Read
+		sourcefile, err := lexer.NewSourcefile(input)
+		if err != nil {
+			setupErr("%s", err.Error())
+		}
+
+		// Lex
+		sourcefile.Tokens = lexer.Lex(sourcefile)
+
+		// Parse
+		parsedFile, deps := parser.Parse(sourcefile)
+		module.Trees = append(module.Trees, parsedFile)
+
+		// Add dependencies to parse array
+		for _, dep := range deps {
+			depname := parser.NewModuleName(dep)
+			modulesToRead = append(modulesToRead, depname)
+			depGraph.AddDependency(modname, depname)
+		}
+
+		modules = append(modules, module)
+	} else {
 		if strings.ContainsAny(input, `\/. `) {
 			setupErr("Invalid module name: %s", input)
 		}
@@ -76,87 +115,61 @@ func parseFiles(inputs []string) ([]*parser.Module, *parser.ModuleLookup) {
 		modulesToRead = append(modulesToRead, modname)
 	}
 
-	var parsedFiles []*parser.ParseTree
-	moduleLookup := parser.NewModuleLookup("")
-	depGraph := parser.NewDependencyGraph()
-
 	log.Timed("read/lex/parse phase", "", func() {
 		for i := 0; i < len(modulesToRead); i++ {
 			modname := modulesToRead[i]
-			actualFile := filepath.Join(*buildBasedir, modname.ToPath())
+			dirpath := filepath.Join(*buildBasedir, modname.ToPath())
 
-			fi, err := os.Stat(actualFile + ".ark")
-			shouldBeDir := false
-			if os.IsNotExist(err) {
-				fi, err = os.Stat(actualFile)
-				shouldBeDir = true
-			}
-
+			fi, err := os.Stat(dirpath)
 			if err != nil {
 				setupErr("%s", err.Error())
 			}
 
-			if !fi.IsDir() && shouldBeDir {
-				setupErr("Expected file `%s` to be directory, was file.", actualFile)
+			if !fi.IsDir() {
+				setupErr("Expected path `%s` to be directory, was file.", dirpath)
 			}
 
-			// Check lookup
-			ll := moduleLookup.Create(modname)
-			if ll.Tree == nil {
-				if shouldBeDir {
-					// Setup dummy parse tree
-					ll.Tree = &parser.ParseTree{}
-					ll.Tree.Name = modname
+			module := &parser.Module{
+				Name:    modname,
+				Dirpath: dirpath,
+			}
+			moduleLookup.Create(modname).Module = module
 
-					// Setup dummy module
-					ll.Module = &parser.Module{}
-					ll.Module.Path = actualFile
-					ll.Module.Name = modname
-					ll.Module.GlobalScope = parser.NewGlobalScope()
+			// Check module children
+			childFiles, err := ioutil.ReadDir(dirpath)
+			if err != nil {
+				setupErr("%s", err.Error())
+			}
 
-					// Check module children
-					childFiles, err := ioutil.ReadDir(actualFile)
-					if err != nil {
-						setupErr("%s", err.Error())
-					}
+			for _, childFile := range childFiles {
+				if strings.HasPrefix(childFile.Name(), ".") || !strings.HasSuffix(childFile.Name(), ".ark") {
+					continue
+				}
 
-					for _, childFile := range childFiles {
-						if strings.HasPrefix(childFile.Name(), ".") {
-							continue
-						}
+				actualFile := filepath.Join(dirpath, childFile.Name())
 
-						if childFile.IsDir() || strings.HasSuffix(childFile.Name(), ".ark") {
-							childmodname := parser.JoinModuleName(modname, strings.TrimSuffix(childFile.Name(), ".ark"))
-							modulesToRead = append(modulesToRead, childmodname)
+				// Read
+				sourcefile, err := lexer.NewSourcefile(actualFile)
+				if err != nil {
+					setupErr("%s", err.Error())
+				}
 
-							ll.Module.GlobalScope.UsedModules[childmodname.Last()] = moduleLookup.Create(childmodname)
-						}
-					}
-				} else {
-					// Read
-					sourcefile, err := lexer.NewSourcefile(actualFile + ".ark")
-					if err != nil {
-						setupErr("%s", err.Error())
-					}
+				// Lex
+				sourcefile.Tokens = lexer.Lex(sourcefile)
 
-					// Lex
-					sourcefile.Tokens = lexer.Lex(sourcefile)
+				// Parse
+				parsedFile, deps := parser.Parse(sourcefile)
+				module.Trees = append(module.Trees, parsedFile)
 
-					// Parse
-					parsedFile, deps := parser.Parse(sourcefile)
-					parsedFile.Name = modname
-
-					parsedFiles = append(parsedFiles, parsedFile)
-					ll.Tree = parsedFile
-
-					// Add dependencies to parse array
-					for _, dep := range deps {
-						depname := parser.NewModuleName(dep)
-						modulesToRead = append(modulesToRead, depname)
-						depGraph.AddDependency(modname, depname)
-					}
+				// Add dependencies to parse array
+				for _, dep := range deps {
+					depname := parser.NewModuleName(dep)
+					modulesToRead = append(modulesToRead, depname)
+					depGraph.AddDependency(modname, depname)
 				}
 			}
+
+			modules = append(modules, module)
 		}
 	})
 
@@ -174,27 +187,14 @@ func parseFiles(inputs []string) ([]*parser.Module, *parser.ModuleLookup) {
 
 	hasMainFunc := false
 	// construction
-	var constructedModules []*parser.Module
 	log.Timed("construction phase", "", func() {
-		for _, file := range parsedFiles {
-			mod := parser.Construct(file, moduleLookup)
-			constructedModules = append(constructedModules, mod)
+		for _, module := range modules {
+			parser.Construct(module, moduleLookup)
 
-			// not terribly efficient, but it's best
-			// to catch out earlier on if we have
-			// a main function or not rather than
-			// figuring out at the codegen phase??
-			// maybe??
-			// TODO FIXME MAKEPRETTY
-			for _, node := range mod.Nodes {
-				switch node := node.(type) {
-				case *parser.FunctionDecl:
-					if node.Function.Name == "main" {
-						hasMainFunc = true
-						break
-					}
-				default:
-				}
+			// Use module scope to check for main function
+			mainIdent := module.ModScope.GetIdent(parser.UnresolvedName{Name: "main"})
+			if mainIdent != nil && mainIdent.Type == parser.IDENT_FUNCTION {
+				hasMainFunc = true
 			}
 		}
 	})
@@ -206,7 +206,7 @@ func parseFiles(inputs []string) ([]*parser.Module, *parser.ModuleLookup) {
 		os.Exit(1)
 	}
 
-	return constructedModules, moduleLookup
+	return modules, moduleLookup
 }
 
 func build(files []string, outputFile string, cg string, outputType LLVMCodegen.OutputType, optLevel int) {
@@ -215,34 +215,40 @@ func build(files []string, outputFile string, cg string, outputType LLVMCodegen.
 	// resolve
 	log.Timed("resolve phase", "", func() {
 		for _, module := range constructedModules {
-			res := &parser.Resolver{Module: module}
-			vis := parser.NewASTVisitor(res)
-			vis.VisitModule(module)
+			for _, submod := range module.Parts {
+				res := &parser.Resolver{Submodule: submod}
+				vis := parser.NewASTVisitor(res)
+				vis.VisitSubmodule(submod)
+			}
 		}
 	})
 
 	// type inference
 	log.Timed("inference phase", "", func() {
 		for _, module := range constructedModules {
-			inf := &parser.TypeInferer{Module: module}
-			inf.Infer()
+			for _, submod := range module.Parts {
+				inf := &parser.TypeInferer{Submodule: submod}
+				inf.Infer()
 
-			// Dump AST
-			log.Debugln("main", "AST of module `%s`:", module.Name)
-			for _, node := range module.Nodes {
-				log.Debugln("main", "%s", node.String())
+				// Dump AST
+				log.Debugln("main", "AST of submodule `%s/%s`:", module.Name, submod.File.Name)
+				for _, node := range submod.Nodes {
+					log.Debugln("main", "%s", node.String())
+				}
+				log.Debugln("main", "")
 			}
-			log.Debugln("main", "")
 		}
 	})
 
 	// semantic analysis
 	log.Timed("semantic analysis phase", "", func() {
 		for _, module := range constructedModules {
-			sem := semantic.NewSemanticAnalyzer(module, *buildOwnership, *ignoreUnused)
-			vis := parser.NewASTVisitor(sem)
-			vis.VisitModule(module)
-			sem.Finalize()
+			for _, submod := range module.Parts {
+				sem := semantic.NewSemanticAnalyzer(submod, *buildOwnership, *ignoreUnused)
+				vis := parser.NewASTVisitor(sem)
+				vis.VisitSubmodule(submod)
+				sem.Finalize()
+			}
 		}
 	})
 

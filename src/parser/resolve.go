@@ -9,32 +9,32 @@ import (
 	"github.com/ark-lang/ark/src/util/log"
 )
 
-type unresolvedName struct {
-	moduleNames []string
-	name        string
+type UnresolvedName struct {
+	ModuleNames []string
+	Name        string
 }
 
-func (v unresolvedName) String() string {
+func (v UnresolvedName) String() string {
 	ret := ""
-	for _, mod := range v.moduleNames {
+	for _, mod := range v.ModuleNames {
 		ret += mod + "::"
 	}
-	return ret + v.name
+	return ret + v.Name
 }
 
-func (v unresolvedName) Split() (unresolvedName, string) {
-	if len(v.moduleNames) > 0 {
-		res := unresolvedName{}
-		res.moduleNames = v.moduleNames[:len(v.moduleNames)-1]
-		res.name = v.moduleNames[len(v.moduleNames)-1]
-		return res, v.name
+func (v UnresolvedName) Split() (UnresolvedName, string) {
+	if len(v.ModuleNames) > 0 {
+		res := UnresolvedName{}
+		res.ModuleNames = v.ModuleNames[:len(v.ModuleNames)-1]
+		res.Name = v.ModuleNames[len(v.ModuleNames)-1]
+		return res, v.Name
 	} else {
-		return unresolvedName{}, ""
+		return UnresolvedName{}, ""
 	}
 }
 
 type Resolver struct {
-	Module *Module
+	Submodule *Submodule
 
 	scope []*Scope
 }
@@ -49,12 +49,13 @@ func (v *Resolver) err(thing Locatable, err string, stuff ...interface{}) {
 	log.Error("resolve", util.TEXT_RED+util.TEXT_BOLD+"error:"+util.TEXT_RESET+" [%s:%d:%d] %s\n",
 		pos.Filename, pos.Line, pos.Char, fmt.Sprintf(err, stuff...))
 
-	log.Error("resolve", v.Module.File.MarkPos(pos))
+	log.Error("resolve", v.Submodule.File.MarkPos(pos))
 
 	os.Exit(util.EXIT_FAILURE_SEMANTIC)
 }
 
-func (v *Resolver) errCannotResolve(thing Locatable, name unresolvedName) {
+func (v *Resolver) errCannotResolve(thing Locatable, name UnresolvedName) {
+	v.Scope().Dump(0)
 	v.err(thing, "Cannot resolve `%s`", name.String())
 }
 
@@ -99,6 +100,16 @@ func (v *Resolver) PostVisit(n *Node) {
 	}
 }
 
+func (v *Resolver) GetIdent(name UnresolvedName) *Ident {
+	// This might be doable in a cleaner way, but it ensures that no submodule
+	// can access something `use`d in another submodule
+	ident := v.Scope().GetIdent(name)
+	if ident == nil {
+		ident = v.Submodule.UseScope.GetIdent(name)
+	}
+	return ident
+}
+
 ///
 // LATA
 ///
@@ -121,9 +132,9 @@ func (v *LambdaExpr) resolve(res *Resolver, s *Scope) Node {
 
 func (v *VariableAccessExpr) resolve(res *Resolver, s *Scope) Node {
 	// NOTE: Here we check whether this is actually a variable access or an enum member.
-	if len(v.Name.moduleNames) > 0 {
+	if len(v.Name.ModuleNames) > 0 {
 		enumName, memberName := v.Name.Split()
-		ident := s.GetIdent(enumName)
+		ident := res.GetIdent(enumName)
 		if ident.Type == IDENT_TYPE {
 			itype := ident.Value.(Type)
 			if _, ok := itype.ActualType().(EnumType); ok {
@@ -141,7 +152,7 @@ func (v *VariableAccessExpr) resolve(res *Resolver, s *Scope) Node {
 		}
 	}
 
-	ident := s.GetIdent(v.Name)
+	ident := res.GetIdent(v.Name)
 	if ident == nil {
 		res.errCannotResolve(v, v.Name)
 	} else if ident.Type == IDENT_FUNCTION {
@@ -202,7 +213,7 @@ func (v *SizeofExpr) resolve(res *Resolver, s *Scope) Node {
 				depth++
 				continue
 			} else if vaExpr, ok := inner.(*VariableAccessExpr); ok {
-				ident := s.GetIdent(vaExpr.Name)
+				ident := res.GetIdent(vaExpr.Name)
 				if ident.Type == IDENT_TYPE {
 					// NOTE: If it turened out to be a pointer type we
 					// reconstruct the type based on the stored pointer depth
@@ -235,7 +246,7 @@ func (v *DefaultExpr) resolve(res *Resolver, s *Scope) Node {
 }
 
 func (v *UseDecl) resolve(res *Resolver, s *Scope) Node {
-	ident := s.GetIdent(v.ModuleName)
+	ident := res.GetIdent(v.ModuleName)
 	if ident == nil {
 		// TODO: Verify whether this case can ever happen
 		res.errCannotResolve(v, v.ModuleName)
@@ -255,7 +266,7 @@ func (v *StructLiteral) resolve(res *Resolver, s *Scope) Node {
 	if name, ok := v.Type.(UnresolvedType); ok {
 		enumName, memberName := name.Name.Split()
 		if memberName != "" {
-			ident := s.GetIdent(enumName)
+			ident := res.GetIdent(enumName)
 			if ident.Type == IDENT_TYPE {
 				itype := ident.Value.(Type)
 				if _, ok := itype.ActualType().(EnumType); ok {
@@ -280,9 +291,9 @@ func (v *StructLiteral) resolve(res *Resolver, s *Scope) Node {
 func (v *CallExpr) resolve(res *Resolver, s *Scope) Node {
 	// NOTE: Here we check whether this is a call or an enum tuple lit.
 	if vae, ok := v.Function.(*VariableAccessExpr); ok {
-		if len(vae.Name.moduleNames) > 0 {
+		if len(vae.Name.ModuleNames) > 0 {
 			enumName, memberName := vae.Name.Split()
-			ident := s.GetIdent(enumName)
+			ident := res.GetIdent(enumName)
 			if ident != nil && ident.Type == IDENT_TYPE {
 				itype := ident.Value.(Type)
 				if _, ok := itype.ActualType().(EnumType); ok {
@@ -304,7 +315,7 @@ func (v *CallExpr) resolve(res *Resolver, s *Scope) Node {
 
 	// NOTE: Here we check whether this is a call or a cast
 	if vae, ok := v.Function.(*VariableAccessExpr); ok {
-		ident := s.GetIdent(vae.Name)
+		ident := res.GetIdent(vae.Name)
 		if ident != nil && ident.Type == IDENT_TYPE {
 			if len(v.Arguments) != 1 {
 				res.err(v, "Casts must recieve exactly one argument")
@@ -441,7 +452,7 @@ func (v SubstitutionType) resolveType(src Locatable, res *Resolver, s *Scope) Ty
 }
 
 func (v UnresolvedType) resolveType(src Locatable, res *Resolver, s *Scope) Type {
-	ident := s.GetIdent(v.Name)
+	ident := res.GetIdent(v.Name)
 	if ident == nil {
 		res.errCannotResolve(src, v.Name)
 	} else if ident.Type != IDENT_TYPE {

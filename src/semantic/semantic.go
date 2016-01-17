@@ -10,7 +10,7 @@ import (
 )
 
 type SemanticAnalyzer struct {
-	Module          *parser.Module
+	Submodule       *parser.Submodule
 	unresolvedNodes []*parser.Node
 	shouldExit      bool
 
@@ -32,7 +32,7 @@ func (v *SemanticAnalyzer) Err(thing parser.Locatable, err string, stuff ...inte
 	log.Error("semantic", util.TEXT_RED+util.TEXT_BOLD+"error:"+util.TEXT_RESET+" [%s:%d:%d] %s\n",
 		pos.Filename, pos.Line, pos.Char, fmt.Sprintf(err, stuff...))
 
-	log.Errorln("semantic", v.Module.File.MarkPos(pos))
+	log.Errorln("semantic", v.Submodule.File.MarkPos(pos))
 
 	v.shouldExit = true
 }
@@ -43,13 +43,15 @@ func (v *SemanticAnalyzer) Warn(thing parser.Locatable, err string, stuff ...int
 	log.Warning("semantic", util.TEXT_YELLOW+util.TEXT_BOLD+"warning:"+util.TEXT_RESET+" [%s:%d:%d] %s\n",
 		pos.Filename, pos.Line, pos.Char, fmt.Sprintf(err, stuff...))
 
-	log.Warningln("semantic", v.Module.File.MarkPos(pos))
+	thing.Pos()
+
+	log.Warningln("semantic", v.Submodule.File.MarkPos(pos))
 }
 
-func NewSemanticAnalyzer(module *parser.Module, useOwnership bool, ignoreUnused bool) *SemanticAnalyzer {
+func NewSemanticAnalyzer(module *parser.Submodule, useOwnership bool, ignoreUnused bool) *SemanticAnalyzer {
 	res := &SemanticAnalyzer{}
 	res.shouldExit = false
-	res.Module = module
+	res.Submodule = module
 	res.Checks = []SemanticCheck{
 		&AttributeCheck{},
 		&UnreachableCheck{},

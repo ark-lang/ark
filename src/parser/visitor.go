@@ -20,10 +20,10 @@ func NewASTVisitor(visitor Visitor) *ASTVisitor {
 	return &ASTVisitor{Visitor: visitor}
 }
 
-func (v *ASTVisitor) VisitModule(module *Module) {
-	v.EnterScope(module.GlobalScope)
-	module.Nodes = v.VisitNodes(module.Nodes)
-	v.ExitScope(module.GlobalScope)
+func (v *ASTVisitor) VisitSubmodule(submodule *Submodule) {
+	v.EnterScope(submodule.UseScope)
+	submodule.Nodes = v.VisitNodes(submodule.Nodes)
+	v.ExitScope(submodule.UseScope)
 }
 
 func (v *ASTVisitor) VisitNodes(nodes []Node) []Node {

@@ -23,10 +23,13 @@ type ConstructableExpr interface {
 }
 
 type Constructor struct {
-	tree    *ParseTree
-	module  *Module
 	modules *ModuleLookup
-	scope   *Scope
+	module  *Module
+
+	curTree   *ParseTree
+	curSubmod *Submodule
+
+	scope *Scope
 }
 
 func (v *Constructor) err(pos lexer.Span, err string, stuff ...interface{}) {
@@ -39,7 +42,7 @@ func (v *Constructor) errPos(pos lexer.Position, err string, stuff ...interface{
 		pos.Filename, pos.Line, pos.Char,
 		fmt.Sprintf(err, stuff...))
 
-	log.Error("constructor", v.tree.Source.MarkPos(pos))
+	log.Error("constructor", v.curTree.Source.MarkPos(pos))
 
 	os.Exit(util.EXIT_FAILURE_CONSTRUCTOR)
 }
@@ -50,7 +53,7 @@ func (v *Constructor) errSpan(pos lexer.Span, err string, stuff ...interface{}) 
 		pos.Filename, pos.StartLine, pos.StartChar,
 		fmt.Sprintf(err, stuff...))
 
-	log.Error("constructor", v.tree.Source.MarkSpan(pos))
+	log.Error("constructor", v.curTree.Source.MarkSpan(pos))
 
 	os.Exit(util.EXIT_FAILURE_CONSTRUCTOR)
 }
@@ -70,58 +73,60 @@ func (v *Constructor) useModule(name *ModuleName) {
 	// check if the module exists in the modules that are
 	// parsed to avoid any weird errors
 	if moduleToUse, err := v.modules.Get(name); err == nil {
-		if v.scope.Outer != nil {
-			v.scope.Outer.UsedModules[name.Last()] = moduleToUse
-		} else {
-			v.scope.UsedModules[name.Last()] = moduleToUse
-		}
+		v.curSubmod.UseScope.UsedModules[name.Last()] = moduleToUse
 	}
 }
 
-func Construct(tree *ParseTree, modules *ModuleLookup) *Module {
-	c := &Constructor{
-		tree: tree,
-		module: &Module{
-			Nodes: make([]Node, 0),
-			File:  tree.Source,
-			Path:  tree.Source.Path,
-			Name:  tree.Name,
-		},
-		scope: NewGlobalScope(),
+func Construct(module *Module, modules *ModuleLookup) {
+	con := &Constructor{
+		modules: modules,
+		module:  module,
+		scope:   NewGlobalScope(),
 	}
-	c.module.GlobalScope = c.scope
-	c.modules = modules
-	modules.Create(tree.Name).Module = c.module
+	con.module.ModScope = con.scope
+	con.module.Parts = make(map[string]*Submodule)
 
 	// add a C module here which will contain
 	// all of the c bindings and what not to
 	// keep everything separate
 	cModule := &Module{
-		Nodes:       make([]Node, 0),
-		Path:        "", // not really a path for this module
-		Name:        &ModuleName{Parts: []string{"C"}},
-		GlobalScope: NewCScope(),
+		Name:     &ModuleName{Parts: []string{"C"}},
+		ModScope: NewCScope(),
+		Parts:    make(map[string]*Submodule),
+		Dirpath:  "", // not really a path for this module
 	}
-	c.module.GlobalScope.UsedModules["C"] = &ModuleLookup{
+	con.module.ModScope.UsedModules["C"] = &ModuleLookup{
 		Name:     "C",
 		Module:   cModule,
 		Children: make(map[string]*ModuleLookup),
 	}
 
-	log.Timed("constructing", tree.Source.Name, func() {
-		c.construct()
+	log.Timed("constructing module", module.Name.String(), func() {
+		for _, tree := range con.module.Trees {
+			log.Timed("constructing submodule", tree.Source.Name, func() {
+				con.constructSubmodule(tree)
+			})
+		}
 	})
-
-	return c.module
 }
 
-func (v *Constructor) construct() {
-	for _, node := range v.tree.Nodes {
+func (v *Constructor) constructSubmodule(tree *ParseTree) {
+	v.curTree = tree
+	v.curSubmod = &Submodule{
+		Parent:   v.module,
+		UseScope: newScope(v.module.ModScope),
+		File:     tree.Source,
+	}
+
+	for _, node := range v.curTree.Nodes {
 		cnode := v.constructNode(node)
 		if cnode != nil {
-			v.module.Nodes = append(v.module.Nodes, cnode)
+			v.curSubmod.Nodes = append(v.curSubmod.Nodes, cnode)
 		}
 	}
+
+	v.module.Parts[v.curTree.Source.Name] = v.curSubmod
+	v.curSubmod, v.curTree = nil, nil
 }
 
 func (v *Constructor) constructNode(node ParseNode) Node {
@@ -365,7 +370,7 @@ func (v *FunctionNode) construct(c *Constructor) *Function {
 
 	oldScope := c.scope
 	if v.Header.Anonymous {
-		c.scope = c.module.GlobalScope
+		c.scope = c.module.ModScope
 		c.pushScope()
 	} else {
 		c.pushScope()
@@ -419,8 +424,8 @@ func (v *FunctionDeclNode) construct(c *Constructor) Node {
 	if function.Type.Receiver == nil {
 		scopeToInsertTo := c.scope
 		if v.Attrs().Contains("c") {
-			if mod, ok := c.module.GlobalScope.UsedModules["C"]; ok {
-				scopeToInsertTo = mod.Module.GlobalScope
+			if mod, ok := c.module.ModScope.UsedModules["C"]; ok {
+				scopeToInsertTo = mod.Module.ModScope
 			} else {
 				panic("Could not find C module to insert C binding into")
 			}
@@ -888,20 +893,20 @@ func (v *RuneLitNode) construct(c *Constructor) Expr {
 	return res
 }
 
-func toUnresolvedName(node *NameNode) unresolvedName {
-	res := unresolvedName{name: node.Name.Value}
+func toUnresolvedName(node *NameNode) UnresolvedName {
+	res := UnresolvedName{Name: node.Name.Value}
 	for _, module := range node.Modules {
-		res.moduleNames = append(res.moduleNames, module.Value)
+		res.ModuleNames = append(res.ModuleNames, module.Value)
 	}
 	return res
 }
 
-func toParentName(node *NameNode) unresolvedName {
-	res := unresolvedName{}
+func toParentName(node *NameNode) UnresolvedName {
+	res := UnresolvedName{}
 	for _, moduleName := range node.Modules[:len(node.Modules)-1] {
-		res.moduleNames = append(res.moduleNames, moduleName.Value)
+		res.ModuleNames = append(res.ModuleNames, moduleName.Value)
 	}
-	res.name = node.Modules[len(node.Modules)-1].Value
+	res.Name = node.Modules[len(node.Modules)-1].Value
 
 	return res
 }

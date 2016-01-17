@@ -16,7 +16,7 @@ import (
 // Expr(s) then return.
 
 type TypeInferer struct {
-	Module        *Module
+	Submodule     *Submodule
 	functionStack []*Function
 	function      *Function // the function we're in, or nil if we aren't
 	shouldExit    bool
@@ -46,7 +46,7 @@ func (v *TypeInferer) err(thing Locatable, err string, stuff ...interface{}) {
 	log.Error("semantic", util.TEXT_RED+util.TEXT_BOLD+"error:"+util.TEXT_RESET+" [%s:%d:%d] %s\n",
 		pos.Filename, pos.Line, pos.Char, fmt.Sprintf(err, stuff...))
 
-	log.Error("semantic", v.Module.File.MarkPos(pos))
+	log.Error("semantic", v.Submodule.File.MarkPos(pos))
 
 	v.shouldExit = true
 }
@@ -57,13 +57,13 @@ func (v *TypeInferer) warn(thing Locatable, err string, stuff ...interface{}) {
 	log.Warning("semantic", util.TEXT_YELLOW+util.TEXT_BOLD+"warning:"+util.TEXT_RESET+" [%s:%d:%d] %s\n",
 		pos.Filename, pos.Line, pos.Char, fmt.Sprintf(err, stuff...))
 
-	log.Warning("semantic", v.Module.File.MarkPos(pos))
+	log.Warning("semantic", v.Submodule.File.MarkPos(pos))
 }
 
 func (v *TypeInferer) Infer() {
 	v.shouldExit = false
 
-	for _, node := range v.Module.Nodes {
+	for _, node := range v.Submodule.Nodes {
 		node.infer(v)
 	}
 

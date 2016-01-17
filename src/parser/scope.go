@@ -3,6 +3,7 @@ package parser
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/ark-lang/ark/src/util/log"
 
@@ -108,28 +109,50 @@ func (v *Scope) InsertFunction(t *Function) *Ident {
 	return v.InsertIdent(t, t.Name, IDENT_FUNCTION)
 }
 
-func (v *Scope) GetIdent(name unresolvedName) *Ident {
+func (v *Scope) GetIdent(name UnresolvedName) *Ident {
 	scope := v
 
-	for _, modname := range name.moduleNames {
+	for _, modname := range name.ModuleNames {
 		if module, ok := scope.UsedModules[modname]; ok {
-			scope = module.Module.GlobalScope
+			//TODO: We might need to do somethign with UseScope here
+			scope = module.Module.ModScope
 		} else if scope.Outer != nil {
 			if module, ok := scope.Outer.UsedModules[modname]; ok {
-				scope = module.Module.GlobalScope
+				scope = module.Module.ModScope
 			}
 		} else {
 			return nil
 		}
 	}
 
-	if r := scope.Idents[name.name]; r != nil {
+	if r := scope.Idents[name.Name]; r != nil {
 		return r
-	} else if r := scope.UsedModules[name.name]; r != nil {
+	} else if r := scope.UsedModules[name.Name]; r != nil {
 		return &Ident{IDENT_MODULE, r}
 	} else if v.Outer != nil {
 		return v.Outer.GetIdent(name)
 	}
 
 	return nil
+}
+
+func (v *Scope) Dump(depth int) {
+	indent := strings.Repeat(" ", depth)
+
+	if depth == 0 {
+		log.Debug("parser", indent)
+		log.Debugln("parser", "This scope:")
+	}
+
+	for name, ident := range v.Idents {
+		log.Debug("parser", indent)
+		log.Debugln("parser", " %s (%s)", name, ident.Type)
+	}
+
+	if v.Outer != nil {
+		log.Debug("parser", indent)
+		log.Debugln("parser", "Parent scope:")
+		v.Outer.Dump(depth + 1)
+	}
+
 }

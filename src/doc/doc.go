@@ -40,32 +40,34 @@ func (v *Docgen) traverse() {
 			Name: file.Name.String(),
 		}
 
-		for _, n := range file.Nodes {
-			switch n.(type) {
-			case parser.Decl:
-				decl := &Decl{
-					Node: n.(parser.Documentable),
-				}
-
-				for _, comm := range decl.Node.DocComments() {
-					decl.Docs += comm.Contents + "\n"
-				}
-
-				decl.process()
-
+		for _, submod := range file.Parts {
+			for _, n := range submod.Nodes {
 				switch n.(type) {
-				case *parser.FunctionDecl:
-					v.curOutput.FunctionDecls = append(v.curOutput.FunctionDecls, decl)
-				//case *parser.StructDecl:
-				//	v.curOutput.StructDecls = append(v.curOutput.StructDecls, decl)
-				//case *parser.TraitDecl:
-				//	v.curOutput.TraitDecls = append(v.curOutput.TraitDecls, decl)
-				//case *parser.ImplDecl:
-				//	v.curOutput.ImplDecls = append(v.curOutput.ImplDecls, decl)
-				case *parser.VariableDecl:
-					v.curOutput.VariableDecls = append(v.curOutput.VariableDecls, decl)
-				default:
-					panic("dammit")
+				case parser.Decl:
+					decl := &Decl{
+						Node: n.(parser.Documentable),
+					}
+
+					for _, comm := range decl.Node.DocComments() {
+						decl.Docs += comm.Contents + "\n"
+					}
+
+					decl.process()
+
+					switch n.(type) {
+					case *parser.FunctionDecl:
+						v.curOutput.FunctionDecls = append(v.curOutput.FunctionDecls, decl)
+					//case *parser.StructDecl:
+					//	v.curOutput.StructDecls = append(v.curOutput.StructDecls, decl)
+					//case *parser.TraitDecl:
+					//	v.curOutput.TraitDecls = append(v.curOutput.TraitDecls, decl)
+					//case *parser.ImplDecl:
+					//	v.curOutput.ImplDecls = append(v.curOutput.ImplDecls, decl)
+					case *parser.VariableDecl:
+						v.curOutput.VariableDecls = append(v.curOutput.VariableDecls, decl)
+					default:
+						panic("dammit")
+					}
 				}
 			}
 		}
