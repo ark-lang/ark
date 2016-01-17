@@ -100,6 +100,8 @@ func (v *Codegen) createBinary() {
 	}
 
 	log.Timed("linking", "", func() {
+		log.Verboseln("codegen", "%s %#v", v.Linker, linkArgs)
+
 		cmd := exec.Command(v.Linker, linkArgs...)
 		if out, err := cmd.CombinedOutput(); err != nil {
 			v.err("failed to link object files: `%s`\n%s", err.Error(), string(out))
