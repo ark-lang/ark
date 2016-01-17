@@ -1,7 +1,0 @@
-// build using `ark build -I lib -b test cmd`
-
-#use std
-
-func main() {
-    std::io::println("hi");
-}
