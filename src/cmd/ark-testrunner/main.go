@@ -109,14 +109,13 @@ func realmain() int {
 	outBuf := new(bytes.Buffer)
 	var results []Result
 	for _, job := range jobs {
-		idx := strings.LastIndex(job.Sourcefile, ".ark")
-		basedir, module := filepath.Split(job.Sourcefile[:idx])
-		outpath := filepath.Join(basedir, fmt.Sprintf("%s.test", module))
+		outpath := fmt.Sprintf("%s_test", job.Sourcefile)
 
 		// Compile the test program
 		buildArgs := []string{"build"}
 		buildArgs = append(buildArgs, job.CompilerArgs...)
-		buildArgs = append(buildArgs, []string{"-b", basedir, "-o", outpath, module}...)
+
+		buildArgs = append(buildArgs, []string{"-b", *testDirectory, "-o", outpath, job.Sourcefile}...)
 
 		outBuf.Reset()
 		if *showOutput {
