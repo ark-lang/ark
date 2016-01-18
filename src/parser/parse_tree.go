@@ -359,6 +359,7 @@ type TupleAccessNode struct {
 type ArrayLiteralNode struct {
 	baseNode
 	Values []ParseNode
+	Type    ParseNode
 }
 
 type TupleLiteralNode struct {

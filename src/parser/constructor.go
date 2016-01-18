@@ -826,6 +826,7 @@ func (v *TupleAccessNode) construct(c *Constructor) Expr {
 func (v *ArrayLiteralNode) construct(c *Constructor) Expr {
 	res := &ArrayLiteral{
 		Members: c.constructExprs(v.Values),
+		Type: c.constructType(v.Type),
 	}
 	res.setPos(v.Where().Start())
 	return res

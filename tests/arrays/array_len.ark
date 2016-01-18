@@ -4,7 +4,7 @@ func main() -> int {
 	C::printf("this is a test\n");
 
 	// iterates 15 times
-	z : uint = len([0, 1, 2]) + 12;
+	z : uint = len([]int{0, 1, 2}) + 12;
 	mut i: uint = 0;
 	for i < z {
 		C::printf("iter %d\n", i);
@@ -13,7 +13,7 @@ func main() -> int {
 
 	// iterate thru array
 	// this doesn't work as it should yet...
-	foo := [0, 1, 2, 3];
+	foo := []int{0, 1, 2, 3};
 
 	// i haven't looked into it
 	// but #foo seems to just be

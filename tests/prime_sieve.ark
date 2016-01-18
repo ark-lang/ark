@@ -2,7 +2,7 @@
 
 func main() -> int {
 	// oh god the horror
-	mut primes: []bool = [
+	mut primes: []bool = []bool{
 		false, true, true, true, true, true, true, true, true, true,
 		true, true, true, true, true, true, true, true, true, true,
 		true, true, true, true, true, true, true, true, true, true,
@@ -14,7 +14,7 @@ func main() -> int {
 		true, true, true, true, true, true, true, true, true, true,
 		true, true, true, true, true, true, true, true, true, true,
 		true, true, true, true, true, true, true, true, true, true,
-	];
+	};
 
 	mut num_primes: int = 0;
 	mut i := 2;

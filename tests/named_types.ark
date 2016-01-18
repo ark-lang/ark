@@ -32,7 +32,7 @@ func main() -> int {
     tupleTest(tupleType(tupleVal2));
 
     // array test
-    mut arrayVal: arrayType = [1, 2, 3, 4];
+    mut arrayVal: arrayType = []arrayType{1, 2, 3, 4};
 
     arrayVal[0] = 5;
 

@@ -1836,14 +1836,18 @@ func (v *parser) parseCompositeLiteral() ParseNode {
 func (v *parser) parseArrayLit() *ArrayLiteralNode {
 	defer un(trace(v, "arraylit"))
 
-	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "[") {
+	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "[") && !v.tokenMatches(1, lexer.TOKEN_SEPARATOR, "]") {
 		return nil
 	}
 	startToken := v.consumeToken()
+	v.consumeToken()
 
+	typ := v.parseType(true)
+
+	v.expect(lexer.TOKEN_SEPARATOR, "{")
 	var values []ParseNode
 	for {
-		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "]") {
+		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "}") {
 			break
 		}
 
@@ -1859,9 +1863,12 @@ func (v *parser) parseArrayLit() *ArrayLiteralNode {
 		v.consumeToken()
 	}
 
-	endToken := v.expect(lexer.TOKEN_SEPARATOR, "]")
+	endToken := v.expect(lexer.TOKEN_SEPARATOR, "}")
 
-	res := &ArrayLiteralNode{Values: values}
+	res := &ArrayLiteralNode{
+		Values: values, 
+		Type: typ,
+	};
 	res.SetWhere(lexer.NewSpanFromTokens(startToken, endToken))
 	return res
 }
