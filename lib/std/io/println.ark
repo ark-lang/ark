@@ -1,10 +1,7 @@
 [c] func printf(fmt: str, ...) -> int;
 
-#use std::thing
-
 // a very unsophisticated println
 // function
 func println(message: str) -> int {
-	thing::thing();
 	return C::printf("%s\n", message);
 }
