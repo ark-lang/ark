@@ -100,7 +100,7 @@ func (v *Codegen) createBinary() {
 	}
 
 	log.Timed("linking", "", func() {
-		log.Verboseln("codegen", "%s %#v", v.Linker, linkArgs)
+		log.Verboseln("codegen", "%s %v", v.Linker, linkArgs)
 
 		cmd := exec.Command(v.Linker, linkArgs...)
 		if out, err := cmd.CombinedOutput(); err != nil {
