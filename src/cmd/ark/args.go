@@ -29,7 +29,6 @@ var (
 
 	buildCom         = app.Command("build", "Build an executable.")
 	buildOutput      = buildCom.Flag("output", "Output binary name.").Short('o').Default("main").String()
-	buildBasedir     = buildCom.Flag("basedir", "Base directory of source files").Short('b').Default(".").String()
 	buildSearchpaths = buildCom.Flag("searchpaths", "Paths to search for used modules if not found in base directory").Short('I').Strings()
 	buildInputs      = newInputList(buildCom.Arg("input", "Ark source files."))
 	buildCodegen     = buildCom.Flag("codegen", "Codegen backend to use").Default("llvm").Enum("none", "llvm")

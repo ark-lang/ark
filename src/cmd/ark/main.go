@@ -115,8 +115,6 @@ func parseFiles(inputs []string) ([]*parser.Module, *parser.ModuleLookup) {
 		modulesToRead = append(modulesToRead, modname)
 	}
 
-	moduleSearchpaths := append(*buildSearchpaths, *buildBasedir)
-
 	log.Timed("read/lex/parse phase", "", func() {
 		for i := 0; i < len(modulesToRead); i++ {
 			modname := modulesToRead[i]
@@ -126,7 +124,7 @@ func parseFiles(inputs []string) ([]*parser.Module, *parser.ModuleLookup) {
 				continue
 			}
 
-			fi, dirpath := findModuleDir(moduleSearchpaths, modname.ToPath())
+			fi, dirpath := findModuleDir(*buildSearchpaths, modname.ToPath())
 			if fi == nil {
 				setupErr("Couldn't find module `%s`", modname)
 			}
