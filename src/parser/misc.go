@@ -37,8 +37,8 @@ func binRuneToInt(r rune) int {
 }
 
 const (
-	SIMPLE_ESCAPE_VALUES string = "\a\b\f\n\r\t\v\\'\""
-	SIMPLE_ESCAPE_NAMES  string = "abfnrtv\\'\""
+	SIMPLE_ESCAPE_VALUES string = "\a\b\f\n\r\t\v\\'\"" + string(0)
+	SIMPLE_ESCAPE_NAMES  string = "abfnrtv\\'\"0"
 )
 
 func UnescapeString(s string) string {
