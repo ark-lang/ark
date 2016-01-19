@@ -629,6 +629,7 @@ type StringLiteral struct {
 	nodePos
 	Value  string
 	StrLen int
+	Type   Type
 }
 
 func (v *StringLiteral) exprNode() {}
@@ -638,7 +639,7 @@ func (v *StringLiteral) String() string {
 }
 
 func (v *StringLiteral) GetType() Type {
-	return PRIMITIVE_str
+	return v.Type
 }
 
 func (v *StringLiteral) NodeName() string {

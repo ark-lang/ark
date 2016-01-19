@@ -1,10 +1,10 @@
-[c] func printf(fmt: str, ...);
+[c] func printf(fmt: ^u8, ...);
 [c] func rand() -> int;
 [c] func srand(i: uint);
 [c] func time(ptr: u32) -> u64;
-[c] func scanf(fmt: str, ...);
+[c] func scanf(fmt: ^u8, ...);
 
-func println(mess: str) => C::printf("%s\n", mess);
+func println(mess: ^u8) => C::printf("%s\n", mess);
 
 func main() -> int {
     println("Higher or lower game, in Ark!");

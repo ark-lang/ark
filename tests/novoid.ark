@@ -1,4 +1,4 @@
-[c] func printf(fmt: str, ...) -> int;
+[c] func printf(fmt: ^u8, ...) -> int;
 
 func say_hi() {
     C::printf("hi\n");

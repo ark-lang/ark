@@ -1,4 +1,4 @@
-[c] func printf(fmt: str, ...) -> int;
+[c] func printf(fmt: ^u8, ...) -> int;
 
 func main() -> int {
     mut x: int = 5;
@@ -7,7 +7,7 @@ func main() -> int {
         mut x: f32 = 4.321;
 
         {
-            mut x: str = "foo";
+            mut x: ^u8 = "foo";
             C::printf("x = %s\n", x);
         }
 

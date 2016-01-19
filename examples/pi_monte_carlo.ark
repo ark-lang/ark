@@ -1,4 +1,4 @@
-[c] func printf(fmt: str, ...);
+[c] func printf(fmt: ^u8, ...);
 [c] func srand(seed: uint);
 [c] func time(ptr: u64) -> uint;
 [c] func rand() -> int;

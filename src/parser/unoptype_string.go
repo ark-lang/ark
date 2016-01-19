@@ -6,11 +6,16 @@ import "fmt"
 
 const _UnOpType_name = "UNOP_ERRUNOP_LOG_NOTUNOP_BIT_NOTUNOP_NEGATIVEUNOP_DEREF"
 
-var _UnOpType_index = [...]uint8{0, 8, 20, 32, 45, 55}
+var _UnOpType_index = [...]uint8{8, 20, 32, 45, 55}
 
 func (i UnOpType) String() string {
-	if i < 0 || i >= UnOpType(len(_UnOpType_index)-1) {
+	if i < 0 || i >= UnOpType(len(_UnOpType_index)) {
 		return fmt.Sprintf("UnOpType(%d)", i)
 	}
-	return _UnOpType_name[_UnOpType_index[i]:_UnOpType_index[i+1]]
+	hi := _UnOpType_index[i]
+	lo := uint8(0)
+	if i > 0 {
+		lo = _UnOpType_index[i-1]
+	}
+	return _UnOpType_name[lo:hi]
 }

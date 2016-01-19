@@ -772,7 +772,7 @@ func (v *Codegen) genAccessGEP(n parser.Expr) llvm.Value {
 
 		load := v.builder().CreateLoad(gep, "")
 
-		gepIndexes := []llvm.Value{llvm.ConstInt(llvm.Int32Type(), 0, false), subscriptExpr}
+		gepIndexes := []llvm.Value{subscriptExpr}
 		return v.builder().CreateGEP(load, gepIndexes, "")
 
 	case *parser.TupleAccessExpr:
@@ -848,6 +848,49 @@ func (v *Codegen) genRuneLiteral(n *parser.RuneLiteral) llvm.Value {
 	return llvm.ConstInt(v.typeToLLVMType(n.GetType()), uint64(n.Value), true)
 }
 
+/*func (v *Codegen) genStringLiteralArray(n *parser.StringLiteral) llvm.Value {
+
+}*/
+
+func (v *Codegen) genStringLiteral(n *parser.StringLiteral) llvm.Value {
+	memberLLVMType := v.typeToLLVMType(parser.PRIMITIVE_u8)
+	nullTerm := n.Type.ActualType().Equals(parser.PointerTo(parser.PRIMITIVE_u8))
+	length := len(n.Value)
+	if nullTerm {
+		length++
+	}
+
+	var backingArrayPointer llvm.Value
+
+	if v.inFunction() {
+		// allocate backing array
+		backingArray := v.builder().CreateAlloca(llvm.ArrayType(memberLLVMType, length), "stack^u8")
+		v.builder().CreateStore(llvm.ConstString(n.Value, nullTerm), backingArray)
+
+		backingArrayPointer = v.builder().CreateBitCast(backingArray, llvm.PointerType(memberLLVMType, 0), "")
+	} else {
+		backName := fmt.Sprintf("_globarr_back_%d", v.arrayIndex)
+		v.arrayIndex++
+
+		backingArray := llvm.AddGlobal(v.curFile.LlvmModule, llvm.ArrayType(memberLLVMType, length), backName)
+		backingArray.SetLinkage(llvm.InternalLinkage)
+		backingArray.SetGlobalConstant(false)
+		backingArray.SetInitializer(llvm.ConstString(n.Value, nullTerm))
+
+		backingArrayPointer = llvm.ConstBitCast(backingArray, llvm.PointerType(memberLLVMType, 0))
+	}
+
+	if n.Type.ActualType().Equals(parser.ArrayOf(parser.PRIMITIVE_u8)) {
+		lengthValue := llvm.ConstInt(v.typeToLLVMType(parser.PRIMITIVE_uint), uint64(length), false)
+		structValue := llvm.Undef(v.typeToLLVMType(n.Type))
+		structValue = v.builder().CreateInsertValue(structValue, lengthValue, 0, "")
+		structValue = v.builder().CreateInsertValue(structValue, backingArrayPointer, 1, "")
+		return structValue
+	} else {
+		return backingArrayPointer
+	}
+}
+
 // Allocates a literal array on the stack
 func (v *Codegen) genArrayLiteral(n *parser.ArrayLiteral) llvm.Value {
 	arrayLLVMType := v.typeToLLVMType(n.Type)
@@ -875,7 +918,7 @@ func (v *Codegen) genArrayLiteral(n *parser.ArrayLiteral) llvm.Value {
 			v.builder().CreateStore(value, gep)
 		}
 
-		backingArrayPointer = v.builder().CreateBitCast(backingArray, llvm.PointerType(llvm.ArrayType(memberLLVMType, 0), 0), "")
+		backingArrayPointer = v.builder().CreateBitCast(backingArray, llvm.PointerType(memberLLVMType, 0), "")
 	} else {
 		backName := fmt.Sprintf("_globarr_back_%d", v.arrayIndex)
 		v.arrayIndex++
@@ -885,7 +928,7 @@ func (v *Codegen) genArrayLiteral(n *parser.ArrayLiteral) llvm.Value {
 		backingArray.SetGlobalConstant(false)
 		backingArray.SetInitializer(llvm.ConstArray(memberLLVMType, arrayValues))
 
-		backingArrayPointer = llvm.ConstBitCast(backingArray, llvm.PointerType(llvm.ArrayType(memberLLVMType, 0), 0))
+		backingArrayPointer = llvm.ConstBitCast(backingArray, llvm.PointerType(memberLLVMType, 0))
 	}
 
 	structValue := llvm.Undef(arrayLLVMType)
@@ -984,10 +1027,6 @@ func (v *Codegen) genNumericLiteral(n *parser.NumericLiteral) llvm.Value {
 	} else {
 		return llvm.ConstInt(v.typeToLLVMType(n.Type), n.AsInt(), false)
 	}
-}
-
-func (v *Codegen) genStringLiteral(n *parser.StringLiteral) llvm.Value {
-	return v.builder().CreateGlobalStringPtr(n.Value, "str")
 }
 
 func (v *Codegen) genLogicalBinop(n *parser.BinaryExpr) llvm.Value {

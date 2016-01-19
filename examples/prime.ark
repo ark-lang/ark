@@ -20,7 +20,7 @@ Close! We had no optimization passes either!
 
 **/
 
-[c] func printf(fmt: str, ...) -> int;
+[c] func printf(fmt: ^u8, ...) -> int;
 [c] func sqrt(x: f64) -> f64;
 
 func is_prime(n: int) -> int {

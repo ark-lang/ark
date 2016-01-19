@@ -1,7 +1,16 @@
-[c] func printf(fmt: str, ...) -> int;
+[c] func printf(fmt: ^u8, ...) -> int;
 
 // a very unsophisticated println
 // function
-func println(message: str) -> int {
-	return C::printf("%s\n", message);
+func println(message: string) -> int {
+	return C::printf("%.*s\n", len(message), &message[0]);
+}
+
+func print(message: string) -> int {
+	return C::printf("%.*s", len(message), &message[0]);
+}
+
+func printInt(num: int) -> int {
+	// use z for register-sized integer
+	return C::printf("%zd", num);
 }

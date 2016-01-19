@@ -1,6 +1,6 @@
-[c] func printf(fmt: str, ...);
+[c] func printf(fmt: ^u8, ...);
 
-func main(argc: int, argv: ^str) -> int {
+func main(argc: int, argv: ^^u8) -> int {
     C::printf("%d %s\n", argc, ^argv);
 
     return 0;

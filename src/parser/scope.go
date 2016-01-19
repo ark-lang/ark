@@ -55,6 +55,10 @@ func newScope(outer *Scope) *Scope {
 }
 
 var builtinScope *Scope
+var stringType = &NamedType{
+	Name: "string",
+	Type: ArrayOf(PRIMITIVE_u8),
+}
 
 func init() {
 	builtinScope = newScope(nil)
@@ -62,6 +66,8 @@ func init() {
 	for i := 0; i < len(_PrimitiveType_index); i++ {
 		builtinScope.InsertType(PrimitiveType(i))
 	}
+
+	builtinScope.InsertType(stringType)
 }
 
 func NewGlobalScope() *Scope {

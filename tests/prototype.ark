@@ -1,4 +1,4 @@
-[c] func printf(fmt: str, ...) -> int;
+[c] func printf(fmt: ^u8, ...) -> int;
 
 func main() -> int {
     C::printf("finally, it fucking works!\n");
@@ -7,6 +7,6 @@ func main() -> int {
     return 0;
 }
 
-func puts(message: str) {
+func puts(message: ^u8) {
     C::printf(message);
 }

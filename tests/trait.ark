@@ -1,7 +1,7 @@
-[c] func printf(fmt: str, ...) -> int;
+[c] func printf(fmt: ^u8, ...) -> int;
 
 trait ToString {
-    func toString() -> str;
+    func toString() -> ^u8;
 }
 
 struct Foo {
@@ -15,7 +15,7 @@ impl Foo {
 }
 
 impl Foo for ToString {
-    func toString(): str {
+    func toString(): ^u8 {
         return "foo";
     }
 }

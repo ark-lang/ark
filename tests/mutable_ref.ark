@@ -1,4 +1,4 @@
-[c] func printf(fmt: str, ...) -> int;
+[c] func printf(fmt: ^u8, ...) -> int;
 
 func change_ref(mut x: &mut int) {
     // this is a hack to dereference the reference...

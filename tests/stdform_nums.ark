@@ -1,4 +1,4 @@
-[c] func printf(fmt: str, ...);
+[c] func printf(fmt: ^u8, ...);
 
 func main() -> int {
     if 2e3 != 2000 {

@@ -393,8 +393,17 @@ func (v *NumericLiteral) setTypeHint(t Type) {
 
 // StringLiteral
 
-func (v *StringLiteral) infer(s *TypeInferer) {}
-func (v *StringLiteral) setTypeHint(t Type)   {}
+func (v *StringLiteral) infer(s *TypeInferer) {
+	if v.Type == nil {
+		v.Type = stringType
+	}
+}
+
+func (v *StringLiteral) setTypeHint(t Type) {
+	if t != nil && (t.ActualType().Equals(ArrayOf(PRIMITIVE_u8)) || t.Equals(PointerTo(PRIMITIVE_u8))) {
+		v.Type = t
+	}
+}
 
 // RuneLiteral
 
@@ -440,7 +449,7 @@ func (v *ArrayLiteral) infer(s *TypeInferer) {
 		if memType == nil {
 			s.err(v, "Couldn't infer type of array members") // don't think this can ever happen
 		}
-		v.Type = arrayOf(memType)
+		v.Type = ArrayOf(memType)
 	}
 }
 
@@ -599,7 +608,7 @@ func (v *DerefAccessExpr) infer(s *TypeInferer) {
 }
 
 func (v *DerefAccessExpr) setTypeHint(t Type) {
-	v.Expr.setTypeHint(pointerTo(t))
+	v.Expr.setTypeHint(PointerTo(t))
 }
 
 // AddressOfExpr

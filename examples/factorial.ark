@@ -1,5 +1,5 @@
-[c] func printf(fmt: str, ...) -> int;
-[c] func scanf(fmt: str, ...);
+[c] func printf(fmt: ^u8, ...) -> int;
+[c] func scanf(fmt: ^u8, ...);
 
 func factorial(n: int) -> int {
     if n == 0 {

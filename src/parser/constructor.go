@@ -197,7 +197,7 @@ func (v *ReferenceTypeNode) construct(c *Constructor) Type {
 
 func (v *PointerTypeNode) construct(c *Constructor) Type {
 	targetType := c.constructType(v.TargetType)
-	return pointerTo(targetType)
+	return PointerTo(targetType)
 }
 
 func (v *TupleTypeNode) construct(c *Constructor) Type {
@@ -222,7 +222,7 @@ func (v *FunctionTypeNode) construct(c *Constructor) Type {
 
 func (v *ArrayTypeNode) construct(c *Constructor) Type {
 	memberType := c.constructType(v.MemberType)
-	return arrayOf(memberType)
+	return ArrayOf(memberType)
 }
 
 func (v *TypeReferenceNode) construct(c *Constructor) Type {
@@ -737,7 +737,7 @@ func (v *UnaryExprNode) construct(c *Constructor) Expr {
 	if v.Operator == UNOP_DEREF {
 		if castExpr, ok := subExpr.(*CastExpr); ok {
 			// TODO: Verify whether this case actually ever happens
-			res = &CastExpr{Type: pointerTo(castExpr.Type), Expr: castExpr.Expr}
+			res = &CastExpr{Type: PointerTo(castExpr.Type), Expr: castExpr.Expr}
 		} else {
 			res = &DerefAccessExpr{
 				Expr: subExpr,
@@ -826,7 +826,7 @@ func (v *TupleAccessNode) construct(c *Constructor) Expr {
 func (v *ArrayLiteralNode) construct(c *Constructor) Expr {
 	res := &ArrayLiteral{
 		Members: c.constructExprs(v.Values),
-		Type: c.constructType(v.Type),
+		Type:    c.constructType(v.Type),
 	}
 	res.setPos(v.Where().Start())
 	return res

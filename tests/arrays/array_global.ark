@@ -1,4 +1,4 @@
-[c] func printf(fmt: str, ...) -> int;
+[c] func printf(fmt: ^u8, ...) -> int;
 
 mut arrayGlobalTest: []s16 = []s16{100, 101, 102, 103, 104};
 random := []int{0, 16, 32, 64, 128, 256, 512, 1024};

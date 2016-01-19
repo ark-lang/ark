@@ -1,4 +1,4 @@
-[c] func printf(fmt: str, ...) -> int;
+[c] func printf(fmt: ^u8, ...) -> int;
 
 func main() -> int {
     mut arrayLitTest: []s16 = []s16{100, 101, 102, 103, 104};

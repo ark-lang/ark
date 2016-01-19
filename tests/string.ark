@@ -1,6 +1,8 @@
+#use std::io
+
 [c] func printf(fmt: ^u8, ...) -> int;
 
 func main() -> int {
-    C::printf("hi");
+    io::println("hi");
     return 0;
 }

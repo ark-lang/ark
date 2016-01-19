@@ -88,7 +88,7 @@ func (v *Resolver) PostVisit(n *Node) {
 	case *DerefAccessExpr:
 		dae := (*n).(*DerefAccessExpr)
 		if ce, ok := dae.Expr.(*CastExpr); ok {
-			*n = &CastExpr{Type: pointerTo(ce.Type), Expr: ce.Expr}
+			*n = &CastExpr{Type: PointerTo(ce.Type), Expr: ce.Expr}
 		} else if ptr, ok := dae.Expr.GetType().(PointerType); ok {
 			dae.Type = ptr.Addressee
 		}
@@ -220,7 +220,7 @@ func (v *SizeofExpr) resolve(res *Resolver, s *Scope) Node {
 					// reconstruct the type based on the stored pointer depth
 					var newType Type = ident.Value.(Type)
 					for i := 0; i < depth; i++ {
-						newType = pointerTo(newType)
+						newType = PointerTo(newType)
 					}
 					v.Type = newType
 					v.Expr = nil
@@ -376,7 +376,7 @@ func (v StructType) resolveType(src Locatable, res *Resolver, s *Scope) Type {
 }
 
 func (v ArrayType) resolveType(src Locatable, res *Resolver, s *Scope) Type {
-	return arrayOf(v.MemberType.resolveType(src, res, s))
+	return ArrayOf(v.MemberType.resolveType(src, res, s))
 }
 
 func (v MutableReferenceType) resolveType(src Locatable, res *Resolver, s *Scope) Type {
@@ -388,7 +388,7 @@ func (v ConstantReferenceType) resolveType(src Locatable, res *Resolver, s *Scop
 }
 
 func (v PointerType) resolveType(src Locatable, res *Resolver, s *Scope) Type {
-	return pointerTo(v.Addressee.resolveType(src, res, s))
+	return PointerTo(v.Addressee.resolveType(src, res, s))
 }
 
 func (v TupleType) resolveType(src Locatable, res *Resolver, s *Scope) Type {

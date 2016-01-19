@@ -1,21 +1,23 @@
-[c] func printf(fmt: str, ...) -> int;
+#use std::io
+
+[c] func printf(fmt: ^u8, ...) -> int;
 
 func main() -> int {
     valid: bool = true;
     match valid {
-        true => C::printf("%s\n", "true"),
-        false => C::printf("%s\n", "false"),
+        true => io::println("true"),
+        false => io::println("false"),
     }
 
     foo := "bar";
     match foo {
         "hello" => C::printf("foo matches hello"),
         "world" => { },
-        "bar" => { 
-            award := "baz";
-            C::printf("correct! you win %s\n", award); 
+        "bar" => {
+            award: ^u8 = "baz";
+            C::printf("correct! you win %s\n", award);
         },
-        _ => C::printf("default\n"),
+        _ => io::println("default"),
     }
 
     return 0;

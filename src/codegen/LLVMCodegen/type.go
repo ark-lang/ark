@@ -69,7 +69,7 @@ func (v *Codegen) tupleTypeToLLVMType(typ parser.TupleType) llvm.Type {
 
 func (v *Codegen) arrayTypeToLLVMType(typ parser.ArrayType) llvm.Type {
 	fields := []llvm.Type{v.typeToLLVMType(parser.PRIMITIVE_uint),
-		llvm.PointerType(llvm.ArrayType(v.typeToLLVMType(typ.MemberType), 0), 0)}
+		llvm.PointerType(v.typeToLLVMType(typ.MemberType), 0)}
 
 	return llvm.StructType(fields, false)
 }
@@ -172,8 +172,6 @@ func (v *Codegen) primitiveTypeToLLVMType(typ parser.PrimitiveType) llvm.Type {
 		return llvm.IntType(32)
 	case parser.PRIMITIVE_bool:
 		return llvm.IntType(1)
-	case parser.PRIMITIVE_str:
-		return llvm.PointerType(llvm.IntType(8), 0)
 	case parser.PRIMITIVE_void:
 		return llvm.VoidType()
 

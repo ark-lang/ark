@@ -32,9 +32,9 @@ More examples can be found [here](/examples).
 
 ```rust
 // binding to printf
-[c] func printf(fmt: str, ...);
+[c] func printf(fmt: ^u8, ...);
 
-func main(argc: int, argv: ^str) -> int {
+func main(argc: int, argv: ^^u8) -> int {
     // accessed via the C module
     C::printf("Running %s\n", ^argv);
 

@@ -37,7 +37,6 @@ const (
 	PRIMITIVE_f64
 	PRIMITIVE_f128
 
-	PRIMITIVE_str
 	PRIMITIVE_rune
 
 	PRIMITIVE_int
@@ -328,7 +327,7 @@ type ArrayType struct {
 // IMPORTANT:
 // Using this function is no longer important, just make sure to use
 // .Equals() to compare two types.
-func arrayOf(t Type) ArrayType {
+func ArrayOf(t Type) ArrayType {
 	return ArrayType{MemberType: t}
 }
 
@@ -521,7 +520,7 @@ type PointerType struct {
 // IMPORTANT:
 // Using this function is no longer important, just make sure to use
 // .Equals() to compare two types.
-func pointerTo(t Type) PointerType {
+func PointerTo(t Type) PointerType {
 	return PointerType{Addressee: t}
 }
 
