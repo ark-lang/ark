@@ -3,6 +3,10 @@
 [c] func printf(fmt: ^u8, ...) -> int;
 
 func main() -> int {
+    mut str := "hello!";
+    str[1] = u8('a');
+    io::println(str);
+
     io::println("hi");
     return 0;
 }
