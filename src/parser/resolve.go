@@ -96,7 +96,9 @@ func (v *Resolver) PostVisit(n *Node) {
 	case *FunctionDecl:
 		fd := (*n).(*FunctionDecl)
 		if fd.Function.Type.Receiver != nil {
-			TypeWithoutPointers(fd.Function.Receiver.Variable.Type).(*NamedType).addMethod(fd.Function)
+			if named, ok := TypeWithoutPointers(fd.Function.Receiver.Variable.Type).(*NamedType); ok {
+				named.addMethod(fd.Function)
+			}
 		}
 	}
 }
@@ -115,12 +117,29 @@ func (v *Resolver) GetIdent(name UnresolvedName) *Ident {
 // LATA
 ///
 
+// returns true if no error
+func checkReceiverType(res *Resolver, loc Locatable, t Type, purpose string) bool {
+	if named, ok := TypeWithoutPointers(t).(*NamedType); ok {
+		if named.ParentModule != res.Submodule.Parent {
+			res.err(loc, "Cannot use type `%s` declared in module `%s` as %s",
+				t.TypeName(), named.ParentModule.Name, purpose)
+			return false
+		}
+	} else {
+		res.err(loc, "Expected named type for %s, found `%s`", purpose, t.TypeName())
+		return false
+	}
+	return true
+}
+
 func (v *FunctionDecl) resolve(res *Resolver, s *Scope) Node {
 	v.Function.Type = v.Function.Type.resolveType(v, res, s).(FunctionType)
 
 	if v.Function.StaticReceiverType != nil {
 		v.Function.StaticReceiverType = v.Function.StaticReceiverType.resolveType(v, res, s)
-		v.Function.StaticReceiverType.(*NamedType).addMethod(v.Function)
+		if checkReceiverType(res, v, v.Function.StaticReceiverType, "static receiver") {
+			v.Function.StaticReceiverType.(*NamedType).addMethod(v.Function)
+		}
 	}
 
 	return v
@@ -436,6 +455,7 @@ func (v FunctionType) resolveType(src Locatable, res *Resolver, s *Scope) Type {
 	}
 	if v.Receiver != nil {
 		nv.Receiver = v.Receiver.resolveType(src, res, s)
+		checkReceiverType(res, src, nv.Receiver, "receiver")
 	}
 	if v.Return != nil { // TODO can this ever be nil
 		nv.Return = v.Return.resolveType(src, res, s)
