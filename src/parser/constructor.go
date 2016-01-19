@@ -298,6 +298,7 @@ func (v *TypeDeclNode) construct(c *Constructor) Node {
 		NamedType: namedType,
 	}
 
+	res.SetPublic(v.IsPublic())
 	res.setPos(v.Where().Start())
 
 	return res
@@ -309,7 +310,7 @@ func (v *LinkDirectiveNode) construct(c *Constructor) Node {
 }
 
 func (v *UseDirectiveNode) construct(c *Constructor) Node {
-	res := &UseDecl{}
+	res := &UseDirective{}
 	res.ModuleName = toUnresolvedName(v.Module)
 	res.Scope = c.scope
 	c.useModule(NewModuleName(v.Module))
@@ -442,6 +443,7 @@ func (v *FunctionDeclNode) construct(c *Constructor) Node {
 		Prototype: v.Function.Body == nil,
 	}
 
+	res.SetPublic(v.IsPublic())
 	res.setPos(v.Where().Start())
 	return res
 }
@@ -536,6 +538,8 @@ func (v *VarDeclNode) construct(c *Constructor) Node {
 	if v.Value != nil {
 		res.Assignment = c.constructExpr(v.Value)
 	}
+
+	res.SetPublic(v.IsPublic())
 	res.setPos(v.Where().Start())
 	return res
 }

@@ -108,6 +108,25 @@ type TypeReferenceNode struct {
 
 // decls
 
+type DeclNode interface {
+	ParseNode
+	IsPublic() bool // only used for top-level nodes
+	SetPublic(bool)
+}
+
+type baseDecl struct {
+	baseNode
+	public bool
+}
+
+func (v *baseDecl) SetPublic(p bool) {
+	v.public = p
+}
+
+func (v baseDecl) IsPublic() bool {
+	return v.public
+}
+
 type InterfaceTypeNode struct {
 	baseNode
 	Functions []*FunctionHeaderNode
@@ -140,7 +159,7 @@ type FunctionNode struct {
 }
 
 type FunctionDeclNode struct {
-	baseNode
+	baseDecl
 	Function *FunctionNode
 }
 
@@ -163,7 +182,7 @@ type EnumEntryNode struct {
 }
 
 type VarDeclNode struct {
-	baseNode
+	baseDecl
 	Name    LocatedString
 	Type    ParseNode
 	Value   ParseNode
@@ -171,7 +190,7 @@ type VarDeclNode struct {
 }
 
 type TypeDeclNode struct {
-	baseNode
+	baseDecl
 	Name         LocatedString
 	GenericSigil *GenericSigilNode
 	Type         ParseNode
@@ -359,7 +378,7 @@ type TupleAccessNode struct {
 type ArrayLiteralNode struct {
 	baseNode
 	Values []ParseNode
-	Type    ParseNode
+	Type   ParseNode
 }
 
 type TupleLiteralNode struct {

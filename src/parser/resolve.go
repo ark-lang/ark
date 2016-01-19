@@ -265,7 +265,7 @@ func (v *DefaultExpr) resolve(res *Resolver, s *Scope) Node {
 	return v
 }
 
-func (v *UseDecl) resolve(res *Resolver, s *Scope) Node {
+func (v *UseDirective) resolve(res *Resolver, s *Scope) Node {
 	modname := &ModuleName{}
 	modname.Parts = append(modname.Parts, v.ModuleName.ModuleNames...)
 	modname.Parts = append(modname.Parts, v.ModuleName.Name)

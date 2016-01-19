@@ -133,7 +133,7 @@ func (v *TypeDecl) infer(s *TypeInferer) {
 	v.NamedType.infer(s)
 }
 
-func (v *UseDecl) infer(s *TypeInferer) {
+func (v *UseDirective) infer(s *TypeInferer) {
 }
 
 func (v *FunctionDecl) infer(s *TypeInferer) {

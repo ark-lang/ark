@@ -534,8 +534,6 @@ func (v *Codegen) genDecl(n parser.Decl) {
 	switch n := n.(type) {
 	case *parser.FunctionDecl:
 		v.genFunctionDecl(n)
-	case *parser.UseDecl:
-		v.genUseDecl(n)
 	case *parser.VariableDecl:
 		v.genVariableDecl(n, true)
 	case *parser.TypeDecl:
@@ -543,10 +541,6 @@ func (v *Codegen) genDecl(n parser.Decl) {
 	default:
 		v.err("unimplemented decl found: `%s`", n.NodeName())
 	}
-}
-
-func (v *Codegen) genUseDecl(n *parser.UseDecl) {
-	// later
 }
 
 func (v *Codegen) genFunctionDecl(n *parser.FunctionDecl) llvm.Value {

@@ -320,19 +320,31 @@ func (v *parser) parseDecl(isTopLevel bool) ParseNode {
 	docComments := v.parseDocComments()
 	attrs := v.parseAttributes()
 
+	var pub bool
+	if isTopLevel {
+		if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_PUB) {
+			pub = true
+			v.consumeToken()
+		}
+	}
+
 	if typeDecl := v.parseTypeDecl(); typeDecl != nil {
 		res = typeDecl
 	} else if funcDecl := v.parseFuncDecl(isTopLevel); funcDecl != nil {
 		res = funcDecl
 	} else if varDecl := v.parseVarDecl(isTopLevel); varDecl != nil {
 		res = varDecl
+	} else {
+		return nil
 	}
 
-	if len(docComments) != 0 && res != nil {
+	res.(DeclNode).SetPublic(pub)
+
+	if len(docComments) != 0 {
 		res.SetDocComments(docComments)
 	}
 
-	if attrs != nil && res != nil {
+	if attrs != nil {
 		res.SetAttrs(attrs)
 	}
 
@@ -1866,9 +1878,9 @@ func (v *parser) parseArrayLit() *ArrayLiteralNode {
 	endToken := v.expect(lexer.TOKEN_SEPARATOR, "}")
 
 	res := &ArrayLiteralNode{
-		Values: values, 
-		Type: typ,
-	};
+		Values: values,
+		Type:   typ,
+	}
 	res.SetWhere(lexer.NewSpanFromTokens(startToken, endToken))
 	return res
 }

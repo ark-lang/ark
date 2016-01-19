@@ -23,6 +23,7 @@ const (
 	KEYWORD_MODULE    string = "module"
 	KEYWORD_MUT       string = "mut"
 	KEYWORD_NEXT      string = "next"
+	KEYWORD_PUB       string = "pub"
 	KEYWORD_RETURN    string = "return"
 	KEYWORD_SET       string = "set"
 	KEYWORD_SIZEOF    string = "sizeof"
@@ -57,6 +58,7 @@ var keywordList = []string{
 	KEYWORD_MODULE,
 	KEYWORD_MUT,
 	KEYWORD_NEXT,
+	KEYWORD_PUB,
 	KEYWORD_RETURN,
 	KEYWORD_SET,
 	KEYWORD_SIZEOF,

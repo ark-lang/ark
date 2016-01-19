@@ -244,7 +244,7 @@ func (v *ASTVisitor) VisitChildren(n Node) {
 
 	case *NumericLiteral, *StringLiteral, *BoolLiteral, *RuneLiteral,
 		*VariableAccessExpr, *TypeDecl, *DefaultExpr, *DefaultMatchBranch,
-		*UseDecl, *BreakStat, *NextStat, *FunctionAccessExpr:
+		*UseDirective, *BreakStat, *NextStat, *FunctionAccessExpr:
 		// do nothing
 
 	default:

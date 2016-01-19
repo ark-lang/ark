@@ -2,15 +2,15 @@
 
 // a very unsophisticated println
 // function
-func println(message: string) -> int {
+pub func println(message: string) -> int {
 	return C::printf("%.*s\n", len(message), &message[0]);
 }
 
-func print(message: string) -> int {
+pub func print(message: string) -> int {
 	return C::printf("%.*s", len(message), &message[0]);
 }
 
-func printInt(num: int) -> int {
+pub func printInt(num: int) -> int {
 	// use z for register-sized integer
 	return C::printf("%zd", num);
 }

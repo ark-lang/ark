@@ -41,6 +41,8 @@ type AccessExpr interface {
 type Decl interface {
 	Node
 	declNode()
+	IsPublic() bool
+	SetPublic(bool)
 }
 
 type Documentable interface {
@@ -175,10 +177,23 @@ func (v Block) LastNode() Node {
  * Declarations
  */
 
+type publicHandler struct {
+	public bool
+}
+
+func (v *publicHandler) SetPublic(b bool) {
+	v.public = b
+}
+
+func (v publicHandler) IsPublic() bool {
+	return v.public
+}
+
 // VariableDecl
 
 type VariableDecl struct {
 	nodePos
+	publicHandler
 	Variable   *Variable
 	Assignment Expr
 	docs       []*DocComment
@@ -207,6 +222,7 @@ func (v *VariableDecl) DocComments() []*DocComment {
 
 type TypeDecl struct {
 	nodePos
+	publicHandler
 	NamedType *NamedType
 }
 
@@ -224,28 +240,11 @@ func (v *TypeDecl) DocComments() []*DocComment {
 	return nil // TODO
 }
 
-// UseDecl
-
-type UseDecl struct {
-	nodePos
-	ModuleName UnresolvedName
-	Scope      *Scope
-}
-
-func (v *UseDecl) declNode() {}
-
-func (v *UseDecl) String() string {
-	return "(" + util.Blue("UseDecl") + ": " + v.ModuleName.String() + ")"
-}
-
-func (v *UseDecl) NodeName() string {
-	return "use declaration"
-}
-
 // FunctionDecl
 
 type FunctionDecl struct {
 	nodePos
+	publicHandler
 	Function  *Function
 	Prototype bool
 	docs      []*DocComment
@@ -281,6 +280,28 @@ func (v *DirectiveDecl) String() string {
 
 func (v *DirectiveDecl) NodeName() string {
 	return "function declaration"
+}
+
+/**
+ * Directives
+ */
+
+// UseDirective
+
+type UseDirective struct {
+	nodePos
+	ModuleName UnresolvedName
+	Scope      *Scope
+}
+
+func (v *UseDirective) declNode() {}
+
+func (v *UseDirective) String() string {
+	return "(" + util.Blue("UseDecl") + ": " + v.ModuleName.String() + ")"
+}
+
+func (v *UseDirective) NodeName() string {
+	return "use directive"
 }
 
 /**
