@@ -47,7 +47,6 @@ func Resolve(mod *Module, mods *ModuleLookup) {
 	}
 	mod.resolved = true
 
-	//TODO: mod.ModScope = NewGlobalScope()
 	res := &Resolver{
 		modules: mods,
 		module:  mod,
@@ -57,21 +56,20 @@ func Resolve(mod *Module, mods *ModuleLookup) {
 			Parts:    make(map[string]*Submodule),
 			Dirpath:  "", // not really a path for this module
 		},
-		curScope: mod.ModScope,
+		curScope: NewGlobalScope(),
 	}
+	mod.ModScope = res.curScope
 
-	// add a C module here which will contain
-	// all of the c bindings and what not to
-	// keep everything separate
-	mod.ModScope.UsedModules["C"] = &ModuleLookup{
-		Name:     "C",
-		Module:   res.cModule,
-		Children: make(map[string]*ModuleLookup),
-	}
+	// add a C module here which will contain all of the c bindings and what
+	// not to keep everything separate
+	mod.ModScope.UsedModules["C"] = res.cModule
 
 	res.ResolveUsedModules()
-	res.ResolveTopLevelDecls()
-	res.ResolveDescent()
+	log.Timed("resolving module", mod.Name.String(), func() {
+		res.ResolveTopLevelDecls()
+		res.ResolveDescent()
+	})
+	res.module.ModScope.Dump(0)
 }
 
 func (v *Resolver) ResolveUsedModules() {
@@ -90,7 +88,7 @@ func (v *Resolver) ResolveUsedModules() {
 				} else {
 					panic("INTERNAL ERROR: Used module not loaded")
 				}
-				submod.UseScope.InsertModule(usedMod.Module)
+				submod.UseScope.UseModule(usedMod.Module)
 
 			default:
 				continue
@@ -108,7 +106,9 @@ func (v *Resolver) ResolveTopLevelDecls() {
 			// TODO: We might need to do more that just insert this into the
 			// scope at the current point.
 			case *TypeDecl:
-				modScope.InsertType(node.NamedType)
+				if modScope.InsertType(node.NamedType) != nil {
+					v.err(node, "Illegal redeclaration of type `%s`", node.NamedType.Name)
+				}
 
 			case *FunctionDecl:
 				if node.Function.Receiver == nil {
@@ -123,7 +123,9 @@ func (v *Resolver) ResolveTopLevelDecls() {
 				}
 
 			case *VariableDecl:
-				modScope.InsertVariable(node.Variable)
+				if modScope.InsertVariable(node.Variable) != nil {
+					v.err(node, "Illegal redeclaration of variable `%s`", node.Variable.Name)
+				}
 
 			default:
 				continue
@@ -157,6 +159,12 @@ func (v *Resolver) errCannotResolve(thing Locatable, name UnresolvedName) {
 }
 
 func (v *Resolver) GetIdent(name UnresolvedName) *Ident {
+	if name.String() == "io::println" {
+		modname, _ := name.Split()
+		io := v.curSubmod.UseScope.GetIdent(modname).Value.(*Module)
+		io.ModScope.Dump(0)
+	}
+
 	// TODO: Decide whether we should actually allow shadowing a module
 	ident := v.curScope.GetIdent(name)
 	if ident == nil {
@@ -190,14 +198,15 @@ func (v *Resolver) PostVisit(node *Node) {
 			n.Type = ptr.Addressee
 		}
 
+		// TODO: We might want to store scopes on some kind of nodes here
 	}
 }
 
-func (v *Resolver) EnterScope(s *Scope) {
+func (v *Resolver) EnterScope() {
 	v.curScope = newScope(v.curScope)
 }
 
-func (v *Resolver) ExitScope(s *Scope) {
+func (v *Resolver) ExitScope() {
 	if v.curScope.Outer == nil {
 		panic("INTERNAL ERROR: Trying to exit highest scope")
 	}
@@ -246,7 +255,9 @@ func (v *Resolver) ResolveNode(node *Node) {
 		if n.Variable.Type != nil {
 			n.Variable.Type = v.ResolveType(n, n.Variable.Type)
 		}
-		v.curScope.InsertVariable(n.Variable)
+		if v.curScope.InsertVariable(n.Variable) != nil {
+			v.err(n, "Illegal redeclaration of variable `%s`", n.Variable.Name)
+		}
 
 	// Expr
 
@@ -466,6 +477,7 @@ func (v *Resolver) ResolveType(src Locatable, t Type) Type {
 			attrs:     t.attrs,
 		}
 
+		v.EnterScope()
 		for idx, vari := range t.Variables {
 			nt.Variables[idx] = &VariableDecl{
 				Variable: &Variable{
@@ -473,7 +485,6 @@ func (v *Resolver) ResolveType(src Locatable, t Type) Type {
 					Name:         vari.Variable.Name,
 					Mutable:      vari.Variable.Mutable,
 					Attrs:        vari.Variable.Attrs,
-					scope:        vari.Variable.scope,
 					FromStruct:   vari.Variable.FromStruct,
 					ParentStruct: vari.Variable.ParentStruct,
 					ParentModule: vari.Variable.ParentModule,
@@ -492,6 +503,7 @@ func (v *Resolver) ResolveType(src Locatable, t Type) Type {
 				visitor.Visit(nt.Variables[idx].Assignment)
 			}
 		}
+		v.ExitScope()
 
 		return nt
 
@@ -548,7 +560,7 @@ func (v *Resolver) ResolveType(src Locatable, t Type) Type {
 			typ := ident.Value.(Type)
 
 			if namedType, ok := typ.(*NamedType); ok && len(t.Parameters) > 0 {
-				v.EnterScope(nil)
+				v.EnterScope()
 				name := namedType.Name + "<"
 				for idx, param := range namedType.Parameters {
 					paramType := SubstitutionType{
@@ -570,7 +582,7 @@ func (v *Resolver) ResolveType(src Locatable, t Type) Type {
 					ParentModule: namedType.ParentModule,
 					Methods:      namedType.Methods,
 				}
-				v.ExitScope(nil)
+				v.ExitScope()
 			} else {
 				typ = v.ResolveType(src, typ)
 			}

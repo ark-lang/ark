@@ -40,17 +40,16 @@ type Ident struct {
 }
 
 type Scope struct {
-	Outer  *Scope
-	Idents map[string]*Ident
-
-	UsedModules map[string]*ModuleLookup
+	Outer       *Scope
+	Idents      map[string]*Ident
+	UsedModules map[string]*Module
 }
 
 func newScope(outer *Scope) *Scope {
 	return &Scope{
 		Outer:       outer,
 		Idents:      make(map[string]*Ident),
-		UsedModules: make(map[string]*ModuleLookup),
+		UsedModules: make(map[string]*Module),
 	}
 }
 
@@ -115,12 +114,12 @@ func (v *Scope) InsertFunction(t *Function) *Ident {
 	return v.InsertIdent(t, t.Name, IDENT_FUNCTION)
 }
 
-func (v *Scope) InsertModule(t *Module) *Ident {
-	return v.InsertIdent(t, t.Name.Last(), IDENT_MODULE)
+func (v *Scope) UseModule(t *Module) {
+	v.UsedModules[t.Name.Last()] = t
 }
 
-func (v *Scope) InsertModuleAs(t *Module, name string) *Ident {
-	return v.InsertIdent(t, name, IDENT_MODULE)
+func (v *Scope) UseModuleAs(t *Module, name string) {
+	v.UsedModules[name] = t
 }
 
 func (v *Scope) GetIdent(name UnresolvedName) *Ident {
@@ -129,10 +128,10 @@ func (v *Scope) GetIdent(name UnresolvedName) *Ident {
 	for _, modname := range name.ModuleNames {
 		if module, ok := scope.UsedModules[modname]; ok {
 			//TODO: We might need to do somethign with UseScope here
-			scope = module.Module.ModScope
+			scope = module.ModScope
 		} else if scope.Outer != nil {
 			if module, ok := scope.Outer.UsedModules[modname]; ok {
-				scope = module.Module.ModScope
+				scope = module.ModScope
 			}
 		} else {
 			return nil

@@ -72,7 +72,6 @@ type Variable struct {
 	Name         string
 	Mutable      bool
 	Attrs        AttrGroup
-	scope        *Scope
 	FromStruct   bool
 	ParentStruct StructType
 	ParentModule *Module
@@ -91,27 +90,18 @@ func (v *Variable) String() string {
 	return result + v.Name + util.Magenta(" <"+v.MangledName(MANGLE_ARK_UNSTABLE)+"> ") + util.Green(v.Type.TypeName()) + ")"
 }
 
-func (v *Variable) Scope() *Scope {
-	return v.scope
-}
-
 // Note that for static methods, ``
 type Function struct {
 	Name       string
 	Type       FunctionType
 	Parameters []*VariableDecl
 	Body       *Block
-	scope      *Scope
 
 	ParentModule *Module
 
 	Receiver *VariableDecl // non-nil if non-static method
 
 	StaticReceiverType Type // non-nil if static
-}
-
-func (v *Function) Scope() *Scope {
-	return v.scope
 }
 
 func (v *Function) String() string {
@@ -140,7 +130,6 @@ func (v *Function) String() string {
 type Block struct {
 	nodePos
 	Nodes         []Node
-	scope         *Scope
 	IsTerminating bool
 	NonScoping    bool
 }
@@ -291,7 +280,6 @@ func (v *DirectiveDecl) NodeName() string {
 type UseDirective struct {
 	nodePos
 	ModuleName UnresolvedName
-	Scope      *Scope
 }
 
 func (v *UseDirective) declNode() {}

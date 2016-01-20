@@ -122,13 +122,13 @@ func (v *SemanticAnalyzer) PostVisit(n *parser.Node) {
 	}
 }
 
-func (v *SemanticAnalyzer) EnterScope(s *parser.Scope) {
+func (v *SemanticAnalyzer) EnterScope() {
 	for _, check := range v.Checks {
 		check.EnterScope(v)
 	}
 }
 
-func (v *SemanticAnalyzer) ExitScope(s *parser.Scope) {
+func (v *SemanticAnalyzer) ExitScope() {
 	for _, check := range v.Checks {
 		check.ExitScope(v)
 	}

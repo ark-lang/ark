@@ -28,8 +28,6 @@ type Constructor struct {
 
 	curTree   *ParseTree
 	curSubmod *Submodule
-
-	scope *Scope
 }
 
 func (v *Constructor) err(pos lexer.Span, err string, stuff ...interface{}) {
@@ -58,47 +56,11 @@ func (v *Constructor) errSpan(pos lexer.Span, err string, stuff ...interface{}) 
 	os.Exit(util.EXIT_FAILURE_CONSTRUCTOR)
 }
 
-func (v *Constructor) pushScope() {
-	v.scope = newScope(v.scope)
-}
-
-func (v *Constructor) popScope() {
-	v.scope = v.scope.Outer
-	if v.scope == nil {
-		panic("popped too many scopes")
-	}
-}
-
-func (v *Constructor) useModule(name *ModuleName) {
-	// check if the module exists in the modules that are
-	// parsed to avoid any weird errors
-	if moduleToUse, err := v.modules.Get(name); err == nil {
-		v.curSubmod.UseScope.UsedModules[name.Last()] = moduleToUse
-	}
-}
-
 func Construct(module *Module, modules *ModuleLookup) {
+	module.Parts = make(map[string]*Submodule)
 	con := &Constructor{
 		modules: modules,
 		module:  module,
-		scope:   NewGlobalScope(),
-	}
-	con.module.ModScope = con.scope
-	con.module.Parts = make(map[string]*Submodule)
-
-	// add a C module here which will contain
-	// all of the c bindings and what not to
-	// keep everything separate
-	cModule := &Module{
-		Name:     &ModuleName{Parts: []string{"C"}},
-		ModScope: NewCScope(),
-		Parts:    make(map[string]*Submodule),
-		Dirpath:  "", // not really a path for this module
-	}
-	con.module.ModScope.UsedModules["C"] = &ModuleLookup{
-		Name:     "C",
-		Module:   cModule,
-		Children: make(map[string]*ModuleLookup),
 	}
 
 	log.Timed("constructing module", module.Name.String(), func() {
@@ -113,9 +75,8 @@ func Construct(module *Module, modules *ModuleLookup) {
 func (v *Constructor) constructSubmodule(tree *ParseTree) {
 	v.curTree = tree
 	v.curSubmod = &Submodule{
-		Parent:   v.module,
-		UseScope: newScope(v.module.ModScope),
-		File:     tree.Source,
+		Parent: v.module,
+		File:   tree.Source,
 	}
 
 	for _, node := range v.curTree.Nodes {
@@ -236,7 +197,6 @@ func (v *InterfaceTypeNode) construct(c *Constructor) Type {
 		attrs: v.Attrs(),
 	}
 
-	c.pushScope()
 	for _, function := range v.Functions {
 		funcData := &Function{
 			Name:         function.Name.Value,
@@ -248,7 +208,6 @@ func (v *InterfaceTypeNode) construct(c *Constructor) Type {
 		}
 		interfaceType = interfaceType.addFunction(funcData)
 	}
-	c.popScope()
 
 	return interfaceType
 }
@@ -258,11 +217,9 @@ func (v *StructTypeNode) construct(c *Constructor) Type {
 		attrs: v.Attrs(),
 	}
 
-	c.pushScope()
 	for _, member := range v.Members {
 		structType = structType.addVariableDecl(c.constructNode(member).(*VariableDecl)) // TODO: Error message
 	}
-	c.popScope()
 
 	return structType
 }
@@ -290,10 +247,6 @@ func (v *TypeDeclNode) construct(c *Constructor) Node {
 		}
 	}
 
-	if c.scope.InsertType(namedType) != nil {
-		c.err(v.Where(), "Illegal redeclaration of type `%s`", namedType.Name)
-	}
-
 	res := &TypeDecl{
 		NamedType: namedType,
 	}
@@ -312,8 +265,6 @@ func (v *LinkDirectiveNode) construct(c *Constructor) Node {
 func (v *UseDirectiveNode) construct(c *Constructor) Node {
 	res := &UseDirective{}
 	res.ModuleName = toUnresolvedName(v.Module)
-	res.Scope = c.scope
-	c.useModule(NewModuleName(v.Module))
 	res.setPos(v.Where().Start())
 	return res
 }
@@ -369,14 +320,6 @@ func (v *FunctionNode) construct(c *Constructor) *Function {
 		panic("functionnode shouldn't have attributes")
 	}
 
-	oldScope := c.scope
-	if v.Header.Anonymous {
-		c.scope = c.module.ModScope
-		c.pushScope()
-	} else {
-		c.pushScope()
-	}
-
 	if v.Header.Receiver != nil {
 		function.Receiver = c.constructNode(v.Header.Receiver).(*VariableDecl) // TODO: error
 		function.Type.Receiver = function.Receiver.Variable.Type
@@ -412,8 +355,6 @@ func (v *FunctionNode) construct(c *Constructor) *Function {
 	} else if v.Header.Anonymous {
 		c.err(v.Where(), "Lambda cannot be prototype")
 	}
-
-	c.scope = oldScope
 
 	return function
 }
@@ -461,11 +402,9 @@ func (v *EnumTypeNode) construct(c *Constructor) Type {
 		} else if mem.StructBody != nil {
 			structType := StructType{}
 
-			c.pushScope()
 			for _, member := range mem.StructBody.Members {
 				structType = structType.addVariableDecl(c.constructNode(member).(*VariableDecl)) // TODO: Error message
 			}
-			c.popScope()
 
 			enumType.Members[idx].Type = structType
 			enumType.Simple = false
@@ -509,10 +448,6 @@ func (v *VarDeclNode) construct(c *Constructor) Node {
 
 	if v.Type != nil {
 		variable.Type = c.constructType(v.Type)
-	}
-
-	if c.scope.InsertVariable(variable) != nil {
-		c.err(v.Where(), "Illegal redeclaration of variable `%s`", variable.Name)
 	}
 
 	res := &VariableDecl{
@@ -625,16 +560,8 @@ func (v *BlockStatNode) construct(c *Constructor) Node {
 
 func (v *BlockNode) construct(c *Constructor) Node {
 	res := &Block{}
-	res.scope = c.scope
 	res.NonScoping = v.NonScoping
-	if !v.NonScoping {
-		c.pushScope()
-	}
-	res.scope = c.scope
 	res.Nodes = c.constructNodes(v.Nodes)
-	if !v.NonScoping {
-		c.popScope()
-	}
 	res.setPos(v.Where().Start())
 	return res
 }

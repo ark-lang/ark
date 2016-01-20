@@ -5,8 +5,8 @@ import (
 )
 
 type Visitor interface {
-	EnterScope(s *Scope)
-	ExitScope(s *Scope)
+	EnterScope()
+	ExitScope()
 
 	Visit(*Node) bool
 	PostVisit(*Node)
@@ -21,9 +21,9 @@ func NewASTVisitor(visitor Visitor) *ASTVisitor {
 }
 
 func (v *ASTVisitor) VisitSubmodule(submodule *Submodule) {
-	v.EnterScope(submodule.UseScope)
+	v.EnterScope()
 	submodule.Nodes = v.VisitNodes(submodule.Nodes)
-	v.ExitScope(submodule.UseScope)
+	v.ExitScope()
 }
 
 func (v *ASTVisitor) VisitNodes(nodes []Node) []Node {
@@ -99,25 +99,25 @@ func (v *ASTVisitor) VisitBlock(b *Block) *Block {
 	}
 }
 
-func (v *ASTVisitor) EnterScope(s *Scope) {
-	v.Visitor.EnterScope(s)
+func (v *ASTVisitor) EnterScope() {
+	v.Visitor.EnterScope()
 }
 
-func (v *ASTVisitor) ExitScope(s *Scope) {
-	v.Visitor.ExitScope(s)
+func (v *ASTVisitor) ExitScope() {
+	v.Visitor.ExitScope()
 }
 
 func (v *ASTVisitor) VisitChildren(n Node) {
 	switch n := n.(type) {
 	case *Block:
 		if !n.NonScoping {
-			v.EnterScope(n.scope)
+			v.EnterScope()
 		}
 
 		n.Nodes = v.VisitNodes(n.Nodes)
 
 		if !n.NonScoping {
-			v.ExitScope(n.scope)
+			v.ExitScope()
 		}
 
 	case *ReturnStat:
@@ -254,7 +254,7 @@ func (v *ASTVisitor) VisitChildren(n Node) {
 
 func (v *ASTVisitor) VisitFunction(fn *Function) {
 	// TODO: Scope?
-	v.EnterScope(nil)
+	v.EnterScope()
 
 	if fn.Type.Receiver != nil {
 		fn.Receiver = v.Visit(fn.Receiver).(*VariableDecl)
@@ -267,7 +267,7 @@ func (v *ASTVisitor) VisitFunction(fn *Function) {
 	if fn.Body != nil {
 		fn.Body = v.Visit(fn.Body).(*Block)
 	}
-	v.ExitScope(nil)
+	v.ExitScope()
 }
 
 func isNil(a interface{}) bool {
