@@ -115,6 +115,14 @@ func (v *Scope) InsertFunction(t *Function) *Ident {
 	return v.InsertIdent(t, t.Name, IDENT_FUNCTION)
 }
 
+func (v *Scope) InsertModule(t *Module) *Ident {
+	return v.InsertIdent(t, t.Name.Last(), IDENT_MODULE)
+}
+
+func (v *Scope) InsertModuleAs(t *Module, name string) *Ident {
+	return v.InsertIdent(t, name, IDENT_MODULE)
+}
+
 func (v *Scope) GetIdent(name UnresolvedName) *Ident {
 	scope := v
 

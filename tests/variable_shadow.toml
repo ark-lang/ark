@@ -1,0 +1,13 @@
+Name       = "variable_shadow"
+Sourcefile = "variable_shadow.ark"
+
+CompilerArgs = []
+RunArgs      = []
+
+CompilerError = 0
+RunError      = 0
+
+Input = ""
+
+CompilerOutput = ""
+RunOutput      = ""

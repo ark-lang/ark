@@ -189,26 +189,13 @@ func parseFiles(inputs []string) ([]*parser.Module, *parser.ModuleLookup) {
 		}
 	})
 
-	hasMainFunc := false
 	// construction
 	log.Timed("construction phase", "", func() {
 		for _, module := range modules {
 			parser.Construct(module, moduleLookup)
 
-			// Use module scope to check for main function
-			mainIdent := module.ModScope.GetIdent(parser.UnresolvedName{Name: "main"})
-			if mainIdent != nil && mainIdent.Type == parser.IDENT_FUNCTION {
-				hasMainFunc = true
-			}
 		}
 	})
-
-	// and here we check if we should
-	// bother continuing any further...
-	if !hasMainFunc {
-		log.Error("main", util.Red("error: ")+"main function not found\n")
-		os.Exit(1)
-	}
 
 	return modules, moduleLookup
 }
@@ -233,15 +220,26 @@ func build(files []string, outputFile string, cg string, outputType LLVMCodegen.
 	constructedModules, moduleLookup := parseFiles(files)
 
 	// resolve
+
+	hasMainFunc := false
 	log.Timed("resolve phase", "", func() {
 		for _, module := range constructedModules {
-			for _, submod := range module.Parts {
-				res := &parser.Resolver{Submodule: submod, ModuleLookup: moduleLookup}
-				vis := parser.NewASTVisitor(res)
-				vis.VisitSubmodule(submod)
+			parser.Resolve(module, moduleLookup)
+
+			// Use module scope to check for main function
+			mainIdent := module.ModScope.GetIdent(parser.UnresolvedName{Name: "main"})
+			if mainIdent != nil && mainIdent.Type == parser.IDENT_FUNCTION {
+				hasMainFunc = true
 			}
 		}
 	})
+
+	// and here we check if we should
+	// bother continuing any further...
+	if !hasMainFunc {
+		log.Error("main", util.Red("error: ")+"main function not found\n")
+		os.Exit(1)
+	}
 
 	// type inference
 	log.Timed("inference phase", "", func() {

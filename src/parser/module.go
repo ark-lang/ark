@@ -17,6 +17,7 @@ type Module struct {
 	Trees           []*ParseTree
 	Parts           map[string]*Submodule
 	LinkedLibraries []string
+	resolved        bool
 }
 
 type Submodule struct {
@@ -105,6 +106,13 @@ func JoinModuleName(modName *ModuleName, part string) *ModuleName {
 	}
 	copy(res.Parts, modName.Parts)
 	res.Parts[len(res.Parts)-1] = part
+	return res
+}
+
+func ModuleNameFromUnresolvedName(unresName UnresolvedName) *ModuleName {
+	res := &ModuleName{}
+	res.Parts = append(res.Parts, unresName.ModuleNames...)
+	res.Parts = append(res.Parts, unresName.Name)
 	return res
 }
 

@@ -13,8 +13,6 @@ type Type interface {
 	Equals(Type) bool         // compares whether two types are equal
 	ActualType() Type         // returns the actual type disregarding named types
 	IsVoidType() bool
-
-	resolveType(Locatable, *Resolver, *Scope) Type
 }
 
 //go:generate stringer -type=PrimitiveType

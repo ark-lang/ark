@@ -422,21 +422,6 @@ func (v *FunctionDeclNode) construct(c *Constructor) Node {
 	function := v.Function.construct(c)
 	function.Type.attrs = v.Attrs()
 
-	if function.Type.Receiver == nil {
-		scopeToInsertTo := c.scope
-		if v.Attrs().Contains("c") {
-			if mod, ok := c.module.ModScope.UsedModules["C"]; ok {
-				scopeToInsertTo = mod.Module.ModScope
-			} else {
-				panic("Could not find C module to insert C binding into")
-			}
-		}
-
-		if scopeToInsertTo.InsertFunction(function) != nil {
-			c.err(v.Where(), "Illegal redeclaration of function `%s`", function.Name)
-		}
-	}
-
 	res := &FunctionDecl{
 		docs:      v.DocComments(),
 		Function:  function,

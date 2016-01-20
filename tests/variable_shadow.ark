@@ -1,0 +1,16 @@
+[c] func printf(fmt: str, ...) -> int;
+
+func main() -> int {
+    mut x := 0;
+
+    if true {
+        x = 1;
+
+        mut x := 5;
+        C::printf("x2: %d\n", x);
+    }
+
+    C::printf("x1: %d\n", x);
+    
+    return 0;
+}
