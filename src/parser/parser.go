@@ -2118,7 +2118,13 @@ func (v *parser) parseStringLit() *StringLitNode {
 		return nil
 	}
 	token := v.consumeToken()
-	res := &StringLitNode{Value: UnescapeString(token.Contents)}
+
+	unescaped, err := UnescapeString(token.Contents)
+	if err != nil {
+		v.errTokenSpecific(token, "Invalid string literal: %s", err)
+	}
+
+	res := &StringLitNode{Value: unescaped}
 	res.SetWhere(token.Where)
 	return res
 }
@@ -2130,7 +2136,10 @@ func (v *parser) parseRuneLit() *RuneLitNode {
 		return nil
 	}
 	token := v.consumeToken()
-	c := UnescapeString(token.Contents)
+	c, err := UnescapeString(token.Contents)
+	if err != nil {
+		v.errTokenSpecific(token, "Invalid character literal: %s", err)
+	}
 
 	res := &RuneLitNode{Value: []rune(c)[1]}
 	res.SetWhere(token.Where)

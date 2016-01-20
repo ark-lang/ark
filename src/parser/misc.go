@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"errors"
 	"strings"
 
 	"github.com/ark-lang/ark/src/util"
@@ -41,7 +42,7 @@ const (
 	SIMPLE_ESCAPE_NAMES  string = "abfnrtv\\'\"0"
 )
 
-func UnescapeString(s string) string {
+func UnescapeString(s string) (string, error) {
 	out := make([]rune, 0)
 	sr := []rune(s)
 
@@ -52,7 +53,7 @@ func UnescapeString(s string) string {
 			index := strings.IndexRune(SIMPLE_ESCAPE_NAMES, sr[i])
 
 			if index < 0 {
-				panic("bad escape. todo proper error")
+				return "", errors.New("bad escape: `\\" + string(sr[i]) + "`")
 			}
 
 			out = append(out, []rune(SIMPLE_ESCAPE_VALUES)[index])
@@ -61,7 +62,7 @@ func UnescapeString(s string) string {
 		}
 	}
 
-	return string(out)
+	return string(out), nil
 }
 
 // escape for debug output
