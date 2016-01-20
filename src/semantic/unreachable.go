@@ -49,7 +49,6 @@ func (v *UnreachableCheck) Destroy(s *SemanticAnalyzer) {
 
 }
 
-// TODO account for break/continue
 func IsNodeTerminating(n parser.Node) bool {
 	switch n := n.(type) {
 	case *parser.Block:
