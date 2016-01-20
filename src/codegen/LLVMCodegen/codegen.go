@@ -842,10 +842,6 @@ func (v *Codegen) genRuneLiteral(n *parser.RuneLiteral) llvm.Value {
 	return llvm.ConstInt(v.typeToLLVMType(n.GetType()), uint64(n.Value), true)
 }
 
-/*func (v *Codegen) genStringLiteralArray(n *parser.StringLiteral) llvm.Value {
-
-}*/
-
 func (v *Codegen) genStringLiteral(n *parser.StringLiteral) llvm.Value {
 	memberLLVMType := v.typeToLLVMType(parser.PRIMITIVE_u8)
 	nullTerm := n.Type.ActualType().Equals(parser.PointerTo(parser.PRIMITIVE_u8))
