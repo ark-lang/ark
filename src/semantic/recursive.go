@@ -18,19 +18,9 @@ func (v *RecursiveDefinitionCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
 	var typ parser.Type
 
 	if typeDecl, ok := n.(*parser.TypeDecl); ok {
-		actualType := typeDecl.NamedType.ActualType()
-		switch actualType := actualType.(type) {
-		case parser.EnumType:
-			typ = actualType
-
-		case parser.StructType:
-			typ = actualType
-
-			// TODO: Check tuple types once we add named types for everything
-
-		default:
-			return
-		}
+		typ = typeDecl.NamedType
+	} else {
+		return
 	}
 
 	if ok, path := isTypeRecursive(typ); ok {
@@ -51,6 +41,8 @@ func (v *RecursiveDefinitionCheck) Destroy(s *SemanticAnalyzer) {
 }
 
 func isTypeRecursive(typ parser.Type) (bool, []parser.Type) {
+	typ = typ.ActualType()
+
 	var check func(current parser.Type, path *[]parser.Type, traversed map[parser.Type]bool) bool
 	check = func(current parser.Type, path *[]parser.Type, traversed map[parser.Type]bool) bool {
 		switch current.(type) {
