@@ -854,7 +854,7 @@ func (v *Codegen) genStringLiteral(n *parser.StringLiteral) llvm.Value {
 
 	if v.inFunction() {
 		// allocate backing array
-		backingArray := v.builder().CreateAlloca(llvm.ArrayType(memberLLVMType, length), "stack^u8")
+		backingArray := v.builder().CreateAlloca(llvm.ArrayType(memberLLVMType, length), "stackstr")
 		v.builder().CreateStore(llvm.ConstString(n.Value, nullTerm), backingArray)
 
 		backingArrayPointer = v.builder().CreateBitCast(backingArray, llvm.PointerType(memberLLVMType, 0), "")
