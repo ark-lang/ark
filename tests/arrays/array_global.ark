@@ -19,13 +19,13 @@ func main() -> int {
 
     mut i := 0;
     for i < 5 {
-        C::printf("array index %d contains %d\n", i, arrayGlobalTest[i]);
+        C::printf(c"array index %d contains %d\n", i, arrayGlobalTest[i]);
         i = i + 1;
     }
 
     i = 0;
     for i < 8 {
-        C::printf("random contains %d at index %d\n", random[i], i);
+        C::printf(c"random contains %d at index %d\n", random[i], i);
         i = i + 1;
     }
 

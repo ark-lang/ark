@@ -9,14 +9,14 @@ type Test struct {
 
 func main() -> int {
     i: int = 0;
-    C::printf("sizeof i: %d\n", sizeof(i));
-    C::printf("sizeof &i: %d\n", sizeof(&i));
+    C::printf(c"sizeof i: %d\n", sizeof(i));
+    C::printf(c"sizeof &i: %d\n", sizeof(&i));
 
     a: u8 = 0;
-    C::printf("sizeof a: %d\n", sizeof(a));
+    C::printf(c"sizeof a: %d\n", sizeof(a));
 
     mut test: Test;
-    C::printf("sizeof test: %d\n", sizeof(test));
+    C::printf(c"sizeof test: %d\n", sizeof(test));
 
     x: u8 = 0;
     if sizeof(x) != 1 {

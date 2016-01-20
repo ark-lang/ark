@@ -12,7 +12,7 @@ type structType struct {
 };
 
 func main() -> int {
-    C::printf("Named types test.\n");
+    C::printf(c"Named types test.\n");
 
     // primitive test
     fnVal: int = 7;
@@ -53,21 +53,21 @@ func main() -> int {
 }
 
 func fn(y: thing) {
-    C::printf("y: %d\n", y);
+    C::printf(c"y: %d\n", y);
 }
 
 func fn2(y: thing2) {
-    C::printf("y: %d\n", y);
+    C::printf(c"y: %d\n", y);
 }
 
 func arrayTest(y: arrayType) {
-    C::printf("[%d, %d, %d, %d]\n", y[0], y[1], y[2], y[3]);
+    C::printf(c"[%d, %d, %d, %d]\n", y[0], y[1], y[2], y[3]);
 }
 
 func tupleTest(y: tupleType) {
-    C::printf("(%d, %d)\n", y|0|, y|1|);
+    C::printf(c"(%d, %d)\n", y|0|, y|1|);
 }
 
 func structAnonTest(struct_: struct {z: int}) {
-    C::printf("%d\n", struct_.z);
+    C::printf(c"%d\n", struct_.z);
 }

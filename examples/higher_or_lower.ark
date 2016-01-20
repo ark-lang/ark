@@ -4,7 +4,7 @@
 [c] func time(ptr: u32) -> u64;
 [c] func scanf(fmt: ^u8, ...);
 
-func println(mess: ^u8) => C::printf("%s\n", mess);
+func println(mess: ^u8) => C::printf(c"%s\n", mess);
 
 func main() -> int {
     println("Higher or lower game, in Ark!");

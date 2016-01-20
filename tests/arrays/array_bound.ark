@@ -3,6 +3,6 @@
 func main() -> int {
     x := []int{0, 1, 2, 3, 4, 5};
     y := x[7];
-    C::printf("%d\n", y);
+    C::printf(c"%d\n", y);
     return 0;
 }

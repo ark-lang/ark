@@ -408,7 +408,8 @@ type NumberLitNode struct {
 
 type StringLitNode struct {
 	baseNode
-	Value string
+	Value     string
+	IsCString bool
 }
 
 type RuneLitNode struct {

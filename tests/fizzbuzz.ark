@@ -13,15 +13,15 @@ func main() -> int {
         div5 := i % 5 == 0;
 
         if div3 {
-            C::printf("Fizz");
+            C::printf(c"Fizz");
         }
 
         if div5 {
-            C::printf("Buzz");
+            C::printf(c"Buzz");
         }
 
         if !(div3 || div5) {
-            C::printf("%d", i);
+            C::printf(c"%d", i);
         }
 
         C::putchar(s8('\n'));

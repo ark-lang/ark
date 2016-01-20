@@ -36,7 +36,7 @@ func main() -> int {
 
     iters := 20000000;
     res := calculate(iters);
-    C::printf("Result of Monte Carlo pi estimation with %d iterations:\n", iters);
-    C::printf("%f\n", res);
+    C::printf(c"Result of Monte Carlo pi estimation with %d iterations:\n", iters);
+    C::printf(c"%f\n", res);
     return 0;
 }

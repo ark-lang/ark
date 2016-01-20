@@ -12,6 +12,6 @@ func change_ref(mut x: &mut int) {
 func main() -> int {
     mut x: int = 21;
     change_ref(&mut x);
-    C::printf("x is %d\n", x);
+    C::printf(c"x is %d\n", x);
     return 0;
 }

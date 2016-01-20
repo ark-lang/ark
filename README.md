@@ -36,13 +36,13 @@ More examples can be found [here](/examples).
 
 func main(argc: int, argv: ^^u8) -> int {
     // accessed via the C module
-    C::printf("Running %s\n", ^argv);
+    C::printf(c"Running %s\n", ^argv);
 
     // mutable i, type inferred
     mut i := 0;
 
     for i < 5 {
-        C::printf("%d\n", i);
+        C::printf(c"%d\n", i);
 
         i += 1;
     }

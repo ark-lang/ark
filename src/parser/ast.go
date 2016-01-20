@@ -636,9 +636,9 @@ func (v *NumericLiteral) AsInt() uint64 {
 
 type StringLiteral struct {
 	nodePos
-	Value  string
-	StrLen int
-	Type   Type
+	Value     string
+	IsCString bool
+	Type      Type
 }
 
 func (v *StringLiteral) exprNode() {}

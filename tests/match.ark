@@ -11,11 +11,11 @@ func main() -> int {
 
     foo := "bar";
     match foo {
-        "hello" => C::printf("foo matches hello"),
+        "hello" => C::printf(c"foo matches hello"),
         "world" => { },
         "bar" => {
-            award: ^u8 = "baz";
-            C::printf("correct! you win %s\n", award);
+            award := c"baz";
+            C::printf(c"correct! you win %s\n", award);
         },
         _ => io::println("default"),
     }

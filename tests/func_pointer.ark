@@ -1,11 +1,11 @@
 [c] func printf(fmt: ^u8, ...) -> int;
 
 func do(thing: int) {
-    C::printf("%d\n", thing);
+    C::printf(c"%d\n", thing);
 }
 
 func main() -> int {
-    C::printf("Func ptr test\n");
+    C::printf(c"Func ptr test\n");
 
     fn := func() -> int {
         return 5;
@@ -22,7 +22,7 @@ func main() -> int {
     dofn(another());
 
     runFunc(func() {
-        C::printf("Printing from a lambda!\n");
+        C::printf(c"Printing from a lambda!\n");
     });
 
     return 0;

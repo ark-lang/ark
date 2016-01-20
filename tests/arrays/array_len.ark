@@ -1,13 +1,13 @@
 [c] func printf(fmt: ^u8, ...) -> int;
 
 func main() -> int {
-	C::printf("this is a test\n");
+	C::printf(c"this is a test\n");
 
 	// iterates 15 times
 	z : uint = len([]int{0, 1, 2}) + 12;
 	mut i: uint = 0;
 	for i < z {
-		C::printf("iter %d\n", i);
+		C::printf(c"iter %d\n", i);
 		i += 1;
 	}
 
@@ -19,11 +19,11 @@ func main() -> int {
 	// but #foo seems to just be
 	// a copy of the foo array or something? ...
 	foo_len := len(foo);
-	C::printf("foo is %d long\n", foo_len);
+	C::printf(c"foo is %d long\n", foo_len);
 
 	i = 0;
 	for i < len(foo) {
-		C::printf("foo contains %d at %d\n", foo[i], i);
+		C::printf(c"foo contains %d at %d\n", foo[i], i);
 		i += 1;
 	}
 

@@ -1,12 +1,7 @@
 [c] func printf(fmt: ^u8, ...) -> int;
 
 func main() -> int {
-    C::printf("finally, it fucking works!\n");
-    C::printf("we have to specify the c attribute so it doesn't mangle the name %d\n", 5);
-    puts("test fast calling convention\n");
+    C::printf(c"finally, it works!\n");
+    C::printf(c"we have to specify the c attribute so it doesn't mangle the name %d\n", 5);
     return 0;
-}
-
-func puts(message: ^u8) {
-    C::printf(message);
 }

@@ -11,9 +11,9 @@ func main() -> int
 {
     a: s32 = 5;
     b: s32 = 6;
-    C::printf("a: %d, b: %d\n", a, b);
+    C::printf(c"a: %d, b: %d\n", a, b);
     swap(&a, &b);
-    C::printf("a: %d, b: %d\n", a, b);
+    C::printf(c"a: %d, b: %d\n", a, b);
 
     return 6 - int(a); // Inference problems ugh
 }

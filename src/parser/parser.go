@@ -2114,18 +2114,28 @@ func (v *parser) parseNumberLit() *NumberLitNode {
 func (v *parser) parseStringLit() *StringLitNode {
 	defer un(trace(v, "stringlit"))
 
-	if !v.nextIs(lexer.TOKEN_STRING) {
+	var cstring bool
+	var firstToken, stringToken *lexer.Token
+
+	if v.tokenMatches(0, lexer.TOKEN_STRING, "") {
+		cstring = false
+		firstToken = v.consumeToken()
+		stringToken = firstToken
+	} else if v.tokensMatch(lexer.TOKEN_IDENTIFIER, "c", lexer.TOKEN_STRING, "") {
+		cstring = true
+		firstToken = v.consumeToken()
+		stringToken = v.consumeToken()
+	} else {
 		return nil
 	}
-	token := v.consumeToken()
 
-	unescaped, err := UnescapeString(token.Contents)
+	unescaped, err := UnescapeString(stringToken.Contents)
 	if err != nil {
-		v.errTokenSpecific(token, "Invalid string literal: %s", err)
+		v.errTokenSpecific(stringToken, "Invalid string literal: %s", err)
 	}
 
-	res := &StringLitNode{Value: unescaped}
-	res.SetWhere(token.Where)
+	res := &StringLitNode{Value: unescaped, IsCString: cstring}
+	res.SetWhere(lexer.NewSpan(firstToken.Where.Start(), stringToken.Where.End()))
 	return res
 }
 

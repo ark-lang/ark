@@ -4,6 +4,6 @@ mut x: int = 10;
 
 func main() -> int {
     x = 20;
-    C::printf("%d\n", x);
+    C::printf(c"%d\n", x);
     return 0;
 }

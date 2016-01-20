@@ -4,12 +4,12 @@ func main() -> int {
     mut x: s32 = 9;
     y: ^s32 = ^s32(&x);
 
-    C::printf("%d\n", ^y);
+    C::printf(c"%d\n", ^y);
 
     x = 15;
     z: ^^s32 = ^^s32(&y);
 
-    C::printf("%d\n", ^^z);
+    C::printf(c"%d\n", ^^z);
 
     x = 9000;
 
@@ -19,7 +19,7 @@ func main() -> int {
     d: ^^^^^^s32 = ^^^^^^s32(&c);
     e: ^^^^^^^s32 = ^^^^^^^s32(&d);
 
-    C::printf("%d\n", ^^^^^^^e);
+    C::printf(c"%d\n", ^^^^^^^e);
 
     return 0;
 }

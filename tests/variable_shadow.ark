@@ -7,10 +7,10 @@ func main() -> int {
         x = 1;
 
         mut x := 5;
-        C::printf("x2: %d\n", x);
+        C::printf(c"x2: %d\n", x);
     }
 
-    C::printf("x1: %d\n", x);
+    C::printf(c"x1: %d\n", x);
     
     return 0;
 }

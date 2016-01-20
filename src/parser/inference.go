@@ -395,14 +395,16 @@ func (v *NumericLiteral) setTypeHint(t Type) {
 
 func (v *StringLiteral) infer(s *TypeInferer) {
 	if v.Type == nil {
-		v.Type = stringType
+		if v.IsCString {
+			v.Type = PointerTo(PRIMITIVE_u8)
+		} else {
+			v.Type = stringType
+		}
 	}
 }
 
 func (v *StringLiteral) setTypeHint(t Type) {
-	if t != nil && (t.ActualType().Equals(ArrayOf(PRIMITIVE_u8)) || t.Equals(PointerTo(PRIMITIVE_u8))) {
-		v.Type = t
-	}
+
 }
 
 // RuneLiteral

@@ -13,6 +13,6 @@ func main() -> int {
     mut test: Test;
     test.a = 32;
     test.a = do_stuff(test.a);
-    C::printf("a is %d\n", test.a);
+    C::printf(c"a is %d\n", test.a);
     return 0;
 }

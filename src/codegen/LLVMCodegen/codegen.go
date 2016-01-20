@@ -844,7 +844,7 @@ func (v *Codegen) genRuneLiteral(n *parser.RuneLiteral) llvm.Value {
 
 func (v *Codegen) genStringLiteral(n *parser.StringLiteral) llvm.Value {
 	memberLLVMType := v.typeToLLVMType(parser.PRIMITIVE_u8)
-	nullTerm := n.Type.ActualType().Equals(parser.PointerTo(parser.PRIMITIVE_u8))
+	nullTerm := n.IsCString
 	length := len(n.Value)
 	if nullTerm {
 		length++

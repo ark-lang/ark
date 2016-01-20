@@ -25,9 +25,9 @@ func do3() -> bool {
 func main() -> int {
 	mut x: int = 5;
 	if x == 5 {
-		C::printf("this is a test\n");
+		C::printf(c"this is a test\n");
 	}
-	C::printf("always printed\n");
+	C::printf(c"always printed\n");
 
 	if 5 == 6 {
 		return 1;
@@ -37,7 +37,7 @@ func main() -> int {
 
 	}
 
-	C::printf("%d\n", globInt);
+	C::printf(c"%d\n", globInt);
 	if globInt != 1 {
 		return 1;
 	}
@@ -59,7 +59,7 @@ func main() -> int {
 	}
 
 	if 1 == 1 {
-		C::printf("if.ark test is a success!\n");
+		C::printf(c"if.ark test is a success!\n");
 		return 0;
 	} else {
 		if 1 == 2 {

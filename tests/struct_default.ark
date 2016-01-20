@@ -11,22 +11,22 @@ func main() -> int {
     // To create without defaults -> t: Test = {};
 	t := default(Test);
 
-    C::printf("t.x = %d\n", t.x);
+    C::printf(c"t.x = %d\n", t.x);
     if t.x != 1 {
     	return 1;
     }
 
-    C::printf("t.y = %d\n", t.y);
+    C::printf(c"t.y = %d\n", t.y);
     if t.y != 2 {
     	return 2;
     }
 
-    C::printf("t.a = %d\n", t.a);
+    C::printf(c"t.a = %d\n", t.a);
     if t.a != 3 {
     	return 3;
     }
 
-    C::printf("t.b = %d\n", t.b);
+    C::printf(c"t.b = %d\n", t.b);
     if t.b != 4 {
     	return 4;
     }

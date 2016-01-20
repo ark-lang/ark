@@ -2,28 +2,28 @@
 
 func main() -> int {
     a: int = 0;
-    C::printf("%f\n", f32(a));
+    C::printf(c"%f\n", f32(a));
 
     b: f32 = 6.789;
-    C::printf("%d\n", int(b));
+    C::printf(c"%d\n", int(b));
 
     c: s8 = 66;
-    C::printf("%d\n", s32(c));
+    C::printf(c"%d\n", s32(c));
 
     d: s32 = 500;
-    C::printf("%d\n", s8(d));
+    C::printf(c"%d\n", s8(d));
 
     e: f64 = 1.2;
-    C::printf("%f\n", f32(e));
+    C::printf(c"%f\n", f32(e));
 
     f: rune = 'f';
-    C::printf("%d\n", int(f));
+    C::printf(c"%d\n", int(f));
     if int(f) != 102 {
         return 1;
     }
 
     g: int = 99;
-    C::printf("%c\n", rune(g));
+    C::printf(c"%c\n", rune(g));
     if rune(g) != 'c' {
         return 2;
     }

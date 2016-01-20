@@ -20,7 +20,7 @@ func main() -> int {
 	mut i := 2;
 	for i < 100 {
 		if primes[i-1] {
-			C::printf("`%d` is prime\n", i);
+			C::printf(c"`%d` is prime\n", i);
 			
 			num_primes = num_primes + 1;
 			

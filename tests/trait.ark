@@ -10,7 +10,7 @@ struct Foo {
 
 impl Foo {
     func bar() {
-        C::printf("%s\n", "bar");
+        C::printf(c"%s\n", "bar");
     }
 }
 

@@ -7,11 +7,11 @@ func fuck(mut a: int, b: int) => for a + b >= 32 {
 }
 
 func test(mut a: int) => for a < 10 {
-    C::printf("this is a test %d\n", a);
+    C::printf(c"this is a test %d\n", a);
     a = a + 1;
 }
 
-func whatever() => C::printf("testing the whatever() func\n");
+func whatever() => C::printf(c"testing the whatever() func\n");
 
 func main() -> int {
     whatever();

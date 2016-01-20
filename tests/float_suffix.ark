@@ -9,7 +9,7 @@ func main() -> int {
     t5: f64 = 0.4D;
     [unused] t6: f64 = 1214.935735Q;
 
-    C::printf("%f %f %f %f\n", t1, t2, t4, t5);
+    C::printf(c"%f %f %f %f\n", t1, t2, t4, t5);
 
     return 0;
 }

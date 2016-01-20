@@ -4,14 +4,14 @@ func main() -> int {
     mut i := 0;
 
     for i < 5 {
-        C::printf("i: %d\n", i);
+        C::printf(c"i: %d\n", i);
         i = i + 1;
     }
 
     mut x := 0;
 
     for x < 10 {
-        C::printf("x: %d\n", x);
+        C::printf(c"x: %d\n", x);
 
         x += 1;
 
@@ -22,13 +22,13 @@ func main() -> int {
         if x == 5 {
             break;
         } else {
-            C::printf("else\n");
+            C::printf(c"else\n");
         }
     }
 
     mut y := 0;
     for y <= 100 {
-        C::printf("y: %d\n", y);
+        C::printf(c"y: %d\n", y);
         y += 1;
         if y < 5 {
             next;

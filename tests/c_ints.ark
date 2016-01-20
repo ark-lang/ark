@@ -15,18 +15,18 @@ func main() -> int {
 	z: uint = 0;
 	w: int = 0;
 	
-	C::printf("sizeof(C::uint) = %d\n", sizeof(x));
+	C::printf(c"sizeof(C::uint) = %d\n", sizeof(x));
 	if sizeof(x) != 4 {
 		return 1;
 	}
 
-	C::printf("sizeof(C::int) = %d\n", sizeof(y));
+	C::printf(c"sizeof(C::int) = %d\n", sizeof(y));
 	if sizeof(y) != 4 {
 		return 2;
 	}
 
-	C::printf("sizeof(uint) = %d\n", sizeof(z));
-	C::printf("sizeof(int) = %d\n", sizeof(w));
+	C::printf(c"sizeof(uint) = %d\n", sizeof(z));
+	C::printf(c"sizeof(int) = %d\n", sizeof(w));
 
     return 0;
 }

@@ -57,7 +57,7 @@ func main() -> int {
         n = n + 1;
     }
 
-    C::printf("pi(%d) = %d\n", limit, no_primes);
+    C::printf(c"pi(%d) = %d\n", limit, no_primes);
 
     return 0;
 }

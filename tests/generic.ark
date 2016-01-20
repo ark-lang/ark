@@ -22,13 +22,13 @@ func main() -> int {
 	x := Option::None<bool>;
 	y := Option::Some<int>(a);
 
-	C::printf("x tag: %d\n", x);
-	C::printf("y tag: %d\n", y);
+	C::printf(c"x tag: %d\n", x);
+	C::printf(c"y tag: %d\n", y);
 
 	h: u8 = 1;
 	mut i := default(RC<u8>);
 	i.val = ^u8(&h);
-	C::printf("sizeof(^i.val) = %d\n", sizeof(^i.val));
+	C::printf(c"sizeof(^i.val) = %d\n", sizeof(^i.val));
 	if sizeof(^i.val) != 1 {
 		return 1;
 	}
@@ -36,7 +36,7 @@ func main() -> int {
 	j: u16 = 1;
 	mut k := default(RC<u16>);
 	k.val = ^u16(&j);
-	C::printf("sizeof(^k.val) = %d\n", sizeof(^k.val));
+	C::printf(c"sizeof(^k.val) = %d\n", sizeof(^k.val));
 	if sizeof(^k.val) != 2 {
 		return 1;
 	}
@@ -44,8 +44,8 @@ func main() -> int {
 	q := alloc<int>();
 	w: ^int = alloc();
 
-	C::printf("q addr: %x\n", q);
-	C::printf("w addr: %x\n", w);
+	C::printf(c"q addr: %x\n", q);
+	C::printf(c"w addr: %x\n", w);
 
 	return 0;
 }

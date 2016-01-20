@@ -5,21 +5,21 @@ type Thing struct {
 };
 
 func (v: Thing) do() {
-    C::printf("did! %d\n", v.x);
+    C::printf(c"did! %d\n", v.x);
 }
 
 func (v: ^Thing) dop() {
-    C::printf("didp! %d\n", v.x);
+    C::printf(c"didp! %d\n", v.x);
 }
 
 type Thing2 int;
 
 func (v: Thing2) do() {
-    C::printf("did, from an int!\n");
+    C::printf(c"did, from an int!\n");
 }
 
 func (Thing2) do() -> int {
-    C::printf("did from a static method!\n");
+    C::printf(c"did from a static method!\n");
     return 0;
 }
 
@@ -27,7 +27,7 @@ func main() -> int {
     mut thing: Thing;
     thing.x = 6;
 
-    C::printf("%x\n", thing);
+    C::printf(c"%x\n", thing);
 
     thing.do();
 

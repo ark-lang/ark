@@ -799,7 +799,7 @@ func (v *NumberLitNode) construct(c *Constructor) Expr {
 }
 
 func (v *StringLitNode) construct(c *Constructor) Expr {
-	res := &StringLiteral{Value: v.Value}
+	res := &StringLiteral{Value: v.Value, IsCString: v.IsCString}
 	res.setPos(v.Where().Start())
 	return res
 }

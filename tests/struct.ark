@@ -5,19 +5,19 @@ type EmptyStruct struct {};
 mut thing: Test = {z: 42};
 
 func main() -> int {
-    C::printf("thing.z: %f\n", thing.z);
+    C::printf(c"thing.z: %f\n", thing.z);
     if thing.z != 42 {
         return 1;
     }
 
     thing.y = 9;
-    C::printf("thing.y: %d\n", thing.y);
+    C::printf(c"thing.y: %d\n", thing.y);
     if thing.y != 9 {
         return 2;
     }
 
     thing.test2.x = 11;
-    C::printf("thing.test2.x: %d\n", thing.test2.x);
+    C::printf(c"thing.test2.x: %d\n", thing.test2.x);
     if thing.test2.x != 11 {
         return 3;
     }
