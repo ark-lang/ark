@@ -173,9 +173,6 @@ func (v *Resolver) GetIdent(name UnresolvedName) *Ident {
 	return ident
 }
 
-// TODO: Replace all uses of nilRes when migrating to Resolver
-var nilRes *Resolver = nil
-
 func (v *Resolver) Visit(n *Node) bool {
 	v.ResolveNode(n)
 	return true
