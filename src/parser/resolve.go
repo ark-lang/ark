@@ -33,12 +33,6 @@ func (v UnresolvedName) Split() (UnresolvedName, string) {
 	}
 }
 
-// used for labeled for
-type label struct {
-	name string
-	loop *LoopStat
-}
-
 type Resolver struct {
 	modules       *ModuleLookup
 	module        *Module
