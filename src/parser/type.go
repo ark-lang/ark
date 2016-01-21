@@ -758,6 +758,15 @@ type EnumTypeMember struct {
 	Tag  int
 }
 
+func (v EnumType) GetMember(name string) (EnumTypeMember, bool) {
+	for _, member := range v.Members {
+		if member.Name == name {
+			return member, true
+		}
+	}
+	return EnumTypeMember{}, false
+}
+
 func (v EnumType) String() string {
 	result := "(" + util.Blue("EnumType") + ": "
 	for _, attr := range v.attrs {

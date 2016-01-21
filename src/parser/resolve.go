@@ -315,7 +315,12 @@ func (v *Resolver) ResolveNode(node *Node) {
 			ident := v.getIdent(n, enumName)
 			if ident != nil && ident.Type == IDENT_TYPE {
 				itype := ident.Value.(Type)
-				if _, ok := itype.ActualType().(EnumType); ok {
+				if etype, ok := itype.ActualType().(EnumType); ok {
+					if _, ok := etype.GetMember(memberName); !ok {
+						v.err(n, "No such member in enum `%s`: `%s`", itype.TypeName(), memberName)
+						break
+					}
+
 					enum := &EnumLiteral{}
 					enum.Member = memberName
 					enum.Type = UnresolvedType{
