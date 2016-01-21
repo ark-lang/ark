@@ -253,7 +253,6 @@ func (v *ASTVisitor) VisitChildren(n Node) {
 }
 
 func (v *ASTVisitor) VisitFunction(fn *Function) {
-	// TODO: Scope?
 	v.EnterScope()
 
 	if fn.Type.Receiver != nil {

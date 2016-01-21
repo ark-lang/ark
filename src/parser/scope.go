@@ -44,16 +44,18 @@ type Ident struct {
 type Scope struct {
 	Outer       *Scope
 	Idents      map[string]*Ident
-	Module      *Module // module this scope belongs to, nil if builtin
+	Module      *Module   // module this scope belongs to, nil if builtin
+	Function    *Function // function this scope is inside, nil if global/builtin/etc
 	UsedModules map[string]*Module
 }
 
-func newScope(outer *Scope, mod *Module) *Scope {
+func newScope(outer *Scope, mod *Module, fn *Function) *Scope {
 	return &Scope{
 		Outer:       outer,
 		Idents:      make(map[string]*Ident),
 		UsedModules: make(map[string]*Module),
 		Module:      mod,
+		Function:    fn,
 	}
 }
 
@@ -64,7 +66,7 @@ var stringType = &NamedType{
 }
 
 func init() {
-	builtinScope = newScope(nil, nil)
+	builtinScope = newScope(nil, nil, nil)
 
 	for i := 0; i < len(_PrimitiveType_index); i++ {
 		builtinScope.InsertType(PrimitiveType(i), true)
@@ -74,13 +76,13 @@ func init() {
 }
 
 func NewGlobalScope(mod *Module) *Scope {
-	s := newScope(builtinScope, mod)
+	s := newScope(builtinScope, mod, nil)
 
 	return s
 }
 
 func NewCScope(mod *Module) *Scope {
-	s := newScope(nil, mod)
+	s := newScope(nil, mod, nil)
 	s.InsertType(&NamedType{Name: "uint", Type: PRIMITIVE_u32}, true)
 	s.InsertType(&NamedType{Name: "int", Type: PRIMITIVE_s32}, true)
 	s.InsertType(&NamedType{Name: "void", Type: PRIMITIVE_u8}, true)

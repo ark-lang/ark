@@ -33,12 +33,34 @@ func (v UnresolvedName) Split() (UnresolvedName, string) {
 	}
 }
 
+// used for labeled for
+type label struct {
+	name string
+	loop *LoopStat
+}
+
 type Resolver struct {
-	modules   *ModuleLookup
-	module    *Module
-	cModule   *Module
-	curSubmod *Submodule
-	curScope  *Scope
+	modules       *ModuleLookup
+	module        *Module
+	cModule       *Module
+	curSubmod     *Submodule
+	functionStack []*Function
+	curScope      *Scope
+}
+
+func (v *Resolver) pushFunction(fn *Function) {
+	v.functionStack = append(v.functionStack, fn)
+}
+
+func (v *Resolver) popFunction() {
+	v.functionStack = v.functionStack[:len(v.functionStack)-1]
+}
+
+func (v Resolver) currentFunction() *Function {
+	if len(v.functionStack) == 0 {
+		return nil
+	}
+	return v.functionStack[len(v.functionStack)-1]
 }
 
 func Resolve(mod *Module, mods *ModuleLookup) {
@@ -77,7 +99,7 @@ func Resolve(mod *Module, mods *ModuleLookup) {
 func (v *Resolver) ResolveUsedModules() {
 	for _, submod := range v.module.Parts {
 		// TODO: Verify whether we need the outer scope
-		submod.UseScope = newScope(nil, v.module)
+		submod.UseScope = newScope(nil, v.module, nil)
 
 		for _, node := range submod.Nodes {
 			switch node := node.(type) {
@@ -172,6 +194,11 @@ func (v *Resolver) getIdent(loc Locatable, name UnresolvedName) *Ident {
 		v.err(loc, "Cannot access private identifier `%s`", name)
 	}
 
+	// make sure lambda can't access variables of enclosing function
+	if ident.Scope.Function != nil && v.currentFunction() != ident.Scope.Function {
+		v.err(loc, "Cannot access local identifier `%s` from lambda", name)
+	}
+
 	return ident
 }
 
@@ -190,19 +217,22 @@ func (v *Resolver) PostVisit(node *Node) {
 			}
 		}
 
+		v.popFunction()
+
+	case *LambdaExpr:
+		v.popFunction()
+
 	case *DerefAccessExpr:
 		if ce, ok := n.Expr.(*CastExpr); ok {
 			*node = &CastExpr{Type: PointerTo(ce.Type), Expr: ce.Expr}
 		} else if ptr, ok := n.Expr.GetType().(PointerType); ok {
 			n.Type = ptr.Addressee
 		}
-
-		// TODO: We might want to store scopes on some kind of nodes here
 	}
 }
 
 func (v *Resolver) EnterScope() {
-	v.curScope = newScope(v.curScope, v.module)
+	v.curScope = newScope(v.curScope, v.module, v.currentFunction())
 }
 
 func (v *Resolver) ExitScope() {
@@ -241,6 +271,8 @@ func (v *Resolver) ResolveNode(node *Node) {
 		}
 
 	case *FunctionDecl:
+		v.pushFunction(n.Function)
+
 		n.Function.Type = v.ResolveType(n, n.Function.Type).(FunctionType)
 
 		if n.Function.StaticReceiverType != nil {
@@ -261,6 +293,8 @@ func (v *Resolver) ResolveNode(node *Node) {
 	// Expr
 
 	case *LambdaExpr:
+		v.pushFunction(n.Function)
+
 		n.Function.Type = v.ResolveType(n, n.Function.Type).(FunctionType)
 
 	case *CastExpr:
@@ -436,7 +470,7 @@ func (v *Resolver) ResolveNode(node *Node) {
 	// No-Ops
 	case *Block, *DefaultMatchBranch, *UseDirective, *AssignStat, *BinopAssignStat,
 		*BlockStat, *BreakStat, *CallStat, *DefaultStat, *DeferStat, *IfStat,
-		*LoopStat, *MatchStat, *NextStat, *ReturnStat, *AddressOfExpr,
+		*MatchStat, *LoopStat, *NextStat, *ReturnStat, *AddressOfExpr,
 		*ArrayAccessExpr, *BinaryExpr, *DerefAccessExpr, *UnaryExpr,
 		*StructAccessExpr, *TupleAccessExpr, *ArrayLiteral, *BoolLiteral,
 		*NumericLiteral, *RuneLiteral, *StringLiteral, *TupleLiteral:
