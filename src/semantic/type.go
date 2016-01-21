@@ -108,12 +108,12 @@ func (v *TypeCheck) CheckVariableDecl(s *SemanticAnalyzer, decl *parser.Variable
 
 func (v *TypeCheck) CheckReturnStat(s *SemanticAnalyzer, stat *parser.ReturnStat) {
 	if stat.Value == nil {
-		if v.Function().Type.Return != nil {
+		if !v.Function().Type.Return.Equals(parser.PRIMITIVE_void) {
 			s.Err(stat.Value, "Cannot return void from function `%s` of type `%s`",
 				v.Function().Name, v.Function().Type.Return.TypeName())
 		}
 	} else {
-		if v.Function().Type.Return == nil {
+		if v.Function().Type.Return.Equals(parser.PRIMITIVE_void) {
 			s.Err(stat.Value, "Cannot return expression from void function")
 		} else {
 			if !stat.Value.GetType().Equals(v.Function().Type.Return) {

@@ -24,20 +24,20 @@ type Codegen struct {
 	input   []*WrappedModule
 	curFile *WrappedModule
 
-	builders     map[llvm.Value]llvm.Builder      // map of functions to builders
-	curLoopExits map[llvm.Value][]llvm.BasicBlock // map of functions to slices of blocks, where each block is the exit block for current loops
-	curLoopNexts map[llvm.Value][]llvm.BasicBlock // map of functions to slices of blocks, where each block is the eval block for current loops
+	builders     map[*parser.Function]llvm.Builder      // map of functions to builders
+	curLoopExits map[*parser.Function][]llvm.BasicBlock // map of functions to slices of blocks, where each block is the exit block for current loops
+	curLoopNexts map[*parser.Function][]llvm.BasicBlock // map of functions to slices of blocks, where each block is the eval block for current loops
 
 	globalBuilder   llvm.Builder // used non-function stuff
 	variableLookup  map[*parser.Variable]llvm.Value
 	namedTypeLookup map[string]llvm.Type
 
 	referenceAccess bool
-	inFunctions     []llvm.Value
+	inFunctions     []*parser.Function
 
 	lambdaID int
 
-	currentBlock   *parser.Block
+	inBlocks       map[*parser.Function][]*parser.Block
 	blockDeferData map[*parser.Block][]*deferData
 
 	// dirty thing for global arrays
@@ -56,7 +56,7 @@ func (v *Codegen) builder() llvm.Builder {
 	return v.builders[v.currentFunction()]
 }
 
-func (v *Codegen) pushFunction(fn llvm.Value) {
+func (v *Codegen) pushFunction(fn *parser.Function) {
 	v.inFunctions = append(v.inFunctions, fn)
 }
 
@@ -68,8 +68,27 @@ func (v *Codegen) inFunction() bool {
 	return len(v.inFunctions) > 0
 }
 
-func (v *Codegen) currentFunction() llvm.Value {
+func (v *Codegen) currentFunction() *parser.Function {
 	return v.inFunctions[len(v.inFunctions)-1]
+}
+
+func (v *Codegen) currentLLVMFunction() llvm.Value {
+	return v.curFile.LlvmModule.NamedFunction(v.currentFunction().MangledName(parser.MANGLE_ARK_UNSTABLE))
+}
+
+func (v *Codegen) pushBlock(block *parser.Block) {
+	fn := v.currentFunction()
+	v.inBlocks[fn] = append(v.inBlocks[fn], block)
+}
+
+func (v *Codegen) popBlock() {
+	fn := v.currentFunction()
+	v.inBlocks[fn] = v.inBlocks[fn][:len(v.inBlocks[fn])-1]
+}
+
+func (v *Codegen) currentBlock() *parser.Block {
+	fn := v.currentFunction()
+	return v.inBlocks[fn][len(v.inBlocks[fn])-1]
 }
 
 func (v *Codegen) nextLambdaID() int {
@@ -95,12 +114,13 @@ func (v *Codegen) err(err string, stuff ...interface{}) {
 }
 
 func (v *Codegen) Generate(input []*parser.Module) {
-	v.builders = make(map[llvm.Value]llvm.Builder)
+	v.builders = make(map[*parser.Function]llvm.Builder)
+	v.inBlocks = make(map[*parser.Function][]*parser.Block)
 	v.globalBuilder = llvm.NewBuilder()
 	defer v.globalBuilder.Dispose()
 
-	v.curLoopExits = make(map[llvm.Value][]llvm.BasicBlock)
-	v.curLoopNexts = make(map[llvm.Value][]llvm.BasicBlock)
+	v.curLoopExits = make(map[*parser.Function][]llvm.BasicBlock)
+	v.curLoopNexts = make(map[*parser.Function][]llvm.BasicBlock)
 
 	v.input = make([]*WrappedModule, len(input))
 	for idx, mod := range input {
@@ -353,42 +373,51 @@ func (v *Codegen) genDeferStat(n *parser.DeferStat) {
 		stat: n,
 	}
 
-	v.blockDeferData[v.currentBlock] = append(v.blockDeferData[v.currentBlock], data)
+	v.blockDeferData[v.currentBlock()] = append(v.blockDeferData[v.currentBlock()], data)
 
 	for _, arg := range n.Call.Arguments {
 		data.args = append(data.args, v.genExpr(arg))
 	}
 }
 
-func (v *Codegen) genBlock(n *parser.Block) {
-	for i, x := range n.Nodes {
-		v.currentBlock = n // set it on every iteration to overide sub-blocks
+func (v *Codegen) genRunDefers(block *parser.Block) {
+	deferDat := v.blockDeferData[block]
 
+	if len(deferDat) > 0 {
+		for i := len(deferDat) - 1; i >= 0; i-- {
+			v.genCallExprWithArgs(deferDat[i].stat.Call, deferDat[i].args)
+		}
+	}
+}
+
+func (v *Codegen) genBlock(n *parser.Block) {
+	v.pushBlock(n)
+	for i, x := range n.Nodes {
 		v.genNode(x)
 
-		if (i == len(n.Nodes)-1 && !n.IsTerminating) || (i == len(n.Nodes)-2 && n.IsTerminating) {
-			// print all the defer stats
-			deferDat := v.blockDeferData[n]
-
-			if len(deferDat) > 0 {
-				for i := len(deferDat) - 1; i >= 0; i-- {
-					v.genCallExprWithArgs(deferDat[i].stat.Call, deferDat[i].args)
-				}
-			}
-
-			delete(v.blockDeferData, n)
+		if i == len(n.Nodes)-1 && !n.IsTerminating {
+			v.genRunDefers(n)
 		}
 	}
 
-	v.currentBlock = nil
-
+	delete(v.blockDeferData, n)
+	v.popBlock()
 }
 
 func (v *Codegen) genReturnStat(n *parser.ReturnStat) {
+	var ret llvm.Value
+	if n.Value != nil {
+		ret = v.genExpr(n.Value)
+	}
+
+	for i := len(v.inBlocks[v.currentFunction()]) - 1; i >= 0; i-- {
+		v.genRunDefers(v.inBlocks[v.currentFunction()][i])
+	}
+
 	if n.Value == nil {
 		v.builder().CreateRetVoid()
 	} else {
-		v.builder().CreateRet(v.genExpr(n.Value))
+		v.builder().CreateRet(ret)
 	}
 }
 
@@ -435,14 +464,14 @@ func (v *Codegen) genIfStat(n *parser.IfStat) {
 
 	var end llvm.BasicBlock
 	if !statTerm {
-		end = llvm.AddBasicBlock(v.currentFunction(), "end")
+		end = llvm.AddBasicBlock(v.currentLLVMFunction(), "end")
 	}
 
 	for i, expr := range n.Exprs {
 		cond := v.genExpr(expr)
 
-		ifTrue := llvm.AddBasicBlock(v.currentFunction(), "if_true")
-		ifFalse := llvm.AddBasicBlock(v.currentFunction(), "if_false")
+		ifTrue := llvm.AddBasicBlock(v.currentLLVMFunction(), "if_true")
+		ifFalse := llvm.AddBasicBlock(v.currentLLVMFunction(), "if_false")
 
 		v.builder().CreateCondBr(cond, ifTrue, ifFalse)
 
@@ -475,12 +504,12 @@ func (v *Codegen) genIfStat(n *parser.IfStat) {
 
 func (v *Codegen) genLoopStat(n *parser.LoopStat) {
 	curfn := v.currentFunction()
-	afterBlock := llvm.AddBasicBlock(v.currentFunction(), "loop_exit")
+	afterBlock := llvm.AddBasicBlock(v.currentLLVMFunction(), "loop_exit")
 	v.curLoopExits[curfn] = append(v.curLoopExits[curfn], afterBlock)
 
 	switch n.LoopType {
 	case parser.LOOP_TYPE_INFINITE:
-		loopBlock := llvm.AddBasicBlock(v.currentFunction(), "loop_body")
+		loopBlock := llvm.AddBasicBlock(v.currentLLVMFunction(), "loop_body")
 		v.curLoopNexts[curfn] = append(v.curLoopNexts[curfn], loopBlock)
 		v.builder().CreateBr(loopBlock)
 		v.builder().SetInsertPointAtEnd(loopBlock)
@@ -493,11 +522,11 @@ func (v *Codegen) genLoopStat(n *parser.LoopStat) {
 
 		v.builder().SetInsertPointAtEnd(afterBlock)
 	case parser.LOOP_TYPE_CONDITIONAL:
-		evalBlock := llvm.AddBasicBlock(v.currentFunction(), "loop_condeval")
+		evalBlock := llvm.AddBasicBlock(v.currentLLVMFunction(), "loop_condeval")
 		v.builder().CreateBr(evalBlock)
 		v.curLoopNexts[curfn] = append(v.curLoopNexts[curfn], evalBlock)
 
-		loopBlock := llvm.AddBasicBlock(v.currentFunction(), "loop_body")
+		loopBlock := llvm.AddBasicBlock(v.currentLLVMFunction(), "loop_body")
 
 		v.builder().SetInsertPointAtEnd(evalBlock)
 		cond := v.genExpr(n.Condition)
@@ -563,7 +592,7 @@ func (v *Codegen) genFunctionDecl(n *parser.FunctionDecl) llvm.Value {
 func (v *Codegen) genFunctionBody(fn *parser.Function, llvmFn llvm.Value) {
 	block := llvm.AddBasicBlock(llvmFn, "entry")
 
-	v.pushFunction(llvmFn)
+	v.pushFunction(fn)
 	v.builders[v.currentFunction()] = llvm.NewBuilder()
 	v.builder().SetInsertPointAtEnd(block)
 
@@ -597,7 +626,7 @@ func (v *Codegen) genVariableDecl(n *parser.VariableDecl, semicolon bool) llvm.V
 	if v.inFunction() {
 		mangledName := n.Variable.MangledName(parser.MANGLE_ARK_UNSTABLE)
 
-		funcEntry := v.currentFunction().EntryBasicBlock()
+		funcEntry := v.currentLLVMFunction().EntryBasicBlock()
 
 		// use this builder() for the variable alloca
 		// this means all allocas go at the start of the function
@@ -784,9 +813,9 @@ func (v *Codegen) genAccessGEP(n parser.Expr) llvm.Value {
 }
 
 func (v *Codegen) genBoundsCheck(limit llvm.Value, index llvm.Value, indexType parser.Type) {
-	segvBlock := llvm.AddBasicBlock(v.currentFunction(), "boundscheck_segv")
-	endBlock := llvm.AddBasicBlock(v.currentFunction(), "boundscheck_end")
-	upperCheckBlock := llvm.AddBasicBlock(v.currentFunction(), "boundscheck_upper_block")
+	segvBlock := llvm.AddBasicBlock(v.currentLLVMFunction(), "boundscheck_segv")
+	endBlock := llvm.AddBasicBlock(v.currentLLVMFunction(), "boundscheck_end")
+	upperCheckBlock := llvm.AddBasicBlock(v.currentLLVMFunction(), "boundscheck_upper_block")
 
 	tooLow := v.builder().CreateICmp(llvm.IntSGT, llvm.ConstInt(index.Type(), 0, false), index, "boundscheck_lower")
 	v.builder().CreateCondBr(tooLow, segvBlock, upperCheckBlock)
@@ -1022,8 +1051,8 @@ func (v *Codegen) genNumericLiteral(n *parser.NumericLiteral) llvm.Value {
 func (v *Codegen) genLogicalBinop(n *parser.BinaryExpr) llvm.Value {
 	and := n.Op == parser.BINOP_LOG_AND
 
-	next := llvm.AddBasicBlock(v.currentFunction(), "and_next")
-	exit := llvm.AddBasicBlock(v.currentFunction(), "and_exit")
+	next := llvm.AddBasicBlock(v.currentLLVMFunction(), "and_next")
+	exit := llvm.AddBasicBlock(v.currentLLVMFunction(), "and_exit")
 
 	b1 := v.genExpr(n.Lhand)
 	first := v.builder().GetInsertBlock()

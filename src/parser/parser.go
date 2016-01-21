@@ -941,8 +941,15 @@ func (v *parser) parseReturnStat() *ReturnStatNode {
 
 	value := v.parseExpr()
 
+	var end lexer.Position
+	if value != nil {
+		end = value.Where().End()
+	} else {
+		end = startToken.Where.End()
+	}
+
 	res := &ReturnStatNode{Value: value}
-	res.SetWhere(lexer.NewSpan(startToken.Where.Start(), value.Where().End()))
+	res.SetWhere(lexer.NewSpan(startToken.Where.Start(), end))
 	return res
 }
 

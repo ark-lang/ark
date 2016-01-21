@@ -41,6 +41,7 @@ func (v *UnreachableCheck) visitFunction(s *SemanticAnalyzer, loc parser.Locatab
 			s.Err(loc, "Missing return statement")
 		} else {
 			fn.Body.Nodes = append(fn.Body.Nodes, &parser.ReturnStat{})
+			fn.Body.IsTerminating = true
 		}
 	}
 }

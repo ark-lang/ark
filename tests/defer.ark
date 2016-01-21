@@ -2,6 +2,14 @@
 
 [c] func printf(fmt: ^u8, ...) -> int;
 
+func do() {
+    defer io::println("do(): printed last");
+
+    if true {
+        defer io::println("do(): printed second-to-last");
+        return;
+    }
+}
 
 func main() -> int {
     defer io::println("printed last");
@@ -24,6 +32,8 @@ func main() -> int {
 
         i += 1;
     }
+
+    do();
 
     return 0;
 }
