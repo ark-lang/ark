@@ -1,0 +1,19 @@
+Name       = "enum_comp"
+Sourcefile = "enum_comp.ark"
+
+CompilerArgs = []
+RunArgs      = []
+
+CompilerError = 0
+RunError      = 0
+
+Input = ""
+
+CompilerOutput = ""
+RunOutput      = """
+1
+1
+1
+1
+1
+"""

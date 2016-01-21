@@ -171,11 +171,12 @@ func (v *TypeCheck) CheckUnaryExpr(s *SemanticAnalyzer, expr *parser.UnaryExpr) 
 func (v *TypeCheck) CheckBinaryExpr(s *SemanticAnalyzer, expr *parser.BinaryExpr) {
 	switch expr.Op {
 	case parser.BINOP_EQ, parser.BINOP_NOT_EQ:
+		_, isEnum := expr.Lhand.GetType().ActualType().(parser.EnumType)
 		if !expr.Lhand.GetType().Equals(expr.Rhand.GetType()) {
 			s.Err(expr, "Operands for binary operator `%s` must have the same type, have `%s` and `%s`",
 				expr.Op.OpString(), expr.Lhand.GetType().TypeName(), expr.Rhand.GetType().TypeName())
-		} else if lht := expr.Lhand.GetType(); !(lht == parser.PRIMITIVE_bool || lht == parser.PRIMITIVE_rune || lht.IsIntegerType() || lht.IsFloatingType() || lht.LevelsOfIndirection() > 0) {
-			s.Err(expr, "Operands for binary operator `%s` must be numeric, or pointers or booleans, have `%s`",
+		} else if lht := expr.Lhand.GetType(); !(lht == parser.PRIMITIVE_bool || lht == parser.PRIMITIVE_rune || lht.IsIntegerType() || lht.IsFloatingType() || isEnum || lht.LevelsOfIndirection() > 0) {
+			s.Err(expr, "Operands for binary operator `%s` must be numeric, or pointers, or booleans, or enum, have `%s`",
 				expr.Op.OpString(), expr.Lhand.GetType().TypeName())
 		}
 

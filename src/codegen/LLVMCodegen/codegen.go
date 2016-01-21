@@ -1155,6 +1155,14 @@ func (v *Codegen) genBinop(operator parser.BinOpType, resType, lhandType, rhandT
 
 		// Comparison
 		case parser.BINOP_GREATER, parser.BINOP_LESS, parser.BINOP_GREATER_EQ, parser.BINOP_LESS_EQ, parser.BINOP_EQ, parser.BINOP_NOT_EQ:
+			if isNonSimpleEnum(lhandType) {
+				lhand = v.builder().CreateExtractValue(lhand, 0, "lhand_tag")
+			}
+
+			if isNonSimpleEnum(rhandType) {
+				rhand = v.builder().CreateExtractValue(rhand, 0, "rhand_tag")
+			}
+
 			if lhandType.IsFloatingType() {
 				return v.builder().CreateFCmp(comparisonOpToFloatPredicate(operator), lhand, rhand, "")
 			} else {
@@ -1434,4 +1442,9 @@ func createStructInitializer(typ parser.Type) *parser.StructLiteral {
 		return lit
 	}
 	return nil
+}
+
+func isNonSimpleEnum(typ parser.Type) bool {
+	enum, ok := typ.ActualType().(parser.EnumType)
+	return ok && !enum.Simple
 }
