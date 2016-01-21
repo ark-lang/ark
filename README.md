@@ -34,7 +34,7 @@ More examples can be found [here](/examples).
 // binding to printf
 [c] func printf(fmt: ^u8, ...);
 
-pub pub func main(argc: int, argv: ^^u8) -> int {
+pub func main(argc: int, argv: ^^u8) -> int {
     // accessed via the C module
     C::printf(c"Running %s\n", ^argv);
 

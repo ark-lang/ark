@@ -185,7 +185,6 @@ func (v *Resolver) getIdent(loc Locatable, name UnresolvedName) *Ident {
 		return nil
 	}
 
-	fmt.Println(ident.Scope)
 	if !ident.Public && ident.Scope.Module != v.module {
 		v.err(loc, "Cannot access private identifier `%s`", name)
 	}
