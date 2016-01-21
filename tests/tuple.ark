@@ -6,7 +6,7 @@ func something() -> (int, f32) {
     return y;
 }
 
-func main() -> int {
+pub func main() -> int {
     x := something();
     y := x|0|;
     [unused] z := x|1|;

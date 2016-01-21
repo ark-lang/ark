@@ -8,7 +8,7 @@ func factorial(n: int) -> int {
     return n * factorial(n - 1);
 }
 
-func main() -> int {
+pub func main() -> int {
     number: int = 1;
     C::printf(c"Enter a number: \n");
     C::scanf("%d", &number);

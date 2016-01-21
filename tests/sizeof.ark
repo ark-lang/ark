@@ -7,7 +7,7 @@ type Test struct {
     b: int
 };
 
-func main() -> int {
+pub func main() -> int {
     i: int = 0;
     C::printf(c"sizeof i: %d\n", sizeof(i));
     C::printf(c"sizeof &i: %d\n", sizeof(&i));

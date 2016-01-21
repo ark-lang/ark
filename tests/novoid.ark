@@ -4,7 +4,7 @@ func say_hi() {
     C::printf(c"hi\n");
 }
 
-func main() -> int {
+pub func main() -> int {
     say_hi();
     return 0;
 }

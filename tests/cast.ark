@@ -1,6 +1,6 @@
 [c] func printf(fmt: ^u8, ...) -> int;
 
-func main() -> int {
+pub func main() -> int {
     a: int = 0;
     C::printf(c"%f\n", f32(a));
 

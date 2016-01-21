@@ -260,6 +260,8 @@ func (v *Codegen) addEnumType(typ parser.EnumType, name string) {
 	}
 }
 
+var nonPublicLinkage = llvm.InternalLinkage
+
 func (v *Codegen) declareFunctionDecl(n *parser.FunctionDecl) {
 	mangledName := n.Function.MangledName(parser.MANGLE_ARK_UNSTABLE)
 	function := v.curFile.LlvmModule.NamedFunction(mangledName)
@@ -289,6 +291,10 @@ func (v *Codegen) declareFunctionDecl(n *parser.FunctionDecl) {
 
 		// add that shit
 		function = llvm.AddFunction(v.curFile.LlvmModule, functionName, funcType)
+
+		if !cBinding && !n.IsPublic() {
+			function.SetLinkage(nonPublicLinkage)
+		}
 
 		/*// do some magical shit for later
 		for i := 0; i < numOfParams; i++ {
@@ -652,11 +658,18 @@ func (v *Codegen) genVariableDecl(n *parser.VariableDecl, semicolon bool) llvm.V
 			}
 		}
 	} else {
+		// TODO cbindings
+		cBinding := false
+
 		mangledName := n.Variable.MangledName(parser.MANGLE_ARK_UNSTABLE)
 		varType := v.typeToLLVMType(n.Variable.Type)
+
 		value := llvm.AddGlobal(v.curFile.LlvmModule, varType, mangledName)
 		// TODO: External by default to export everything, change once we get access specifiers
-		value.SetLinkage(llvm.ExternalLinkage)
+
+		if !cBinding && !n.IsPublic() {
+			value.SetLinkage(nonPublicLinkage)
+		}
 		value.SetGlobalConstant(!n.Variable.Mutable)
 		if n.Assignment != nil {
 			value.SetInitializer(v.genExpr(n.Assignment))
@@ -742,7 +755,9 @@ func (v *Codegen) genAccessExpr(n parser.Expr) llvm.Value {
 		fn := v.curFile.LlvmModule.NamedFunction(fnName)
 
 		if fn.IsNil() {
-			v.declareFunctionDecl(&parser.FunctionDecl{Function: fae.Function, Prototype: true})
+			decl := &parser.FunctionDecl{Function: fae.Function, Prototype: true}
+			decl.SetPublic(true)
+			v.declareFunctionDecl(decl)
 
 			if v.curFile.LlvmModule.NamedFunction(fnName).IsNil() {
 				panic("how did this happen")

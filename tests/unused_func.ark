@@ -2,7 +2,7 @@ func add() {
 
 }
 
-func main() -> int {
+pub func main() -> int {
     add();
     return 0;
 }

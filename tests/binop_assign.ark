@@ -7,7 +7,7 @@ func getGlob() -> ^int {
 	return &glob;
 }
 
-func main() -> int {
+pub func main() -> int {
 	mut x := 0;
 	x += 5;
 

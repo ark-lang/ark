@@ -11,7 +11,7 @@ func do() {
     }
 }
 
-func main() -> int {
+pub func main() -> int {
     defer io::println("printed last");
     defer io::println("printed second-to-last");
 

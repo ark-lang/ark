@@ -31,7 +31,7 @@ func calculate(iters: int) -> f64 {
     return 4.0 * f64(totalInCircle) / f64(iters);
 }
 
-func main() -> int {
+pub func main() -> int {
     C::srand(C::time(0));
 
     iters := 20000000;

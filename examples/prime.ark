@@ -45,7 +45,7 @@ func is_prime(n: int) -> int {
     return i;
 }
 
-func main() -> int {
+pub func main() -> int {
     mut no_primes: int = 0;
     limit: int = 67108864;
     mut n: int = 0;

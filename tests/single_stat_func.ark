@@ -13,7 +13,7 @@ func test(mut a: int) => for a < 10 {
 
 func whatever() => C::printf(c"testing the whatever() func\n");
 
-func main() -> int {
+pub func main() -> int {
     whatever();
     z: int = 0;
     test(z);

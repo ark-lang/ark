@@ -6,7 +6,7 @@ func get5() -> f32 {
 	return 5;
 }
 
-func main() -> int {
+pub func main() -> int {
 	mut foo: f32 = 42.0;
     do_stuff(-120);
     do_stuff(-foo);

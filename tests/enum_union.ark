@@ -5,7 +5,7 @@ type Tree enum {
     Leaf(int)
 };
 
-func main() -> int {
+pub func main() -> int {
 	x := Tree::Leaf(42);
 	y := Tree::Leaf(36);
 	z := Tree::Node{left: ^Tree(&x), right: ^Tree(&y)};

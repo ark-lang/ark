@@ -9,7 +9,7 @@ func do_stuff(mut a: int) -> int {
     return a;
 }
 
-func main() -> int {
+pub func main() -> int {
     mut test: Test;
     test.a = 32;
     test.a = do_stuff(test.a);

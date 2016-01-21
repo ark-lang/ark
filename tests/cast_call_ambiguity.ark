@@ -11,7 +11,7 @@ func printGlob() {
     C::printf(c"%d\n", ^(getGlob()));
 }
 
-func main() -> int {
+pub func main() -> int {
 	printGlob();
 	return 0;
 }

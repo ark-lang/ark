@@ -20,7 +20,7 @@ impl Foo for ToString {
     }
 }
 
-func main() -> int {
+pub func main() -> int {
     mut thing: Foo;
 
     return 0;

@@ -7,7 +7,7 @@ func swap(mut a: ^s32, mut b: ^s32)
    ^b = temp;
 }
 
-func main() -> int 
+pub func main() -> int 
 {
     a: s32 = 5;
     b: s32 = 6;

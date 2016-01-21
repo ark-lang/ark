@@ -2,7 +2,7 @@ func printf(y: int) {
 
 }
 
-func main() -> int {
+pub func main() -> int {
     mut x: int = 0;
 
     y := x + x;

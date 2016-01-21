@@ -1,6 +1,6 @@
 [c] func printf(fmt: ^u8, ...) -> int;
 
-func main() -> int {
+pub func main() -> int {
     t1: f64 = 10f;
     t2: f64 = 0.4d;
     [unused] t3: f64 = 1214.935735q;

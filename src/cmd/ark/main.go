@@ -228,7 +228,7 @@ func build(files []string, outputFile string, cg string, outputType LLVMCodegen.
 
 			// Use module scope to check for main function
 			mainIdent := module.ModScope.GetIdent(parser.UnresolvedName{Name: "main"})
-			if mainIdent != nil && mainIdent.Type == parser.IDENT_FUNCTION {
+			if mainIdent != nil && mainIdent.Type == parser.IDENT_FUNCTION && mainIdent.Public {
 				hasMainFunc = true
 			}
 		}

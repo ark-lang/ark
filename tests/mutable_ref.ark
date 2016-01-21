@@ -9,7 +9,7 @@ func change_ref(mut x: &mut int) {
     ^handle = 21;
 }
 
-func main() -> int {
+pub func main() -> int {
     mut x: int = 21;
     change_ref(&mut x);
     C::printf(c"x is %d\n", x);

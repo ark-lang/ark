@@ -17,7 +17,7 @@ func alloc<T>() -> ^int {
     return ^int(ptr);
 }
 
-func main() -> int {
+pub func main() -> int {
 	a: int = 0;
 	x := Option::None<bool>;
 	y := Option::Some<int>(a);

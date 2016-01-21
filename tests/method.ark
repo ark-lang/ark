@@ -23,7 +23,7 @@ func (Thing2) do() -> int {
     return 0;
 }
 
-func main() -> int {
+pub func main() -> int {
     mut thing: Thing;
     thing.x = 6;
 

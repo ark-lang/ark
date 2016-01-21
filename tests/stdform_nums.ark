@@ -1,6 +1,6 @@
 [c] func printf(fmt: ^u8, ...);
 
-func main() -> int {
+pub func main() -> int {
     if 2e3 != 2000 {
         return 1;
     }

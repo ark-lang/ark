@@ -3,7 +3,7 @@
 mut arrayGlobalTest: []s16 = []s16{100, 101, 102, 103, 104};
 random := []int{0, 16, 32, 64, 128, 256, 512, 1024};
 
-func main() -> int {
+pub func main() -> int {
     if arrayGlobalTest[1] != 101 {
         return 1;
     }

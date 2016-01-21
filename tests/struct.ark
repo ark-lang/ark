@@ -4,7 +4,7 @@ type EmptyStruct struct {};
 
 mut thing: Test = {z: 42};
 
-func main() -> int {
+pub func main() -> int {
     C::printf(c"thing.z: %f\n", thing.z);
     if thing.z != 42 {
         return 1;

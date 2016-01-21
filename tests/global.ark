@@ -2,7 +2,7 @@
 
 mut x: int = 10;
 
-func main() -> int {
+pub func main() -> int {
     x = 20;
     C::printf(c"%d\n", x);
     return 0;

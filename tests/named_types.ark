@@ -11,7 +11,7 @@ type structType struct {
     x: int
 };
 
-func main() -> int {
+pub func main() -> int {
     C::printf(c"Named types test.\n");
 
     // primitive test

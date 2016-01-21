@@ -6,7 +6,7 @@
 
 func println(mess: ^u8) => C::printf(c"%s\n", mess);
 
-func main() -> int {
+pub func main() -> int {
     println("Higher or lower game, in Ark!");
 
     C::srand(uint(C::time(0)));

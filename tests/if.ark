@@ -22,7 +22,7 @@ func do3() -> bool {
 }
 
 // TODO create a separate logical binop test
-func main() -> int {
+pub func main() -> int {
 	mut x: int = 5;
 	if x == 5 {
 		C::printf(c"this is a test\n");

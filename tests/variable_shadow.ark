@@ -1,6 +1,6 @@
 [c] func printf(fmt: ^u8, ...) -> int;
 
-func main() -> int {
+pub func main() -> int {
     mut x := 0;
 
     if true {

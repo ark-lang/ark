@@ -1,6 +1,6 @@
 [c] func printf(fmt: ^u8, ...) -> int;
 
-func main() -> int {
+pub func main() -> int {
     mut x: int = 1337;
         [unused] y: &int = &x;
     x = 32;

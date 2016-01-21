@@ -7,7 +7,7 @@ func fib(n: int) -> int {
     return fib(n - 1) + fib(n - 2);
 }
 
-func main() -> int {
+pub func main() -> int {
     C::printf(c"fib(12) == %d\n", fib(12));
 
     return 0;

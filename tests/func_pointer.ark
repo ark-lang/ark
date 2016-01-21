@@ -4,7 +4,7 @@ func do(thing: int) {
     C::printf(c"%d\n", thing);
 }
 
-func main() -> int {
+pub func main() -> int {
     C::printf(c"Func ptr test\n");
 
     fn := func() -> int {
