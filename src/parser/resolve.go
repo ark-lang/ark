@@ -51,13 +51,15 @@ func Resolve(mod *Module, mods *ModuleLookup) {
 		modules: mods,
 		module:  mod,
 		cModule: &Module{
-			Name:     &ModuleName{Parts: []string{"C"}},
-			ModScope: NewCScope(),
-			Parts:    make(map[string]*Submodule),
-			Dirpath:  "", // not really a path for this module
+			Name:    &ModuleName{Parts: []string{"C"}},
+			Parts:   make(map[string]*Submodule),
+			Dirpath: "", // not really a path for this module
 		},
-		curScope: NewGlobalScope(),
 	}
+
+	res.cModule.ModScope = NewCScope(res.cModule)
+
+	res.curScope = NewGlobalScope(mod)
 	mod.ModScope = res.curScope
 
 	// add a C module here which will contain all of the c bindings and what
@@ -75,7 +77,7 @@ func Resolve(mod *Module, mods *ModuleLookup) {
 func (v *Resolver) ResolveUsedModules() {
 	for _, submod := range v.module.Parts {
 		// TODO: Verify whether we need the outer scope
-		submod.UseScope = newScope(nil)
+		submod.UseScope = newScope(nil, v.module)
 
 		for _, node := range submod.Nodes {
 			switch node := node.(type) {
@@ -106,7 +108,7 @@ func (v *Resolver) ResolveTopLevelDecls() {
 			// TODO: We might need to do more that just insert this into the
 			// scope at the current point.
 			case *TypeDecl:
-				if modScope.InsertType(node.NamedType) != nil {
+				if modScope.InsertType(node.NamedType, node.IsPublic()) != nil {
 					v.err(node, "Illegal redeclaration of type `%s`", node.NamedType.Name)
 				}
 
@@ -115,15 +117,16 @@ func (v *Resolver) ResolveTopLevelDecls() {
 					scope := v.curScope
 					if node.Function.Type.Attrs().Contains("c") {
 						scope = v.cModule.ModScope
+						node.SetPublic(true)
 					}
 
-					if scope.InsertFunction(node.Function) != nil {
+					if scope.InsertFunction(node.Function, node.IsPublic()) != nil {
 						v.err(node, "Illegal redeclaration of function `%s`", node.Function.Name)
 					}
 				}
 
 			case *VariableDecl:
-				if modScope.InsertVariable(node.Variable) != nil {
+				if modScope.InsertVariable(node.Variable, node.IsPublic()) != nil {
 					v.err(node, "Illegal redeclaration of variable `%s`", node.Variable.Name)
 				}
 
@@ -158,18 +161,17 @@ func (v *Resolver) errCannotResolve(thing Locatable, name UnresolvedName) {
 	v.err(thing, "Cannot resolve `%s`", name.String())
 }
 
-func (v *Resolver) GetIdent(name UnresolvedName) *Ident {
-	if name.String() == "io::println" {
-		modname, _ := name.Split()
-		io := v.curSubmod.UseScope.GetIdent(modname).Value.(*Module)
-		io.ModScope.Dump(0)
-	}
-
+func (v *Resolver) getIdent(loc Locatable, name UnresolvedName) *Ident {
 	// TODO: Decide whether we should actually allow shadowing a module
 	ident := v.curScope.GetIdent(name)
 	if ident == nil {
 		ident = v.curSubmod.UseScope.GetIdent(name)
 	}
+
+	if !ident.Public && ident.Scope.Module != v.module {
+		v.err(loc, "Cannot access private identifier `%s`", name)
+	}
+
 	return ident
 }
 
@@ -200,7 +202,7 @@ func (v *Resolver) PostVisit(node *Node) {
 }
 
 func (v *Resolver) EnterScope() {
-	v.curScope = newScope(v.curScope)
+	v.curScope = newScope(v.curScope, v.module)
 }
 
 func (v *Resolver) ExitScope() {
@@ -252,7 +254,7 @@ func (v *Resolver) ResolveNode(node *Node) {
 		if n.Variable.Type != nil {
 			n.Variable.Type = v.ResolveType(n, n.Variable.Type)
 		}
-		if v.curScope.InsertVariable(n.Variable) != nil {
+		if v.curScope.InsertVariable(n.Variable, n.IsPublic()) != nil {
 			v.err(n, "Illegal redeclaration of variable `%s`", n.Variable.Name)
 		}
 
@@ -280,7 +282,7 @@ func (v *Resolver) ResolveNode(node *Node) {
 		// NOTE: Here we check whether this is actually a variable access or an enum member.
 		if len(n.Name.ModuleNames) > 0 {
 			enumName, memberName := n.Name.Split()
-			ident := v.GetIdent(enumName)
+			ident := v.getIdent(n, enumName)
 			if ident != nil && ident.Type == IDENT_TYPE {
 				itype := ident.Value.(Type)
 				if _, ok := itype.ActualType().(EnumType); ok {
@@ -299,7 +301,7 @@ func (v *Resolver) ResolveNode(node *Node) {
 			}
 		}
 
-		ident := v.GetIdent(n.Name)
+		ident := v.getIdent(n, n.Name)
 		if ident == nil {
 			v.errCannotResolve(n, n.Name)
 		} else if ident.Type == IDENT_FUNCTION {
@@ -334,7 +336,7 @@ func (v *Resolver) ResolveNode(node *Node) {
 					depth++
 					continue
 				} else if vaExpr, ok := inner.(*VariableAccessExpr); ok {
-					ident := v.GetIdent(vaExpr.Name)
+					ident := v.getIdent(vaExpr, vaExpr.Name)
 					if ident.Type == IDENT_TYPE {
 						// NOTE: If it turened out to be a pointer type we
 						// reconstruct the type based on the stored pointer depth
@@ -365,7 +367,7 @@ func (v *Resolver) ResolveNode(node *Node) {
 		if name, ok := n.Type.(UnresolvedType); ok {
 			enumName, memberName := name.Name.Split()
 			if memberName != "" {
-				ident := v.GetIdent(enumName)
+				ident := v.getIdent(n, enumName)
 				if ident.Type == IDENT_TYPE {
 					itype := ident.Value.(Type)
 					if _, ok := itype.ActualType().(EnumType); ok {
@@ -392,7 +394,7 @@ func (v *Resolver) ResolveNode(node *Node) {
 		if vae, ok := n.Function.(*VariableAccessExpr); ok {
 			if len(vae.Name.ModuleNames) > 0 {
 				enumName, memberName := vae.Name.Split()
-				ident := v.GetIdent(enumName)
+				ident := v.getIdent(n, enumName)
 				if ident != nil && ident.Type == IDENT_TYPE {
 					itype := ident.Value.(Type)
 					if _, ok := itype.ActualType().(EnumType); ok {
@@ -415,7 +417,7 @@ func (v *Resolver) ResolveNode(node *Node) {
 
 		// NOTE: Here we check whether this is a call or a cast
 		if vae, ok := n.Function.(*VariableAccessExpr); ok {
-			ident := v.GetIdent(vae.Name)
+			ident := v.getIdent(n, vae.Name)
 			if ident != nil && ident.Type == IDENT_TYPE {
 				if len(n.Arguments) != 1 {
 					v.err(n, "Casts must recieve exactly one argument")
@@ -548,7 +550,7 @@ func (v *Resolver) ResolveType(src Locatable, t Type) Type {
 		return nv
 
 	case UnresolvedType:
-		ident := v.GetIdent(t.Name)
+		ident := v.getIdent(src, t.Name)
 		if ident == nil {
 			v.errCannotResolve(src, t.Name)
 		} else if ident.Type != IDENT_TYPE {
@@ -556,6 +558,7 @@ func (v *Resolver) ResolveType(src Locatable, t Type) Type {
 		} else {
 			typ := ident.Value.(Type)
 
+			// TODO what is this stuff?
 			if namedType, ok := typ.(*NamedType); ok && len(t.Parameters) > 0 {
 				v.EnterScope()
 				name := namedType.Name + "<"
@@ -564,7 +567,7 @@ func (v *Resolver) ResolveType(src Locatable, t Type) Type {
 						Name: param.Name,
 						Type: v.ResolveType(src, t.Parameters[idx]),
 					}
-					v.curScope.InsertType(paramType)
+					v.curScope.InsertType(paramType, ident.Public)
 
 					name += t.Parameters[idx].TypeName()
 					if idx < len(namedType.Parameters)-1 {

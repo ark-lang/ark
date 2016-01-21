@@ -166,15 +166,15 @@ func (v Block) LastNode() Node {
  * Declarations
  */
 
-type publicHandler struct {
+type PublicHandler struct {
 	public bool
 }
 
-func (v *publicHandler) SetPublic(b bool) {
+func (v *PublicHandler) SetPublic(b bool) {
 	v.public = b
 }
 
-func (v publicHandler) IsPublic() bool {
+func (v PublicHandler) IsPublic() bool {
 	return v.public
 }
 
@@ -182,7 +182,7 @@ func (v publicHandler) IsPublic() bool {
 
 type VariableDecl struct {
 	nodePos
-	publicHandler
+	PublicHandler
 	Variable   *Variable
 	Assignment Expr
 	docs       []*DocComment
@@ -211,7 +211,7 @@ func (v *VariableDecl) DocComments() []*DocComment {
 
 type TypeDecl struct {
 	nodePos
-	publicHandler
+	PublicHandler
 	NamedType *NamedType
 }
 
@@ -233,7 +233,7 @@ func (v *TypeDecl) DocComments() []*DocComment {
 
 type FunctionDecl struct {
 	nodePos
-	publicHandler
+	PublicHandler
 	Function  *Function
 	Prototype bool
 	docs      []*DocComment

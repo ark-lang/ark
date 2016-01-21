@@ -35,21 +35,25 @@ func (v IdentType) String() string {
 }
 
 type Ident struct {
-	Type  IdentType
-	Value interface{}
+	Type   IdentType
+	Value  interface{}
+	Public bool
+	Scope  *Scope
 }
 
 type Scope struct {
 	Outer       *Scope
 	Idents      map[string]*Ident
+	Module      *Module // module this scope belongs to, nil if builtin
 	UsedModules map[string]*Module
 }
 
-func newScope(outer *Scope) *Scope {
+func newScope(outer *Scope, mod *Module) *Scope {
 	return &Scope{
 		Outer:       outer,
 		Idents:      make(map[string]*Ident),
 		UsedModules: make(map[string]*Module),
+		Module:      mod,
 	}
 }
 
@@ -60,26 +64,26 @@ var stringType = &NamedType{
 }
 
 func init() {
-	builtinScope = newScope(nil)
+	builtinScope = newScope(nil, nil)
 
 	for i := 0; i < len(_PrimitiveType_index); i++ {
-		builtinScope.InsertType(PrimitiveType(i))
+		builtinScope.InsertType(PrimitiveType(i), true)
 	}
 
-	builtinScope.InsertType(stringType)
+	builtinScope.InsertType(stringType, true)
 }
 
-func NewGlobalScope() *Scope {
-	s := newScope(builtinScope)
+func NewGlobalScope(mod *Module) *Scope {
+	s := newScope(builtinScope, mod)
 
 	return s
 }
 
-func NewCScope() *Scope {
-	s := newScope(nil)
-	s.InsertType(&NamedType{Name: "uint", Type: PRIMITIVE_u32})
-	s.InsertType(&NamedType{Name: "int", Type: PRIMITIVE_s32})
-	s.InsertType(&NamedType{Name: "void", Type: PRIMITIVE_u8})
+func NewCScope(mod *Module) *Scope {
+	s := newScope(nil, mod)
+	s.InsertType(&NamedType{Name: "uint", Type: PRIMITIVE_u32}, true)
+	s.InsertType(&NamedType{Name: "int", Type: PRIMITIVE_s32}, true)
+	s.InsertType(&NamedType{Name: "void", Type: PRIMITIVE_u8}, true)
 	return s
 }
 
@@ -91,27 +95,29 @@ func (v *Scope) err(err string, stuff ...interface{}) {
 	os.Exit(util.EXIT_FAILURE_PARSE)
 }
 
-func (v *Scope) InsertIdent(value interface{}, name string, typ IdentType) *Ident {
+func (v *Scope) InsertIdent(value interface{}, name string, typ IdentType, public bool) *Ident {
 	c := v.Idents[name]
 	if c == nil {
 		v.Idents[name] = &Ident{
-			Type:  typ,
-			Value: value,
+			Type:   typ,
+			Value:  value,
+			Public: public,
+			Scope:  v,
 		}
 	}
 	return c
 }
 
-func (v *Scope) InsertType(t Type) *Ident {
-	return v.InsertIdent(t, t.TypeName(), IDENT_TYPE)
+func (v *Scope) InsertType(t Type, public bool) *Ident {
+	return v.InsertIdent(t, t.TypeName(), IDENT_TYPE, public)
 }
 
-func (v *Scope) InsertVariable(t *Variable) *Ident {
-	return v.InsertIdent(t, t.Name, IDENT_VARIABLE)
+func (v *Scope) InsertVariable(t *Variable, public bool) *Ident {
+	return v.InsertIdent(t, t.Name, IDENT_VARIABLE, public)
 }
 
-func (v *Scope) InsertFunction(t *Function) *Ident {
-	return v.InsertIdent(t, t.Name, IDENT_FUNCTION)
+func (v *Scope) InsertFunction(t *Function, public bool) *Ident {
+	return v.InsertIdent(t, t.Name, IDENT_FUNCTION, public)
 }
 
 func (v *Scope) UseModule(t *Module) {
@@ -141,7 +147,7 @@ func (v *Scope) GetIdent(name UnresolvedName) *Ident {
 	if r := scope.Idents[name.Name]; r != nil {
 		return r
 	} else if r := scope.UsedModules[name.Name]; r != nil {
-		return &Ident{IDENT_MODULE, r}
+		return &Ident{IDENT_MODULE, r, true, v}
 	} else if v.Outer != nil {
 		return v.Outer.GetIdent(name)
 	}
