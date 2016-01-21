@@ -173,10 +173,6 @@ func (v *Resolver) err(thing Locatable, err string, stuff ...interface{}) {
 	os.Exit(util.EXIT_FAILURE_SEMANTIC)
 }
 
-func (v *Resolver) errCannotResolve(thing Locatable, name UnresolvedName) {
-	v.err(thing, "Cannot resolve `%s`", name.String())
-}
-
 func (v *Resolver) getIdent(loc Locatable, name UnresolvedName) *Ident {
 	// TODO: Decide whether we should actually allow shadowing a module
 	ident := v.curScope.GetIdent(name)
@@ -184,6 +180,12 @@ func (v *Resolver) getIdent(loc Locatable, name UnresolvedName) *Ident {
 		ident = v.curSubmod.UseScope.GetIdent(name)
 	}
 
+	if ident == nil {
+		v.err(loc, "Cannot resolve `%s`", name.String())
+		return nil
+	}
+
+	fmt.Println(ident.Scope)
 	if !ident.Public && ident.Scope.Module != v.module {
 		v.err(loc, "Cannot access private identifier `%s`", name)
 	}
@@ -331,7 +333,7 @@ func (v *Resolver) ResolveNode(node *Node) {
 
 		ident := v.getIdent(n, n.Name)
 		if ident == nil {
-			v.errCannotResolve(n, n.Name)
+			// do nothing
 		} else if ident.Type == IDENT_FUNCTION {
 			*node = &FunctionAccessExpr{
 				Function:   ident.Value.(*Function),
@@ -344,9 +346,7 @@ func (v *Resolver) ResolveNode(node *Node) {
 			v.err(n, "Expected variable identifier, found %s `%s`", ident.Type, n.Name)
 		}
 
-		if n.Variable == nil {
-			v.errCannotResolve(n, n.Name)
-		} else if n.Variable.Type != nil {
+		if n.Variable.Type != nil {
 			n.Variable.Type = v.ResolveType(n, n.Variable.Type)
 		}
 
@@ -574,7 +574,7 @@ func (v *Resolver) ResolveType(src Locatable, t Type) Type {
 	case UnresolvedType:
 		ident := v.getIdent(src, t.Name)
 		if ident == nil {
-			v.errCannotResolve(src, t.Name)
+			// do nothing
 		} else if ident.Type != IDENT_TYPE {
 			v.err(src, "Expected type identifier, found %s `%s`", ident.Type, t.Name)
 		} else {
