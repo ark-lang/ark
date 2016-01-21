@@ -1,0 +1,13 @@
+Name       = "struct_default_resolve"
+Sourcefile = "struct_default_resolve.ark"
+
+CompilerArgs = []
+RunArgs      = []
+
+CompilerError = 0
+RunError      = 0
+
+Input = ""
+
+CompilerOutput = ""
+RunOutput      = ""

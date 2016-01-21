@@ -520,15 +520,9 @@ func (v *Resolver) ResolveType(src Locatable, t Type) Type {
 				Assignment: vari.Assignment,
 				docs:       vari.docs,
 			}
-			node := Node(nt.Variables[idx])
-			v.ResolveNode(&node)
-			nt.Variables[idx] = node.(*VariableDecl)
 
-			if nt.Variables[idx].Assignment != nil {
-				// TODO: How do we want to handle this
-				visitor := &ASTVisitor{Visitor: v}
-				visitor.Visit(nt.Variables[idx].Assignment)
-			}
+			visitor := &ASTVisitor{Visitor: v}
+			nt.Variables[idx] = visitor.Visit(Node(nt.Variables[idx])).(*VariableDecl)
 		}
 		v.ExitScope()
 

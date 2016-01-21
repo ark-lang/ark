@@ -1,0 +1,18 @@
+[c] func printf(fmt: ^u8, ...) -> int;
+
+pub func main() -> int {
+  list := default(LinkedList);
+
+  C::printf(c"list.first = %d\n", list.first);
+  C::printf(c"None = %d . Value = %d\n", Entry::None, Entry::Value);
+  return 0;
+}
+
+type Entry enum {
+  None,
+  Value,
+};
+
+type LinkedList struct {
+  first: Entry = Entry::None,
+};
