@@ -1,0 +1,25 @@
+[c] func printf(fmt: ^u8, ...) -> int;
+
+pub func main() -> int {
+  n := Entry::None;
+  v := Entry::Value;
+
+  print(n == Entry::None);
+  print(n != Entry::Value);
+
+  print(v == Entry::Value);
+  print(v != Entry::None);
+
+  print(Entry::Value(1) == Entry::Value(2));
+
+  return 0;
+}
+
+type Entry enum {
+  None,
+  Value(int),
+};
+
+func print(val: bool) {
+  C::printf(c"%d\n", val);
+}
