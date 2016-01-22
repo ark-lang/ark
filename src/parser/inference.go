@@ -426,11 +426,13 @@ func (v *CompositeLiteral) infer(s *TypeInferer) {
 			val.infer(s)
 		}
 	} else if struc, ok := v.Type.ActualType().(StructType); ok {
-		for i, name := range v.Fields {
-			val := v.Values[i]
+		for i, val := range v.Values {
+			field := v.Fields[i]
 
-			if decl := struc.GetVariableDecl(name); decl != nil {
+			if decl := struc.GetVariableDecl(field); decl != nil {
 				val.setTypeHint(decl.Variable.Type)
+			} else {
+				val.setTypeHint(nil)
 			}
 			val.infer(s)
 		}

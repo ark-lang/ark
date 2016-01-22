@@ -722,9 +722,13 @@ type CompositeLiteral struct {
 func (v *CompositeLiteral) exprNode() {}
 
 func (v *CompositeLiteral) String() string {
-	res := "(" + util.Blue("CompositeLiteral") + ":"
-	for _, mem := range v.Values {
-		res += " " + mem.String() // TODO proper string
+	res := "(" + util.Blue("CompositeLiteral") + ": "
+	for i, mem := range v.Values {
+		if field := v.Fields[i]; field != "" {
+			res += field + ": "
+		}
+
+		res += mem.String() + ", "
 	}
 	return res + ")"
 }

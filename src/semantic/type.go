@@ -401,6 +401,11 @@ func (v *TypeCheck) CheckCompositeLiteral(s *SemanticAnalyzer, lit *parser.Compo
 		for i, mem := range lit.Values {
 			name := lit.Fields[i]
 
+			if name == "" {
+				s.Err(mem, "Missing field in struct literal")
+				continue
+			}
+
 			decl := typ.GetVariableDecl(name)
 			if decl == nil {
 				s.Err(lit, "No member named `%s` on struct of type `%s`", name, typ.TypeName())
