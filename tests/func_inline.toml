@@ -1,0 +1,13 @@
+Name       = "func_inline"
+Sourcefile = "func_inline.ark"
+
+CompilerArgs = []
+RunArgs      = []
+
+CompilerError = 0
+RunError      = 0
+
+Input = ""
+
+CompilerOutput = ""
+RunOutput      = ""
