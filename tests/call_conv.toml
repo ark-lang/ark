@@ -1,0 +1,13 @@
+Name       = "call_conv"
+Sourcefile = "call_conv.ark"
+
+CompilerArgs = []
+RunArgs      = []
+
+CompilerError = 0
+RunError      = 0
+
+Input = ""
+
+CompilerOutput = ""
+RunOutput      = ""

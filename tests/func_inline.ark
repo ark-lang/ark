@@ -1,0 +1,16 @@
+pub func main() -> int {
+  return sub(55, 55);
+}
+
+[inline="always"]
+func sub(a: int, b: int) -> int {
+  return a - b;
+}
+
+[unused]
+[inline="never"]
+func never_inline() {}
+
+[unused]
+[inline="maybe"]
+func maybe_inline() {}
