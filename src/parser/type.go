@@ -883,7 +883,31 @@ func (v FunctionType) String() string {
 }
 
 func (v FunctionType) TypeName() string {
-	res := "func"
+	res := ""
+
+	for _, attr := range v.attrs {
+		res += "[" + attr.Key
+		if attr.Value == "" {
+			res += "]"
+		} else {
+			res += "=\"" + attr.Value + "\"] "
+		}
+	}
+
+	res += "func("
+
+	for idx, para := range v.Parameters {
+		res += para.TypeName()
+		if idx < len(v.Parameters)-1 {
+			res += ", "
+		}
+	}
+
+	res += ")"
+
+	if v.Return != nil {
+		res += " -> " + v.Return.TypeName()
+	}
 
 	return res
 }

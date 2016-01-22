@@ -1118,6 +1118,19 @@ func (v *parser) parseType(doRefs bool, onlyComposites bool) ParseNode {
 	defer un(trace(v, "type"))
 
 	var res ParseNode
+	var attrs AttrGroup
+
+	defer func() {
+		if res != nil && attrs != nil {
+			res.SetAttrs(attrs)
+			// TODO: Update start position of result
+		}
+	}()
+
+	// If the next token is a [ and identifier it must be a group of attributes
+	if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "[") && v.tokenMatches(1, lexer.TOKEN_IDENTIFIER, "") {
+		attrs = v.parseAttributes()
+	}
 
 	if !onlyComposites {
 		if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_FUNC) {

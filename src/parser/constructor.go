@@ -171,6 +171,7 @@ func (v *FunctionTypeNode) construct(c *Constructor) Type {
 	res := FunctionType{
 		IsVariadic: v.IsVariadic,
 		Parameters: c.constructTypes(v.ParameterTypes),
+		attrs:      v.Attrs(),
 	}
 
 	if v.ReturnType != nil {

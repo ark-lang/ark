@@ -1358,6 +1358,11 @@ func (v *Codegen) genCastExpr(n *parser.CastExpr) llvm.Value {
 func (v *Codegen) genCallExprWithArgs(n *parser.CallExpr, args []llvm.Value) llvm.Value {
 	call := v.builder().CreateCall(v.genAccessExpr(n.Function), args, "")
 
+	attrs := n.Function.GetType().(parser.FunctionType).Attrs()
+	if attr, ok := attrs["call_conv"]; ok {
+		call.SetInstructionCallConv(callConvTypes[attr.Value])
+	}
+
 	return call
 }
 
