@@ -1,0 +1,20 @@
+#use std::io
+
+type IDoer interface {
+    func do(),
+};
+
+type Doer struct {};
+
+func (v: Doer) do() {
+
+}
+
+pub func main() -> int {
+    io::println("interface test");
+
+    //doer: IDoer = Doer{};
+    //doer.do();
+
+    return 0;
+}
