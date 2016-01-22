@@ -293,7 +293,7 @@ func (v *Resolver) ResolveNode(node *Node) {
 		n.Function.Type = v.ResolveType(n, n.Function.Type).(FunctionType)
 
 	case *CastExpr:
-		n.Type = v.ResolveType(n, n.Type).(FunctionType)
+		n.Type = v.ResolveType(n, n.Type)
 
 	case *ArrayLenExpr:
 		if n.Type != nil {

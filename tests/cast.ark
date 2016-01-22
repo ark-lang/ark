@@ -1,5 +1,7 @@
 [c] func printf(fmt: ^u8, ...) -> int;
 
+type intArray []int;
+
 pub func main() -> int {
     a: int = 0;
     C::printf(c"%f\n", f32(a));
@@ -27,6 +29,11 @@ pub func main() -> int {
     if rune(g) != 'c' {
         return 2;
     }
+
+    h := []int{1, 2, 3, 4};
+    i := intArray(h);
+    j := []int(i);
+    C::printf(c"%d\n", j[2]);
 
     return 0;
 }

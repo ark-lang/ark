@@ -362,7 +362,7 @@ func (v ArrayType) IsFloatingType() bool {
 }
 
 func (v ArrayType) CanCastTo(t Type) bool {
-	return false
+	return t.ActualType().Equals(v)
 }
 
 func (v ArrayType) Attrs() AttrGroup {
