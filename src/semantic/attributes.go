@@ -45,6 +45,14 @@ func (v *AttributeCheck) CheckFunctionDecl(s *SemanticAnalyzer, n *parser.Functi
 		case "unused":
 		case "c":
 		case "call_conv":
+		case "inline":
+			switch attr.Value {
+			case "always":
+			case "never":
+			case "maybe":
+			default:
+				s.Err(attr, "Invalid value `%s` for [inline] attribute", attr.Value)
+			}
 		default:
 			s.Err(attr, "Invalid function attribute key `%s`", attr.Key)
 		}

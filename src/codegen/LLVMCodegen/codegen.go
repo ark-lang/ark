@@ -270,6 +270,12 @@ var callConvTypes = map[string]llvm.CallConv{
 	"x86fastcall": llvm.X86FastcallCallConv,
 }
 
+var inlineAttrType = map[string]llvm.Attribute{
+	"always": llvm.AlwaysInlineAttribute,
+	"never":  llvm.NoInlineAttribute,
+	"maybe":  llvm.InlineHintAttribute,
+}
+
 func (v *Codegen) declareFunctionDecl(n *parser.FunctionDecl) {
 	mangledName := n.Function.MangledName(parser.MANGLE_ARK_UNSTABLE)
 	function := v.curFile.LlvmModule.NamedFunction(mangledName)
@@ -307,6 +313,10 @@ func (v *Codegen) declareFunctionDecl(n *parser.FunctionDecl) {
 			} else {
 				v.err("undefined calling convention `%s` for function `%s` wanted", ccAttr.Value, n.Function.Name)
 			}
+		}
+
+		if inlineAttr := attrs.Get("inline"); inlineAttr != nil {
+			function.AddFunctionAttr(inlineAttrType[inlineAttr.Value])
 		}
 
 		/*// do some magical shit for later
