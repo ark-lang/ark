@@ -694,12 +694,10 @@ func (v *Codegen) genExpr(n parser.Expr) llvm.Value {
 		return v.genBoolLiteral(n)
 	case *parser.TupleLiteral:
 		return v.genTupleLiteral(n)
-	case *parser.ArrayLiteral:
-		return v.genArrayLiteral(n)
+	case *parser.CompositeLiteral:
+		return v.genCompositeLiteral(n)
 	case *parser.EnumLiteral:
 		return v.genEnumLiteral(n)
-	case *parser.StructLiteral:
-		return v.genStructLiteral(n)
 	case *parser.BinaryExpr:
 		return v.genBinaryExpr(n)
 	case *parser.UnaryExpr:
@@ -925,13 +923,24 @@ func (v *Codegen) genStringLiteral(n *parser.StringLiteral) llvm.Value {
 	}
 }
 
+func (v *Codegen) genCompositeLiteral(n *parser.CompositeLiteral) llvm.Value {
+	switch n.GetType().ActualType().(type) {
+	case parser.ArrayType:
+		return v.genArrayLiteral(n)
+	case parser.StructType:
+		return v.genStructLiteral(n)
+	default:
+		panic("invalid composite literal type")
+	}
+}
+
 // Allocates a literal array on the stack
-func (v *Codegen) genArrayLiteral(n *parser.ArrayLiteral) llvm.Value {
+func (v *Codegen) genArrayLiteral(n *parser.CompositeLiteral) llvm.Value {
 	arrayLLVMType := v.typeToLLVMType(n.Type)
 	memberLLVMType := v.typeToLLVMType(n.Type.ActualType().(parser.ArrayType).MemberType)
 
-	arrayValues := make([]llvm.Value, len(n.Members))
-	for idx, mem := range n.Members {
+	arrayValues := make([]llvm.Value, len(n.Values))
+	for idx, mem := range n.Values {
 		value := v.genExpr(mem)
 		if !v.inFunction() && !value.IsConstant() {
 			v.err("Encountered non-constant value in global array")
@@ -939,12 +948,12 @@ func (v *Codegen) genArrayLiteral(n *parser.ArrayLiteral) llvm.Value {
 		arrayValues[idx] = value
 	}
 
-	lengthValue := llvm.ConstInt(v.typeToLLVMType(parser.PRIMITIVE_uint), uint64(len(n.Members)), false)
+	lengthValue := llvm.ConstInt(v.typeToLLVMType(parser.PRIMITIVE_uint), uint64(len(n.Values)), false)
 	var backingArrayPointer llvm.Value
 
 	if v.inFunction() {
 		// allocate backing array
-		backingArray := v.builder().CreateAlloca(llvm.ArrayType(memberLLVMType, len(n.Members)), "")
+		backingArray := v.builder().CreateAlloca(llvm.ArrayType(memberLLVMType, len(n.Values)), "")
 
 		// copy the constant array to the backing array
 		for idx, value := range arrayValues {
@@ -957,7 +966,7 @@ func (v *Codegen) genArrayLiteral(n *parser.ArrayLiteral) llvm.Value {
 		backName := fmt.Sprintf("_globarr_back_%d", v.arrayIndex)
 		v.arrayIndex++
 
-		backingArray := llvm.AddGlobal(v.curFile.LlvmModule, llvm.ArrayType(memberLLVMType, len(n.Members)), backName)
+		backingArray := llvm.AddGlobal(v.curFile.LlvmModule, llvm.ArrayType(memberLLVMType, len(n.Values)), backName)
 		backingArray.SetLinkage(llvm.InternalLinkage)
 		backingArray.SetGlobalConstant(false)
 		backingArray.SetInitializer(llvm.ConstArray(memberLLVMType, arrayValues))
@@ -968,6 +977,28 @@ func (v *Codegen) genArrayLiteral(n *parser.ArrayLiteral) llvm.Value {
 	structValue := llvm.Undef(arrayLLVMType)
 	structValue = v.builder().CreateInsertValue(structValue, lengthValue, 0, "")
 	structValue = v.builder().CreateInsertValue(structValue, backingArrayPointer, 1, "")
+	return structValue
+}
+
+func (v *Codegen) genStructLiteral(n *parser.CompositeLiteral) llvm.Value {
+	structType := n.Type.ActualType().(parser.StructType)
+	structLLVMType := v.typeToLLVMType(n.Type)
+
+	structValue := llvm.Undef(structLLVMType)
+
+	for i, value := range n.Values {
+		name := n.Fields[i]
+		vari := structType.GetVariableDecl(name).Variable
+		idx := structType.VariableIndex(vari)
+
+		memberValue := v.genExpr(value)
+		if !v.inFunction() && !memberValue.IsConstant() {
+			v.err("Encountered non-constant value in global struct literal")
+		}
+
+		structValue = v.builder().CreateInsertValue(structValue, v.genExpr(value), idx, "")
+	}
+
 	return structValue
 }
 
@@ -986,27 +1017,6 @@ func (v *Codegen) genTupleLiteral(n *parser.TupleLiteral) llvm.Value {
 	}
 
 	return tupleValue
-}
-
-func (v *Codegen) genStructLiteral(n *parser.StructLiteral) llvm.Value {
-	structType := n.Type.ActualType().(parser.StructType)
-	structLLVMType := v.typeToLLVMType(n.Type)
-
-	structValue := llvm.Undef(structLLVMType)
-
-	for name, value := range n.Values {
-		vari := structType.GetVariableDecl(name).Variable
-		idx := structType.VariableIndex(vari)
-
-		memberValue := v.genExpr(value)
-		if !v.inFunction() && !memberValue.IsConstant() {
-			v.err("Encountered non-constant value in global struct literal")
-		}
-
-		structValue = v.builder().CreateInsertValue(structValue, v.genExpr(value), idx, "")
-	}
-
-	return structValue
 }
 
 func (v *Codegen) genEnumLiteral(n *parser.EnumLiteral) llvm.Value {
@@ -1031,8 +1041,8 @@ func (v *Codegen) genEnumLiteral(n *parser.EnumLiteral) llvm.Value {
 	var memberValue llvm.Value
 	if n.TupleLiteral != nil {
 		memberValue = v.genTupleLiteral(n.TupleLiteral)
-	} else if n.StructLiteral != nil {
-		memberValue = v.genStructLiteral(n.StructLiteral)
+	} else if n.CompositeLiteral != nil {
+		memberValue = v.genCompositeLiteral(n.CompositeLiteral)
 	}
 
 	if v.inFunction() {
@@ -1349,8 +1359,8 @@ func (v *Codegen) genCallExpr(n *parser.CallExpr) llvm.Value {
 }
 
 func (v *Codegen) genArrayLenExpr(n *parser.ArrayLenExpr) llvm.Value {
-	if arrayLit, ok := n.Expr.(*parser.ArrayLiteral); ok {
-		arrayLen := len(arrayLit.Members)
+	if arrayLit, ok := n.Expr.(*parser.CompositeLiteral); ok {
+		arrayLen := len(arrayLit.Values)
 
 		return llvm.ConstInt(llvm.IntType(64), uint64(arrayLen), false)
 	}
@@ -1408,8 +1418,8 @@ func (v *Codegen) genDefaultValue(typ parser.Type) llvm.Value {
 	panic("type does not have default value: " + atyp.TypeName())
 }
 
-func createStructInitializer(typ parser.Type) *parser.StructLiteral {
-	lit := &parser.StructLiteral{Type: typ, Values: make(map[string]parser.Expr)}
+func createStructInitializer(typ parser.Type) *parser.CompositeLiteral {
+	lit := &parser.CompositeLiteral{Type: typ}
 	hasDefaultValues := false
 
 	structType := typ.ActualType().(parser.StructType)
@@ -1426,7 +1436,8 @@ func createStructInitializer(typ parser.Type) *parser.StructLiteral {
 
 		if value != nil {
 			hasDefaultValues = true
-			lit.Values[vari.Name] = value
+			lit.Values = append(lit.Values, value)
+			lit.Fields = append(lit.Fields, vari.Name)
 		}
 	}
 

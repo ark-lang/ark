@@ -496,7 +496,7 @@ func (v *parser) parseFuncHeader(lambda bool) *FunctionHeaderNode {
 	if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "->") {
 		v.consumeToken()
 
-		returnType = v.parseType(true)
+		returnType = v.parseType(true, false)
 		if returnType == nil {
 			v.err("Expected valid type after `->` in function header")
 		}
@@ -533,7 +533,7 @@ func (v *parser) parseTypeDecl() *TypeDeclNode {
 
 	genericSigil := v.parseGenericSigil()
 
-	typ := v.parseType(true)
+	typ := v.parseType(true, false)
 
 	endToken := v.expect(lexer.TOKEN_SEPARATOR, ";")
 
@@ -679,7 +679,7 @@ func (v *parser) parseVarDeclBody() *VarDeclNode {
 	// consume ':'
 	v.consumeToken()
 
-	varType := v.parseType(true)
+	varType := v.parseType(true, false)
 	if varType == nil && !v.tokenMatches(0, lexer.TOKEN_OPERATOR, "=") {
 		v.err("Expected valid type in variable declaration")
 	}
@@ -1113,22 +1113,32 @@ func (v *parser) parseBinopAssignStat() ParseNode {
 	return res
 }
 
-func (v *parser) parseType(doRefs bool) ParseNode {
+// NOTE onlyComposites does not affect doRefs.
+func (v *parser) parseType(doRefs bool, onlyComposites bool) ParseNode {
 	defer un(trace(v, "type"))
 
 	var res ParseNode
-	if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_FUNC) {
-		res = v.parseFunctionType()
-	} else if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "^") {
-		res = v.parsePointerType()
-	} else if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "&") {
-		res = v.parseReferenceType()
-	} else if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "(") {
-		res = v.parseTupleType()
-	} else if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "[") {
+
+	if !onlyComposites {
+		if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_FUNC) {
+			res = v.parseFunctionType()
+		} else if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "^") {
+			res = v.parsePointerType()
+		} else if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "&") {
+			res = v.parseReferenceType()
+		} else if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "(") {
+			res = v.parseTupleType()
+		} else if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_INTERFACE) {
+			res = v.parseInterfaceType()
+		}
+	}
+
+	if res != nil {
+		return res
+	}
+
+	if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "[") {
 		res = v.parseArrayType()
-	} else if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_INTERFACE) {
-		res = v.parseInterfaceType()
 	} else if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_STRUCT) {
 		res = v.parseStructType(true)
 	} else if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_ENUM) {
@@ -1270,7 +1280,7 @@ func (v *parser) parseReferenceType() *ReferenceTypeNode {
 		mutable = true
 	}
 
-	target := v.parseType(true)
+	target := v.parseType(true, false)
 	if target == nil {
 		v.err("Expected valid type after '&' in reference type")
 	}
@@ -1315,7 +1325,7 @@ func (v *parser) parseFunctionType() *FunctionTypeNode {
 				v.err("Duplicate `...`")
 			}
 		} else {
-			par := v.parseType(true)
+			par := v.parseType(true, false)
 			if par == nil {
 				v.err("Expected type, found `%s`", v.peek(0).Contents)
 			}
@@ -1337,7 +1347,7 @@ func (v *parser) parseFunctionType() *FunctionTypeNode {
 	var returnType ParseNode
 	if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "->") {
 		v.consumeToken()
-		returnType = v.parseType(true)
+		returnType = v.parseType(true, false)
 		if returnType == nil {
 			v.err("Expected return type, found `%s`", v.peek(0).Contents)
 		}
@@ -1367,7 +1377,7 @@ func (v *parser) parsePointerType() *PointerTypeNode {
 	}
 	startToken := v.consumeToken()
 
-	target := v.parseType(true)
+	target := v.parseType(true, false)
 	if target == nil {
 		v.err("Expected valid type after `^` in pointer type")
 	}
@@ -1388,7 +1398,7 @@ func (v *parser) parseTupleType() *TupleTypeNode {
 
 	var members []ParseNode
 	for {
-		memberType := v.parseType(true)
+		memberType := v.parseType(true, false)
 		if memberType == nil {
 			v.err("Expected valid type in tuple type")
 		}
@@ -1422,7 +1432,7 @@ func (v *parser) parseArrayType() *ArrayTypeNode {
 
 	v.expect(lexer.TOKEN_SEPARATOR, "]")
 
-	memberType := v.parseType(true)
+	memberType := v.parseType(true, false)
 	if memberType == nil {
 		v.err("Expected valid type in array type")
 	}
@@ -1449,7 +1459,7 @@ func (v *parser) parseTypeReference() *TypeReferenceNode {
 		v.consumeToken()
 
 		for {
-			typ := v.parseType(true)
+			typ := v.parseType(true, false)
 			if typ == nil {
 				v.err("Expected valid type as type parameter")
 			}
@@ -1646,7 +1656,7 @@ func (v *parser) parsePrimaryExpr() ParseNode {
 			v.consumeToken()
 
 			for {
-				typ := v.parseType(true)
+				typ := v.parseType(true, false)
 				if typ == nil {
 					break
 				}
@@ -1714,7 +1724,7 @@ func (v *parser) parseSizeofExpr() *SizeofExprNode {
 	var typ ParseNode
 	value := v.parseExpr()
 	if value == nil {
-		typ = v.parseType(true)
+		typ = v.parseType(true, false)
 		if typ == nil {
 			v.err("Expected valid expression or type in sizeof expression")
 		}
@@ -1737,7 +1747,7 @@ func (v *parser) parseDefaultExpr() *DefaultExprNode {
 
 	v.expect(lexer.TOKEN_SEPARATOR, "(")
 
-	target := v.parseType(true)
+	target := v.parseType(true, false)
 	if target == nil {
 		v.err("Expected valid type in default expression")
 	}
@@ -1798,7 +1808,7 @@ func (v *parser) parseCastExpr() *CastExprNode {
 
 	startPos := v.currentToken
 
-	typ := v.parseType(false)
+	typ := v.parseType(false, false)
 	if typ == nil || !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "(") {
 		v.currentToken = startPos
 		return nil
@@ -1843,52 +1853,55 @@ func (v *parser) parseUnaryExpr() *UnaryExprNode {
 func (v *parser) parseCompositeLiteral() ParseNode {
 	defer un(trace(v, "complit"))
 
-	var res ParseNode
-	if arrayLit := v.parseArrayLit(); arrayLit != nil {
-		res = arrayLit
-	} else if structLit := v.parseStructLit(); structLit != nil {
-		res = structLit
-	}
-	return res
-}
+	startPos := v.currentToken
+	typ := v.parseType(true, true)
 
-func (v *parser) parseArrayLit() *ArrayLiteralNode {
-	defer un(trace(v, "arraylit"))
-
-	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "[") && !v.tokenMatches(1, lexer.TOKEN_SEPARATOR, "]") {
+	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "{") {
+		v.currentToken = startPos
 		return nil
 	}
-	startToken := v.consumeToken()
-	v.consumeToken()
+	v.consumeToken() // eat opening bracket
 
-	typ := v.parseType(true)
+	res := &CompositeLiteralNode{
+		Type: typ,
+	}
 
-	v.expect(lexer.TOKEN_SEPARATOR, "{")
-	var values []ParseNode
+	var lastToken *lexer.Token
+
 	for {
 		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "}") {
+			lastToken = v.consumeToken()
 			break
 		}
 
-		value := v.parseExpr()
-		if value == nil {
-			v.err("Expected valid expression in array literal")
-		}
-		values = append(values, value)
+		var field LocatedString
 
-		if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ",") {
+		if v.tokensMatch(lexer.TOKEN_IDENTIFIER, "", lexer.TOKEN_OPERATOR, ":") {
+			field = NewLocatedString(v.consumeToken())
+			v.consumeToken()
+		}
+
+		val := v.parseExpr()
+		if val == nil {
+			v.err("Expected value in composite literal, found `%s`", v.peek(0).Contents)
+		}
+
+		res.Fields = append(res.Fields, field)
+		res.Values = append(res.Values, val)
+
+		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ",") {
+			v.consumeToken()
+			continue
+		} else if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "}") {
+			lastToken = v.consumeToken()
 			break
+		} else {
+			v.err("Unexpected `%s`", v.peek(0).Contents)
 		}
-		v.consumeToken()
 	}
 
-	endToken := v.expect(lexer.TOKEN_SEPARATOR, "}")
+	res.SetWhere(lexer.NewSpan(typ.Where().Start(), lastToken.Where.End()))
 
-	res := &ArrayLiteralNode{
-		Values: values,
-		Type:   typ,
-	}
-	res.SetWhere(lexer.NewSpanFromTokens(startToken, endToken))
 	return res
 }
 
@@ -1929,53 +1942,6 @@ func (v *parser) parseTupleLit() *TupleLiteralNode {
 
 	res := &TupleLiteralNode{Values: values}
 	res.SetWhere(lexer.NewSpanFromTokens(startToken, endToken))
-	return res
-}
-
-func (v *parser) parseStructLit() *StructLiteralNode {
-	defer un(trace(v, "structlit"))
-
-	startPos := v.currentToken
-	name := v.parseName()
-
-	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "{") {
-		v.currentToken = startPos
-		return nil
-	}
-	startToken := v.consumeToken()
-
-	var members []LocatedString
-	var values []ParseNode
-	for {
-		if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, "") {
-			break
-		}
-
-		member := v.expect(lexer.TOKEN_IDENTIFIER, "")
-		members = append(members, NewLocatedString(member))
-
-		v.expect(lexer.TOKEN_OPERATOR, ":")
-
-		value := v.parseExpr()
-		if value == nil {
-			v.err("Expected valid expression in struct literal")
-		}
-		values = append(values, value)
-
-		if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ",") {
-			break
-		}
-		v.consumeToken()
-	}
-
-	endToken := v.expect(lexer.TOKEN_SEPARATOR, "}")
-
-	res := &StructLiteralNode{Name: name, Members: members, Values: values}
-	if name != nil {
-		res.SetWhere(lexer.NewSpan(name.Where().Start(), endToken.Where.End()))
-	} else {
-		res.SetWhere(lexer.NewSpanFromTokens(startToken, endToken))
-	}
 	return res
 }
 

@@ -739,15 +739,6 @@ func (v *TupleAccessNode) construct(c *Constructor) Expr {
 	return res
 }
 
-func (v *ArrayLiteralNode) construct(c *Constructor) Expr {
-	res := &ArrayLiteral{
-		Members: c.constructExprs(v.Values),
-		Type:    c.constructType(v.Type),
-	}
-	res.setPos(v.Where().Start())
-	return res
-}
-
 func (v *TupleLiteralNode) construct(c *Constructor) Expr {
 	res := &TupleLiteral{
 		Members: c.constructExprs(v.Values),
@@ -759,15 +750,15 @@ func (v *TupleLiteralNode) construct(c *Constructor) Expr {
 	return res
 }
 
-func (v *StructLiteralNode) construct(c *Constructor) Expr {
-	res := &StructLiteral{}
-	if v.Name != nil {
-		res.Type = UnresolvedType{Name: toUnresolvedName(v.Name)}
+func (v *CompositeLiteralNode) construct(c *Constructor) Expr {
+	res := &CompositeLiteral{}
+	res.Type = c.constructType(v.Type)
+
+	for i, val := range v.Values {
+		res.Fields = append(res.Fields, v.Fields[i].Value)
+		res.Values = append(res.Values, c.constructExpr(val))
 	}
-	res.Values = make(map[string]Expr)
-	for idx, member := range v.Members {
-		res.Values[member.Value] = c.constructExpr(v.Values[idx])
-	}
+
 	return res
 }
 

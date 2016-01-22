@@ -388,7 +388,7 @@ func (v *Resolver) ResolveNode(node *Node) {
 			n.Type = v.ResolveType(n, n.Type)
 		}
 
-	case *StructLiteral:
+	case *CompositeLiteral:
 		// TODO: why is this here?
 		if n.InEnum {
 			break
@@ -406,8 +406,8 @@ func (v *Resolver) ResolveNode(node *Node) {
 						enum := &EnumLiteral{}
 						enum.Member = memberName
 						enum.Type = itype
-						enum.StructLiteral = n
-						enum.StructLiteral.InEnum = true
+						enum.CompositeLiteral = n
+						enum.CompositeLiteral.InEnum = true
 						enum.setPos(n.Pos())
 
 						*node = enum
@@ -470,7 +470,7 @@ func (v *Resolver) ResolveNode(node *Node) {
 		*BlockStat, *BreakStat, *CallStat, *DefaultStat, *DeferStat, *IfStat,
 		*MatchStat, *LoopStat, *NextStat, *ReturnStat, *AddressOfExpr,
 		*ArrayAccessExpr, *BinaryExpr, *DerefAccessExpr, *UnaryExpr,
-		*StructAccessExpr, *TupleAccessExpr, *ArrayLiteral, *BoolLiteral,
+		*StructAccessExpr, *TupleAccessExpr, *BoolLiteral,
 		*NumericLiteral, *RuneLiteral, *StringLiteral, *TupleLiteral:
 		break
 

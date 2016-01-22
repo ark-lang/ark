@@ -709,60 +709,32 @@ func (v *TupleLiteral) NodeName() string {
 	return "tuple literal"
 }
 
-// StructLiteral
+// CompositeLiteral
 
-type StructLiteral struct {
+type CompositeLiteral struct {
 	nodePos
 	Type   Type
-	Values map[string]Expr
+	Fields []string // len(Fields) == len(Values). empty fields represented as ""
+	Values []Expr
 	InEnum bool
 }
 
-func (v *StructLiteral) exprNode() {}
+func (v *CompositeLiteral) exprNode() {}
 
-func (v *StructLiteral) String() string {
-	res := "(" + util.Blue("StructLiteral") + ": "
-	for name, value := range v.Values {
-		res += name
-		res += ": "
-		res += value.String()
-		res += ", "
+func (v *CompositeLiteral) String() string {
+	res := "(" + util.Blue("CompositeLiteral") + ":"
+	for _, mem := range v.Values {
+		res += " " + mem.String() // TODO proper string
 	}
 	return res + ")"
 }
 
-func (v *StructLiteral) GetType() Type {
+func (v *CompositeLiteral) GetType() Type {
 	return v.Type
 }
 
-func (v *StructLiteral) NodeName() string {
-	return "struct literal"
-}
-
-// ArrayLiteral
-
-type ArrayLiteral struct {
-	nodePos
-	Members []Expr
-	Type    Type
-}
-
-func (v *ArrayLiteral) exprNode() {}
-
-func (v *ArrayLiteral) String() string {
-	res := "(" + util.Blue("ArrayLiteral") + ":"
-	for _, mem := range v.Members {
-		res += " " + mem.String()
-	}
-	return res + ")"
-}
-
-func (v *ArrayLiteral) GetType() Type {
-	return v.Type
-}
-
-func (v *ArrayLiteral) NodeName() string {
-	return "array literal"
+func (v *CompositeLiteral) NodeName() string {
+	return "composite literal"
 }
 
 // EnumLiteral
@@ -772,8 +744,8 @@ type EnumLiteral struct {
 	Type   Type
 	Member string
 
-	TupleLiteral  *TupleLiteral
-	StructLiteral *StructLiteral
+	TupleLiteral     *TupleLiteral
+	CompositeLiteral *CompositeLiteral
 }
 
 func (v *EnumLiteral) exprNode() {}
@@ -782,8 +754,8 @@ func (v *EnumLiteral) String() string {
 	res := "(" + util.Blue("EnumLiteral") + ":"
 	if v.TupleLiteral != nil {
 		res += v.TupleLiteral.String()
-	} else if v.StructLiteral != nil {
-		res += v.StructLiteral.String()
+	} else if v.CompositeLiteral != nil {
+		res += v.CompositeLiteral.String()
 	}
 	return res + ")"
 }

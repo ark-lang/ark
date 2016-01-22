@@ -2,7 +2,7 @@ type EmptyStruct struct {};
 
 [c] func printf(fmt: ^u8, ...) -> int;
 
-mut thing: Test = {z: 42};
+mut thing := Test{z: 42};
 
 pub func main() -> int {
     C::printf(c"thing.z: %f\n", thing.z);

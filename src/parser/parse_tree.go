@@ -40,6 +40,10 @@ func NewLocatedString(token *lexer.Token) LocatedString {
 	return LocatedString{Where: token.Where, Value: token.Contents}
 }
 
+func (v LocatedString) IsEmpty() bool {
+	return v.Value == ""
+}
+
 // main tree
 type ParseTree struct {
 	baseNode
@@ -375,22 +379,17 @@ type TupleAccessNode struct {
 }
 
 // literals
-type ArrayLiteralNode struct {
-	baseNode
-	Values []ParseNode
-	Type   ParseNode
-}
 
 type TupleLiteralNode struct {
 	baseNode
 	Values []ParseNode
 }
 
-type StructLiteralNode struct {
+type CompositeLiteralNode struct {
 	baseNode
-	Name    *NameNode
-	Members []LocatedString
-	Values  []ParseNode
+	Type   ParseNode
+	Fields []LocatedString // has same length as Values. missing fields have zero value.
+	Values []ParseNode
 }
 
 type BoolLitNode struct {

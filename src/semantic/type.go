@@ -79,14 +79,11 @@ func (v *TypeCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
 	case *parser.NumericLiteral:
 		v.CheckNumericLiteral(s, n)
 
-	case *parser.ArrayLiteral:
-		v.CheckArrayLiteral(s, n)
+	case *parser.CompositeLiteral:
+		v.CheckCompositeLiteral(s, n)
 
 	case *parser.TupleLiteral:
 		v.CheckTupleLiteral(s, n)
-
-	case *parser.StructLiteral:
-		v.CheckStructLiteral(s, n)
 
 	case *parser.EnumLiteral:
 		v.CheckEnumLiteral(s, n)
@@ -368,21 +365,6 @@ func (v *TypeCheck) CheckNumericLiteral(s *SemanticAnalyzer, lit *parser.Numeric
 	}
 }
 
-func (v *TypeCheck) CheckArrayLiteral(s *SemanticAnalyzer, lit *parser.ArrayLiteral) {
-	// TODO: check array length once we get around to that stuff
-	arrayType, ok := lit.Type.ActualType().(parser.ArrayType)
-	if !ok {
-		panic("Type of array literal was not `ArrayType`")
-	}
-
-	memType := arrayType.MemberType
-	for _, mem := range lit.Members {
-		if !mem.GetType().Equals(memType) {
-			s.Err(mem, "Cannot use element of type `%s` in array of type `%s`", mem.GetType().TypeName(), memType.TypeName())
-		}
-	}
-}
-
 func (v *TypeCheck) CheckTupleLiteral(s *SemanticAnalyzer, lit *parser.TupleLiteral) {
 	tupleType, ok := lit.Type.ActualType().(parser.TupleType)
 	if !ok {
@@ -401,22 +383,37 @@ func (v *TypeCheck) CheckTupleLiteral(s *SemanticAnalyzer, lit *parser.TupleLite
 	}
 }
 
-func (v *TypeCheck) CheckStructLiteral(s *SemanticAnalyzer, lit *parser.StructLiteral) {
-	structType, ok := lit.Type.ActualType().(parser.StructType)
-	if !ok {
-		panic("Type of struct literal was not `StructType`")
-	}
+func (v *TypeCheck) CheckCompositeLiteral(s *SemanticAnalyzer, lit *parser.CompositeLiteral) {
+	switch typ := lit.Type.ActualType().(type) {
+	case parser.ArrayType:
+		memType := typ.MemberType
+		for i, mem := range lit.Values {
+			if !mem.GetType().Equals(memType) {
+				s.Err(mem, "Cannot use element of type `%s` in array of type `%s`", mem.GetType().TypeName(), memType.TypeName())
+			}
 
-	for name, mem := range lit.Values {
-		decl := structType.GetVariableDecl(name)
-		if decl == nil {
-			s.Err(lit, "No member named `%s` on struct of type `%s`", name, structType.TypeName())
+			if lit.Fields[i] != "" {
+				s.Err(mem, "Unexpected field in array literal: `%s`", lit.Fields[i])
+			}
 		}
 
-		if !mem.GetType().Equals(decl.Variable.Type) {
-			s.Err(lit, "Cannot use value of type `%s` as member of `%s` with type `%s`",
-				mem.GetType().TypeName(), decl.Variable.Type.TypeName(), structType.TypeName())
+	case parser.StructType:
+		for i, mem := range lit.Values {
+			name := lit.Fields[i]
+
+			decl := typ.GetVariableDecl(name)
+			if decl == nil {
+				s.Err(lit, "No member named `%s` on struct of type `%s`", name, typ.TypeName())
+			}
+
+			if !mem.GetType().Equals(decl.Variable.Type) {
+				s.Err(lit, "Cannot use value of type `%s` as member of `%s` with type `%s`",
+					mem.GetType().TypeName(), decl.Variable.Type.TypeName(), typ.TypeName())
+			}
 		}
+
+	default:
+		panic("composite literal has neither struct nor array type")
 	}
 }
 

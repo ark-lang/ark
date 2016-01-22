@@ -419,8 +419,26 @@ func (v *BoolLiteral) setTypeHint(t Type)   {}
 
 // ArrayLiteral
 
-func (v *ArrayLiteral) infer(s *TypeInferer) {
-	var memType Type // type of each member of the array
+func (v *CompositeLiteral) infer(s *TypeInferer) {
+	if array, ok := v.Type.ActualType().(ArrayType); ok {
+		for _, val := range v.Values {
+			val.setTypeHint(array.MemberType)
+			val.infer(s)
+		}
+	} else if struc, ok := v.Type.ActualType().(StructType); ok {
+		for i, name := range v.Fields {
+			val := v.Values[i]
+
+			if decl := struc.GetVariableDecl(name); decl != nil {
+				val.setTypeHint(decl.Variable.Type)
+			}
+			val.infer(s)
+		}
+	} else {
+		s.err(v, "Composite literal type error (TODO better error)")
+	}
+
+	/*var memType Type // type of each member of the array
 
 	if v.Type == nil {
 		memType = nil
@@ -452,11 +470,18 @@ func (v *ArrayLiteral) infer(s *TypeInferer) {
 			s.err(v, "Couldn't infer type of array members") // don't think this can ever happen
 		}
 		v.Type = ArrayOf(memType)
-	}
+	}*/
 }
 
-func (v *ArrayLiteral) setTypeHint(t Type) {
-	v.Type = t
+func (v *CompositeLiteral) setTypeHint(t Type) {
+	if t == nil {
+		return
+	}
+
+	switch t.ActualType().(type) {
+	case StructType, ArrayType:
+		v.Type = t
+	}
 }
 
 // CastExpr
@@ -703,35 +728,6 @@ func (v *TupleLiteral) setTypeHint(t Type) {
 	}
 }
 
-// StructLiteral
-func (v *StructLiteral) infer(s *TypeInferer) {
-	var ok bool
-
-	if v.Type != nil {
-		_, ok = v.Type.ActualType().(StructType)
-	}
-
-	for name, mem := range v.Values {
-		if ok {
-			if decl := v.Type.ActualType().(StructType).GetVariableDecl(name); decl != nil {
-				mem.setTypeHint(decl.Variable.Type)
-			}
-		}
-		mem.infer(s)
-	}
-}
-
-func (v *StructLiteral) setTypeHint(t Type) {
-	if t == nil {
-		return
-	}
-
-	_, ok := t.ActualType().(StructType)
-	if ok {
-		v.Type = t
-	}
-}
-
 // EnumLiteral
 func (v *EnumLiteral) infer(s *TypeInferer) {
 	if enumType, ok := v.Type.ActualType().(EnumType); ok {
@@ -742,9 +738,9 @@ func (v *EnumLiteral) infer(s *TypeInferer) {
 		}
 
 		memType := enumType.Members[memIdx].Type
-		if structType, ok := memType.(StructType); ok && v.StructLiteral != nil {
-			v.StructLiteral.setTypeHint(structType)
-			v.StructLiteral.infer(s)
+		if structType, ok := memType.(StructType); ok && v.CompositeLiteral != nil {
+			v.CompositeLiteral.setTypeHint(structType)
+			v.CompositeLiteral.infer(s)
 		} else if tupleType, ok := memType.(TupleType); ok && v.TupleLiteral != nil {
 			v.TupleLiteral.setTypeHint(tupleType)
 			v.TupleLiteral.infer(s)

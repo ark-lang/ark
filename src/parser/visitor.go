@@ -160,9 +160,6 @@ func (v *ASTVisitor) VisitChildren(n Node) {
 		n.Lhand = v.VisitExpr(n.Lhand)
 		n.Rhand = v.VisitExpr(n.Rhand)
 
-	case *ArrayLiteral:
-		n.Members = v.VisitExprs(n.Members)
-
 	case *CallExpr:
 		n.Function = v.VisitExpr(n.Function)
 
@@ -183,10 +180,8 @@ func (v *ASTVisitor) VisitChildren(n Node) {
 	case *TupleLiteral:
 		n.Members = v.VisitExprs(n.Members)
 
-	case *StructLiteral:
-		for key, value := range n.Values {
-			n.Values[key] = v.VisitExpr(value)
-		}
+	case *CompositeLiteral:
+		n.Values = v.VisitExprs(n.Values)
 
 	case *EnumLiteral:
 		n1 := v.Visit(n.TupleLiteral)
@@ -196,11 +191,11 @@ func (v *ASTVisitor) VisitChildren(n Node) {
 			n.TupleLiteral = n1.(*TupleLiteral)
 		}
 
-		n2 := v.Visit(n.StructLiteral)
+		n2 := v.Visit(n.CompositeLiteral)
 		if n2 == nil {
-			n.StructLiteral = nil
+			n.CompositeLiteral = nil
 		} else {
-			n.StructLiteral = n2.(*StructLiteral)
+			n.CompositeLiteral = n2.(*CompositeLiteral)
 		}
 
 	case *BlockStat:
