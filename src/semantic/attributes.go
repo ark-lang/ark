@@ -44,6 +44,7 @@ func (v *AttributeCheck) CheckFunctionDecl(s *SemanticAnalyzer, n *parser.Functi
 		case "deprecated":
 		case "unused":
 		case "c":
+		case "call_conv":
 		default:
 			s.Err(attr, "Invalid function attribute key `%s`", attr.Key)
 		}

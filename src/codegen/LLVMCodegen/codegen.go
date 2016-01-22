@@ -262,6 +262,14 @@ func (v *Codegen) addEnumType(typ parser.EnumType, name string) {
 
 var nonPublicLinkage = llvm.InternalLinkage
 
+var callConvTypes = map[string]llvm.CallConv{
+	"c":           llvm.CCallConv,
+	"fast":        llvm.FastCallConv,
+	"cold":        llvm.ColdCallConv,
+	"x86stdcall":  llvm.X86StdcallCallConv,
+	"x86fastcall": llvm.X86FastcallCallConv,
+}
+
 func (v *Codegen) declareFunctionDecl(n *parser.FunctionDecl) {
 	mangledName := n.Function.MangledName(parser.MANGLE_ARK_UNSTABLE)
 	function := v.curFile.LlvmModule.NamedFunction(mangledName)
@@ -273,13 +281,9 @@ func (v *Codegen) declareFunctionDecl(n *parser.FunctionDecl) {
 			numOfParams++
 		}*/
 
-		// attributes defaults
-		cBinding := false
-
 		// find them attributes yo
-		if n.Function.Type.Attrs() != nil {
-			cBinding = n.Function.Type.Attrs().Contains("c")
-		}
+		attrs := n.Function.Type.Attrs()
+		cBinding := attrs.Contains("c")
 
 		// create the function type
 		funcType := v.functionTypeToLLVMType(n.Function.Type, false)
@@ -294,6 +298,15 @@ func (v *Codegen) declareFunctionDecl(n *parser.FunctionDecl) {
 
 		if !cBinding && !n.IsPublic() {
 			function.SetLinkage(nonPublicLinkage)
+		}
+
+		if ccAttr := attrs.Get("call_conv"); ccAttr != nil {
+			// TODO: move value checking to parser?
+			if callConv, ok := callConvTypes[ccAttr.Value]; ok {
+				function.SetFunctionCallConv(callConv)
+			} else {
+				v.err("undefined calling convention `%s` for function `%s` wanted", ccAttr.Value, n.Function.Name)
+			}
 		}
 
 		/*// do some magical shit for later
