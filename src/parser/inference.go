@@ -513,6 +513,7 @@ func (v *CallExpr) infer(s *TypeInferer) {
 	if v.Function != nil {
 		if _, ok := v.Function.GetType().(FunctionType); !ok {
 			s.err(v, "Cannot call non-function") // TODO better error message
+			return;
 		}
 
 		if v.Function.GetType().(FunctionType).Receiver != nil {
