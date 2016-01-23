@@ -469,6 +469,7 @@ func (v *parser) parseFuncHeader(lambda bool) *FunctionHeaderNode {
 			break
 		}
 
+		// parse our variadic sigil (three magical dots)
 		if v.tokensMatch(lexer.TOKEN_SEPARATOR, ".", lexer.TOKEN_SEPARATOR, ".", lexer.TOKEN_SEPARATOR, ".") {
 			v.consumeTokens(3)
 			if !variadic {
@@ -1327,7 +1328,7 @@ func (v *parser) parseFunctionType() *FunctionTypeNode {
 		}
 
 		if variadic {
-			v.err("Elipses must come last")
+			v.err("Variadic signifier must be the last argument in a variadic function")
 		}
 
 		if v.tokensMatch(lexer.TOKEN_SEPARATOR, ".", lexer.TOKEN_SEPARATOR, ".", lexer.TOKEN_SEPARATOR, ".") {
@@ -1335,12 +1336,12 @@ func (v *parser) parseFunctionType() *FunctionTypeNode {
 			if !variadic {
 				variadic = true
 			} else {
-				v.err("Duplicate `...`")
+				v.err("Duplicate variadic signifier `...` in function header")
 			}
 		} else {
 			par := v.parseType(true, false)
 			if par == nil {
-				v.err("Expected type, found `%s`", v.peek(0).Contents)
+				v.err("Expected type in function argument, found `%s`", v.peek(0).Contents)
 			}
 
 			pars = append(pars, par)
@@ -1362,7 +1363,7 @@ func (v *parser) parseFunctionType() *FunctionTypeNode {
 		v.consumeToken()
 		returnType = v.parseType(true, false)
 		if returnType == nil {
-			v.err("Expected return type, found `%s`", v.peek(0).Contents)
+			v.err("Expected return type in function header, found `%s`", v.peek(0).Contents)
 		}
 	}
 

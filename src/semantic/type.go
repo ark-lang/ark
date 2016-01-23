@@ -124,7 +124,7 @@ func (v *TypeCheck) CheckReturnStat(s *SemanticAnalyzer, stat *parser.ReturnStat
 func (v *TypeCheck) CheckIfStat(s *SemanticAnalyzer, stat *parser.IfStat) {
 	for _, expr := range stat.Exprs {
 		if expr.GetType() != parser.PRIMITIVE_bool {
-			s.Err(expr, "If condition must be of type `bool`")
+			s.Err(expr, "If condition must have a boolean condition")
 		}
 	}
 
@@ -150,7 +150,7 @@ func (v *TypeCheck) CheckUnaryExpr(s *SemanticAnalyzer, expr *parser.UnaryExpr) 
 	switch expr.Op {
 	case parser.UNOP_LOG_NOT:
 		if expr.Expr.GetType() != parser.PRIMITIVE_bool {
-			s.Err(expr, "Used logical not on non-bool")
+			s.Err(expr, "Used logical not on non-boolean expression")
 		}
 	case parser.UNOP_BIT_NOT:
 		if !(expr.Expr.GetType().IsIntegerType() || expr.Expr.GetType().IsFloatingType()) {
@@ -262,7 +262,7 @@ func (v *TypeCheck) CheckCallExpr(s *SemanticAnalyzer, expr *parser.CallExpr) {
 			}
 
 			if !c {
-				panic("The `variadic` attribute should only be used on calls to C functions")
+				panic("Variadic functions are only legal for C interoperability")
 			}
 
 			// varargs take type promotions. If we don't do these, the whole thing fucks up.
