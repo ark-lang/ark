@@ -240,6 +240,9 @@ func runCommand(out io.Writer, cmd string, args ...string) (int, error) {
 	}
 	command.Stdout, command.Stderr = ow, ow
 
+	// Disable coloring for matching compiler output
+	command.Env = append(os.Environ(), "COLOR=0")
+
 	// Start the test
 	if err := command.Start(); err != nil {
 		return -1, err

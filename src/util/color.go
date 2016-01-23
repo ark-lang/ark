@@ -1,6 +1,9 @@
 package util
 
-import "runtime"
+import (
+	"os"
+	"runtime"
+)
 
 var (
 	TEXT_RESET   string = ""
@@ -15,6 +18,10 @@ var (
 )
 
 func init() {
+	if os.Getenv("COLOR") == "0" {
+		return
+	}
+
 	switch runtime.GOOS {
 	case "linux", "darwin", "freebsd":
 		TEXT_RESET = "\x1B[00m"
