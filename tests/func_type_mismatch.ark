@@ -1,0 +1,11 @@
+pub func main() -> int {
+  return invoke(sub, 55, 55);
+}
+
+func sub(a: int, b: int) -> int {
+  return a - b;
+}
+
+func invoke(fn: func(int, bool) -> int, a: int, b: int) -> int {
+  return fn(a, b);
+}

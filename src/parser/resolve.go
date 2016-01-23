@@ -343,6 +343,7 @@ func (v *Resolver) ResolveNode(node *Node) {
 				Function:   ident.Value.(*Function),
 				parameters: n.parameters,
 			}
+			(*node).setPos(n.Pos())
 			break
 		} else if ident.Type == IDENT_VARIABLE {
 			n.Variable = ident.Value.(*Variable)
