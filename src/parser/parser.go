@@ -212,14 +212,14 @@ func (v *parser) parseNode() (ParseNode, bool) {
 
 	if decl := v.parseDecl(false); decl != nil {
 		ret = decl
-	} else if stat := v.parseStat(); stat != nil {
-		ret = stat
 	} else if cond := v.parseConditionalStat(); cond != nil {
 		ret = cond
 		is_cond = true
 	} else if blockStat := v.parseBlockStat(); blockStat != nil {
 		ret = blockStat
 		is_cond = true
+	} else if stat := v.parseStat(); stat != nil {
+		ret = stat
 	}
 
 	return ret, is_cond
