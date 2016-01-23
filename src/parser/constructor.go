@@ -199,14 +199,15 @@ func (v *InterfaceTypeNode) construct(c *Constructor) Type {
 	}
 
 	for _, function := range v.Functions {
-		funcData := &Function{
+		/*funcData := &Function{
 			Name:         function.Name.Value,
 			ParentModule: c.module,
 			Type: FunctionType{
 				IsVariadic: function.Variadic,
 				attrs:      v.Attrs(),
 			},
-		}
+		}*/
+		funcData := (&FunctionNode{Header: function}).construct(c)
 		interfaceType = interfaceType.addFunction(funcData)
 	}
 

@@ -27,43 +27,62 @@ func TypeMangledName(mangleType MangleType, typ Type) string {
 			}
 		}
 
-		switch typ.(type) {
+		switch typ := typ.(type) {
 		case ArrayType:
-			at := typ.(ArrayType)
-			res += fmt.Sprintf("A%s", TypeMangledName(mangleType, at.MemberType))
+			res += fmt.Sprintf("A%s", TypeMangledName(mangleType, typ.MemberType))
 
 		case ConstantReferenceType:
-			crt := typ.(ConstantReferenceType)
-			res += fmt.Sprintf("RC%s", TypeMangledName(mangleType, crt.Referrer))
+			res += fmt.Sprintf("RC%s", TypeMangledName(mangleType, typ.Referrer))
 
 		case MutableReferenceType:
-			mrt := typ.(MutableReferenceType)
-			res += fmt.Sprintf("RM%s", TypeMangledName(mangleType, mrt.Referrer))
+			res += fmt.Sprintf("RM%s", TypeMangledName(mangleType, typ.Referrer))
 
 		case EnumType:
-			et := typ.(EnumType)
-			res += fmt.Sprintf("E%d", len(et.Members))
-			for _, mem := range et.Members {
+			res += fmt.Sprintf("E%d", len(typ.Members))
+			for _, mem := range typ.Members {
 				res += TypeMangledName(mangleType, mem.Type)
 			}
 
 		case StructType:
-			st := typ.(StructType)
-			res += fmt.Sprintf("S%d", len(st.Variables))
-			for _, decl := range st.Variables {
+			res += fmt.Sprintf("S%d", len(typ.Variables))
+			for _, decl := range typ.Variables {
 				res += TypeMangledName(mangleType, decl.Variable.Type)
 			}
 
 		case TupleType:
-			tt := typ.(TupleType)
-			res += fmt.Sprintf("T%d", len(tt.Members))
-			for _, mem := range tt.Members {
+			res += fmt.Sprintf("T%d", len(typ.Members))
+			for _, mem := range typ.Members {
 				res += TypeMangledName(mangleType, mem)
 			}
 
-		default:
+		case FunctionType:
+			str := ""
+			for _, par := range typ.Parameters {
+				str += TypeMangledName(mangleType, par)
+			}
+
+			str += TypeMangledName(mangleType, typ.Return)
+
+			if typ.Receiver != nil {
+				str = TypeMangledName(mangleType, typ.Receiver) + str
+			}
+
+			res += fmt.Sprintf("%dFT%s", len(str), str)
+
+		case *NamedType, PrimitiveType:
 			name := typ.TypeName()
 			return res + fmt.Sprintf("%d%s", len(name), name)
+
+		case InterfaceType:
+			str := ""
+			for _, fn := range typ.Functions {
+				str += fn.MangledName(mangleType)
+			}
+
+			res += fmt.Sprintf("%dI%s", len(str), str)
+
+		default:
+			panic("unimplemented type mangling scheme")
 
 		}
 
@@ -107,6 +126,8 @@ func (v *Function) MangledName(typ MangleType) string {
 		for _, arg := range v.Parameters {
 			result += TypeMangledName(typ, arg.Variable.Type)
 		}
+
+		result += TypeMangledName(typ, v.Type.Return)
 
 		if v.Type.Receiver != nil {
 			result = TypeMangledName(typ, v.Receiver.Variable.Type) + result
