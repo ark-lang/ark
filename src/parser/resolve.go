@@ -449,7 +449,19 @@ func (v *Resolver) ResolveNode(node *Node) {
 		}
 
 		// NOTE: Here we check whether this is a call or a cast
-		if vae, ok := n.Function.(*VariableAccessExpr); ok {
+		// Unwrap any deref access expressions as these might signify pointer types
+		derefs := 0
+		expr := n.Function
+		for {
+			if dae, ok := expr.(*DerefAccessExpr); ok {
+				derefs++
+				expr = dae.Expr
+			} else {
+				break
+			}
+		}
+
+		if vae, ok := expr.(*VariableAccessExpr); ok {
 			ident := v.getIdent(n, vae.Name)
 			if ident != nil && ident.Type == IDENT_TYPE {
 				if len(n.Arguments) != 1 {
@@ -460,6 +472,10 @@ func (v *Resolver) ResolveNode(node *Node) {
 				cast.Type = v.ResolveType(n, UnresolvedType{Name: vae.Name})
 				cast.Expr = n.Arguments[0]
 				cast.setPos(n.Pos())
+
+				for i := 0; i < derefs; i++ {
+					cast.Type = PointerTo(cast.Type)
+				}
 
 				*node = cast
 				break
