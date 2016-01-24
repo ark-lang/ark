@@ -1306,17 +1306,12 @@ func (v *Codegen) genCastExpr(n *parser.CastExpr) llvm.Value {
 		return v.builder().CreatePtrToInt(expr, castLLVMType, "")
 	} else if parser.IsPointerOrReferenceType(castType) && exprType == parser.PRIMITIVE_uintptr {
 		return v.builder().CreateIntToPtr(expr, castLLVMType, "")
+	} else if parser.IsPointerOrReferenceType(castType) && parser.IsPointerOrReferenceType(exprType) {
+		return v.builder().CreateBitCast(expr, castLLVMType, "")
 	}
 
 	if exprType.IsIntegerType() || exprType == parser.PRIMITIVE_rune {
-		if _, ok := castType.(parser.PointerType); ok {
-			if _, ok := exprType.(parser.PointerType); ok {
-				return v.builder().CreateBitCast(expr, castLLVMType, "")
-			} else {
-				panic("control flow should never reach here")
-				//return v.builder().CreateIntToPtr(expr, castLLVMType, "")
-			}
-		} else if castType.IsIntegerType() || castType == parser.PRIMITIVE_rune {
+		if castType.IsIntegerType() || castType == parser.PRIMITIVE_rune {
 			exprBits := v.typeToLLVMType(exprType).IntTypeWidth()
 			castBits := castLLVMType.IntTypeWidth()
 			if exprBits == castBits {
@@ -1361,7 +1356,7 @@ func (v *Codegen) genCastExpr(n *parser.CastExpr) llvm.Value {
 		}
 	}
 
-	panic("unimplimented typecast")
+	panic("unimplimented typecast: " + n.String())
 }
 
 func (v *Codegen) genCallExprWithArgs(n *parser.CallExpr, args []llvm.Value) llvm.Value {

@@ -378,9 +378,14 @@ func (v *NumericLiteral) setTypeHint(t Type) {
 			v.Type = PRIMITIVE_f64
 		}
 	} else {
-		if actual != nil && actual.IsIntegerType() {
+		switch actual {
+		case PRIMITIVE_int, PRIMITIVE_uint, PRIMITIVE_uintptr,
+			PRIMITIVE_s8, PRIMITIVE_s16, PRIMITIVE_s32, PRIMITIVE_s64, PRIMITIVE_s128,
+			PRIMITIVE_u8, PRIMITIVE_u16, PRIMITIVE_u32, PRIMITIVE_u64, PRIMITIVE_u128,
+			PRIMITIVE_f32, PRIMITIVE_f64, PRIMITIVE_f128:
 			v.Type = t
-		} else {
+
+		default:
 			v.Type = PRIMITIVE_int
 		}
 	}
