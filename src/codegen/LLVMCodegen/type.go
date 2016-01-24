@@ -147,7 +147,7 @@ func (v *Codegen) functionTypeToLLVMType(typ parser.FunctionType, ptr bool) llvm
 
 func (v *Codegen) primitiveTypeToLLVMType(typ parser.PrimitiveType) llvm.Type {
 	switch typ {
-	case parser.PRIMITIVE_int, parser.PRIMITIVE_uint:
+	case parser.PRIMITIVE_int, parser.PRIMITIVE_uint, parser.PRIMITIVE_uintptr:
 		return v.targetData.IntPtrType()
 
 	case parser.PRIMITIVE_s8, parser.PRIMITIVE_u8:

@@ -62,7 +62,6 @@ func (v *parser) errTokenSpecific(tok *lexer.Token, err string, stuff ...interfa
 		fmt.Sprintf(err, stuff...))
 
 	log.Error("parser", v.input.MarkSpan(tok.Where))
-	panic("oyy")
 
 	os.Exit(util.EXIT_FAILURE_PARSE)
 }
@@ -75,7 +74,6 @@ func (v *parser) errPosSpecific(pos lexer.Position, err string, stuff ...interfa
 		fmt.Sprintf(err, stuff...))
 
 	log.Error("parser", v.input.MarkPos(pos))
-	panic("oyy")
 
 	os.Exit(util.EXIT_FAILURE_PARSE)
 }

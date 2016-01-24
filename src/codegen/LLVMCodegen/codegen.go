@@ -1297,57 +1297,66 @@ func (v *Codegen) genCastExpr(n *parser.CastExpr) llvm.Value {
 		return v.genExpr(n.Expr)
 	}
 
-	exprType := n.Expr.GetType()
-	castType := n.GetType()
+	expr := v.genExpr(n.Expr)
+	exprType := n.Expr.GetType().ActualType()
+	castType := n.GetType().ActualType()
+	castLLVMType := v.typeToLLVMType(castType)
+
+	if parser.IsPointerOrReferenceType(exprType) && castType == parser.PRIMITIVE_uintptr {
+		return v.builder().CreatePtrToInt(expr, castLLVMType, "")
+	} else if parser.IsPointerOrReferenceType(castType) && exprType == parser.PRIMITIVE_uintptr {
+		return v.builder().CreateIntToPtr(expr, castLLVMType, "")
+	}
 
 	if exprType.IsIntegerType() || exprType == parser.PRIMITIVE_rune {
 		if _, ok := castType.(parser.PointerType); ok {
 			if _, ok := exprType.(parser.PointerType); ok {
-				return v.builder().CreateBitCast(v.genExpr(n.Expr), v.typeToLLVMType(castType), "")
+				return v.builder().CreateBitCast(expr, castLLVMType, "")
 			} else {
-				return v.builder().CreateIntToPtr(v.genExpr(n.Expr), v.typeToLLVMType(castType), "")
+				panic("control flow should never reach here")
+				//return v.builder().CreateIntToPtr(expr, castLLVMType, "")
 			}
 		} else if castType.IsIntegerType() || castType == parser.PRIMITIVE_rune {
 			exprBits := v.typeToLLVMType(exprType).IntTypeWidth()
-			castBits := v.typeToLLVMType(castType).IntTypeWidth()
+			castBits := castLLVMType.IntTypeWidth()
 			if exprBits == castBits {
-				return v.genExpr(n.Expr)
+				return expr
 			} else if exprBits > castBits {
 				/*shiftConst := llvm.ConstInt(v.typeToLLVMType(exprType), uint64(exprBits-castBits), false)
-				shl := v.builder().CreateShl(v.genExpr(n.Expr), shiftConst, "")
+				shl := v.builder().CreateShl(expr, shiftConst, "")
 				shr := v.builder().CreateAShr(shl, shiftConst, "")
-				return v.builder().CreateTrunc(shr, v.typeToLLVMType(castType), "")*/
-				return v.builder().CreateTrunc(v.genExpr(n.Expr), v.typeToLLVMType(castType), "") // TODO get this to work right!
+				return v.builder().CreateTrunc(shr, vcastLLVMType, "")*/
+				return v.builder().CreateTrunc(expr, castLLVMType, "") // TODO get this to work right!
 			} else if exprBits < castBits {
 				if exprType.IsSigned() {
-					return v.builder().CreateSExt(v.genExpr(n.Expr), v.typeToLLVMType(castType), "") // TODO doc this
+					return v.builder().CreateSExt(expr, castLLVMType, "") // TODO doc this
 				} else {
-					return v.builder().CreateZExt(v.genExpr(n.Expr), v.typeToLLVMType(castType), "")
+					return v.builder().CreateZExt(expr, castLLVMType, "")
 				}
 			}
 		} else if castType.IsFloatingType() {
 			if exprType.IsSigned() {
-				return v.builder().CreateSIToFP(v.genExpr(n.Expr), v.typeToLLVMType(castType), "")
+				return v.builder().CreateSIToFP(expr, castLLVMType, "")
 			} else {
-				return v.builder().CreateUIToFP(v.genExpr(n.Expr), v.typeToLLVMType(castType), "")
+				return v.builder().CreateUIToFP(expr, castLLVMType, "")
 			}
 		}
 	} else if exprType.IsFloatingType() {
 		if castType.IsIntegerType() || castType == parser.PRIMITIVE_rune {
 			if exprType.IsSigned() {
-				return v.builder().CreateFPToSI(v.genExpr(n.Expr), v.typeToLLVMType(castType), "")
+				return v.builder().CreateFPToSI(expr, castLLVMType, "")
 			} else {
-				return v.builder().CreateFPToUI(v.genExpr(n.Expr), v.typeToLLVMType(castType), "")
+				return v.builder().CreateFPToUI(expr, castLLVMType, "")
 			}
 		} else if castType.IsFloatingType() {
 			exprBits := floatTypeBits(exprType.(parser.PrimitiveType))
 			castBits := floatTypeBits(castType.(parser.PrimitiveType))
 			if exprBits == castBits {
-				return v.genExpr(n.Expr)
+				return expr
 			} else if exprBits > castBits {
-				return v.builder().CreateFPTrunc(v.genExpr(n.Expr), v.typeToLLVMType(castType), "") // TODO get this to work right!
+				return v.builder().CreateFPTrunc(expr, castLLVMType, "") // TODO get this to work right!
 			} else if exprBits < castBits {
-				return v.builder().CreateFPExt(v.genExpr(n.Expr), v.typeToLLVMType(castType), "")
+				return v.builder().CreateFPExt(expr, castLLVMType, "")
 			}
 		}
 	}

@@ -2,6 +2,14 @@ package parser
 
 import "github.com/ark-lang/ark/src/util"
 
+func IsPointerOrReferenceType(t Type) bool {
+	switch t.ActualType().(type) {
+	case PointerType, ConstantReferenceType, MutableReferenceType:
+		return true
+	}
+	return false
+}
+
 type Type interface {
 	TypeName() string
 	LevelsOfIndirection() int // number of pointers you have to go through to get to the actual type
@@ -39,6 +47,7 @@ const (
 
 	PRIMITIVE_int
 	PRIMITIVE_uint
+	PRIMITIVE_uintptr
 
 	PRIMITIVE_bool
 	PRIMITIVE_void
@@ -52,7 +61,7 @@ func (v PrimitiveType) IsIntegerType() bool {
 	switch v {
 	case PRIMITIVE_s8, PRIMITIVE_s16, PRIMITIVE_s32, PRIMITIVE_s64, PRIMITIVE_s128,
 		PRIMITIVE_u8, PRIMITIVE_u16, PRIMITIVE_u32, PRIMITIVE_u64, PRIMITIVE_u128,
-		PRIMITIVE_int, PRIMITIVE_uint:
+		PRIMITIVE_int, PRIMITIVE_uint, PRIMITIVE_uintptr:
 		return true
 	default:
 		return false
@@ -86,6 +95,10 @@ func (v PrimitiveType) LevelsOfIndirection() int {
 }
 
 func (v PrimitiveType) CanCastTo(t Type) bool {
+	if v == PRIMITIVE_uintptr && IsPointerOrReferenceType(t) {
+		return true
+	}
+
 	return (v.IsIntegerType() || v.IsFloatingType() || v == PRIMITIVE_rune) &&
 		(t.IsFloatingType() || t.IsIntegerType() || t == PRIMITIVE_rune)
 }
@@ -407,7 +420,7 @@ func (v ConstantReferenceType) LevelsOfIndirection() int {
 }
 
 func (v ConstantReferenceType) IsIntegerType() bool {
-	return true
+	return false
 }
 
 func (v ConstantReferenceType) IsFloatingType() bool {
@@ -419,7 +432,7 @@ func (v ConstantReferenceType) IsVoidType() bool {
 }
 
 func (v ConstantReferenceType) CanCastTo(t Type) bool {
-	return t.IsIntegerType()
+	return IsPointerOrReferenceType(t) || t.ActualType() == PRIMITIVE_uintptr
 }
 
 func (v ConstantReferenceType) Attrs() AttrGroup {
@@ -466,7 +479,7 @@ func (v MutableReferenceType) LevelsOfIndirection() int {
 }
 
 func (v MutableReferenceType) IsIntegerType() bool {
-	return true
+	return false
 }
 
 func (v MutableReferenceType) IsFloatingType() bool {
@@ -478,7 +491,7 @@ func (v MutableReferenceType) IsVoidType() bool {
 }
 
 func (v MutableReferenceType) CanCastTo(t Type) bool {
-	return t.IsIntegerType()
+	return IsPointerOrReferenceType(t) || t.ActualType() == PRIMITIVE_uintptr
 }
 
 func (v MutableReferenceType) Attrs() AttrGroup {
@@ -529,7 +542,7 @@ func (v PointerType) LevelsOfIndirection() int {
 }
 
 func (v PointerType) IsIntegerType() bool {
-	return true
+	return false
 }
 
 func (v PointerType) IsFloatingType() bool {
@@ -541,10 +554,7 @@ func (v PointerType) IsVoidType() bool {
 }
 
 func (v PointerType) CanCastTo(t Type) bool {
-	if t.IsIntegerType() {
-		return true
-	}
-	return false
+	return IsPointerOrReferenceType(t) || t.ActualType() == PRIMITIVE_uintptr
 }
 
 func (v PointerType) Attrs() AttrGroup {

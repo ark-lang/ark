@@ -378,14 +378,9 @@ func (v *NumericLiteral) setTypeHint(t Type) {
 			v.Type = PRIMITIVE_f64
 		}
 	} else {
-		switch actual {
-		case PRIMITIVE_int, PRIMITIVE_uint,
-			PRIMITIVE_s8, PRIMITIVE_s16, PRIMITIVE_s32, PRIMITIVE_s64, PRIMITIVE_s128,
-			PRIMITIVE_u8, PRIMITIVE_u16, PRIMITIVE_u32, PRIMITIVE_u64, PRIMITIVE_u128,
-			PRIMITIVE_f32, PRIMITIVE_f64, PRIMITIVE_f128:
+		if actual != nil && actual.IsIntegerType() {
 			v.Type = t
-
-		default:
+		} else {
 			v.Type = PRIMITIVE_int
 		}
 	}
@@ -513,7 +508,7 @@ func (v *CallExpr) infer(s *TypeInferer) {
 	if v.Function != nil {
 		if _, ok := v.Function.GetType().(FunctionType); !ok {
 			s.err(v, "Cannot call non-function") // TODO better error message
-			return;
+			return
 		}
 
 		if v.Function.GetType().(FunctionType).Receiver != nil {

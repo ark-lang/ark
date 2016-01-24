@@ -3,5 +3,14 @@
 pub func main(argc: int, argv: ^^u8) -> int {
     C::printf(c"%d %s\n", argc, ^argv);
 
+    mut ptr := uintptr(argv);
+
+    mut i := 0;
+    for i < 0 {
+
+        ptr += 8;
+        i += 1;
+    }
+
     return 0;
 }

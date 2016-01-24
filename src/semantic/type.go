@@ -336,7 +336,7 @@ func (v *TypeCheck) CheckNumericLiteral(s *SemanticAnalyzer, lit *parser.Numeric
 		var bits int
 
 		switch lit.Type.ActualType() {
-		case parser.PRIMITIVE_int, parser.PRIMITIVE_uint:
+		case parser.PRIMITIVE_int, parser.PRIMITIVE_uint, parser.PRIMITIVE_uintptr:
 			bits = 9000 // FIXME work out proper size
 		case parser.PRIMITIVE_u8, parser.PRIMITIVE_s8:
 			bits = 8
