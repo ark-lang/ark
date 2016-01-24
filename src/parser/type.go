@@ -116,9 +116,7 @@ type StructType struct {
 
 func (v StructType) String() string {
 	result := "(" + util.Blue("StructType") + ": "
-	for _, attr := range v.attrs {
-		result += attr.String() + " "
-	}
+	result += v.attrs.String()
 	result += "\n"
 	for _, decl := range v.Variables {
 		result += "\t" + decl.String() + "\n"
@@ -769,9 +767,7 @@ func (v EnumType) GetMember(name string) (EnumTypeMember, bool) {
 
 func (v EnumType) String() string {
 	result := "(" + util.Blue("EnumType") + ": "
-	for _, attr := range v.attrs {
-		result += attr.String() + " "
-	}
+	result += v.attrs.String()
 
 	result += "\n"
 
@@ -885,13 +881,9 @@ func (v FunctionType) String() string {
 func (v FunctionType) TypeName() string {
 	res := ""
 
-	for _, attr := range v.attrs {
-		res += "[" + attr.Key
-		if attr.Value == "" {
-			res += "]"
-		} else {
-			res += "=\"" + attr.Value + "\"] "
-		}
+	res += v.attrs.String()
+	if res != "" {
+		res += " "
 	}
 
 	res += "func("

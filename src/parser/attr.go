@@ -5,17 +5,6 @@ import (
 	"github.com/ark-lang/ark/src/util"
 )
 
-/*
-TODO replace with map
-
-type AttrGroup struct {
-	members map[string]*Attr
-}
-
-func Contains(s string) bool {}
-func Get(s string) *Attr {}
-*/
-
 type AttrGroup map[string]*Attr
 
 func (v AttrGroup) Contains(key string) bool {
@@ -58,6 +47,22 @@ func (v AttrGroup) Equals(other AttrGroup) bool {
 	return true
 }
 
+func (v AttrGroup) String() string {
+	var strs []string
+	for _, attr := range v {
+		strs = append(strs, attr.String())
+	}
+
+	var res string
+	for i, str := range strs {
+		res += str
+		if i < len(strs)-1 {
+			res += " "
+		}
+	}
+	return res
+}
+
 type Attr struct {
 	Key       string
 	Value     string
@@ -70,7 +75,7 @@ func (v *Attr) String() string {
 	if v.Value == "" {
 		result += "]"
 	} else {
-		result += "=" + v.Value + "]"
+		result += "=\"" + v.Value + "\"]"
 	}
 	return util.Green(result)
 }
