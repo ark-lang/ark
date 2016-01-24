@@ -437,7 +437,7 @@ func (v *CompositeLiteral) infer(s *TypeInferer) {
 			val.infer(s)
 		}
 	} else {
-		s.err(v, "Composite literal type error (TODO better error)")
+		s.err(v, "Invalid composite literal, expected array or structure")
 	}
 
 	/*var memType Type // type of each member of the array
@@ -513,6 +513,7 @@ func (v *CallExpr) infer(s *TypeInferer) {
 	if v.Function != nil {
 		if _, ok := v.Function.GetType().(FunctionType); !ok {
 			s.err(v, "Cannot call non-function") // TODO better error message
+			return;
 		}
 
 		if v.Function.GetType().(FunctionType).Receiver != nil {
