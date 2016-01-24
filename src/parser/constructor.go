@@ -685,11 +685,9 @@ func (v *CallExprNode) construct(c *Constructor) Expr {
 		Arguments: c.constructExprs(v.Arguments),
 		Function:  c.constructExpr(v.Function),
 	}
-	res.setPos(v.Where().Start())
 
 	if van, ok := v.Function.(*VariableAccessNode); ok {
 		res.parameters = c.constructTypes(van.Parameters)
-		return res
 	} else if sae, ok := v.Function.(*StructAccessNode); ok {
 		res.ReceiverAccess = sae.construct(c).(*StructAccessExpr).Struct
 	}
