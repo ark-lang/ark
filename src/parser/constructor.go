@@ -681,28 +681,21 @@ func (v *UnaryExprNode) construct(c *Constructor) Expr {
 
 func (v *CallExprNode) construct(c *Constructor) Expr {
 	// TODO: when we allow function types, allow all access forms (eg. `thing[0]()``)
+	res := &CallExpr{
+		Arguments: c.constructExprs(v.Arguments),
+		Function:  c.constructExpr(v.Function),
+	}
+	res.setPos(v.Where().Start())
+
 	if van, ok := v.Function.(*VariableAccessNode); ok {
-		res := &CallExpr{
-			Arguments:  c.constructExprs(v.Arguments),
-			Function:   c.constructExpr(v.Function),
-			parameters: c.constructTypes(van.Parameters),
-		}
-		res.setPos(v.Where().Start())
+		res.parameters = c.constructTypes(van.Parameters)
 		return res
 	} else if sae, ok := v.Function.(*StructAccessNode); ok {
-		res := &CallExpr{
-			Arguments: c.constructExprs(v.Arguments),
-			Function:  c.constructExpr(v.Function),
-		}
-
 		res.ReceiverAccess = sae.construct(c).(*StructAccessExpr).Struct
-
-		res.setPos(v.Where().Start())
-		return res
-	} else {
-		c.err(van.Name.Name.Where, "Can't call function on this")
-		return nil
 	}
+
+	res.setPos(v.Where().Start())
+	return res
 }
 
 func (v *VariableAccessNode) construct(c *Constructor) Expr {
