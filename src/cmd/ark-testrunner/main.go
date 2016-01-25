@@ -178,7 +178,7 @@ func realmain() int {
 		}
 
 		// Check build errors
-		if res.CompilerError == res.Job.CompilerError {
+		if (res.Job.CompilerError == -1 && res.CompilerError != 0) || (res.CompilerError == res.Job.CompilerError) {
 			fmt.Printf("   %s%3d%s (%3d) |", util.TEXT_GREEN, res.CompilerError, util.TEXT_RESET, res.Job.CompilerError)
 		} else {
 			fmt.Printf("   %s%3d%s (%3d) |", util.TEXT_RED, res.CompilerError, util.TEXT_RESET, res.Job.CompilerError)
