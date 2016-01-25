@@ -358,30 +358,9 @@ func (v *Resolver) ResolveNode(node *Node) {
 	case *SizeofExpr:
 		// TODO: Check if we can clean this up
 		if n.Expr != nil {
-			// NOTE: Here we recurse down any deref ops, to check whether we are dealing
-			// with a variable getting dereferenced, or a pointer type.
-			var inner Expr = n.Expr
-			depth := 0
-
-			for {
-				if unaryExpr, ok := inner.(*UnaryExpr); ok && unaryExpr.Op == UNOP_DEREF {
-					inner = unaryExpr.Expr
-					depth++
-					continue
-				} else if vaExpr, ok := inner.(*VariableAccessExpr); ok {
-					ident := v.getIdent(vaExpr, vaExpr.Name)
-					if ident.Type == IDENT_TYPE {
-						// NOTE: If it turened out to be a pointer type we
-						// reconstruct the type based on the stored pointer depth
-						var newType Type = ident.Value.(Type)
-						for i := 0; i < depth; i++ {
-							newType = PointerTo(newType)
-						}
-						n.Type = newType
-						n.Expr = nil
-					}
-				}
-				break
+			if typ, ok := v.exprToType(n.Expr); ok {
+				n.Expr = nil
+				n.Type = typ
 			}
 		}
 
@@ -450,36 +429,17 @@ func (v *Resolver) ResolveNode(node *Node) {
 
 		// NOTE: Here we check whether this is a call or a cast
 		// Unwrap any deref access expressions as these might signify pointer types
-		derefs := 0
-		expr := n.Function
-		for {
-			if dae, ok := expr.(*DerefAccessExpr); ok {
-				derefs++
-				expr = dae.Expr
-			} else {
-				break
+
+		if typ, ok := v.exprToType(n.Function); ok {
+			if len(n.Arguments) != 1 {
+				v.err(n, "Casts must recieve exactly one argument")
 			}
-		}
 
-		if vae, ok := expr.(*VariableAccessExpr); ok {
-			ident := v.getIdent(n, vae.Name)
-			if ident != nil && ident.Type == IDENT_TYPE {
-				if len(n.Arguments) != 1 {
-					v.err(n, "Casts must recieve exactly one argument")
-				}
-
-				cast := &CastExpr{}
-				cast.Type = v.ResolveType(n, UnresolvedType{Name: vae.Name})
-				cast.Expr = n.Arguments[0]
-				cast.setPos(n.Pos())
-
-				for i := 0; i < derefs; i++ {
-					cast.Type = PointerTo(cast.Type)
-				}
-
-				*node = cast
-				break
-			}
+			cast := &CastExpr{}
+			cast.Type = typ
+			cast.Expr = n.Arguments[0]
+			cast.setPos(n.Pos())
+			*node = cast
 		}
 
 	// No-Ops
@@ -494,6 +454,31 @@ func (v *Resolver) ResolveNode(node *Node) {
 	default:
 		panic("INTERNAL ERROR: Unhandled node in resolve pass `" + reflect.TypeOf(n).String() + "`")
 	}
+}
+
+func (v *Resolver) exprToType(expr Expr) (Type, bool) {
+	derefs := 0
+	for {
+		if dae, ok := expr.(*DerefAccessExpr); ok {
+			derefs++
+			expr = dae.Expr
+		} else {
+			break
+		}
+	}
+
+	if vae, ok := expr.(*VariableAccessExpr); ok {
+		ident := v.getIdent(vae, vae.Name)
+		if ident != nil && ident.Type == IDENT_TYPE {
+			res := ident.Value.(Type)
+			for i := 0; i < derefs; i++ {
+				res = PointerTo(res)
+			}
+			return res, true
+		}
+	}
+
+	return nil, false
 }
 
 func (v *Resolver) ResolveType(src Locatable, t Type) Type {
