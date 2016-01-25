@@ -5,8 +5,8 @@ pub func main() -> int {
     mut x: s32 = 0;
 
     C::printf(c"Input a number: ");
-    C::scanf("%d", &x);
-    C::printf(c"Your number:    %d\n", x);
+    C::scanf(c"%d", &x);
+    C::printf(c"\nYour number:    %d\n", x);
 
     return 0;
 }

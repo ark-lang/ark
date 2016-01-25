@@ -114,7 +114,6 @@ func realmain() int {
 		// Compile the test program
 		buildArgs := []string{"build"}
 		buildArgs = append(buildArgs, job.CompilerArgs...)
-
 		buildArgs = append(buildArgs, []string{"-I", "lib", "-o", outpath, job.Sourcefile}...)
 
 		outBuf.Reset()
@@ -125,7 +124,7 @@ func realmain() int {
 		var err error
 		res := Result{Job: job}
 
-		res.CompilerError, err = runCommand(outBuf, "ark", buildArgs...)
+		res.CompilerError, err = runCommand(outBuf, "", "ark", buildArgs)
 		if err != nil {
 			fmt.Printf("Error while building test:\n%s\n", err.Error())
 			return 1
@@ -144,7 +143,7 @@ func realmain() int {
 			fmt.Printf("\nRunning test: %s\n", job.Name)
 		}
 
-		res.RunError, err = runCommand(outBuf, fmt.Sprintf("./%s", outpath), job.RunArgs...)
+		res.RunError, err = runCommand(outBuf, job.Input, fmt.Sprintf("./%s", outpath), job.RunArgs)
 		if err != nil {
 			fmt.Printf("Error while running test:\n%s\n", err.Error())
 			return 1
@@ -229,9 +228,10 @@ func realmain() int {
 	return 0
 }
 
-func runCommand(out io.Writer, cmd string, args ...string) (int, error) {
+func runCommand(out io.Writer, input string, cmd string, args []string) (int, error) {
 	// Run the test program
 	command := exec.Command(cmd, args...)
+	command.Stdin = strings.NewReader(input)
 
 	// Output handling
 	ow := out

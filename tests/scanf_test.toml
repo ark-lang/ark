@@ -1,0 +1,15 @@
+Name       = "scanf_test"
+Sourcefile = "scanf_test.ark"
+
+CompilerArgs = []
+RunArgs      = []
+
+CompilerError = 0
+RunError      = 0
+
+Input = "42\n"
+
+CompilerOutput = ""
+RunOutput      = """Input a number: 
+Your number:    42
+"""
