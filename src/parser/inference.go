@@ -734,8 +734,8 @@ func (v *Inferrer) HandleTyped(pos lexer.Position, typed Typed) int {
 	return ann.Id
 }
 
-// Unify solves all the added constraints
-func (v *Inferrer) Unify() []*Constraint {
+// Solve solves the constraints using the unification algorithm.
+func (v *Inferrer) Solve() []*Constraint {
 	// Create a stack, and copy all constraints to this stack
 	stack := make([]*Constraint, len(v.Constraints))
 	copy(stack, v.Constraints)
@@ -892,7 +892,7 @@ func (v *Inferrer) Unify() []*Constraint {
 // Finalize runs the actual unification, sets default types in cases where
 // these are needed, and sets the inferred types on the expressions.
 func (v *Inferrer) Finalize() {
-	substitutions := v.Unify()
+	substitutions := v.Solve()
 
 	// Map all substitutions to the id they act upon
 	subList := make([]*Constraint, v.IdCount)
@@ -944,7 +944,7 @@ func (v *Inferrer) Finalize() {
 		}
 
 		// Unify the new constraints
-		substitutions = v.Unify()
+		substitutions = v.Solve()
 	}
 
 	// Apply all substitutions
