@@ -513,7 +513,7 @@ func (v *Resolver) ResolveType(src Locatable, t Type) Type {
 	case PointerType:
 		return PointerTo(v.ResolveType(src, t.Addressee))
 
-	case ParameterType:
+	case GenericParameterType:
 		panic("INTERNAL ERROR: Tried to resolve type parameter early")
 
 	case SubstitutionType:
@@ -654,7 +654,7 @@ func ExtractTypeVariable(pattern Type, value Type) map[string]Type {
 		ps = AddChildren(ppart, ps)
 		vs = AddChildren(vpart, vs)
 
-		if vari, ok := ppart.(ParameterType); ok {
+		if vari, ok := ppart.(GenericParameterType); ok {
 			log.Debugln("resolve", "P was variable (Name: %s)", vari.Name)
 			res[vari.Name] = vpart
 			continue

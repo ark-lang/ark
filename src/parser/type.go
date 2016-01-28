@@ -244,7 +244,7 @@ func (v StructType) ActualType() Type {
 type NamedType struct {
 	Name              string
 	Type              Type
-	GenericParameters []ParameterType
+	GenericParameters []GenericParameterType
 	ParentModule      *Module
 	Methods           []*Function
 }
@@ -1022,21 +1022,21 @@ func (v metaType) Equals(t Type) bool {
 	panic("Equals() invalid on metaType")
 }
 
-// ParameterType
-type ParameterType struct {
+// GenericParameterType
+type GenericParameterType struct {
 	metaType
 	Name string
 }
 
-func (v ParameterType) String() string {
-	return "(" + util.Blue("ParameterType") + ": " + v.Name + ")"
+func (v GenericParameterType) String() string {
+	return "(" + util.Blue("GenericParameterType") + ": " + v.Name + ")"
 }
 
-func (v ParameterType) TypeName() string {
+func (v GenericParameterType) TypeName() string {
 	return v.Name
 }
 
-func (v ParameterType) ActualType() Type {
+func (v GenericParameterType) ActualType() Type {
 	return v
 }
 

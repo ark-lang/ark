@@ -244,7 +244,7 @@ func (v *TypeDeclNode) construct(c *Constructor) Node {
 
 	if v.GenericSigil != nil {
 		for _, param := range v.GenericSigil.GenericParameters {
-			typ := ParameterType{Name: param.Name.Value}
+			typ := GenericParameterType{Name: param.Name.Value}
 			namedType.GenericParameters = append(namedType.GenericParameters, typ)
 		}
 	}
