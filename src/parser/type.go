@@ -125,8 +125,8 @@ func (v PrimitiveType) ActualType() Type {
 // StructType
 
 type StructType struct {
-	Members    []*StructMember
-	attrs      AttrGroup
+	Members []*StructMember
+	attrs   AttrGroup
 }
 
 type StructMember struct {
@@ -585,9 +585,6 @@ func (v PointerType) ActualType() Type {
 // TupleType
 
 func tupleOf(types ...Type) Type {
-	if len(types) == 1 {
-		return types[0]
-	}
 	return TupleType{Members: types}
 }
 

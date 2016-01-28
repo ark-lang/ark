@@ -380,10 +380,21 @@ func (v *Resolver) ResolveNode(node *Node) {
 				if ident.Type == IDENT_TYPE {
 					itype := ident.Value.(Type)
 					if _, ok := itype.ActualType().(EnumType); ok {
+						et := v.ResolveType(n, UnresolvedType{
+							Name:       enumName,
+							Parameters: name.Parameters,
+						})
+
+						member, ok := et.ActualType().(EnumType).GetMember(memberName)
+						if !ok {
+							v.err(n, "Enum `%s` has no member `%s`", enumName.String(), memberName)
+						}
+
 						enum := &EnumLiteral{}
 						enum.Member = memberName
 						enum.Type = itype
 						enum.CompositeLiteral = n
+						enum.CompositeLiteral.Type = member.Type
 						enum.CompositeLiteral.InEnum = true
 						enum.setPos(n.Pos())
 
@@ -407,14 +418,21 @@ func (v *Resolver) ResolveNode(node *Node) {
 				if ident != nil && ident.Type == IDENT_TYPE {
 					itype := ident.Value.(Type)
 					if _, ok := itype.ActualType().(EnumType); ok {
-
-						enum := &EnumLiteral{}
-						enum.Member = memberName
-						enum.Type = v.ResolveType(n, UnresolvedType{
+						et := v.ResolveType(n, UnresolvedType{
 							Name:       enumName,
 							Parameters: n.parameters,
 						})
-						enum.TupleLiteral = &TupleLiteral{Members: n.Arguments}
+
+						member, ok := et.ActualType().(EnumType).GetMember(memberName)
+						if !ok {
+							v.err(n, "Enum `%s` has no member `%s`", enumName.String(), memberName)
+						}
+
+						enum := &EnumLiteral{}
+						enum.Member = memberName
+						enum.Type = et
+						enum.TupleLiteral = &TupleLiteral{Members: n.Arguments, Type: member.Type}
+						enum.TupleLiteral.setPos(n.Pos())
 						enum.setPos(n.Pos())
 
 						*node = enum
