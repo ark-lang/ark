@@ -393,8 +393,6 @@ func (v *NewInferer) HandleTyped(pos lexer.Position, typed Typed) int {
 	v.TypedLookup[typed] = ann
 	v.IdCount++
 
-	log.Debugln("inferer", "New typed: %d => %s", ann.Id, typed)
-
 	switch typed := typed.(type) {
 	case *BinaryExpr:
 		a := v.HandleExpr(typed.Lhand)
@@ -885,6 +883,12 @@ func (v *NewInferer) Finalize() {
 			if ok1 && ok2 && nlr.IsFloat {
 				nll.setTypeHint(nlr.GetType())
 				break
+			}
+
+		case *CastExpr:
+			expr, ok := n.Expr.(*NumericLiteral)
+			if ok && n.Type.LevelsOfIndirection() > 0 {
+				expr.setTypeHint(PRIMITIVE_uintptr)
 			}
 		}
 	}
