@@ -1831,7 +1831,7 @@ func (v *parser) parseUnaryExpr() *UnaryExprNode {
 	}
 	startToken := v.consumeToken()
 
-	value := v.parseExpr()
+	value := v.parsePostfixExpr()
 	if value == nil {
 		v.err("Expected valid expression after unary operator")
 	}
