@@ -28,7 +28,7 @@ type Stat interface {
 
 type Typed interface {
 	GetType() Type
-	setTypeHint(Type) // the type of the parent node, nil if parent node's type is inferred
+	SetType(Type)
 }
 
 type Expr interface {
