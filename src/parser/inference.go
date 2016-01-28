@@ -1057,6 +1057,95 @@ func (v *Inferrer) Finalize() {
 	}
 }
 
+//
+// The following two functions is preliminary work not yet used for generics in
+// the inference system
+//
+func ExtractTypeVariable(pattern Type, value Type) map[string]Type {
+	/*
+		Pointer($T), Pointer(int) -> {$T: int}
+		Arbitrary depth type => Stack containing breadth first traversal
+	*/
+	res := make(map[string]Type)
+
+	var (
+		ps []Type
+		vs []Type
+	)
+	ps = append(ps, pattern)
+	vs = append(vs, value)
+
+	for i := 0; i < len(ps); i++ {
+		ppart := ps[i]
+		vpart := vs[i]
+		log.Debugln("inferrer", "\nP = `%s`, V = `%s`", ppart.TypeName(), vpart.TypeName())
+
+		ps = AddChildren(ppart, ps)
+		vs = AddChildren(vpart, vs)
+
+		/*if vari, ok := ppart.(GenericParameterType); ok {
+			log.Debugln("inferrer", "P was variable (Name: %s)", vari.Name)
+			res[vari.Name] = vpart
+			continue
+		}*/
+
+		switch ppart.(type) {
+		case PrimitiveType, *NamedType:
+			if !ppart.Equals(vpart) {
+				log.Errorln("inferrer", "%s != %s", ppart.TypeName(), vpart.TypeName())
+				panic("Part of type did not match pattern")
+			}
+
+		default:
+			if reflect.TypeOf(ppart) != reflect.TypeOf(vpart) {
+				log.Errorln("inferrer", "%T != %T", ppart, vpart)
+				panic("Part of type did not match pattern")
+			}
+		}
+	}
+
+	return res
+}
+
+func AddChildren(typ Type, dest []Type) []Type {
+	switch typ := typ.(type) {
+	case StructType:
+		for _, mem := range typ.Members {
+			dest = append(dest, mem.Type)
+		}
+
+	case *NamedType:
+		dest = append(dest, typ.Type)
+
+	case ArrayType:
+		dest = append(dest, typ.MemberType)
+
+	case PointerType:
+		dest = append(dest, typ.Addressee)
+
+	case TupleType:
+		dest = append(dest, typ.Members...)
+
+	case EnumType:
+		for _, mem := range typ.Members {
+			dest = append(dest, mem.Type)
+		}
+
+	case FunctionType:
+		if typ.Receiver != nil {
+			dest = append(dest, typ.Receiver)
+		}
+		dest = append(dest, typ.Parameters...)
+		if typ.Return != nil { // TODO: can it ever be nil?
+			dest = append(dest, typ.Return)
+		}
+
+	}
+	return dest
+}
+
+// SetType Methods
+
 // UnaryExpr
 func (v *UnaryExpr) SetType(t Type) {
 	v.Type = t

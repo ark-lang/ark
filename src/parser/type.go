@@ -244,7 +244,7 @@ func (v StructType) ActualType() Type {
 type NamedType struct {
 	Name              string
 	Type              Type
-	GenericParameters []GenericParameterType
+	GenericParameters []string
 	ParentModule      *Module
 	Methods           []*Function
 }
@@ -272,7 +272,7 @@ func (v *NamedType) String() string {
 	if len(v.GenericParameters) > 0 {
 		res += "<"
 		for idx, param := range v.GenericParameters {
-			res += param.TypeName()
+			res += param
 			if idx < len(v.GenericParameters)-1 {
 				res += ", "
 			}
@@ -1023,7 +1023,7 @@ func (v metaType) Equals(t Type) bool {
 }
 
 // GenericParameterType
-type GenericParameterType struct {
+/*type GenericParameterType struct {
 	metaType
 	Name string
 }
@@ -1038,7 +1038,7 @@ func (v GenericParameterType) TypeName() string {
 
 func (v GenericParameterType) ActualType() Type {
 	return v
-}
+}*/
 
 // SubstitutionType
 type SubstitutionType struct {
