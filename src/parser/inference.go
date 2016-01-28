@@ -10,6 +10,8 @@ import (
 	"github.com/ark-lang/ark/src/util/log"
 )
 
+// TypeVariable is a type that abstracts the notion of a type variable such
+// that we can use our existing types as part of constraints.
 type TypeVariable struct {
 	metaType
 	Id int
@@ -34,6 +36,19 @@ func (v *TypeVariable) ActualType() Type {
 	return v
 }
 
+// ConstructorType is an abstraction that in principle could represent any type
+// that is built from other types. As we can use the actual types for most of
+// these, this type is only used to represent the type of a struct member or,
+// until removal, the type of tuple member by index.
+type ConstructorType struct {
+	metaType
+	Id   ConstructorId
+	Args []Type
+
+	// Some constructors need additional data
+	Data interface{}
+}
+
 type ConstructorId int
 
 const (
@@ -44,15 +59,6 @@ const (
 	// tuple destructuring
 	ConstructorTupleIndex
 )
-
-type ConstructorType struct {
-	metaType
-	Id   ConstructorId
-	Args []Type
-
-	// Some constructors need additional data
-	Data interface{}
-}
 
 func (v *ConstructorType) Equals(other Type) bool {
 	if ot, ok := other.(*ConstructorType); ok {
