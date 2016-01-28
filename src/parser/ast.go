@@ -253,24 +253,6 @@ func (v *FunctionDecl) DocComments() []*DocComment {
 	return v.docs
 }
 
-// DirectiveDecl
-
-type DirectiveDecl struct {
-	nodePos
-	Name     string
-	Argument *StringLiteral
-}
-
-func (v *DirectiveDecl) declNode() {}
-
-func (v *DirectiveDecl) String() string {
-	return "(" + util.Blue("DirectiveDecl") + ": #" + v.Name + " " + v.Argument.String() + ")"
-}
-
-func (v *DirectiveDecl) NodeName() string {
-	return "function declaration"
-}
-
 /**
  * Directives
  */
@@ -543,23 +525,6 @@ func (v *MatchStat) String() string {
 
 func (v *MatchStat) NodeName() string {
 	return "match statement"
-}
-
-// Default stat
-type DefaultStat struct {
-	nodePos
-
-	Target AccessExpr
-}
-
-func (v *DefaultStat) statNode() {}
-
-func (v *DefaultStat) String() string {
-	return "(" + util.Blue("DefaultStat") + ": " + v.Target.String() + ")"
-}
-
-func (v *DefaultStat) NodeName() string {
-	return "default statement"
 }
 
 /**
@@ -946,8 +911,6 @@ type StructAccessExpr struct {
 	nodePos
 	Struct AccessExpr
 	Member string
-
-	Variable *Variable
 }
 
 func (v *StructAccessExpr) exprNode() {}
@@ -960,9 +923,30 @@ func (v *StructAccessExpr) String() string {
 }
 
 func (v *StructAccessExpr) GetType() Type {
-	if v.Variable != nil {
-		return v.Variable.Type
+	stype := v.Struct.GetType()
+
+	if typ, ok := TypeWithoutPointers(stype).(*NamedType); ok {
+		fn := typ.GetMethod(v.Member)
+		if fn != nil {
+			return fn.Type
+		}
 	}
+
+	if stype == nil {
+		return nil
+	} else if pt, ok := stype.(PointerType); ok {
+		stype = pt.Addressee
+	}
+
+	if stype == nil {
+		return nil
+	} else if st, ok := stype.ActualType().(StructType); ok {
+		mem := st.GetMember(v.Member)
+		if mem != nil {
+			return mem.Type
+		}
+	}
+
 	return nil
 }
 
@@ -1177,30 +1161,6 @@ func (v *SizeofExpr) GetType() Type {
 
 func (v *SizeofExpr) NodeName() string {
 	return "sizeof expression"
-}
-
-// DefaultExpr
-
-type DefaultExpr struct {
-	nodePos
-
-	Type Type
-}
-
-func (v *DefaultExpr) exprNode() {}
-
-func (v *DefaultExpr) String() string {
-	ret := "(" + util.Blue("DefaultExpr") + ": "
-	ret += v.Type.TypeName()
-	return ret + ")"
-}
-
-func (v *DefaultExpr) GetType() Type {
-	return v.Type
-}
-
-func (v *DefaultExpr) NodeName() string {
-	return "default expression"
 }
 
 // DefaultMatchBranch

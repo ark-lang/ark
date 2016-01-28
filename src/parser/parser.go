@@ -744,8 +744,6 @@ func (v *parser) parseStat() ParseNode {
 		res = breakStat
 	} else if nextStat := v.parseNextStat(); nextStat != nil {
 		res = nextStat
-	} else if defaultStat := v.parseDefaultStat(); defaultStat != nil {
-		res = defaultStat
 	} else if deferStat := v.parseDeferStat(); deferStat != nil {
 		res = deferStat
 	} else if returnStat := v.parseReturnStat(); returnStat != nil {
@@ -758,28 +756,6 @@ func (v *parser) parseStat() ParseNode {
 		res = binopAssignStat
 	}
 
-	return res
-}
-
-func (v *parser) parseDefaultStat() *DefaultStatNode {
-	defer un(trace(v, "defaultstat"))
-
-	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_DEFAULT) {
-		return nil
-	}
-	startToken := v.consumeToken()
-
-	v.expect(lexer.TOKEN_SEPARATOR, "(")
-
-	target := v.parseExpr()
-	if target == nil {
-		v.err("Expected valid expression in default statement")
-	}
-
-	endToken := v.expect(lexer.TOKEN_SEPARATOR, ")")
-
-	res := &DefaultStatNode{Target: target}
-	res.SetWhere(lexer.NewSpanFromTokens(startToken, endToken))
 	return res
 }
 
@@ -1256,15 +1232,15 @@ func (v *parser) parseStructType(requireKeyword bool) *StructTypeNode {
 		startToken = v.consumeToken()
 	}
 
-	var members []*VarDeclNode
+	var members []*StructMemberNode
 	for {
 		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "}") {
 			break
 		}
 
-		member := v.parseVarDeclBody()
+		member := v.parseStructMember()
 		if member == nil {
-			v.err("Expected valid variable declaration in struct")
+			v.err("Expected valid member declaration in struct")
 		}
 		members = append(members, member)
 
@@ -1277,6 +1253,26 @@ func (v *parser) parseStructType(requireKeyword bool) *StructTypeNode {
 
 	res := &StructTypeNode{Members: members}
 	res.SetWhere(lexer.NewSpanFromTokens(startToken, endToken))
+	return res
+}
+
+func (v *parser) parseStructMember() *StructMemberNode {
+	if !v.tokensMatch(lexer.TOKEN_IDENTIFIER, "", lexer.TOKEN_OPERATOR, ":") {
+		return nil
+	}
+
+	name := v.consumeToken()
+
+	// consume ':'
+	v.consumeToken()
+
+	memType := v.parseType(true, false, true)
+	if memType == nil {
+		v.err("Expected valid type in struct member")
+	}
+
+	res := &StructMemberNode{Name: NewLocatedString(name), Type: memType}
+	res.SetWhere(lexer.NewSpan(name.Where.Start(), memType.Where().End()))
 	return res
 }
 
@@ -1655,8 +1651,6 @@ func (v *parser) parsePrimaryExpr() ParseNode {
 		res = sizeofExpr
 	} else if arrayLenExpr := v.parseArrayLenExpr(); arrayLenExpr != nil {
 		res = arrayLenExpr
-	} else if defaultExpr := v.parseDefaultExpr(); defaultExpr != nil {
-		res = defaultExpr
 	} else if addrofExpr := v.parseAddrofExpr(); addrofExpr != nil {
 		res = addrofExpr
 	} else if litExpr := v.parseLitExpr(); litExpr != nil {
@@ -1752,28 +1746,6 @@ func (v *parser) parseSizeofExpr() *SizeofExprNode {
 	endToken := v.expect(lexer.TOKEN_SEPARATOR, ")")
 
 	res := &SizeofExprNode{Value: value, Type: typ}
-	res.SetWhere(lexer.NewSpanFromTokens(startToken, endToken))
-	return res
-}
-
-func (v *parser) parseDefaultExpr() *DefaultExprNode {
-	defer un(trace(v, "defaultexpr"))
-
-	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_DEFAULT) {
-		return nil
-	}
-	startToken := v.consumeToken()
-
-	v.expect(lexer.TOKEN_SEPARATOR, "(")
-
-	target := v.parseType(true, false, true)
-	if target == nil {
-		v.err("Expected valid type in default expression")
-	}
-
-	endToken := v.expect(lexer.TOKEN_SEPARATOR, ")")
-
-	res := &DefaultExprNode{Target: target}
 	res.SetWhere(lexer.NewSpanFromTokens(startToken, endToken))
 	return res
 }

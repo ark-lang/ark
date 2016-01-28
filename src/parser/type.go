@@ -1,6 +1,8 @@
 package parser
 
-import "github.com/ark-lang/ark/src/util"
+import (
+	"github.com/ark-lang/ark/src/util"
+)
 
 func IsPointerOrReferenceType(t Type) bool {
 	switch t.ActualType().(type) {
@@ -123,16 +125,21 @@ func (v PrimitiveType) ActualType() Type {
 // StructType
 
 type StructType struct {
-	Variables []*VariableDecl
-	attrs     AttrGroup
+	Members    []*StructMember
+	attrs      AttrGroup
+}
+
+type StructMember struct {
+	Name string
+	Type Type
 }
 
 func (v StructType) String() string {
 	result := "(" + util.Blue("StructType") + ": "
 	result += v.attrs.String()
 	result += "\n"
-	for _, decl := range v.Variables {
-		result += "\t" + decl.String() + "\n"
+	for _, mem := range v.Members {
+		result += "\t" + mem.Name + ": " + mem.Type.TypeName() + "\n"
 	}
 	return result + ")"
 }
@@ -140,10 +147,10 @@ func (v StructType) String() string {
 func (v StructType) TypeName() string {
 	res := "struct {"
 
-	for i, variable := range v.Variables {
-		res += variable.Variable.Name + ": " + variable.Variable.Type.TypeName()
+	for i, mem := range v.Members {
+		res += mem.Name + ": " + mem.Type.TypeName()
 
-		if i < len(v.Variables)-1 {
+		if i < len(v.Members)-1 {
 			res += ", "
 		}
 	}
@@ -175,26 +182,23 @@ func (v StructType) CanCastTo(t Type) bool {
 	return false
 }
 
-func (v StructType) GetVariableDecl(s string) *VariableDecl {
-	for _, decl := range v.Variables {
-		if decl.Variable.Name == s {
-			return decl
-		}
+func (v StructType) GetMember(name string) *StructMember {
+	idx := v.MemberIndex(name)
+	if idx != -1 {
+		return v.Members[idx]
 	}
 	return nil
 }
 
-func (v StructType) addVariableDecl(decl *VariableDecl) StructType {
-	v.Variables = append(v.Variables, decl)
-	decl.Variable.ParentStruct = v
-	decl.Variable.FromStruct = true
+func (v StructType) addMember(name string, typ Type) StructType {
+	v.Members = append(v.Members, &StructMember{Name: name, Type: typ})
 	return v
 }
 
-func (v StructType) VariableIndex(d *Variable) int {
-	for i, decl := range v.Variables {
-		if decl.Variable == d {
-			return i
+func (v StructType) MemberIndex(name string) int {
+	for idx, mem := range v.Members {
+		if mem.Name == name {
+			return idx
 		}
 	}
 	return -1
@@ -214,16 +218,16 @@ func (v StructType) Equals(t Type) bool {
 		return false
 	}
 
-	if len(v.Variables) != len(other.Variables) {
+	if len(v.Members) != len(other.Members) {
 		return false
 	}
 
-	for idx, _ := range v.Variables {
-		variable, otherVariable := v.Variables[idx].Variable, other.Variables[idx].Variable
-		if variable.Name != otherVariable.Name {
+	for idx, member := range v.Members {
+		otherMember := other.Members[idx]
+		if member.Name != otherMember.Name {
 			return false
 		}
-		if !variable.Type.Equals(otherVariable.Type) {
+		if !member.Type.Equals(otherMember.Type) {
 			return false
 		}
 	}

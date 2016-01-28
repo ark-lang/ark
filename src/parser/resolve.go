@@ -303,9 +303,6 @@ func (v *Resolver) ResolveNode(node *Node) {
 	case *EnumLiteral:
 		n.Type = v.ResolveType(n, n.Type)
 
-	case *DefaultExpr:
-		n.Type = v.ResolveType(n, n.Type)
-
 	case *VariableAccessExpr:
 		// TODO: Check if we can clean this up
 		// NOTE: Here we check whether this is actually a variable access or an enum member.
@@ -444,11 +441,11 @@ func (v *Resolver) ResolveNode(node *Node) {
 
 	// No-Ops
 	case *Block, *DefaultMatchBranch, *UseDirective, *AssignStat, *BinopAssignStat,
-		*BlockStat, *BreakStat, *CallStat, *DefaultStat, *DeferStat, *IfStat,
-		*MatchStat, *LoopStat, *NextStat, *ReturnStat, *AddressOfExpr,
-		*ArrayAccessExpr, *BinaryExpr, *DerefAccessExpr, *UnaryExpr,
-		*StructAccessExpr, *TupleAccessExpr, *BoolLiteral,
-		*NumericLiteral, *RuneLiteral, *StringLiteral, *TupleLiteral:
+		*BlockStat, *BreakStat, *CallStat, *DeferStat, *IfStat, *MatchStat,
+		*LoopStat, *NextStat, *ReturnStat, *AddressOfExpr, *ArrayAccessExpr,
+		*BinaryExpr, *DerefAccessExpr, *UnaryExpr, *StructAccessExpr,
+		*TupleAccessExpr, *BoolLiteral, *NumericLiteral, *RuneLiteral,
+		*StringLiteral, *TupleLiteral:
 		break
 
 	default:
@@ -506,29 +503,16 @@ func (v *Resolver) ResolveType(src Locatable, t Type) Type {
 
 	case StructType:
 		nt := StructType{
-			Variables: make([]*VariableDecl, len(t.Variables)),
-			attrs:     t.attrs,
+			Members: make([]*StructMember, len(t.Members)),
+			attrs:   t.attrs,
 		}
 
 		v.EnterScope()
-		for idx, vari := range t.Variables {
-			nt.Variables[idx] = &VariableDecl{
-				Variable: &Variable{
-					Type:         vari.Variable.Type,
-					Name:         vari.Variable.Name,
-					Mutable:      vari.Variable.Mutable,
-					Attrs:        vari.Variable.Attrs,
-					FromStruct:   vari.Variable.FromStruct,
-					ParentStruct: vari.Variable.ParentStruct,
-					ParentModule: vari.Variable.ParentModule,
-					IsParameter:  vari.Variable.IsParameter,
-				},
-				Assignment: vari.Assignment,
-				docs:       vari.docs,
+		for idx, mem := range t.Members {
+			nt.Members[idx] = &StructMember{
+				Name: mem.Name,
+				Type: v.ResolveType(src, mem.Type),
 			}
-
-			visitor := &ASTVisitor{Visitor: v}
-			nt.Variables[idx] = visitor.Visit(Node(nt.Variables[idx])).(*VariableDecl)
 		}
 		v.ExitScope()
 
@@ -679,8 +663,8 @@ func ExtractTypeVariable(pattern Type, value Type) map[string]Type {
 func AddChildren(typ Type, dest []Type) []Type {
 	switch typ := typ.(type) {
 	case StructType:
-		for _, decl := range typ.Variables {
-			dest = append(dest, decl.Variable.Type)
+		for _, mem := range typ.Members {
+			dest = append(dest, mem.Type)
 		}
 
 	case *NamedType:
