@@ -18,7 +18,6 @@ type Locatable interface {
 type Node interface {
 	String() string
 	NodeName() string
-	infer(*TypeInferer)
 	Locatable
 }
 
@@ -27,11 +26,15 @@ type Stat interface {
 	statNode()
 }
 
-type Expr interface {
-	Node
-	exprNode()
+type Typed interface {
 	GetType() Type
 	setTypeHint(Type) // the type of the parent node, nil if parent node's type is inferred
+}
+
+type Expr interface {
+	Node
+	Typed
+	exprNode()
 }
 
 type AccessExpr interface {
@@ -90,6 +93,10 @@ func (v *Variable) String() string {
 	s.AddMangled(v)
 	s.AddType(v.Type)
 	return s.Finish()
+}
+
+func (v *Variable) GetType() Type {
+	return v.Type
 }
 
 // Note that for static methods, ``
@@ -540,11 +547,11 @@ func (v *RuneLiteral) NodeName() string {
 // NumericLiteral
 type NumericLiteral struct {
 	nodePos
-	IntValue   *big.Int
-	FloatValue float64
-	IsFloat    bool
-	Type       Type
-	typeHint   Type
+	IntValue      *big.Int
+	FloatValue    float64
+	IsFloat       bool
+	Type          Type
+	floatSizeHint rune
 }
 
 func (v *NumericLiteral) exprNode() {}
@@ -728,7 +735,6 @@ type BinaryExpr struct {
 	Lhand, Rhand Expr
 	Op           BinOpType
 	Type         Type
-	typeHint     Type
 }
 
 func (v *BinaryExpr) exprNode() {}
@@ -749,10 +755,9 @@ func (v *BinaryExpr) NodeName() string {
 
 type UnaryExpr struct {
 	nodePos
-	Expr     Expr
-	Op       UnOpType
-	Type     Type
-	typeHint Type
+	Expr Expr
+	Op   UnOpType
+	Type Type
 }
 
 func (v *UnaryExpr) exprNode() {}
@@ -1006,7 +1011,6 @@ func (v *TupleAccessExpr) Mutable() bool {
 type DerefAccessExpr struct {
 	nodePos
 	Expr Expr
-	Type Type
 }
 
 func (v *DerefAccessExpr) exprNode() {}
@@ -1016,7 +1020,7 @@ func (v *DerefAccessExpr) String() string {
 }
 
 func (v *DerefAccessExpr) GetType() Type {
-	return v.Type
+	return getAdressee(v.Expr.GetType())
 }
 
 func (v *DerefAccessExpr) NodeName() string {
@@ -1030,6 +1034,18 @@ func (v *DerefAccessExpr) Mutable() bool {
 	} else {
 		return true
 	}
+}
+
+func getAdressee(t Type) Type {
+	switch t := t.(type) {
+	case PointerType:
+		return t.Addressee
+	case MutableReferenceType:
+		return t.Referrer
+	case ConstantReferenceType:
+		return t.Referrer
+	}
+	return nil
 }
 
 // AddressOfExpr

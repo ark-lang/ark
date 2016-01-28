@@ -748,15 +748,7 @@ func (v *NumberLitNode) construct(c *Constructor) Expr {
 		FloatValue: v.FloatValue,
 	}
 
-	switch v.FloatSize {
-	case 'f':
-		res.Type = PRIMITIVE_f32
-	case 'd':
-		res.Type = PRIMITIVE_f64
-	case 'q':
-		res.Type = PRIMITIVE_f128
-	}
-
+	res.floatSizeHint = v.FloatSize
 	res.setPos(v.Where().Start())
 	return res
 

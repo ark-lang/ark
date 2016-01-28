@@ -219,9 +219,9 @@ func (v *Resolver) PostVisit(node *Node) {
 
 	case *DerefAccessExpr:
 		if ce, ok := n.Expr.(*CastExpr); ok {
-			*node = &CastExpr{Type: PointerTo(ce.Type), Expr: ce.Expr}
-		} else if ptr, ok := n.Expr.GetType().(PointerType); ok {
-			n.Type = ptr.Addressee
+			res := &CastExpr{Type: PointerTo(ce.Type), Expr: ce.Expr}
+			res.setPos(n.Pos())
+			*node = res
 		}
 	}
 }
