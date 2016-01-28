@@ -188,8 +188,8 @@ func (v *ArrayTypeNode) construct(c *Constructor) Type {
 }
 
 func (v *TypeReferenceNode) construct(c *Constructor) Type {
-	parameters := c.constructTypes(v.TypeParameters)
-	res := UnresolvedType{Name: toUnresolvedName(v.Reference), Parameters: parameters}
+	parameters := c.constructTypes(v.GenericParameters)
+	res := UnresolvedType{Name: toUnresolvedName(v.Reference), GenericParameters: parameters}
 	return res
 }
 
@@ -230,8 +230,8 @@ func (v *TypeDeclNode) construct(c *Constructor) Node {
 	var paramNodes []ParseNode
 
 	if v.GenericSigil != nil {
-		paramNodes = make([]ParseNode, len(v.GenericSigil.Parameters))
-		for i, p := range v.GenericSigil.Parameters {
+		paramNodes = make([]ParseNode, len(v.GenericSigil.GenericParameters))
+		for i, p := range v.GenericSigil.GenericParameters {
 			paramNodes[i] = p
 		}
 	}
@@ -243,9 +243,9 @@ func (v *TypeDeclNode) construct(c *Constructor) Node {
 	}
 
 	if v.GenericSigil != nil {
-		for _, param := range v.GenericSigil.Parameters {
+		for _, param := range v.GenericSigil.GenericParameters {
 			typ := ParameterType{Name: param.Name.Value}
-			namedType.Parameters = append(namedType.Parameters, typ)
+			namedType.GenericParameters = append(namedType.GenericParameters, typ)
 		}
 	}
 
@@ -666,7 +666,7 @@ func (v *CallExprNode) construct(c *Constructor) Expr {
 	}
 
 	if van, ok := v.Function.(*VariableAccessNode); ok {
-		res.parameters = c.constructTypes(van.Parameters)
+		res.GenericParameters = c.constructTypes(van.GenericParameters)
 	} else if sae, ok := v.Function.(*StructAccessNode); ok {
 		res.ReceiverAccess = sae.construct(c).(*StructAccessExpr).Struct
 	}
@@ -677,8 +677,8 @@ func (v *CallExprNode) construct(c *Constructor) Expr {
 
 func (v *VariableAccessNode) construct(c *Constructor) Expr {
 	res := &VariableAccessExpr{
-		Name:       toUnresolvedName(v.Name),
-		parameters: c.constructTypes(v.Parameters),
+		Name:              toUnresolvedName(v.Name),
+		GenericParameters: c.constructTypes(v.GenericParameters),
 	}
 	res.setPos(v.Where().Start())
 	return res

@@ -106,8 +106,8 @@ type ArrayTypeNode struct {
 
 type TypeReferenceNode struct {
 	baseNode
-	Reference      *NameNode
-	TypeParameters []ParseNode
+	Reference         *NameNode
+	GenericParameters []ParseNode
 }
 
 // decls
@@ -208,7 +208,7 @@ type TypeDeclNode struct {
 
 type GenericSigilNode struct {
 	baseNode
-	Parameters []*TypeParameterNode
+	GenericParameters []*TypeParameterNode
 }
 
 type TypeParameterNode struct {
@@ -344,15 +344,15 @@ type CallExprNode struct {
 
 type GenericNameNode struct {
 	baseNode
-	Name       *NameNode
-	Parameters []ParseNode
+	Name              *NameNode
+	GenericParameters []ParseNode
 }
 
 // access expressions
 type VariableAccessNode struct {
 	baseNode
-	Name       *NameNode
-	Parameters []ParseNode
+	Name              *NameNode
+	GenericParameters []ParseNode
 }
 
 type StructAccessNode struct {

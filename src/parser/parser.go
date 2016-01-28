@@ -571,7 +571,7 @@ func (v *parser) parseGenericSigil() *GenericSigilNode {
 	}
 	endToken := v.expect(lexer.TOKEN_OPERATOR, ">")
 
-	res := &GenericSigilNode{Parameters: parameters}
+	res := &GenericSigilNode{GenericParameters: parameters}
 	res.SetWhere(lexer.NewSpanFromTokens(startToken, endToken))
 	return res
 }
@@ -1489,7 +1489,7 @@ func (v *parser) parseTypeReference() *TypeReferenceNode {
 		v.expect(lexer.TOKEN_OPERATOR, ">")
 	}
 
-	res := &TypeReferenceNode{Reference: name, TypeParameters: typeParameters}
+	res := &TypeReferenceNode{Reference: name, GenericParameters: typeParameters}
 	res.SetWhere(name.Where())
 	return res
 }
@@ -1690,7 +1690,7 @@ func (v *parser) parsePrimaryExpr() ParseNode {
 			}
 		}
 
-		res = &VariableAccessNode{Name: name, Parameters: parameters}
+		res = &VariableAccessNode{Name: name, GenericParameters: parameters}
 		res.SetWhere(lexer.NewSpan(name.Where().Start(), name.Where().End()))
 	}
 

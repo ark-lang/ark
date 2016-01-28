@@ -804,7 +804,7 @@ type CallExpr struct {
 	Arguments      []Expr
 	ReceiverAccess Expr // nil if not method or if static
 
-	parameters []Type
+	GenericParameters []Type
 }
 
 func (v *CallExpr) exprNode() {}
@@ -839,7 +839,7 @@ type FunctionAccessExpr struct {
 
 	Function *Function
 
-	parameters []Type
+	GenericParameters []Type
 }
 
 func (v *FunctionAccessExpr) exprNode() {}
@@ -866,7 +866,7 @@ type VariableAccessExpr struct {
 
 	Variable *Variable
 
-	parameters []Type
+	GenericParameters []Type
 }
 
 func (v *VariableAccessExpr) exprNode() {}

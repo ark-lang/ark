@@ -208,7 +208,7 @@ func (v *Codegen) declareDecls(nodes []parser.Node) {
 }
 
 func (v *Codegen) addNamedType(n *parser.NamedType) {
-	if len(n.Parameters) > 0 {
+	if len(n.GenericParameters) > 0 {
 		return
 	}
 

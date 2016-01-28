@@ -242,11 +242,11 @@ func (v StructType) ActualType() Type {
 // NamedType
 
 type NamedType struct {
-	Name         string
-	Type         Type
-	Parameters   []ParameterType
-	ParentModule *Module
-	Methods      []*Function
+	Name              string
+	Type              Type
+	GenericParameters []ParameterType
+	ParentModule      *Module
+	Methods           []*Function
 }
 
 func (v *NamedType) addMethod(fn *Function) {
@@ -269,11 +269,11 @@ func (v *NamedType) ActualType() Type {
 
 func (v *NamedType) String() string {
 	res := "(" + util.Blue("NamedType") + ": " + v.Name
-	if len(v.Parameters) > 0 {
+	if len(v.GenericParameters) > 0 {
 		res += "<"
-		for idx, param := range v.Parameters {
+		for idx, param := range v.GenericParameters {
 			res += param.TypeName()
-			if idx < len(v.Parameters)-1 {
+			if idx < len(v.GenericParameters)-1 {
 				res += ", "
 			}
 		}
@@ -1062,17 +1062,17 @@ func (v SubstitutionType) ActualType() Type {
 // UnresolvedType
 type UnresolvedType struct {
 	metaType
-	Name       UnresolvedName
-	Parameters []Type
+	Name              UnresolvedName
+	GenericParameters []Type
 }
 
 func (v UnresolvedType) String() string {
 	res := "(" + util.Blue("UnresolvedType") + ": " + v.Name.String()
-	if len(v.Parameters) > 0 {
+	if len(v.GenericParameters) > 0 {
 		res += "<"
-		for idx, param := range v.Parameters {
+		for idx, param := range v.GenericParameters {
 			res += param.TypeName()
-			if idx < len(v.Parameters)-1 {
+			if idx < len(v.GenericParameters)-1 {
 				res += ", "
 			}
 		}

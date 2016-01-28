@@ -261,7 +261,7 @@ func (v *Resolver) ResolveNode(node *Node) {
 		// Only resolve non-generic type, generic types will currently be
 		// resolved when they are used, as the type parameters can only be
 		// resolved when we know what they are.
-		if n.NamedType.Parameters == nil {
+		if n.NamedType.GenericParameters == nil {
 			n.NamedType.Type = v.ResolveType(n, n.NamedType.Type)
 		}
 
@@ -320,8 +320,8 @@ func (v *Resolver) ResolveNode(node *Node) {
 					enum := &EnumLiteral{}
 					enum.Member = memberName
 					enum.Type = UnresolvedType{
-						Name:       enumName,
-						Parameters: n.parameters,
+						Name:              enumName,
+						GenericParameters: n.GenericParameters,
 					}
 					enum.Type = v.ResolveType(n, enum.Type)
 					enum.setPos(n.Pos())
@@ -337,8 +337,8 @@ func (v *Resolver) ResolveNode(node *Node) {
 			// do nothing
 		} else if ident.Type == IDENT_FUNCTION {
 			*node = &FunctionAccessExpr{
-				Function:   ident.Value.(*Function),
-				parameters: n.parameters,
+				Function:          ident.Value.(*Function),
+				GenericParameters: n.GenericParameters,
 			}
 			(*node).setPos(n.Pos())
 			break
@@ -381,8 +381,8 @@ func (v *Resolver) ResolveNode(node *Node) {
 					itype := ident.Value.(Type)
 					if _, ok := itype.ActualType().(EnumType); ok {
 						et := v.ResolveType(n, UnresolvedType{
-							Name:       enumName,
-							Parameters: name.Parameters,
+							Name:              enumName,
+							GenericParameters: name.GenericParameters,
 						})
 
 						member, ok := et.ActualType().(EnumType).GetMember(memberName)
@@ -419,8 +419,8 @@ func (v *Resolver) ResolveNode(node *Node) {
 					itype := ident.Value.(Type)
 					if _, ok := itype.ActualType().(EnumType); ok {
 						et := v.ResolveType(n, UnresolvedType{
-							Name:       enumName,
-							Parameters: n.parameters,
+							Name:              enumName,
+							GenericParameters: n.GenericParameters,
 						})
 
 						member, ok := et.ActualType().(EnumType).GetMember(memberName)
@@ -589,18 +589,18 @@ func (v *Resolver) ResolveType(src Locatable, t Type) Type {
 			typ := ident.Value.(Type)
 
 			// TODO what is this stuff?
-			if namedType, ok := typ.(*NamedType); ok && len(t.Parameters) > 0 {
+			if namedType, ok := typ.(*NamedType); ok && len(t.GenericParameters) > 0 {
 				v.EnterScope()
 				name := namedType.Name + "<"
-				for idx, param := range namedType.Parameters {
+				for idx, param := range namedType.GenericParameters {
 					paramType := SubstitutionType{
 						Name: param.Name,
-						Type: v.ResolveType(src, t.Parameters[idx]),
+						Type: v.ResolveType(src, t.GenericParameters[idx]),
 					}
 					v.curScope.InsertType(paramType, ident.Public)
 
 					name += paramType.Type.TypeName()
-					if idx < len(namedType.Parameters)-1 {
+					if idx < len(namedType.GenericParameters)-1 {
 						name += ", "
 					}
 				}
