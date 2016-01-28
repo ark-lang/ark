@@ -2,11 +2,12 @@ package parser
 
 import (
 	"fmt"
+	"os"
+	"reflect"
+
 	"github.com/ark-lang/ark/src/lexer"
 	"github.com/ark-lang/ark/src/util"
 	"github.com/ark-lang/ark/src/util/log"
-	"os"
-	"reflect"
 )
 
 type TypeVariable struct {
