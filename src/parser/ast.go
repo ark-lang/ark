@@ -83,7 +83,7 @@ type Variable struct {
 	IsArgument   bool
 }
 
-func (v *Variable) String() string {
+func (v Variable) String() string {
 	s := NewASTStringer("Variable")
 	if v.Mutable {
 		s.AddStringColored(util.TEXT_GREEN, " [mutable]")
@@ -95,7 +95,7 @@ func (v *Variable) String() string {
 	return s.Finish()
 }
 
-func (v *Variable) GetType() Type {
+func (v Variable) GetType() Type {
 	return v.Type
 }
 
@@ -113,7 +113,7 @@ type Function struct {
 	StaticReceiverType Type // non-nil if static
 }
 
-func (v *Function) String() string {
+func (v Function) String() string {
 	s := NewASTStringer("Function")
 	s.AddAttrs(v.Type.Attrs())
 	s.AddString(v.Name)
@@ -140,7 +140,7 @@ type Block struct {
 	NonScoping    bool
 }
 
-func (v *Block) String() string {
+func (v Block) String() string {
 	s := NewASTStringer("Block")
 	for _, n := range v.Nodes {
 		s.AddString("\n\t")
@@ -153,7 +153,7 @@ func (v *Block) appendNode(n Node) {
 	v.Nodes = append(v.Nodes, n)
 }
 
-func (v *Block) NodeName() string {
+func (_ Block) NodeName() string {
 	return "block"
 }
 
@@ -191,9 +191,9 @@ type VariableDecl struct {
 	docs       []*DocComment
 }
 
-func (v *VariableDecl) declNode() {}
+func (_ VariableDecl) declNode() {}
 
-func (v *VariableDecl) String() string {
+func (v VariableDecl) String() string {
 	s := NewASTStringer("VariableDecl")
 	s.Add(v.Variable)
 	if v.Assignment != nil {
@@ -203,11 +203,11 @@ func (v *VariableDecl) String() string {
 	return s.Finish()
 }
 
-func (v *VariableDecl) NodeName() string {
+func (_ VariableDecl) NodeName() string {
 	return "variable declaration"
 }
 
-func (v *VariableDecl) DocComments() []*DocComment {
+func (v VariableDecl) DocComments() []*DocComment {
 	return v.docs
 }
 
@@ -219,17 +219,17 @@ type TypeDecl struct {
 	NamedType *NamedType
 }
 
-func (v *TypeDecl) declNode() {}
+func (_ TypeDecl) declNode() {}
 
-func (v *TypeDecl) String() string {
+func (v TypeDecl) String() string {
 	return NewASTStringer("TypeDecl").Add(v.NamedType).Finish()
 }
 
-func (v *TypeDecl) NodeName() string {
+func (_ TypeDecl) NodeName() string {
 	return "named type declaration"
 }
 
-func (v *TypeDecl) DocComments() []*DocComment {
+func (v TypeDecl) DocComments() []*DocComment {
 	return nil // TODO
 }
 
@@ -243,17 +243,17 @@ type FunctionDecl struct {
 	docs      []*DocComment
 }
 
-func (v *FunctionDecl) declNode() {}
+func (_ FunctionDecl) declNode() {}
 
-func (v *FunctionDecl) String() string {
+func (v FunctionDecl) String() string {
 	return NewASTStringer("FunctionDecl").Add(v.Function).Finish()
 }
 
-func (v *FunctionDecl) NodeName() string {
+func (_ FunctionDecl) NodeName() string {
 	return "function declaration"
 }
 
-func (v *FunctionDecl) DocComments() []*DocComment {
+func (v FunctionDecl) DocComments() []*DocComment {
 	return v.docs
 }
 
@@ -268,13 +268,13 @@ type UseDirective struct {
 	ModuleName UnresolvedName
 }
 
-func (v *UseDirective) declNode() {}
+func (_ UseDirective) declNode() {}
 
-func (v *UseDirective) String() string {
+func (v UseDirective) String() string {
 	return NewASTStringer("UseDirective").Add(v.ModuleName).Finish()
 }
 
-func (v *UseDirective) NodeName() string {
+func (_ UseDirective) NodeName() string {
 	return "use directive"
 }
 
@@ -289,13 +289,13 @@ type BlockStat struct {
 	Block *Block
 }
 
-func (v *BlockStat) statNode() {}
+func (_ BlockStat) statNode() {}
 
-func (v *BlockStat) String() string {
+func (v BlockStat) String() string {
 	return NewASTStringer("BlockStat").Add(v.Block).Finish()
 }
 
-func (v *BlockStat) NodeName() string {
+func (_ BlockStat) NodeName() string {
 	return "block statement"
 }
 
@@ -306,13 +306,13 @@ type ReturnStat struct {
 	Value Expr
 }
 
-func (v *ReturnStat) statNode() {}
+func (_ ReturnStat) statNode() {}
 
-func (v *ReturnStat) String() string {
+func (v ReturnStat) String() string {
 	return NewASTStringer("ReturnStat").AddWithFallback("", v.Value, "void").Finish()
 }
 
-func (v *ReturnStat) NodeName() string {
+func (_ ReturnStat) NodeName() string {
 	return "return statement"
 }
 
@@ -322,13 +322,13 @@ type BreakStat struct {
 	nodePos
 }
 
-func (v *BreakStat) statNode() {}
+func (_ BreakStat) statNode() {}
 
-func (v *BreakStat) String() string {
+func (v BreakStat) String() string {
 	return NewASTStringer("BreakStat").Finish()
 }
 
-func (v *BreakStat) NodeName() string {
+func (_ BreakStat) NodeName() string {
 	return "break statement"
 }
 
@@ -338,13 +338,13 @@ type NextStat struct {
 	nodePos
 }
 
-func (v *NextStat) statNode() {}
+func (_ NextStat) statNode() {}
 
-func (v *NextStat) String() string {
+func (v NextStat) String() string {
 	return NewASTStringer("NextStat").Finish()
 }
 
-func (v *NextStat) NodeName() string {
+func (_ NextStat) NodeName() string {
 	return "next statement"
 }
 
@@ -355,13 +355,13 @@ type CallStat struct {
 	Call *CallExpr
 }
 
-func (v *CallStat) statNode() {}
+func (_ CallStat) statNode() {}
 
-func (v *CallStat) String() string {
+func (v CallStat) String() string {
 	return NewASTStringer("CallStat").Add(v.Call).Finish()
 }
 
-func (v *CallStat) NodeName() string {
+func (_ CallStat) NodeName() string {
 	return "call statement"
 }
 
@@ -372,13 +372,13 @@ type DeferStat struct {
 	Call *CallExpr
 }
 
-func (v *DeferStat) statNode() {}
+func (_ DeferStat) statNode() {}
 
-func (v *DeferStat) String() string {
+func (v DeferStat) String() string {
 	return NewASTStringer("DeferStat").Add(v.Call).Finish()
 }
 
-func (v *DeferStat) NodeName() string {
+func (_ DeferStat) NodeName() string {
 	return "call statement"
 }
 
@@ -390,13 +390,13 @@ type AssignStat struct {
 	Assignment Expr
 }
 
-func (v *AssignStat) statNode() {}
+func (_ AssignStat) statNode() {}
 
-func (v *AssignStat) String() string {
+func (v AssignStat) String() string {
 	return NewASTStringer("AssignStat").Add(v.Access).AddString(" =").Add(v.Assignment).Finish()
 }
 
-func (v *AssignStat) NodeName() string {
+func (_ AssignStat) NodeName() string {
 	return "assignment statement"
 }
 
@@ -409,13 +409,13 @@ type BinopAssignStat struct {
 	Assignment Expr
 }
 
-func (v *BinopAssignStat) statNode() {}
+func (_ BinopAssignStat) statNode() {}
 
-func (v *BinopAssignStat) String() string {
+func (v BinopAssignStat) String() string {
 	return NewASTStringer("BinopAssignStat").Add(v.Access).Add(v.Operator).AddString(" =").Add(v.Assignment).Finish()
 }
 
-func (v *BinopAssignStat) NodeName() string {
+func (_ BinopAssignStat) NodeName() string {
 	return "binop assignment statement"
 }
 
@@ -428,9 +428,9 @@ type IfStat struct {
 	Else   *Block // can be nil
 }
 
-func (v *IfStat) statNode() {}
+func (_ IfStat) statNode() {}
 
-func (v *IfStat) String() string {
+func (v IfStat) String() string {
 	s := NewASTStringer("IfStat")
 	for i, expr := range v.Exprs {
 		s.Add(expr)
@@ -440,7 +440,7 @@ func (v *IfStat) String() string {
 	return s.Finish()
 }
 
-func (v *IfStat) NodeName() string {
+func (_ IfStat) NodeName() string {
 	return "if statement"
 }
 
@@ -464,9 +464,9 @@ type LoopStat struct {
 	Condition Expr
 }
 
-func (v *LoopStat) statNode() {}
+func (_ LoopStat) statNode() {}
 
-func (v *LoopStat) String() string {
+func (v LoopStat) String() string {
 	s := NewASTStringer("LoopStat")
 	switch v.LoopType {
 	case LOOP_TYPE_INFINITE:
@@ -480,7 +480,7 @@ func (v *LoopStat) String() string {
 	return s.Finish()
 }
 
-func (v *LoopStat) NodeName() string {
+func (_ LoopStat) NodeName() string {
 	return "loop statement"
 }
 
@@ -498,9 +498,9 @@ func newMatch() *MatchStat {
 	return &MatchStat{Branches: make(map[Expr]Node)}
 }
 
-func (v *MatchStat) statNode() {}
+func (_ MatchStat) statNode() {}
 
-func (v *MatchStat) String() string {
+func (v MatchStat) String() string {
 	s := NewASTStringer("MatchStat")
 	s.Add(v.Target)
 	for pattern, stmt := range v.Branches {
@@ -512,7 +512,7 @@ func (v *MatchStat) String() string {
 	return s.Finish()
 }
 
-func (v *MatchStat) NodeName() string {
+func (_ MatchStat) NodeName() string {
 	return "match statement"
 }
 
@@ -528,19 +528,19 @@ type RuneLiteral struct {
 	typeHint Type
 }
 
-func (v *RuneLiteral) exprNode() {}
+func (_ RuneLiteral) exprNode() {}
 
-func (v *RuneLiteral) String() string {
+func (v RuneLiteral) String() string {
 	return NewASTStringer("RuneLiteral").AddString(
 		colorizeEscapedString(EscapeString(string(v.Value))),
 	).AddType(v.GetType()).Finish()
 }
 
-func (v *RuneLiteral) GetType() Type {
+func (v RuneLiteral) GetType() Type {
 	return PRIMITIVE_rune
 }
 
-func (v *RuneLiteral) NodeName() string {
+func (_ RuneLiteral) NodeName() string {
 	return "rune literal"
 }
 
@@ -554,9 +554,9 @@ type NumericLiteral struct {
 	floatSizeHint rune
 }
 
-func (v *NumericLiteral) exprNode() {}
+func (_ NumericLiteral) exprNode() {}
 
-func (v *NumericLiteral) String() string {
+func (v NumericLiteral) String() string {
 	s := NewASTStringer("NumericLiteral")
 	if v.IsFloat {
 		s.AddStringColored(util.TEXT_YELLOW, fmt.Sprintf("%f", v.FloatValue))
@@ -567,15 +567,15 @@ func (v *NumericLiteral) String() string {
 	return s.Finish()
 }
 
-func (v *NumericLiteral) GetType() Type {
+func (v NumericLiteral) GetType() Type {
 	return v.Type
 }
 
-func (v *NumericLiteral) NodeName() string {
+func (_ NumericLiteral) NodeName() string {
 	return "numeric literal"
 }
 
-func (v *NumericLiteral) AsFloat() float64 {
+func (v NumericLiteral) AsFloat() float64 {
 	if v.IsFloat {
 		return v.FloatValue
 	} else {
@@ -583,7 +583,7 @@ func (v *NumericLiteral) AsFloat() float64 {
 	}
 }
 
-func (v *NumericLiteral) AsInt() uint64 {
+func (v NumericLiteral) AsInt() uint64 {
 	if v.IsFloat {
 		panic("downcasting floating point value to int")
 	}
@@ -600,17 +600,17 @@ type StringLiteral struct {
 	Type      Type
 }
 
-func (v *StringLiteral) exprNode() {}
+func (_ StringLiteral) exprNode() {}
 
-func (v *StringLiteral) String() string {
+func (v StringLiteral) String() string {
 	return NewASTStringer("StringLiteral").AddString(colorizeEscapedString(EscapeString(v.Value))).AddType(v.GetType()).Finish()
 }
 
-func (v *StringLiteral) GetType() Type {
+func (v StringLiteral) GetType() Type {
 	return v.Type
 }
 
-func (v *StringLiteral) NodeName() string {
+func (_ StringLiteral) NodeName() string {
 	return "string literal"
 }
 
@@ -621,17 +621,17 @@ type BoolLiteral struct {
 	Value bool
 }
 
-func (v *BoolLiteral) exprNode() {}
+func (_ BoolLiteral) exprNode() {}
 
-func (v *BoolLiteral) String() string {
+func (v BoolLiteral) String() string {
 	return NewASTStringer("BoolLiteral").AddStringColored(util.TEXT_YELLOW, strconv.FormatBool(v.Value)).Finish()
 }
 
-func (v *BoolLiteral) GetType() Type {
+func (v BoolLiteral) GetType() Type {
 	return PRIMITIVE_bool
 }
 
-func (v *BoolLiteral) NodeName() string {
+func (_ BoolLiteral) NodeName() string {
 	return "boolean literal"
 }
 
@@ -643,9 +643,9 @@ type TupleLiteral struct {
 	Type    Type
 }
 
-func (v *TupleLiteral) exprNode() {}
+func (_ TupleLiteral) exprNode() {}
 
-func (v *TupleLiteral) String() string {
+func (v TupleLiteral) String() string {
 	s := NewASTStringer("TupleLiteral")
 	for _, mem := range v.Members {
 		s.Add(mem)
@@ -654,11 +654,11 @@ func (v *TupleLiteral) String() string {
 	return s.Finish()
 }
 
-func (v *TupleLiteral) GetType() Type {
+func (v TupleLiteral) GetType() Type {
 	return v.Type
 }
 
-func (v *TupleLiteral) NodeName() string {
+func (_ TupleLiteral) NodeName() string {
 	return "tuple literal"
 }
 
@@ -672,9 +672,9 @@ type CompositeLiteral struct {
 	InEnum bool
 }
 
-func (v *CompositeLiteral) exprNode() {}
+func (_ CompositeLiteral) exprNode() {}
 
-func (v *CompositeLiteral) String() string {
+func (v CompositeLiteral) String() string {
 	s := NewASTStringer("CompositeLiteral")
 	for i, mem := range v.Values {
 		s.AddString("\n\t")
@@ -689,11 +689,11 @@ func (v *CompositeLiteral) String() string {
 	return s.Finish()
 }
 
-func (v *CompositeLiteral) GetType() Type {
+func (v CompositeLiteral) GetType() Type {
 	return v.Type
 }
 
-func (v *CompositeLiteral) NodeName() string {
+func (_ CompositeLiteral) NodeName() string {
 	return "composite literal"
 }
 
@@ -708,9 +708,9 @@ type EnumLiteral struct {
 	CompositeLiteral *CompositeLiteral
 }
 
-func (v *EnumLiteral) exprNode() {}
+func (_ EnumLiteral) exprNode() {}
 
-func (v *EnumLiteral) String() string {
+func (v EnumLiteral) String() string {
 	s := NewASTStringer("EnumLiteral")
 	if v.TupleLiteral != nil {
 		s.Add(v.TupleLiteral)
@@ -720,11 +720,11 @@ func (v *EnumLiteral) String() string {
 	return s.Finish()
 }
 
-func (v *EnumLiteral) GetType() Type {
+func (v EnumLiteral) GetType() Type {
 	return v.Type
 }
 
-func (v *EnumLiteral) NodeName() string {
+func (_ EnumLiteral) NodeName() string {
 	return "enum literal"
 }
 
@@ -737,17 +737,17 @@ type BinaryExpr struct {
 	Type         Type
 }
 
-func (v *BinaryExpr) exprNode() {}
+func (_ BinaryExpr) exprNode() {}
 
-func (v *BinaryExpr) String() string {
+func (v BinaryExpr) String() string {
 	return NewASTStringer("BinaryExpr").Add(v.Op).Add(v.Lhand).Add(v.Rhand).Finish()
 }
 
-func (v *BinaryExpr) GetType() Type {
+func (v BinaryExpr) GetType() Type {
 	return v.Type
 }
 
-func (v *BinaryExpr) NodeName() string {
+func (_ BinaryExpr) NodeName() string {
 	return "binary expression"
 }
 
@@ -760,17 +760,17 @@ type UnaryExpr struct {
 	Type Type
 }
 
-func (v *UnaryExpr) exprNode() {}
+func (_ UnaryExpr) exprNode() {}
 
-func (v *UnaryExpr) String() string {
+func (v UnaryExpr) String() string {
 	return NewASTStringer("UnaryExpr").Add(v.Op).Add(v.Expr).Finish()
 }
 
-func (v *UnaryExpr) GetType() Type {
+func (v UnaryExpr) GetType() Type {
 	return v.Type
 }
 
-func (v *UnaryExpr) NodeName() string {
+func (_ UnaryExpr) NodeName() string {
 	return "unary expression"
 }
 
@@ -782,17 +782,17 @@ type CastExpr struct {
 	Type Type
 }
 
-func (v *CastExpr) exprNode() {}
+func (_ CastExpr) exprNode() {}
 
-func (v *CastExpr) String() string {
+func (v CastExpr) String() string {
 	return NewASTStringer("CastExpr").Add(v.Expr).AddType(v.GetType()).Finish()
 }
 
-func (v *CastExpr) GetType() Type {
+func (v CastExpr) GetType() Type {
 	return v.Type
 }
 
-func (v *CastExpr) NodeName() string {
+func (_ CastExpr) NodeName() string {
 	return "typecast expression"
 }
 
@@ -807,9 +807,9 @@ type CallExpr struct {
 	GenericParameters []Type
 }
 
-func (v *CallExpr) exprNode() {}
+func (_ CallExpr) exprNode() {}
 
-func (v *CallExpr) String() string {
+func (v CallExpr) String() string {
 	s := NewASTStringer("CallExpr")
 	s.Add(v.Function)
 	for _, arg := range v.Arguments {
@@ -819,7 +819,7 @@ func (v *CallExpr) String() string {
 	return s.Finish()
 }
 
-func (v *CallExpr) GetType() Type {
+func (v CallExpr) GetType() Type {
 	if v.Function != nil {
 		fnType := v.Function.GetType()
 		if fnType != nil {
@@ -829,7 +829,7 @@ func (v *CallExpr) GetType() Type {
 	return nil
 }
 
-func (v *CallExpr) NodeName() string {
+func (_ CallExpr) NodeName() string {
 	return "call expression"
 }
 
@@ -842,20 +842,20 @@ type FunctionAccessExpr struct {
 	GenericParameters []Type
 }
 
-func (v *FunctionAccessExpr) exprNode() {}
+func (_ FunctionAccessExpr) exprNode() {}
 
-func (v *FunctionAccessExpr) String() string {
+func (v FunctionAccessExpr) String() string {
 	return NewASTStringer("FunctionAccessExpr").AddString(v.Function.Name).Finish()
 }
 
-func (v *FunctionAccessExpr) GetType() Type {
+func (v FunctionAccessExpr) GetType() Type {
 	if v.Function != nil {
 		return v.Function.Type
 	}
 	return nil
 }
 
-func (v *FunctionAccessExpr) NodeName() string {
+func (_ FunctionAccessExpr) NodeName() string {
 	return "function access expression"
 }
 
@@ -869,24 +869,24 @@ type VariableAccessExpr struct {
 	GenericParameters []Type
 }
 
-func (v *VariableAccessExpr) exprNode() {}
+func (_ VariableAccessExpr) exprNode() {}
 
-func (v *VariableAccessExpr) String() string {
+func (v VariableAccessExpr) String() string {
 	return NewASTStringer("VariableAccessExpr").Add(v.Name).Finish()
 }
 
-func (v *VariableAccessExpr) GetType() Type {
+func (v VariableAccessExpr) GetType() Type {
 	if v.Variable != nil {
 		return v.Variable.Type
 	}
 	return nil
 }
 
-func (v *VariableAccessExpr) NodeName() string {
+func (_ VariableAccessExpr) NodeName() string {
 	return "variable access expression"
 }
 
-func (v *VariableAccessExpr) Mutable() bool {
+func (v VariableAccessExpr) Mutable() bool {
 	return v.Variable.Mutable
 }
 
@@ -897,16 +897,16 @@ type StructAccessExpr struct {
 	Member string
 }
 
-func (v *StructAccessExpr) exprNode() {}
+func (_ StructAccessExpr) exprNode() {}
 
-func (v *StructAccessExpr) String() string {
+func (v StructAccessExpr) String() string {
 	s := NewASTStringer("StructAccessExpr")
 	s.AddString("struct").Add(v.Struct)
 	s.AddString("member").AddString(v.Member)
 	return s.Finish()
 }
 
-func (v *StructAccessExpr) GetType() Type {
+func (v StructAccessExpr) GetType() Type {
 	stype := v.Struct.GetType()
 
 	if typ, ok := TypeWithoutPointers(stype).(*NamedType); ok {
@@ -934,11 +934,11 @@ func (v *StructAccessExpr) GetType() Type {
 	return nil
 }
 
-func (v *StructAccessExpr) NodeName() string {
+func (_ StructAccessExpr) NodeName() string {
 	return "struct access expression"
 }
 
-func (v *StructAccessExpr) Mutable() bool {
+func (v StructAccessExpr) Mutable() bool {
 	return v.Struct.Mutable()
 }
 
@@ -950,27 +950,27 @@ type ArrayAccessExpr struct {
 	Subscript Expr
 }
 
-func (v *ArrayAccessExpr) exprNode() {}
+func (_ ArrayAccessExpr) exprNode() {}
 
-func (v *ArrayAccessExpr) String() string {
+func (v ArrayAccessExpr) String() string {
 	s := NewASTStringer("ArrayAccessExpr")
 	s.AddString("array").Add(v.Array)
 	s.AddString("index").Add(v.Subscript)
 	return s.Finish()
 }
 
-func (v *ArrayAccessExpr) GetType() Type {
+func (v ArrayAccessExpr) GetType() Type {
 	if v.Array.GetType() != nil {
 		return v.Array.GetType().ActualType().(ArrayType).MemberType
 	}
 	return nil
 }
 
-func (v *ArrayAccessExpr) NodeName() string {
+func (_ ArrayAccessExpr) NodeName() string {
 	return "array access expression"
 }
 
-func (v *ArrayAccessExpr) Mutable() bool {
+func (v ArrayAccessExpr) Mutable() bool {
 	return v.Array.Mutable()
 }
 
@@ -982,27 +982,27 @@ type TupleAccessExpr struct {
 	Index uint64
 }
 
-func (v *TupleAccessExpr) exprNode() {}
+func (_ TupleAccessExpr) exprNode() {}
 
-func (v *TupleAccessExpr) String() string {
+func (v TupleAccessExpr) String() string {
 	s := NewASTStringer("TupleAccessExpr")
 	s.AddString("tuple").Add(v.Tuple)
 	s.AddString("index").AddString(strconv.FormatUint(v.Index, 10))
 	return s.Finish()
 }
 
-func (v *TupleAccessExpr) GetType() Type {
+func (v TupleAccessExpr) GetType() Type {
 	if v.Tuple.GetType() != nil {
 		return v.Tuple.GetType().ActualType().(TupleType).Members[v.Index]
 	}
 	return nil
 }
 
-func (v *TupleAccessExpr) NodeName() string {
+func (_ TupleAccessExpr) NodeName() string {
 	return "tuple access expression"
 }
 
-func (v *TupleAccessExpr) Mutable() bool {
+func (v TupleAccessExpr) Mutable() bool {
 	return v.Tuple.Mutable()
 }
 
@@ -1013,21 +1013,21 @@ type DerefAccessExpr struct {
 	Expr Expr
 }
 
-func (v *DerefAccessExpr) exprNode() {}
+func (_ DerefAccessExpr) exprNode() {}
 
-func (v *DerefAccessExpr) String() string {
+func (v DerefAccessExpr) String() string {
 	return NewASTStringer("DerefAccessExpr").Add(v.Expr).Finish()
 }
 
-func (v *DerefAccessExpr) GetType() Type {
+func (v DerefAccessExpr) GetType() Type {
 	return getAdressee(v.Expr.GetType())
 }
 
-func (v *DerefAccessExpr) NodeName() string {
+func (_ DerefAccessExpr) NodeName() string {
 	return "dereference access expression"
 }
 
-func (v *DerefAccessExpr) Mutable() bool {
+func (v DerefAccessExpr) Mutable() bool {
 	access, ok := v.Expr.(AccessExpr)
 	if ok {
 		return access.Mutable()
@@ -1057,13 +1057,13 @@ type AddressOfExpr struct {
 	TypeHint Type
 }
 
-func (v *AddressOfExpr) exprNode() {}
+func (_ AddressOfExpr) exprNode() {}
 
-func (v *AddressOfExpr) String() string {
+func (v AddressOfExpr) String() string {
 	return NewASTStringer("AddressOfExpr").Add(v.Access).AddType(v.GetType()).Finish()
 }
 
-func (v *AddressOfExpr) GetType() Type {
+func (v AddressOfExpr) GetType() Type {
 	if v.Access.GetType() != nil {
 		if v.Mutable {
 			return mutableReferenceTo(v.Access.GetType())
@@ -1074,7 +1074,7 @@ func (v *AddressOfExpr) GetType() Type {
 	return nil
 }
 
-func (v *AddressOfExpr) NodeName() string {
+func (_ AddressOfExpr) NodeName() string {
 	return "address-of expression"
 }
 
@@ -1105,9 +1105,9 @@ type ArrayLenExpr struct {
 	Type Type
 }
 
-func (v *ArrayLenExpr) exprNode() {}
+func (_ ArrayLenExpr) exprNode() {}
 
-func (v *ArrayLenExpr) String() string {
+func (v ArrayLenExpr) String() string {
 	s := NewASTStringer("ArrayLenExpr")
 	if v.Expr != nil {
 		s.Add(v.Expr)
@@ -1117,11 +1117,11 @@ func (v *ArrayLenExpr) String() string {
 	return s.Finish()
 }
 
-func (v *ArrayLenExpr) GetType() Type {
+func (v ArrayLenExpr) GetType() Type {
 	return PRIMITIVE_uint
 }
 
-func (v *ArrayLenExpr) NodeName() string {
+func (_ ArrayLenExpr) NodeName() string {
 	return "array length expr"
 }
 
@@ -1136,9 +1136,9 @@ type SizeofExpr struct {
 	Type Type
 }
 
-func (v *SizeofExpr) exprNode() {}
+func (_ SizeofExpr) exprNode() {}
 
-func (v *SizeofExpr) String() string {
+func (v SizeofExpr) String() string {
 	s := NewASTStringer("SizeofExpr")
 	if v.Expr != nil {
 		s.Add(v.Expr)
@@ -1148,11 +1148,11 @@ func (v *SizeofExpr) String() string {
 	return s.Finish()
 }
 
-func (v *SizeofExpr) GetType() Type {
+func (v SizeofExpr) GetType() Type {
 	return PRIMITIVE_uint
 }
 
-func (v *SizeofExpr) NodeName() string {
+func (_ SizeofExpr) NodeName() string {
 	return "sizeof expression"
 }
 
@@ -1162,17 +1162,17 @@ type DefaultMatchBranch struct {
 	nodePos
 }
 
-func (v *DefaultMatchBranch) exprNode() {}
+func (_ DefaultMatchBranch) exprNode() {}
 
-func (v *DefaultMatchBranch) String() string {
+func (v DefaultMatchBranch) String() string {
 	return NewASTStringer("DefaultMatchBranch").Finish()
 }
 
-func (v *DefaultMatchBranch) GetType() Type {
+func (v DefaultMatchBranch) GetType() Type {
 	return nil
 }
 
-func (v *DefaultMatchBranch) NodeName() string {
+func (_ DefaultMatchBranch) NodeName() string {
 	return "default match branch"
 }
 

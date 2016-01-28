@@ -96,7 +96,7 @@ func TypeMangledName(mangleType MangleType, typ Type) string {
 	}
 }
 
-func (v *Module) MangledName(typ MangleType) string {
+func (v Module) MangledName(typ MangleType) string {
 	switch typ {
 	case MANGLE_ARK_UNSTABLE:
 		buf := new(bytes.Buffer)
@@ -112,7 +112,7 @@ func (v *Module) MangledName(typ MangleType) string {
 	}
 }
 
-func (v *Function) MangledName(typ MangleType) string {
+func (v Function) MangledName(typ MangleType) string {
 	if v.Name == "main" {
 		return "main" // TODO make sure only one main function
 	}
@@ -147,7 +147,7 @@ func (v *Function) MangledName(typ MangleType) string {
 	}
 }
 
-func (v *Variable) MangledName(typ MangleType) string {
+func (v Variable) MangledName(typ MangleType) string {
 	switch typ {
 	case MANGLE_ARK_UNSTABLE:
 		result := fmt.Sprintf("_V%d%s", len(v.Name), v.Name)
@@ -160,7 +160,7 @@ func (v *Variable) MangledName(typ MangleType) string {
 	}
 }
 
-func (v *NamedType) MangledName(typ MangleType) string {
+func (v NamedType) MangledName(typ MangleType) string {
 	switch typ {
 	case MANGLE_ARK_UNSTABLE:
 		result := fmt.Sprintf("_N%d%s", len(v.Name), v.Name)
