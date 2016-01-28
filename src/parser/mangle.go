@@ -5,6 +5,10 @@ import (
 	"fmt"
 )
 
+type Mangled interface {
+	MangledName(MangleType) string
+}
+
 // In case we support multiple name mangling schemes
 type MangleType int
 

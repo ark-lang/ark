@@ -581,7 +581,7 @@ func (v *Resolver) ResolveType(src Locatable, t Type) Type {
 					}
 					v.curScope.InsertType(paramType, ident.Public)
 
-					name += t.Parameters[idx].TypeName()
+					name += paramType.Type.TypeName()
 					if idx < len(namedType.Parameters)-1 {
 						name += ", "
 					}
