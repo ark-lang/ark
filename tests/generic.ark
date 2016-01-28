@@ -7,7 +7,7 @@ type Option<T> enum {
 };
 
 type RC<T> struct {
-	refs: int = 0,
+	refs: int,
 	val: ^T,
 };
 
@@ -26,7 +26,7 @@ pub func main() -> int {
 	C::printf(c"y tag: %d\n", y);
 
 	h: u8 = 1;
-	mut i := default(RC<u8>);
+	mut i := RC<u8>{refs: 0};
 	i.val = ^u8(&h);
 	C::printf(c"sizeof(^i.val) = %d\n", sizeof(^i.val));
 	if sizeof(^i.val) != 1 {
@@ -34,7 +34,7 @@ pub func main() -> int {
 	}
 
 	j: u16 = 1;
-	mut k := default(RC<u16>);
+	mut k := RC<u16>{refs: 0};
 	k.val = ^u16(&j);
 	C::printf(c"sizeof(^k.val) = %d\n", sizeof(^k.val));
 	if sizeof(^k.val) != 2 {

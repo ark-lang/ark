@@ -25,6 +25,7 @@ type Submodule struct {
 	UseScope *Scope
 	File     *lexer.Sourcefile
 	Nodes    []Node
+	inferred bool
 }
 
 type ModuleLookup struct {

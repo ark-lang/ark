@@ -220,7 +220,7 @@ func (v *StructTypeNode) construct(c *Constructor) Type {
 	}
 
 	for _, member := range v.Members {
-		structType = structType.addVariableDecl(c.constructNode(member).(*VariableDecl)) // TODO: Error message
+		structType = structType.addMember(member.Name.Value, c.constructType(member.Type))
 	}
 
 	return structType
@@ -402,13 +402,7 @@ func (v *EnumTypeNode) construct(c *Constructor) Type {
 			enumType.Members[idx].Type = c.constructType(mem.TupleBody)
 			enumType.Simple = false
 		} else if mem.StructBody != nil {
-			structType := StructType{}
-
-			for _, member := range mem.StructBody.Members {
-				structType = structType.addVariableDecl(c.constructNode(member).(*VariableDecl)) // TODO: Error message
-			}
-
-			enumType.Members[idx].Type = structType
+			enumType.Members[idx].Type = c.constructType(mem.StructBody)
 			enumType.Simple = false
 		} else {
 			enumType.Members[idx].Type = tupleOf()
@@ -469,13 +463,6 @@ func (v *VarDeclNode) construct(c *Constructor) Node {
 func (v *DeferStatNode) construct(c *Constructor) Node {
 	res := &DeferStat{}
 	res.Call = c.constructExpr(v.Call).(*CallExpr) // TODO: Error message
-	res.setPos(v.Where().Start())
-	return res
-}
-
-func (v *DefaultStatNode) construct(c *Constructor) Node {
-	res := &DefaultStat{}
-	res.Target = c.constructExpr(v.Target).(AccessExpr)
 	res.setPos(v.Where().Start())
 	return res
 }
@@ -623,14 +610,6 @@ func (v *SizeofExprNode) construct(c *Constructor) Expr {
 	return res
 }
 
-func (v *DefaultExprNode) construct(c *Constructor) Expr {
-	res := &DefaultExpr{
-		Type: c.constructType(v.Target),
-	}
-	res.setPos(v.Where().Start())
-	return res
-}
-
 func (v *AddrofExprNode) construct(c *Constructor) Expr {
 	res := &AddressOfExpr{
 		Mutable: v.Mutable,
@@ -752,6 +731,7 @@ func (v *CompositeLiteralNode) construct(c *Constructor) Expr {
 		res.Values = append(res.Values, c.constructExpr(val))
 	}
 
+	res.setPos(v.Where().Start())
 	return res
 }
 
@@ -768,15 +748,7 @@ func (v *NumberLitNode) construct(c *Constructor) Expr {
 		FloatValue: v.FloatValue,
 	}
 
-	switch v.FloatSize {
-	case 'f':
-		res.Type = PRIMITIVE_f32
-	case 'd':
-		res.Type = PRIMITIVE_f64
-	case 'q':
-		res.Type = PRIMITIVE_f128
-	}
-
+	res.floatSizeHint = v.FloatSize
 	res.setPos(v.Where().Start())
 	return res
 

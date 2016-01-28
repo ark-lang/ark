@@ -36,7 +36,7 @@ type Test2 struct {
 };
 
 type Test struct {
-    x: int = 1,
+    x: int,
     y: int,
     z: f64,
     a: f32,

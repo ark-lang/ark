@@ -245,8 +245,7 @@ func build(files []string, outputFile string, cg string, outputType LLVMCodegen.
 	log.Timed("inference phase", "", func() {
 		for _, module := range constructedModules {
 			for _, submod := range module.Parts {
-				inf := &parser.TypeInferer{Submodule: submod}
-				inf.Infer()
+				parser.Infer(submod)
 
 				// Dump AST
 				log.Debugln("main", "AST of submodule `%s/%s`:", module.Name, submod.File.Name)

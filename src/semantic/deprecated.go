@@ -40,11 +40,6 @@ func (v *DeprecatedCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
 		if dep := n.Variable.Attrs.Get("deprecated"); dep != nil {
 			v.WarnDeprecated(s, n, "variable", n.Variable.Name, dep.Value)
 		}
-
-	case *parser.StructAccessExpr:
-		if dep := n.Variable.Attrs.Get("deprecated"); dep != nil {
-			v.WarnDeprecated(s, n, "variable", n.Variable.Name, dep.Value)
-		}
 	}
 }
 

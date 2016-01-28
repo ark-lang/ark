@@ -219,9 +219,9 @@ func (v *Resolver) PostVisit(node *Node) {
 
 	case *DerefAccessExpr:
 		if ce, ok := n.Expr.(*CastExpr); ok {
-			*node = &CastExpr{Type: PointerTo(ce.Type), Expr: ce.Expr}
-		} else if ptr, ok := n.Expr.GetType().(PointerType); ok {
-			n.Type = ptr.Addressee
+			res := &CastExpr{Type: PointerTo(ce.Type), Expr: ce.Expr}
+			res.setPos(n.Pos())
+			*node = res
 		}
 	}
 }
@@ -303,9 +303,6 @@ func (v *Resolver) ResolveNode(node *Node) {
 	case *EnumLiteral:
 		n.Type = v.ResolveType(n, n.Type)
 
-	case *DefaultExpr:
-		n.Type = v.ResolveType(n, n.Type)
-
 	case *VariableAccessExpr:
 		// TODO: Check if we can clean this up
 		// NOTE: Here we check whether this is actually a variable access or an enum member.
@@ -383,10 +380,21 @@ func (v *Resolver) ResolveNode(node *Node) {
 				if ident.Type == IDENT_TYPE {
 					itype := ident.Value.(Type)
 					if _, ok := itype.ActualType().(EnumType); ok {
+						et := v.ResolveType(n, UnresolvedType{
+							Name:       enumName,
+							Parameters: name.Parameters,
+						})
+
+						member, ok := et.ActualType().(EnumType).GetMember(memberName)
+						if !ok {
+							v.err(n, "Enum `%s` has no member `%s`", enumName.String(), memberName)
+						}
+
 						enum := &EnumLiteral{}
 						enum.Member = memberName
 						enum.Type = itype
 						enum.CompositeLiteral = n
+						enum.CompositeLiteral.Type = member.Type
 						enum.CompositeLiteral.InEnum = true
 						enum.setPos(n.Pos())
 
@@ -410,14 +418,21 @@ func (v *Resolver) ResolveNode(node *Node) {
 				if ident != nil && ident.Type == IDENT_TYPE {
 					itype := ident.Value.(Type)
 					if _, ok := itype.ActualType().(EnumType); ok {
-
-						enum := &EnumLiteral{}
-						enum.Member = memberName
-						enum.Type = v.ResolveType(n, UnresolvedType{
+						et := v.ResolveType(n, UnresolvedType{
 							Name:       enumName,
 							Parameters: n.parameters,
 						})
-						enum.TupleLiteral = &TupleLiteral{Members: n.Arguments}
+
+						member, ok := et.ActualType().(EnumType).GetMember(memberName)
+						if !ok {
+							v.err(n, "Enum `%s` has no member `%s`", enumName.String(), memberName)
+						}
+
+						enum := &EnumLiteral{}
+						enum.Member = memberName
+						enum.Type = et
+						enum.TupleLiteral = &TupleLiteral{Members: n.Arguments, Type: member.Type}
+						enum.TupleLiteral.setPos(n.Pos())
 						enum.setPos(n.Pos())
 
 						*node = enum
@@ -444,11 +459,11 @@ func (v *Resolver) ResolveNode(node *Node) {
 
 	// No-Ops
 	case *Block, *DefaultMatchBranch, *UseDirective, *AssignStat, *BinopAssignStat,
-		*BlockStat, *BreakStat, *CallStat, *DefaultStat, *DeferStat, *IfStat,
-		*MatchStat, *LoopStat, *NextStat, *ReturnStat, *AddressOfExpr,
-		*ArrayAccessExpr, *BinaryExpr, *DerefAccessExpr, *UnaryExpr,
-		*StructAccessExpr, *TupleAccessExpr, *BoolLiteral,
-		*NumericLiteral, *RuneLiteral, *StringLiteral, *TupleLiteral:
+		*BlockStat, *BreakStat, *CallStat, *DeferStat, *IfStat, *MatchStat,
+		*LoopStat, *NextStat, *ReturnStat, *AddressOfExpr, *ArrayAccessExpr,
+		*BinaryExpr, *DerefAccessExpr, *UnaryExpr, *StructAccessExpr,
+		*TupleAccessExpr, *BoolLiteral, *NumericLiteral, *RuneLiteral,
+		*StringLiteral, *TupleLiteral:
 		break
 
 	default:
@@ -506,29 +521,16 @@ func (v *Resolver) ResolveType(src Locatable, t Type) Type {
 
 	case StructType:
 		nt := StructType{
-			Variables: make([]*VariableDecl, len(t.Variables)),
-			attrs:     t.attrs,
+			Members: make([]*StructMember, len(t.Members)),
+			attrs:   t.attrs,
 		}
 
 		v.EnterScope()
-		for idx, vari := range t.Variables {
-			nt.Variables[idx] = &VariableDecl{
-				Variable: &Variable{
-					Type:         vari.Variable.Type,
-					Name:         vari.Variable.Name,
-					Mutable:      vari.Variable.Mutable,
-					Attrs:        vari.Variable.Attrs,
-					FromStruct:   vari.Variable.FromStruct,
-					ParentStruct: vari.Variable.ParentStruct,
-					ParentModule: vari.Variable.ParentModule,
-					IsParameter:  vari.Variable.IsParameter,
-				},
-				Assignment: vari.Assignment,
-				docs:       vari.docs,
+		for idx, mem := range t.Members {
+			nt.Members[idx] = &StructMember{
+				Name: mem.Name,
+				Type: v.ResolveType(src, mem.Type),
 			}
-
-			visitor := &ASTVisitor{Visitor: v}
-			nt.Variables[idx] = visitor.Visit(Node(nt.Variables[idx])).(*VariableDecl)
 		}
 		v.ExitScope()
 
@@ -597,7 +599,7 @@ func (v *Resolver) ResolveType(src Locatable, t Type) Type {
 					}
 					v.curScope.InsertType(paramType, ident.Public)
 
-					name += t.Parameters[idx].TypeName()
+					name += paramType.Type.TypeName()
 					if idx < len(namedType.Parameters)-1 {
 						name += ", "
 					}
@@ -679,8 +681,8 @@ func ExtractTypeVariable(pattern Type, value Type) map[string]Type {
 func AddChildren(typ Type, dest []Type) []Type {
 	switch typ := typ.(type) {
 	case StructType:
-		for _, decl := range typ.Variables {
-			dest = append(dest, decl.Variable.Type)
+		for _, mem := range typ.Members {
+			dest = append(dest, mem.Type)
 		}
 
 	case *NamedType:

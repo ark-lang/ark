@@ -2,367 +2,939 @@ package parser
 
 import (
 	"fmt"
-	"os"
-
-	"github.com/ark-lang/ark/src/util/log"
-
+	"github.com/ark-lang/ark/src/lexer"
 	"github.com/ark-lang/ark/src/util"
+	"github.com/ark-lang/ark/src/util/log"
+	"os"
+	"reflect"
 )
 
-// IMPORTANT NOTE for setTypeHint():
-// When implementing this function for an Expr, only set the Expr's Type if
-// you are on a lowest-level Expr, ie. a literal. That means, if you Expr
-// contains a pointer to another Expr(s), simple pass the type hint along to that
-// Expr(s) then return.
-
-type TypeInferer struct {
-	Submodule     *Submodule
-	functionStack []*Function
-	function      *Function // the function we're in, or nil if we aren't
-	shouldExit    bool
+type TypeVariable struct {
+	metaType
+	Id int
 }
 
-func (v *TypeInferer) pushFunction(f *Function) {
-	v.functionStack = append(v.functionStack, f)
-	v.function = f
+func (v *TypeVariable) Equals(other Type) bool {
+	if ot, ok := other.(*TypeVariable); ok {
+		return v.Id == ot.Id
+	}
+	return false
 }
 
-func (v *TypeInferer) popFunction() {
-	if len(v.functionStack) == 0 {
-		panic("tried to pop empty function stack")
+func (v *TypeVariable) String() string {
+	return NewASTStringer("TypeVariable").AddType(v).Finish()
+}
+
+func (v *TypeVariable) TypeName() string {
+	return fmt.Sprintf("$%d", v.Id)
+}
+
+func (v *TypeVariable) ActualType() Type {
+	return v
+}
+
+type ConstructorId int
+
+const (
+	ConstructorInvalid ConstructorId = iota
+	ConstructorStructMember
+
+	// TODO: This guy goes away once we remove tuple indexing and replace with
+	// tuple destructuring
+	ConstructorTupleIndex
+)
+
+type ConstructorType struct {
+	metaType
+	Id   ConstructorId
+	Args []Type
+
+	// Some constructors need additional data
+	Data interface{}
+}
+
+func (v *ConstructorType) Equals(other Type) bool {
+	if ot, ok := other.(*ConstructorType); ok {
+		if v.Id != ot.Id {
+			return false
+		}
+
+		if v.Data != ot.Data {
+			return false
+		}
+
+		if len(v.Args) != len(ot.Args) {
+			return false
+		}
+
+		for idx, arg := range v.Args {
+			oarg := ot.Args[idx]
+			if !arg.Equals(oarg) {
+				return false
+			}
+		}
+
+		return true
+	}
+	return false
+}
+
+func (v *ConstructorType) String() string {
+	return NewASTStringer("ConstructorType").AddType(v).Finish()
+}
+
+func (v *ConstructorType) TypeName() string {
+	return fmt.Sprintf("C%d(%v).%v", v.Id, v.Args, v.Data)
+}
+
+func (v *ConstructorType) ActualType() Type {
+	return v
+}
+
+type AnnotatedTyped struct {
+	Pos   lexer.Position
+	Typed Typed
+	Id    int
+}
+
+type SideType int
+
+const (
+	IdentSide SideType = iota
+	TypeSide
+)
+
+type Side struct {
+	SideType SideType
+	Id       int
+	Type     Type
+}
+
+func SideFromType(t Type) Side {
+	if tv, ok := t.(*TypeVariable); ok {
+		return Side{SideType: IdentSide, Id: tv.Id}
+	}
+	return Side{SideType: TypeSide, Type: t}
+}
+
+func (v Side) Subs(id int, what Side) Side {
+	switch v.SideType {
+	case IdentSide:
+		if v.Id == id {
+			return what
+		}
+		return v
+
+	case TypeSide:
+		var nt Type
+		if what.SideType == TypeSide {
+			nt = SubsType(v.Type, id, what.Type)
+		} else {
+			nt = SubsType(v.Type, id, &TypeVariable{Id: what.Id})
+		}
+		return Side{SideType: TypeSide, Type: nt}
+
+	default:
+		panic("Invalid SideType")
+	}
+}
+
+func SubsType(typ Type, id int, what Type) Type {
+	switch t := typ.(type) {
+	case *TypeVariable:
+		if t.Id == id {
+			return what
+		}
+		return t
+
+	case *ConstructorType:
+		nargs := make([]Type, len(t.Args))
+		for idx, arg := range t.Args {
+			nargs[idx] = SubsType(arg, id, what)
+		}
+
+		// Handle special cases
+		switch t.Id {
+		case ConstructorStructMember:
+			// Method check
+			if typ, ok := TypeWithoutPointers(nargs[0]).(*NamedType); ok {
+				fn := typ.GetMethod(t.Data.(string))
+				if fn != nil {
+					return fn.Type
+				}
+			}
+
+			// Struct member
+			typ := nargs[0]
+			if pt, ok := typ.(PointerType); ok {
+				typ = pt.Addressee
+			}
+			if st, ok := typ.ActualType().(StructType); ok {
+				mem := st.GetMember(t.Data.(string))
+				return mem.Type
+			}
+
+		case ConstructorTupleIndex:
+			if tt, ok := nargs[0].ActualType().(TupleType); ok {
+				return tt.Members[t.Data.(uint64)]
+			}
+		}
+
+		return &ConstructorType{Id: t.Id, Args: nargs, Data: t.Data}
+
+	case FunctionType:
+		newRet := SubsType(t.Return, id, what)
+		np := make([]Type, len(t.Parameters))
+		for idx, param := range t.Parameters {
+			np[idx] = SubsType(param, id, what)
+		}
+
+		return FunctionType{
+			attrs:      t.attrs,
+			IsVariadic: t.IsVariadic,
+			Parameters: np,
+			Return:     newRet,
+		}
+
+	case TupleType:
+		nm := make([]Type, len(t.Members))
+		for idx, mem := range t.Members {
+			nm[idx] = SubsType(mem, id, what)
+		}
+		return tupleOf(nm...)
+
+	case PointerType:
+		return PointerTo(SubsType(t.Addressee, id, what))
+
+	case ArrayType:
+		return ArrayOf(SubsType(t.MemberType, id, what))
+
+	case PrimitiveType, StructType, *NamedType, ConstantReferenceType,
+		MutableReferenceType, InterfaceType, EnumType:
+		return t
+
+	default:
+		panic("Unhandled type in Side.Subs(): " + reflect.TypeOf(t).String())
+	}
+}
+
+func (v Side) String() string {
+	switch v.SideType {
+	case IdentSide:
+		return fmt.Sprintf("$%d", v.Id)
+	case TypeSide:
+		return fmt.Sprintf("type `%s`", v.Type.TypeName())
+	}
+	panic("Invalid side type")
+}
+
+type Constraint struct {
+	Left, Right Side
+}
+
+func ConstraintFromTypes(left Type, right Type) *Constraint {
+	return &Constraint{
+		Left:  SideFromType(left),
+		Right: SideFromType(right),
+	}
+}
+
+func (v *Constraint) String() string {
+	return fmt.Sprintf("%s = %s", v.Left, v.Right)
+}
+
+func (v *Constraint) Subs(id int, side Side) *Constraint {
+	res := &Constraint{
+		Left:  v.Left.Subs(id, side),
+		Right: v.Right.Subs(id, side),
+	}
+	return res
+}
+
+type NewInferer struct {
+	Submodule   *Submodule
+	Functions   []*Function
+	Typeds      map[int]*AnnotatedTyped
+	TypedLookup map[Typed]*AnnotatedTyped
+	Constraints []*Constraint
+	IdCount     int
+}
+
+func (v *NewInferer) err(msg string, args ...interface{}) {
+	log.Errorln("inferer", "%s %s", util.Red("error:"), fmt.Sprintf(msg, args...))
+	os.Exit(util.EXIT_FAILURE_SEMANTIC)
+}
+
+func (v *NewInferer) errPos(pos lexer.Position, msg string, args ...interface{}) {
+	log.Errorln("inferer", "%s: [%s:%d:%d] %s", util.Red("error:"),
+		pos.Filename, pos.Line, pos.Char,
+		fmt.Sprintf(msg, args...))
+	log.Errorln("inferer", "%s", v.Submodule.File.MarkPos(pos))
+	os.Exit(util.EXIT_FAILURE_SEMANTIC)
+}
+
+func (v *NewInferer) Function() *Function {
+	return v.Functions[len(v.Functions)-1]
+}
+
+func Infer(submod *Submodule) {
+	if submod.inferred {
+		return
+	}
+	submod.inferred = true
+
+	for _, used := range submod.UseScope.UsedModules {
+		for _, submod := range used.Parts {
+			Infer(submod)
+		}
 	}
 
-	v.functionStack = v.functionStack[:len(v.functionStack)-1]
-	if len(v.functionStack) == 0 {
-		v.function = nil
-	} else {
-		v.function = v.functionStack[len(v.functionStack)-1]
+	log.Timed("inferring submodule", submod.File.Name, func() {
+		inf := &NewInferer{
+			Submodule:   submod,
+			Typeds:      make(map[int]*AnnotatedTyped),
+			TypedLookup: make(map[Typed]*AnnotatedTyped),
+		}
+		vis := NewASTVisitor(inf)
+		vis.VisitSubmodule(submod)
+		inf.Finalize()
+	})
+
+}
+
+func (v *NewInferer) AddConstraint(c *Constraint) {
+	v.Constraints = append(v.Constraints, c)
+}
+
+func (v *NewInferer) AddEqualsConstraint(a, b int) {
+	c := &Constraint{
+		Left:  Side{Id: a, SideType: IdentSide},
+		Right: Side{Id: b, SideType: IdentSide},
+	}
+	v.AddConstraint(c)
+}
+
+func (v *NewInferer) AddIsConstraint(id int, typ Type) {
+	c := &Constraint{
+		Left:  Side{Id: id, SideType: IdentSide},
+		Right: Side{Type: typ, SideType: TypeSide},
+	}
+	v.AddConstraint(c)
+}
+
+func (v *NewInferer) EnterScope() {}
+
+func (v *NewInferer) ExitScope() {}
+
+func (v *NewInferer) PostVisit(node *Node) {
+	switch (*node).(type) {
+	case *FunctionDecl:
+		idx := len(v.Functions) - 1
+		v.Functions[idx] = nil
+		v.Functions = v.Functions[:idx]
+		return
 	}
 }
 
-func (v *TypeInferer) err(thing Locatable, err string, stuff ...interface{}) {
-	pos := thing.Pos()
-
-	log.Error("semantic", util.TEXT_RED+util.TEXT_BOLD+"error:"+util.TEXT_RESET+" [%s:%d:%d] %s\n",
-		pos.Filename, pos.Line, pos.Char, fmt.Sprintf(err, stuff...))
-
-	log.Error("semantic", v.Submodule.File.MarkPos(pos))
-
-	v.shouldExit = true
-}
-
-func (v *TypeInferer) warn(thing Locatable, err string, stuff ...interface{}) {
-	pos := thing.Pos()
-
-	log.Warning("semantic", util.TEXT_YELLOW+util.TEXT_BOLD+"warning:"+util.TEXT_RESET+" [%s:%d:%d] %s\n",
-		pos.Filename, pos.Line, pos.Char, fmt.Sprintf(err, stuff...))
-
-	log.Warning("semantic", v.Submodule.File.MarkPos(pos))
-}
-
-func (v *TypeInferer) Infer() {
-	v.shouldExit = false
-
-	for _, node := range v.Submodule.Nodes {
-		node.infer(v)
+func (v *NewInferer) Visit(node *Node) bool {
+	switch n := (*node).(type) {
+	case *FunctionDecl:
+		v.Functions = append(v.Functions, n.Function)
+		return true
 	}
 
-	if v.shouldExit {
-		os.Exit(util.EXIT_FAILURE_SEMANTIC)
+	switch n := (*node).(type) {
+	case *VariableDecl:
+		a := v.HandleTyped(n.Pos(), n.Variable)
+		if n.Assignment != nil {
+			if n.Variable.Type != nil {
+				// Slightly hacky, but gets the job done
+				n.Assignment.setTypeHint(n.Variable.Type)
+			}
+
+			b := v.HandleExpr(n.Assignment)
+			v.AddEqualsConstraint(a, b)
+		}
+
+	case *AssignStat:
+		a := v.HandleExpr(n.Access)
+		b := v.HandleExpr(n.Assignment)
+		v.AddEqualsConstraint(a, b)
+
+	case *BinopAssignStat:
+		a := v.HandleExpr(n.Access)
+		b := v.HandleExpr(n.Assignment)
+		v.AddEqualsConstraint(a, b)
+
+	case *CallStat:
+		v.HandleExpr(n.Call)
+
+	case *DeferStat:
+		v.HandleExpr(n.Call)
+
+	case *IfStat:
+		for _, expr := range n.Exprs {
+			id := v.HandleExpr(expr)
+			v.AddIsConstraint(id, PRIMITIVE_bool)
+		}
+
+	case *ReturnStat:
+		if n.Value != nil {
+			id := v.HandleExpr(n.Value)
+			v.AddIsConstraint(id, v.Function().Type.Return)
+		}
+
+	case *LoopStat:
+		if n.Condition != nil {
+			id := v.HandleExpr(n.Condition)
+			v.AddIsConstraint(id, PRIMITIVE_bool)
+		}
+
+	case *MatchStat:
+		// TODO: Implement once we actuall do match statement
 	}
+
+	return true
 }
 
-func (v *Block) infer(s *TypeInferer) {
-	for _, n := range v.Nodes {
-		n.infer(s)
+func (v *NewInferer) HandleExpr(expr Expr) int {
+	return v.HandleTyped(expr.Pos(), expr)
+}
+
+func (v *NewInferer) HandleTyped(pos lexer.Position, typed Typed) int {
+	if ann, ok := v.TypedLookup[typed]; ok {
+		return ann.Id
 	}
-}
 
-func (v *Function) infer(s *TypeInferer) {
-	s.pushFunction(v)
-	if v.Body != nil {
-		v.Body.infer(s)
+	ann := &AnnotatedTyped{Pos: pos, Id: v.IdCount, Typed: typed}
+	v.Typeds[ann.Id] = ann
+	v.TypedLookup[typed] = ann
+	v.IdCount++
+
+	switch typed := typed.(type) {
+	case *BinaryExpr:
+		a := v.HandleExpr(typed.Lhand)
+		b := v.HandleExpr(typed.Rhand)
+		switch typed.Op {
+		case BINOP_EQ, BINOP_NOT_EQ, BINOP_GREATER, BINOP_LESS,
+			BINOP_GREATER_EQ, BINOP_LESS_EQ:
+			v.AddEqualsConstraint(a, b)
+			v.AddIsConstraint(ann.Id, PRIMITIVE_bool)
+
+		case BINOP_BIT_AND, BINOP_BIT_OR, BINOP_BIT_XOR:
+			v.AddEqualsConstraint(a, b)
+			v.AddEqualsConstraint(ann.Id, a)
+
+		case BINOP_ADD, BINOP_SUB, BINOP_MUL, BINOP_DIV, BINOP_MOD:
+			// TODO: These assumptions don't hold once we add operator overloading
+			v.AddEqualsConstraint(a, b)
+			v.AddEqualsConstraint(ann.Id, a)
+
+		case BINOP_BIT_LEFT, BINOP_BIT_RIGHT:
+			v.AddEqualsConstraint(ann.Id, a)
+
+		case BINOP_LOG_AND, BINOP_LOG_OR:
+			v.AddIsConstraint(a, PRIMITIVE_bool)
+			v.AddIsConstraint(b, PRIMITIVE_bool)
+			v.AddIsConstraint(ann.Id, PRIMITIVE_bool)
+
+		default:
+			panic("Unhandled binary operator in type inference")
+
+		}
+
+	case *UnaryExpr:
+		id := v.HandleExpr(typed.Expr)
+		switch typed.Op {
+		case UNOP_LOG_NOT:
+			v.AddIsConstraint(id, PRIMITIVE_bool)
+
+		case UNOP_BIT_NOT:
+			v.AddEqualsConstraint(ann.Id, id)
+
+		case UNOP_NEGATIVE:
+			v.AddEqualsConstraint(ann.Id, id)
+
+		}
+
+	case *CallExpr:
+		if typed.ReceiverAccess != nil {
+			v.HandleExpr(typed.ReceiverAccess)
+		}
+
+		fnId := v.HandleExpr(typed.Function)
+		argIds := make([]int, len(typed.Arguments))
+		for idx, arg := range typed.Arguments {
+			argIds[idx] = v.HandleExpr(arg)
+		}
+
+		fnType := FunctionType{Return: &TypeVariable{Id: ann.Id}}
+		for _, argId := range argIds {
+			fnType.Parameters = append(fnType.Parameters, &TypeVariable{Id: argId})
+		}
+		v.AddIsConstraint(fnId, fnType)
+
+	case *CastExpr:
+		v.HandleExpr(typed.Expr)
+		v.AddIsConstraint(ann.Id, typed.Type)
+
+	case *AddressOfExpr:
+		id := v.HandleExpr(typed.Access)
+		v.AddIsConstraint(ann.Id, PointerTo(&TypeVariable{Id: id}))
+
+	case *DerefAccessExpr:
+		id := v.HandleExpr(typed.Expr)
+		v.AddIsConstraint(id, PointerTo(&TypeVariable{Id: ann.Id}))
+
+	case *SizeofExpr:
+		if typed.Expr != nil {
+			v.HandleExpr(typed.Expr)
+		}
+		v.AddIsConstraint(ann.Id, PRIMITIVE_uint)
+
+	case *VariableAccessExpr:
+		id := v.HandleTyped(typed.Pos(), typed.Variable)
+		v.AddEqualsConstraint(ann.Id, id)
+		if typed.Variable.Type != nil {
+			v.AddIsConstraint(ann.Id, typed.Variable.Type)
+		}
+
+	case *StructAccessExpr:
+		id := v.HandleExpr(typed.Struct)
+		v.AddIsConstraint(ann.Id, &ConstructorType{
+			Id:   ConstructorStructMember,
+			Args: []Type{&TypeVariable{Id: id}},
+			Data: typed.Member,
+		})
+
+	case *TupleAccessExpr:
+		id := v.HandleExpr(typed.Tuple)
+		v.AddIsConstraint(ann.Id, &ConstructorType{
+			Id:   ConstructorTupleIndex,
+			Args: []Type{&TypeVariable{Id: id}},
+			Data: typed.Index,
+		})
+
+	case *ArrayAccessExpr:
+		id := v.HandleExpr(typed.Array)
+		v.HandleExpr(typed.Subscript)
+		v.AddIsConstraint(id, ArrayOf(&TypeVariable{Id: ann.Id}))
+
+	case *ArrayLenExpr:
+		v.HandleExpr(typed.Expr)
+		v.AddIsConstraint(ann.Id, PRIMITIVE_uint)
+
+	case *EnumLiteral:
+		if typed.Type == nil {
+			panic("INTERNAL ERROR: Encountered enum literal without a type")
+		}
+
+		var id int
+		if typed.TupleLiteral != nil {
+			id = v.HandleExpr(typed.TupleLiteral)
+		} else if typed.CompositeLiteral != nil {
+			id = v.HandleExpr(typed.CompositeLiteral)
+		}
+		v.AddIsConstraint(id, typed.Type)
+		v.AddIsConstraint(ann.Id, typed.Type)
+
+	case *BoolLiteral:
+		v.AddIsConstraint(ann.Id, PRIMITIVE_bool)
+
+	case *StringLiteral:
+		if typed.IsCString {
+			v.AddIsConstraint(ann.Id, PointerTo(PRIMITIVE_u8))
+		} else {
+			v.AddIsConstraint(ann.Id, stringType)
+		}
+
+	case *RuneLiteral:
+		v.AddIsConstraint(ann.Id, PRIMITIVE_rune)
+
+	case *CompositeLiteral:
+		ids := make([]int, len(typed.Values))
+		for idx, mem := range typed.Values {
+			ids[idx] = v.HandleExpr(mem)
+		}
+
+		typ := typed.Type.ActualType()
+		if at, ok := typ.(ArrayType); ok {
+			for _, id := range ids {
+				v.AddIsConstraint(id, at.MemberType)
+			}
+		} else if st, ok := typ.(StructType); ok {
+			for idx, id := range ids {
+				field := typed.Fields[idx]
+				mem := st.GetMember(field)
+				v.AddIsConstraint(id, mem.Type)
+			}
+		}
+
+		if typed.Type != nil {
+			v.AddIsConstraint(ann.Id, typed.Type)
+		}
+
+	case *TupleLiteral:
+		var tt TupleType
+		var ok bool
+		if typed.Type != nil {
+			tt, ok = typed.Type.(TupleType)
+		}
+
+		nt := make([]Type, len(typed.Members))
+		for idx, mem := range typed.Members {
+			id := v.HandleExpr(mem)
+			nt[idx] = &TypeVariable{Id: id}
+			if ok {
+				v.AddIsConstraint(id, tt.Members[idx])
+				nt[idx] = tt.Members[idx]
+			}
+		}
+
+		if typed.Type != nil {
+			v.AddIsConstraint(ann.Id, typed.Type)
+		} else {
+			v.AddIsConstraint(ann.Id, tupleOf(nt...))
+		}
+
+	case *Variable:
+		if typed.GetType() != nil {
+			v.AddIsConstraint(ann.Id, typed.GetType())
+		}
+
+	case *FunctionAccessExpr:
+		v.AddIsConstraint(ann.Id, typed.Function.Type)
+
+	case *LambdaExpr:
+		v.AddIsConstraint(ann.Id, typed.Function.Type)
+
+	case *NumericLiteral:
+		// noop
+
+	default:
+		panic("INTERNAL ERROR: Unhandled Typed type: " + reflect.TypeOf(typed).String())
 	}
-	s.popFunction()
+
+	return ann.Id
 }
 
-func (v EnumType) infer(s *TypeInferer) {
-	// We shouldn't need anything here
-}
+func (v *NewInferer) Unify() []*Constraint {
+	stack := make([]*Constraint, len(v.Constraints))
+	copy(stack, v.Constraints)
 
-func (v StructType) infer(s *TypeInferer) {
-	for _, decl := range v.Variables {
-		decl.infer(s)
+	var substitutions []*Constraint
+	subsAll := func(id int, what Side) {
+		for idx, cons := range stack {
+			stack[idx] = cons.Subs(id, what)
+		}
+		for idx, cons := range substitutions {
+			substitutions[idx] = cons.Subs(id, what)
+		}
 	}
-}
 
-func (v *NamedType) infer(s *TypeInferer) {
-	if typ, ok := v.Type.(StructType); ok {
-		typ.infer(s)
-	} else if typ, ok := v.Type.(EnumType); ok {
-		typ.infer(s)
+	for len(stack) > 0 {
+		// Given a constraint X = Y
+		element := stack[0]
+		stack[0], stack = nil, stack[1:]
+		x, y := element.Left, element.Right
+
+		// 1. If X and Y are identical identifiers, do nothing.
+		if x.SideType == IdentSide && y.SideType == IdentSide && x.Id == y.Id {
+			continue
+		}
+
+		// 2. If X is an identifier, replace all occurrences of X by Y both on
+		// the stack and in the substitution, and add X → Y to the substitution.
+		if x.SideType == IdentSide {
+			subsAll(x.Id, y)
+			substitutions = append(substitutions, &Constraint{
+				Left: x, Right: y,
+			})
+			continue
+		}
+
+		// 3. If Y is an identifier, replace all occurrences of Y by X both on
+		// the stack and in the substitution, and add Y → X to the substitution.
+		if y.SideType == IdentSide {
+			subsAll(y.Id, x)
+			substitutions = append(substitutions, &Constraint{Left: y, Right: x})
+			continue
+		}
+
+		// 4. If X is of the form C(X_1, ..., X_n) for some constructor C, and
+		// Y is of the form C(Y_1, ..., Y_n) (i.e., it has the same constructor),
+		// then push X_i = Y_i for all 1 ≤ i ≤ n onto the stack.
+
+		// 4.0.1. Equal types
+		if x.SideType == TypeSide && y.SideType == TypeSide {
+			xtyp := x.Type.ActualType()
+			ytyp := y.Type.ActualType()
+			if xtyp.Equals(ytyp) {
+				continue
+			}
+
+		}
+
+		// 4.1. {^, &mut, &}x = {^, &mut, &}y
+		if x.SideType == TypeSide && y.SideType == TypeSide {
+			xAddressee := getAdressee(x.Type)
+			yAddressee := getAdressee(y.Type)
+			if xAddressee != nil && yAddressee != nil {
+				stack = append(stack, ConstraintFromTypes(xAddressee, yAddressee))
+				continue
+			}
+		}
+
+		// 4.2. []x = []y
+		if x.SideType == TypeSide && y.SideType == TypeSide {
+			atX, okX := x.Type.ActualType().(ArrayType)
+			atY, okY := y.Type.ActualType().(ArrayType)
+			if okX && okY {
+				stack = append(stack, ConstraintFromTypes(atX.MemberType, atY.MemberType))
+				continue
+			}
+		}
+
+		// 4.3 C(x1, ..., xn).d = C(y1, ... yn).d
+		// NOTE: This currently handles both struct members and tuple members
+		if x.SideType == TypeSide && y.SideType == TypeSide {
+			conX, okX := x.Type.(*ConstructorType)
+			conY, okY := y.Type.(*ConstructorType)
+			if okX && okY && conX.Id == conY.Id && len(conX.Args) == len(conY.Args) &&
+				conX.Data == conY.Data {
+				for idx, argX := range conX.Args {
+					argY := conY.Args[idx]
+					stack = append(stack, ConstraintFromTypes(argX, argY))
+				}
+				continue
+			}
+		}
+
+		// 4.4. fn(x1, ...) -> xn = fn(y1, ...) -> yn
+		if x.SideType == TypeSide && y.SideType == TypeSide {
+			xFunc, okX := x.Type.ActualType().(FunctionType)
+			yFunc, okY := y.Type.ActualType().(FunctionType)
+
+			if okX && okY {
+				// Determine minimum parameter list length.
+				// This is done to avoid problems with variadic arguments.
+				ln := len(xFunc.Parameters)
+				if len(yFunc.Parameters) < ln {
+					ln = len(yFunc.Parameters)
+				}
+
+				// Parameters
+				for idx := 0; idx < ln; idx++ {
+					stack = append(stack,
+						ConstraintFromTypes(xFunc.Parameters[idx], yFunc.Parameters[idx]))
+				}
+
+				// Return type
+				xRet := xFunc.Return
+				yRet := yFunc.Return
+				if xRet == nil {
+					xRet = PRIMITIVE_void
+				}
+				if yRet == nil {
+					yRet = PRIMITIVE_void
+				}
+
+				stack = append(stack, ConstraintFromTypes(xRet, yRet))
+				continue
+			}
+		}
+
+		// 4.5. (x1, ..., xn) = (y1, ..., yn)
+		if x.SideType == TypeSide && y.SideType == TypeSide {
+			xTup, okX := x.Type.ActualType().(TupleType)
+			yTup, okY := y.Type.ActualType().(TupleType)
+
+			if okX && okY && len(xTup.Members) == len(yTup.Members) {
+				for idx, memX := range xTup.Members {
+					memY := yTup.Members[idx]
+					stack = append(stack, ConstraintFromTypes(memX, memY))
+				}
+				continue
+			}
+		}
+
+		// 5. Otherwise, X and Y do not unify. Report an error.
+		// NOTE: We defer handling error until the semantic type check
+		// TODO: Verify if continuing is ok, or if we should return now
 	}
-	// TODO add function types when done
+
+	return substitutions
 }
 
-func (v *Variable) infer(s *TypeInferer) {
-}
+func (v *NewInferer) Finalize() {
+	substitutions := v.Unify()
 
-/**
- * Declarations
- */
+	subList := make([]*Constraint, v.IdCount)
+	for _, subs := range substitutions {
+		if subs.Left.SideType != IdentSide {
+			panic("INTERNAL ERROR: Left side of substitution was not ident")
+		}
+		ann := v.Typeds[subs.Left.Id]
+		subList[ann.Id] = subs
+	}
 
-func (v *VariableDecl) infer(s *TypeInferer) {
-	v.Variable.infer(s)
+	resolved := true
+	for _, val := range subList {
+		resolved = resolved && (val == nil || val.Right.SideType != TypeSide)
+	}
 
-	if v.Assignment != nil {
-		v.Assignment.setTypeHint(v.Variable.Type)
-		v.Assignment.infer(s)
+	// If it didn't all resolve the first time, inject default integer types
+	// and try once again
+	if !resolved {
+		v.Constraints = nil
+		for idx := 0; idx < v.IdCount; idx++ {
+			ann := v.Typeds[idx]
+			subs := subList[idx]
+			if subs != nil && subs.Right.SideType == TypeSide {
+				v.AddConstraint(subs)
+				continue
+			}
 
-		if v.Variable.Type == nil {
-			v.Variable.Type = v.Assignment.GetType()
-			if v.Variable.Type.IsVoidType() {
-				s.err(v, "variable has incomplete type `void`")
+			if lit, ok := ann.Typed.(*NumericLiteral); ok {
+				typ := PRIMITIVE_int
+				if lit.IsFloat {
+					typ = PRIMITIVE_f32
+					switch lit.floatSizeHint {
+					case 'f':
+						typ = PRIMITIVE_f32
+					case 'd':
+						typ = PRIMITIVE_f64
+					case 'q':
+						typ = PRIMITIVE_f128
+					}
+
+				}
+				v.AddIsConstraint(idx, typ)
+			} else if subs != nil {
+				v.AddConstraint(subs)
+			}
+		}
+
+		substitutions = v.Unify()
+	}
+
+	// Apply all substitutions
+	for _, subs := range substitutions {
+		if subs.Left.SideType != IdentSide {
+			panic("INTERNAL ERROR: Left side of substitution was not ident")
+		}
+		ann := v.Typeds[subs.Left.Id]
+
+		if subs.Right.SideType != TypeSide {
+			v.errPos(ann.Pos, "Couldn't infer type of expression")
+		}
+
+		if _, ok := subs.Right.Type.(*ConstructorType); ok {
+			panic("INTERNAL ERROR: ConstructorType escaped inference pass")
+		}
+
+		ann.Typed.setTypeHint(subs.Right.Type)
+	}
+
+	// Type specific touch ups
+	for idx := 0; idx < v.IdCount; idx++ {
+		ann := v.Typeds[idx]
+
+		switch n := ann.Typed.(type) {
+		case *CallExpr:
+			// Resolve methods
+			if sae, ok := n.Function.(*StructAccessExpr); ok {
+				fn := TypeWithoutPointers(sae.Struct.GetType()).(*NamedType).GetMethod(sae.Member)
+				n.Function = &FunctionAccessExpr{Function: fn}
+				if n.Function == nil {
+					v.errPos(sae.Pos(), "Type `%s` has no method `%s`", TypeWithoutPointers(sae.Struct.GetType()).TypeName(), sae.Member)
+				}
+			}
+
+			if n.Function != nil {
+				if _, ok := n.Function.GetType().(FunctionType); !ok {
+					v.errPos(n.Function.Pos(), "Attempt to call non-function `%s`", n.Function.GetType().TypeName())
+				}
+
+				// Insert dereference if needed
+				if n.Function.GetType().(FunctionType).Receiver != nil {
+					recType := n.Function.GetType().(FunctionType).Receiver
+					accessType := n.ReceiverAccess.GetType()
+
+					if accessType.LevelsOfIndirection() == recType.LevelsOfIndirection()+1 {
+						n.ReceiverAccess = &DerefAccessExpr{Expr: n.ReceiverAccess}
+					}
+				}
+			}
+
+		case *StructAccessExpr:
+			// Check if we're dealing with a method and exit early
+			baseType := TypeWithoutPointers(n.Struct.GetType())
+			if nt, ok := baseType.(*NamedType); ok && nt.GetMethod(n.Member) != nil {
+				break
+			}
+
+			// Insert dereference if needed
+			if n.Struct.GetType().ActualType().LevelsOfIndirection() == 1 {
+				n.Struct = &DerefAccessExpr{Expr: n.Struct}
+			}
+
+			typ := n.Struct.GetType()
+			structType, ok := typ.ActualType().(StructType)
+			if !ok {
+				v.errPos(n.Pos(), "Cannot access member of type `%s`", typ.TypeName())
+			}
+
+			mem := structType.GetMember(n.Member)
+			if mem == nil {
+				v.errPos(n.Pos(), "Struct `%s` does not contain member or method `%s`", typ.TypeName(), n.Member)
+			}
+
+		case *BinaryExpr:
+			// Some wiggling of default numeric literal types
+			nll, ok1 := n.Lhand.(*NumericLiteral)
+			nlr, ok2 := n.Rhand.(*NumericLiteral)
+
+			if ok1 && !ok2 {
+				nll.setTypeHint(n.Rhand.GetType())
+				break
+			}
+
+			if ok2 && !ok1 {
+				nlr.setTypeHint(n.Lhand.GetType())
+				break
+			}
+
+			if ok1 && ok2 && nll.IsFloat {
+				nlr.setTypeHint(nll.GetType())
+				break
+			}
+
+			if ok1 && ok2 && nlr.IsFloat {
+				nll.setTypeHint(nlr.GetType())
+				break
+			}
+
+		case *CastExpr:
+			expr, ok := n.Expr.(*NumericLiteral)
+			if ok && n.Type.LevelsOfIndirection() > 0 {
+				expr.setTypeHint(PRIMITIVE_uintptr)
 			}
 		}
 	}
-
 }
-
-func (v *TypeDecl) infer(s *TypeInferer) {
-	v.NamedType.infer(s)
-}
-
-func (v *UseDirective) infer(s *TypeInferer) {
-}
-
-func (v *FunctionDecl) infer(s *TypeInferer) {
-	v.Function.infer(s)
-}
-
-/*
- * Statements
- */
-
-func (v *ReturnStat) infer(s *TypeInferer) {
-	if s.function == nil {
-		s.err(v, "Return statement must be in a function")
-	}
-
-	if !s.function.Type.Return.Equals(PRIMITIVE_void) {
-		v.Value.setTypeHint(s.function.Type.Return)
-		v.Value.infer(s)
-	}
-}
-
-func (_ BreakStat) infer(s *TypeInferer) {}
-func (_ NextStat) infer(s *TypeInferer)  {}
-
-func (v *IfStat) infer(s *TypeInferer) {
-	for _, expr := range v.Exprs {
-		expr.setTypeHint(PRIMITIVE_bool)
-		expr.infer(s)
-	}
-
-	for _, body := range v.Bodies {
-		body.infer(s)
-	}
-
-	if v.Else != nil {
-		v.Else.infer(s)
-	}
-}
-
-// BlockStat
-
-func (v *BlockStat) infer(s *TypeInferer) {
-	v.Block.infer(s)
-}
-
-// CallStat
-
-func (v *CallStat) infer(s *TypeInferer) {
-	v.Call.infer(s)
-}
-
-// DeferStat
-
-func (v *DeferStat) infer(s *TypeInferer) {
-	v.Call.infer(s)
-}
-
-// AssignStat
-
-func (v *AssignStat) infer(s *TypeInferer) {
-	v.Assignment.setTypeHint(v.Access.GetType())
-	v.Assignment.infer(s)
-	v.Access.infer(s)
-}
-
-// BinopAssignStat
-
-func (v *BinopAssignStat) infer(s *TypeInferer) {
-	v.Assignment.setTypeHint(v.Access.GetType())
-	v.Assignment.infer(s)
-	v.Access.infer(s)
-}
-
-// LoopStat
-
-func (v *LoopStat) infer(s *TypeInferer) {
-	v.Body.infer(s)
-
-	switch v.LoopType {
-	case LOOP_TYPE_INFINITE:
-	case LOOP_TYPE_CONDITIONAL:
-		v.Condition.setTypeHint(PRIMITIVE_bool)
-		v.Condition.infer(s)
-	default:
-		panic("invalid loop type")
-	}
-}
-
-// MatchStat
-
-func (v *MatchStat) infer(s *TypeInferer) {
-	v.Target.infer(s)
-
-	for pattern, stmt := range v.Branches {
-		pattern.infer(s)
-		stmt.infer(s)
-	}
-}
-
-// DefaultStat
-
-func (v *DefaultStat) infer(s *TypeInferer) {
-	v.Target.infer(s)
-}
-
-/*
- * Expressions
- */
 
 // UnaryExpr
-
-func (v *UnaryExpr) infer(s *TypeInferer) {
-	v.Expr.infer(s)
-
-	if v.Expr.GetType() == nil {
-		return // come back on second inference
-	}
-
-	switch v.Op {
-	case UNOP_LOG_NOT:
-		if v.Expr.GetType() == PRIMITIVE_bool {
-			v.Type = PRIMITIVE_bool
-		}
-	case UNOP_BIT_NOT:
-		if v.Expr.GetType().IsIntegerType() || v.Expr.GetType().IsFloatingType() {
-			v.Type = v.Expr.GetType()
-		}
-	case UNOP_NEGATIVE:
-		if v.Expr.GetType().IsIntegerType() || v.Expr.GetType().IsFloatingType() {
-			v.Type = v.Expr.GetType()
-		}
-	default:
-		panic("unknown unary op")
-	}
-}
-
 func (v *UnaryExpr) setTypeHint(t Type) {
-	switch v.Op {
-	case UNOP_LOG_NOT:
-		v.Expr.setTypeHint(PRIMITIVE_bool)
-	case UNOP_BIT_NOT, UNOP_NEGATIVE:
-		v.Expr.setTypeHint(t)
-	default:
-		panic("unknown unary op")
-	}
+	v.Type = t
 }
 
 // BinaryExpr
-
-func (v *BinaryExpr) infer(s *TypeInferer) {
-
-	switch v.Op {
-	case BINOP_EQ, BINOP_NOT_EQ:
-		v.Lhand.infer(s)
-		v.Rhand.setTypeHint(v.Lhand.GetType())
-		v.Rhand.infer(s)
-		v.Type = PRIMITIVE_bool
-
-	case BINOP_ADD, BINOP_SUB, BINOP_MUL, BINOP_DIV, BINOP_MOD,
-		BINOP_GREATER, BINOP_LESS, BINOP_GREATER_EQ, BINOP_LESS_EQ,
-		BINOP_BIT_AND, BINOP_BIT_OR, BINOP_BIT_XOR:
-		v.Lhand.infer(s)
-		v.Rhand.setTypeHint(v.Lhand.GetType())
-		v.Rhand.infer(s)
-
-		switch v.Op.Category() {
-		case OP_ARITHMETIC:
-			v.Type = v.Lhand.GetType()
-		case OP_COMPARISON:
-			v.Type = PRIMITIVE_bool
-		default:
-			s.err(v, "invalid operands specified `%s`", v.Op.String())
-		}
-
-	case BINOP_BIT_LEFT, BINOP_BIT_RIGHT:
-		v.Lhand.infer(s)
-		v.Rhand.infer(s)
-		v.Type = v.Lhand.GetType()
-
-	case BINOP_LOG_AND, BINOP_LOG_OR:
-		v.Lhand.infer(s)
-		v.Rhand.infer(s)
-		v.Type = PRIMITIVE_bool
-
-	default:
-		panic("unimplemented bin operation")
-	}
-}
-
 func (v *BinaryExpr) setTypeHint(t Type) {
-	switch v.Op.Category() {
-	case OP_ARITHMETIC, OP_BITWISE:
-		if v.Op == BINOP_BIT_LEFT || v.Op == BINOP_BIT_RIGHT {
-			v.Rhand.setTypeHint(nil)
-			v.Lhand.setTypeHint(t)
-			return
-		}
-		if t == nil {
-			if v.Lhand.GetType() == nil && v.Rhand.GetType() != nil {
-				v.Lhand.setTypeHint(v.Rhand.GetType())
-				return
-			} else if v.Rhand.GetType() == nil && v.Lhand.GetType() != nil {
-				v.Rhand.setTypeHint(v.Lhand.GetType())
-				return
-			}
-		}
-		v.Lhand.setTypeHint(t)
-		v.Rhand.setTypeHint(t)
-	case OP_COMPARISON:
-		if v.Lhand.GetType() == nil && v.Rhand.GetType() != nil {
-			v.Lhand.setTypeHint(v.Rhand.GetType())
-		} else if v.Rhand.GetType() == nil && v.Lhand.GetType() != nil {
-			v.Rhand.setTypeHint(v.Lhand.GetType())
-		} else {
-			v.Lhand.setTypeHint(nil)
-			v.Rhand.setTypeHint(nil)
-		}
-	case OP_LOGICAL:
-		v.Lhand.setTypeHint(PRIMITIVE_bool)
-		v.Rhand.setTypeHint(PRIMITIVE_bool)
-	default:
-		panic("missing opcategory")
-	}
+	v.Type = t
 }
 
 // NumericLiteral
-
-func (v *NumericLiteral) infer(s *TypeInferer) {}
-
 func (v *NumericLiteral) setTypeHint(t Type) {
 	var actual Type
 	if t != nil {
@@ -391,90 +963,7 @@ func (v *NumericLiteral) setTypeHint(t Type) {
 	}
 }
 
-// StringLiteral
-
-func (v *StringLiteral) infer(s *TypeInferer) {
-	if v.Type == nil {
-		if v.IsCString {
-			v.Type = PointerTo(PRIMITIVE_u8)
-		} else {
-			v.Type = stringType
-		}
-	}
-}
-
-func (v *StringLiteral) setTypeHint(t Type) {
-
-}
-
-// RuneLiteral
-
-func (v *RuneLiteral) infer(s *TypeInferer) {}
-func (v *RuneLiteral) setTypeHint(t Type)   {}
-
-// BoolLiteral
-
-func (v *BoolLiteral) infer(s *TypeInferer) {}
-func (v *BoolLiteral) setTypeHint(t Type)   {}
-
 // ArrayLiteral
-
-func (v *CompositeLiteral) infer(s *TypeInferer) {
-	if array, ok := v.Type.ActualType().(ArrayType); ok {
-		for _, val := range v.Values {
-			val.setTypeHint(array.MemberType)
-			val.infer(s)
-		}
-	} else if struc, ok := v.Type.ActualType().(StructType); ok {
-		for i, val := range v.Values {
-			field := v.Fields[i]
-
-			if decl := struc.GetVariableDecl(field); decl != nil {
-				val.setTypeHint(decl.Variable.Type)
-			} else {
-				val.setTypeHint(nil)
-			}
-			val.infer(s)
-		}
-	} else {
-		s.err(v, "Invalid composite literal, expected array or structure")
-	}
-
-	/*var memType Type // type of each member of the array
-
-	if v.Type == nil {
-		memType = nil
-	} else {
-		arrayType, ok := v.Type.ActualType().(ArrayType)
-		if !ok {
-			s.err(v, "Invalid type")
-		}
-		memType = arrayType.MemberType
-	}
-
-	for _, mem := range v.Members {
-		mem.setTypeHint(memType)
-	}
-
-	for _, mem := range v.Members {
-		mem.infer(s)
-	}
-
-	if v.Type == nil {
-		for _, mem := range v.Members {
-			if mem.GetType() != nil {
-				memType = mem.GetType()
-				break
-			}
-		}
-
-		if memType == nil {
-			s.err(v, "Couldn't infer type of array members") // don't think this can ever happen
-		}
-		v.Type = ArrayOf(memType)
-	}*/
-}
-
 func (v *CompositeLiteral) setTypeHint(t Type) {
 	if t == nil {
 		return
@@ -486,240 +975,12 @@ func (v *CompositeLiteral) setTypeHint(t Type) {
 	}
 }
 
-// CastExpr
-
-func (v *CastExpr) infer(s *TypeInferer) {
-	v.Expr.setTypeHint(nil)
-	v.Expr.infer(s)
-}
-
-func (v *CastExpr) setTypeHint(t Type) {}
-
-// CallExpr
-
-func (v *CallExpr) infer(s *TypeInferer) {
-
-	if sae, ok := v.Function.(*StructAccessExpr); ok {
-		sae.Struct.infer(s)
-		fn := TypeWithoutPointers(sae.Struct.GetType()).(*NamedType).GetMethod(sae.Member)
-		v.Function = &FunctionAccessExpr{Function: fn}
-		if v.Function == nil {
-			//s.err(v, "Cannot resolve method `%s` of type `%s`", sae.Member, TypeWithoutPointers(sae.Struct.GetType()).TypeName())
-		}
-	} else {
-		v.Function.infer(s)
-	}
-
-	if v.Function != nil {
-		if _, ok := v.Function.GetType().(FunctionType); !ok {
-			s.err(v, "Cannot call non-function") // TODO better error message
-			return
-		}
-
-		if v.Function.GetType().(FunctionType).Receiver != nil {
-			recType := v.Function.GetType().(FunctionType).Receiver
-			accessType := v.ReceiverAccess.GetType()
-
-			if accessType.LevelsOfIndirection() == recType.LevelsOfIndirection()+1 {
-				if ref, ok := v.ReceiverAccess.GetType().(ConstantReferenceType); ok {
-					v.ReceiverAccess = &DerefAccessExpr{
-						Type: ref.Referrer,
-						Expr: v.ReceiverAccess,
-					}
-				}
-				if ref, ok := v.ReceiverAccess.GetType().(MutableReferenceType); ok {
-					v.ReceiverAccess = &DerefAccessExpr{
-						Type: ref.Referrer,
-						Expr: v.ReceiverAccess,
-					}
-				}
-				if ptr, ok := v.ReceiverAccess.GetType().(PointerType); ok {
-					v.ReceiverAccess = &DerefAccessExpr{
-						Type: ptr.Addressee,
-						Expr: v.ReceiverAccess,
-					}
-				}
-			}
-		}
-
-		// attributes defaults
-		for i, arg := range v.Arguments {
-			if i >= len(v.Function.GetType().(FunctionType).Parameters) { // we have a variadic arg
-				arg.setTypeHint(nil)
-			} else {
-				arg.setTypeHint(v.Function.GetType().(FunctionType).Parameters[i])
-			}
-		}
-	}
-
-	for _, arg := range v.Arguments {
-		arg.infer(s)
-	}
-}
-
-func (v *CallExpr) setTypeHint(t Type) {}
-
-// VariableAccessExpr
-func (v *VariableAccessExpr) infer(s *TypeInferer) {
-
-}
-
-func (v *VariableAccessExpr) setTypeHint(t Type) {}
-
-// FunctionAccessExpr
-func (_ FunctionAccessExpr) infer(s *TypeInferer) {}
-func (_ FunctionAccessExpr) setTypeHint(t Type)   {}
-
-// StructAccessExpr
-func (v *StructAccessExpr) infer(s *TypeInferer) {
-	v.Struct.infer(s)
-
-	if v.Struct.GetType() == nil {
-		s.err(v, "Type of access expression was nil")
-	}
-
-	typ := v.Struct.GetType().ActualType()
-	if typ.LevelsOfIndirection() == 1 {
-		typ = typ.(PointerType).Addressee.ActualType()
-		v.Struct = &DerefAccessExpr{
-			Type: typ,
-			Expr: v.Struct,
-		}
-	}
-
-	structType, ok := typ.(StructType)
-	if !ok {
-		s.err(v, "Cannot access member of type `%s`", v.Struct.GetType().TypeName())
-	}
-
-	// TODO check no mod access
-	decl := structType.GetVariableDecl(v.Member)
-	if decl == nil {
-		s.err(v, "Struct `%s` does not contain member `%s`", structType.TypeName(), v.Member)
-	} else {
-		v.Variable = decl.Variable
-	}
-}
-
-func (v *StructAccessExpr) setTypeHint(t Type) {}
-
-// ArrayAccessExpr
-func (v *ArrayAccessExpr) infer(s *TypeInferer) {
-	v.Array.infer(s)
-
-	v.Subscript.setTypeHint(PRIMITIVE_int)
-	v.Subscript.infer(s)
-}
-
-func (v *ArrayAccessExpr) setTypeHint(t Type) {}
-
-// TupleAccessExpr
-func (v *TupleAccessExpr) infer(s *TypeInferer) {
-	v.Tuple.infer(s)
-}
-
-func (v *TupleAccessExpr) setTypeHint(t Type) {}
-
-// DerefAccessExpr
-
-func (v *DerefAccessExpr) infer(s *TypeInferer) {
-	v.Expr.infer(s)
-	if pointerType, ok := v.Expr.GetType().(PointerType); ok {
-		v.Type = pointerType.Addressee
-	}
-
-	if mutRef, ok := v.Expr.GetType().(MutableReferenceType); ok {
-		v.Type = mutRef.Referrer
-	}
-
-	if constRef, ok := v.Expr.GetType().(ConstantReferenceType); ok {
-		v.Type = constRef.Referrer
-	}
-}
-
-func (v *DerefAccessExpr) setTypeHint(t Type) {
-	v.Expr.setTypeHint(PointerTo(t))
-}
-
-// AddressOfExpr
-
-func (v *AddressOfExpr) infer(s *TypeInferer) {
-	v.Access.infer(s)
-}
-
-func (v *AddressOfExpr) setTypeHint(t Type) {
-}
-
-// ArrayLenExpr
-
-func (v *ArrayLenExpr) infer(s *TypeInferer) {
-	if v.Expr != nil {
-		v.Expr.setTypeHint(nil)
-		v.Expr.infer(s)
-	}
-}
-
-func (v *ArrayLenExpr) setTypeHint(t Type) {}
-
-// LambdaExpr
-
-func (v *LambdaExpr) infer(s *TypeInferer) {
-	v.Function.infer(s)
-}
-
-func (v LambdaExpr) setTypeHint(t Type) {}
-
-// SizeofExpr
-
-func (v *SizeofExpr) infer(s *TypeInferer) {
-	if v.Expr != nil {
-		v.Expr.setTypeHint(nil)
-		v.Expr.infer(s)
-	}
-}
-
-func (v *SizeofExpr) setTypeHint(t Type) {
+// StringLiteral
+func (v *StringLiteral) setTypeHint(t Type) {
+	v.Type = t
 }
 
 // TupleLiteral
-
-func (v *TupleLiteral) infer(s *TypeInferer) {
-	var memberTypes []Type
-
-	if v.Type != nil {
-		tupleType, ok := v.Type.ActualType().(TupleType)
-		if ok {
-			memberTypes = tupleType.Members
-		}
-	}
-
-	if len(v.Members) == len(memberTypes) {
-		for idx, mem := range memberTypes {
-			v.Members[idx].setTypeHint(mem)
-		}
-	} else {
-		for _, mem := range v.Members {
-			mem.setTypeHint(nil)
-		}
-	}
-
-	for _, mem := range v.Members {
-		mem.infer(s)
-	}
-
-	if v.Type == nil {
-		var members []Type
-		for _, mem := range v.Members {
-			if mem.GetType() == nil {
-				s.err(mem, "Couldn't infer type of tuple component")
-			}
-			members = append(members, mem.GetType())
-		}
-
-		v.Type = tupleOf(members...)
-	}
-}
-
 func (v *TupleLiteral) setTypeHint(t Type) {
 	if t == nil {
 		return
@@ -731,41 +992,27 @@ func (v *TupleLiteral) setTypeHint(t Type) {
 	}
 }
 
-// EnumLiteral
-func (v *EnumLiteral) infer(s *TypeInferer) {
-	if enumType, ok := v.Type.ActualType().(EnumType); ok {
-		memIdx := enumType.MemberIndex(v.Member)
-
-		if memIdx < 0 || memIdx >= len(enumType.Members) {
-			return
-		}
-
-		memType := enumType.Members[memIdx].Type
-		if structType, ok := memType.(StructType); ok && v.CompositeLiteral != nil {
-			v.CompositeLiteral.setTypeHint(structType)
-			v.CompositeLiteral.infer(s)
-		} else if tupleType, ok := memType.(TupleType); ok && v.TupleLiteral != nil {
-			v.TupleLiteral.setTypeHint(tupleType)
-			v.TupleLiteral.infer(s)
-		}
+// Variable
+func (v *Variable) setTypeHint(t Type) {
+	if v.Type == nil {
+		v.Type = t
 	}
 }
 
-func (v *EnumLiteral) setTypeHint(t Type) {
-}
-
-// DefaultMatchBranch
-
-func (v *DefaultMatchBranch) infer(s *TypeInferer) {
-}
-
-func (v *DefaultMatchBranch) setTypeHint(t Type) {
-}
-
-// DefaultExpr
-
-func (v *DefaultExpr) infer(s *TypeInferer) {
-}
-
-func (v *DefaultExpr) setTypeHint(t Type) {
-}
+// Noops
+func (_ AddressOfExpr) setTypeHint(t Type)      {}
+func (_ ArrayAccessExpr) setTypeHint(t Type)    {}
+func (_ ArrayLenExpr) setTypeHint(t Type)       {}
+func (_ BoolLiteral) setTypeHint(t Type)        {}
+func (_ CastExpr) setTypeHint(t Type)           {}
+func (_ CallExpr) setTypeHint(t Type)           {}
+func (_ DefaultMatchBranch) setTypeHint(t Type) {}
+func (_ DerefAccessExpr) setTypeHint(t Type)    {}
+func (_ EnumLiteral) setTypeHint(t Type)        {}
+func (_ FunctionAccessExpr) setTypeHint(t Type) {}
+func (_ LambdaExpr) setTypeHint(t Type)         {}
+func (_ RuneLiteral) setTypeHint(t Type)        {}
+func (_ VariableAccessExpr) setTypeHint(t Type) {}
+func (_ SizeofExpr) setTypeHint(t Type)         {}
+func (_ StructAccessExpr) setTypeHint(t Type)   {}
+func (_ TupleAccessExpr) setTypeHint(t Type)    {}

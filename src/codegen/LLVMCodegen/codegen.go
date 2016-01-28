@@ -229,8 +229,8 @@ func (v *Codegen) addStructType(typ parser.StructType, name string) {
 
 	v.namedTypeLookup[name] = structure
 
-	for _, field := range typ.Variables {
-		if named, ok := field.Variable.Type.(*parser.NamedType); ok {
+	for _, field := range typ.Members {
+		if named, ok := field.Type.(*parser.NamedType); ok {
 			v.addNamedType(named)
 		}
 	}
@@ -380,8 +380,6 @@ func (v *Codegen) genStat(n parser.Stat) {
 		v.genMatchStat(n)
 	case *parser.DeferStat:
 		v.genDeferStat(n)
-	case *parser.DefaultStat:
-		v.genDefaultStat(n)
 	default:
 		panic("unimplemented stat")
 	}
@@ -581,13 +579,6 @@ func (v *Codegen) genMatchStat(n *parser.MatchStat) {
 	// TODO: implement
 }
 
-func (v *Codegen) genDefaultStat(n *parser.DefaultStat) {
-	target := v.genAccessGEP(n.Target)
-	value := v.genDefaultValue(n.Target.GetType())
-
-	v.builder().CreateStore(value, target)
-}
-
 func (v *Codegen) genDecl(n parser.Decl) {
 	switch n := n.(type) {
 	case *parser.FunctionDecl:
@@ -737,8 +728,6 @@ func (v *Codegen) genExpr(n parser.Expr) llvm.Value {
 		return v.genSizeofExpr(n)
 	case *parser.ArrayLenExpr:
 		return v.genArrayLenExpr(n)
-	case *parser.DefaultExpr:
-		return v.genDefaultExpr(n)
 	case *parser.LambdaExpr:
 		return v.genLambdaExpr(n)
 	default:
@@ -817,7 +806,7 @@ func (v *Codegen) genAccessGEP(n parser.Expr) llvm.Value {
 
 		typ := access.Struct.GetType().ActualType()
 
-		index := typ.(parser.StructType).VariableIndex(access.Variable)
+		index := typ.(parser.StructType).MemberIndex(access.Member)
 		return v.builder().CreateStructGEP(gep, index, "")
 
 	case *parser.ArrayAccessExpr:
@@ -1011,8 +1000,7 @@ func (v *Codegen) genStructLiteral(n *parser.CompositeLiteral) llvm.Value {
 
 	for i, value := range n.Values {
 		name := n.Fields[i]
-		vari := structType.GetVariableDecl(name).Variable
-		idx := structType.VariableIndex(vari)
+		idx := structType.MemberIndex(name)
 
 		memberValue := v.genExpr(value)
 		if !v.inFunction() && !memberValue.IsConstant() {
@@ -1412,69 +1400,4 @@ func (v *Codegen) genSizeofExpr(n *parser.SizeofExpr) llvm.Value {
 	}
 
 	return llvm.ConstInt(v.targetData.IntPtrType(), v.targetData.TypeAllocSize(typ), false)
-}
-
-func (v *Codegen) genDefaultExpr(n *parser.DefaultExpr) llvm.Value {
-	return v.genDefaultValue(n.GetType())
-}
-
-func (v *Codegen) genDefaultValue(typ parser.Type) llvm.Value {
-	atyp := typ.ActualType()
-
-	// Generate default struct values
-	if structType, ok := atyp.(parser.StructType); ok {
-		lit := createStructInitializer(typ)
-		if lit != nil {
-			return v.genStructLiteral(lit)
-		} else {
-			return llvm.Undef(v.typeToLLVMType(structType))
-		}
-	}
-
-	if tupleType, ok := atyp.(parser.TupleType); ok {
-		values := make([]llvm.Value, len(tupleType.Members))
-		for idx, member := range tupleType.Members {
-			values[idx] = v.genDefaultValue(member)
-		}
-		return llvm.ConstStruct(values, false)
-	}
-
-	if atyp.IsIntegerType() || atyp == parser.PRIMITIVE_bool {
-		return llvm.ConstInt(v.typeToLLVMType(atyp), 0, false)
-	}
-
-	if atyp.IsFloatingType() {
-		return llvm.ConstFloat(v.typeToLLVMType(atyp), 0)
-	}
-
-	panic("type does not have default value: " + atyp.TypeName())
-}
-
-func createStructInitializer(typ parser.Type) *parser.CompositeLiteral {
-	lit := &parser.CompositeLiteral{Type: typ}
-	hasDefaultValues := false
-
-	structType := typ.ActualType().(parser.StructType)
-
-	for _, decl := range structType.Variables {
-		vari := decl.Variable
-
-		var value parser.Expr
-		if _, ok := vari.Type.ActualType().(parser.StructType); ok {
-			value = createStructInitializer(vari.Type)
-		} else {
-			value = decl.Assignment
-		}
-
-		if value != nil {
-			hasDefaultValues = true
-			lit.Values = append(lit.Values, value)
-			lit.Fields = append(lit.Fields, vari.Name)
-		}
-	}
-
-	if hasDefaultValues {
-		return lit
-	}
-	return nil
 }

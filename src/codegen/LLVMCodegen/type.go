@@ -79,11 +79,11 @@ func (v *Codegen) structTypeToLLVMType(typ parser.StructType) llvm.Type {
 }
 
 func (v *Codegen) structTypeToLLVMTypeFields(typ parser.StructType) []llvm.Type {
-	numOfFields := len(typ.Variables)
+	numOfFields := len(typ.Members)
 	fields := make([]llvm.Type, numOfFields)
 
-	for i, member := range typ.Variables {
-		memberType := v.typeToLLVMType(member.Variable.Type)
+	for i, member := range typ.Members {
+		memberType := v.typeToLLVMType(member.Type)
 		fields[i] = memberType
 	}
 

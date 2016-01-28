@@ -5,6 +5,10 @@ import (
 	"fmt"
 )
 
+type Mangled interface {
+	MangledName(MangleType) string
+}
+
 // In case we support multiple name mangling schemes
 type MangleType int
 
@@ -44,9 +48,9 @@ func TypeMangledName(mangleType MangleType, typ Type) string {
 			}
 
 		case StructType:
-			res += fmt.Sprintf("S%d", len(typ.Variables))
-			for _, decl := range typ.Variables {
-				res += TypeMangledName(mangleType, decl.Variable.Type)
+			res += fmt.Sprintf("S%d", len(typ.Members))
+			for _, mem := range typ.Members {
+				res += TypeMangledName(mangleType, mem.Type)
 			}
 
 		case TupleType:

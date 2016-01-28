@@ -53,10 +53,6 @@ func (v *UnusedCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
 	case *parser.VariableAccessExpr:
 		expr := n.(*parser.VariableAccessExpr)
 		v.uses[expr.Variable]++
-
-	case *parser.StructAccessExpr:
-		expr := n.(*parser.StructAccessExpr)
-		v.uses[expr.Variable]++
 	}
 }
 

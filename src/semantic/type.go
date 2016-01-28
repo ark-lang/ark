@@ -1,6 +1,8 @@
 package semantic
 
-import "github.com/ark-lang/ark/src/parser"
+import (
+	"github.com/ark-lang/ark/src/parser"
+)
 
 type TypeCheck struct {
 	functions []*parser.Function
@@ -285,7 +287,7 @@ func (v *TypeCheck) CheckCallExpr(s *SemanticAnalyzer, expr *parser.CallExpr) {
 			}
 		} else {
 			par := fnType.Parameters[i]
-			if !arg.GetType().Equals(par) {
+			if arg.GetType() != nil && !arg.GetType().Equals(par) {
 				s.Err(arg, "Mismatched types in function call: `%s` and `%s`",
 					arg.GetType().TypeName(), par.TypeName())
 			}
@@ -406,14 +408,14 @@ func (v *TypeCheck) CheckCompositeLiteral(s *SemanticAnalyzer, lit *parser.Compo
 				continue
 			}
 
-			decl := typ.GetVariableDecl(name)
-			if decl == nil {
+			sMem := typ.GetMember(name)
+			if sMem == nil {
 				s.Err(lit, "No member named `%s` on struct of type `%s`", name, typ.TypeName())
 			}
 
-			if !mem.GetType().Equals(decl.Variable.Type) {
+			if !mem.GetType().Equals(sMem.Type) {
 				s.Err(lit, "Cannot use value of type `%s` as member of `%s` with type `%s`",
-					mem.GetType().TypeName(), decl.Variable.Type.TypeName(), typ.TypeName())
+					mem.GetType().TypeName(), sMem.Type.TypeName(), typ.TypeName())
 			}
 		}
 

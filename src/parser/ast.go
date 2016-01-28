@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"bytes"
 	"fmt"
 	"math/big"
 	"strconv"
@@ -17,7 +18,6 @@ type Locatable interface {
 type Node interface {
 	String() string
 	NodeName() string
-	infer(*TypeInferer)
 	Locatable
 }
 
@@ -26,11 +26,15 @@ type Stat interface {
 	statNode()
 }
 
-type Expr interface {
-	Node
-	exprNode()
+type Typed interface {
 	GetType() Type
 	setTypeHint(Type) // the type of the parent node, nil if parent node's type is inferred
+}
+
+type Expr interface {
+	Node
+	Typed
+	exprNode()
 }
 
 type AccessExpr interface {
@@ -80,14 +84,19 @@ type Variable struct {
 }
 
 func (v *Variable) String() string {
-	result := "(" + util.Blue("Variable") + ": "
+	s := NewASTStringer("Variable")
 	if v.Mutable {
-		result += util.Green("[mutable] ")
+		s.AddStringColored(util.TEXT_GREEN, " [mutable]")
 	}
-	for _, attr := range v.Attrs {
-		result += attr.String() + " "
-	}
-	return result + v.Name + util.Magenta(" <"+v.MangledName(MANGLE_ARK_UNSTABLE)+"> ") + util.Green(v.Type.TypeName()) + ")"
+	s.AddAttrs(v.Attrs)
+	s.AddString(v.Name)
+	s.AddMangled(v)
+	s.AddType(v.Type)
+	return s.Finish()
+}
+
+func (v *Variable) GetType() Type {
+	return v.Type
 }
 
 // Note that for static methods, ``
@@ -105,22 +114,19 @@ type Function struct {
 }
 
 func (v *Function) String() string {
-	result := "(" + util.Blue("Function") + ": "
-	for _, attr := range v.Type.Attrs() {
-		result += attr.String() + " "
-	}
-	result += v.Name
+	s := NewASTStringer("Function")
+	s.AddAttrs(v.Type.Attrs())
+	s.AddString(v.Name)
 	for _, par := range v.Parameters {
-		result += " " + par.String()
+		s.Add(par)
 	}
 	if v.Type.Return != nil {
-		result += ": " + util.Green(v.Type.Return.TypeName()) + " "
+		s.AddString(":")
+		s.AddType(v.Type.Return)
 	}
-
-	if v.Body != nil {
-		result += v.Body.String()
-	}
-	return result + util.Magenta(" <"+v.MangledName(MANGLE_ARK_UNSTABLE)+">") + ")"
+	s.Add(v.Body)
+	s.AddMangled(v)
+	return s.Finish()
 }
 
 //
@@ -135,15 +141,12 @@ type Block struct {
 }
 
 func (v *Block) String() string {
-	if len(v.Nodes) == 0 {
-		return "(" + util.Blue("Block") + ": )"
-	}
-
-	result := "(" + util.Blue("Block") + ":\n"
+	s := NewASTStringer("Block")
 	for _, n := range v.Nodes {
-		result += "\t" + n.String() + "\n"
+		s.AddString("\n\t")
+		s.Add(n)
 	}
-	return result + ")"
+	return s.Finish()
 }
 
 func (v *Block) appendNode(n Node) {
@@ -191,12 +194,13 @@ type VariableDecl struct {
 func (v *VariableDecl) declNode() {}
 
 func (v *VariableDecl) String() string {
-	if v.Assignment == nil {
-		return "(" + util.Blue("VariableDecl") + ": " + v.Variable.String() + ")"
-	} else {
-		return "(" + util.Blue("VariableDecl") + ": " + v.Variable.String() +
-			" = " + v.Assignment.String() + ")"
+	s := NewASTStringer("VariableDecl")
+	s.Add(v.Variable)
+	if v.Assignment != nil {
+		s.AddString(" =")
+		s.Add(v.Assignment)
 	}
+	return s.Finish()
 }
 
 func (v *VariableDecl) NodeName() string {
@@ -218,7 +222,7 @@ type TypeDecl struct {
 func (v *TypeDecl) declNode() {}
 
 func (v *TypeDecl) String() string {
-	return "(" + util.Blue("TypeDecl") + ": " + v.NamedType.String() + ")"
+	return NewASTStringer("TypeDecl").Add(v.NamedType).Finish()
 }
 
 func (v *TypeDecl) NodeName() string {
@@ -242,7 +246,7 @@ type FunctionDecl struct {
 func (v *FunctionDecl) declNode() {}
 
 func (v *FunctionDecl) String() string {
-	return "(" + util.Blue("FunctionDecl") + ": " + v.Function.String() + ")"
+	return NewASTStringer("FunctionDecl").Add(v.Function).Finish()
 }
 
 func (v *FunctionDecl) NodeName() string {
@@ -251,24 +255,6 @@ func (v *FunctionDecl) NodeName() string {
 
 func (v *FunctionDecl) DocComments() []*DocComment {
 	return v.docs
-}
-
-// DirectiveDecl
-
-type DirectiveDecl struct {
-	nodePos
-	Name     string
-	Argument *StringLiteral
-}
-
-func (v *DirectiveDecl) declNode() {}
-
-func (v *DirectiveDecl) String() string {
-	return "(" + util.Blue("DirectiveDecl") + ": #" + v.Name + " " + v.Argument.String() + ")"
-}
-
-func (v *DirectiveDecl) NodeName() string {
-	return "function declaration"
 }
 
 /**
@@ -285,7 +271,7 @@ type UseDirective struct {
 func (v *UseDirective) declNode() {}
 
 func (v *UseDirective) String() string {
-	return "(" + util.Blue("UseDecl") + ": " + v.ModuleName.String() + ")"
+	return NewASTStringer("UseDirective").Add(v.ModuleName).Finish()
 }
 
 func (v *UseDirective) NodeName() string {
@@ -306,8 +292,7 @@ type BlockStat struct {
 func (v *BlockStat) statNode() {}
 
 func (v *BlockStat) String() string {
-	return "(" + util.Blue("BlockStat") + ": " +
-		v.Block.String() + ")"
+	return NewASTStringer("BlockStat").Add(v.Block).Finish()
 }
 
 func (v *BlockStat) NodeName() string {
@@ -324,13 +309,7 @@ type ReturnStat struct {
 func (v *ReturnStat) statNode() {}
 
 func (v *ReturnStat) String() string {
-	ret := "(" + util.Blue("ReturnStat") + ": "
-	if v.Value == nil {
-		ret += "void"
-	} else {
-		ret += v.Value.String()
-	}
-	return ret + ")"
+	return NewASTStringer("ReturnStat").AddWithFallback("", v.Value, "void").Finish()
 }
 
 func (v *ReturnStat) NodeName() string {
@@ -346,7 +325,7 @@ type BreakStat struct {
 func (v *BreakStat) statNode() {}
 
 func (v *BreakStat) String() string {
-	return "(" + util.Blue("BreakStat") + ")"
+	return NewASTStringer("BreakStat").Finish()
 }
 
 func (v *BreakStat) NodeName() string {
@@ -362,7 +341,7 @@ type NextStat struct {
 func (v *NextStat) statNode() {}
 
 func (v *NextStat) String() string {
-	return "(" + util.Blue("NextStat") + ")"
+	return NewASTStringer("NextStat").Finish()
 }
 
 func (v *NextStat) NodeName() string {
@@ -379,8 +358,7 @@ type CallStat struct {
 func (v *CallStat) statNode() {}
 
 func (v *CallStat) String() string {
-	return "(" + util.Blue("CallStat") + ": " +
-		v.Call.String() + ")"
+	return NewASTStringer("CallStat").Add(v.Call).Finish()
 }
 
 func (v *CallStat) NodeName() string {
@@ -397,8 +375,7 @@ type DeferStat struct {
 func (v *DeferStat) statNode() {}
 
 func (v *DeferStat) String() string {
-	return "(" + util.Blue("DeferStat") + ": " +
-		v.Call.String() + ")"
+	return NewASTStringer("DeferStat").Add(v.Call).Finish()
 }
 
 func (v *DeferStat) NodeName() string {
@@ -416,9 +393,7 @@ type AssignStat struct {
 func (v *AssignStat) statNode() {}
 
 func (v *AssignStat) String() string {
-	result := "(" + util.Blue("AssignStat") + ": "
-	result += v.Access.String()
-	return result + " = " + v.Assignment.String() + ")"
+	return NewASTStringer("AssignStat").Add(v.Access).AddString(" =").Add(v.Assignment).Finish()
 }
 
 func (v *AssignStat) NodeName() string {
@@ -437,9 +412,7 @@ type BinopAssignStat struct {
 func (v *BinopAssignStat) statNode() {}
 
 func (v *BinopAssignStat) String() string {
-	result := "(" + util.Blue("BinopssignStat") + ": "
-	result += v.Access.String()
-	return result + " " + v.Operator.OpString() + "= " + v.Assignment.String() + ")"
+	return NewASTStringer("BinopAssignStat").Add(v.Access).Add(v.Operator).AddString(" =").Add(v.Assignment).Finish()
 }
 
 func (v *BinopAssignStat) NodeName() string {
@@ -458,15 +431,13 @@ type IfStat struct {
 func (v *IfStat) statNode() {}
 
 func (v *IfStat) String() string {
-	result := "(" + util.Blue("IfStat") + ": "
+	s := NewASTStringer("IfStat")
 	for i, expr := range v.Exprs {
-		result += expr.String() + " "
-		result += v.Bodies[i].String()
+		s.Add(expr)
+		s.Add(v.Bodies[i])
 	}
-	if v.Else != nil {
-		result += v.Else.String()
-	}
-	return result + ")"
+	s.Add(v.Else)
+	return s.Finish()
 }
 
 func (v *IfStat) NodeName() string {
@@ -496,19 +467,17 @@ type LoopStat struct {
 func (v *LoopStat) statNode() {}
 
 func (v *LoopStat) String() string {
-	result := "(" + util.Blue("LoopStat") + ": "
-
+	s := NewASTStringer("LoopStat")
 	switch v.LoopType {
 	case LOOP_TYPE_INFINITE:
+		// noop
 	case LOOP_TYPE_CONDITIONAL:
-		result += v.Condition.String() + " "
+		s.Add(v.Condition)
 	default:
 		panic("invalid loop type")
 	}
-
-	result += v.Body.String()
-
-	return result + ")"
+	s.Add(v.Body)
+	return s.Finish()
 }
 
 func (v *LoopStat) NodeName() string {
@@ -532,34 +501,19 @@ func newMatch() *MatchStat {
 func (v *MatchStat) statNode() {}
 
 func (v *MatchStat) String() string {
-	result := "(" + util.Blue("MatchStat") + ": " + v.Target.String() + ":\n"
-
+	s := NewASTStringer("MatchStat")
+	s.Add(v.Target)
 	for pattern, stmt := range v.Branches {
-		result += "\t" + pattern.String() + " -> " + stmt.String() + "\n"
+		s.AddString("\n\t")
+		s.Add(pattern)
+		s.AddString(" -> ")
+		s.Add(stmt)
 	}
-
-	return result + ")"
+	return s.Finish()
 }
 
 func (v *MatchStat) NodeName() string {
 	return "match statement"
-}
-
-// Default stat
-type DefaultStat struct {
-	nodePos
-
-	Target AccessExpr
-}
-
-func (v *DefaultStat) statNode() {}
-
-func (v *DefaultStat) String() string {
-	return "(" + util.Blue("DefaultStat") + ": " + v.Target.String() + ")"
-}
-
-func (v *DefaultStat) NodeName() string {
-	return "default statement"
 }
 
 /**
@@ -577,7 +531,9 @@ type RuneLiteral struct {
 func (v *RuneLiteral) exprNode() {}
 
 func (v *RuneLiteral) String() string {
-	return fmt.Sprintf("(" + util.Blue("RuneLiteral") + ": " + colorizeEscapedString(EscapeString(string(v.Value))) + " " + util.Green(v.GetType().TypeName()) + ")")
+	return NewASTStringer("RuneLiteral").AddString(
+		colorizeEscapedString(EscapeString(string(v.Value))),
+	).AddType(v.GetType()).Finish()
 }
 
 func (v *RuneLiteral) GetType() Type {
@@ -591,21 +547,24 @@ func (v *RuneLiteral) NodeName() string {
 // NumericLiteral
 type NumericLiteral struct {
 	nodePos
-	IntValue   *big.Int
-	FloatValue float64
-	IsFloat    bool
-	Type       Type
-	typeHint   Type
+	IntValue      *big.Int
+	FloatValue    float64
+	IsFloat       bool
+	Type          Type
+	floatSizeHint rune
 }
 
 func (v *NumericLiteral) exprNode() {}
 
 func (v *NumericLiteral) String() string {
+	s := NewASTStringer("NumericLiteral")
 	if v.IsFloat {
-		return fmt.Sprintf("("+util.Blue("NumericLiteral")+": "+util.Yellow("%d")+" "+util.Green(v.GetType().TypeName())+")", v.FloatValue)
+		s.AddStringColored(util.TEXT_YELLOW, fmt.Sprintf("%f", v.FloatValue))
 	} else {
-		return fmt.Sprintf("("+util.Blue("NumericLiteral")+": "+util.Yellow("%d")+" "+util.Green(v.GetType().TypeName())+")", v.IntValue)
+		s.AddStringColored(util.TEXT_YELLOW, fmt.Sprintf("%d", v.IntValue))
 	}
+	s.AddType(v.GetType())
+	return s.Finish()
 }
 
 func (v *NumericLiteral) GetType() Type {
@@ -644,7 +603,7 @@ type StringLiteral struct {
 func (v *StringLiteral) exprNode() {}
 
 func (v *StringLiteral) String() string {
-	return "(" + util.Blue("StringLiteral") + ": " + colorizeEscapedString((EscapeString(v.Value))) + " " + util.Green(v.GetType().TypeName()) + ")"
+	return NewASTStringer("StringLiteral").AddString(colorizeEscapedString(EscapeString(v.Value))).AddType(v.GetType()).Finish()
 }
 
 func (v *StringLiteral) GetType() Type {
@@ -665,13 +624,7 @@ type BoolLiteral struct {
 func (v *BoolLiteral) exprNode() {}
 
 func (v *BoolLiteral) String() string {
-	res := "(" + util.Blue("BoolLiteral") + ": "
-	if v.Value {
-		res += util.Yellow("true")
-	} else {
-		res += util.Yellow("false")
-	}
-	return res + ")"
+	return NewASTStringer("BoolLiteral").AddStringColored(util.TEXT_YELLOW, strconv.FormatBool(v.Value)).Finish()
 }
 
 func (v *BoolLiteral) GetType() Type {
@@ -693,12 +646,12 @@ type TupleLiteral struct {
 func (v *TupleLiteral) exprNode() {}
 
 func (v *TupleLiteral) String() string {
-	res := "(" + util.Blue("TupleLiteral") + ": "
+	s := NewASTStringer("TupleLiteral")
 	for _, mem := range v.Members {
-		res += mem.String()
-		res += ", "
+		s.Add(mem)
+		s.AddString(",")
 	}
-	return res + ")"
+	return s.Finish()
 }
 
 func (v *TupleLiteral) GetType() Type {
@@ -722,15 +675,18 @@ type CompositeLiteral struct {
 func (v *CompositeLiteral) exprNode() {}
 
 func (v *CompositeLiteral) String() string {
-	res := "(" + util.Blue("CompositeLiteral") + ": "
+	s := NewASTStringer("CompositeLiteral")
 	for i, mem := range v.Values {
+		s.AddString("\n\t")
 		if field := v.Fields[i]; field != "" {
-			res += field + ": "
+			s.AddString(field)
+			s.AddString(":")
 		}
-
-		res += mem.String() + ", "
+		s.Add(mem)
+		s.AddString(",")
 	}
-	return res + ")"
+	s.AddType(v.Type)
+	return s.Finish()
 }
 
 func (v *CompositeLiteral) GetType() Type {
@@ -755,13 +711,13 @@ type EnumLiteral struct {
 func (v *EnumLiteral) exprNode() {}
 
 func (v *EnumLiteral) String() string {
-	res := "(" + util.Blue("EnumLiteral") + ":"
+	s := NewASTStringer("EnumLiteral")
 	if v.TupleLiteral != nil {
-		res += v.TupleLiteral.String()
+		s.Add(v.TupleLiteral)
 	} else if v.CompositeLiteral != nil {
-		res += v.CompositeLiteral.String()
+		s.Add(v.CompositeLiteral)
 	}
-	return res + ")"
+	return s.Finish()
 }
 
 func (v *EnumLiteral) GetType() Type {
@@ -779,15 +735,12 @@ type BinaryExpr struct {
 	Lhand, Rhand Expr
 	Op           BinOpType
 	Type         Type
-	typeHint     Type
 }
 
 func (v *BinaryExpr) exprNode() {}
 
 func (v *BinaryExpr) String() string {
-	return "(" + util.Blue("BinaryExpr") + ": " + v.Lhand.String() + " " +
-		v.Op.String() + " " +
-		v.Rhand.String() + ")"
+	return NewASTStringer("BinaryExpr").Add(v.Op).Add(v.Lhand).Add(v.Rhand).Finish()
 }
 
 func (v *BinaryExpr) GetType() Type {
@@ -802,17 +755,15 @@ func (v *BinaryExpr) NodeName() string {
 
 type UnaryExpr struct {
 	nodePos
-	Expr     Expr
-	Op       UnOpType
-	Type     Type
-	typeHint Type
+	Expr Expr
+	Op   UnOpType
+	Type Type
 }
 
 func (v *UnaryExpr) exprNode() {}
 
 func (v *UnaryExpr) String() string {
-	return "(" + util.Blue("UnaryExpr") + ": " +
-		v.Op.String() + " " + v.Expr.String() + ")"
+	return NewASTStringer("UnaryExpr").Add(v.Op).Add(v.Expr).Finish()
 }
 
 func (v *UnaryExpr) GetType() Type {
@@ -834,7 +785,7 @@ type CastExpr struct {
 func (v *CastExpr) exprNode() {}
 
 func (v *CastExpr) String() string {
-	return "(" + util.Blue("CastExpr") + ": " + v.Expr.String() + " " + util.Green(v.GetType().TypeName()) + ")"
+	return NewASTStringer("CastExpr").Add(v.Expr).AddType(v.GetType()).Finish()
 }
 
 func (v *CastExpr) GetType() Type {
@@ -859,19 +810,21 @@ type CallExpr struct {
 func (v *CallExpr) exprNode() {}
 
 func (v *CallExpr) String() string {
-	result := "(" + util.Blue("CallExpr") + ": " + v.Function.String()
+	s := NewASTStringer("CallExpr")
+	s.Add(v.Function)
 	for _, arg := range v.Arguments {
-		result += " " + arg.String()
+		s.Add(arg)
 	}
-	if v.GetType() != nil {
-		result += " " + util.Green(v.GetType().TypeName())
-	}
-	return result + ")"
+	s.AddType(v.GetType())
+	return s.Finish()
 }
 
 func (v *CallExpr) GetType() Type {
 	if v.Function != nil {
-		return v.Function.GetType().(FunctionType).Return
+		fnType := v.Function.GetType()
+		if fnType != nil {
+			return fnType.(FunctionType).Return
+		}
 	}
 	return nil
 }
@@ -892,9 +845,7 @@ type FunctionAccessExpr struct {
 func (v *FunctionAccessExpr) exprNode() {}
 
 func (v *FunctionAccessExpr) String() string {
-	result := "(" + util.Blue("FunctionAccessExpr") + ": "
-	result += v.Function.Name
-	return result + ")"
+	return NewASTStringer("FunctionAccessExpr").AddString(v.Function.Name).Finish()
 }
 
 func (v *FunctionAccessExpr) GetType() Type {
@@ -921,9 +872,7 @@ type VariableAccessExpr struct {
 func (v *VariableAccessExpr) exprNode() {}
 
 func (v *VariableAccessExpr) String() string {
-	result := "(" + util.Blue("VariableAccessExpr") + ": "
-	result += v.Name.String()
-	return result + ")"
+	return NewASTStringer("VariableAccessExpr").Add(v.Name).Finish()
 }
 
 func (v *VariableAccessExpr) GetType() Type {
@@ -946,23 +895,42 @@ type StructAccessExpr struct {
 	nodePos
 	Struct AccessExpr
 	Member string
-
-	Variable *Variable
 }
 
 func (v *StructAccessExpr) exprNode() {}
 
 func (v *StructAccessExpr) String() string {
-	result := "(" + util.Blue("StructAccessExpr") + ": struct"
-	result += v.Struct.String() + ", member "
-	result += v.Member
-	return result + ")"
+	s := NewASTStringer("StructAccessExpr")
+	s.AddString("struct").Add(v.Struct)
+	s.AddString("member").AddString(v.Member)
+	return s.Finish()
 }
 
 func (v *StructAccessExpr) GetType() Type {
-	if v.Variable != nil {
-		return v.Variable.Type
+	stype := v.Struct.GetType()
+
+	if typ, ok := TypeWithoutPointers(stype).(*NamedType); ok {
+		fn := typ.GetMethod(v.Member)
+		if fn != nil {
+			return fn.Type
+		}
 	}
+
+	if stype == nil {
+		return nil
+	} else if pt, ok := stype.(PointerType); ok {
+		stype = pt.Addressee
+	}
+
+	if stype == nil {
+		return nil
+	} else if st, ok := stype.ActualType().(StructType); ok {
+		mem := st.GetMember(v.Member)
+		if mem != nil {
+			return mem.Type
+		}
+	}
+
 	return nil
 }
 
@@ -985,10 +953,10 @@ type ArrayAccessExpr struct {
 func (v *ArrayAccessExpr) exprNode() {}
 
 func (v *ArrayAccessExpr) String() string {
-	result := "(" + util.Blue("ArrayAccessExpr") + ": array"
-	result += v.Array.String() + ", index "
-	result += v.Subscript.String()
-	return result + ")"
+	s := NewASTStringer("ArrayAccessExpr")
+	s.AddString("array").Add(v.Array)
+	s.AddString("index").Add(v.Subscript)
+	return s.Finish()
 }
 
 func (v *ArrayAccessExpr) GetType() Type {
@@ -1017,10 +985,10 @@ type TupleAccessExpr struct {
 func (v *TupleAccessExpr) exprNode() {}
 
 func (v *TupleAccessExpr) String() string {
-	result := "(" + util.Blue("TupleAccessExpr") + ": tuple"
-	result += v.Tuple.String() + ", index "
-	result += strconv.FormatUint(v.Index, 10)
-	return result + ")"
+	s := NewASTStringer("TupleAccessExpr")
+	s.AddString("tuple").Add(v.Tuple)
+	s.AddString("index").AddString(strconv.FormatUint(v.Index, 10))
+	return s.Finish()
 }
 
 func (v *TupleAccessExpr) GetType() Type {
@@ -1043,17 +1011,16 @@ func (v *TupleAccessExpr) Mutable() bool {
 type DerefAccessExpr struct {
 	nodePos
 	Expr Expr
-	Type Type
 }
 
 func (v *DerefAccessExpr) exprNode() {}
 
 func (v *DerefAccessExpr) String() string {
-	return "(" + util.Blue("DerefAccessExpr") + ": " + v.Expr.String() + ")"
+	return NewASTStringer("DerefAccessExpr").Add(v.Expr).Finish()
 }
 
 func (v *DerefAccessExpr) GetType() Type {
-	return v.Type
+	return getAdressee(v.Expr.GetType())
 }
 
 func (v *DerefAccessExpr) NodeName() string {
@@ -1069,6 +1036,18 @@ func (v *DerefAccessExpr) Mutable() bool {
 	}
 }
 
+func getAdressee(t Type) Type {
+	switch t := t.(type) {
+	case PointerType:
+		return t.Addressee
+	case MutableReferenceType:
+		return t.Referrer
+	case ConstantReferenceType:
+		return t.Referrer
+	}
+	return nil
+}
+
 // AddressOfExpr
 
 type AddressOfExpr struct {
@@ -1081,7 +1060,7 @@ type AddressOfExpr struct {
 func (v *AddressOfExpr) exprNode() {}
 
 func (v *AddressOfExpr) String() string {
-	return "(" + util.Blue("AddressOfExpr") + ": " + v.Access.String() + " " + util.Green(v.GetType().TypeName()) + ")"
+	return NewASTStringer("AddressOfExpr").Add(v.Access).AddType(v.GetType()).Finish()
 }
 
 func (v *AddressOfExpr) GetType() Type {
@@ -1108,9 +1087,7 @@ type LambdaExpr struct {
 func (_ LambdaExpr) exprNode() {}
 
 func (v LambdaExpr) String() string {
-	ret := "(" + util.Blue("LambdaExpr") + ": "
-	ret += v.Function.String()
-	return ret + ")"
+	return NewASTStringer("LambdaExpr").Add(v.Function).Finish()
 }
 
 func (v LambdaExpr) GetType() Type {
@@ -1131,13 +1108,13 @@ type ArrayLenExpr struct {
 func (v *ArrayLenExpr) exprNode() {}
 
 func (v *ArrayLenExpr) String() string {
-	ret := "(" + util.Blue("ArrayLenExpr") + ": "
+	s := NewASTStringer("ArrayLenExpr")
 	if v.Expr != nil {
-		ret += v.Expr.String()
+		s.Add(v.Expr)
 	} else {
-		ret += v.Type.TypeName()
+		s.AddType(v.Type)
 	}
-	return ret + ")"
+	return s.Finish()
 }
 
 func (v *ArrayLenExpr) GetType() Type {
@@ -1162,13 +1139,13 @@ type SizeofExpr struct {
 func (v *SizeofExpr) exprNode() {}
 
 func (v *SizeofExpr) String() string {
-	ret := "(" + util.Blue("SizeofExpr") + ": "
+	s := NewASTStringer("SizeofExpr")
 	if v.Expr != nil {
-		ret += v.Expr.String()
+		s.Add(v.Expr)
 	} else {
-		ret += v.Type.TypeName()
+		s.AddType(v.Type)
 	}
-	return ret + ")"
+	return s.Finish()
 }
 
 func (v *SizeofExpr) GetType() Type {
@@ -1177,30 +1154,6 @@ func (v *SizeofExpr) GetType() Type {
 
 func (v *SizeofExpr) NodeName() string {
 	return "sizeof expression"
-}
-
-// DefaultExpr
-
-type DefaultExpr struct {
-	nodePos
-
-	Type Type
-}
-
-func (v *DefaultExpr) exprNode() {}
-
-func (v *DefaultExpr) String() string {
-	ret := "(" + util.Blue("DefaultExpr") + ": "
-	ret += v.Type.TypeName()
-	return ret + ")"
-}
-
-func (v *DefaultExpr) GetType() Type {
-	return v.Type
-}
-
-func (v *DefaultExpr) NodeName() string {
-	return "default expression"
 }
 
 // DefaultMatchBranch
@@ -1212,7 +1165,7 @@ type DefaultMatchBranch struct {
 func (v *DefaultMatchBranch) exprNode() {}
 
 func (v *DefaultMatchBranch) String() string {
-	return "(" + util.Blue("DefaultMatchBranch") + ")"
+	return NewASTStringer("DefaultMatchBranch").Finish()
 }
 
 func (v *DefaultMatchBranch) GetType() Type {
@@ -1221,4 +1174,84 @@ func (v *DefaultMatchBranch) GetType() Type {
 
 func (v *DefaultMatchBranch) NodeName() string {
 	return "default match branch"
+}
+
+// String representation util
+type ASTStringer struct {
+	buf   *bytes.Buffer
+	first bool
+}
+
+func NewASTStringer(name string) *ASTStringer {
+	res := &ASTStringer{
+		buf:   new(bytes.Buffer),
+		first: true,
+	}
+	res.buf.WriteRune('(')
+	res.buf.WriteString(util.TEXT_BLUE)
+	res.buf.WriteString(name)
+	res.buf.WriteString(util.TEXT_RESET)
+	return res
+}
+
+func (v *ASTStringer) AddAttrs(attrs AttrGroup) *ASTStringer {
+	for _, attr := range attrs {
+		v.Add(attr)
+	}
+	return v
+}
+
+func (v *ASTStringer) AddMangled(mangled Mangled) *ASTStringer {
+	v.AddStringColored(util.TEXT_MAGENTA, fmt.Sprintf(" <%s>", mangled.MangledName(MANGLE_ARK_UNSTABLE)))
+	return v
+}
+
+func (v *ASTStringer) Add(what fmt.Stringer) *ASTStringer {
+	v.AddWithColor("", what)
+	return v
+}
+
+func (v *ASTStringer) AddWithColor(color string, what fmt.Stringer) *ASTStringer {
+	v.AddWithFallback(color, what, "nil")
+	return v
+}
+
+func (v *ASTStringer) AddWithFallback(color string, what fmt.Stringer, fallback string) *ASTStringer {
+	if !isNil(what) {
+		v.AddStringColored(color, what.String())
+	} else {
+		v.AddStringColored(color, fallback)
+	}
+	return v
+}
+
+func (v *ASTStringer) AddString(what string) *ASTStringer {
+	v.AddStringColored("", what)
+	return v
+}
+
+func (v *ASTStringer) AddStringColored(color string, what string) *ASTStringer {
+	if v.first {
+		v.buf.WriteRune(':')
+		v.first = false
+	}
+	v.buf.WriteRune(' ')
+	v.buf.WriteString(color)
+	v.buf.WriteString(what)
+	v.buf.WriteString(util.TEXT_RESET)
+	return v
+}
+
+func (v *ASTStringer) AddType(t Type) *ASTStringer {
+	if t == nil {
+		v.AddStringColored(util.TEXT_RED, "<type = nil>")
+		return v
+	}
+	v.AddStringColored(util.TEXT_BLUE, t.TypeName())
+	return v
+}
+
+func (v *ASTStringer) Finish() string {
+	v.buf.WriteRune(')')
+	return v.buf.String()
 }

@@ -138,7 +138,13 @@ type InterfaceTypeNode struct {
 
 type StructTypeNode struct {
 	baseNode
-	Members []*VarDeclNode
+	Members []*StructMemberNode
+}
+
+type StructMemberNode struct {
+	baseNode
+	Name LocatedString
+	Type ParseNode
 }
 
 type FunctionHeaderNode struct {
@@ -212,12 +218,6 @@ type TypeParameterNode struct {
 }
 
 // statements
-
-type DefaultStatNode struct {
-	baseNode
-	Target ParseNode
-}
-
 type DeferStatNode struct {
 	baseNode
 	Call *CallExprNode
@@ -316,11 +316,6 @@ type SizeofExprNode struct {
 	baseNode
 	Value ParseNode
 	Type  ParseNode
-}
-
-type DefaultExprNode struct {
-	baseNode
-	Target ParseNode
 }
 
 type AddrofExprNode struct {
