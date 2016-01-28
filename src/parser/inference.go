@@ -260,6 +260,19 @@ type NewInferer struct {
 	IdCount     int
 }
 
+func (v *NewInferer) err(msg string, args ...interface{}) {
+	log.Errorln("inferer", "%s %s", util.Red("error:"), fmt.Sprintf(msg, args...))
+	os.Exit(util.EXIT_FAILURE_SEMANTIC)
+}
+
+func (v *NewInferer) errPos(pos lexer.Position, msg string, args ...interface{}) {
+	log.Errorln("inferer", "%s: [%s:%d:%d] %s", util.Red("error:"),
+		pos.Filename, pos.Line, pos.Char,
+		fmt.Sprintf(msg, args...))
+	log.Errorln("inferer", "%s", v.Submodule.File.MarkPos(pos))
+	os.Exit(util.EXIT_FAILURE_SEMANTIC)
+}
+
 func (v *NewInferer) Function() *Function {
 	return v.Functions[len(v.Functions)-1]
 }
@@ -334,6 +347,11 @@ func (v *NewInferer) Visit(node *Node) bool {
 	case *VariableDecl:
 		a := v.HandleTyped(n.Pos(), n.Variable)
 		if n.Assignment != nil {
+			if n.Variable.Type != nil {
+				// Slightly hacky, but gets the job done
+				n.Assignment.setTypeHint(n.Variable.Type)
+			}
+
 			b := v.HandleExpr(n.Assignment)
 			v.AddEqualsConstraint(a, b)
 		}
@@ -477,6 +495,9 @@ func (v *NewInferer) HandleTyped(pos lexer.Position, typed Typed) int {
 	case *VariableAccessExpr:
 		id := v.HandleTyped(typed.Pos(), typed.Variable)
 		v.AddEqualsConstraint(ann.Id, id)
+		if typed.Variable.Type != nil {
+			v.AddIsConstraint(ann.Id, typed.Variable.Type)
+		}
 
 	case *StructAccessExpr:
 		id := v.HandleExpr(typed.Struct)
@@ -538,12 +559,10 @@ func (v *NewInferer) HandleTyped(pos lexer.Position, typed Typed) int {
 
 		typ := typed.Type.ActualType()
 		if at, ok := typ.(ArrayType); ok {
-			v.AddIsConstraint(ann.Id, at)
 			for _, id := range ids {
 				v.AddIsConstraint(id, at.MemberType)
 			}
 		} else if st, ok := typ.(StructType); ok {
-			v.AddIsConstraint(ann.Id, st)
 			for idx, id := range ids {
 				field := typed.Fields[idx]
 				mem := st.GetMember(field)
@@ -551,12 +570,15 @@ func (v *NewInferer) HandleTyped(pos lexer.Position, typed Typed) int {
 			}
 		}
 
+		if typed.Type != nil {
+			v.AddIsConstraint(ann.Id, typed.Type)
+		}
+
 	case *TupleLiteral:
 		var tt TupleType
 		var ok bool
 		if typed.Type != nil {
 			tt, ok = typed.Type.(TupleType)
-			v.AddIsConstraint(ann.Id, tt)
 		}
 
 		nt := make([]Type, len(typed.Members))
@@ -569,7 +591,11 @@ func (v *NewInferer) HandleTyped(pos lexer.Position, typed Typed) int {
 			}
 		}
 
-		v.AddIsConstraint(ann.Id, tupleOf(nt...))
+		if typed.Type != nil {
+			v.AddIsConstraint(ann.Id, typed.Type)
+		} else {
+			v.AddIsConstraint(ann.Id, tupleOf(nt...))
+		}
 
 	case *Variable:
 		if typed.GetType() != nil {
@@ -579,11 +605,14 @@ func (v *NewInferer) HandleTyped(pos lexer.Position, typed Typed) int {
 	case *FunctionAccessExpr:
 		v.AddIsConstraint(ann.Id, typed.Function.Type)
 
+	case *LambdaExpr:
+		v.AddIsConstraint(ann.Id, typed.Function.Type)
+
 	case *NumericLiteral:
 		// noop
 
 	default:
-		log.Errorln("inferer", "Unhandled Typed type `%T`", typed)
+		panic("INTERNAL ERROR: Unhandled Typed type: " + reflect.TypeOf(typed).String())
 	}
 
 	return ann.Id
@@ -604,11 +633,9 @@ func (v *NewInferer) Unify() []*Constraint {
 	}
 
 	for len(stack) > 0 {
-		idx := len(stack) - 1
-
 		// Given a constraint X = Y
-		element := stack[idx]
-		stack = stack[:idx]
+		element := stack[0]
+		stack[0], stack = nil, stack[1:]
 		x, y := element.Left, element.Right
 
 		// 1. If X and Y are identical identifiers, do nothing.
@@ -717,6 +744,20 @@ func (v *NewInferer) Unify() []*Constraint {
 			}
 		}
 
+		// 4.5. (x1, ..., xn) = (y1, ..., yn)
+		if x.SideType == TypeSide && y.SideType == TypeSide {
+			xTup, okX := x.Type.ActualType().(TupleType)
+			yTup, okY := y.Type.ActualType().(TupleType)
+
+			if okX && okY && len(xTup.Members) == len(yTup.Members) {
+				for idx, memX := range xTup.Members {
+					memY := yTup.Members[idx]
+					stack = append(stack, ConstraintFromTypes(memX, memY))
+				}
+				continue
+			}
+		}
+
 		// 5. Otherwise, X and Y do not unify. Report an error.
 		// NOTE: We defer handling error until the semantic type check
 		// TODO: Verify if continuing is ok, or if we should return now
@@ -785,13 +826,10 @@ func (v *NewInferer) Finalize() {
 		ann := v.Typeds[subs.Left.Id]
 
 		if subs.Right.SideType != TypeSide {
-			log.Errorln("inferer", "Couldn't infer type of expression:")
-			log.Errorln("inferer", "%s", v.Submodule.File.MarkPos(ann.Pos))
-			os.Exit(util.EXIT_FAILURE_SEMANTIC)
+			v.errPos(ann.Pos, "Couldn't infer type of expression")
 		}
 
-		if typ, ok := subs.Right.Type.(*ConstructorType); ok {
-			log.Debugln("inferer", "%v", typ)
+		if _, ok := subs.Right.Type.(*ConstructorType); ok {
 			panic("INTERNAL ERROR: ConstructorType escaped inference pass")
 		}
 
@@ -809,17 +847,13 @@ func (v *NewInferer) Finalize() {
 				fn := TypeWithoutPointers(sae.Struct.GetType()).(*NamedType).GetMethod(sae.Member)
 				n.Function = &FunctionAccessExpr{Function: fn}
 				if n.Function == nil {
-					log.Errorln("inferer", "Type `%s` has no method `%s`", TypeWithoutPointers(sae.Struct.GetType()).TypeName(), sae.Member)
-					log.Errorln("inferer", "%s", v.Submodule.File.MarkPos(sae.Pos()))
-					os.Exit(util.EXIT_FAILURE_SEMANTIC)
+					v.errPos(sae.Pos(), "Type `%s` has no method `%s`", TypeWithoutPointers(sae.Struct.GetType()).TypeName(), sae.Member)
 				}
 			}
 
 			if n.Function != nil {
 				if _, ok := n.Function.GetType().(FunctionType); !ok {
-					log.Errorln("inferer", "Attempt to call non-function `%s`", n.Function.GetType().TypeName())
-					log.Errorln("inferer", "%s", v.Submodule.File.MarkPos(n.Function.Pos()))
-					os.Exit(util.EXIT_FAILURE_SEMANTIC)
+					v.errPos(n.Function.Pos(), "Attempt to call non-function `%s`", n.Function.GetType().TypeName())
 				}
 
 				// Insert dereference if needed
@@ -848,16 +882,12 @@ func (v *NewInferer) Finalize() {
 			typ := n.Struct.GetType()
 			structType, ok := typ.ActualType().(StructType)
 			if !ok {
-				log.Errorln("inferer", "%s Cannot access member of type `%s`", util.Red("error:"), typ.TypeName())
-				log.Errorln("inferer", "%s", v.Submodule.File.MarkPos(n.Pos()))
-				os.Exit(util.EXIT_FAILURE_SEMANTIC)
+				v.errPos(n.Pos(), "Cannot access member of type `%s`", typ.TypeName())
 			}
 
 			mem := structType.GetMember(n.Member)
 			if mem == nil {
-				log.Errorln("inferer", "Struct `%s` does not contain member or method `%s`", typ.TypeName(), n.Member)
-				log.Errorln("inferer", "%s", v.Submodule.File.MarkPos(n.Pos()))
-				os.Exit(util.EXIT_FAILURE_SEMANTIC)
+				v.errPos(n.Pos(), "Struct `%s` does not contain member or method `%s`", typ.TypeName(), n.Member)
 			}
 
 		case *BinaryExpr:

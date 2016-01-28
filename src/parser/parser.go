@@ -1872,7 +1872,10 @@ func (v *parser) parseCompositeLiteral() ParseNode {
 			v.consumeToken()
 		}
 
-		val := v.parseExpr()
+		val := v.parseCompositeLiteral()
+		if val == nil {
+			val = v.parseExpr()
+		}
 		if val == nil {
 			v.err("Expected value in composite literal, found `%s`", v.peek(0).Contents)
 		}
