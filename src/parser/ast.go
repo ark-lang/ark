@@ -537,7 +537,7 @@ func (v RuneLiteral) String() string {
 }
 
 func (v RuneLiteral) GetType() Type {
-	return PRIMITIVE_rune
+	return runeType
 }
 
 func (_ RuneLiteral) NodeName() string {

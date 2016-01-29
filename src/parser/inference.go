@@ -652,7 +652,7 @@ func (v *Inferrer) HandleTyped(pos lexer.Position, typed Typed) int {
 
 	// A rune literal will always be of type rune
 	case *RuneLiteral:
-		v.AddIsConstraint(ann.Id, PRIMITIVE_rune)
+		v.AddIsConstraint(ann.Id, runeType)
 
 	// A composite literal is a mess to handle as it can be either an array or
 	// a struct, but in either case we go through and generate the type

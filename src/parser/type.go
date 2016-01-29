@@ -45,8 +45,6 @@ const (
 	PRIMITIVE_f64
 	PRIMITIVE_f128
 
-	PRIMITIVE_rune
-
 	PRIMITIVE_int
 	PRIMITIVE_uint
 	PRIMITIVE_uintptr
@@ -101,8 +99,8 @@ func (v PrimitiveType) CanCastTo(t Type) bool {
 		return true
 	}
 
-	return (v.IsIntegerType() || v.IsFloatingType() || v == PRIMITIVE_rune) &&
-		(t.IsFloatingType() || t.IsIntegerType() || t == PRIMITIVE_rune)
+	return (v.IsIntegerType() || v.IsFloatingType()) &&
+		(t.IsFloatingType() || t.IsIntegerType())
 }
 
 func (v PrimitiveType) Attrs() AttrGroup {

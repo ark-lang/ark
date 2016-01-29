@@ -166,8 +166,6 @@ func (v *Codegen) primitiveTypeToLLVMType(typ parser.PrimitiveType) llvm.Type {
 	case parser.PRIMITIVE_f128:
 		return llvm.FP128Type()
 
-	case parser.PRIMITIVE_rune: // runes are signed 32-bit int
-		return llvm.IntType(32)
 	case parser.PRIMITIVE_bool:
 		return llvm.IntType(1)
 	case parser.PRIMITIVE_void:

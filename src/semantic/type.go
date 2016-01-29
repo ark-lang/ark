@@ -177,7 +177,7 @@ func (v *TypeCheck) CheckBinaryExpr(s *SemanticAnalyzer, expr *parser.BinaryExpr
 		if !expr.Lhand.GetType().Equals(expr.Rhand.GetType()) {
 			s.Err(expr, "Operands for binary operator `%s` must have the same type, have `%s` and `%s`",
 				expr.Op.OpString(), expr.Lhand.GetType().TypeName(), expr.Rhand.GetType().TypeName())
-		} else if lht := expr.Lhand.GetType(); !(lht == parser.PRIMITIVE_bool || lht == parser.PRIMITIVE_rune || lht.IsIntegerType() || lht.IsFloatingType() || lht.LevelsOfIndirection() > 0) {
+		} else if lht := expr.Lhand.GetType(); !(lht == parser.PRIMITIVE_bool || lht.IsIntegerType() || lht.IsFloatingType() || lht.LevelsOfIndirection() > 0) {
 			s.Err(expr, "Operands for binary operator `%s` must be numeric, or pointers or booleans, have `%s`",
 				expr.Op.OpString(), expr.Lhand.GetType().TypeName())
 		}
@@ -188,7 +188,7 @@ func (v *TypeCheck) CheckBinaryExpr(s *SemanticAnalyzer, expr *parser.BinaryExpr
 		if !expr.Lhand.GetType().Equals(expr.Rhand.GetType()) {
 			s.Err(expr, "Operands for binary operator `%s` must have the same type, have `%s` and `%s`",
 				expr.Op.OpString(), expr.Lhand.GetType().TypeName(), expr.Rhand.GetType().TypeName())
-		} else if lht := expr.Lhand.GetType(); !(lht == parser.PRIMITIVE_rune || lht.IsIntegerType() || lht.IsFloatingType() || lht.LevelsOfIndirection() > 0) {
+		} else if lht := expr.Lhand.GetType(); !(lht.IsIntegerType() || lht.IsFloatingType() || lht.LevelsOfIndirection() > 0) {
 			s.Err(expr, "Operands for binary operator `%s` must be numeric or pointers, have `%s`",
 				expr.Op.OpString(), expr.Lhand.GetType().TypeName())
 		}

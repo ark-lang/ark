@@ -9,6 +9,7 @@ import (
 // NOTE: Code specified in the runtime MUST be guaranteed semantically correct,
 // as running semantic tests on it is a pain in the butt.
 const RuntimeSource = `
+type rune u32;
 type string []u8;
 `
 
@@ -47,10 +48,14 @@ func LoadRuntime() {
 	LoadValues()
 }
 
+var runeType Type
 var stringType Type
 
 func LoadValues() {
+	runeType = runtimeMustLoadType("rune")
 	stringType = runtimeMustLoadType("string")
+
+	builtinScope.InsertType(runeType, true)
 	builtinScope.InsertType(stringType, true)
 }
 

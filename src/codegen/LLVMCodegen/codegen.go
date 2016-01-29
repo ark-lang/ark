@@ -1290,8 +1290,8 @@ func (v *Codegen) genCastExpr(n *parser.CastExpr) llvm.Value {
 		return v.builder().CreateBitCast(expr, castLLVMType, "")
 	}
 
-	if exprType.IsIntegerType() || exprType == parser.PRIMITIVE_rune {
-		if castType.IsIntegerType() || castType == parser.PRIMITIVE_rune {
+	if exprType.IsIntegerType() {
+		if castType.IsIntegerType() {
 			exprBits := v.typeToLLVMType(exprType).IntTypeWidth()
 			castBits := castLLVMType.IntTypeWidth()
 			if exprBits == castBits {
@@ -1317,7 +1317,7 @@ func (v *Codegen) genCastExpr(n *parser.CastExpr) llvm.Value {
 			}
 		}
 	} else if exprType.IsFloatingType() {
-		if castType.IsIntegerType() || castType == parser.PRIMITIVE_rune {
+		if castType.IsIntegerType() {
 			if exprType.IsSigned() {
 				return v.builder().CreateFPToSI(expr, castLLVMType, "")
 			} else {
