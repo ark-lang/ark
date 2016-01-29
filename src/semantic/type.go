@@ -317,7 +317,7 @@ func (v *TypeCheck) CheckTupleAccessExpr(s *SemanticAnalyzer, expr *parser.Tuple
 }
 
 func (v *TypeCheck) CheckDerefAccessExpr(s *SemanticAnalyzer, expr *parser.DerefAccessExpr) {
-	if _, ok := expr.Expr.GetType().(parser.PointerType); !ok {
+	if !parser.IsPointerOrReferenceType(expr.Expr.GetType()) {
 		s.Err(expr, "Cannot dereference expression of type `%s`", expr.Expr.GetType().TypeName())
 	}
 }

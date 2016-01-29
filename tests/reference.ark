@@ -2,8 +2,8 @@
 
 pub func main() -> int {
     mut y: int = 21;
-    x: &mut int = &mut y;
+    x: &int = &y;
     y = 31;
-    C::printf(c"yo y was 21 and should be 31? `%d`\n", x);
+    C::printf(c"yo y was 21 and should be 31? `%d`\n", ^x);
     return 0;
 }

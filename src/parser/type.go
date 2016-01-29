@@ -454,13 +454,13 @@ func (v ReferenceType) IsSigned() bool {
 func (v ReferenceType) Equals(t Type) bool {
 	ref, ok := t.(ReferenceType)
 	if ok {
-		return v.Referrer.Equals(ref.Referrer)
+		return v.IsMutable == ref.IsMutable && v.Referrer.Equals(ref.Referrer)
 	}
 
-	ptr, ok := t.(PointerType)
+	/*ptr, ok := t.(PointerType)
 	if ok {
 		return v.Referrer.Equals(ptr.Addressee)
-	}
+	}*/
 
 	return false
 }
