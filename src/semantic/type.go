@@ -97,6 +97,10 @@ func (v *TypeCheck) Destroy(s *SemanticAnalyzer) {
 }
 
 func (v *TypeCheck) CheckVariableDecl(s *SemanticAnalyzer, decl *parser.VariableDecl) {
+	if decl.Variable.Type == parser.PRIMITIVE_void {
+		s.Err(decl, "Variable cannot be of type `void`")
+	}
+
 	if decl.Assignment != nil {
 		if !decl.Variable.Type.Equals(decl.Assignment.GetType()) {
 			s.Err(decl, "Cannot assign expression of type `%s` to variable of type `%s`",
