@@ -92,6 +92,7 @@ func (v *AttributeCheck) CheckVariableDecl(s *SemanticAnalyzer, n *parser.Variab
 		case "deprecated":
 			// value is optional, nothing to check
 		case "unused":
+		case "nozero":
 		default:
 			s.Err(attr, "Invalid variable attribute key `%s`", attr.Key)
 		}

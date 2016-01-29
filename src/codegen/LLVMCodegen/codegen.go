@@ -670,6 +670,8 @@ func (v *Codegen) genVariableDecl(n *parser.VariableDecl, semicolon bool) llvm.V
 			if value := v.genExpr(n.Assignment); !value.IsNil() {
 				v.builder().CreateStore(value, alloc)
 			}
+		} else if !n.Variable.Attrs.Contains("nozero") {
+			v.builder().CreateStore(llvm.ConstNull(varType), alloc)
 		}
 	} else {
 		// TODO cbindings
@@ -687,6 +689,8 @@ func (v *Codegen) genVariableDecl(n *parser.VariableDecl, semicolon bool) llvm.V
 		value.SetGlobalConstant(!n.Variable.Mutable)
 		if n.Assignment != nil {
 			value.SetInitializer(v.genExpr(n.Assignment))
+		} else {
+			value.SetInitializer(llvm.ConstNull(varType))
 		}
 		v.variableLookup[n.Variable] = value
 	}

@@ -1,0 +1,25 @@
+mut globZeroedVariable: int;
+
+type Thing struct {
+	x: u32,
+	y: s64,
+};
+
+pub func main() -> int {
+	if globZeroedVariable != 0 {
+		return 1;
+	}
+
+	[nozero] [unused] mut dirtyVariable: int;
+	mut zeroedVariable: int;
+	if zeroedVariable != 0 {
+		return 2;
+	}
+
+	mut thing: Thing;
+	if thing.x != 0 || thing.y != 0 {
+		return 3;
+	}
+
+	return 0;
+}
