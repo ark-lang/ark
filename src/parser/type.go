@@ -967,24 +967,6 @@ func (v metaType) Equals(t Type) bool {
 	panic("Equals() invalid on metaType")
 }
 
-// GenericParameterType
-/*type GenericParameterType struct {
-	metaType
-	Name string
-}
-
-func (v GenericParameterType) String() string {
-	return "(" + util.Blue("GenericParameterType") + ": " + v.Name + ")"
-}
-
-func (v GenericParameterType) TypeName() string {
-	return v.Name
-}
-
-func (v GenericParameterType) ActualType() Type {
-	return v
-}*/
-
 // SubstitutionType
 type SubstitutionType struct {
 	metaType
