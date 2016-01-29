@@ -495,6 +495,7 @@ func (v *Inferrer) HandleTyped(pos lexer.Position, typed Typed) int {
 		// If we're dealing with a bit shift, we know that the result will be
 		// of the same type as the left hand side (the value being shifted).
 		case BINOP_BIT_LEFT, BINOP_BIT_RIGHT:
+			v.AddEqualsConstraint(a, b)
 			v.AddEqualsConstraint(ann.Id, a)
 
 		// If we're dealing with a logical operation, we know that both sides
