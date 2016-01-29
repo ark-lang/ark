@@ -32,7 +32,7 @@ func (v *AttributeCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
 	}
 }
 
-func (v *AttributeCheck) Destroy(s *SemanticAnalyzer) {
+func (v *AttributeCheck) Finalize(s *SemanticAnalyzer) {
 
 }
 

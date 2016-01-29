@@ -36,7 +36,7 @@ func (v *RecursiveDefinitionCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
 
 }
 
-func (v *RecursiveDefinitionCheck) Destroy(s *SemanticAnalyzer) {
+func (v *RecursiveDefinitionCheck) Finalize(s *SemanticAnalyzer) {
 
 }
 

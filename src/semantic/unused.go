@@ -6,34 +6,16 @@ import (
 
 type UnusedCheck struct {
 	// TODO: Remove `Uses` variable from various ast nodes and keep count here
-	encounteredScopes [][]parser.Node
-	encountered       []parser.Node
-	uses              map[interface{}]int
+	encountered []parser.Node
+	uses        map[interface{}]int
 }
 
-func (v *UnusedCheck) Init(s *SemanticAnalyzer) {}
-
-func (v *UnusedCheck) EnterScope(s *SemanticAnalyzer) {
-	if v.uses == nil {
-		v.uses = make(map[interface{}]int)
-	}
-	if v.encountered != nil {
-		v.encounteredScopes = append(v.encounteredScopes, v.encountered)
-	}
-	v.encountered = make([]parser.Node, 0)
+func (v *UnusedCheck) Init(s *SemanticAnalyzer) {
+	v.uses = make(map[interface{}]int)
 }
 
-func (v *UnusedCheck) ExitScope(s *SemanticAnalyzer) {
-	v.AnalyzeUsage(s)
-
-	v.encountered = nil
-	if len(v.encounteredScopes) > 0 {
-		idx := len(v.encounteredScopes) - 1
-		v.encountered, v.encounteredScopes[idx] = v.encounteredScopes[idx], nil
-		v.encounteredScopes = v.encounteredScopes[:idx]
-	}
-}
-
+func (v *UnusedCheck) EnterScope(s *SemanticAnalyzer)               {}
+func (v *UnusedCheck) ExitScope(s *SemanticAnalyzer)                {}
 func (v *UnusedCheck) PostVisit(s *SemanticAnalyzer, n parser.Node) {}
 
 func (v *UnusedCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
@@ -56,8 +38,8 @@ func (v *UnusedCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
 	}
 }
 
-func (v *UnusedCheck) Destroy(s *SemanticAnalyzer) {
-
+func (v *UnusedCheck) Finalize(s *SemanticAnalyzer) {
+	v.AnalyzeUsage(s)
 }
 
 func (v *UnusedCheck) AnalyzeUsage(s *SemanticAnalyzer) {

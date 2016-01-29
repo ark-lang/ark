@@ -92,7 +92,7 @@ func (v *TypeCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
 	}
 }
 
-func (v *TypeCheck) Destroy(s *SemanticAnalyzer) {
+func (v *TypeCheck) Finalize(s *SemanticAnalyzer) {
 
 }
 

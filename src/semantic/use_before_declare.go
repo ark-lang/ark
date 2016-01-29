@@ -46,6 +46,6 @@ func (v *UseBeforeDeclareCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
 	}
 }
 
-func (v *UseBeforeDeclareCheck) Destroy(s *SemanticAnalyzer) {
+func (v *UseBeforeDeclareCheck) Finalize(s *SemanticAnalyzer) {
 
 }

@@ -43,6 +43,6 @@ func (v *DeprecatedCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
 	}
 }
 
-func (v *DeprecatedCheck) Destroy(s *SemanticAnalyzer) {
+func (v *DeprecatedCheck) Finalize(s *SemanticAnalyzer) {
 
 }

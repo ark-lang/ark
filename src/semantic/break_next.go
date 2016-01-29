@@ -18,7 +18,7 @@ func (v *BreakAndNextCheck) Init(s *SemanticAnalyzer) {
 
 func (v *BreakAndNextCheck) EnterScope(s *SemanticAnalyzer) {}
 func (v *BreakAndNextCheck) ExitScope(s *SemanticAnalyzer)  {}
-func (v *BreakAndNextCheck) Destroy(s *SemanticAnalyzer)    {}
+func (v *BreakAndNextCheck) Finalize(s *SemanticAnalyzer)   {}
 
 func (v *BreakAndNextCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
 	switch n := n.(type) {

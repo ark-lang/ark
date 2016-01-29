@@ -46,7 +46,7 @@ func (v *UnreachableCheck) visitFunction(s *SemanticAnalyzer, loc parser.Locatab
 	}
 }
 
-func (v *UnreachableCheck) Destroy(s *SemanticAnalyzer) {
+func (v *UnreachableCheck) Finalize(s *SemanticAnalyzer) {
 
 }
 

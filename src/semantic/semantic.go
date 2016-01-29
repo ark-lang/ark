@@ -23,7 +23,7 @@ type SemanticCheck interface {
 	ExitScope(s *SemanticAnalyzer)
 	Visit(*SemanticAnalyzer, parser.Node)
 	PostVisit(*SemanticAnalyzer, parser.Node)
-	Destroy(*SemanticAnalyzer)
+	Finalize(*SemanticAnalyzer)
 }
 
 func (v *SemanticAnalyzer) Err(thing parser.Locatable, err string, stuff ...interface{}) {
@@ -82,19 +82,18 @@ func (v *SemanticAnalyzer) Init() {
 	}
 }
 
-// this is called when the semantic check
-// is finished, this should be used for
-// clearing up resources, logging, etc...
-func (v *SemanticAnalyzer) Destroy() {
-	for _, check := range v.Checks {
-		check.Destroy(v)
-	}
-}
-
+// Finalize is called after all checks have been run, and should be used for
+// cleaning up and any checks that depend on having completely traversed the
+// syntax tree.
 func (v *SemanticAnalyzer) Finalize() {
+	// If we already encountered an error, exit now
+	if v.shouldExit {
+		os.Exit(util.EXIT_FAILURE_SEMANTIC)
+	}
+
 	// destroy stuff before finalisation
 	for _, check := range v.Checks {
-		check.Destroy(v)
+		check.Finalize(v)
 	}
 
 	if v.shouldExit {
