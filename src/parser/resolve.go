@@ -504,11 +504,8 @@ func (v *Resolver) ResolveType(src Locatable, t Type) Type {
 	case ArrayType:
 		return ArrayOf(v.ResolveType(src, t.MemberType))
 
-	case MutableReferenceType:
-		return mutableReferenceTo(v.ResolveType(src, t.Referrer))
-
-	case ConstantReferenceType:
-		return constantReferenceTo(v.ResolveType(src, t.Referrer))
+	case ReferenceType:
+		return ReferenceTo(v.ResolveType(src, t.Referrer), t.IsMutable)
 
 	case PointerType:
 		return PointerTo(v.ResolveType(src, t.Addressee))

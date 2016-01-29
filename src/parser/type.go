@@ -6,7 +6,7 @@ import (
 
 func IsPointerOrReferenceType(t Type) bool {
 	switch t.ActualType().(type) {
-	case PointerType, ConstantReferenceType, MutableReferenceType:
+	case PointerType, ReferenceType:
 		return true
 	}
 	return false
@@ -405,50 +405,54 @@ func (v ArrayType) ActualType() Type {
 	return v
 }
 
-// Constant Reference
+// Reference
 
-type ConstantReferenceType struct {
-	Referrer Type
+type ReferenceType struct {
+	Referrer  Type
+	IsMutable bool
 }
 
-func constantReferenceTo(t Type) ConstantReferenceType {
-	return ConstantReferenceType{Referrer: t}
+func ReferenceTo(t Type, mutable bool) ReferenceType {
+	return ReferenceType{Referrer: t, IsMutable: mutable}
 }
 
-func (v ConstantReferenceType) TypeName() string {
+func (v ReferenceType) TypeName() string {
+	if v.IsMutable {
+		return "&mut " + v.Referrer.TypeName()
+	}
 	return "&" + v.Referrer.TypeName()
 }
 
-func (v ConstantReferenceType) LevelsOfIndirection() int {
+func (v ReferenceType) LevelsOfIndirection() int {
 	return v.Referrer.LevelsOfIndirection() + 1
 }
 
-func (v ConstantReferenceType) IsIntegerType() bool {
+func (v ReferenceType) IsIntegerType() bool {
 	return false
 }
 
-func (v ConstantReferenceType) IsFloatingType() bool {
+func (v ReferenceType) IsFloatingType() bool {
 	return false
 }
 
-func (v ConstantReferenceType) IsVoidType() bool {
+func (v ReferenceType) IsVoidType() bool {
 	return false
 }
 
-func (v ConstantReferenceType) CanCastTo(t Type) bool {
+func (v ReferenceType) CanCastTo(t Type) bool {
 	return IsPointerOrReferenceType(t) || t.ActualType() == PRIMITIVE_uintptr
 }
 
-func (v ConstantReferenceType) Attrs() AttrGroup {
+func (v ReferenceType) Attrs() AttrGroup {
 	return nil
 }
 
-func (v ConstantReferenceType) IsSigned() bool {
+func (v ReferenceType) IsSigned() bool {
 	return false
 }
 
-func (v ConstantReferenceType) Equals(t Type) bool {
-	ref, ok := t.(ConstantReferenceType)
+func (v ReferenceType) Equals(t Type) bool {
+	ref, ok := t.(ReferenceType)
 	if ok {
 		return v.Referrer.Equals(ref.Referrer)
 	}
@@ -461,66 +465,7 @@ func (v ConstantReferenceType) Equals(t Type) bool {
 	return false
 }
 
-func (v ConstantReferenceType) ActualType() Type {
-	return v
-}
-
-// Mutable Reference
-type MutableReferenceType struct {
-	Referrer Type
-}
-
-func mutableReferenceTo(t Type) MutableReferenceType {
-	return MutableReferenceType{Referrer: t}
-}
-
-func (v MutableReferenceType) TypeName() string {
-	return "&mut " + v.Referrer.TypeName()
-}
-
-func (v MutableReferenceType) LevelsOfIndirection() int {
-	return v.Referrer.LevelsOfIndirection() + 1
-}
-
-func (v MutableReferenceType) IsIntegerType() bool {
-	return false
-}
-
-func (v MutableReferenceType) IsFloatingType() bool {
-	return false
-}
-
-func (v MutableReferenceType) IsVoidType() bool {
-	return false
-}
-
-func (v MutableReferenceType) CanCastTo(t Type) bool {
-	return IsPointerOrReferenceType(t) || t.ActualType() == PRIMITIVE_uintptr
-}
-
-func (v MutableReferenceType) Attrs() AttrGroup {
-	return nil
-}
-
-func (v MutableReferenceType) IsSigned() bool {
-	return false
-}
-
-func (v MutableReferenceType) Equals(t Type) bool {
-	ref, ok := t.(MutableReferenceType)
-	if ok {
-		return v.Referrer.Equals(ref.Referrer)
-	}
-
-	ptr, ok := t.(PointerType)
-	if ok {
-		return v.Referrer.Equals(ptr.Addressee)
-	}
-
-	return false
-}
-
-func (v MutableReferenceType) ActualType() Type {
+func (v ReferenceType) ActualType() Type {
 	return v
 }
 

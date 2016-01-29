@@ -1030,6 +1030,10 @@ func (_ DerefAccessExpr) NodeName() string {
 func (v DerefAccessExpr) Mutable() bool {
 	access, ok := v.Expr.(AccessExpr)
 	if ok {
+		if refType, ok := access.GetType().(ReferenceType); ok {
+			return refType.IsMutable
+		}
+
 		return access.Mutable()
 	} else {
 		return true
@@ -1040,9 +1044,7 @@ func getAdressee(t Type) Type {
 	switch t := t.(type) {
 	case PointerType:
 		return t.Addressee
-	case MutableReferenceType:
-		return t.Referrer
-	case ConstantReferenceType:
+	case ReferenceType:
 		return t.Referrer
 	}
 	return nil
@@ -1065,11 +1067,7 @@ func (v AddressOfExpr) String() string {
 
 func (v AddressOfExpr) GetType() Type {
 	if v.Access.GetType() != nil {
-		if v.Mutable {
-			return mutableReferenceTo(v.Access.GetType())
-		} else {
-			return constantReferenceTo(v.Access.GetType())
-		}
+		return ReferenceTo(v.Access.GetType(), v.Mutable)
 	}
 	return nil
 }

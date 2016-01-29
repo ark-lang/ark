@@ -48,9 +48,7 @@ func (v *Codegen) typeToLLVMType(typ parser.Type) llvm.Type {
 		default:
 			return v.typeToLLVMType(nt.Type)
 		}
-	case parser.MutableReferenceType:
-		return llvm.PointerType(v.typeToLLVMType(typ.Referrer), 0)
-	case parser.ConstantReferenceType:
+	case parser.ReferenceType:
 		return llvm.PointerType(v.typeToLLVMType(typ.Referrer), 0)
 	default:
 		log.Debugln("codegen", "Type was %s (%s)", typ.TypeName(), reflect.TypeOf(typ))

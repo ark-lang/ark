@@ -259,11 +259,8 @@ func SubsType(typ Type, id int, what Type) Type {
 	case PointerType:
 		return PointerTo(SubsType(t.Addressee, id, what))
 
-	case ConstantReferenceType:
-		return constantReferenceTo(SubsType(t.Referrer, id, what))
-
-	case MutableReferenceType:
-		return mutableReferenceTo(SubsType(t.Referrer, id, what))
+	case ReferenceType:
+		return ReferenceTo(SubsType(t.Referrer, id, what), t.IsMutable)
 
 	// The following are noops at the current time. For NamedType and EnumType
 	// this is only temporarily, until we finalize implementaiton of generics

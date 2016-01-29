@@ -35,11 +35,14 @@ func TypeMangledName(mangleType MangleType, typ Type) string {
 		case ArrayType:
 			res += fmt.Sprintf("A%s", TypeMangledName(mangleType, typ.MemberType))
 
-		case ConstantReferenceType:
-			res += fmt.Sprintf("RC%s", TypeMangledName(mangleType, typ.Referrer))
-
-		case MutableReferenceType:
-			res += fmt.Sprintf("RM%s", TypeMangledName(mangleType, typ.Referrer))
+		case ReferenceType:
+			var suffix string
+			if typ.IsMutable {
+				suffix = "M"
+			} else {
+				suffix = "C"
+			}
+			res += fmt.Sprintf("R%s%s", suffix, TypeMangledName(mangleType, typ.Referrer))
 
 		case EnumType:
 			res += fmt.Sprintf("E%d", len(typ.Members))
