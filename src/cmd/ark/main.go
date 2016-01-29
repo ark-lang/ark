@@ -217,6 +217,10 @@ func findModuleDir(searchPaths []string, modulePath string) (fi os.FileInfo, pat
 }
 
 func build(files []string, outputFile string, cg string, outputType LLVMCodegen.OutputType, optLevel int) {
+	// Start by loading the runtime
+	parser.LoadRuntime()
+
+	// Parse the passed files
 	constructedModules, moduleLookup := parseFiles(files)
 
 	// resolve
