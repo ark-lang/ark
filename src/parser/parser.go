@@ -47,11 +47,25 @@ func (v *parser) err(err string, stuff ...interface{}) {
 }
 
 func (v *parser) errToken(err string, stuff ...interface{}) {
-	v.errTokenSpecific(v.peek(0), err, stuff...)
+	tok := v.peek(0)
+	if tok != nil {
+		v.errTokenSpecific(tok, err, stuff...)
+	} else {
+		lastTok := v.input.Tokens[len(v.input.Tokens)-1]
+		v.errTokenSpecific(lastTok, err, stuff...)
+	}
+
 }
 
 func (v *parser) errPos(err string, stuff ...interface{}) {
-	v.errPosSpecific(v.peek(0).Where.Start(), err, stuff...)
+	tok := v.peek(0)
+	if tok != nil {
+		v.errPosSpecific(v.peek(0).Where.Start(), err, stuff...)
+	} else {
+		lastTok := v.input.Tokens[len(v.input.Tokens)-1]
+		v.errPosSpecific(lastTok.Where.Start(), err, stuff...)
+	}
+
 }
 
 func (v *parser) errTokenSpecific(tok *lexer.Token, err string, stuff ...interface{}) {
@@ -116,7 +130,7 @@ func (v *parser) consumeTokens(num int) {
 
 func (v *parser) tokenMatches(ahead int, t lexer.TokenType, contents string) bool {
 	tok := v.peek(ahead)
-	return tok.Type == t && (contents == "" || (tok.Contents == contents))
+	return tok != nil && tok.Type == t && (contents == "" || (tok.Contents == contents))
 }
 
 func (v *parser) tokensMatch(args ...interface{}) bool {
@@ -146,11 +160,20 @@ func (v *parser) nextIs(typ lexer.TokenType) bool {
 func (v *parser) expect(typ lexer.TokenType, val string) *lexer.Token {
 	if !v.tokenMatches(0, typ, val) {
 		tok := v.peek(0)
-		if val != "" {
-			v.errToken("Expected `%s` (%s), got `%s` (%s)", val, typ, tok.Contents, tok.Type)
+		if tok == nil {
+			if val != "" {
+				v.err("Expected `%s` (%s), got EOF", val, typ)
+			} else {
+				v.err("Expected %s, got EOF", typ)
+			}
 		} else {
-			v.errToken("Expected %s, got %s (`%s`)", typ, tok.Type, tok.Contents)
+			if val != "" {
+				v.errToken("Expected `%s` (%s), got `%s` (%s)", val, typ, tok.Contents, tok.Type)
+			} else {
+				v.errToken("Expected %s, got %s (`%s`)", typ, tok.Type, tok.Contents)
+			}
 		}
+
 	}
 	return v.consumeToken()
 }
