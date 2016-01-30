@@ -70,7 +70,6 @@ running the following commands:
 $ git clone https://github.com/ark-lang/go-llvm.git $GOPATH/src/github.com/ark-lang/go-llvm
 $ cd $GOPATH/src/github.com/ark-lang/go-llvm
 $ ./build.sh
-$ go install github.com/ark-lang/go-llvm/llvm
 $ go get github.com/ark-lang/ark/...
 ```
 
