@@ -63,9 +63,8 @@ before you get started:
   * `libedit-dev` installed
 
 ### <a name="building"></a> Building
-Replace `release` to match your llvm release. You can check by running
-the `llvm-config --version` command. If you are on 3.6.1, `release` would
-become `RELEASE_361`, or `RELEASE_362` for 3.6.2, and so on.
+Once you have your dependencies setup, building ark from scratch is done by
+running the following commands:
 
 ```bash
 $ git clone https://github.com/ark-lang/go-llvm.git $GOPATH/src/github.com/ark-lang/go-llvm
