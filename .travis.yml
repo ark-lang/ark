@@ -14,12 +14,12 @@ sudo: false
 addons:
  apt:
    sources:
-   - llvm-toolchain-precise-3.6
+   - llvm-toolchain-precise-3.7
    - ubuntu-toolchain-r-test
 
    packages:
-   - llvm-3.6
-   - llvm-3.6-dev
+   - llvm-3.7
+   - llvm-3.7-dev
    - libedit2
    - libedit-dev
    - libconfig++8-dev
@@ -29,14 +29,12 @@ install:
  # use g++-4.9 
  - export CXX="g++-4.9"
  # dynamic llvm version fetching that is probably overkill
- - export LLVM_VERSION="`llvm-config-3.6 --version | sed -e 's/\.//g'`"
- - svn co --quiet https://llvm.org/svn/llvm-project/llvm/tags/RELEASE_$LLVM_VERSION/final $GOPATH/src/llvm.org/llvm ||
-   svn co --quiet https://llvm.org/svn/llvm-project/llvm/tags/RELEASE_$LLVM_VERSION/rc1 $GOPATH/src/llvm.org/llvm
+ - git clone https://github.com/ark-lang/go-llvm.git $GOPATH/src/github.com/ark-lang/go-llvm
  # install the bindings to gopath
- - export CGO_CPPFLAGS="`llvm-config-3.6 --cppflags`"
- - export CGO_LDFLAGS="`llvm-config-3.6 --ldflags --libs --system-libs all`"
+ - export CGO_CPPFLAGS="`llvm-config-3.7 --cppflags`"
+ - export CGO_LDFLAGS="`llvm-config-3.7 --ldflags --libs --system-libs all`"
  - export CGO_CXXFLAGS=-std=c++11
- - go install -tags byollvm llvm.org/llvm/bindings/go/llvm
+ - go install -tags byollvm github.com/ark-lang/go-llvm/llvm
 
 # our stuff goes here
 script:

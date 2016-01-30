@@ -56,23 +56,20 @@ before you get started:
 
 ### <a name="dependencies"></a> Dependencies
 * Go installed and `$GOPATH` setup - [Instructions on setting up GOPATH](//golang.org/doc/code.html#GOPATH)
-* subversion
-* LLVM installed, with `llvm-config` in your `$PATH`
-* a C++ compiler
-* `libedit-dev` installed
-* `CMake` installed
+* For building LLVM bindings:
+  * Subversion
+  * A C++ Compiler
+  * CMake installed
+  * `libedit-dev` installed
 
 ### <a name="building"></a> Building
-Replace `release` to match your llvm release. You can check by running
-the `llvm-config --version` command. If you are on 3.6.1, `release` would
-become `RELEASE_361`, or `RELEASE_362` for 3.6.2, and so on.
+Once you have your dependencies setup, building ark from scratch is done by
+running the following commands:
 
 ```bash
-$ release=RELEASE_362 # set this to match your llvm-config --version
-$ svn co https://llvm.org/svn/llvm-project/llvm/tags/$release/final $GOPATH/src/llvm.org/llvm
-$ cd $GOPATH/src/llvm.org/llvm/bindings/go
+$ git clone https://github.com/ark-lang/go-llvm.git $GOPATH/src/github.com/ark-lang/go-llvm
+$ cd $GOPATH/src/github.com/ark-lang/go-llvm
 $ ./build.sh
-$ go install llvm.org/llvm/bindings/go/llvm
 $ go get github.com/ark-lang/ark/...
 ```
 

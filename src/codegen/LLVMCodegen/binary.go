@@ -6,10 +6,10 @@ import (
 	"os"
 	"os/exec"
 
-	"llvm.org/llvm/bindings/go/llvm"
-
 	"github.com/ark-lang/ark/src/parser"
 	"github.com/ark-lang/ark/src/util/log"
+
+	"github.com/ark-lang/go-llvm/llvm"
 )
 
 type OutputType int
