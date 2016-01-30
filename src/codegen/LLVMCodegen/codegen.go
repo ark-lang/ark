@@ -9,7 +9,7 @@ import (
 	"github.com/ark-lang/ark/src/util"
 	"github.com/ark-lang/ark/src/util/log"
 
-	"llvm.org/llvm/bindings/go/llvm"
+	"github.com/ark-lang/go-llvm/llvm"
 )
 
 type Codegen struct {
