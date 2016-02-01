@@ -1,0 +1,15 @@
+#use std::io
+
+[c] func printf(fmt: ^u8, ...) -> int;
+
+func do<T>(t: T) -> T {
+    return t;
+}
+
+func main() -> int {
+    io::println("generic function test");
+
+    C::printf(c"this: %d\n", do(50));
+
+    return 0;
+}

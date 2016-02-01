@@ -148,45 +148,57 @@ func (v *Constructor) constructExprs(nodes []ParseNode) []Expr {
 }
 
 func (v *ReferenceTypeNode) construct(c *Constructor) Type {
-	targetType := c.constructType(v.TargetType)
+	targetType := v.TargetType.construct(c)
 	return ReferenceTo(targetType, v.Mutable)
 }
 
 func (v *PointerTypeNode) construct(c *Constructor) Type {
-	targetType := c.constructType(v.TargetType)
+	targetType := v.TargetType.construct(c)
 	return PointerTo(targetType)
 }
 
 func (v *TupleTypeNode) construct(c *Constructor) Type {
 	res := TupleType{}
-	res.Members = c.constructTypes(v.MemberTypes)
+	res.Members = c.constructTypeReferences(v.MemberTypes)
 	return res
 }
 
 func (v *FunctionTypeNode) construct(c *Constructor) Type {
 	res := FunctionType{
 		IsVariadic: v.IsVariadic,
-		Parameters: c.constructTypes(v.ParameterTypes),
+		Parameters: c.constructTypeReferences(v.ParameterTypes),
 		attrs:      v.Attrs(),
 	}
 
 	if v.ReturnType != nil {
-		res.Return = c.constructType(v.ReturnType)
+		res.Return = v.ReturnType.construct(c)
 	} else {
-		res.Return = PRIMITIVE_void
+		res.Return = &TypeReference{Type: PRIMITIVE_void}
 	}
 	return res
 }
 
 func (v *ArrayTypeNode) construct(c *Constructor) Type {
-	memberType := c.constructType(v.MemberType)
+	memberType := v.MemberType.construct(c)
 	return ArrayOf(memberType)
 }
 
-func (v *TypeReferenceNode) construct(c *Constructor) Type {
-	parameters := c.constructTypes(v.GenericParameters)
-	res := UnresolvedType{Name: toUnresolvedName(v.Reference), GenericParameters: parameters}
+func (v *NamedTypeNode) construct(c *Constructor) Type {
+	return UnresolvedType{Name: toUnresolvedName(v.Name)}
+}
+
+func (v *TypeReferenceNode) construct(c *Constructor) *TypeReference {
+	parameters := c.constructTypeReferences(v.GenericArguments)
+	res := &TypeReference{Type: c.constructType(v.Type), GenericArguments: parameters}
 	return res
+}
+
+func (v *Constructor) constructTypeReferences(refs []*TypeReferenceNode) []*TypeReference {
+	ret := make([]*TypeReference, 0, len(refs))
+	for _, ref := range refs {
+		ret = append(ret, ref.construct(v))
+	}
+	return ret
 }
 
 func (v *InterfaceTypeNode) construct(c *Constructor) Type {
@@ -216,7 +228,7 @@ func (v *StructTypeNode) construct(c *Constructor) Type {
 	}
 
 	for _, member := range v.Members {
-		structType = structType.addMember(member.Name.Value, c.constructType(member.Type))
+		structType = structType.addMember(member.Name.Value, member.Type.construct(c))
 	}
 
 	return structType
@@ -326,7 +338,7 @@ func (v *FunctionNode) construct(c *Constructor) *Function {
 	}
 
 	var arguments []ParseNode
-	for _, arg := range v.Header.Arguments {
+	for _, arg := range v.Header.Arguments { // TODO rename v.Header.Arguments to v.Header.Parameters
 		arguments = append(arguments, arg)
 		decl := c.constructNode(arg).(*VariableDecl) // TODO: Error message
 		decl.Variable.IsParameter = true
@@ -335,10 +347,14 @@ func (v *FunctionNode) construct(c *Constructor) *Function {
 	}
 
 	if v.Header.ReturnType != nil {
-		function.Type.Return = c.constructType(v.Header.ReturnType)
+		function.Type.Return = v.Header.ReturnType.construct(c)
 	} else {
 		// set it to void since we haven't specified a type
-		function.Type.Return = PRIMITIVE_void
+		function.Type.Return = &TypeReference{Type: PRIMITIVE_void}
+	}
+
+	if v.Header.GenericSigil != nil {
+		function.Type.GenericParameters = v.Header.GenericSigil.toSubstitutionTypes()
 	}
 
 	if v.Expr != nil {
@@ -383,10 +399,20 @@ func (v *LambdaExprNode) construct(c *Constructor) Expr {
 	return res
 }
 
+func (v *GenericSigilNode) toSubstitutionTypes() []SubstitutionType {
+	// TODO restrictions
+	ret := make([]SubstitutionType, 0, len(v.GenericParameters))
+	for _, p := range v.GenericParameters {
+		ret = append(ret, NewSubstitutionType(p.Name.Value))
+	}
+	return ret
+}
+
 func (v *EnumTypeNode) construct(c *Constructor) Type {
 	enumType := EnumType{
-		Simple:  true,
-		Members: make([]EnumTypeMember, len(v.Members)),
+		Simple:             true,
+		Members:            make([]EnumTypeMember, len(v.Members)),
+		GenericsParameters: v.GenericSigil.toSubstitutionTypes(),
 	}
 
 	lastValue := 0
@@ -394,10 +420,10 @@ func (v *EnumTypeNode) construct(c *Constructor) Type {
 		enumType.Members[idx].Name = mem.Name.Value
 
 		if mem.TupleBody != nil {
-			enumType.Members[idx].Type = c.constructType(mem.TupleBody)
+			enumType.Members[idx].Type = mem.TupleBody.construct(c)
 			enumType.Simple = false
 		} else if mem.StructBody != nil {
-			enumType.Members[idx].Type = c.constructType(mem.StructBody)
+			enumType.Members[idx].Type = mem.StructBody.construct(c)
 			enumType.Simple = false
 		} else {
 			enumType.Members[idx].Type = tupleOf()
@@ -438,7 +464,7 @@ func (v *VarDeclNode) construct(c *Constructor) Node {
 	}
 
 	if v.Type != nil {
-		variable.Type = c.constructType(v.Type)
+		variable.Type = v.Type.construct(c)
 	}
 
 	res := &VariableDecl{
@@ -599,7 +625,7 @@ func (v *SizeofExprNode) construct(c *Constructor) Expr {
 	if v.Value != nil {
 		res.Expr = c.constructExpr(v.Value)
 	} else if v.Type != nil {
-		res.Type = c.constructType(v.Type)
+		res.Type = v.Type.construct(c)
 	}
 	res.setPos(v.Where().Start())
 	return res
@@ -616,7 +642,7 @@ func (v *AddrofExprNode) construct(c *Constructor) Expr {
 
 func (v *CastExprNode) construct(c *Constructor) Expr {
 	res := &CastExpr{
-		Type: c.constructType(v.Type),
+		Type: v.Type.construct(c),
 		Expr: c.constructExpr(v.Value),
 	}
 	res.setPos(v.Where().Start())
@@ -629,7 +655,7 @@ func (v *UnaryExprNode) construct(c *Constructor) Expr {
 	if v.Operator == UNOP_DEREF {
 		if castExpr, ok := subExpr.(*CastExpr); ok {
 			// TODO: Verify whether this case actually ever happens
-			res = &CastExpr{Type: PointerTo(castExpr.Type), Expr: castExpr.Expr}
+			res = &CastExpr{Type: &TypeReference{Type: PointerTo(castExpr.Type)}, Expr: castExpr.Expr}
 		} else {
 			res = &DerefAccessExpr{
 				Expr: subExpr,
@@ -661,7 +687,7 @@ func (v *CallExprNode) construct(c *Constructor) Expr {
 	}
 
 	if van, ok := v.Function.(*VariableAccessNode); ok {
-		res.GenericParameters = c.constructTypes(van.GenericParameters)
+		res.GenericArguments = c.constructTypeReferences(van.GenericParameters)
 	} else if sae, ok := v.Function.(*StructAccessNode); ok {
 		res.ReceiverAccess = sae.construct(c).(*StructAccessExpr).Struct
 	}
@@ -672,8 +698,8 @@ func (v *CallExprNode) construct(c *Constructor) Expr {
 
 func (v *VariableAccessNode) construct(c *Constructor) Expr {
 	res := &VariableAccessExpr{
-		Name:              toUnresolvedName(v.Name),
-		GenericParameters: c.constructTypes(v.GenericParameters),
+		Name:             toUnresolvedName(v.Name),
+		GenericArguments: c.constructTypeReferences(v.GenericParameters),
 	}
 	res.setPos(v.Where().Start())
 	return res
@@ -719,7 +745,7 @@ func (v *TupleLiteralNode) construct(c *Constructor) Expr {
 
 func (v *CompositeLiteralNode) construct(c *Constructor) Expr {
 	res := &CompositeLiteral{}
-	res.Type = c.constructType(v.Type)
+	res.Type = v.Type.construct(c)
 
 	for i, val := range v.Values {
 		res.Fields = append(res.Fields, v.Fields[i].Value)

@@ -18,6 +18,16 @@ func (v *DeprecatedCheck) WarnDeprecated(s *SemanticAnalyzer, thing parser.Locat
 	}
 }
 
+func (v *DeprecatedCheck) checkTypeReference(s *SemanticAnalyzer, loc parser.Locatable, typref *parser.TypeReference) {
+	if dep := typref.Type.Attrs().Get("deprecated"); dep != nil {
+		v.WarnDeprecated(s, loc, "type", typref.Type.TypeName(), dep.Value)
+	}
+
+	for _, garg := range typref.GenericArguments {
+		v.checkTypeReference(s, loc, garg)
+	}
+}
+
 func (v *DeprecatedCheck) Init(s *SemanticAnalyzer)       {}
 func (v *DeprecatedCheck) EnterScope(s *SemanticAnalyzer) {}
 func (v *DeprecatedCheck) ExitScope(s *SemanticAnalyzer)  {}
@@ -27,9 +37,7 @@ func (v *DeprecatedCheck) PostVisit(s *SemanticAnalyzer, n parser.Node) {}
 func (v *DeprecatedCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
 	switch n := n.(type) {
 	case *parser.VariableDecl:
-		if dep := n.Variable.Type.Attrs().Get("deprecated"); dep != nil {
-			v.WarnDeprecated(s, n, "type", n.Variable.Type.TypeName(), dep.Value)
-		}
+		v.checkTypeReference(s, n, n.Variable.Type)
 
 	case *parser.CallExpr:
 		/*if dep := n.Function.Type.Attrs().Get("deprecated"); dep != nil {

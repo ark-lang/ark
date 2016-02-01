@@ -1,12 +1,12 @@
 [c] func printf(fmt: ^u8, ...) -> int;
 [c] func malloc(size: uint) -> ^C::void;
 
-type Option<T> enum {
+type Option enum<T> {
     None,
-    Some(T)
+    Some(T, u8)
 };
 
-type RC<T> struct {
+/*type RC<T> struct {
 	refs: int,
 	val: ^T,
 };
@@ -15,17 +15,17 @@ func alloc<T>() -> ^int {
     ptr := C::malloc(sizeof(int));
     // ... // Check allocation success
     return ^int(ptr);
-}
+}*/
 
 pub func main() -> int {
 	a: int = 0;
 	x := Option::None<bool>;
-	y := Option::Some<int>(a);
+	y := Option::Some<int>(a, 5);
 
 	C::printf(c"x tag: %d\n", x);
 	C::printf(c"y tag: %d\n", y);
 
-	h: u8 = 1;
+	/*h: u8 = 1;
 	mut i := RC<u8>{refs: 0};
 	i.val = ^u8(&h);
 	C::printf(c"sizeof(^i.val) = %d\n", sizeof(^i.val));
@@ -45,7 +45,7 @@ pub func main() -> int {
 	w: ^int = alloc();
 
 	C::printf(c"q addr: %x\n", q);
-	C::printf(c"w addr: %x\n", w);
+	C::printf(c"w addr: %x\n", w);*/
 
 	return 0;
 }

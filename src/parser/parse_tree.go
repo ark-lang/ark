@@ -78,36 +78,41 @@ type UseDirectiveNode struct {
 type ReferenceTypeNode struct {
 	baseNode
 	Mutable    bool
-	TargetType ParseNode
+	TargetType *TypeReferenceNode
 }
 
 type PointerTypeNode struct {
 	baseNode
-	TargetType ParseNode
+	TargetType *TypeReferenceNode
 }
 
 type TupleTypeNode struct {
 	baseNode
-	MemberTypes []ParseNode
+	MemberTypes []*TypeReferenceNode
 }
 
 type FunctionTypeNode struct {
 	baseNode
-	ParameterTypes []ParseNode
-	ReturnType     ParseNode
+	ParameterTypes []*TypeReferenceNode
+	ReturnType     *TypeReferenceNode
 	IsVariadic     bool
 }
 
 type ArrayTypeNode struct {
 	baseNode
-	MemberType ParseNode
+	MemberType *TypeReferenceNode
 	Length     int
+}
+
+type NamedTypeNode struct {
+	baseNode
+	Name *NameNode
 }
 
 type TypeReferenceNode struct {
 	baseNode
-	Reference         *NameNode
-	GenericParameters []ParseNode
+	Type             ParseNode
+	GenericArguments []*TypeReferenceNode
 }
 
 // decls
@@ -144,7 +149,7 @@ type StructTypeNode struct {
 type StructMemberNode struct {
 	baseNode
 	Name LocatedString
-	Type ParseNode
+	Type *TypeReferenceNode
 }
 
 type FunctionHeaderNode struct {
@@ -153,11 +158,11 @@ type FunctionHeaderNode struct {
 	Name         LocatedString
 	GenericSigil *GenericSigilNode
 	Arguments    []*VarDeclNode
-	ReturnType   ParseNode
+	ReturnType   *TypeReferenceNode
 	Variadic     bool
 
-	StaticReceiverType *TypeReferenceNode // use this if static
-	Receiver           *VarDeclNode       // use this if not static. this would be so much nicer with tagged unions...
+	StaticReceiverType *NamedTypeNode // use this if static
+	Receiver           *VarDeclNode   // use this if not static. this would be so much nicer with tagged unions...
 }
 
 type FunctionNode struct {
@@ -180,7 +185,8 @@ type LambdaExprNode struct {
 
 type EnumTypeNode struct {
 	baseNode
-	Members []*EnumEntryNode
+	Members      []*EnumEntryNode
+	GenericSigil *GenericSigilNode
 }
 
 type EnumEntryNode struct {
@@ -194,7 +200,7 @@ type EnumEntryNode struct {
 type VarDeclNode struct {
 	baseDecl
 	Name    LocatedString
-	Type    ParseNode
+	Type    *TypeReferenceNode
 	Value   ParseNode
 	Mutable LocatedString
 }
@@ -315,7 +321,7 @@ type ArrayLenExprNode struct {
 type SizeofExprNode struct {
 	baseNode
 	Value ParseNode
-	Type  ParseNode
+	Type  *TypeReferenceNode
 }
 
 type AddrofExprNode struct {
@@ -326,7 +332,7 @@ type AddrofExprNode struct {
 
 type CastExprNode struct {
 	baseNode
-	Type  ParseNode
+	Type  *TypeReferenceNode
 	Value ParseNode
 }
 
@@ -342,17 +348,17 @@ type CallExprNode struct {
 	Arguments []ParseNode
 }
 
-type GenericNameNode struct {
+type GenericNameNode struct { // TODO what is this
 	baseNode
 	Name              *NameNode
-	GenericParameters []ParseNode
+	GenericParameters []*TypeReferenceNode
 }
 
 // access expressions
 type VariableAccessNode struct {
 	baseNode
 	Name              *NameNode
-	GenericParameters []ParseNode
+	GenericParameters []*TypeReferenceNode // TODO rename to GArguments
 }
 
 type StructAccessNode struct {
@@ -382,7 +388,7 @@ type TupleLiteralNode struct {
 
 type CompositeLiteralNode struct {
 	baseNode
-	Type   ParseNode
+	Type   *TypeReferenceNode
 	Fields []LocatedString // has same length as Values. missing fields have zero value.
 	Values []ParseNode
 }

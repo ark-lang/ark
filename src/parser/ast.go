@@ -27,8 +27,8 @@ type Stat interface {
 }
 
 type Typed interface {
-	GetType() Type
-	SetType(Type)
+	GetType() *TypeReference
+	SetType(*TypeReference)
 }
 
 type Expr interface {
@@ -66,13 +66,81 @@ func (v *nodePos) setPos(pos lexer.Position) {
 	v.pos = pos
 }
 
+// TODO fix up all the incorrect &TypeReference{...}
+type TypeReference struct {
+	Type             Type // TODO rename to BaseType
+	GenericArguments []*TypeReference
+}
+
+func NewTypeReference(typ Type, gargs []*TypeReference) *TypeReference {
+	return &TypeReference{
+		Type:             typ,
+		GenericArguments: gargs,
+	}
+}
+
+func (v TypeReference) String() string {
+	str := v.Type.TypeName()
+	if len(v.GenericArguments) > 0 {
+		str += "<"
+		for i, arg := range v.GenericArguments {
+			str += arg.String()
+			if i < len(v.GenericArguments)-1 {
+				str += ", "
+			}
+		}
+		str += ">"
+	}
+	return str
+}
+
+func (v *TypeReference) Equals(t *TypeReference) bool {
+	if !v.Type.Equals(t.Type) {
+		return false
+	}
+
+	if len(v.GenericArguments) != len(t.GenericArguments) {
+		return false
+	}
+
+	for i, arg := range v.GenericArguments {
+		if !arg.Equals(t.GenericArguments[i]) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (v *TypeReference) ActualTypesEqual(t *TypeReference) bool {
+	if !v.Type.ActualType().Equals(t.Type.ActualType()) {
+		return false
+	}
+
+	if len(v.GenericArguments) != len(t.GenericArguments) {
+		return false
+	}
+
+	for i, arg := range v.GenericArguments {
+		if !arg.ActualTypesEqual(t.GenericArguments[i]) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (v *TypeReference) CanCastTo(t *TypeReference) bool {
+	return v.Type.CanCastTo(t.Type) && len(v.GenericArguments) == 0 && len(t.GenericArguments) == 0
+}
+
 type DocComment struct {
 	Contents string
 	Where    lexer.Span
 }
 
 type Variable struct {
-	Type         Type
+	Type         *TypeReference
 	Name         string
 	Mutable      bool
 	Attrs        AttrGroup
@@ -90,12 +158,11 @@ func (v Variable) String() string {
 	}
 	s.AddAttrs(v.Attrs)
 	s.AddString(v.Name)
-	s.AddMangled(v)
-	s.AddType(v.Type)
+	//s.AddType(v.Type) TODO
 	return s.Finish()
 }
 
-func (v Variable) GetType() Type {
+func (v Variable) GetType() *TypeReference {
 	return v.Type
 }
 
@@ -122,10 +189,9 @@ func (v Function) String() string {
 	}
 	if v.Type.Return != nil {
 		s.AddString(":")
-		s.AddType(v.Type.Return)
+		s.AddTypeReference(v.Type.Return)
 	}
 	s.Add(v.Body)
-	s.AddMangled(v)
 	return s.Finish()
 }
 
@@ -533,11 +599,11 @@ func (_ RuneLiteral) exprNode() {}
 func (v RuneLiteral) String() string {
 	return NewASTStringer("RuneLiteral").AddString(
 		colorizeEscapedString(EscapeString(string(v.Value))),
-	).AddType(v.GetType()).Finish()
+	).AddTypeReference(v.GetType()).Finish()
 }
 
-func (v RuneLiteral) GetType() Type {
-	return runeType
+func (v RuneLiteral) GetType() *TypeReference {
+	return &TypeReference{Type: runeType}
 }
 
 func (_ RuneLiteral) NodeName() string {
@@ -550,7 +616,7 @@ type NumericLiteral struct {
 	IntValue      *big.Int
 	FloatValue    float64
 	IsFloat       bool
-	Type          Type
+	Type          *TypeReference
 	floatSizeHint rune
 }
 
@@ -563,11 +629,11 @@ func (v NumericLiteral) String() string {
 	} else {
 		s.AddStringColored(util.TEXT_YELLOW, fmt.Sprintf("%d", v.IntValue))
 	}
-	s.AddType(v.GetType())
+	s.AddTypeReference(v.GetType())
 	return s.Finish()
 }
 
-func (v NumericLiteral) GetType() Type {
+func (v NumericLiteral) GetType() *TypeReference {
 	return v.Type
 }
 
@@ -597,16 +663,16 @@ type StringLiteral struct {
 	nodePos
 	Value     string
 	IsCString bool
-	Type      Type
+	Type      *TypeReference
 }
 
 func (_ StringLiteral) exprNode() {}
 
 func (v StringLiteral) String() string {
-	return NewASTStringer("StringLiteral").AddString(colorizeEscapedString(EscapeString(v.Value))).AddType(v.GetType()).Finish()
+	return NewASTStringer("StringLiteral").AddString(colorizeEscapedString(EscapeString(v.Value))).AddTypeReference(v.GetType()).Finish()
 }
 
-func (v StringLiteral) GetType() Type {
+func (v StringLiteral) GetType() *TypeReference {
 	return v.Type
 }
 
@@ -627,8 +693,8 @@ func (v BoolLiteral) String() string {
 	return NewASTStringer("BoolLiteral").AddStringColored(util.TEXT_YELLOW, strconv.FormatBool(v.Value)).Finish()
 }
 
-func (v BoolLiteral) GetType() Type {
-	return PRIMITIVE_bool
+func (v BoolLiteral) GetType() *TypeReference {
+	return &TypeReference{Type: PRIMITIVE_bool}
 }
 
 func (_ BoolLiteral) NodeName() string {
@@ -639,8 +705,9 @@ func (_ BoolLiteral) NodeName() string {
 
 type TupleLiteral struct {
 	nodePos
-	Members []Expr
-	Type    Type
+	Members           []Expr
+	Type              *TypeReference
+	ParentEnumLiteral *EnumLiteral // only non-nil if this part of an enum literal
 }
 
 func (_ TupleLiteral) exprNode() {}
@@ -654,7 +721,7 @@ func (v TupleLiteral) String() string {
 	return s.Finish()
 }
 
-func (v TupleLiteral) GetType() Type {
+func (v TupleLiteral) GetType() *TypeReference {
 	return v.Type
 }
 
@@ -666,7 +733,7 @@ func (_ TupleLiteral) NodeName() string {
 
 type CompositeLiteral struct {
 	nodePos
-	Type   Type
+	Type   *TypeReference
 	Fields []string // len(Fields) == len(Values). empty fields represented as ""
 	Values []Expr
 	InEnum bool
@@ -685,11 +752,11 @@ func (v CompositeLiteral) String() string {
 		s.Add(mem)
 		s.AddString(",")
 	}
-	s.AddType(v.Type)
+	s.AddTypeReference(v.Type)
 	return s.Finish()
 }
 
-func (v CompositeLiteral) GetType() Type {
+func (v CompositeLiteral) GetType() *TypeReference {
 	return v.Type
 }
 
@@ -701,7 +768,7 @@ func (_ CompositeLiteral) NodeName() string {
 
 type EnumLiteral struct {
 	nodePos
-	Type   Type
+	Type   *TypeReference
 	Member string
 
 	TupleLiteral     *TupleLiteral
@@ -712,6 +779,7 @@ func (_ EnumLiteral) exprNode() {}
 
 func (v EnumLiteral) String() string {
 	s := NewASTStringer("EnumLiteral")
+
 	if v.TupleLiteral != nil {
 		s.Add(v.TupleLiteral)
 	} else if v.CompositeLiteral != nil {
@@ -720,7 +788,7 @@ func (v EnumLiteral) String() string {
 	return s.Finish()
 }
 
-func (v EnumLiteral) GetType() Type {
+func (v EnumLiteral) GetType() *TypeReference {
 	return v.Type
 }
 
@@ -734,7 +802,7 @@ type BinaryExpr struct {
 	nodePos
 	Lhand, Rhand Expr
 	Op           BinOpType
-	Type         Type
+	Type         *TypeReference
 }
 
 func (_ BinaryExpr) exprNode() {}
@@ -743,7 +811,7 @@ func (v BinaryExpr) String() string {
 	return NewASTStringer("BinaryExpr").Add(v.Op).Add(v.Lhand).Add(v.Rhand).Finish()
 }
 
-func (v BinaryExpr) GetType() Type {
+func (v BinaryExpr) GetType() *TypeReference {
 	return v.Type
 }
 
@@ -757,7 +825,7 @@ type UnaryExpr struct {
 	nodePos
 	Expr Expr
 	Op   UnOpType
-	Type Type
+	Type *TypeReference
 }
 
 func (_ UnaryExpr) exprNode() {}
@@ -766,7 +834,7 @@ func (v UnaryExpr) String() string {
 	return NewASTStringer("UnaryExpr").Add(v.Op).Add(v.Expr).Finish()
 }
 
-func (v UnaryExpr) GetType() Type {
+func (v UnaryExpr) GetType() *TypeReference {
 	return v.Type
 }
 
@@ -779,16 +847,16 @@ func (_ UnaryExpr) NodeName() string {
 type CastExpr struct {
 	nodePos
 	Expr Expr
-	Type Type
+	Type *TypeReference
 }
 
 func (_ CastExpr) exprNode() {}
 
 func (v CastExpr) String() string {
-	return NewASTStringer("CastExpr").Add(v.Expr).AddType(v.GetType()).Finish()
+	return NewASTStringer("CastExpr").Add(v.Expr).AddTypeReference(v.GetType()).Finish()
 }
 
-func (v CastExpr) GetType() Type {
+func (v CastExpr) GetType() *TypeReference {
 	return v.Type
 }
 
@@ -804,7 +872,7 @@ type CallExpr struct {
 	Arguments      []Expr
 	ReceiverAccess Expr // nil if not method or if static
 
-	GenericParameters []Type
+	GenericArguments []*TypeReference
 }
 
 func (_ CallExpr) exprNode() {}
@@ -812,18 +880,19 @@ func (_ CallExpr) exprNode() {}
 func (v CallExpr) String() string {
 	s := NewASTStringer("CallExpr")
 	s.Add(v.Function)
+	s.AddGenericArguments(v.GenericArguments)
 	for _, arg := range v.Arguments {
 		s.Add(arg)
 	}
-	s.AddType(v.GetType())
+	s.AddTypeReference(v.GetType())
 	return s.Finish()
 }
 
-func (v CallExpr) GetType() Type {
+func (v CallExpr) GetType() *TypeReference {
 	if v.Function != nil {
 		fnType := v.Function.GetType()
 		if fnType != nil {
-			return fnType.(FunctionType).Return
+			return fnType.Type.(FunctionType).Return
 		}
 	}
 	return nil
@@ -839,20 +908,17 @@ type FunctionAccessExpr struct {
 
 	Function *Function
 
-	GenericParameters []Type
+	Type *TypeReference
 }
 
 func (_ FunctionAccessExpr) exprNode() {}
 
 func (v FunctionAccessExpr) String() string {
-	return NewASTStringer("FunctionAccessExpr").AddString(v.Function.Name).Finish()
+	return NewASTStringer("FunctionAccessExpr").AddTypeReference(v.Type).AddString(v.Function.Name).Finish()
 }
 
-func (v FunctionAccessExpr) GetType() Type {
-	if v.Function != nil {
-		return v.Function.Type
-	}
-	return nil
+func (v FunctionAccessExpr) GetType() *TypeReference {
+	return v.Type
 }
 
 func (_ FunctionAccessExpr) NodeName() string {
@@ -866,16 +932,16 @@ type VariableAccessExpr struct {
 
 	Variable *Variable
 
-	GenericParameters []Type
+	GenericArguments []*TypeReference
 }
 
 func (_ VariableAccessExpr) exprNode() {}
 
 func (v VariableAccessExpr) String() string {
-	return NewASTStringer("VariableAccessExpr").Add(v.Name).Finish()
+	return NewASTStringer("VariableAccessExpr").Add(v.Name).AddGenericArguments(v.GenericArguments).Finish()
 }
 
-func (v VariableAccessExpr) GetType() Type {
+func (v VariableAccessExpr) GetType() *TypeReference {
 	if v.Variable != nil {
 		return v.Variable.Type
 	}
@@ -906,25 +972,27 @@ func (v StructAccessExpr) String() string {
 	return s.Finish()
 }
 
-func (v StructAccessExpr) GetType() Type {
+func (v StructAccessExpr) GetType() *TypeReference {
+	// TODO sort out type references and stuff
+
 	stype := v.Struct.GetType()
 
-	if typ, ok := TypeWithoutPointers(stype).(*NamedType); ok {
+	if typ, ok := TypeWithoutPointers(stype.Type).(*NamedType); ok {
 		fn := typ.GetMethod(v.Member)
 		if fn != nil {
-			return fn.Type
+			return &TypeReference{Type: fn.Type} // TODO?
 		}
 	}
 
 	if stype == nil {
 		return nil
-	} else if pt, ok := stype.(PointerType); ok {
+	} else if pt, ok := stype.Type.(PointerType); ok {
 		stype = pt.Addressee
 	}
 
 	if stype == nil {
 		return nil
-	} else if st, ok := stype.ActualType().(StructType); ok {
+	} else if st, ok := stype.Type.ActualType().(StructType); ok {
 		mem := st.GetMember(v.Member)
 		if mem != nil {
 			return mem.Type
@@ -959,9 +1027,9 @@ func (v ArrayAccessExpr) String() string {
 	return s.Finish()
 }
 
-func (v ArrayAccessExpr) GetType() Type {
+func (v ArrayAccessExpr) GetType() *TypeReference {
 	if v.Array.GetType() != nil {
-		return v.Array.GetType().ActualType().(ArrayType).MemberType
+		return v.Array.GetType().Type.ActualType().(ArrayType).MemberType
 	}
 	return nil
 }
@@ -991,9 +1059,11 @@ func (v TupleAccessExpr) String() string {
 	return s.Finish()
 }
 
-func (v TupleAccessExpr) GetType() Type {
+func (v TupleAccessExpr) GetType() *TypeReference {
 	if v.Tuple.GetType() != nil {
-		return v.Tuple.GetType().ActualType().(TupleType).Members[v.Index]
+		return &TypeReference{
+			Type: v.Tuple.GetType().Type.ActualType().(TupleType).Members[v.Index].Type,
+		}
 	}
 	return nil
 }
@@ -1019,8 +1089,8 @@ func (v DerefAccessExpr) String() string {
 	return NewASTStringer("DerefAccessExpr").Add(v.Expr).Finish()
 }
 
-func (v DerefAccessExpr) GetType() Type {
-	return getAdressee(v.Expr.GetType())
+func (v DerefAccessExpr) GetType() *TypeReference {
+	return getAdressee(v.Expr.GetType().Type)
 }
 
 func (_ DerefAccessExpr) NodeName() string {
@@ -1030,7 +1100,7 @@ func (_ DerefAccessExpr) NodeName() string {
 func (v DerefAccessExpr) Mutable() bool {
 	access, ok := v.Expr.(AccessExpr)
 	if ok {
-		if refType, ok := access.GetType().(ReferenceType); ok {
+		if refType, ok := access.GetType().Type.(ReferenceType); ok {
 			return refType.IsMutable
 		}
 
@@ -1040,7 +1110,7 @@ func (v DerefAccessExpr) Mutable() bool {
 	}
 }
 
-func getAdressee(t Type) Type {
+func getAdressee(t Type) *TypeReference {
 	switch t := t.(type) {
 	case PointerType:
 		return t.Addressee
@@ -1062,12 +1132,12 @@ type AddressOfExpr struct {
 func (_ AddressOfExpr) exprNode() {}
 
 func (v AddressOfExpr) String() string {
-	return NewASTStringer("AddressOfExpr").Add(v.Access).AddType(v.GetType()).Finish()
+	return NewASTStringer("AddressOfExpr").Add(v.Access).AddTypeReference(v.GetType()).Finish()
 }
 
-func (v AddressOfExpr) GetType() Type {
+func (v AddressOfExpr) GetType() *TypeReference {
 	if v.Access.GetType() != nil {
-		return ReferenceTo(v.Access.GetType(), v.Mutable)
+		return &TypeReference{Type: ReferenceTo(v.Access.GetType(), v.Mutable)}
 	}
 	return nil
 }
@@ -1088,8 +1158,8 @@ func (v LambdaExpr) String() string {
 	return NewASTStringer("LambdaExpr").Add(v.Function).Finish()
 }
 
-func (v LambdaExpr) GetType() Type {
-	return v.Function.Type
+func (v LambdaExpr) GetType() *TypeReference {
+	return &TypeReference{Type: v.Function.Type}
 }
 
 func (v LambdaExpr) NodeName() string {
@@ -1115,8 +1185,8 @@ func (v ArrayLenExpr) String() string {
 	return s.Finish()
 }
 
-func (v ArrayLenExpr) GetType() Type {
-	return PRIMITIVE_uint
+func (v ArrayLenExpr) GetType() *TypeReference {
+	return &TypeReference{Type: PRIMITIVE_uint}
 }
 
 func (_ ArrayLenExpr) NodeName() string {
@@ -1131,7 +1201,7 @@ type SizeofExpr struct {
 
 	Expr Expr
 
-	Type Type
+	Type *TypeReference
 }
 
 func (_ SizeofExpr) exprNode() {}
@@ -1141,13 +1211,13 @@ func (v SizeofExpr) String() string {
 	if v.Expr != nil {
 		s.Add(v.Expr)
 	} else {
-		s.AddType(v.Type)
+		s.AddTypeReference(v.Type)
 	}
 	return s.Finish()
 }
 
-func (v SizeofExpr) GetType() Type {
-	return PRIMITIVE_uint
+func (v SizeofExpr) GetType() *TypeReference {
+	return &TypeReference{Type: PRIMITIVE_uint}
 }
 
 func (_ SizeofExpr) NodeName() string {
@@ -1166,7 +1236,7 @@ func (v DefaultMatchBranch) String() string {
 	return NewASTStringer("DefaultMatchBranch").Finish()
 }
 
-func (v DefaultMatchBranch) GetType() Type {
+func (v DefaultMatchBranch) GetType() *TypeReference {
 	return nil
 }
 
@@ -1196,11 +1266,6 @@ func (v *ASTStringer) AddAttrs(attrs AttrGroup) *ASTStringer {
 	for _, attr := range attrs {
 		v.Add(attr)
 	}
-	return v
-}
-
-func (v *ASTStringer) AddMangled(mangled Mangled) *ASTStringer {
-	v.AddStringColored(util.TEXT_MAGENTA, fmt.Sprintf(" <%s>", mangled.MangledName(MANGLE_ARK_UNSTABLE)))
 	return v
 }
 
@@ -1246,6 +1311,41 @@ func (v *ASTStringer) AddType(t Type) *ASTStringer {
 		return v
 	}
 	v.AddStringColored(util.TEXT_BLUE, t.TypeName())
+	return v
+}
+
+func (v *ASTStringer) AddTypeReference(t *TypeReference) *ASTStringer {
+	if t.Type == nil {
+		v.AddStringColored(util.TEXT_RED, "<type = nil>")
+		return v
+	}
+
+	v.AddStringColored(util.TEXT_BLUE, t.Type.TypeName())
+	if len(t.GenericArguments) > 0 {
+		v.AddStringColored(util.TEXT_BLUE, "<")
+		for _, a := range t.GenericArguments {
+			v.AddTypeReference(a)
+		}
+		v.AddStringColored(util.TEXT_BLUE, ">")
+	}
+	return v
+}
+
+func (v *ASTStringer) AddGenericArguments(args []*TypeReference) *ASTStringer {
+	if len(args) == 0 {
+		return v
+	}
+
+	str := "<"
+	for i, arg := range args {
+		str += arg.String()
+
+		if i < len(args)-1 {
+			str += ", "
+		}
+	}
+	str += ">"
+	v.AddStringColored(util.TEXT_GREEN, str)
 	return v
 }
 

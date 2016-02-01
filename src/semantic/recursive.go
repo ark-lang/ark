@@ -57,8 +57,8 @@ func isTypeRecursive(typ parser.Type) (bool, []parser.Type) {
 		case parser.StructType:
 			st := current.(parser.StructType)
 			for _, mem := range st.Members {
-				if check(mem.Type, path, traversed) {
-					*path = append(*path, mem.Type)
+				if check(mem.Type.Type, path, traversed) {
+					*path = append(*path, mem.Type.Type)
 					return true
 				}
 			}
@@ -66,8 +66,8 @@ func isTypeRecursive(typ parser.Type) (bool, []parser.Type) {
 		case parser.TupleType:
 			tt := current.(parser.TupleType)
 			for _, mem := range tt.Members {
-				if check(mem, path, traversed) {
-					*path = append(*path, mem)
+				if check(mem.Type, path, traversed) {
+					*path = append(*path, mem.Type)
 					return true
 				}
 			}

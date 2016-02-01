@@ -5,25 +5,23 @@ import (
 	"fmt"
 )
 
-type Mangled interface {
-	MangledName(MangleType) string
-}
-
 // In case we support multiple name mangling schemes
 type MangleType int
 
 const (
-	MANGLE_ARK_UNSTABLE MangleType = iota // see https://github.com/ark-lang/ark-rfcs/issues/3
+	MANGLE_ARK_UNSTABLE MangleType = iota
 )
 
-// easier then making a method for all types
-func TypeMangledName(mangleType MangleType, typ Type) string {
+// TODO GenericInstance -> GenericContext
+
+// easier than making a method for all types
+func TypeReferenceMangledName(mangleType MangleType, typ *TypeReference, ginst *GenericInstance) string {
 	switch mangleType {
 	case MANGLE_ARK_UNSTABLE:
 		res := "_"
 
 		for {
-			if ptr, ok := typ.(PointerType); ok {
+			if ptr, ok := typ.Type.(PointerType); ok {
 				typ = ptr.Addressee
 				res += "p"
 			} else {
@@ -31,9 +29,9 @@ func TypeMangledName(mangleType MangleType, typ Type) string {
 			}
 		}
 
-		switch typ := typ.(type) {
+		switch typ := typ.Type.(type) {
 		case ArrayType:
-			res += fmt.Sprintf("A%s", TypeMangledName(mangleType, typ.MemberType))
+			res += fmt.Sprintf("A%s", TypeReferenceMangledName(mangleType, typ.MemberType, ginst))
 
 		case ReferenceType:
 			var suffix string
@@ -42,36 +40,36 @@ func TypeMangledName(mangleType MangleType, typ Type) string {
 			} else {
 				suffix = "C"
 			}
-			res += fmt.Sprintf("R%s%s", suffix, TypeMangledName(mangleType, typ.Referrer))
+			res += fmt.Sprintf("R%s%s", suffix, TypeReferenceMangledName(mangleType, typ.Referrer, ginst))
 
 		case EnumType:
 			res += fmt.Sprintf("E%d", len(typ.Members))
 			for _, mem := range typ.Members {
-				res += TypeMangledName(mangleType, mem.Type)
+				res += TypeReferenceMangledName(mangleType, &TypeReference{Type: mem.Type}, ginst)
 			}
 
 		case StructType:
 			res += fmt.Sprintf("S%d", len(typ.Members))
 			for _, mem := range typ.Members {
-				res += TypeMangledName(mangleType, mem.Type)
+				res += TypeReferenceMangledName(mangleType, mem.Type, ginst)
 			}
 
 		case TupleType:
 			res += fmt.Sprintf("T%d", len(typ.Members))
 			for _, mem := range typ.Members {
-				res += TypeMangledName(mangleType, mem)
+				res += TypeReferenceMangledName(mangleType, mem, ginst)
 			}
 
 		case FunctionType:
 			str := ""
 			for _, par := range typ.Parameters {
-				str += TypeMangledName(mangleType, par)
+				str += TypeReferenceMangledName(mangleType, par, ginst)
 			}
 
-			str += TypeMangledName(mangleType, typ.Return)
+			str += TypeReferenceMangledName(mangleType, typ.Return, ginst)
 
 			if typ.Receiver != nil {
-				str = TypeMangledName(mangleType, typ.Receiver) + str
+				str = TypeReferenceMangledName(mangleType, typ.Receiver, ginst) + str
 			}
 
 			res += fmt.Sprintf("%dFT%s", len(str), str)
@@ -83,10 +81,13 @@ func TypeMangledName(mangleType MangleType, typ Type) string {
 		case InterfaceType:
 			str := ""
 			for _, fn := range typ.Functions {
-				str += fn.MangledName(mangleType)
+				str += fn.MangledName(mangleType, ginst)
 			}
 
 			res += fmt.Sprintf("%dI%s", len(str), str)
+
+		case SubstitutionType:
+			return TypeReferenceMangledName(mangleType, ginst.Get(&TypeReference{Type: typ}), ginst)
 
 		default:
 			panic("unimplemented type mangling scheme")
@@ -115,7 +116,7 @@ func (v Module) MangledName(typ MangleType) string {
 	}
 }
 
-func (v Function) MangledName(typ MangleType) string {
+func (v Function) MangledName(typ MangleType, ginst *GenericInstance) string {
 	if v.Name == "main" {
 		return "main" // TODO make sure only one main function
 	}
@@ -131,15 +132,15 @@ func (v Function) MangledName(typ MangleType) string {
 
 		result := fmt.Sprintf("_%sF%d%s", prefix, len(v.Name), v.Name)
 		for _, arg := range v.Parameters {
-			result += TypeMangledName(typ, arg.Variable.Type)
+			result += TypeReferenceMangledName(typ, arg.Variable.Type, ginst)
 		}
 
-		result += TypeMangledName(typ, v.Type.Return)
+		result += TypeReferenceMangledName(typ, v.Type.Return, ginst)
 
 		if v.Type.Receiver != nil {
-			result = TypeMangledName(typ, v.Receiver.Variable.Type) + result
+			result = TypeReferenceMangledName(typ, v.Receiver.Variable.Type, ginst) + result
 		} else if v.StaticReceiverType != nil {
-			result = TypeMangledName(typ, v.StaticReceiverType) + result
+			result = TypeReferenceMangledName(typ, &TypeReference{Type: v.StaticReceiverType}, ginst) + result
 		}
 
 		result = v.ParentModule.MangledName(typ) + result
