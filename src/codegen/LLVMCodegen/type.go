@@ -106,6 +106,9 @@ func (v *Codegen) typeRefToLLVMTypeWithOuter(typ *parser.TypeReference, outer *p
 			v.addNamedType(nt, ginst)
 			lt := v.namedTypeLookup[parser.TypeReferenceMangledName(parser.MANGLE_ARK_UNSTABLE, typ, ginst)]
 			return lt
+
+		default:
+			return v.typeToLLVMType(nt.Type, ginst)
 		}
 	}
 
@@ -130,7 +133,7 @@ func (v *Codegen) typeToLLVMType(typ parser.Type, ginst *parser.GenericInstance)
 		return v.enumTypeToLLVMType(typ, ginst)
 	case parser.ReferenceType:
 		return llvm.PointerType(v.typeRefToLLVMTypeWithOuter(typ.Referrer, ginst), 0)
-	case parser.SubstitutionType:
+	case *parser.SubstitutionType:
 		if ginst == nil {
 			panic("ginst == nil when getting substitution type")
 		}

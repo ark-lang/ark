@@ -399,9 +399,12 @@ func (v *LambdaExprNode) construct(c *Constructor) Expr {
 	return res
 }
 
-func (v *GenericSigilNode) toSubstitutionTypes() []SubstitutionType {
+func (v *GenericSigilNode) toSubstitutionTypes() []*SubstitutionType {
+	if v == nil {
+		return nil
+	}
 	// TODO restrictions
-	ret := make([]SubstitutionType, 0, len(v.GenericParameters))
+	ret := make([]*SubstitutionType, 0, len(v.GenericParameters))
 	for _, p := range v.GenericParameters {
 		ret = append(ret, NewSubstitutionType(p.Name.Value))
 	}
@@ -410,9 +413,9 @@ func (v *GenericSigilNode) toSubstitutionTypes() []SubstitutionType {
 
 func (v *EnumTypeNode) construct(c *Constructor) Type {
 	enumType := EnumType{
-		Simple:             true,
-		Members:            make([]EnumTypeMember, len(v.Members)),
-		GenericsParameters: v.GenericSigil.toSubstitutionTypes(),
+		Simple:            true,
+		Members:           make([]EnumTypeMember, len(v.Members)),
+		GenericParameters: v.GenericSigil.toSubstitutionTypes(),
 	}
 
 	lastValue := 0

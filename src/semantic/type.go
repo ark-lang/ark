@@ -113,8 +113,8 @@ func (v *TypeCheck) CheckVariableDecl(s *SemanticAnalyzer, decl *parser.Variable
 
 func (v *TypeCheck) CheckReturnStat(s *SemanticAnalyzer, stat *parser.ReturnStat) {
 	if stat.Value == nil {
-		if v.Function().Type.Return.Type.ActualType() == parser.PRIMITIVE_void {
-			s.Err(stat.Value, "Cannot return void from function `%s` of type `%s`",
+		if v.Function().Type.Return.Type.ActualType() != parser.PRIMITIVE_void {
+			s.Err(stat, "Cannot return void from function `%s` of type `%s`",
 				v.Function().Name, v.Function().Type.Return.String())
 		}
 	} else {
@@ -157,7 +157,7 @@ func (v *TypeCheck) CheckArrayLenExpr(s *SemanticAnalyzer, expr *parser.ArrayLen
 func (v *TypeCheck) CheckUnaryExpr(s *SemanticAnalyzer, expr *parser.UnaryExpr) {
 	switch expr.Op {
 	case parser.UNOP_LOG_NOT:
-		if expr.Expr.GetType().ActualTypesEqual(typeRefTo(parser.PRIMITIVE_bool)) {
+		if !expr.Expr.GetType().ActualTypesEqual(typeRefTo(parser.PRIMITIVE_bool)) {
 			s.Err(expr, "Used logical not on non-boolean expression")
 		}
 	case parser.UNOP_BIT_NOT:
@@ -205,8 +205,8 @@ func (v *TypeCheck) CheckBinaryExpr(s *SemanticAnalyzer, expr *parser.BinaryExpr
 		}
 
 	case parser.BINOP_LOG_AND, parser.BINOP_LOG_OR:
-		if expr.Lhand.GetType().ActualTypesEqual(typeRefTo(parser.PRIMITIVE_bool)) || !expr.Lhand.GetType().Equals(expr.Rhand.GetType()) {
-			s.Err(expr, "Operands for logical operator `%s` must have the same type, have `%s` and `%s`",
+		if !expr.Lhand.GetType().ActualTypesEqual(typeRefTo(parser.PRIMITIVE_bool)) || !expr.Lhand.GetType().Equals(expr.Rhand.GetType()) {
+			s.Err(expr, "Operands for logical operator `%s` must have same boolean type, have `%s` and `%s`",
 				expr.Op.OpString(), expr.Lhand.GetType().String(), expr.Rhand.GetType().String())
 		}
 
@@ -393,7 +393,7 @@ func (v *TypeCheck) CheckTupleLiteral(s *SemanticAnalyzer, lit *parser.TupleLite
 		s.Err(lit, "Invalid amount of entries in tuple")
 	}
 
-	genericInstance := parser.NewGenericInstance(lit.ParentEnumLiteral.GetType().Type.ActualType().(parser.EnumType).GenericsParameters, lit.ParentEnumLiteral.Type.GenericArguments)
+	genericInstance := parser.NewGenericInstance(lit.ParentEnumLiteral.GetType().Type.ActualType().(parser.EnumType).GenericParameters, lit.ParentEnumLiteral.Type.GenericArguments)
 
 	for idx, mem := range lit.Members {
 		if !mem.GetType().Equals(genericInstance.Get(memberTypes[idx])) {

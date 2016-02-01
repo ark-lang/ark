@@ -340,7 +340,7 @@ func (v *Resolver) ResolveNode(node *Node) {
 		} else if ident.Type == IDENT_FUNCTION {
 			*node = &FunctionAccessExpr{
 				Function: ident.Value.(*Function),
-				Type:     &TypeReference{Type: ident.Value.(*Function).Type, GenericArguments: n.GenericArguments},
+				Type:     v.ResolveTypeReference(n, &TypeReference{Type: ident.Value.(*Function).Type, GenericArguments: n.GenericArguments}),
 			}
 			(*node).setPos(n.Pos())
 			break
@@ -545,7 +545,7 @@ func (v *Resolver) ResolveType(src Locatable, t Type) Type {
 	case PointerType:
 		return PointerTo(v.ResolveTypeReference(src, t.Addressee))
 
-	case SubstitutionType:
+	case *SubstitutionType:
 		return t
 
 	case StructType:
@@ -577,15 +577,15 @@ func (v *Resolver) ResolveType(src Locatable, t Type) Type {
 	case EnumType:
 		v.EnterScope()
 
-		for _, gpar := range t.GenericsParameters {
+		for _, gpar := range t.GenericParameters {
 			v.curScope.InsertType(gpar, false)
 		}
 
 		nv := EnumType{
-			Simple:             t.Simple,
-			Members:            make([]EnumTypeMember, len(t.Members)),
-			attrs:              t.attrs,
-			GenericsParameters: t.GenericsParameters,
+			Simple:            t.Simple,
+			Members:           make([]EnumTypeMember, len(t.Members)),
+			attrs:             t.attrs,
+			GenericParameters: t.GenericParameters,
 		}
 
 		for idx, mem := range t.Members {
@@ -599,8 +599,6 @@ func (v *Resolver) ResolveType(src Locatable, t Type) Type {
 		return nv
 
 	case FunctionType:
-		fmt.Println(t.TypeName())
-
 		nv := FunctionType{
 			attrs:      t.attrs,
 			IsVariadic: t.IsVariadic,
@@ -633,7 +631,7 @@ func (v *Resolver) ResolveType(src Locatable, t Type) Type {
 				v.EnterScope()
 				name := namedType.Name + "<"
 				for idx, param := range namedType.GenericParameters {
-					paramType := SubstitutionType{
+					paramType := *SubstitutionType{
 						Name: param,
 						Type: v.ResolveType(src, t.GenericParameters[idx]),
 					}

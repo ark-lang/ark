@@ -989,7 +989,7 @@ func (v *Codegen) genStructLiteral(n *parser.CompositeLiteral) llvm.Value {
 func (v *Codegen) genTupleLiteral(n *parser.TupleLiteral) llvm.Value {
 	var ginst *parser.GenericInstance
 	if n.ParentEnumLiteral != nil {
-		ginst = parser.NewGenericInstance(n.ParentEnumLiteral.Type.Type.(parser.EnumType).GenericsParameters,
+		ginst = parser.NewGenericInstance(n.ParentEnumLiteral.Type.Type.(parser.EnumType).GenericParameters,
 			n.ParentEnumLiteral.Type.GenericArguments)
 	}
 
@@ -1016,7 +1016,7 @@ func (v *Codegen) genTupleLiteral(n *parser.TupleLiteral) llvm.Value {
 func (v *Codegen) genEnumLiteral(n *parser.EnumLiteral) llvm.Value {
 	enumBaseType := n.Type.Type.ActualType().(parser.EnumType)
 
-	ginst := parser.NewGenericInstance(n.Type.Type.(parser.EnumType).GenericsParameters,
+	ginst := parser.NewGenericInstance(n.Type.Type.(parser.EnumType).GenericParameters,
 		n.Type.GenericArguments)
 
 	enumLLVMType := v.typeToLLVMType(n.Type.Type, ginst)

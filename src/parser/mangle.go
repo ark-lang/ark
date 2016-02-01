@@ -86,7 +86,7 @@ func TypeReferenceMangledName(mangleType MangleType, typ *TypeReference, ginst *
 
 			res += fmt.Sprintf("%dI%s", len(str), str)
 
-		case SubstitutionType:
+		case *SubstitutionType:
 			return TypeReferenceMangledName(mangleType, ginst.Get(&TypeReference{Type: typ}), ginst)
 
 		default:

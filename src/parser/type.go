@@ -6,7 +6,11 @@ package parser
 // --> TypeReference - an AST element for a literal reference to a type (used for warning/error messages etc)
 // Currently, TypeReference takes the roles of both TypeInstance and TypeReference.
 
-import "github.com/ark-lang/ark/src/util"
+import (
+	"reflect"
+
+	"github.com/ark-lang/ark/src/util"
+)
 
 func IsPointerOrReferenceType(t Type) bool {
 	switch t.ActualType().(type) {
@@ -127,8 +131,9 @@ func (v PrimitiveType) ActualType() Type {
 // StructType
 
 type StructType struct {
-	Members []*StructMember
-	attrs   AttrGroup
+	Members           []*StructMember
+	attrs             AttrGroup
+	GenericParameters []*SubstitutionType
 }
 
 type StructMember struct {
@@ -703,10 +708,10 @@ func (v InterfaceType) ActualType() Type {
 
 // EnumType
 type EnumType struct {
-	Simple             bool
-	GenericsParameters []SubstitutionType
-	Members            []EnumTypeMember
-	attrs              AttrGroup
+	Simple            bool
+	GenericParameters []*SubstitutionType
+	Members           []EnumTypeMember
+	attrs             AttrGroup
 }
 
 type EnumTypeMember struct {
@@ -825,7 +830,7 @@ func (v EnumType) ActualType() Type {
 type FunctionType struct {
 	attrs AttrGroup
 
-	GenericParameters []SubstitutionType
+	GenericParameters []*SubstitutionType
 	Parameters        []*TypeReference
 	Return            *TypeReference
 	IsVariadic        bool
@@ -990,32 +995,32 @@ type SubstitutionType struct {
 	Name string
 }
 
-func NewSubstitutionType(name string) SubstitutionType {
-	return SubstitutionType{Name: name}
+func NewSubstitutionType(name string) *SubstitutionType {
+	return &SubstitutionType{Name: name}
 }
 
-func (v SubstitutionType) String() string {
+func (v *SubstitutionType) String() string {
 	return "(" + util.Blue("SubstitutionType") + ": " + v.Name + ")"
 }
 
-func (v SubstitutionType) TypeName() string {
+func (v *SubstitutionType) TypeName() string {
 	return v.Name
 }
 
-func (v SubstitutionType) ActualType() Type {
+func (v *SubstitutionType) ActualType() Type {
 	return v
 }
 
 // GenericInstance
 // Substition type to real type mappings override parameters to self mappings.
 type GenericInstance struct {
-	submap map[SubstitutionType]*TypeReference
+	submap map[*SubstitutionType]*TypeReference
 	Outer  *GenericInstance
 }
 
-func NewGenericInstance(parameters []SubstitutionType, arguments []*TypeReference) *GenericInstance {
+func NewGenericInstance(parameters []*SubstitutionType, arguments []*TypeReference) *GenericInstance {
 	v := &GenericInstance{
-		submap: make(map[SubstitutionType]*TypeReference),
+		submap: make(map[*SubstitutionType]*TypeReference),
 	}
 
 	if len(parameters) != len(arguments) {
@@ -1030,20 +1035,27 @@ func NewGenericInstance(parameters []SubstitutionType, arguments []*TypeReferenc
 }
 
 func NewGenericInstanceFromTypeReference(typref *TypeReference) *GenericInstance {
-	var pars []SubstitutionType
+	var pars []*SubstitutionType
 	switch typ := typref.Type.ActualType().(type) {
 	case EnumType:
-		pars = typ.GenericsParameters
+		pars = typ.GenericParameters
+	case FunctionType:
+		pars = typ.GenericParameters
+	case StructType:
+		pars = typ.GenericParameters
+
+	case PrimitiveType, *NamedType, *SubstitutionType, PointerType, ReferenceType, ArrayType:
+		// do nothing
 
 	default:
-		panic("unim base type")
+		panic("unim base type: " + reflect.TypeOf(typ).String())
 	}
 
 	return NewGenericInstance(pars, typref.GenericArguments)
 }
 
 // Like Get, but only gets value where key is substitution type. Returns nil if no value for key.
-func (v *GenericInstance) GetSubstitutionType(t SubstitutionType) *TypeReference {
+func (v *GenericInstance) GetSubstitutionType(t *SubstitutionType) *TypeReference {
 	if x, ok := v.submap[t]; ok {
 		return x
 	} else if v.Outer != nil {
@@ -1058,7 +1070,7 @@ func (v *GenericInstance) Get(t *TypeReference) *TypeReference {
 		panic("called Get() on nil GenericInstance")
 	}
 
-	if sub, ok := t.Type.(SubstitutionType); ok {
+	if sub, ok := t.Type.(*SubstitutionType); ok {
 		if x, ok := v.submap[sub]; ok {
 			return x
 		} else if v.Outer != nil {
@@ -1080,6 +1092,10 @@ func (v UnresolvedType) String() string {
 
 func (v UnresolvedType) TypeName() string {
 	return "unresolved(" + v.Name.String() + ")"
+}
+
+func (v UnresolvedType) Equals(t Type) bool {
+	panic("Equals() invalid on unresolved type: name == " + v.Name.String())
 }
 
 func (v UnresolvedType) ActualType() Type {

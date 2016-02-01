@@ -269,7 +269,7 @@ func SubsType(typ *TypeReference, id int, what *TypeReference) *TypeReference {
 		// The following are noops at the current time. For NamedType and EnumType
 		// this is only temporary, until we finalize implementaiton of generics
 		// in a solid maintainable way.
-	case PrimitiveType, StructType, *NamedType, InterfaceType, EnumType, SubstitutionType:
+	case PrimitiveType, StructType, *NamedType, InterfaceType, EnumType, *SubstitutionType:
 		return &TypeReference{Type: t}
 
 	default:
