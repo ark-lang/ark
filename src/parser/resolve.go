@@ -261,9 +261,7 @@ func (v *Resolver) ResolveNode(node *Node) {
 		// Only resolve non-generic type, generic types will currently be
 		// resolved when they are used, as the type parameters can only be
 		// resolved when we know what they are.
-		if n.NamedType.GenericParameters == nil {
-			n.NamedType.Type = v.ResolveType(n, n.NamedType.Type)
-		}
+		n.NamedType.Type = v.ResolveType(n, n.NamedType.Type)
 
 	case *FunctionDecl:
 		v.pushFunction(n.Function)
@@ -549,9 +547,16 @@ func (v *Resolver) ResolveType(src Locatable, t Type) Type {
 		return t
 
 	case StructType:
+		v.EnterScope()
+
+		for _, gpar := range t.GenericParameters {
+			v.curScope.InsertType(gpar, false)
+		}
+
 		nt := StructType{
-			Members: make([]*StructMember, len(t.Members)),
-			attrs:   t.attrs,
+			Members:           make([]*StructMember, len(t.Members)),
+			attrs:             t.attrs,
+			GenericParameters: t.GenericParameters,
 		}
 
 		v.EnterScope()
@@ -561,6 +566,8 @@ func (v *Resolver) ResolveType(src Locatable, t Type) Type {
 				Type: v.ResolveTypeReference(src, mem.Type),
 			}
 		}
+		v.ExitScope()
+
 		v.ExitScope()
 
 		return nt

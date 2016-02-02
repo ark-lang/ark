@@ -33,10 +33,6 @@ func (v *Codegen) addNamedTypeReference(n *parser.TypeReference) {
 }
 
 func (v *Codegen) addNamedType(n *parser.NamedType, gcon *parser.GenericContext) {
-	if len(n.GenericParameters) > 0 {
-		return
-	}
-
 	switch actualtyp := n.Type.ActualType().(type) {
 	case parser.StructType:
 		v.addStructType(actualtyp, parser.TypeReferenceMangledName(parser.MANGLE_ARK_UNSTABLE, &parser.TypeReference{BaseType: n}, gcon), gcon)

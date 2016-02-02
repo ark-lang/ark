@@ -7,6 +7,7 @@ package parser
 // Currently, TypeReference takes the roles of both TypeInstance and TypeReference.
 
 import (
+	"fmt"
 	"reflect"
 
 	"github.com/ark-lang/ark/src/util"
@@ -249,11 +250,10 @@ func (v StructType) ActualType() Type {
 // NamedType
 
 type NamedType struct {
-	Name              string
-	Type              Type
-	GenericParameters []string
-	ParentModule      *Module
-	Methods           []*Function
+	Name         string
+	Type         Type
+	ParentModule *Module
+	Methods      []*Function
 }
 
 func (v *NamedType) addMethod(fn *Function) {
@@ -276,16 +276,6 @@ func (v *NamedType) ActualType() Type {
 
 func (v *NamedType) String() string {
 	res := "(" + util.Blue("NamedType") + ": " + v.Name
-	if len(v.GenericParameters) > 0 {
-		res += "<"
-		for idx, param := range v.GenericParameters {
-			res += param
-			if idx < len(v.GenericParameters)-1 {
-				res += ", "
-			}
-		}
-		res += ">"
-	}
 	return res + " = " + v.Type.TypeName() + ")"
 }
 
@@ -995,8 +985,8 @@ func (v metaType) Equals(t Type) bool {
 
 // SubstitutionType
 type SubstitutionType struct {
-	metaType
-	Name string
+	attrs AttrGroup
+	Name  string
 }
 
 func NewSubstitutionType(name string) *SubstitutionType {
@@ -1015,6 +1005,38 @@ func (v *SubstitutionType) ActualType() Type {
 	return v
 }
 
+func (v *SubstitutionType) Equals(t Type) bool {
+	return v == t
+}
+
+func (v *SubstitutionType) Attrs() AttrGroup {
+	return v.attrs
+}
+
+func (v *SubstitutionType) CanCastTo(t Type) bool {
+	return false
+}
+
+func (v *SubstitutionType) IsFloatingType() bool {
+	return false
+}
+
+func (v *SubstitutionType) IsIntegerType() bool {
+	return false
+}
+
+func (v *SubstitutionType) IsSigned() bool {
+	return false
+}
+
+func (v *SubstitutionType) IsVoidType() bool {
+	return false
+}
+
+func (v *SubstitutionType) LevelsOfIndirection() int {
+	return 0
+}
+
 // GenericInstance
 // Substition GenericContext to real type mappings override parameters to self mappings.
 type GenericContext struct {
@@ -1028,7 +1050,7 @@ func NewGenericInstance(parameters []*SubstitutionType, arguments []*TypeReferen
 	}
 
 	if len(parameters) != len(arguments) {
-		panic("len(parameters) != len(arguments)")
+		panic("len(parameters) != len(arguments): " + fmt.Sprintf("%d != %d", len(parameters), len(arguments)))
 	}
 
 	for i, par := range parameters {
@@ -1082,6 +1104,87 @@ func (v *GenericContext) Get(t *TypeReference) *TypeReference {
 		}
 	}
 	return t
+}
+
+// Replace goes through the *TypeReference and returns a new one with all the SubstitutionTypes that are mapped in this GenericContext.
+func (v *GenericContext) Replace(t *TypeReference) *TypeReference {
+	if sub, ok := t.BaseType.(*SubstitutionType); ok {
+		if subt := v.GetSubstitutionType(sub); subt != nil {
+			return subt
+		}
+		return t
+	}
+
+	return &TypeReference{
+		BaseType:         v.replaceType(t.BaseType),
+		GenericArguments: v.replaceTypeReferences(t.GenericArguments),
+	}
+}
+
+func (v *GenericContext) replaceTypeReferences(ts []*TypeReference) []*TypeReference {
+	ret := make([]*TypeReference, 0, len(ts))
+	for _, t := range ts {
+		ret = append(ret, v.Replace(t))
+	}
+	return ret
+}
+
+// Function internal to GenericContext.
+func (v *GenericContext) replaceType(t Type) Type {
+	switch t := t.(type) {
+	case EnumType:
+		for i, mem := range t.Members {
+			t.Members[i].Type = v.replaceType(mem.Type) // TODO replace if Members becomes ptr
+		}
+		return t
+
+	case FunctionType:
+		t.Parameters = v.replaceTypeReferences(t.Parameters)
+		t.Receiver = v.replaceType(t.Receiver)
+		t.Return = v.Replace(t.Return)
+		return t
+
+	case StructType:
+		for i, mem := range t.Members {
+			t.Members[i] = &StructMember{
+				Name: mem.Name,
+				Type: v.Replace(mem.Type),
+			}
+		}
+		return t
+
+	case PrimitiveType:
+		return t
+
+	case *NamedType:
+		return &NamedType{
+			Name:         t.Name,
+			Methods:      t.Methods,
+			ParentModule: t.ParentModule,
+			Type:         t.Type,
+		}
+
+	case PointerType:
+		t.Addressee = v.Replace(t.Addressee)
+		return t
+
+	case ReferenceType:
+		t.Referrer = v.Replace(t.Referrer)
+		return t
+
+	case ArrayType:
+		t.MemberType = v.Replace(t.MemberType)
+		return t
+
+	case TupleType:
+		for i, mem := range t.Members {
+			t.Members[i] = v.Replace(mem)
+		}
+		return t
+
+	default:
+		panic("unim: " + reflect.TypeOf(t).String())
+	}
 }
 
 // UnresolvedType

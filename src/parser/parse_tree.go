@@ -143,7 +143,8 @@ type InterfaceTypeNode struct {
 
 type StructTypeNode struct {
 	baseNode
-	Members []*StructMemberNode
+	Members      []*StructMemberNode
+	GenericSigil *GenericSigilNode
 }
 
 type StructMemberNode struct {

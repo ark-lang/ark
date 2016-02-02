@@ -1194,9 +1194,11 @@ func (v *CompositeLiteral) SetType(t *TypeReference) {
 		return
 	}
 
-	switch t.BaseType.ActualType().(type) {
-	case StructType, ArrayType:
-		v.Type = t
+	if v.Type == nil {
+		switch t.BaseType.ActualType().(type) {
+		case StructType, ArrayType:
+			v.Type = t
+		}
 	}
 }
 

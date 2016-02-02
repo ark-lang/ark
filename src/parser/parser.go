@@ -1289,12 +1289,15 @@ func (v *parser) parseStructType(requireKeyword bool) *StructTypeNode {
 
 	var startToken *lexer.Token
 
+	var sigil *GenericSigilNode
+
 	if requireKeyword {
 		if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_STRUCT) {
 			return nil
 		}
 		startToken = v.consumeToken()
 
+		sigil = v.parseGenericSigil()
 		v.expect(lexer.TOKEN_SEPARATOR, "{")
 	} else {
 		if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "{") {
@@ -1322,7 +1325,7 @@ func (v *parser) parseStructType(requireKeyword bool) *StructTypeNode {
 
 	endToken := v.expect(lexer.TOKEN_SEPARATOR, "}")
 
-	res := &StructTypeNode{Members: members}
+	res := &StructTypeNode{Members: members, GenericSigil: sigil}
 	res.SetWhere(lexer.NewSpanFromTokens(startToken, endToken))
 	return res
 }

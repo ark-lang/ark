@@ -188,8 +188,8 @@ func (v *NamedTypeNode) construct(c *Constructor) Type {
 }
 
 func (v *TypeReferenceNode) construct(c *Constructor) *TypeReference {
-	parameters := c.constructTypeReferences(v.GenericArguments)
-	res := &TypeReference{BaseType: c.constructType(v.Type), GenericArguments: parameters}
+	args := c.constructTypeReferences(v.GenericArguments)
+	res := &TypeReference{BaseType: c.constructType(v.Type), GenericArguments: args}
 	return res
 }
 
@@ -224,7 +224,8 @@ func (v *InterfaceTypeNode) construct(c *Constructor) Type {
 
 func (v *StructTypeNode) construct(c *Constructor) Type {
 	structType := StructType{
-		attrs: v.Attrs(),
+		attrs:             v.Attrs(),
+		GenericParameters: v.GenericSigil.toSubstitutionTypes(),
 	}
 
 	for _, member := range v.Members {
@@ -248,12 +249,6 @@ func (v *TypeDeclNode) construct(c *Constructor) Node {
 		Name:         v.Name.Value,
 		Type:         c.constructType(v.Type),
 		ParentModule: c.module,
-	}
-
-	if v.GenericSigil != nil {
-		for _, param := range v.GenericSigil.GenericParameters {
-			namedType.GenericParameters = append(namedType.GenericParameters, param.Name.Value)
-		}
 	}
 
 	res := &TypeDecl{

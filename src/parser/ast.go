@@ -1000,7 +1000,7 @@ func (v StructAccessExpr) GetType() *TypeReference {
 	} else if st, ok := stype.BaseType.ActualType().(StructType); ok {
 		mem := st.GetMember(v.Member)
 		if mem != nil {
-			return mem.Type
+			return NewGenericInstanceFromTypeReference(stype).Replace(mem.Type)
 		}
 	}
 
