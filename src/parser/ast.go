@@ -946,7 +946,7 @@ func (v VariableAccessExpr) String() string {
 
 func (v VariableAccessExpr) GetType() *TypeReference {
 	if v.Variable != nil {
-		return v.Variable.Type
+		return NewGenericInstanceFromTypeReference(v.Variable.Type).Replace(v.Variable.Type)
 	}
 	return nil
 }
