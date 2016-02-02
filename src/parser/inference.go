@@ -200,10 +200,15 @@ func SubsType(typ *TypeReference, id int, what *TypeReference) *TypeReference {
 		// current point. If we do, we return the actual type.
 		case ConstructorStructMember:
 			// Method check
-			if typ, ok := TypeWithoutPointers(nargs[0].BaseType).(*NamedType); ok {
-				fn := typ.GetMethod(t.Data.(string))
+			if nt, ok := TypeWithoutPointers(nargs[0].BaseType).(*NamedType); ok {
+				// TODO: This whole check and return is iffy, we could porbably
+				// go about it in a better way.
+				fn := nt.GetMethod(t.Data.(string))
 				if fn != nil {
-					return &TypeReference{BaseType: fn.Type}
+					return &TypeReference{
+						BaseType:         fn.Type,
+						GenericArguments: typ.GenericArguments,
+					}
 				}
 			}
 
@@ -214,7 +219,14 @@ func SubsType(typ *TypeReference, id int, what *TypeReference) *TypeReference {
 			}
 			if st, ok := typ.BaseType.ActualType().(StructType); ok {
 				mem := st.GetMember(t.Data.(string))
-				return mem.Type
+
+				mtype := mem.Type
+				if len(typ.GenericArguments) > 0 {
+					gn := NewGenericInstanceFromTypeReference(typ)
+					mtype = gn.Replace(mtype)
+				}
+
+				return mtype
 			}
 
 		// Likewise we check if we can resolve the actual type tuple index and
@@ -226,7 +238,8 @@ func SubsType(typ *TypeReference, id int, what *TypeReference) *TypeReference {
 		}
 
 		return &TypeReference{
-			BaseType: &ConstructorType{Id: t.Id, Args: nargs, Data: t.Data},
+			BaseType:         &ConstructorType{Id: t.Id, Args: nargs, Data: t.Data},
+			GenericArguments: typ.GenericArguments,
 		}
 
 	case FunctionType:
@@ -246,6 +259,7 @@ func SubsType(typ *TypeReference, id int, what *TypeReference) *TypeReference {
 				Parameters: np,
 				Return:     newRet,
 			},
+			GenericArguments: typ.GenericArguments,
 		}
 
 	case TupleType:
@@ -255,22 +269,33 @@ func SubsType(typ *TypeReference, id int, what *TypeReference) *TypeReference {
 			nm[idx] = SubsType(mem, id, what)
 		}
 
-		return &TypeReference{BaseType: tupleOf(nm...)}
+		return &TypeReference{
+			BaseType:         tupleOf(nm...),
+			GenericArguments: typ.GenericArguments,
+		}
 
 	case ArrayType:
-		return &TypeReference{BaseType: ArrayOf(SubsType(t.MemberType, id, what))}
+		return &TypeReference{
+			BaseType:         ArrayOf(SubsType(t.MemberType, id, what)),
+			GenericArguments: typ.GenericArguments,
+		}
 
 	case PointerType:
-		return &TypeReference{BaseType: PointerTo(SubsType(t.Addressee, id, what))}
+		return &TypeReference{
+			BaseType:         PointerTo(SubsType(t.Addressee, id, what)),
+			GenericArguments: typ.GenericArguments,
+		}
 
 	case ReferenceType:
-		return &TypeReference{BaseType: ReferenceTo(SubsType(t.Referrer, id, what), t.IsMutable)}
+		return &TypeReference{BaseType: ReferenceTo(SubsType(t.Referrer, id, what), t.IsMutable),
+			GenericArguments: typ.GenericArguments,
+		}
 
 		// The following are noops at the current time. For NamedType and EnumType
 		// this is only temporary, until we finalize implementaiton of generics
 		// in a solid maintainable way.
 	case PrimitiveType, StructType, *NamedType, InterfaceType, EnumType, *SubstitutionType:
-		return &TypeReference{BaseType: t}
+		return &TypeReference{BaseType: t, GenericArguments: typ.GenericArguments}
 
 	default:
 		panic("Unhandled type in Side.Subs(): " + reflect.TypeOf(t).String() + " (" + t.TypeName() + ")")
