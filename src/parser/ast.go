@@ -149,6 +149,9 @@ type Variable struct {
 	ParentModule *Module
 	IsParameter  bool
 	IsArgument   bool
+
+	IsReceiver                bool             // TODO separate this out so it isn't as messy
+	ReceiverGenericParameters []*TypeReference // only used if IsReceiver == true
 }
 
 func (v Variable) String() string {
@@ -871,8 +874,6 @@ type CallExpr struct {
 	Function       Expr
 	Arguments      []Expr
 	ReceiverAccess Expr // nil if not method or if static
-
-	GenericArguments []*TypeReference
 }
 
 func (_ CallExpr) exprNode() {}
@@ -880,7 +881,6 @@ func (_ CallExpr) exprNode() {}
 func (v CallExpr) String() string {
 	s := NewASTStringer("CallExpr")
 	s.Add(v.Function)
-	s.AddGenericArguments(v.GenericArguments)
 	for _, arg := range v.Arguments {
 		s.Add(arg)
 	}
@@ -908,17 +908,20 @@ type FunctionAccessExpr struct {
 
 	Function *Function
 
-	Type *TypeReference
+	GenericArguments []*TypeReference
 }
 
 func (_ FunctionAccessExpr) exprNode() {}
 
 func (v FunctionAccessExpr) String() string {
-	return NewASTStringer("FunctionAccessExpr").AddTypeReference(v.Type).AddString(v.Function.Name).Finish()
+	return NewASTStringer("FunctionAccessExpr").AddGenericArguments(v.GenericArguments).AddString(v.Function.Name).Finish()
 }
 
 func (v FunctionAccessExpr) GetType() *TypeReference {
-	return v.Type
+	return &TypeReference{
+		Type:             v.Function.Type,
+		GenericArguments: v.GenericArguments,
+	}
 }
 
 func (_ FunctionAccessExpr) NodeName() string {
@@ -932,7 +935,7 @@ type VariableAccessExpr struct {
 
 	Variable *Variable
 
-	GenericArguments []*TypeReference
+	GenericArguments []*TypeReference // TODO check no gen args if variable, not function
 }
 
 func (_ VariableAccessExpr) exprNode() {}
@@ -961,6 +964,8 @@ type StructAccessExpr struct {
 	nodePos
 	Struct AccessExpr
 	Member string
+
+	GenericArguments []*TypeReference // TODO check no gen args if variable, not function
 }
 
 func (_ StructAccessExpr) exprNode() {}
@@ -980,7 +985,7 @@ func (v StructAccessExpr) GetType() *TypeReference {
 	if typ, ok := TypeWithoutPointers(stype.Type).(*NamedType); ok {
 		fn := typ.GetMethod(v.Member)
 		if fn != nil {
-			return &TypeReference{Type: fn.Type} // TODO?
+			return &TypeReference{Type: fn.Type, GenericArguments: v.GenericArguments}
 		}
 	}
 
@@ -1315,7 +1320,7 @@ func (v *ASTStringer) AddType(t Type) *ASTStringer {
 }
 
 func (v *ASTStringer) AddTypeReference(t *TypeReference) *ASTStringer {
-	if t.Type == nil {
+	if t == nil || t.Type == nil {
 		v.AddStringColored(util.TEXT_RED, "<type = nil>")
 		return v
 	}

@@ -339,8 +339,8 @@ func (v *Resolver) ResolveNode(node *Node) {
 			// do nothing
 		} else if ident.Type == IDENT_FUNCTION {
 			*node = &FunctionAccessExpr{
-				Function: ident.Value.(*Function),
-				Type:     v.ResolveTypeReference(n, &TypeReference{Type: ident.Value.(*Function).Type, GenericArguments: n.GenericArguments}),
+				Function:         ident.Value.(*Function),
+				GenericArguments: v.ResolveTypeReferences(n, n.GenericArguments),
 			}
 			(*node).setPos(n.Pos())
 			break
@@ -428,7 +428,7 @@ func (v *Resolver) ResolveNode(node *Node) {
 							Type: UnresolvedType{
 								Name: enumName,
 							},
-							GenericArguments: v.ResolveTypeReferences(n, n.GenericArguments),
+							GenericArguments: v.ResolveTypeReferences(vae, vae.GenericArguments),
 						})
 
 						member, ok := et.Type.ActualType().(EnumType).GetMember(memberName)
@@ -608,8 +608,8 @@ func (v *Resolver) ResolveType(src Locatable, t Type) Type {
 			nv.Parameters = append(nv.Parameters, v.ResolveTypeReference(src, par))
 		}
 		if t.Receiver != nil {
-			nv.Receiver = v.ResolveTypeReference(src, t.Receiver)
-			checkReceiverType(v, src, nv.Receiver.Type, "receiver")
+			nv.Receiver = v.ResolveType(src, t.Receiver)
+			checkReceiverType(v, src, nv.Receiver, "receiver")
 		}
 		if t.Return != nil { // TODO can this ever be nil
 			nv.Return = v.ResolveTypeReference(src, t.Return)

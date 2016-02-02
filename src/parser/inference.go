@@ -610,7 +610,7 @@ func (v *Inferrer) HandleTyped(pos lexer.Position, typed Typed) int {
 		id := v.HandleExpr(typed.Tuple)
 		v.AddIsConstraint(ann.Id, &TypeReference{
 			Type: &ConstructorType{
-				Id:   ConstructorStructMember,
+				Id:   ConstructorTupleIndex,
 				Args: []*TypeReference{&TypeReference{Type: &TypeVariable{Id: id}}},
 				Data: typed.Index,
 			},
@@ -982,7 +982,7 @@ func (v *Inferrer) Finalize() {
 			// this access represents.
 			if sae, ok := n.Function.(*StructAccessExpr); ok {
 				fn := TypeWithoutPointers(sae.Struct.GetType().Type).(*NamedType).GetMethod(sae.Member)
-				n.Function = &FunctionAccessExpr{Function: fn}
+				n.Function = &FunctionAccessExpr{Function: fn, GenericArguments: sae.GenericArguments}
 				if n.Function == nil {
 					v.errPos(sae.Pos(), "Type `%s` has no method `%s`", TypeWithoutPointers(sae.Struct.GetType().Type).TypeName(), sae.Member)
 				}
@@ -998,7 +998,7 @@ func (v *Inferrer) Finalize() {
 				if recType := n.Function.GetType().Type.(FunctionType).Receiver; recType != nil {
 					accessType := n.ReceiverAccess.GetType()
 
-					if accessType.Type.LevelsOfIndirection() == recType.Type.LevelsOfIndirection()+1 {
+					if accessType.Type.LevelsOfIndirection() == recType.LevelsOfIndirection()+1 {
 						n.ReceiverAccess = &DerefAccessExpr{Expr: n.ReceiverAccess}
 					}
 				}

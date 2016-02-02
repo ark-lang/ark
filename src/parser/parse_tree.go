@@ -203,6 +203,9 @@ type VarDeclNode struct {
 	Type    *TypeReferenceNode
 	Value   ParseNode
 	Mutable LocatedString
+
+	IsReceiver           bool
+	ReceiverGenericSigil *GenericSigilNode
 }
 
 type TypeDeclNode struct {

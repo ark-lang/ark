@@ -18,7 +18,7 @@ func (v *ImmutableAssignCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
 	case *parser.VariableDecl:
 		_, isStructure := n.Variable.Type.Type.(parser.StructType)
 
-		if n.Assignment == nil && !n.Variable.Mutable && !n.Variable.FromStruct && !isStructure && !n.Variable.IsParameter {
+		if n.Assignment == nil && !n.Variable.Mutable && !n.Variable.FromStruct && !isStructure && !n.Variable.IsParameter && !n.Variable.IsReceiver {
 			// note the parent struct is nil!
 			// as well as if the type is a structure!!
 			// this is because we dont care if

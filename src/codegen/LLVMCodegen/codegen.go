@@ -726,7 +726,7 @@ func (v *Codegen) genAddressOfExpr(n *parser.AddressOfExpr) llvm.Value {
 
 func (v *Codegen) genAccessExpr(n parser.Expr) llvm.Value {
 	if fae, ok := n.(*parser.FunctionAccessExpr); ok {
-		ginst := parser.NewGenericInstance(fae.Function.Type.GenericParameters, fae.Type.GenericArguments)
+		ginst := parser.NewGenericInstance(fae.Function.Type.GenericParameters, fae.GenericArguments)
 
 		fnName := fae.Function.MangledName(parser.MANGLE_ARK_UNSTABLE, ginst)
 
@@ -743,7 +743,7 @@ func (v *Codegen) genAccessExpr(n parser.Expr) llvm.Value {
 		if fn.IsNil() {
 			decl := &parser.FunctionDecl{Function: fae.Function, Prototype: true}
 			decl.SetPublic(true)
-			v.declareFunctionDecl(decl, fae.Type.GenericArguments)
+			v.declareFunctionDecl(decl, fae.GenericArguments)
 
 			if v.curFile.LlvmModule.NamedFunction(fnName).IsNil() {
 				panic("how did this happen")
@@ -989,12 +989,16 @@ func (v *Codegen) genStructLiteral(n *parser.CompositeLiteral) llvm.Value {
 func (v *Codegen) genTupleLiteral(n *parser.TupleLiteral) llvm.Value {
 	var ginst *parser.GenericInstance
 	if n.ParentEnumLiteral != nil {
-		ginst = parser.NewGenericInstance(n.ParentEnumLiteral.Type.Type.(parser.EnumType).GenericParameters,
+		ginst = parser.NewGenericInstance(n.ParentEnumLiteral.Type.Type.ActualType().(parser.EnumType).GenericParameters,
 			n.ParentEnumLiteral.Type.GenericArguments)
 	}
 
 	if v.inFunction() {
-		ginst.Outer = v.currentFunction().ginst
+		if ginst == nil {
+			ginst = v.currentFunction().ginst
+		} else {
+			ginst.Outer = v.currentFunction().ginst
+		}
 	}
 
 	tupleLLVMType := v.typeToLLVMType(n.Type.Type, ginst)
@@ -1016,7 +1020,7 @@ func (v *Codegen) genTupleLiteral(n *parser.TupleLiteral) llvm.Value {
 func (v *Codegen) genEnumLiteral(n *parser.EnumLiteral) llvm.Value {
 	enumBaseType := n.Type.Type.ActualType().(parser.EnumType)
 
-	ginst := parser.NewGenericInstance(n.Type.Type.(parser.EnumType).GenericParameters,
+	ginst := parser.NewGenericInstance(enumBaseType.GenericParameters,
 		n.Type.GenericArguments)
 
 	enumLLVMType := v.typeToLLVMType(n.Type.Type, ginst)

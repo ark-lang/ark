@@ -331,8 +331,10 @@ func (v *FunctionNode) construct(c *Constructor) *Function {
 
 	if v.Header.Receiver != nil {
 		function.Receiver = c.constructNode(v.Header.Receiver).(*VariableDecl) // TODO: error
-		function.Type.Receiver = function.Receiver.Variable.Type
-		function.Receiver.Variable.IsParameter = true
+		if !function.Receiver.Variable.IsReceiver {
+			panic("oh no")
+		}
+		function.Type.Receiver = function.Receiver.Variable.Type.Type
 	} else if v.Header.StaticReceiverType != nil {
 		function.StaticReceiverType = c.constructType(v.Header.StaticReceiverType)
 	}
@@ -464,6 +466,7 @@ func (v *VarDeclNode) construct(c *Constructor) Node {
 		Attrs:        v.Attrs(),
 		Mutable:      v.Mutable.Value != "",
 		ParentModule: c.module,
+		IsReceiver:   v.IsReceiver,
 	}
 
 	if v.Type != nil {
@@ -689,9 +692,7 @@ func (v *CallExprNode) construct(c *Constructor) Expr {
 		Function:  c.constructExpr(v.Function),
 	}
 
-	if van, ok := v.Function.(*VariableAccessNode); ok {
-		res.GenericArguments = c.constructTypeReferences(van.GenericParameters)
-	} else if sae, ok := v.Function.(*StructAccessNode); ok {
+	if sae, ok := v.Function.(*StructAccessNode); ok {
 		res.ReceiverAccess = sae.construct(c).(*StructAccessExpr).Struct
 	}
 

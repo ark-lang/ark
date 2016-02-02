@@ -37,11 +37,11 @@ func (v *Codegen) addNamedType(n *parser.NamedType, ginst *parser.GenericInstanc
 		return
 	}
 
-	switch typ := n.Type.ActualType().(type) {
+	switch actualtyp := n.Type.ActualType().(type) {
 	case parser.StructType:
-		v.addStructType(typ, n.MangledName(parser.MANGLE_ARK_UNSTABLE), ginst)
+		v.addStructType(actualtyp, parser.TypeReferenceMangledName(parser.MANGLE_ARK_UNSTABLE, &parser.TypeReference{Type: n}, ginst), ginst)
 	case parser.EnumType:
-		v.addEnumType(typ, n.MangledName(parser.MANGLE_ARK_UNSTABLE), ginst)
+		v.addEnumType(actualtyp, parser.TypeReferenceMangledName(parser.MANGLE_ARK_UNSTABLE, &parser.TypeReference{Type: n}, ginst), ginst)
 	}
 }
 
@@ -133,6 +133,21 @@ func (v *Codegen) typeToLLVMType(typ parser.Type, ginst *parser.GenericInstance)
 		return v.enumTypeToLLVMType(typ, ginst)
 	case parser.ReferenceType:
 		return llvm.PointerType(v.typeRefToLLVMTypeWithOuter(typ.Referrer, ginst), 0)
+	case *parser.NamedType:
+		switch typ.Type.(type) {
+		case parser.StructType, parser.EnumType:
+			// If something seems wrong with the code and thie problems seems to come from here,
+			// make sure the type doesn't need generics arguments as well.
+			// This here ignores them.
+
+			v.addNamedType(typ, ginst)
+			lt := v.namedTypeLookup[parser.TypeReferenceMangledName(parser.MANGLE_ARK_UNSTABLE, &parser.TypeReference{Type: typ}, ginst)]
+
+			return lt
+
+		default:
+			return v.typeToLLVMType(typ.Type, ginst)
+		}
 	case *parser.SubstitutionType:
 		if ginst == nil {
 			panic("ginst == nil when getting substitution type")
@@ -209,7 +224,7 @@ func (v *Codegen) functionTypeToLLVMType(typ parser.FunctionType, ptr bool, gins
 
 	params := make([]llvm.Type, 0, numOfParams)
 	if typ.Receiver != nil {
-		params = append(params, v.typeRefToLLVMTypeWithOuter(typ.Receiver, ginst))
+		params = append(params, v.typeToLLVMType(typ.Receiver, ginst))
 	}
 	for _, par := range typ.Parameters {
 		params = append(params, v.typeRefToLLVMTypeWithOuter(par, ginst))

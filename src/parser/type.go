@@ -835,7 +835,7 @@ type FunctionType struct {
 	Return            *TypeReference
 	IsVariadic        bool
 
-	Receiver *TypeReference // non-nil if non-static method
+	Receiver Type // non-nil if non-static method
 }
 
 func (v FunctionType) String() string {
@@ -852,6 +852,10 @@ func (v FunctionType) TypeName() string {
 	}
 
 	res += "func"
+
+	if v.Receiver != nil {
+		res += "(v: " + v.Receiver.TypeName() + ")"
+	}
 
 	if len(v.GenericParameters) > 0 {
 		res += "<"
@@ -1044,7 +1048,7 @@ func NewGenericInstanceFromTypeReference(typref *TypeReference) *GenericInstance
 	case StructType:
 		pars = typ.GenericParameters
 
-	case PrimitiveType, *NamedType, *SubstitutionType, PointerType, ReferenceType, ArrayType:
+	case PrimitiveType, *NamedType, *SubstitutionType, PointerType, ReferenceType, ArrayType, TupleType:
 		// do nothing
 
 	default:

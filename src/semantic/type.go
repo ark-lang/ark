@@ -257,9 +257,9 @@ func (v *TypeCheck) CheckCallExpr(s *SemanticAnalyzer, expr *parser.CallExpr) {
 	}
 
 	if fnType.Receiver != nil {
-		if expr.ReceiverAccess.GetType().Equals(fnType.Receiver) {
+		if !expr.ReceiverAccess.GetType().Type.Equals(fnType.Receiver) {
 			s.Err(expr, "Mismatched receiver types for call to `%s`: `%s` and `%s`",
-				fnName, expr.ReceiverAccess.GetType().String(), fnType.Receiver.String())
+				fnName, expr.ReceiverAccess.GetType().Type.TypeName(), fnType.Receiver.TypeName())
 		}
 	}
 
@@ -393,10 +393,15 @@ func (v *TypeCheck) CheckTupleLiteral(s *SemanticAnalyzer, lit *parser.TupleLite
 		s.Err(lit, "Invalid amount of entries in tuple")
 	}
 
-	genericInstance := parser.NewGenericInstance(lit.ParentEnumLiteral.GetType().Type.ActualType().(parser.EnumType).GenericParameters, lit.ParentEnumLiteral.Type.GenericArguments)
+	var ginst *parser.GenericInstance
+	if lit.ParentEnumLiteral != nil {
+		ginst = parser.NewGenericInstance(lit.ParentEnumLiteral.GetType().Type.ActualType().(parser.EnumType).GenericParameters, lit.ParentEnumLiteral.Type.GenericArguments)
+	} else {
+		ginst = parser.NewGenericInstance(nil, nil)
+	}
 
 	for idx, mem := range lit.Members {
-		if !mem.GetType().Equals(genericInstance.Get(memberTypes[idx])) {
+		if !mem.GetType().Equals(ginst.Get(memberTypes[idx])) {
 			s.Err(lit, "Cannot use component of type `%s` in tuple position of type `%s`", mem.GetType().String(), memberTypes[idx])
 		}
 	}

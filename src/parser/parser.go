@@ -467,7 +467,7 @@ func (v *parser) parseFuncHeader(lambda bool) *FunctionHeaderNode {
 					v.errToken("Expected type name in method receiver, found `%s`", v.peek(0).Contents)
 				}
 			} else {
-				res.Receiver = v.parseVarDeclBody()
+				res.Receiver = v.parseVarDeclBody(true)
 				if res.Receiver == nil {
 					v.errToken("Expected variable declaration in method receiver, found `%s`", v.peek(0).Contents)
 				}
@@ -501,7 +501,7 @@ func (v *parser) parseFuncHeader(lambda bool) *FunctionHeaderNode {
 				v.err("Duplicate `...` in function arguments")
 			}
 		} else {
-			arg := v.parseVarDeclBody()
+			arg := v.parseVarDeclBody(false)
 			if arg == nil {
 				v.err("Expected valid variable declaration in function args")
 			}
@@ -667,7 +667,7 @@ func (v *parser) parseEnumEntry() *EnumEntryNode {
 func (v *parser) parseVarDecl(isTopLevel bool) *VarDeclNode {
 	defer un(trace(v, "vardecl"))
 
-	body := v.parseVarDeclBody()
+	body := v.parseVarDeclBody(false)
 	if body == nil {
 		return nil
 	}
@@ -675,12 +675,10 @@ func (v *parser) parseVarDecl(isTopLevel bool) *VarDeclNode {
 		v.expect(lexer.TOKEN_SEPARATOR, ";")
 	}
 
-	res := body
-	res.SetWhere(lexer.NewSpan(body.Where().Start(), body.Where().End()))
-	return res
+	return body
 }
 
-func (v *parser) parseVarDeclBody() *VarDeclNode {
+func (v *parser) parseVarDeclBody(isReceiver bool) *VarDeclNode {
 	defer un(trace(v, "vardeclbody"))
 
 	startPos := v.currentToken
@@ -700,7 +698,18 @@ func (v *parser) parseVarDeclBody() *VarDeclNode {
 	// consume ':'
 	v.consumeToken()
 
-	varType := v.parseTypeReference(true, false, true)
+	var varType *TypeReferenceNode
+	var sigil *GenericSigilNode
+	if isReceiver {
+		typ := v.parseType(true, false, true)
+		if typ != nil {
+			varType = &TypeReferenceNode{Type: typ}
+		}
+
+		sigil = v.parseGenericSigil()
+	} else {
+		varType = v.parseTypeReference(true, false, true)
+	}
 	if varType == nil && !v.tokenMatches(0, lexer.TOKEN_OPERATOR, "=") {
 		v.err("Expected valid type in variable declaration")
 	}
@@ -719,7 +728,12 @@ func (v *parser) parseVarDeclBody() *VarDeclNode {
 		}
 	}
 
-	res := &VarDeclNode{Name: NewLocatedString(name), Type: varType}
+	res := &VarDeclNode{
+		Name:                 NewLocatedString(name),
+		Type:                 varType,
+		IsReceiver:           isReceiver,
+		ReceiverGenericSigil: sigil,
+	}
 	start := name.Where.Start()
 	if mutable != nil {
 		res.Mutable = NewLocatedString(mutable)

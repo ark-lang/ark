@@ -69,7 +69,7 @@ func TypeReferenceMangledName(mangleType MangleType, typ *TypeReference, ginst *
 			str += TypeReferenceMangledName(mangleType, typ.Return, ginst)
 
 			if typ.Receiver != nil {
-				str = TypeReferenceMangledName(mangleType, typ.Receiver, ginst) + str
+				str = TypeReferenceMangledName(mangleType, &TypeReference{Type: typ.Receiver}, ginst) + str
 			}
 
 			res += fmt.Sprintf("%dFT%s", len(str), str)
@@ -138,7 +138,7 @@ func (v Function) MangledName(typ MangleType, ginst *GenericInstance) string {
 		result += TypeReferenceMangledName(typ, v.Type.Return, ginst)
 
 		if v.Type.Receiver != nil {
-			result = TypeReferenceMangledName(typ, v.Receiver.Variable.Type, ginst) + result
+			result = TypeReferenceMangledName(typ, &TypeReference{Type: v.Type.Receiver}, ginst) + result
 		} else if v.StaticReceiverType != nil {
 			result = TypeReferenceMangledName(typ, &TypeReference{Type: v.StaticReceiverType}, ginst) + result
 		}
@@ -158,19 +158,6 @@ func (v Variable) MangledName(typ MangleType) string {
 		if v.FromStruct {
 			result = v.ParentModule.MangledName(typ) + result
 		}
-		return result
-	default:
-		panic("")
-	}
-}
-
-func (v NamedType) MangledName(typ MangleType) string {
-	switch typ {
-	case MANGLE_ARK_UNSTABLE:
-		result := fmt.Sprintf("_N%d%s", len(v.Name), v.Name)
-
-		result = v.ParentModule.MangledName(typ) + result
-
 		return result
 	default:
 		panic("")
