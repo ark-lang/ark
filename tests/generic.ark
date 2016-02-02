@@ -30,7 +30,7 @@ pub func main() -> int {
 	i.val = ^u8(&h);
 
     mut ival := i.val;
-    ival = 10;
+    ival = ^u8(&h);
 
 	C::printf(c"sizeof(^i.val) = %d\n", sizeof(^i.val));
 	if sizeof(^i.val) != 1 {
