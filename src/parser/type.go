@@ -431,7 +431,7 @@ func (v ReferenceType) TypeName() string {
 }
 
 func (v ReferenceType) LevelsOfIndirection() int {
-	return v.Referrer.Type.LevelsOfIndirection() + 1
+	return v.Referrer.BaseType.LevelsOfIndirection() + 1
 }
 
 func (v ReferenceType) IsIntegerType() bool {
@@ -494,7 +494,7 @@ func (v PointerType) TypeName() string {
 }
 
 func (v PointerType) LevelsOfIndirection() int {
-	return v.Addressee.Type.LevelsOfIndirection() + 1
+	return v.Addressee.BaseType.LevelsOfIndirection() + 1
 }
 
 func (v PointerType) IsIntegerType() bool {
@@ -1016,14 +1016,14 @@ func (v *SubstitutionType) ActualType() Type {
 }
 
 // GenericInstance
-// Substition type to real type mappings override parameters to self mappings.
-type GenericInstance struct {
+// Substition GenericContext to real type mappings override parameters to self mappings.
+type GenericContext struct {
 	submap map[*SubstitutionType]*TypeReference
-	Outer  *GenericInstance
+	Outer  *GenericContext
 }
 
-func NewGenericInstance(parameters []*SubstitutionType, arguments []*TypeReference) *GenericInstance {
-	v := &GenericInstance{
+func NewGenericInstance(parameters []*SubstitutionType, arguments []*TypeReference) *GenericContext {
+	v := &GenericContext{
 		submap: make(map[*SubstitutionType]*TypeReference),
 	}
 
@@ -1038,9 +1038,9 @@ func NewGenericInstance(parameters []*SubstitutionType, arguments []*TypeReferen
 	return v
 }
 
-func NewGenericInstanceFromTypeReference(typref *TypeReference) *GenericInstance {
+func NewGenericInstanceFromTypeReference(typref *TypeReference) *GenericContext {
 	var pars []*SubstitutionType
-	switch typ := typref.Type.ActualType().(type) {
+	switch typ := typref.BaseType.ActualType().(type) {
 	case EnumType:
 		pars = typ.GenericParameters
 	case FunctionType:
@@ -1059,7 +1059,7 @@ func NewGenericInstanceFromTypeReference(typref *TypeReference) *GenericInstance
 }
 
 // Like Get, but only gets value where key is substitution type. Returns nil if no value for key.
-func (v *GenericInstance) GetSubstitutionType(t *SubstitutionType) *TypeReference {
+func (v *GenericContext) GetSubstitutionType(t *SubstitutionType) *TypeReference {
 	if x, ok := v.submap[t]; ok {
 		return x
 	} else if v.Outer != nil {
@@ -1068,13 +1068,13 @@ func (v *GenericInstance) GetSubstitutionType(t *SubstitutionType) *TypeReferenc
 	return nil
 }
 
-// If the key is a substitution type and is not found in this generic instance, Get() checks GenericInstance.Outer if not nil.
-func (v *GenericInstance) Get(t *TypeReference) *TypeReference {
+// If the key is a substitution type and is not found in this generic instance, Get() checks GenericContext.Outer if not nil.
+func (v *GenericContext) Get(t *TypeReference) *TypeReference {
 	if v == nil {
-		panic("called Get() on nil GenericInstance")
+		panic("called Get() on nil GenericContext")
 	}
 
-	if sub, ok := t.Type.(*SubstitutionType); ok {
+	if sub, ok := t.BaseType.(*SubstitutionType); ok {
 		if x, ok := v.submap[sub]; ok {
 			return x
 		} else if v.Outer != nil {
@@ -1108,7 +1108,7 @@ func (v UnresolvedType) ActualType() Type {
 
 func TypeWithoutPointers(t Type) Type {
 	if ptr, ok := t.(PointerType); ok {
-		return TypeWithoutPointers(ptr.Addressee.Type)
+		return TypeWithoutPointers(ptr.Addressee.BaseType)
 	}
 
 	return t

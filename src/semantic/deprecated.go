@@ -19,8 +19,8 @@ func (v *DeprecatedCheck) WarnDeprecated(s *SemanticAnalyzer, thing parser.Locat
 }
 
 func (v *DeprecatedCheck) checkTypeReference(s *SemanticAnalyzer, loc parser.Locatable, typref *parser.TypeReference) {
-	if dep := typref.Type.Attrs().Get("deprecated"); dep != nil {
-		v.WarnDeprecated(s, loc, "type", typref.Type.TypeName(), dep.Value)
+	if dep := typref.BaseType.Attrs().Get("deprecated"); dep != nil {
+		v.WarnDeprecated(s, loc, "type", typref.BaseType.TypeName(), dep.Value)
 	}
 
 	for _, garg := range typref.GenericArguments {

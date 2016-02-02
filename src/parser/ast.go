@@ -68,19 +68,19 @@ func (v *nodePos) setPos(pos lexer.Position) {
 
 // TODO fix up all the incorrect &TypeReference{...}
 type TypeReference struct {
-	Type             Type // TODO rename to BaseType
+	BaseType         Type
 	GenericArguments []*TypeReference
 }
 
 func NewTypeReference(typ Type, gargs []*TypeReference) *TypeReference {
 	return &TypeReference{
-		Type:             typ,
+		BaseType:         typ,
 		GenericArguments: gargs,
 	}
 }
 
 func (v TypeReference) String() string {
-	str := v.Type.TypeName()
+	str := v.BaseType.TypeName()
 	if len(v.GenericArguments) > 0 {
 		str += "<"
 		for i, arg := range v.GenericArguments {
@@ -95,7 +95,7 @@ func (v TypeReference) String() string {
 }
 
 func (v *TypeReference) Equals(t *TypeReference) bool {
-	if !v.Type.Equals(t.Type) {
+	if !v.BaseType.Equals(t.BaseType) {
 		return false
 	}
 
@@ -113,7 +113,7 @@ func (v *TypeReference) Equals(t *TypeReference) bool {
 }
 
 func (v *TypeReference) ActualTypesEqual(t *TypeReference) bool {
-	if !v.Type.ActualType().Equals(t.Type.ActualType()) {
+	if !v.BaseType.ActualType().Equals(t.BaseType.ActualType()) {
 		return false
 	}
 
@@ -131,7 +131,7 @@ func (v *TypeReference) ActualTypesEqual(t *TypeReference) bool {
 }
 
 func (v *TypeReference) CanCastTo(t *TypeReference) bool {
-	return v.Type.CanCastTo(t.Type) && len(v.GenericArguments) == 0 && len(t.GenericArguments) == 0
+	return v.BaseType.CanCastTo(t.BaseType) && len(v.GenericArguments) == 0 && len(t.GenericArguments) == 0
 }
 
 type DocComment struct {
@@ -606,7 +606,7 @@ func (v RuneLiteral) String() string {
 }
 
 func (v RuneLiteral) GetType() *TypeReference {
-	return &TypeReference{Type: runeType}
+	return &TypeReference{BaseType: runeType}
 }
 
 func (_ RuneLiteral) NodeName() string {
@@ -697,7 +697,7 @@ func (v BoolLiteral) String() string {
 }
 
 func (v BoolLiteral) GetType() *TypeReference {
-	return &TypeReference{Type: PRIMITIVE_bool}
+	return &TypeReference{BaseType: PRIMITIVE_bool}
 }
 
 func (_ BoolLiteral) NodeName() string {
@@ -892,7 +892,7 @@ func (v CallExpr) GetType() *TypeReference {
 	if v.Function != nil {
 		fnType := v.Function.GetType()
 		if fnType != nil {
-			return fnType.Type.(FunctionType).Return
+			return fnType.BaseType.(FunctionType).Return
 		}
 	}
 	return nil
@@ -919,7 +919,7 @@ func (v FunctionAccessExpr) String() string {
 
 func (v FunctionAccessExpr) GetType() *TypeReference {
 	return &TypeReference{
-		Type:             v.Function.Type,
+		BaseType:         v.Function.Type,
 		GenericArguments: v.GenericArguments,
 	}
 }
@@ -982,22 +982,22 @@ func (v StructAccessExpr) GetType() *TypeReference {
 
 	stype := v.Struct.GetType()
 
-	if typ, ok := TypeWithoutPointers(stype.Type).(*NamedType); ok {
+	if typ, ok := TypeWithoutPointers(stype.BaseType).(*NamedType); ok {
 		fn := typ.GetMethod(v.Member)
 		if fn != nil {
-			return &TypeReference{Type: fn.Type, GenericArguments: v.GenericArguments}
+			return &TypeReference{BaseType: fn.Type, GenericArguments: v.GenericArguments}
 		}
 	}
 
 	if stype == nil {
 		return nil
-	} else if pt, ok := stype.Type.(PointerType); ok {
+	} else if pt, ok := stype.BaseType.(PointerType); ok {
 		stype = pt.Addressee
 	}
 
 	if stype == nil {
 		return nil
-	} else if st, ok := stype.Type.ActualType().(StructType); ok {
+	} else if st, ok := stype.BaseType.ActualType().(StructType); ok {
 		mem := st.GetMember(v.Member)
 		if mem != nil {
 			return mem.Type
@@ -1034,7 +1034,7 @@ func (v ArrayAccessExpr) String() string {
 
 func (v ArrayAccessExpr) GetType() *TypeReference {
 	if v.Array.GetType() != nil {
-		return v.Array.GetType().Type.ActualType().(ArrayType).MemberType
+		return v.Array.GetType().BaseType.ActualType().(ArrayType).MemberType
 	}
 	return nil
 }
@@ -1067,7 +1067,7 @@ func (v TupleAccessExpr) String() string {
 func (v TupleAccessExpr) GetType() *TypeReference {
 	if v.Tuple.GetType() != nil {
 		return &TypeReference{
-			Type: v.Tuple.GetType().Type.ActualType().(TupleType).Members[v.Index].Type,
+			BaseType: v.Tuple.GetType().BaseType.ActualType().(TupleType).Members[v.Index].BaseType,
 		}
 	}
 	return nil
@@ -1095,7 +1095,7 @@ func (v DerefAccessExpr) String() string {
 }
 
 func (v DerefAccessExpr) GetType() *TypeReference {
-	return getAdressee(v.Expr.GetType().Type)
+	return getAdressee(v.Expr.GetType().BaseType)
 }
 
 func (_ DerefAccessExpr) NodeName() string {
@@ -1105,7 +1105,7 @@ func (_ DerefAccessExpr) NodeName() string {
 func (v DerefAccessExpr) Mutable() bool {
 	access, ok := v.Expr.(AccessExpr)
 	if ok {
-		if refType, ok := access.GetType().Type.(ReferenceType); ok {
+		if refType, ok := access.GetType().BaseType.(ReferenceType); ok {
 			return refType.IsMutable
 		}
 
@@ -1142,7 +1142,7 @@ func (v AddressOfExpr) String() string {
 
 func (v AddressOfExpr) GetType() *TypeReference {
 	if v.Access.GetType() != nil {
-		return &TypeReference{Type: ReferenceTo(v.Access.GetType(), v.Mutable)}
+		return &TypeReference{BaseType: ReferenceTo(v.Access.GetType(), v.Mutable)}
 	}
 	return nil
 }
@@ -1164,7 +1164,7 @@ func (v LambdaExpr) String() string {
 }
 
 func (v LambdaExpr) GetType() *TypeReference {
-	return &TypeReference{Type: v.Function.Type}
+	return &TypeReference{BaseType: v.Function.Type}
 }
 
 func (v LambdaExpr) NodeName() string {
@@ -1191,7 +1191,7 @@ func (v ArrayLenExpr) String() string {
 }
 
 func (v ArrayLenExpr) GetType() *TypeReference {
-	return &TypeReference{Type: PRIMITIVE_uint}
+	return &TypeReference{BaseType: PRIMITIVE_uint}
 }
 
 func (_ ArrayLenExpr) NodeName() string {
@@ -1222,7 +1222,7 @@ func (v SizeofExpr) String() string {
 }
 
 func (v SizeofExpr) GetType() *TypeReference {
-	return &TypeReference{Type: PRIMITIVE_uint}
+	return &TypeReference{BaseType: PRIMITIVE_uint}
 }
 
 func (_ SizeofExpr) NodeName() string {
@@ -1320,12 +1320,12 @@ func (v *ASTStringer) AddType(t Type) *ASTStringer {
 }
 
 func (v *ASTStringer) AddTypeReference(t *TypeReference) *ASTStringer {
-	if t == nil || t.Type == nil {
+	if t == nil || t.BaseType == nil {
 		v.AddStringColored(util.TEXT_RED, "<type = nil>")
 		return v
 	}
 
-	v.AddStringColored(util.TEXT_BLUE, t.Type.TypeName())
+	v.AddStringColored(util.TEXT_BLUE, t.BaseType.TypeName())
 	if len(t.GenericArguments) > 0 {
 		v.AddStringColored(util.TEXT_BLUE, "<")
 		for _, a := range t.GenericArguments {

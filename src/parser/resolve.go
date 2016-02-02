@@ -207,7 +207,7 @@ func (v *Resolver) PostVisit(node *Node) {
 	case *FunctionDecl:
 		// Store the method in the type of the reciever
 		if n.Function.Type.Receiver != nil {
-			if named, ok := TypeWithoutPointers(n.Function.Receiver.Variable.Type.Type).(*NamedType); ok {
+			if named, ok := TypeWithoutPointers(n.Function.Receiver.Variable.Type.BaseType).(*NamedType); ok {
 				named.addMethod(n.Function)
 			}
 		}
@@ -219,7 +219,7 @@ func (v *Resolver) PostVisit(node *Node) {
 
 	case *DerefAccessExpr:
 		if ce, ok := n.Expr.(*CastExpr); ok {
-			res := &CastExpr{Type: &TypeReference{Type: PointerTo(ce.Type)}, Expr: ce.Expr}
+			res := &CastExpr{Type: &TypeReference{BaseType: PointerTo(ce.Type)}, Expr: ce.Expr}
 			res.setPos(n.Pos())
 			*node = res
 		}
@@ -320,7 +320,7 @@ func (v *Resolver) ResolveNode(node *Node) {
 					enum := &EnumLiteral{}
 					enum.Member = memberName
 					enum.Type = &TypeReference{
-						Type: UnresolvedType{
+						BaseType: UnresolvedType{
 							Name: enumName,
 						},
 						GenericArguments: v.ResolveTypeReferences(n, n.GenericArguments),
@@ -359,7 +359,7 @@ func (v *Resolver) ResolveNode(node *Node) {
 		if n.Expr != nil {
 			if typ, ok := v.exprToType(n.Expr); ok {
 				n.Expr = nil
-				n.Type = &TypeReference{Type: typ}
+				n.Type = &TypeReference{BaseType: typ}
 			}
 		}
 
@@ -375,7 +375,7 @@ func (v *Resolver) ResolveNode(node *Node) {
 
 		// NOTE: Here we check if we are referencing an actual struct,
 		// or the struct part of an enum type
-		if name, ok := n.Type.Type.(UnresolvedType); ok {
+		if name, ok := n.Type.BaseType.(UnresolvedType); ok {
 			enumName, memberName := name.Name.Split()
 			if memberName != "" {
 				ident := v.getIdent(n, enumName)
@@ -383,13 +383,13 @@ func (v *Resolver) ResolveNode(node *Node) {
 					itype := ident.Value.(Type)
 					if _, ok := itype.ActualType().(EnumType); ok {
 						et := v.ResolveTypeReference(n, &TypeReference{
-							Type: UnresolvedType{
+							BaseType: UnresolvedType{
 								Name: enumName,
 							},
 							GenericArguments: v.ResolveTypeReferences(n, n.Type.GenericArguments),
 						})
 
-						member, ok := et.Type.ActualType().(EnumType).GetMember(memberName)
+						member, ok := et.BaseType.ActualType().(EnumType).GetMember(memberName)
 						if !ok {
 							v.err(n, "Enum `%s` has no member `%s`", enumName.String(), memberName)
 						}
@@ -397,9 +397,9 @@ func (v *Resolver) ResolveNode(node *Node) {
 						// TODO sort out all the type duplication
 						enum := &EnumLiteral{}
 						enum.Member = memberName
-						enum.Type = &TypeReference{Type: itype, GenericArguments: et.GenericArguments} // TODO should this be `et`?
+						enum.Type = &TypeReference{BaseType: itype, GenericArguments: et.GenericArguments} // TODO should this be `et`?
 						enum.CompositeLiteral = n
-						enum.CompositeLiteral.Type = &TypeReference{Type: member.Type, GenericArguments: et.GenericArguments}
+						enum.CompositeLiteral.Type = &TypeReference{BaseType: member.Type, GenericArguments: et.GenericArguments}
 						enum.CompositeLiteral.InEnum = true
 						enum.setPos(n.Pos())
 
@@ -425,13 +425,13 @@ func (v *Resolver) ResolveNode(node *Node) {
 					itype := ident.Value.(Type)
 					if _, ok := itype.ActualType().(EnumType); ok {
 						et := v.ResolveTypeReference(n, &TypeReference{
-							Type: UnresolvedType{
+							BaseType: UnresolvedType{
 								Name: enumName,
 							},
 							GenericArguments: v.ResolveTypeReferences(vae, vae.GenericArguments),
 						})
 
-						member, ok := et.Type.ActualType().(EnumType).GetMember(memberName)
+						member, ok := et.BaseType.ActualType().(EnumType).GetMember(memberName)
 						if !ok {
 							v.err(n, "Enum `%s` has no member `%s`", enumName.String(), memberName)
 						}
@@ -441,7 +441,7 @@ func (v *Resolver) ResolveNode(node *Node) {
 						enum.Type = et
 						enum.TupleLiteral = &TupleLiteral{
 							Members:           n.Arguments,
-							Type:              &TypeReference{Type: member.Type, GenericArguments: et.GenericArguments},
+							Type:              &TypeReference{BaseType: member.Type, GenericArguments: et.GenericArguments},
 							ParentEnumLiteral: enum,
 						}
 						enum.TupleLiteral.setPos(n.Pos())
@@ -463,7 +463,7 @@ func (v *Resolver) ResolveNode(node *Node) {
 			}
 
 			cast := &CastExpr{}
-			cast.Type = &TypeReference{Type: typ}
+			cast.Type = &TypeReference{BaseType: typ}
 			cast.Expr = n.Arguments[0]
 			cast.setPos(n.Pos())
 			*node = cast
@@ -499,7 +499,7 @@ func (v *Resolver) exprToType(expr Expr) (Type, bool) {
 		if ident != nil && ident.Type == IDENT_TYPE {
 			res := ident.Value.(Type)
 			for i := 0; i < derefs; i++ {
-				res = PointerTo(&TypeReference{Type: res})
+				res = PointerTo(&TypeReference{BaseType: res})
 			}
 			return res, true
 		}
@@ -526,7 +526,7 @@ func (v *Resolver) ResolveTypeReferences(src Locatable, ts []*TypeReference) []*
 
 func (v *Resolver) ResolveTypeReference(src Locatable, t *TypeReference) *TypeReference {
 	return &TypeReference{
-		Type:             v.ResolveType(src, t.Type),
+		BaseType:         v.ResolveType(src, t.BaseType),
 		GenericArguments: v.ResolveTypeReferences(src, t.GenericArguments),
 	}
 }

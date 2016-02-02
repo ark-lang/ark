@@ -23,29 +23,29 @@ func floatTypeBits(ty parser.PrimitiveType) int {
 }
 
 func (v *Codegen) addNamedTypeReference(n *parser.TypeReference) {
-	ginst := parser.NewGenericInstanceFromTypeReference(n)
+	gcon := parser.NewGenericInstanceFromTypeReference(n)
 
 	if v.inFunction() {
-		ginst.Outer = v.currentFunction().ginst
+		gcon.Outer = v.currentFunction().gcon
 	}
 
-	v.addNamedType(n.Type.(*parser.NamedType), ginst)
+	v.addNamedType(n.BaseType.(*parser.NamedType), gcon)
 }
 
-func (v *Codegen) addNamedType(n *parser.NamedType, ginst *parser.GenericInstance) {
+func (v *Codegen) addNamedType(n *parser.NamedType, gcon *parser.GenericContext) {
 	if len(n.GenericParameters) > 0 {
 		return
 	}
 
 	switch actualtyp := n.Type.ActualType().(type) {
 	case parser.StructType:
-		v.addStructType(actualtyp, parser.TypeReferenceMangledName(parser.MANGLE_ARK_UNSTABLE, &parser.TypeReference{Type: n}, ginst), ginst)
+		v.addStructType(actualtyp, parser.TypeReferenceMangledName(parser.MANGLE_ARK_UNSTABLE, &parser.TypeReference{BaseType: n}, gcon), gcon)
 	case parser.EnumType:
-		v.addEnumType(actualtyp, parser.TypeReferenceMangledName(parser.MANGLE_ARK_UNSTABLE, &parser.TypeReference{Type: n}, ginst), ginst)
+		v.addEnumType(actualtyp, parser.TypeReferenceMangledName(parser.MANGLE_ARK_UNSTABLE, &parser.TypeReference{BaseType: n}, gcon), gcon)
 	}
 }
 
-func (v *Codegen) addStructType(typ parser.StructType, name string, ginst *parser.GenericInstance) {
+func (v *Codegen) addStructType(typ parser.StructType, name string, gcon *parser.GenericContext) {
 	if _, ok := v.namedTypeLookup[name]; ok {
 		return
 	}
@@ -55,15 +55,15 @@ func (v *Codegen) addStructType(typ parser.StructType, name string, ginst *parse
 	v.namedTypeLookup[name] = structure
 
 	for _, field := range typ.Members {
-		if named, ok := field.Type.Type.(*parser.NamedType); ok {
-			v.addNamedType(named, ginst)
+		if named, ok := field.Type.BaseType.(*parser.NamedType); ok {
+			v.addNamedType(named, gcon)
 		}
 	}
 
-	structure.StructSetBody(v.structTypeToLLVMTypeFields(typ, ginst), typ.Attrs().Contains("packed"))
+	structure.StructSetBody(v.structTypeToLLVMTypeFields(typ, gcon), typ.Attrs().Contains("packed"))
 }
 
-func (v *Codegen) addEnumType(typ parser.EnumType, name string, ginst *parser.GenericInstance) {
+func (v *Codegen) addEnumType(typ parser.EnumType, name string, gcon *parser.GenericContext) {
 	if _, ok := v.namedTypeLookup[name]; ok {
 		return
 	}
@@ -77,11 +77,11 @@ func (v *Codegen) addEnumType(typ parser.EnumType, name string, ginst *parser.Ge
 
 		for _, member := range typ.Members {
 			if named, ok := member.Type.(*parser.NamedType); ok {
-				v.addNamedType(named, ginst)
+				v.addNamedType(named, gcon)
 			}
 		}
 
-		enum.StructSetBody(v.enumTypeToLLVMTypeFields(typ, ginst), false)
+		enum.StructSetBody(v.enumTypeToLLVMTypeFields(typ, gcon), false)
 	}
 }
 
@@ -89,50 +89,50 @@ func (v *Codegen) typeRefToLLVMType(typ *parser.TypeReference) llvm.Type {
 	return v.typeRefToLLVMTypeWithOuter(typ, nil)
 }
 
-// if outer is not nil, this function does not add the current function ginst as outer, as it assumes it is already there
-func (v *Codegen) typeRefToLLVMTypeWithOuter(typ *parser.TypeReference, outer *parser.GenericInstance) llvm.Type {
-	ginst := parser.NewGenericInstanceFromTypeReference(typ)
+// if outer is not nil, this function does not add the current function gcon as outer, as it assumes it is already there
+func (v *Codegen) typeRefToLLVMTypeWithOuter(typ *parser.TypeReference, outer *parser.GenericContext) llvm.Type {
+	gcon := parser.NewGenericInstanceFromTypeReference(typ)
 
 	if outer != nil {
-		ginst.Outer = outer
+		gcon.Outer = outer
 	} else if v.inFunction() {
-		ginst.Outer = v.currentFunction().ginst
+		gcon.Outer = v.currentFunction().gcon
 	}
 
-	switch nt := typ.Type.(type) {
+	switch nt := typ.BaseType.(type) {
 	case *parser.NamedType:
 		switch nt.Type.(type) {
 		case parser.StructType, parser.EnumType:
-			v.addNamedType(nt, ginst)
-			lt := v.namedTypeLookup[parser.TypeReferenceMangledName(parser.MANGLE_ARK_UNSTABLE, typ, ginst)]
+			v.addNamedType(nt, gcon)
+			lt := v.namedTypeLookup[parser.TypeReferenceMangledName(parser.MANGLE_ARK_UNSTABLE, typ, gcon)]
 			return lt
 
 		default:
-			return v.typeToLLVMType(nt.Type, ginst)
+			return v.typeToLLVMType(nt.Type, gcon)
 		}
 	}
 
-	return v.typeToLLVMType(typ.Type, ginst)
+	return v.typeToLLVMType(typ.BaseType, gcon)
 }
 
-func (v *Codegen) typeToLLVMType(typ parser.Type, ginst *parser.GenericInstance) llvm.Type {
+func (v *Codegen) typeToLLVMType(typ parser.Type, gcon *parser.GenericContext) llvm.Type {
 	switch typ := typ.(type) {
 	case parser.PrimitiveType:
 		return v.primitiveTypeToLLVMType(typ)
 	case parser.FunctionType:
-		return v.functionTypeToLLVMType(typ, true, ginst)
+		return v.functionTypeToLLVMType(typ, true, gcon)
 	case parser.StructType:
-		return v.structTypeToLLVMType(typ, ginst)
+		return v.structTypeToLLVMType(typ, gcon)
 	case parser.PointerType:
-		return llvm.PointerType(v.typeRefToLLVMTypeWithOuter(typ.Addressee, ginst), 0)
+		return llvm.PointerType(v.typeRefToLLVMTypeWithOuter(typ.Addressee, gcon), 0)
 	case parser.ArrayType:
-		return v.arrayTypeToLLVMType(typ, ginst)
+		return v.arrayTypeToLLVMType(typ, gcon)
 	case parser.TupleType:
-		return v.tupleTypeToLLVMType(typ, ginst)
+		return v.tupleTypeToLLVMType(typ, gcon)
 	case parser.EnumType:
-		return v.enumTypeToLLVMType(typ, ginst)
+		return v.enumTypeToLLVMType(typ, gcon)
 	case parser.ReferenceType:
-		return llvm.PointerType(v.typeRefToLLVMTypeWithOuter(typ.Referrer, ginst), 0)
+		return llvm.PointerType(v.typeRefToLLVMTypeWithOuter(typ.Referrer, gcon), 0)
 	case *parser.NamedType:
 		switch typ.Type.(type) {
 		case parser.StructType, parser.EnumType:
@@ -140,73 +140,73 @@ func (v *Codegen) typeToLLVMType(typ parser.Type, ginst *parser.GenericInstance)
 			// make sure the type doesn't need generics arguments as well.
 			// This here ignores them.
 
-			v.addNamedType(typ, ginst)
-			lt := v.namedTypeLookup[parser.TypeReferenceMangledName(parser.MANGLE_ARK_UNSTABLE, &parser.TypeReference{Type: typ}, ginst)]
+			v.addNamedType(typ, gcon)
+			lt := v.namedTypeLookup[parser.TypeReferenceMangledName(parser.MANGLE_ARK_UNSTABLE, &parser.TypeReference{BaseType: typ}, gcon)]
 
 			return lt
 
 		default:
-			return v.typeToLLVMType(typ.Type, ginst)
+			return v.typeToLLVMType(typ.Type, gcon)
 		}
 	case *parser.SubstitutionType:
-		if ginst == nil {
-			panic("ginst == nil when getting substitution type")
+		if gcon == nil {
+			panic("gcon == nil when getting substitution type")
 		}
-		if ginst.GetSubstitutionType(typ) == nil {
+		if gcon.GetSubstitutionType(typ) == nil {
 			panic("missing generic map entry for type " + typ.TypeName())
 		}
-		return v.typeRefToLLVMTypeWithOuter(ginst.GetSubstitutionType(typ), ginst)
+		return v.typeRefToLLVMTypeWithOuter(gcon.GetSubstitutionType(typ), gcon)
 	default:
 		log.Debugln("codegen", "Type was %s (%s)", typ.TypeName(), reflect.TypeOf(typ))
 		panic("Unimplemented type category in LLVM codegen")
 	}
 }
 
-func (v *Codegen) tupleTypeToLLVMType(typ parser.TupleType, ginst *parser.GenericInstance) llvm.Type {
+func (v *Codegen) tupleTypeToLLVMType(typ parser.TupleType, gcon *parser.GenericContext) llvm.Type {
 	fields := make([]llvm.Type, len(typ.Members))
 	for idx, mem := range typ.Members {
-		fields[idx] = v.typeRefToLLVMTypeWithOuter(mem, ginst)
+		fields[idx] = v.typeRefToLLVMTypeWithOuter(mem, gcon)
 	}
 
 	return llvm.StructType(fields, false)
 }
 
-func (v *Codegen) arrayTypeToLLVMType(typ parser.ArrayType, ginst *parser.GenericInstance) llvm.Type {
+func (v *Codegen) arrayTypeToLLVMType(typ parser.ArrayType, gcon *parser.GenericContext) llvm.Type {
 	fields := []llvm.Type{v.primitiveTypeToLLVMType(parser.PRIMITIVE_uint),
-		llvm.PointerType(v.typeRefToLLVMTypeWithOuter(typ.MemberType, ginst), 0)}
+		llvm.PointerType(v.typeRefToLLVMTypeWithOuter(typ.MemberType, gcon), 0)}
 
 	return llvm.StructType(fields, false)
 }
 
-func (v *Codegen) structTypeToLLVMType(typ parser.StructType, ginst *parser.GenericInstance) llvm.Type {
-	return llvm.StructType(v.structTypeToLLVMTypeFields(typ, ginst), typ.Attrs().Contains("packed"))
+func (v *Codegen) structTypeToLLVMType(typ parser.StructType, gcon *parser.GenericContext) llvm.Type {
+	return llvm.StructType(v.structTypeToLLVMTypeFields(typ, gcon), typ.Attrs().Contains("packed"))
 }
 
-func (v *Codegen) structTypeToLLVMTypeFields(typ parser.StructType, ginst *parser.GenericInstance) []llvm.Type {
+func (v *Codegen) structTypeToLLVMTypeFields(typ parser.StructType, gcon *parser.GenericContext) []llvm.Type {
 	numOfFields := len(typ.Members)
 	fields := make([]llvm.Type, numOfFields)
 
 	for i, member := range typ.Members {
-		memberType := v.typeRefToLLVMTypeWithOuter(member.Type, ginst)
+		memberType := v.typeRefToLLVMTypeWithOuter(member.Type, gcon)
 		fields[i] = memberType
 	}
 
 	return fields
 }
 
-func (v *Codegen) enumTypeToLLVMType(typ parser.EnumType, ginst *parser.GenericInstance) llvm.Type {
+func (v *Codegen) enumTypeToLLVMType(typ parser.EnumType, gcon *parser.GenericContext) llvm.Type {
 	if typ.Simple {
 		// TODO: Handle other integer size, maybe dynamic depending on max value? (1 / 2)
 		return llvm.IntType(32)
 	}
 
-	return llvm.StructType(v.enumTypeToLLVMTypeFields(typ, ginst), false)
+	return llvm.StructType(v.enumTypeToLLVMTypeFields(typ, gcon), false)
 }
 
-func (v *Codegen) enumTypeToLLVMTypeFields(typ parser.EnumType, ginst *parser.GenericInstance) []llvm.Type {
+func (v *Codegen) enumTypeToLLVMTypeFields(typ parser.EnumType, gcon *parser.GenericContext) []llvm.Type {
 	longestLength := uint64(0)
 	for _, member := range typ.Members {
-		memLength := v.targetData.TypeAllocSize(v.typeToLLVMType(member.Type, ginst))
+		memLength := v.targetData.TypeAllocSize(v.typeToLLVMType(member.Type, gcon))
 		if memLength > longestLength {
 			longestLength = memLength
 		}
@@ -216,7 +216,7 @@ func (v *Codegen) enumTypeToLLVMTypeFields(typ parser.EnumType, ginst *parser.Ge
 	return []llvm.Type{llvm.IntType(32), llvm.ArrayType(llvm.IntType(8), int(longestLength))}
 }
 
-func (v *Codegen) functionTypeToLLVMType(typ parser.FunctionType, ptr bool, ginst *parser.GenericInstance) llvm.Type {
+func (v *Codegen) functionTypeToLLVMType(typ parser.FunctionType, ptr bool, gcon *parser.GenericContext) llvm.Type {
 	numOfParams := len(typ.Parameters)
 	if typ.Receiver != nil {
 		numOfParams++
@@ -224,17 +224,17 @@ func (v *Codegen) functionTypeToLLVMType(typ parser.FunctionType, ptr bool, gins
 
 	params := make([]llvm.Type, 0, numOfParams)
 	if typ.Receiver != nil {
-		params = append(params, v.typeToLLVMType(typ.Receiver, ginst))
+		params = append(params, v.typeToLLVMType(typ.Receiver, gcon))
 	}
 	for _, par := range typ.Parameters {
-		params = append(params, v.typeRefToLLVMTypeWithOuter(par, ginst))
+		params = append(params, v.typeRefToLLVMTypeWithOuter(par, gcon))
 	}
 
 	var returnType llvm.Type
 
 	// oo theres a type, let's try figure it out
 	if typ.Return != nil {
-		returnType = v.typeRefToLLVMTypeWithOuter(typ.Return, ginst)
+		returnType = v.typeRefToLLVMTypeWithOuter(typ.Return, gcon)
 	} else {
 		returnType = llvm.VoidType()
 	}

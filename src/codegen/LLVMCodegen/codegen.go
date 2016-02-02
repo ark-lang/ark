@@ -13,26 +13,26 @@ import (
 )
 
 type functionAndFnGenericInstance struct {
-	fn    *parser.Function
-	ginst *parser.GenericInstance // nil for no generics
+	fn   *parser.Function
+	gcon *parser.GenericContext // nil for no generics
 }
 
-func newfunctionAndFnGenericInstance(fn *parser.Function, ginst *parser.GenericInstance) functionAndFnGenericInstance {
+func newfunctionAndFnGenericInstance(fn *parser.Function, gcon *parser.GenericContext) functionAndFnGenericInstance {
 	return functionAndFnGenericInstance{
-		fn:    fn,
-		ginst: ginst,
+		fn:   fn,
+		gcon: gcon,
 	}
 }
 
 type variableAndFnGenericInstance struct {
 	variable *parser.Variable
-	ginst    *parser.GenericInstance // nil for no generics
+	gcon     *parser.GenericContext // nil for no generics
 }
 
-func newvariableAndFnGenericInstance(variable *parser.Variable, ginst *parser.GenericInstance) variableAndFnGenericInstance {
+func newvariableAndFnGenericInstance(variable *parser.Variable, gcon *parser.GenericContext) variableAndFnGenericInstance {
 	return variableAndFnGenericInstance{
 		variable: variable,
-		ginst:    ginst,
+		gcon:     gcon,
 	}
 }
 
@@ -98,7 +98,7 @@ func (v *Codegen) currentFunction() functionAndFnGenericInstance {
 
 func (v *Codegen) currentLLVMFunction() llvm.Value {
 	curFn := v.currentFunction()
-	return v.curFile.LlvmModule.NamedFunction(curFn.fn.MangledName(parser.MANGLE_ARK_UNSTABLE, curFn.ginst))
+	return v.curFile.LlvmModule.NamedFunction(curFn.fn.MangledName(parser.MANGLE_ARK_UNSTABLE, curFn.gcon))
 }
 
 func (v *Codegen) pushBlock(block *parser.Block) {
@@ -239,9 +239,9 @@ var inlineAttrType = map[string]llvm.Attribute{
 }
 
 func (v *Codegen) declareFunctionDecl(n *parser.FunctionDecl, genericsArguments []*parser.TypeReference) {
-	ginst := parser.NewGenericInstance(n.Function.Type.GenericParameters, genericsArguments)
+	gcon := parser.NewGenericInstance(n.Function.Type.GenericParameters, genericsArguments)
 
-	mangledName := n.Function.MangledName(parser.MANGLE_ARK_UNSTABLE, ginst)
+	mangledName := n.Function.MangledName(parser.MANGLE_ARK_UNSTABLE, gcon)
 	function := v.curFile.LlvmModule.NamedFunction(mangledName)
 	if !function.IsNil() {
 		v.err("function `%s` already exists in module", n.Function.Name)
@@ -558,27 +558,27 @@ func (v *Codegen) genDecl(n parser.Decl) {
 	}
 }
 
-func (v *Codegen) genFunctionDecl(n *parser.FunctionDecl, ginst *parser.GenericInstance) llvm.Value {
+func (v *Codegen) genFunctionDecl(n *parser.FunctionDecl, gcon *parser.GenericContext) llvm.Value {
 	var res llvm.Value
 
-	mangledName := n.Function.MangledName(parser.MANGLE_ARK_UNSTABLE, ginst)
+	mangledName := n.Function.MangledName(parser.MANGLE_ARK_UNSTABLE, gcon)
 	function := v.curFile.LlvmModule.NamedFunction(mangledName)
 	if function.IsNil() {
 		//v.err("genning function `%s` doesn't exist in module", n.Function.Name)
 		// hmmmm seems we just ignore this here
 	} else {
 		if !n.Prototype {
-			v.genFunctionBody(n.Function, function, ginst)
+			v.genFunctionBody(n.Function, function, gcon)
 		}
 	}
 
 	return res
 }
 
-func (v *Codegen) genFunctionBody(fn *parser.Function, llvmFn llvm.Value, ginst *parser.GenericInstance) {
+func (v *Codegen) genFunctionBody(fn *parser.Function, llvmFn llvm.Value, gcon *parser.GenericContext) {
 	block := llvm.AddBasicBlock(llvmFn, "entry")
 
-	v.pushFunction(newfunctionAndFnGenericInstance(fn, ginst))
+	v.pushFunction(newfunctionAndFnGenericInstance(fn, gcon))
 	v.builders[v.currentFunction()] = llvm.NewBuilder()
 	v.builder().SetInsertPointAtEnd(block)
 
@@ -593,7 +593,7 @@ func (v *Codegen) genFunctionBody(fn *parser.Function, llvmFn llvm.Value, ginst 
 
 	for i, par := range pars {
 		alloc := v.builder().CreateAlloca(v.typeRefToLLVMType(par.Variable.Type), par.Variable.Name)
-		v.variableLookup[newvariableAndFnGenericInstance(par.Variable, ginst)] = alloc
+		v.variableLookup[newvariableAndFnGenericInstance(par.Variable, gcon)] = alloc
 
 		v.builder().CreateStore(llvmFn.Params()[i], alloc)
 	}
@@ -630,7 +630,7 @@ func (v *Codegen) genVariableDecl(n *parser.VariableDecl, semicolon bool) llvm.V
 
 		allocBuilder.Dispose()
 
-		v.variableLookup[newvariableAndFnGenericInstance(n.Variable, v.currentFunction().ginst)] = alloc
+		v.variableLookup[newvariableAndFnGenericInstance(n.Variable, v.currentFunction().gcon)] = alloc
 
 		if n.Assignment != nil {
 			if value := v.genExpr(n.Assignment); !value.IsNil() {
@@ -726,9 +726,9 @@ func (v *Codegen) genAddressOfExpr(n *parser.AddressOfExpr) llvm.Value {
 
 func (v *Codegen) genAccessExpr(n parser.Expr) llvm.Value {
 	if fae, ok := n.(*parser.FunctionAccessExpr); ok {
-		ginst := parser.NewGenericInstance(fae.Function.Type.GenericParameters, fae.GenericArguments)
+		gcon := parser.NewGenericInstance(fae.Function.Type.GenericParameters, fae.GenericArguments)
 
-		fnName := fae.Function.MangledName(parser.MANGLE_ARK_UNSTABLE, ginst)
+		fnName := fae.Function.MangledName(parser.MANGLE_ARK_UNSTABLE, gcon)
 
 		cBinding := false
 		if fae.Function.Type.Attrs() != nil {
@@ -758,14 +758,14 @@ func (v *Codegen) genAccessExpr(n parser.Expr) llvm.Value {
 }
 
 func (v *Codegen) genAccessGEP(n parser.Expr) llvm.Value {
-	var curFnGinst *parser.GenericInstance
+	var curFngcon *parser.GenericContext
 	if v.inFunction() {
-		curFnGinst = v.currentFunction().ginst
+		curFngcon = v.currentFunction().gcon
 	}
 
 	switch access := n.(type) {
 	case *parser.VariableAccessExpr:
-		varType := v.getVariable(newvariableAndFnGenericInstance(access.Variable, curFnGinst))
+		varType := v.getVariable(newvariableAndFnGenericInstance(access.Variable, curFngcon))
 		log.Debugln("codegen", "%v => %v", access.Variable, varType)
 		if varType.IsNil() {
 			panic("varType was nil")
@@ -777,7 +777,7 @@ func (v *Codegen) genAccessGEP(n parser.Expr) llvm.Value {
 	case *parser.StructAccessExpr:
 		gep := v.genAccessGEP(access.Struct)
 
-		typ := access.Struct.GetType().Type.ActualType()
+		typ := access.Struct.GetType().BaseType.ActualType()
 
 		index := typ.(parser.StructType).MemberIndex(access.Member)
 		return v.builder().CreateStructGEP(gep, index, "")
@@ -787,7 +787,7 @@ func (v *Codegen) genAccessGEP(n parser.Expr) llvm.Value {
 		subscriptExpr := v.genExpr(access.Subscript)
 
 		v.genBoundsCheck(v.builder().CreateLoad(v.builder().CreateStructGEP(gep, 0, ""), ""),
-			subscriptExpr, access.Subscript.GetType().Type.IsSigned())
+			subscriptExpr, access.Subscript.GetType().BaseType.IsSigned())
 
 		gep = v.builder().CreateStructGEP(gep, 1, "")
 
@@ -897,7 +897,7 @@ func (v *Codegen) genStringLiteral(n *parser.StringLiteral) llvm.Value {
 		backingArrayPointer = llvm.ConstBitCast(backingArray, llvm.PointerType(memberLLVMType, 0))
 	}
 
-	if n.Type.Type.ActualType().Equals(parser.ArrayOf(&parser.TypeReference{Type: parser.PRIMITIVE_u8})) {
+	if n.Type.BaseType.ActualType().Equals(parser.ArrayOf(&parser.TypeReference{BaseType: parser.PRIMITIVE_u8})) {
 		lengthValue := llvm.ConstInt(v.primitiveTypeToLLVMType(parser.PRIMITIVE_uint), uint64(length), false)
 		structValue := llvm.Undef(v.typeRefToLLVMType(n.Type))
 		structValue = v.builder().CreateInsertValue(structValue, lengthValue, 0, "")
@@ -909,7 +909,7 @@ func (v *Codegen) genStringLiteral(n *parser.StringLiteral) llvm.Value {
 }
 
 func (v *Codegen) genCompositeLiteral(n *parser.CompositeLiteral) llvm.Value {
-	switch n.GetType().Type.ActualType().(type) {
+	switch n.GetType().BaseType.ActualType().(type) {
 	case parser.ArrayType:
 		return v.genArrayLiteral(n)
 	case parser.StructType:
@@ -922,7 +922,7 @@ func (v *Codegen) genCompositeLiteral(n *parser.CompositeLiteral) llvm.Value {
 // Allocates a literal array on the stack
 func (v *Codegen) genArrayLiteral(n *parser.CompositeLiteral) llvm.Value {
 	arrayLLVMType := v.typeRefToLLVMType(n.Type)
-	memberLLVMType := v.typeRefToLLVMType(n.Type.Type.ActualType().(parser.ArrayType).MemberType) // TODO works with generics?
+	memberLLVMType := v.typeRefToLLVMType(n.Type.BaseType.ActualType().(parser.ArrayType).MemberType) // TODO works with generics?
 
 	arrayValues := make([]llvm.Value, len(n.Values))
 	for idx, mem := range n.Values {
@@ -966,7 +966,7 @@ func (v *Codegen) genArrayLiteral(n *parser.CompositeLiteral) llvm.Value {
 }
 
 func (v *Codegen) genStructLiteral(n *parser.CompositeLiteral) llvm.Value {
-	structBaseType := n.Type.Type.ActualType().(parser.StructType)
+	structBaseType := n.Type.BaseType.ActualType().(parser.StructType)
 	structLLVMType := v.typeRefToLLVMType(n.Type)
 
 	structValue := llvm.Undef(structLLVMType)
@@ -987,21 +987,21 @@ func (v *Codegen) genStructLiteral(n *parser.CompositeLiteral) llvm.Value {
 }
 
 func (v *Codegen) genTupleLiteral(n *parser.TupleLiteral) llvm.Value {
-	var ginst *parser.GenericInstance
+	var gcon *parser.GenericContext
 	if n.ParentEnumLiteral != nil {
-		ginst = parser.NewGenericInstance(n.ParentEnumLiteral.Type.Type.ActualType().(parser.EnumType).GenericParameters,
+		gcon = parser.NewGenericInstance(n.ParentEnumLiteral.Type.BaseType.ActualType().(parser.EnumType).GenericParameters,
 			n.ParentEnumLiteral.Type.GenericArguments)
 	}
 
 	if v.inFunction() {
-		if ginst == nil {
-			ginst = v.currentFunction().ginst
+		if gcon == nil {
+			gcon = v.currentFunction().gcon
 		} else {
-			ginst.Outer = v.currentFunction().ginst
+			gcon.Outer = v.currentFunction().gcon
 		}
 	}
 
-	tupleLLVMType := v.typeToLLVMType(n.Type.Type, ginst)
+	tupleLLVMType := v.typeToLLVMType(n.Type.BaseType, gcon)
 
 	tupleValue := llvm.Undef(tupleLLVMType)
 	for idx, mem := range n.Members {
@@ -1018,12 +1018,12 @@ func (v *Codegen) genTupleLiteral(n *parser.TupleLiteral) llvm.Value {
 }
 
 func (v *Codegen) genEnumLiteral(n *parser.EnumLiteral) llvm.Value {
-	enumBaseType := n.Type.Type.ActualType().(parser.EnumType)
+	enumBaseType := n.Type.BaseType.ActualType().(parser.EnumType)
 
-	ginst := parser.NewGenericInstance(enumBaseType.GenericParameters,
+	gcon := parser.NewGenericInstance(enumBaseType.GenericParameters,
 		n.Type.GenericArguments)
 
-	enumLLVMType := v.typeToLLVMType(n.Type.Type, ginst)
+	enumLLVMType := v.typeToLLVMType(n.Type.BaseType, gcon)
 
 	memberIdx := enumBaseType.MemberIndex(n.Member)
 	member := enumBaseType.Members[memberIdx]
@@ -1038,7 +1038,7 @@ func (v *Codegen) genEnumLiteral(n *parser.EnumLiteral) llvm.Value {
 	enumValue := llvm.Undef(enumLLVMType)
 	enumValue = v.builder().CreateInsertValue(enumValue, tagValue, 0, "")
 
-	memberLLVMType := v.typeToLLVMType(member.Type, ginst)
+	memberLLVMType := v.typeToLLVMType(member.Type, gcon)
 
 	var memberValue llvm.Value
 	if n.TupleLiteral != nil {
@@ -1068,7 +1068,7 @@ func (v *Codegen) genEnumLiteral(n *parser.EnumLiteral) llvm.Value {
 }
 
 func (v *Codegen) genNumericLiteral(n *parser.NumericLiteral) llvm.Value {
-	if n.Type.Type.IsFloatingType() {
+	if n.Type.BaseType.IsFloatingType() {
 		return llvm.ConstFloat(v.typeRefToLLVMType(n.Type), n.AsFloat())
 	} else {
 		return llvm.ConstInt(v.typeRefToLLVMType(n.Type), n.AsInt(), false)
@@ -1127,38 +1127,38 @@ func (v *Codegen) genBinop(operator parser.BinOpType, resType, lhandType, rhandT
 		switch operator {
 		// Arithmetic
 		case parser.BINOP_ADD:
-			if resType.Type.IsFloatingType() {
+			if resType.BaseType.IsFloatingType() {
 				return v.builder().CreateFAdd(lhand, rhand, "")
 			} else {
 				return v.builder().CreateAdd(lhand, rhand, "")
 			}
 		case parser.BINOP_SUB:
-			if resType.Type.IsFloatingType() {
+			if resType.BaseType.IsFloatingType() {
 				return v.builder().CreateFSub(lhand, rhand, "")
 			} else {
 				return v.builder().CreateSub(lhand, rhand, "")
 			}
 		case parser.BINOP_MUL:
-			if resType.Type.IsFloatingType() {
+			if resType.BaseType.IsFloatingType() {
 				return v.builder().CreateFMul(lhand, rhand, "")
 			} else {
 				return v.builder().CreateMul(lhand, rhand, "")
 			}
 		case parser.BINOP_DIV:
-			if resType.Type.IsFloatingType() {
+			if resType.BaseType.IsFloatingType() {
 				return v.builder().CreateFDiv(lhand, rhand, "")
 			} else {
-				if resType.Type.IsSigned() {
+				if resType.BaseType.IsSigned() {
 					return v.builder().CreateSDiv(lhand, rhand, "")
 				} else {
 					return v.builder().CreateUDiv(lhand, rhand, "")
 				}
 			}
 		case parser.BINOP_MOD:
-			if resType.Type.IsFloatingType() {
+			if resType.BaseType.IsFloatingType() {
 				return v.builder().CreateFRem(lhand, rhand, "")
 			} else {
-				if resType.Type.IsSigned() {
+				if resType.BaseType.IsSigned() {
 					return v.builder().CreateSRem(lhand, rhand, "")
 				} else {
 					return v.builder().CreateURem(lhand, rhand, "")
@@ -1167,10 +1167,10 @@ func (v *Codegen) genBinop(operator parser.BinOpType, resType, lhandType, rhandT
 
 		// Comparison
 		case parser.BINOP_GREATER, parser.BINOP_LESS, parser.BINOP_GREATER_EQ, parser.BINOP_LESS_EQ, parser.BINOP_EQ, parser.BINOP_NOT_EQ:
-			if lhandType.Type.IsFloatingType() {
+			if lhandType.BaseType.IsFloatingType() {
 				return v.builder().CreateFCmp(comparisonOpToFloatPredicate(operator), lhand, rhand, "")
 			} else {
-				return v.builder().CreateICmp(comparisonOpToIntPredicate(operator, lhandType.Type.IsSigned()), lhand, rhand, "")
+				return v.builder().CreateICmp(comparisonOpToIntPredicate(operator, lhandType.BaseType.IsSigned()), lhand, rhand, "")
 			}
 
 		// Bitwise
@@ -1186,7 +1186,7 @@ func (v *Codegen) genBinop(operator parser.BinOpType, resType, lhandType, rhandT
 			// TODO make sure both operands are same type (create type cast here?)
 			// TODO in semantic.go, make sure rhand is *unsigned* (LLVM always treats it that way)
 			// TODO doc this
-			if lhandType.Type.IsSigned() {
+			if lhandType.BaseType.IsSigned() {
 				return v.builder().CreateAShr(lhand, rhand, "")
 			} else {
 				return v.builder().CreateLShr(lhand, rhand, "")
@@ -1258,9 +1258,9 @@ func (v *Codegen) genUnaryExpr(n *parser.UnaryExpr) llvm.Value {
 	case parser.UNOP_BIT_NOT, parser.UNOP_LOG_NOT:
 		return v.builder().CreateNot(expr, "")
 	case parser.UNOP_NEGATIVE:
-		if n.Expr.GetType().Type.IsFloatingType() {
+		if n.Expr.GetType().BaseType.IsFloatingType() {
 			return v.builder().CreateFNeg(expr, "")
-		} else if n.Expr.GetType().Type.IsIntegerType() {
+		} else if n.Expr.GetType().BaseType.IsIntegerType() {
 			return v.builder().CreateNeg(expr, "")
 		} else {
 			panic("internal: UNOP_NEGATIVE on non-numeric type")
@@ -1277,8 +1277,8 @@ func (v *Codegen) genCastExpr(n *parser.CastExpr) llvm.Value {
 	}
 
 	expr := v.genExpr(n.Expr)
-	exprBaseType := n.Expr.GetType().Type.ActualType()
-	castBaseType := n.GetType().Type.ActualType()
+	exprBaseType := n.Expr.GetType().BaseType.ActualType()
+	castBaseType := n.GetType().BaseType.ActualType()
 	castLLVMType := v.typeRefToLLVMType(n.GetType())
 
 	if parser.IsPointerOrReferenceType(exprBaseType) && castBaseType == parser.PRIMITIVE_uintptr {
@@ -1341,7 +1341,7 @@ func (v *Codegen) genCastExpr(n *parser.CastExpr) llvm.Value {
 func (v *Codegen) genCallExprWithArgs(n *parser.CallExpr, args []llvm.Value) llvm.Value {
 	call := v.builder().CreateCall(v.genAccessExpr(n.Function), args, "")
 
-	attrs := n.Function.GetType().Type.(parser.FunctionType).Attrs()
+	attrs := n.Function.GetType().BaseType.(parser.FunctionType).Attrs()
 	if attr, ok := attrs["call_conv"]; ok {
 		call.SetInstructionCallConv(callConvTypes[attr.Value])
 	}
@@ -1350,7 +1350,7 @@ func (v *Codegen) genCallExprWithArgs(n *parser.CallExpr, args []llvm.Value) llv
 }
 
 func (v *Codegen) genCallExpr(n *parser.CallExpr) llvm.Value {
-	fnType := n.Function.GetType().Type.(parser.FunctionType)
+	fnType := n.Function.GetType().BaseType.(parser.FunctionType)
 	numArgs := len(n.Arguments)
 	if fnType.Receiver != nil {
 		numArgs++

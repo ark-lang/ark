@@ -173,7 +173,7 @@ func (v *FunctionTypeNode) construct(c *Constructor) Type {
 	if v.ReturnType != nil {
 		res.Return = v.ReturnType.construct(c)
 	} else {
-		res.Return = &TypeReference{Type: PRIMITIVE_void}
+		res.Return = &TypeReference{BaseType: PRIMITIVE_void}
 	}
 	return res
 }
@@ -189,7 +189,7 @@ func (v *NamedTypeNode) construct(c *Constructor) Type {
 
 func (v *TypeReferenceNode) construct(c *Constructor) *TypeReference {
 	parameters := c.constructTypeReferences(v.GenericArguments)
-	res := &TypeReference{Type: c.constructType(v.Type), GenericArguments: parameters}
+	res := &TypeReference{BaseType: c.constructType(v.Type), GenericArguments: parameters}
 	return res
 }
 
@@ -334,7 +334,7 @@ func (v *FunctionNode) construct(c *Constructor) *Function {
 		if !function.Receiver.Variable.IsReceiver {
 			panic("oh no")
 		}
-		function.Type.Receiver = function.Receiver.Variable.Type.Type
+		function.Type.Receiver = function.Receiver.Variable.Type.BaseType
 	} else if v.Header.StaticReceiverType != nil {
 		function.StaticReceiverType = c.constructType(v.Header.StaticReceiverType)
 	}
@@ -352,7 +352,7 @@ func (v *FunctionNode) construct(c *Constructor) *Function {
 		function.Type.Return = v.Header.ReturnType.construct(c)
 	} else {
 		// set it to void since we haven't specified a type
-		function.Type.Return = &TypeReference{Type: PRIMITIVE_void}
+		function.Type.Return = &TypeReference{BaseType: PRIMITIVE_void}
 	}
 
 	if v.Header.GenericSigil != nil {
@@ -661,7 +661,7 @@ func (v *UnaryExprNode) construct(c *Constructor) Expr {
 	if v.Operator == UNOP_DEREF {
 		if castExpr, ok := subExpr.(*CastExpr); ok {
 			// TODO: Verify whether this case actually ever happens
-			res = &CastExpr{Type: &TypeReference{Type: PointerTo(castExpr.Type)}, Expr: castExpr.Expr}
+			res = &CastExpr{Type: &TypeReference{BaseType: PointerTo(castExpr.Type)}, Expr: castExpr.Expr}
 		} else {
 			res = &DerefAccessExpr{
 				Expr: subExpr,

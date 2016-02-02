@@ -37,7 +37,7 @@ func (v *UnreachableCheck) PostVisit(s *SemanticAnalyzer, n parser.Node) {
 
 func (v *UnreachableCheck) visitFunction(s *SemanticAnalyzer, loc parser.Locatable, fn *parser.Function) {
 	if fn.Body != nil && !fn.Body.IsTerminating {
-		if fn.Type.Return != nil && !fn.Type.Return.Type.ActualType().IsVoidType() {
+		if fn.Type.Return != nil && !fn.Type.Return.BaseType.ActualType().IsVoidType() {
 			s.Err(loc, "Missing return statement")
 		} else {
 			fn.Body.Nodes = append(fn.Body.Nodes, &parser.ReturnStat{})

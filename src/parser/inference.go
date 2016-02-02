@@ -142,7 +142,7 @@ type Side struct {
 // If the given type is a *TypeVariable an IdentSide will be created, otherwise
 // a TypeSide will be created.
 func SideFromType(t *TypeReference) Side {
-	if tv, ok := t.Type.(*TypeVariable); ok {
+	if tv, ok := t.BaseType.(*TypeVariable); ok {
 		return Side{SideType: IdentSide, Id: tv.Id}
 	}
 	return Side{SideType: TypeSide, Type: t}
@@ -167,7 +167,7 @@ func (v Side) Subs(id int, what Side) Side {
 		if what.SideType == TypeSide {
 			nt = SubsType(v.Type, id, what.Type)
 		} else {
-			nt = SubsType(v.Type, id, &TypeReference{Type: &TypeVariable{Id: what.Id}})
+			nt = SubsType(v.Type, id, &TypeReference{BaseType: &TypeVariable{Id: what.Id}})
 		}
 		return Side{SideType: TypeSide, Type: nt}
 
@@ -179,7 +179,7 @@ func (v Side) Subs(id int, what Side) Side {
 // SubsType descends through a type and replaces all occurences of the given
 // type variable by `what`
 func SubsType(typ *TypeReference, id int, what *TypeReference) *TypeReference {
-	switch t := typ.Type.(type) {
+	switch t := typ.BaseType.(type) {
 	case *TypeVariable:
 		if t.Id == id {
 			return what
@@ -200,19 +200,19 @@ func SubsType(typ *TypeReference, id int, what *TypeReference) *TypeReference {
 		// current point. If we do, we return the actual type.
 		case ConstructorStructMember:
 			// Method check
-			if typ, ok := TypeWithoutPointers(nargs[0].Type).(*NamedType); ok {
+			if typ, ok := TypeWithoutPointers(nargs[0].BaseType).(*NamedType); ok {
 				fn := typ.GetMethod(t.Data.(string))
 				if fn != nil {
-					return &TypeReference{Type: fn.Type}
+					return &TypeReference{BaseType: fn.Type}
 				}
 			}
 
 			// Struct member
 			typ := nargs[0]
-			if pt, ok := typ.Type.(PointerType); ok {
+			if pt, ok := typ.BaseType.(PointerType); ok {
 				typ = pt.Addressee
 			}
-			if st, ok := typ.Type.ActualType().(StructType); ok {
+			if st, ok := typ.BaseType.ActualType().(StructType); ok {
 				mem := st.GetMember(t.Data.(string))
 				return mem.Type
 			}
@@ -220,13 +220,13 @@ func SubsType(typ *TypeReference, id int, what *TypeReference) *TypeReference {
 		// Likewise we check if we can resolve the actual type tuple index and
 		// if we can, we return it.
 		case ConstructorTupleIndex:
-			if tt, ok := nargs[0].Type.ActualType().(TupleType); ok {
+			if tt, ok := nargs[0].BaseType.ActualType().(TupleType); ok {
 				return tt.Members[t.Data.(uint64)]
 			}
 		}
 
 		return &TypeReference{
-			Type: &ConstructorType{Id: t.Id, Args: nargs, Data: t.Data},
+			BaseType: &ConstructorType{Id: t.Id, Args: nargs, Data: t.Data},
 		}
 
 	case FunctionType:
@@ -240,7 +240,7 @@ func SubsType(typ *TypeReference, id int, what *TypeReference) *TypeReference {
 		}
 
 		return &TypeReference{
-			Type: FunctionType{
+			BaseType: FunctionType{
 				attrs:      t.attrs,
 				IsVariadic: t.IsVariadic,
 				Parameters: np,
@@ -255,22 +255,22 @@ func SubsType(typ *TypeReference, id int, what *TypeReference) *TypeReference {
 			nm[idx] = SubsType(mem, id, what)
 		}
 
-		return &TypeReference{Type: tupleOf(nm...)}
+		return &TypeReference{BaseType: tupleOf(nm...)}
 
 	case ArrayType:
-		return &TypeReference{Type: ArrayOf(SubsType(t.MemberType, id, what))}
+		return &TypeReference{BaseType: ArrayOf(SubsType(t.MemberType, id, what))}
 
 	case PointerType:
-		return &TypeReference{Type: PointerTo(SubsType(t.Addressee, id, what))}
+		return &TypeReference{BaseType: PointerTo(SubsType(t.Addressee, id, what))}
 
 	case ReferenceType:
-		return &TypeReference{Type: ReferenceTo(SubsType(t.Referrer, id, what), t.IsMutable)}
+		return &TypeReference{BaseType: ReferenceTo(SubsType(t.Referrer, id, what), t.IsMutable)}
 
 		// The following are noops at the current time. For NamedType and EnumType
 		// this is only temporary, until we finalize implementaiton of generics
 		// in a solid maintainable way.
 	case PrimitiveType, StructType, *NamedType, InterfaceType, EnumType, *SubstitutionType:
-		return &TypeReference{Type: t}
+		return &TypeReference{BaseType: t}
 
 	default:
 		panic("Unhandled type in Side.Subs(): " + reflect.TypeOf(t).String() + " (" + t.TypeName() + ")")
@@ -427,7 +427,7 @@ func (v *Inferrer) Visit(node *Node) bool {
 	case *IfStat:
 		for _, expr := range n.Exprs {
 			id := v.HandleExpr(expr)
-			v.AddIsConstraint(id, &TypeReference{Type: PRIMITIVE_bool})
+			v.AddIsConstraint(id, &TypeReference{BaseType: PRIMITIVE_bool})
 		}
 
 	case *ReturnStat:
@@ -439,7 +439,7 @@ func (v *Inferrer) Visit(node *Node) bool {
 	case *LoopStat:
 		if n.Condition != nil {
 			id := v.HandleExpr(n.Condition)
-			v.AddIsConstraint(id, &TypeReference{Type: PRIMITIVE_bool})
+			v.AddIsConstraint(id, &TypeReference{BaseType: PRIMITIVE_bool})
 		}
 
 	case *MatchStat:
@@ -479,7 +479,7 @@ func (v *Inferrer) HandleTyped(pos lexer.Position, typed Typed) int {
 		case BINOP_EQ, BINOP_NOT_EQ, BINOP_GREATER, BINOP_LESS,
 			BINOP_GREATER_EQ, BINOP_LESS_EQ:
 			v.AddEqualsConstraint(a, b)
-			v.AddIsConstraint(ann.Id, &TypeReference{Type: PRIMITIVE_bool})
+			v.AddIsConstraint(ann.Id, &TypeReference{BaseType: PRIMITIVE_bool})
 
 		// If we're dealing with bitwise and, or and xor we know that both
 		// sides must be the same type, and that the result will be of that
@@ -505,9 +505,9 @@ func (v *Inferrer) HandleTyped(pos lexer.Position, typed Typed) int {
 		// If we're dealing with a logical operation, we know that both sides
 		// must be booleans, and that the result will also be a boolean.
 		case BINOP_LOG_AND, BINOP_LOG_OR:
-			v.AddIsConstraint(a, &TypeReference{Type: PRIMITIVE_bool})
-			v.AddIsConstraint(b, &TypeReference{Type: PRIMITIVE_bool})
-			v.AddIsConstraint(ann.Id, &TypeReference{Type: PRIMITIVE_bool})
+			v.AddIsConstraint(a, &TypeReference{BaseType: PRIMITIVE_bool})
+			v.AddIsConstraint(b, &TypeReference{BaseType: PRIMITIVE_bool})
+			v.AddIsConstraint(ann.Id, &TypeReference{BaseType: PRIMITIVE_bool})
 
 		default:
 			panic("Unhandled binary operator in type inference")
@@ -520,8 +520,8 @@ func (v *Inferrer) HandleTyped(pos lexer.Position, typed Typed) int {
 		// If we're dealing with a logical not the expression being not'ed must
 		// be a boolean, and the resul will also be a boolean.
 		case UNOP_LOG_NOT:
-			v.AddIsConstraint(id, &TypeReference{Type: PRIMITIVE_bool})
-			v.AddIsConstraint(ann.Id, &TypeReference{Type: PRIMITIVE_bool})
+			v.AddIsConstraint(id, &TypeReference{BaseType: PRIMITIVE_bool})
+			v.AddIsConstraint(ann.Id, &TypeReference{BaseType: PRIMITIVE_bool})
 
 		// If we're dealing with a bitwise not, the type will be the same type
 		// as the expression acted upon.
@@ -549,11 +549,11 @@ func (v *Inferrer) HandleTyped(pos lexer.Position, typed Typed) int {
 
 		// Construct a function type containing the generated type variables.
 		// This will be used to infer the types of the arguments.
-		fnType := FunctionType{Return: &TypeReference{Type: &TypeVariable{Id: ann.Id}}}
+		fnType := FunctionType{Return: &TypeReference{BaseType: &TypeVariable{Id: ann.Id}}}
 		for _, argId := range argIds {
-			fnType.Parameters = append(fnType.Parameters, &TypeReference{Type: &TypeVariable{Id: argId}})
+			fnType.Parameters = append(fnType.Parameters, &TypeReference{BaseType: &TypeVariable{Id: argId}})
 		}
-		v.AddIsConstraint(fnId, &TypeReference{Type: fnType})
+		v.AddIsConstraint(fnId, &TypeReference{BaseType: fnType})
 
 	// The type of a cast will always be the type casted to.
 	case *CastExpr:
@@ -564,20 +564,20 @@ func (v *Inferrer) HandleTyped(pos lexer.Position, typed Typed) int {
 	// the type of the access of which we took the address.
 	case *AddressOfExpr:
 		id := v.HandleExpr(typed.Access)
-		v.AddIsConstraint(ann.Id, &TypeReference{Type: PointerTo(&TypeReference{Type: &TypeVariable{Id: id}})})
+		v.AddIsConstraint(ann.Id, &TypeReference{BaseType: PointerTo(&TypeReference{BaseType: &TypeVariable{Id: id}})})
 
 	// Given a deref, we know that the expression being dereferenced must be a
 	// pointer to the result of the dereference.
 	case *DerefAccessExpr:
 		id := v.HandleExpr(typed.Expr)
-		v.AddIsConstraint(id, &TypeReference{Type: PointerTo(&TypeReference{Type: &TypeVariable{Id: ann.Id}})})
+		v.AddIsConstraint(id, &TypeReference{BaseType: PointerTo(&TypeReference{BaseType: &TypeVariable{Id: ann.Id}})})
 
 	// A sizeof expr always return a uint
 	case *SizeofExpr:
 		if typed.Expr != nil {
 			v.HandleExpr(typed.Expr)
 		}
-		v.AddIsConstraint(ann.Id, &TypeReference{Type: PRIMITIVE_uint})
+		v.AddIsConstraint(ann.Id, &TypeReference{BaseType: PRIMITIVE_uint})
 
 	// Given a variable access, we know that the type of the access must be
 	// equal to the type of the variable being accessed.
@@ -594,9 +594,9 @@ func (v *Inferrer) HandleTyped(pos lexer.Position, typed Typed) int {
 	case *StructAccessExpr:
 		id := v.HandleExpr(typed.Struct)
 		v.AddIsConstraint(ann.Id, &TypeReference{
-			Type: &ConstructorType{
+			BaseType: &ConstructorType{
 				Id:   ConstructorStructMember,
-				Args: []*TypeReference{&TypeReference{Type: &TypeVariable{Id: id}}},
+				Args: []*TypeReference{&TypeReference{BaseType: &TypeVariable{Id: id}}},
 				Data: typed.Member,
 			},
 		})
@@ -609,9 +609,9 @@ func (v *Inferrer) HandleTyped(pos lexer.Position, typed Typed) int {
 	case *TupleAccessExpr:
 		id := v.HandleExpr(typed.Tuple)
 		v.AddIsConstraint(ann.Id, &TypeReference{
-			Type: &ConstructorType{
+			BaseType: &ConstructorType{
 				Id:   ConstructorTupleIndex,
-				Args: []*TypeReference{&TypeReference{Type: &TypeVariable{Id: id}}},
+				Args: []*TypeReference{&TypeReference{BaseType: &TypeVariable{Id: id}}},
 				Data: typed.Index,
 			},
 		})
@@ -621,12 +621,12 @@ func (v *Inferrer) HandleTyped(pos lexer.Position, typed Typed) int {
 	case *ArrayAccessExpr:
 		id := v.HandleExpr(typed.Array)
 		v.HandleExpr(typed.Subscript)
-		v.AddIsConstraint(id, &TypeReference{Type: ArrayOf(&TypeReference{Type: &TypeVariable{Id: ann.Id}})})
+		v.AddIsConstraint(id, &TypeReference{BaseType: ArrayOf(&TypeReference{BaseType: &TypeVariable{Id: ann.Id}})})
 
 	// An array length expression is always of type uint
 	case *ArrayLenExpr:
 		v.HandleExpr(typed.Expr)
-		v.AddIsConstraint(ann.Id, &TypeReference{Type: PRIMITIVE_uint})
+		v.AddIsConstraint(ann.Id, &TypeReference{BaseType: PRIMITIVE_uint})
 
 	// An enum literal must always come with a type, so we simply bind its type
 	// to it's type variable and to the variable from the contained literal
@@ -648,20 +648,20 @@ func (v *Inferrer) HandleTyped(pos lexer.Position, typed Typed) int {
 
 	// A bool literal will always be of type bool
 	case *BoolLiteral:
-		v.AddIsConstraint(ann.Id, &TypeReference{Type: PRIMITIVE_bool})
+		v.AddIsConstraint(ann.Id, &TypeReference{BaseType: PRIMITIVE_bool})
 
 	// A string literal will either be of type ^u8 or string respectively
 	// depending on whether or not the string is a c-style string.
 	case *StringLiteral:
 		if typed.IsCString {
-			v.AddIsConstraint(ann.Id, &TypeReference{Type: PointerTo(&TypeReference{Type: PRIMITIVE_u8})})
+			v.AddIsConstraint(ann.Id, &TypeReference{BaseType: PointerTo(&TypeReference{BaseType: PRIMITIVE_u8})})
 		} else {
-			v.AddIsConstraint(ann.Id, &TypeReference{Type: stringType})
+			v.AddIsConstraint(ann.Id, &TypeReference{BaseType: stringType})
 		}
 
 	// A rune literal will always be of type rune
 	case *RuneLiteral:
-		v.AddIsConstraint(ann.Id, &TypeReference{Type: runeType})
+		v.AddIsConstraint(ann.Id, &TypeReference{BaseType: runeType})
 
 	// A composite literal is a mess to handle as it can be either an array or
 	// a struct, but in either case we go through and generate the type
@@ -673,7 +673,7 @@ func (v *Inferrer) HandleTyped(pos lexer.Position, typed Typed) int {
 			ids[idx] = v.HandleExpr(mem)
 		}
 
-		typ := typed.Type.Type.ActualType()
+		typ := typed.Type.BaseType.ActualType()
 		if at, ok := typ.(ArrayType); ok {
 			for _, id := range ids {
 				v.AddIsConstraint(id, at.MemberType)
@@ -696,13 +696,13 @@ func (v *Inferrer) HandleTyped(pos lexer.Position, typed Typed) int {
 		var tt TupleType
 		var ok bool
 		if typed.Type != nil {
-			tt, ok = typed.Type.Type.(TupleType)
+			tt, ok = typed.Type.BaseType.(TupleType)
 		}
 
 		nt := make([]*TypeReference, len(typed.Members))
 		for idx, mem := range typed.Members {
 			id := v.HandleExpr(mem)
-			nt[idx] = &TypeReference{Type: &TypeVariable{Id: id}}
+			nt[idx] = &TypeReference{BaseType: &TypeVariable{Id: id}}
 			if ok {
 				v.AddIsConstraint(id, tt.Members[idx])
 				nt[idx] = tt.Members[idx]
@@ -712,7 +712,7 @@ func (v *Inferrer) HandleTyped(pos lexer.Position, typed Typed) int {
 		if typed.Type != nil {
 			v.AddIsConstraint(ann.Id, typed.Type)
 		} else {
-			v.AddIsConstraint(ann.Id, &TypeReference{Type: tupleOf(nt...)})
+			v.AddIsConstraint(ann.Id, &TypeReference{BaseType: tupleOf(nt...)})
 		}
 
 	// Given a variable, we bind it's type variable to it's type if its type is known
@@ -723,11 +723,11 @@ func (v *Inferrer) HandleTyped(pos lexer.Position, typed Typed) int {
 
 	// A function access will always be the type of the function it accesses
 	case *FunctionAccessExpr:
-		v.AddIsConstraint(ann.Id, &TypeReference{Type: typed.Function.Type})
+		v.AddIsConstraint(ann.Id, &TypeReference{BaseType: typed.Function.Type})
 
 	// A lambda expr will always be the type of the function it is
 	case *LambdaExpr:
-		v.AddIsConstraint(ann.Id, &TypeReference{Type: typed.Function.Type})
+		v.AddIsConstraint(ann.Id, &TypeReference{BaseType: typed.Function.Type})
 
 	// Numeric literals do not get to have any fun, because default types do
 	// not mesh well with the constraint based approach.
@@ -804,8 +804,8 @@ func (v *Inferrer) Solve() []*Constraint {
 
 		// 4.1. {^, &mut, &}x = {^, &mut, &}y
 		if x.SideType == TypeSide && y.SideType == TypeSide {
-			xAddressee := getAdressee(x.Type.Type)
-			yAddressee := getAdressee(y.Type.Type)
+			xAddressee := getAdressee(x.Type.BaseType)
+			yAddressee := getAdressee(y.Type.BaseType)
 			if xAddressee != nil && yAddressee != nil {
 				stack = append(stack, ConstraintFromTypes(xAddressee, yAddressee))
 				continue
@@ -814,8 +814,8 @@ func (v *Inferrer) Solve() []*Constraint {
 
 		// 4.2. []x = []y
 		if x.SideType == TypeSide && y.SideType == TypeSide {
-			atX, okX := x.Type.Type.ActualType().(ArrayType)
-			atY, okY := y.Type.Type.ActualType().(ArrayType)
+			atX, okX := x.Type.BaseType.ActualType().(ArrayType)
+			atY, okY := y.Type.BaseType.ActualType().(ArrayType)
 			if okX && okY {
 				stack = append(stack, ConstraintFromTypes(atX.MemberType, atY.MemberType))
 				continue
@@ -825,8 +825,8 @@ func (v *Inferrer) Solve() []*Constraint {
 		// 4.3 C(x1, ..., xn).d = C(y1, ... yn).d
 		// NOTE: This currently handles both struct members and tuple members
 		if x.SideType == TypeSide && y.SideType == TypeSide {
-			conX, okX := x.Type.Type.(*ConstructorType)
-			conY, okY := y.Type.Type.(*ConstructorType)
+			conX, okX := x.Type.BaseType.(*ConstructorType)
+			conY, okY := y.Type.BaseType.(*ConstructorType)
 			if okX && okY && conX.Id == conY.Id && len(conX.Args) == len(conY.Args) &&
 				conX.Data == conY.Data {
 				for idx, argX := range conX.Args {
@@ -839,8 +839,8 @@ func (v *Inferrer) Solve() []*Constraint {
 
 		// 4.4. fn(x1, ...) -> xn = fn(y1, ...) -> yn
 		if x.SideType == TypeSide && y.SideType == TypeSide {
-			xFunc, okX := x.Type.Type.ActualType().(FunctionType)
-			yFunc, okY := y.Type.Type.ActualType().(FunctionType)
+			xFunc, okX := x.Type.BaseType.ActualType().(FunctionType)
+			yFunc, okY := y.Type.BaseType.ActualType().(FunctionType)
 
 			if okX && okY {
 				// Determine minimum parameter list length.
@@ -860,10 +860,10 @@ func (v *Inferrer) Solve() []*Constraint {
 				xRet := xFunc.Return
 				yRet := yFunc.Return
 				if xRet == nil {
-					xRet = &TypeReference{Type: PRIMITIVE_void}
+					xRet = &TypeReference{BaseType: PRIMITIVE_void}
 				}
 				if yRet == nil {
-					yRet = &TypeReference{Type: PRIMITIVE_void}
+					yRet = &TypeReference{BaseType: PRIMITIVE_void}
 				}
 
 				stack = append(stack, ConstraintFromTypes(xRet, yRet))
@@ -873,8 +873,8 @@ func (v *Inferrer) Solve() []*Constraint {
 
 		// 4.5. (x1, ..., xn) = (y1, ..., yn)
 		if x.SideType == TypeSide && y.SideType == TypeSide {
-			xTup, okX := x.Type.Type.ActualType().(TupleType)
-			yTup, okY := y.Type.Type.ActualType().(TupleType)
+			xTup, okX := x.Type.BaseType.ActualType().(TupleType)
+			yTup, okY := y.Type.BaseType.ActualType().(TupleType)
 
 			if okX && okY && len(xTup.Members) == len(yTup.Members) {
 				for idx, memX := range xTup.Members {
@@ -941,7 +941,7 @@ func (v *Inferrer) Finalize() {
 					}
 
 				}
-				v.AddIsConstraint(idx, &TypeReference{Type: typ})
+				v.AddIsConstraint(idx, &TypeReference{BaseType: typ})
 			} else if subs != nil {
 				v.AddConstraint(subs)
 			}
@@ -962,7 +962,7 @@ func (v *Inferrer) Finalize() {
 			v.errPos(ann.Pos, "Couldn't infer type of expression")
 		}
 
-		if _, ok := subs.Right.Type.Type.(*ConstructorType); ok {
+		if _, ok := subs.Right.Type.BaseType.(*ConstructorType); ok {
 			panic("INTERNAL ERROR: ConstructorType escaped inference pass")
 		}
 
@@ -981,24 +981,24 @@ func (v *Inferrer) Finalize() {
 			// If the function source is a struct access, resolve the method
 			// this access represents.
 			if sae, ok := n.Function.(*StructAccessExpr); ok {
-				fn := TypeWithoutPointers(sae.Struct.GetType().Type).(*NamedType).GetMethod(sae.Member)
+				fn := TypeWithoutPointers(sae.Struct.GetType().BaseType).(*NamedType).GetMethod(sae.Member)
 				n.Function = &FunctionAccessExpr{Function: fn, GenericArguments: sae.GenericArguments}
 				if n.Function == nil {
-					v.errPos(sae.Pos(), "Type `%s` has no method `%s`", TypeWithoutPointers(sae.Struct.GetType().Type).TypeName(), sae.Member)
+					v.errPos(sae.Pos(), "Type `%s` has no method `%s`", TypeWithoutPointers(sae.Struct.GetType().BaseType).TypeName(), sae.Member)
 				}
 			}
 
 			if n.Function != nil {
-				if _, ok := n.Function.GetType().Type.(FunctionType); !ok {
+				if _, ok := n.Function.GetType().BaseType.(FunctionType); !ok {
 					v.errPos(n.Function.Pos(), "Attempt to call non-function `%s`", n.Function.GetType().String())
 				}
 
 				// Insert a deref in cases where the code tries to call a value reciver
 				// with a pointer type.
-				if recType := n.Function.GetType().Type.(FunctionType).Receiver; recType != nil {
+				if recType := n.Function.GetType().BaseType.(FunctionType).Receiver; recType != nil {
 					accessType := n.ReceiverAccess.GetType()
 
-					if accessType.Type.LevelsOfIndirection() == recType.LevelsOfIndirection()+1 {
+					if accessType.BaseType.LevelsOfIndirection() == recType.LevelsOfIndirection()+1 {
 						n.ReceiverAccess = &DerefAccessExpr{Expr: n.ReceiverAccess}
 					}
 				}
@@ -1006,20 +1006,20 @@ func (v *Inferrer) Finalize() {
 
 		case *StructAccessExpr:
 			// Check if we're dealing with a method and exit early
-			baseType := TypeWithoutPointers(n.Struct.GetType().Type)
+			baseType := TypeWithoutPointers(n.Struct.GetType().BaseType)
 			if nt, ok := baseType.(*NamedType); ok && nt.GetMethod(n.Member) != nil {
 				break
 			}
 
 			// Insert a deref in cases where the code tries to access a struct
 			// member from a pointer type.
-			if n.Struct.GetType().Type.ActualType().LevelsOfIndirection() == 1 {
+			if n.Struct.GetType().BaseType.ActualType().LevelsOfIndirection() == 1 {
 				n.Struct = &DerefAccessExpr{Expr: n.Struct}
 			}
 
 			// Verify that we're actually dealing with a struct.
 			typ := n.Struct.GetType()
-			structType, ok := typ.Type.ActualType().(StructType)
+			structType, ok := typ.BaseType.ActualType().(StructType)
 			if !ok {
 				v.errPos(n.Pos(), "Cannot access member of type `%s`", typ.String())
 			}
@@ -1053,8 +1053,8 @@ func (v *Inferrer) Finalize() {
 			// Here we handle the case where a numeric literal appear in a cast
 			// to a pointer type. We need the default type to be uintptr here
 			// as normal integers can't be cast to a pointer.
-			if ok && n.Type.Type.LevelsOfIndirection() > 0 {
-				expr.SetType(&TypeReference{Type: PRIMITIVE_uintptr})
+			if ok && n.Type.BaseType.LevelsOfIndirection() > 0 {
+				expr.SetType(&TypeReference{BaseType: PRIMITIVE_uintptr})
 			}
 		}
 	}
@@ -1163,7 +1163,7 @@ func (v *BinaryExpr) SetType(t *TypeReference) {
 func (v *NumericLiteral) SetType(t *TypeReference) {
 	var actual Type
 	if t != nil {
-		actual = t.Type.ActualType()
+		actual = t.BaseType.ActualType()
 	}
 
 	if v.IsFloat {
@@ -1172,7 +1172,7 @@ func (v *NumericLiteral) SetType(t *TypeReference) {
 			v.Type = t
 
 		default:
-			v.Type = &TypeReference{Type: PRIMITIVE_f64}
+			v.Type = &TypeReference{BaseType: PRIMITIVE_f64}
 		}
 	} else {
 		switch actual {
@@ -1183,7 +1183,7 @@ func (v *NumericLiteral) SetType(t *TypeReference) {
 			v.Type = t
 
 		default:
-			v.Type = &TypeReference{Type: PRIMITIVE_int}
+			v.Type = &TypeReference{BaseType: PRIMITIVE_int}
 		}
 	}
 }
@@ -1194,7 +1194,7 @@ func (v *CompositeLiteral) SetType(t *TypeReference) {
 		return
 	}
 
-	switch t.Type.ActualType().(type) {
+	switch t.BaseType.ActualType().(type) {
 	case StructType, ArrayType:
 		v.Type = t
 	}
@@ -1211,7 +1211,7 @@ func (v *TupleLiteral) SetType(t *TypeReference) {
 		return
 	}
 
-	_, ok := t.Type.ActualType().(TupleType)
+	_, ok := t.BaseType.ActualType().(TupleType)
 	if ok {
 		v.Type = t
 	}
