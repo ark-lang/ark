@@ -1,6 +1,15 @@
 package parser
 
+// IDEA for rewrite: have separate:
+// --> Type - raw type info
+// --> TypeInstance - Type with generic arguments (ie. a complete type)
+// --> TypeReference - an AST element for a literal reference to a type (used for warning/error messages etc)
+// Currently, TypeReference takes the roles of both TypeInstance and TypeReference.
+
 import (
+	"fmt"
+	"reflect"
+
 	"github.com/ark-lang/ark/src/util"
 )
 
@@ -123,13 +132,14 @@ func (v PrimitiveType) ActualType() Type {
 // StructType
 
 type StructType struct {
-	Members []*StructMember
-	attrs   AttrGroup
+	Members           []*StructMember
+	attrs             AttrGroup
+	GenericParameters []*SubstitutionType
 }
 
 type StructMember struct {
 	Name string
-	Type Type
+	Type *TypeReference
 }
 
 func (v StructType) String() string {
@@ -137,7 +147,7 @@ func (v StructType) String() string {
 	result += v.attrs.String()
 	result += "\n"
 	for _, mem := range v.Members {
-		result += "\t" + mem.Name + ": " + mem.Type.TypeName() + "\n"
+		result += "\t" + mem.Name + ": " + mem.Type.String() + "\n"
 	}
 	return result + ")"
 }
@@ -146,7 +156,7 @@ func (v StructType) TypeName() string {
 	res := "struct {"
 
 	for i, mem := range v.Members {
-		res += mem.Name + ": " + mem.Type.TypeName()
+		res += mem.Name + ": " + mem.Type.String()
 
 		if i < len(v.Members)-1 {
 			res += ", "
@@ -188,7 +198,7 @@ func (v StructType) GetMember(name string) *StructMember {
 	return nil
 }
 
-func (v StructType) addMember(name string, typ Type) StructType {
+func (v StructType) addMember(name string, typ *TypeReference) StructType {
 	v.Members = append(v.Members, &StructMember{Name: name, Type: typ})
 	return v
 }
@@ -240,11 +250,10 @@ func (v StructType) ActualType() Type {
 // NamedType
 
 type NamedType struct {
-	Name              string
-	Type              Type
-	GenericParameters []string
-	ParentModule      *Module
-	Methods           []*Function
+	Name         string
+	Type         Type
+	ParentModule *Module
+	Methods      []*Function
 }
 
 func (v *NamedType) addMethod(fn *Function) {
@@ -267,16 +276,6 @@ func (v *NamedType) ActualType() Type {
 
 func (v *NamedType) String() string {
 	res := "(" + util.Blue("NamedType") + ": " + v.Name
-	if len(v.GenericParameters) > 0 {
-		res += "<"
-		for idx, param := range v.GenericParameters {
-			res += param
-			if idx < len(v.GenericParameters)-1 {
-				res += ", "
-			}
-		}
-		res += ">"
-	}
 	return res + " = " + v.Type.TypeName() + ")"
 }
 
@@ -331,14 +330,14 @@ func (v *NamedType) Equals(t Type) bool {
 // ArrayType
 
 type ArrayType struct {
-	MemberType Type
+	MemberType *TypeReference
 	attrs      AttrGroup
 }
 
 // IMPORTANT:
 // Using this function is no longer important, just make sure to use
 // .Equals() to compare two types.
-func ArrayOf(t Type) ArrayType {
+func ArrayOf(t *TypeReference) ArrayType {
 	return ArrayType{MemberType: t}
 }
 
@@ -351,7 +350,7 @@ func (v ArrayType) String() string {
 }
 
 func (v ArrayType) TypeName() string {
-	return "[]" + v.MemberType.TypeName()
+	return "[]" + v.MemberType.String()
 }
 
 func (v ArrayType) IsSigned() bool {
@@ -406,23 +405,23 @@ func (v ArrayType) ActualType() Type {
 // Reference
 
 type ReferenceType struct {
-	Referrer  Type
+	Referrer  *TypeReference // TODO rename to Element
 	IsMutable bool
 }
 
-func ReferenceTo(t Type, mutable bool) ReferenceType {
+func ReferenceTo(t *TypeReference, mutable bool) ReferenceType {
 	return ReferenceType{Referrer: t, IsMutable: mutable}
 }
 
 func (v ReferenceType) TypeName() string {
 	if v.IsMutable {
-		return "&mut " + v.Referrer.TypeName()
+		return "&mut " + v.Referrer.String()
 	}
-	return "&" + v.Referrer.TypeName()
+	return "&" + v.Referrer.String()
 }
 
 func (v ReferenceType) LevelsOfIndirection() int {
-	return v.Referrer.LevelsOfIndirection() + 1
+	return v.Referrer.BaseType.LevelsOfIndirection() + 1
 }
 
 func (v ReferenceType) IsIntegerType() bool {
@@ -470,22 +469,22 @@ func (v ReferenceType) ActualType() Type {
 // PointerType
 
 type PointerType struct {
-	Addressee Type
+	Addressee *TypeReference
 }
 
 // IMPORTANT:
 // Using this function is no longer important, just make sure to use
 // .Equals() to compare two types.
-func PointerTo(t Type) PointerType {
+func PointerTo(t *TypeReference) PointerType {
 	return PointerType{Addressee: t}
 }
 
 func (v PointerType) TypeName() string {
-	return "^" + v.Addressee.TypeName()
+	return "^" + v.Addressee.String()
 }
 
 func (v PointerType) LevelsOfIndirection() int {
-	return v.Addressee.LevelsOfIndirection() + 1
+	return v.Addressee.BaseType.LevelsOfIndirection() + 1
 }
 
 func (v PointerType) IsIntegerType() bool {
@@ -527,18 +526,18 @@ func (v PointerType) ActualType() Type {
 
 // TupleType
 
-func tupleOf(types ...Type) Type {
+func tupleOf(types ...*TypeReference) Type {
 	return TupleType{Members: types}
 }
 
 type TupleType struct {
-	Members []Type
+	Members []*TypeReference
 }
 
 func (v TupleType) String() string {
 	result := "(" + util.Blue("TupleType") + ": "
 	for _, mem := range v.Members {
-		result += "\t" + mem.TypeName() + "\n"
+		result += "\t" + mem.String() + "\n"
 	}
 	return result + ")"
 }
@@ -546,7 +545,7 @@ func (v TupleType) String() string {
 func (v TupleType) TypeName() string {
 	result := "("
 	for idx, mem := range v.Members {
-		result += mem.TypeName()
+		result += mem.String()
 
 		// if we are not at the last component
 		if idx < len(v.Members)-1 {
@@ -581,7 +580,7 @@ func (v TupleType) CanCastTo(t Type) bool {
 	return v.Equals(t.ActualType())
 }
 
-func (v TupleType) addMember(decl Type) {
+func (v TupleType) addMember(decl *TypeReference) {
 	v.Members = append(v.Members, decl)
 }
 
@@ -699,9 +698,10 @@ func (v InterfaceType) ActualType() Type {
 
 // EnumType
 type EnumType struct {
-	Simple  bool
-	Members []EnumTypeMember
-	attrs   AttrGroup
+	Simple            bool
+	GenericParameters []*SubstitutionType
+	Members           []EnumTypeMember
+	attrs             AttrGroup
 }
 
 type EnumTypeMember struct {
@@ -820,9 +820,10 @@ func (v EnumType) ActualType() Type {
 type FunctionType struct {
 	attrs AttrGroup
 
-	Parameters []Type
-	Return     Type
-	IsVariadic bool
+	GenericParameters []*SubstitutionType
+	Parameters        []*TypeReference
+	Return            *TypeReference
+	IsVariadic        bool
 
 	Receiver Type // non-nil if non-static method
 }
@@ -840,10 +841,27 @@ func (v FunctionType) TypeName() string {
 		res += " "
 	}
 
-	res += "func("
+	res += "func"
+
+	if v.Receiver != nil {
+		res += "(v: " + v.Receiver.TypeName() + ")"
+	}
+
+	if len(v.GenericParameters) > 0 {
+		res += "<"
+		for i, gpar := range v.GenericParameters {
+			res += gpar.TypeName()
+			if i < len(v.GenericParameters)-1 {
+				res += ", "
+			}
+		}
+		res += ">"
+	}
+
+	res += "("
 
 	for idx, para := range v.Parameters {
-		res += para.TypeName()
+		res += para.String()
 		if idx < len(v.Parameters)-1 {
 			res += ", "
 		}
@@ -852,7 +870,7 @@ func (v FunctionType) TypeName() string {
 	res += ")"
 
 	if v.Return != nil {
-		res += " -> " + v.Return.TypeName()
+		res += " -> " + v.Return.String()
 	}
 
 	return res
@@ -967,47 +985,237 @@ func (v metaType) Equals(t Type) bool {
 
 // SubstitutionType
 type SubstitutionType struct {
-	metaType
-	Name string
-	Type Type
+	attrs AttrGroup
+	Name  string
 }
 
-func (v SubstitutionType) String() string {
-	return "(" + util.Blue("SubstitutionType") + ": " + v.Name + " = " + v.Type.TypeName() + ")"
+func NewSubstitutionType(name string) *SubstitutionType {
+	return &SubstitutionType{Name: name}
 }
 
-func (v SubstitutionType) TypeName() string {
+func (v *SubstitutionType) String() string {
+	return "(" + util.Blue("SubstitutionType") + ": " + v.Name + " " + fmt.Sprintf("%p", v) + ")"
+}
+
+func (v *SubstitutionType) TypeName() string {
 	return v.Name
 }
 
-func (v SubstitutionType) ActualType() Type {
+func (v *SubstitutionType) ActualType() Type {
 	return v
+}
+
+func (v *SubstitutionType) Equals(t Type) bool {
+	return v == t
+}
+
+func (v *SubstitutionType) Attrs() AttrGroup {
+	return v.attrs
+}
+
+func (v *SubstitutionType) CanCastTo(t Type) bool {
+	return false
+}
+
+func (v *SubstitutionType) IsFloatingType() bool {
+	return false
+}
+
+func (v *SubstitutionType) IsIntegerType() bool {
+	return false
+}
+
+func (v *SubstitutionType) IsSigned() bool {
+	return false
+}
+
+func (v *SubstitutionType) IsVoidType() bool {
+	return false
+}
+
+func (v *SubstitutionType) LevelsOfIndirection() int {
+	return 0
+}
+
+// GenericInstance
+// Substition GenericContext to real type mappings override parameters to self mappings.
+type GenericContext struct {
+	submap map[*SubstitutionType]*TypeReference
+	Outer  *GenericContext
+}
+
+func NewGenericContext(parameters []*SubstitutionType, arguments []*TypeReference) *GenericContext {
+	v := &GenericContext{
+		submap: make(map[*SubstitutionType]*TypeReference),
+	}
+
+	if len(parameters) != len(arguments) {
+		panic("len(parameters) != len(arguments): " + fmt.Sprintf("%d != %d", len(parameters), len(arguments)))
+	}
+
+	for i, par := range parameters {
+		v.submap[par] = arguments[i]
+	}
+
+	return v
+}
+
+func getTypeGenericParameters(typ Type) []*SubstitutionType {
+	switch typ := typ.ActualType().(type) {
+	case EnumType:
+		return typ.GenericParameters
+	case FunctionType:
+		return typ.GenericParameters
+	case StructType:
+		return typ.GenericParameters
+	case PointerType:
+		return getTypeGenericParameters(typ.Addressee.BaseType)
+	case ReferenceType:
+		return getTypeGenericParameters(typ.Referrer.BaseType)
+
+	case PrimitiveType, *SubstitutionType, ArrayType, TupleType:
+		return nil
+
+	case *NamedType:
+		panic("oh no")
+
+	default:
+		panic("unim base type: " + reflect.TypeOf(typ).String())
+	}
+}
+
+func NewGenericContextFromTypeReference(typref *TypeReference) *GenericContext {
+	return NewGenericContext(getTypeGenericParameters(typref.BaseType), typref.GenericArguments)
+}
+
+// Like Get, but only gets value where key is substitution type. Returns nil if no value for key.
+func (v *GenericContext) GetSubstitutionType(t *SubstitutionType) *TypeReference {
+	if x, ok := v.submap[t]; ok {
+		return x
+	} else if v.Outer != nil {
+		return v.Outer.GetSubstitutionType(t)
+	}
+	return nil
+}
+
+// If the key is a substitution type and is not found in this generic instance, Get() checks GenericContext.Outer if not nil.
+func (v *GenericContext) Get(t *TypeReference) *TypeReference {
+	if v == nil {
+		panic("called Get() on nil GenericContext")
+	}
+
+	if sub, ok := t.BaseType.(*SubstitutionType); ok {
+		if x, ok := v.submap[sub]; ok {
+			return x
+		} else if v.Outer != nil {
+			return v.Outer.Get(t)
+		}
+	}
+	return t
+}
+
+// Replace goes through the *TypeReference and returns a new one with all the SubstitutionTypes that are mapped in this GenericContext.
+func (v *GenericContext) Replace(t *TypeReference) *TypeReference {
+	if sub, ok := t.BaseType.(*SubstitutionType); ok {
+		if subt := v.GetSubstitutionType(sub); subt != nil {
+			return subt
+		}
+		return t
+	}
+
+	return &TypeReference{
+		BaseType:         v.replaceType(t.BaseType),
+		GenericArguments: v.replaceTypeReferences(t.GenericArguments),
+	}
+}
+
+func (v *GenericContext) replaceTypeReferences(ts []*TypeReference) []*TypeReference {
+	ret := make([]*TypeReference, 0, len(ts))
+	for _, t := range ts {
+		ret = append(ret, v.Replace(t))
+	}
+	return ret
+}
+
+// Function internal to GenericContext.
+func (v *GenericContext) replaceType(ty Type) Type {
+	switch t := ty.(type) {
+	case EnumType:
+		for i, mem := range t.Members {
+			t.Members[i].Type = v.replaceType(mem.Type) // TODO replace if Members becomes ptr
+		}
+		return t
+
+	case FunctionType:
+		t.Parameters = v.replaceTypeReferences(t.Parameters)
+		if t.Receiver != nil {
+			t.Receiver = v.replaceType(t.Receiver)
+		}
+		t.Return = v.Replace(t.Return)
+		return t
+
+	case StructType:
+		for i, mem := range t.Members {
+			t.Members[i] = &StructMember{
+				Name: mem.Name,
+				Type: v.Replace(mem.Type),
+			}
+		}
+		return t
+
+	case PrimitiveType:
+		return t
+
+	case *NamedType:
+		return &NamedType{
+			Name:         t.Name,
+			Methods:      t.Methods,
+			ParentModule: t.ParentModule,
+			Type:         t.Type,
+		}
+
+	case PointerType:
+		t.Addressee = v.Replace(t.Addressee)
+		return t
+
+	case ReferenceType:
+		t.Referrer = v.Replace(t.Referrer)
+		return t
+
+	case ArrayType:
+		t.MemberType = v.Replace(t.MemberType)
+		return t
+
+	case TupleType:
+		for i, mem := range t.Members {
+			t.Members[i] = v.Replace(mem)
+		}
+		return t
+
+	default:
+		if t == nil {
+			panic("t is nil")
+		}
+		panic("unim: " + reflect.TypeOf(t).String())
+	}
 }
 
 // UnresolvedType
 type UnresolvedType struct {
 	metaType
-	Name              UnresolvedName
-	GenericParameters []Type
+	Name UnresolvedName
 }
 
 func (v UnresolvedType) String() string {
-	res := "(" + util.Blue("UnresolvedType") + ": " + v.Name.String()
-	if len(v.GenericParameters) > 0 {
-		res += "<"
-		for idx, param := range v.GenericParameters {
-			res += param.TypeName()
-			if idx < len(v.GenericParameters)-1 {
-				res += ", "
-			}
-		}
-		res += "> "
-	}
-	return res + ")"
+	return "(" + util.Blue("UnresolvedType") + ": " + v.Name.String() + ")"
 }
 
 func (v UnresolvedType) TypeName() string {
 	return "unresolved(" + v.Name.String() + ")"
+}
+
+func (v UnresolvedType) Equals(t Type) bool {
+	panic("Equals() invalid on unresolved type: name == " + v.Name.String())
 }
 
 func (v UnresolvedType) ActualType() Type {
@@ -1016,7 +1224,7 @@ func (v UnresolvedType) ActualType() Type {
 
 func TypeWithoutPointers(t Type) Type {
 	if ptr, ok := t.(PointerType); ok {
-		return TypeWithoutPointers(ptr.Addressee)
+		return TypeWithoutPointers(ptr.Addressee.BaseType)
 	}
 
 	return t

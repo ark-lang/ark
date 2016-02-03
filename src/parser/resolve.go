@@ -207,11 +207,12 @@ func (v *Resolver) PostVisit(node *Node) {
 	case *FunctionDecl:
 		// Store the method in the type of the reciever
 		if n.Function.Type.Receiver != nil {
-			if named, ok := TypeWithoutPointers(n.Function.Receiver.Variable.Type).(*NamedType); ok {
+			if named, ok := TypeWithoutPointers(n.Function.Receiver.Variable.Type.BaseType).(*NamedType); ok {
 				named.addMethod(n.Function)
 			}
 		}
 
+		v.ExitScope()
 		v.popFunction()
 
 	case *LambdaExpr:
@@ -219,7 +220,7 @@ func (v *Resolver) PostVisit(node *Node) {
 
 	case *DerefAccessExpr:
 		if ce, ok := n.Expr.(*CastExpr); ok {
-			res := &CastExpr{Type: PointerTo(ce.Type), Expr: ce.Expr}
+			res := &CastExpr{Type: &TypeReference{BaseType: PointerTo(ce.Type)}, Expr: ce.Expr}
 			res.setPos(n.Pos())
 			*node = res
 		}
@@ -261,12 +262,16 @@ func (v *Resolver) ResolveNode(node *Node) {
 		// Only resolve non-generic type, generic types will currently be
 		// resolved when they are used, as the type parameters can only be
 		// resolved when we know what they are.
-		if n.NamedType.GenericParameters == nil {
-			n.NamedType.Type = v.ResolveType(n, n.NamedType.Type)
-		}
+		n.NamedType.Type = v.ResolveType(n, n.NamedType.Type)
 
 	case *FunctionDecl:
+		v.EnterScope()
 		v.pushFunction(n.Function)
+		for _, par := range n.Function.Type.GenericParameters {
+			if v.curScope.InsertType(par, false) != nil {
+				v.err(n, "Illegal redeclaration of generic type parameter `%s`", par.TypeName())
+			}
+		}
 
 		n.Function.Type = v.ResolveType(n, n.Function.Type).(FunctionType)
 
@@ -279,7 +284,7 @@ func (v *Resolver) ResolveNode(node *Node) {
 
 	case *VariableDecl:
 		if n.Variable.Type != nil {
-			n.Variable.Type = v.ResolveType(n, n.Variable.Type)
+			n.Variable.Type = v.ResolveTypeReference(n, n.Variable.Type)
 		}
 		if v.curScope.InsertVariable(n.Variable, n.IsPublic()) != nil {
 			v.err(n, "Illegal redeclaration of variable `%s`", n.Variable.Name)
@@ -293,7 +298,7 @@ func (v *Resolver) ResolveNode(node *Node) {
 		n.Function.Type = v.ResolveType(n, n.Function.Type).(FunctionType)
 
 	case *CastExpr:
-		n.Type = v.ResolveType(n, n.Type)
+		n.Type = v.ResolveTypeReference(n, n.Type)
 
 	case *ArrayLenExpr:
 		if n.Type != nil {
@@ -301,7 +306,7 @@ func (v *Resolver) ResolveNode(node *Node) {
 		}
 
 	case *EnumLiteral:
-		n.Type = v.ResolveType(n, n.Type)
+		n.Type = v.ResolveTypeReference(n, n.Type)
 
 	case *VariableAccessExpr:
 		// TODO: Check if we can clean this up
@@ -319,11 +324,13 @@ func (v *Resolver) ResolveNode(node *Node) {
 
 					enum := &EnumLiteral{}
 					enum.Member = memberName
-					enum.Type = UnresolvedType{
-						Name:              enumName,
-						GenericParameters: n.GenericParameters,
+					enum.Type = &TypeReference{
+						BaseType: UnresolvedType{
+							Name: enumName,
+						},
+						GenericArguments: v.ResolveTypeReferences(n, n.GenericArguments),
 					}
-					enum.Type = v.ResolveType(n, enum.Type)
+					enum.Type = v.ResolveTypeReference(n, enum.Type)
 					enum.setPos(n.Pos())
 
 					*node = enum
@@ -336,10 +343,12 @@ func (v *Resolver) ResolveNode(node *Node) {
 		if ident == nil {
 			// do nothing
 		} else if ident.Type == IDENT_FUNCTION {
-			*node = &FunctionAccessExpr{
-				Function:          ident.Value.(*Function),
-				GenericParameters: n.GenericParameters,
+			fan := &FunctionAccessExpr{
+				Function:         ident.Value.(*Function),
+				GenericArguments: v.ResolveTypeReferences(n, n.GenericArguments),
 			}
+			fan.Function.Accesses = append(fan.Function.Accesses, fan)
+			*node = fan
 			(*node).setPos(n.Pos())
 			break
 		} else if ident.Type == IDENT_VARIABLE {
@@ -349,7 +358,7 @@ func (v *Resolver) ResolveNode(node *Node) {
 		}
 
 		if n.Variable.Type != nil {
-			n.Variable.Type = v.ResolveType(n, n.Variable.Type)
+			n.Variable.Type = v.ResolveTypeReference(n, n.Variable.Type)
 		}
 
 	case *SizeofExpr:
@@ -357,12 +366,12 @@ func (v *Resolver) ResolveNode(node *Node) {
 		if n.Expr != nil {
 			if typ, ok := v.exprToType(n.Expr); ok {
 				n.Expr = nil
-				n.Type = typ
+				n.Type = &TypeReference{BaseType: typ}
 			}
 		}
 
 		if n.Type != nil {
-			n.Type = v.ResolveType(n, n.Type)
+			n.Type = v.ResolveTypeReference(n, n.Type)
 		}
 
 	case *CompositeLiteral:
@@ -373,28 +382,31 @@ func (v *Resolver) ResolveNode(node *Node) {
 
 		// NOTE: Here we check if we are referencing an actual struct,
 		// or the struct part of an enum type
-		if name, ok := n.Type.(UnresolvedType); ok {
+		if name, ok := n.Type.BaseType.(UnresolvedType); ok {
 			enumName, memberName := name.Name.Split()
 			if memberName != "" {
 				ident := v.getIdent(n, enumName)
 				if ident.Type == IDENT_TYPE {
 					itype := ident.Value.(Type)
 					if _, ok := itype.ActualType().(EnumType); ok {
-						et := v.ResolveType(n, UnresolvedType{
-							Name:              enumName,
-							GenericParameters: name.GenericParameters,
+						et := v.ResolveTypeReference(n, &TypeReference{
+							BaseType: UnresolvedType{
+								Name: enumName,
+							},
+							GenericArguments: v.ResolveTypeReferences(n, n.Type.GenericArguments),
 						})
 
-						member, ok := et.ActualType().(EnumType).GetMember(memberName)
+						member, ok := et.BaseType.ActualType().(EnumType).GetMember(memberName)
 						if !ok {
 							v.err(n, "Enum `%s` has no member `%s`", enumName.String(), memberName)
 						}
 
+						// TODO sort out all the type duplication
 						enum := &EnumLiteral{}
 						enum.Member = memberName
-						enum.Type = itype
+						enum.Type = &TypeReference{BaseType: itype, GenericArguments: et.GenericArguments} // TODO should this be `et`?
 						enum.CompositeLiteral = n
-						enum.CompositeLiteral.Type = member.Type
+						enum.CompositeLiteral.Type = &TypeReference{BaseType: member.Type, GenericArguments: et.GenericArguments}
 						enum.CompositeLiteral.InEnum = true
 						enum.setPos(n.Pos())
 
@@ -406,11 +418,12 @@ func (v *Resolver) ResolveNode(node *Node) {
 		}
 
 		if n.Type != nil {
-			n.Type = v.ResolveType(n, n.Type)
+			n.Type = v.ResolveTypeReference(n, n.Type)
 		}
 
 	case *CallExpr:
 		// NOTE: Here we check whether this is a call or an enum tuple lit.
+		// way too much duplication with all this enum literal creating stuff
 		if vae, ok := n.Function.(*VariableAccessExpr); ok {
 			if len(vae.Name.ModuleNames) > 0 {
 				enumName, memberName := vae.Name.Split()
@@ -418,12 +431,14 @@ func (v *Resolver) ResolveNode(node *Node) {
 				if ident != nil && ident.Type == IDENT_TYPE {
 					itype := ident.Value.(Type)
 					if _, ok := itype.ActualType().(EnumType); ok {
-						et := v.ResolveType(n, UnresolvedType{
-							Name:              enumName,
-							GenericParameters: n.GenericParameters,
+						et := v.ResolveTypeReference(n, &TypeReference{
+							BaseType: UnresolvedType{
+								Name: enumName,
+							},
+							GenericArguments: v.ResolveTypeReferences(vae, vae.GenericArguments),
 						})
 
-						member, ok := et.ActualType().(EnumType).GetMember(memberName)
+						member, ok := et.BaseType.ActualType().(EnumType).GetMember(memberName)
 						if !ok {
 							v.err(n, "Enum `%s` has no member `%s`", enumName.String(), memberName)
 						}
@@ -431,7 +446,11 @@ func (v *Resolver) ResolveNode(node *Node) {
 						enum := &EnumLiteral{}
 						enum.Member = memberName
 						enum.Type = et
-						enum.TupleLiteral = &TupleLiteral{Members: n.Arguments, Type: member.Type}
+						enum.TupleLiteral = &TupleLiteral{
+							Members:           n.Arguments,
+							Type:              &TypeReference{BaseType: member.Type, GenericArguments: et.GenericArguments},
+							ParentEnumLiteral: enum,
+						}
 						enum.TupleLiteral.setPos(n.Pos())
 						enum.setPos(n.Pos())
 
@@ -451,7 +470,7 @@ func (v *Resolver) ResolveNode(node *Node) {
 			}
 
 			cast := &CastExpr{}
-			cast.Type = typ
+			cast.Type = &TypeReference{BaseType: typ}
 			cast.Expr = n.Arguments[0]
 			cast.setPos(n.Pos())
 			*node = cast
@@ -487,7 +506,7 @@ func (v *Resolver) exprToType(expr Expr) (Type, bool) {
 		if ident != nil && ident.Type == IDENT_TYPE {
 			res := ident.Value.(Type)
 			for i := 0; i < derefs; i++ {
-				res = PointerTo(res)
+				res = PointerTo(&TypeReference{BaseType: res})
 			}
 			return res, true
 		}
@@ -496,54 +515,93 @@ func (v *Resolver) exprToType(expr Expr) (Type, bool) {
 	return nil, false
 }
 
+func (v *Resolver) ResolveTypes(src Locatable, ts []Type) []Type {
+	res := make([]Type, 0, len(ts))
+	for _, t := range ts {
+		res = append(res, v.ResolveType(src, t))
+	}
+	return res
+}
+
+func (v *Resolver) ResolveTypeReferences(src Locatable, ts []*TypeReference) []*TypeReference {
+	res := make([]*TypeReference, 0, len(ts))
+	for _, t := range ts {
+		res = append(res, v.ResolveTypeReference(src, t))
+	}
+	return res
+}
+
+func (v *Resolver) ResolveTypeReference(src Locatable, t *TypeReference) *TypeReference {
+	return &TypeReference{
+		BaseType:         v.ResolveType(src, t.BaseType),
+		GenericArguments: v.ResolveTypeReferences(src, t.GenericArguments),
+	}
+}
+
 func (v *Resolver) ResolveType(src Locatable, t Type) Type {
 	switch t := t.(type) {
 	case PrimitiveType, *NamedType, InterfaceType:
 		return t
 
 	case ArrayType:
-		return ArrayOf(v.ResolveType(src, t.MemberType))
+		return ArrayOf(v.ResolveTypeReference(src, t.MemberType))
 
 	case ReferenceType:
-		return ReferenceTo(v.ResolveType(src, t.Referrer), t.IsMutable)
+		return ReferenceTo(v.ResolveTypeReference(src, t.Referrer), t.IsMutable)
 
 	case PointerType:
-		return PointerTo(v.ResolveType(src, t.Addressee))
+		return PointerTo(v.ResolveTypeReference(src, t.Addressee))
 
-	case SubstitutionType:
-		return t.Type
+	case *SubstitutionType:
+		return t
 
 	case StructType:
+		v.EnterScope()
+
+		for _, gpar := range t.GenericParameters {
+			v.curScope.InsertType(gpar, false)
+		}
+
 		nt := StructType{
-			Members: make([]*StructMember, len(t.Members)),
-			attrs:   t.attrs,
+			Members:           make([]*StructMember, len(t.Members)),
+			attrs:             t.attrs,
+			GenericParameters: t.GenericParameters,
 		}
 
 		v.EnterScope()
 		for idx, mem := range t.Members {
 			nt.Members[idx] = &StructMember{
 				Name: mem.Name,
-				Type: v.ResolveType(src, mem.Type),
+				Type: v.ResolveTypeReference(src, mem.Type),
 			}
 		}
+		v.ExitScope()
+
 		v.ExitScope()
 
 		return nt
 
 	case TupleType:
-		nt := TupleType{Members: make([]Type, len(t.Members))}
+		nt := TupleType{Members: make([]*TypeReference, len(t.Members))}
 
 		for idx, mem := range t.Members {
-			nt.Members[idx] = v.ResolveType(src, mem)
+			nt.Members[idx] = v.ResolveTypeReference(src, mem)
 		}
 
 		return nt
 
 	case EnumType:
+		v.EnterScope()
+
+		for _, gpar := range t.GenericParameters {
+			v.curScope.InsertType(gpar, false)
+		}
+
 		nv := EnumType{
-			Simple:  t.Simple,
-			Members: make([]EnumTypeMember, len(t.Members)),
-			attrs:   t.attrs,
+			Simple:            t.Simple,
+			Members:           make([]EnumTypeMember, len(t.Members)),
+			attrs:             t.attrs,
+			GenericParameters: t.GenericParameters,
 		}
 
 		for idx, mem := range t.Members {
@@ -552,23 +610,24 @@ func (v *Resolver) ResolveType(src Locatable, t Type) Type {
 			nv.Members[idx].Type = v.ResolveType(src, mem.Type)
 		}
 
+		v.ExitScope()
+
 		return nv
 
 	case FunctionType:
 		nv := FunctionType{
-			attrs:      t.attrs,
-			IsVariadic: t.IsVariadic,
+			attrs:             t.attrs,
+			IsVariadic:        t.IsVariadic,
+			Parameters:        v.ResolveTypeReferences(src, t.Parameters),
+			GenericParameters: t.GenericParameters,
 		}
 
-		for _, par := range t.Parameters {
-			nv.Parameters = append(nv.Parameters, v.ResolveType(src, par))
-		}
 		if t.Receiver != nil {
 			nv.Receiver = v.ResolveType(src, t.Receiver)
 			checkReceiverType(v, src, nv.Receiver, "receiver")
 		}
 		if t.Return != nil { // TODO can this ever be nil
-			nv.Return = v.ResolveType(src, t.Return)
+			nv.Return = v.ResolveTypeReference(src, t.Return)
 		}
 
 		return nv
@@ -583,11 +642,11 @@ func (v *Resolver) ResolveType(src Locatable, t Type) Type {
 			typ := ident.Value.(Type)
 
 			// TODO what is this stuff?
-			if namedType, ok := typ.(*NamedType); ok && len(t.GenericParameters) > 0 {
+			/*if namedType, ok := typ.(*NamedType); ok && len(t.GenericParameters) > 0 {
 				v.EnterScope()
 				name := namedType.Name + "<"
 				for idx, param := range namedType.GenericParameters {
-					paramType := SubstitutionType{
+					paramType := *SubstitutionType{
 						Name: param,
 						Type: v.ResolveType(src, t.GenericParameters[idx]),
 					}
@@ -607,9 +666,9 @@ func (v *Resolver) ResolveType(src Locatable, t Type) Type {
 					Methods:      namedType.Methods,
 				}
 				v.ExitScope()
-			} else {
-				typ = v.ResolveType(src, typ)
-			}
+			} else {*/
+			typ = v.ResolveType(src, typ)
+			//}
 
 			return typ
 		}

@@ -1,26 +1,34 @@
 [c] func printf(fmt: ^u8, ...) -> int;
 [c] func malloc(size: uint) -> ^C::void;
+[c] func free(ptr: ^C::void);
 
-type Option<T> enum {
+type Option enum<T> {
     None,
-    Some(T)
+    Some(T, u8)
 };
 
-type RC<T> struct {
+type RC struct<T> {
 	refs: int,
 	val: ^T,
 };
 
-func alloc<T>() -> ^int {
-    ptr := C::malloc(sizeof(int));
-    // ... // Check allocation success
-    return ^int(ptr);
+func do<T>(t: T) -> T {
+    return t;
+}
+
+func alloc<T>() -> ^T {
+    ptr := C::malloc(sizeof(T));
+    return (^T)(ptr);
+}
+
+func free<T>(ptr: ^T) {
+    C::free((^C::void)(ptr));
 }
 
 pub func main() -> int {
 	a: int = 0;
 	x := Option::None<bool>;
-	y := Option::Some<int>(a);
+	y := Option::Some<int>(a, 5);
 
 	C::printf(c"x tag: %d\n", x);
 	C::printf(c"y tag: %d\n", y);
@@ -28,6 +36,10 @@ pub func main() -> int {
 	h: u8 = 1;
 	mut i := RC<u8>{refs: 0};
 	i.val = ^u8(&h);
+
+    mut ival := i.val;
+    ival = ^u8(&h);
+
 	C::printf(c"sizeof(^i.val) = %d\n", sizeof(^i.val));
 	if sizeof(^i.val) != 1 {
 		return 1;
@@ -41,11 +53,17 @@ pub func main() -> int {
 		return 1;
 	}
 
-	q := alloc<int>();
-	w: ^int = alloc();
+    l := do<int>(5);
+    C::printf(c"l = %d\n", l);
+    m := do<int>(10);
+    C::printf(c"m = %d\n", m);
+    str := do<^u8>(c"hi!");
+    C::printf(c"str = \"%s\"\n", str);
 
-	C::printf(c"q addr: %x\n", q);
-	C::printf(c"w addr: %x\n", w);
+    mut n := alloc<int>();
+    ^n = 111;
+    C::printf(c"^n = %d\n", ^n);
+    free<int>(n);
 
 	return 0;
 }

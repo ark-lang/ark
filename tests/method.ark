@@ -42,7 +42,7 @@ pub func main() -> int {
 
     thing2.do();
 
-    fn := thing2::do;
+    fn := Thing2::do;
     fn();
 
     return Thing2::do();
