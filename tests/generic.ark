@@ -15,6 +15,11 @@ func do<T>(t: T) -> T {
     return t;
 }
 
+func alloc<T>() -> ^T {
+    ptr := C::malloc(sizeof(T));
+    return (^T)(ptr);
+}
+
 pub func main() -> int {
 	a: int = 0;
 	x := Option::None<bool>;
@@ -49,6 +54,10 @@ pub func main() -> int {
     C::printf(c"m = %d\n", m);
     str: ^u8 = do<^u8>(c"hi!");
     C::printf(c"str = \"%s\"\n", str);
+
+    mut n: ^int = alloc<int>();
+    ^n = 111;
+    C::printf(c"^n = %d\n", ^n);
 
 	return 0;
 }

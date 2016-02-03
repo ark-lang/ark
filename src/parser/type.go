@@ -994,7 +994,7 @@ func NewSubstitutionType(name string) *SubstitutionType {
 }
 
 func (v *SubstitutionType) String() string {
-	return "(" + util.Blue("SubstitutionType") + ": " + v.Name + ")"
+	return "(" + util.Blue("SubstitutionType") + ": " + v.Name + " " + fmt.Sprintf("%p", v) + ")"
 }
 
 func (v *SubstitutionType) TypeName() string {
@@ -1060,24 +1060,32 @@ func NewGenericContext(parameters []*SubstitutionType, arguments []*TypeReferenc
 	return v
 }
 
-func NewGenericContextFromTypeReference(typref *TypeReference) *GenericContext {
-	var pars []*SubstitutionType
-	switch typ := typref.BaseType.ActualType().(type) {
+func getTypeGenericParameters(typ Type) []*SubstitutionType {
+	switch typ := typ.ActualType().(type) {
 	case EnumType:
-		pars = typ.GenericParameters
+		return typ.GenericParameters
 	case FunctionType:
-		pars = typ.GenericParameters
+		return typ.GenericParameters
 	case StructType:
-		pars = typ.GenericParameters
+		return typ.GenericParameters
+	case PointerType:
+		return getTypeGenericParameters(typ.Addressee.BaseType)
+	case ReferenceType:
+		return getTypeGenericParameters(typ.Referrer.BaseType)
 
-	case PrimitiveType, *NamedType, *SubstitutionType, PointerType, ReferenceType, ArrayType, TupleType:
-		// do nothing
+	case PrimitiveType, *SubstitutionType, ArrayType, TupleType:
+		return nil
+
+	case *NamedType:
+		panic("oh no")
 
 	default:
 		panic("unim base type: " + reflect.TypeOf(typ).String())
 	}
+}
 
-	return NewGenericContext(pars, typref.GenericArguments)
+func NewGenericContextFromTypeReference(typref *TypeReference) *GenericContext {
+	return NewGenericContext(getTypeGenericParameters(typref.BaseType), typref.GenericArguments)
 }
 
 // Like Get, but only gets value where key is substitution type. Returns nil if no value for key.

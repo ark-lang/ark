@@ -212,6 +212,7 @@ func (v *Resolver) PostVisit(node *Node) {
 			}
 		}
 
+		v.ExitScope()
 		v.popFunction()
 
 	case *LambdaExpr:
@@ -264,6 +265,7 @@ func (v *Resolver) ResolveNode(node *Node) {
 		n.NamedType.Type = v.ResolveType(n, n.NamedType.Type)
 
 	case *FunctionDecl:
+		v.EnterScope()
 		v.pushFunction(n.Function)
 		for _, par := range n.Function.Type.GenericParameters {
 			v.curScope.InsertType(par, false)

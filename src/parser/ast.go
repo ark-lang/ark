@@ -923,7 +923,8 @@ func (v FunctionAccessExpr) GetType() *TypeReference {
 		BaseType:         v.Function.Type,
 		GenericArguments: v.GenericArguments,
 	}
-	return NewGenericContextFromTypeReference(ref).Replace(ref)
+	ret := NewGenericContextFromTypeReference(ref).Replace(ref)
+	return ret
 }
 
 func (_ FunctionAccessExpr) NodeName() string {
