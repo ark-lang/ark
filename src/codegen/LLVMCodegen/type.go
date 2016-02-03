@@ -22,22 +22,20 @@ func floatTypeBits(ty parser.PrimitiveType) int {
 	}
 }
 
-func (v *Codegen) addNamedTypeReference(n *parser.TypeReference) {
-	gcon := parser.NewGenericInstanceFromTypeReference(n)
-
+func (v *Codegen) addNamedTypeReference(n *parser.TypeReference, gcon *parser.GenericContext) {
 	if v.inFunction() {
 		gcon.Outer = v.currentFunction().gcon
 	}
 
-	v.addNamedType(n.BaseType.(*parser.NamedType), gcon)
+	v.addNamedType(n.BaseType.(*parser.NamedType), parser.TypeReferenceMangledName(parser.MANGLE_ARK_UNSTABLE, n, gcon), gcon)
 }
 
-func (v *Codegen) addNamedType(n *parser.NamedType, gcon *parser.GenericContext) {
+func (v *Codegen) addNamedType(n *parser.NamedType, name string, gcon *parser.GenericContext) {
 	switch actualtyp := n.Type.ActualType().(type) {
 	case parser.StructType:
-		v.addStructType(actualtyp, parser.TypeReferenceMangledName(parser.MANGLE_ARK_UNSTABLE, &parser.TypeReference{BaseType: n}, gcon), gcon)
+		v.addStructType(actualtyp, name, gcon)
 	case parser.EnumType:
-		v.addEnumType(actualtyp, parser.TypeReferenceMangledName(parser.MANGLE_ARK_UNSTABLE, &parser.TypeReference{BaseType: n}, gcon), gcon)
+		v.addEnumType(actualtyp, name, gcon)
 	}
 }
 
@@ -51,8 +49,8 @@ func (v *Codegen) addStructType(typ parser.StructType, name string, gcon *parser
 	v.namedTypeLookup[name] = structure
 
 	for _, field := range typ.Members {
-		if named, ok := field.Type.BaseType.(*parser.NamedType); ok {
-			v.addNamedType(named, gcon)
+		if _, ok := field.Type.BaseType.(*parser.NamedType); ok {
+			v.addNamedTypeReference(field.Type, gcon)
 		}
 	}
 
@@ -73,7 +71,7 @@ func (v *Codegen) addEnumType(typ parser.EnumType, name string, gcon *parser.Gen
 
 		for _, member := range typ.Members {
 			if named, ok := member.Type.(*parser.NamedType); ok {
-				v.addNamedType(named, gcon)
+				v.addNamedType(named, parser.TypeReferenceMangledName(parser.MANGLE_ARK_UNSTABLE, &parser.TypeReference{BaseType: member.Type}, gcon), gcon)
 			}
 		}
 
@@ -83,6 +81,23 @@ func (v *Codegen) addEnumType(typ parser.EnumType, name string, gcon *parser.Gen
 
 func (v *Codegen) typeRefToLLVMType(typ *parser.TypeReference) llvm.Type {
 	return v.typeRefToLLVMTypeWithOuter(typ, nil)
+}
+
+func (v *Codegen) typeRefToLLVMTypeWithGenericContext(typ *parser.TypeReference, gcon *parser.GenericContext) llvm.Type {
+	switch nt := typ.BaseType.(type) {
+	case *parser.NamedType:
+		switch nt.ActualType().(type) {
+		case parser.StructType, parser.EnumType:
+			v.addNamedTypeReference(typ, gcon)
+			lt := v.namedTypeLookup[parser.TypeReferenceMangledName(parser.MANGLE_ARK_UNSTABLE, typ, gcon)]
+			return lt
+
+		default:
+			return v.typeToLLVMType(nt.Type, gcon)
+		}
+	}
+
+	return v.typeToLLVMType(typ.BaseType, gcon)
 }
 
 // if outer is not nil, this function does not add the current function gcon as outer, as it assumes it is already there
@@ -95,20 +110,7 @@ func (v *Codegen) typeRefToLLVMTypeWithOuter(typ *parser.TypeReference, outer *p
 		gcon.Outer = v.currentFunction().gcon
 	}
 
-	switch nt := typ.BaseType.(type) {
-	case *parser.NamedType:
-		switch nt.Type.(type) {
-		case parser.StructType, parser.EnumType:
-			v.addNamedType(nt, gcon)
-			lt := v.namedTypeLookup[parser.TypeReferenceMangledName(parser.MANGLE_ARK_UNSTABLE, typ, gcon)]
-			return lt
-
-		default:
-			return v.typeToLLVMType(nt.Type, gcon)
-		}
-	}
-
-	return v.typeToLLVMType(typ.BaseType, gcon)
+	return v.typeRefToLLVMTypeWithGenericContext(typ, gcon)
 }
 
 func (v *Codegen) typeToLLVMType(typ parser.Type, gcon *parser.GenericContext) llvm.Type {
@@ -136,8 +138,9 @@ func (v *Codegen) typeToLLVMType(typ parser.Type, gcon *parser.GenericContext) l
 			// make sure the type doesn't need generics arguments as well.
 			// This here ignores them.
 
-			v.addNamedType(typ, gcon)
-			lt := v.namedTypeLookup[parser.TypeReferenceMangledName(parser.MANGLE_ARK_UNSTABLE, &parser.TypeReference{BaseType: typ}, gcon)]
+			name := parser.TypeReferenceMangledName(parser.MANGLE_ARK_UNSTABLE, &parser.TypeReference{BaseType: typ}, gcon)
+			v.addNamedType(typ, name, gcon)
+			lt := v.namedTypeLookup[name]
 
 			return lt
 

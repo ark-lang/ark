@@ -1,10 +1,10 @@
 [c] func printf(fmt: ^u8, ...) -> int;
 [c] func malloc(size: uint) -> ^C::void;
 
-/*type Option enum<T> {
+type Option enum<T> {
     None,
     Some(T, u8)
-};*/
+};
 
 type RC struct<T> {
 	refs: int,
@@ -18,12 +18,12 @@ type RC struct<T> {
 }*/
 
 pub func main() -> int {
-	/*a: int = 0;
+	a: int = 0;
 	x: Option<bool> = Option::None<bool>;
 	y: Option<int> = Option::Some<int>(a, 5);
 
 	C::printf(c"x tag: %d\n", x);
-	C::printf(c"y tag: %d\n", y);*/
+	C::printf(c"y tag: %d\n", y);
 
 	h: u8 = 1;
 	mut i: RC<u8> = RC<u8>{refs: 0};

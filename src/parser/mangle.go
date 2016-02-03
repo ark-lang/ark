@@ -14,6 +14,14 @@ const (
 
 // TODO GenericInstance -> GenericContext
 
+func TypeReferencesMangledName(mangleType MangleType, typs []*TypeReference, gcon *GenericContext) string {
+	res := ""
+	for _, typ := range typs {
+		res += TypeReferenceMangledName(mangleType, typ, gcon)
+	}
+	return res
+}
+
 // easier than making a method for all types
 func TypeReferenceMangledName(mangleType MangleType, typ *TypeReference, gcon *GenericContext) string {
 	switch mangleType {
@@ -61,10 +69,7 @@ func TypeReferenceMangledName(mangleType MangleType, typ *TypeReference, gcon *G
 			}
 
 		case FunctionType:
-			str := ""
-			for _, par := range typ.Parameters {
-				str += TypeReferenceMangledName(mangleType, par, gcon)
-			}
+			str := TypeReferencesMangledName(mangleType, typ.Parameters, gcon)
 
 			str += TypeReferenceMangledName(mangleType, typ.Return, gcon)
 
@@ -76,7 +81,7 @@ func TypeReferenceMangledName(mangleType MangleType, typ *TypeReference, gcon *G
 
 		case *NamedType, PrimitiveType:
 			name := typ.TypeName()
-			return res + fmt.Sprintf("%d%s", len(name), name)
+			res += fmt.Sprintf("%d%s", len(name), name)
 
 		case InterfaceType:
 			str := ""
@@ -87,12 +92,14 @@ func TypeReferenceMangledName(mangleType MangleType, typ *TypeReference, gcon *G
 			res += fmt.Sprintf("%dI%s", len(str), str)
 
 		case *SubstitutionType:
-			return TypeReferenceMangledName(mangleType, gcon.Get(&TypeReference{BaseType: typ}), gcon)
+			res = TypeReferenceMangledName(mangleType, gcon.Get(&TypeReference{BaseType: typ}), gcon)
 
 		default:
 			panic("unimplemented type mangling scheme")
 
 		}
+
+		res += "GA" + TypeReferencesMangledName(mangleType, typ.GenericArguments, gcon)
 
 		return res
 	default:

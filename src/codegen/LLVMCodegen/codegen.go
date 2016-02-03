@@ -987,6 +987,8 @@ func (v *Codegen) genStructLiteral(n *parser.CompositeLiteral) llvm.Value {
 }
 
 func (v *Codegen) genTupleLiteral(n *parser.TupleLiteral) llvm.Value {
+	var tupleLLVMType llvm.Type
+
 	var gcon *parser.GenericContext
 	if n.ParentEnumLiteral != nil {
 		gcon = parser.NewGenericInstance(n.ParentEnumLiteral.Type.BaseType.ActualType().(parser.EnumType).GenericParameters,
@@ -1001,7 +1003,11 @@ func (v *Codegen) genTupleLiteral(n *parser.TupleLiteral) llvm.Value {
 		}
 	}
 
-	tupleLLVMType := v.typeToLLVMType(n.Type.BaseType, gcon)
+	if n.ParentEnumLiteral != nil {
+		tupleLLVMType = v.typeRefToLLVMTypeWithGenericContext(&parser.TypeReference{BaseType: n.Type.BaseType, GenericArguments: n.ParentEnumLiteral.Type.GenericArguments}, gcon)
+	} else {
+		tupleLLVMType = v.typeToLLVMType(n.Type.BaseType, gcon)
+	}
 
 	tupleValue := llvm.Undef(tupleLLVMType)
 	for idx, mem := range n.Members {
@@ -1023,7 +1029,15 @@ func (v *Codegen) genEnumLiteral(n *parser.EnumLiteral) llvm.Value {
 	gcon := parser.NewGenericInstance(enumBaseType.GenericParameters,
 		n.Type.GenericArguments)
 
-	enumLLVMType := v.typeToLLVMType(n.Type.BaseType, gcon)
+	if v.inFunction() {
+		if gcon == nil {
+			gcon = v.currentFunction().gcon
+		} else {
+			gcon.Outer = v.currentFunction().gcon
+		}
+	}
+
+	enumLLVMType := v.typeRefToLLVMTypeWithGenericContext(n.Type, gcon)
 
 	memberIdx := enumBaseType.MemberIndex(n.Member)
 	member := enumBaseType.Members[memberIdx]
@@ -1039,6 +1053,7 @@ func (v *Codegen) genEnumLiteral(n *parser.EnumLiteral) llvm.Value {
 	enumValue = v.builder().CreateInsertValue(enumValue, tagValue, 0, "")
 
 	memberLLVMType := v.typeToLLVMType(member.Type, gcon)
+	// memberLLVMType := v.typeRefToLLVMTypeWithGenericContext(&parser.TypeReference{BaseType: member.Type, GenericArguments: n.Type.GenericArguments}, gcon)
 
 	var memberValue llvm.Value
 	if n.TupleLiteral != nil {
