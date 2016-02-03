@@ -217,6 +217,10 @@ func (v *Codegen) declareDecls(nodes []parser.Node) {
 		case *parser.FunctionDecl:
 			if len(n.Function.Type.GenericParameters) == 0 {
 				v.declareFunctionDecl(n, nil)
+			} else {
+				for _, access := range n.Function.Accesses {
+					v.declareFunctionDecl(n, access.GenericArguments)
+				}
 			}
 		}
 	}
@@ -239,12 +243,12 @@ var inlineAttrType = map[string]llvm.Attribute{
 }
 
 func (v *Codegen) declareFunctionDecl(n *parser.FunctionDecl, genericsArguments []*parser.TypeReference) {
-	gcon := parser.NewGenericInstance(n.Function.Type.GenericParameters, genericsArguments)
+	gcon := parser.NewGenericContext(n.Function.Type.GenericParameters, genericsArguments)
 
 	mangledName := n.Function.MangledName(parser.MANGLE_ARK_UNSTABLE, gcon)
 	function := v.curFile.LlvmModule.NamedFunction(mangledName)
 	if !function.IsNil() {
-		v.err("function `%s` already exists in module", n.Function.Name)
+		// do nothing, only time this can happen is due to generics
 	} else {
 		/*numOfParams := len(n.Function.Parameters)
 		if n.Function.Type.Receiver != nil {
@@ -256,7 +260,7 @@ func (v *Codegen) declareFunctionDecl(n *parser.FunctionDecl, genericsArguments 
 		cBinding := attrs.Contains("c")
 
 		// create the function type
-		funcType := v.functionTypeToLLVMType(n.Function.Type, false, nil)
+		funcType := v.functionTypeToLLVMType(n.Function.Type, false, gcon)
 
 		functionName := mangledName
 		if cBinding {
@@ -548,6 +552,11 @@ func (v *Codegen) genDecl(n parser.Decl) {
 	case *parser.FunctionDecl:
 		if len(n.Function.Type.GenericParameters) == 0 {
 			v.genFunctionDecl(n, nil)
+		} else {
+			for _, access := range n.Function.Accesses {
+				gcon := parser.NewGenericContext(n.Function.Type.GenericParameters, access.GenericArguments)
+				v.genFunctionDecl(n, gcon)
+			}
 		}
 	case *parser.VariableDecl:
 		v.genVariableDecl(n, true)
@@ -568,7 +577,9 @@ func (v *Codegen) genFunctionDecl(n *parser.FunctionDecl, gcon *parser.GenericCo
 		// hmmmm seems we just ignore this here
 	} else {
 		if !n.Prototype {
-			v.genFunctionBody(n.Function, function, gcon)
+			if function.BasicBlocksCount() == 0 {
+				v.genFunctionBody(n.Function, function, gcon)
+			}
 		}
 	}
 
@@ -726,7 +737,7 @@ func (v *Codegen) genAddressOfExpr(n *parser.AddressOfExpr) llvm.Value {
 
 func (v *Codegen) genAccessExpr(n parser.Expr) llvm.Value {
 	if fae, ok := n.(*parser.FunctionAccessExpr); ok {
-		gcon := parser.NewGenericInstance(fae.Function.Type.GenericParameters, fae.GenericArguments)
+		gcon := parser.NewGenericContext(fae.Function.Type.GenericParameters, fae.GenericArguments)
 
 		fnName := fae.Function.MangledName(parser.MANGLE_ARK_UNSTABLE, gcon)
 
@@ -991,7 +1002,7 @@ func (v *Codegen) genTupleLiteral(n *parser.TupleLiteral) llvm.Value {
 
 	var gcon *parser.GenericContext
 	if n.ParentEnumLiteral != nil {
-		gcon = parser.NewGenericInstance(n.ParentEnumLiteral.Type.BaseType.ActualType().(parser.EnumType).GenericParameters,
+		gcon = parser.NewGenericContext(n.ParentEnumLiteral.Type.BaseType.ActualType().(parser.EnumType).GenericParameters,
 			n.ParentEnumLiteral.Type.GenericArguments)
 	}
 
@@ -1026,7 +1037,7 @@ func (v *Codegen) genTupleLiteral(n *parser.TupleLiteral) llvm.Value {
 func (v *Codegen) genEnumLiteral(n *parser.EnumLiteral) llvm.Value {
 	enumBaseType := n.Type.BaseType.ActualType().(parser.EnumType)
 
-	gcon := parser.NewGenericInstance(enumBaseType.GenericParameters,
+	gcon := parser.NewGenericContext(enumBaseType.GenericParameters,
 		n.Type.GenericArguments)
 
 	if v.inFunction() {

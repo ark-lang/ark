@@ -175,6 +175,7 @@ type Function struct {
 	Type       FunctionType
 	Parameters []*VariableDecl
 	Body       *Block
+	Accesses   []*FunctionAccessExpr
 
 	ParentModule *Module
 
@@ -918,10 +919,11 @@ func (v FunctionAccessExpr) String() string {
 }
 
 func (v FunctionAccessExpr) GetType() *TypeReference {
-	return &TypeReference{
+	ref := &TypeReference{
 		BaseType:         v.Function.Type,
 		GenericArguments: v.GenericArguments,
 	}
+	return NewGenericContextFromTypeReference(ref).Replace(ref)
 }
 
 func (_ FunctionAccessExpr) NodeName() string {
@@ -946,7 +948,7 @@ func (v VariableAccessExpr) String() string {
 
 func (v VariableAccessExpr) GetType() *TypeReference {
 	if v.Variable != nil {
-		return NewGenericInstanceFromTypeReference(v.Variable.Type).Replace(v.Variable.Type)
+		return NewGenericContextFromTypeReference(v.Variable.Type).Replace(v.Variable.Type)
 	}
 	return nil
 }
@@ -1000,7 +1002,7 @@ func (v StructAccessExpr) GetType() *TypeReference {
 	} else if st, ok := stype.BaseType.ActualType().(StructType); ok {
 		mem := st.GetMember(v.Member)
 		if mem != nil {
-			return NewGenericInstanceFromTypeReference(stype).Replace(mem.Type)
+			return NewGenericContextFromTypeReference(stype).Replace(mem.Type)
 		}
 	}
 

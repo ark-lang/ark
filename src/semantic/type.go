@@ -395,9 +395,9 @@ func (v *TypeCheck) CheckTupleLiteral(s *SemanticAnalyzer, lit *parser.TupleLite
 
 	var gcon *parser.GenericContext
 	if lit.ParentEnumLiteral != nil {
-		gcon = parser.NewGenericInstance(lit.ParentEnumLiteral.GetType().BaseType.ActualType().(parser.EnumType).GenericParameters, lit.ParentEnumLiteral.Type.GenericArguments)
+		gcon = parser.NewGenericContext(lit.ParentEnumLiteral.GetType().BaseType.ActualType().(parser.EnumType).GenericParameters, lit.ParentEnumLiteral.Type.GenericArguments)
 	} else {
-		gcon = parser.NewGenericInstance(nil, nil)
+		gcon = parser.NewGenericContext(nil, nil)
 	}
 
 	for idx, mem := range lit.Members {

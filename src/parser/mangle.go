@@ -92,14 +92,21 @@ func TypeReferenceMangledName(mangleType MangleType, typ *TypeReference, gcon *G
 			res += fmt.Sprintf("%dI%s", len(str), str)
 
 		case *SubstitutionType:
-			res = TypeReferenceMangledName(mangleType, gcon.Get(&TypeReference{BaseType: typ}), gcon)
+			if sub := gcon.GetSubstitutionType(typ); sub != nil {
+				res = TypeReferenceMangledName(mangleType, gcon.Get(&TypeReference{BaseType: typ}), gcon)
+			} else {
+				res = typ.Name
+			}
 
 		default:
 			panic("unimplemented type mangling scheme")
 
 		}
 
-		res += "GA" + TypeReferencesMangledName(mangleType, typ.GenericArguments, gcon)
+		gas := TypeReferencesMangledName(mangleType, typ.GenericArguments, gcon)
+		if len(gas) > 0 {
+			res += "GA" + gas
+		}
 
 		return res
 	default:

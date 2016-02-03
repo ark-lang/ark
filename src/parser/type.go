@@ -1044,7 +1044,7 @@ type GenericContext struct {
 	Outer  *GenericContext
 }
 
-func NewGenericInstance(parameters []*SubstitutionType, arguments []*TypeReference) *GenericContext {
+func NewGenericContext(parameters []*SubstitutionType, arguments []*TypeReference) *GenericContext {
 	v := &GenericContext{
 		submap: make(map[*SubstitutionType]*TypeReference),
 	}
@@ -1060,7 +1060,7 @@ func NewGenericInstance(parameters []*SubstitutionType, arguments []*TypeReferen
 	return v
 }
 
-func NewGenericInstanceFromTypeReference(typref *TypeReference) *GenericContext {
+func NewGenericContextFromTypeReference(typref *TypeReference) *GenericContext {
 	var pars []*SubstitutionType
 	switch typ := typref.BaseType.ActualType().(type) {
 	case EnumType:
@@ -1077,7 +1077,7 @@ func NewGenericInstanceFromTypeReference(typref *TypeReference) *GenericContext 
 		panic("unim base type: " + reflect.TypeOf(typ).String())
 	}
 
-	return NewGenericInstance(pars, typref.GenericArguments)
+	return NewGenericContext(pars, typref.GenericArguments)
 }
 
 // Like Get, but only gets value where key is substitution type. Returns nil if no value for key.
@@ -1130,8 +1130,8 @@ func (v *GenericContext) replaceTypeReferences(ts []*TypeReference) []*TypeRefer
 }
 
 // Function internal to GenericContext.
-func (v *GenericContext) replaceType(t Type) Type {
-	switch t := t.(type) {
+func (v *GenericContext) replaceType(ty Type) Type {
+	switch t := ty.(type) {
 	case EnumType:
 		for i, mem := range t.Members {
 			t.Members[i].Type = v.replaceType(mem.Type) // TODO replace if Members becomes ptr
@@ -1140,7 +1140,9 @@ func (v *GenericContext) replaceType(t Type) Type {
 
 	case FunctionType:
 		t.Parameters = v.replaceTypeReferences(t.Parameters)
-		t.Receiver = v.replaceType(t.Receiver)
+		if t.Receiver != nil {
+			t.Receiver = v.replaceType(t.Receiver)
+		}
 		t.Return = v.Replace(t.Return)
 		return t
 
@@ -1183,6 +1185,9 @@ func (v *GenericContext) replaceType(t Type) Type {
 		return t
 
 	default:
+		if t == nil {
+			panic("t is nil")
+		}
 		panic("unim: " + reflect.TypeOf(t).String())
 	}
 }

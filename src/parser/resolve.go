@@ -265,6 +265,9 @@ func (v *Resolver) ResolveNode(node *Node) {
 
 	case *FunctionDecl:
 		v.pushFunction(n.Function)
+		for _, par := range n.Function.Type.GenericParameters {
+			v.curScope.InsertType(par, false)
+		}
 
 		n.Function.Type = v.ResolveType(n, n.Function.Type).(FunctionType)
 
@@ -336,10 +339,12 @@ func (v *Resolver) ResolveNode(node *Node) {
 		if ident == nil {
 			// do nothing
 		} else if ident.Type == IDENT_FUNCTION {
-			*node = &FunctionAccessExpr{
+			fan := &FunctionAccessExpr{
 				Function:         ident.Value.(*Function),
 				GenericArguments: v.ResolveTypeReferences(n, n.GenericArguments),
 			}
+			fan.Function.Accesses = append(fan.Function.Accesses, fan)
+			*node = fan
 			(*node).setPos(n.Pos())
 			break
 		} else if ident.Type == IDENT_VARIABLE {
@@ -607,13 +612,12 @@ func (v *Resolver) ResolveType(src Locatable, t Type) Type {
 
 	case FunctionType:
 		nv := FunctionType{
-			attrs:      t.attrs,
-			IsVariadic: t.IsVariadic,
+			attrs:             t.attrs,
+			IsVariadic:        t.IsVariadic,
+			Parameters:        v.ResolveTypeReferences(src, t.Parameters),
+			GenericParameters: t.GenericParameters,
 		}
 
-		for _, par := range t.Parameters {
-			nv.Parameters = append(nv.Parameters, v.ResolveTypeReference(src, par))
-		}
 		if t.Receiver != nil {
 			nv.Receiver = v.ResolveType(src, t.Receiver)
 			checkReceiverType(v, src, nv.Receiver, "receiver")

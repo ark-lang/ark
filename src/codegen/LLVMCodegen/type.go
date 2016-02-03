@@ -102,7 +102,7 @@ func (v *Codegen) typeRefToLLVMTypeWithGenericContext(typ *parser.TypeReference,
 
 // if outer is not nil, this function does not add the current function gcon as outer, as it assumes it is already there
 func (v *Codegen) typeRefToLLVMTypeWithOuter(typ *parser.TypeReference, outer *parser.GenericContext) llvm.Type {
-	gcon := parser.NewGenericInstanceFromTypeReference(typ)
+	gcon := parser.NewGenericContextFromTypeReference(typ)
 
 	if outer != nil {
 		gcon.Outer = outer

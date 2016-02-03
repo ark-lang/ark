@@ -17,16 +17,20 @@ type RC struct<T> {
     return ^int(ptr);
 }*/
 
+func do<T>(t: T) -> T {
+    return t;
+}
+
 pub func main() -> int {
-	a: int = 0;
-	x: Option<bool> = Option::None<bool>;
-	y: Option<int> = Option::Some<int>(a, 5);
+	/*a: int = 0;
+	x := Option::None<bool>;
+	y := Option::Some<int>(a, 5);
 
 	C::printf(c"x tag: %d\n", x);
 	C::printf(c"y tag: %d\n", y);
 
 	h: u8 = 1;
-	mut i: RC<u8> = RC<u8>{refs: 0};
+	mut i := RC<u8>{refs: 0};
 	i.val = ^u8(&h);
 
     mut ival := i.val;
@@ -38,18 +42,25 @@ pub func main() -> int {
 	}
 
 	j: u16 = 1;
-	mut k: RC<u16> = RC<u16>{refs: 0};
+	mut k := RC<u16>{refs: 0};
 	k.val = ^u16(&j);
 	C::printf(c"sizeof(^k.val) = %d\n", sizeof(^k.val));
 	if sizeof(^k.val) != 2 {
 		return 1;
-	}
+	}*/
 
 	/*q := alloc<int>();
 	w: ^int = alloc();
 
 	C::printf(c"q addr: %x\n", q);
 	C::printf(c"w addr: %x\n", w);*/
+
+    i: int = do<int>(5);
+    C::printf(c"i = %d\n", i);
+    j: int = do<int>(10);
+    C::printf(c"j = %d\n", j);
+    str: ^u8 = do<^u8>(c"hi!");
+    C::printf(c"str = \"%s\"\n", str);
 
 	return 0;
 }

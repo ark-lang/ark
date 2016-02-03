@@ -222,7 +222,7 @@ func SubsType(typ *TypeReference, id int, what *TypeReference) *TypeReference {
 
 				mtype := mem.Type
 				if len(typ.GenericArguments) > 0 {
-					gn := NewGenericInstanceFromTypeReference(typ)
+					gn := NewGenericContextFromTypeReference(typ)
 					mtype = gn.Replace(mtype)
 				}
 
@@ -1007,7 +1007,9 @@ func (v *Inferrer) Finalize() {
 			// this access represents.
 			if sae, ok := n.Function.(*StructAccessExpr); ok {
 				fn := TypeWithoutPointers(sae.Struct.GetType().BaseType).(*NamedType).GetMethod(sae.Member)
-				n.Function = &FunctionAccessExpr{Function: fn, GenericArguments: sae.GenericArguments}
+				fae := &FunctionAccessExpr{Function: fn, GenericArguments: sae.GenericArguments}
+				n.Function = fae
+				fn.Accesses = append(fn.Accesses, fae)
 				if n.Function == nil {
 					v.errPos(sae.Pos(), "Type `%s` has no method `%s`", TypeWithoutPointers(sae.Struct.GetType().BaseType).TypeName(), sae.Member)
 				}
