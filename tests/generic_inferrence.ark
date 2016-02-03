@@ -1,0 +1,9 @@
+func deref<T>(v: ^T) -> T {
+	return ^v;
+}
+
+pub func main() -> int {
+	i: int = 0;
+	ip := ^int(&i);
+	return deref(ip);
+}

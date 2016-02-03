@@ -749,11 +749,15 @@ func (v *Inferrer) HandleTyped(pos lexer.Position, typed Typed) int {
 	// A function access will always be the type of the function it accesses
 	case *FunctionAccessExpr:
 		fnType := &TypeReference{BaseType: typed.Function.Type}
-		if len(typed.GenericArguments) > 0 {
-			gcon := NewGenericContext(getTypeGenericParameters(fnType.BaseType), typed.GenericArguments)
-			fnType = gcon.Replace(fnType)
+		if len(typed.Function.Type.GenericParameters) > 0 {
+			if len(typed.GenericArguments) > 0 {
+				gcon := NewGenericContext(getTypeGenericParameters(fnType.BaseType), typed.GenericArguments)
+				fnType = gcon.Replace(fnType)
+				v.AddIsConstraint(ann.Id, fnType)
+			}
+		} else {
+			v.AddIsConstraint(ann.Id, fnType)
 		}
-		v.AddIsConstraint(ann.Id, fnType)
 
 	// A lambda expr will always be the type of the function it is
 	case *LambdaExpr:
@@ -1092,93 +1096,6 @@ func (v *Inferrer) Finalize() {
 	}
 }
 
-//
-// The following two functions is preliminary work not yet used for generics in
-// the inference system
-//
-/*func ExtractTypeVariable(pattern Type, value Type) map[string]Type {
-	//
-		Pointer($T), Pointer(int) -> {$T: int}
-		Arbitrary depth type => Stack containing breadth first traversal
-	//
-	res := make(map[string]Type)
-
-	var (
-		ps []Type
-		vs []Type
-	)
-	ps = append(ps, pattern)
-	vs = append(vs, value)
-
-	for i := 0; i < len(ps); i++ {
-		ppart := ps[i]
-		vpart := vs[i]
-		log.Debugln("inferrer", "\nP = `%s`, V = `%s`", ppart.TypeName(), vpart.TypeName())
-
-		ps = AddChildren(ppart, ps)
-		vs = AddChildren(vpart, vs)
-
-		//if vari, ok := ppart.(GenericParameterType); ok {
-		//	log.Debugln("inferrer", "P was variable (Name: %s)", vari.Name)
-		//	res[vari.Name] = vpart
-		//	continue
-		//}
-
-		switch ppart.(type) {
-		case PrimitiveType, *NamedType:
-			if !ppart.Equals(vpart) {
-				log.Errorln("inferrer", "%s != %s", ppart.TypeName(), vpart.TypeName())
-				panic("Part of type did not match pattern")
-			}
-
-		default:
-			if reflect.TypeOf(ppart) != reflect.TypeOf(vpart) {
-				log.Errorln("inferrer", "%T != %T", ppart, vpart)
-				panic("Part of type did not match pattern")
-			}
-		}
-	}
-
-	return res
-}
-
-func AddChildren(typ Type, dest []Type) []Type {
-	switch typ := typ.(type) {
-	case StructType:
-		for _, mem := range typ.Members {
-			dest = append(dest, mem.Type)
-		}
-
-	case *NamedType:
-		dest = append(dest, typ.Type)
-
-	case ArrayType:
-		dest = append(dest, typ.MemberType)
-
-	case PointerType:
-		dest = append(dest, typ.Addressee)
-
-	case TupleType:
-		dest = append(dest, typ.Members...)
-
-	case EnumType:
-		for _, mem := range typ.Members {
-			dest = append(dest, mem.Type)
-		}
-
-	case FunctionType:
-		if typ.Receiver != nil {
-			dest = append(dest, typ.Receiver)
-		}
-		dest = append(dest, typ.Parameters...)
-		if typ.Return != nil { // TODO: can it ever be nil?
-			dest = append(dest, typ.Return)
-		}
-
-	}
-	return dest
-}*/
-
 // SetType Methods
 
 // UnaryExpr
@@ -1258,6 +1175,21 @@ func (v *Variable) SetType(t *TypeReference) {
 	}
 }
 
+func (v *FunctionAccessExpr) SetType(t *TypeReference) {
+	if len(v.GenericArguments) != len(v.Function.Type.GenericParameters) {
+		types, err := ExtractTypeVariable(v.Function.Type, t.BaseType)
+		if err != nil {
+			panic(err)
+		}
+
+		genArgs := make([]*TypeReference, len(v.Function.Type.GenericParameters))
+		for idx, param := range v.Function.Type.GenericParameters {
+			genArgs[idx] = &TypeReference{BaseType: types[param.Name]}
+		}
+		v.GenericArguments = genArgs
+	}
+}
+
 // Noops
 func (_ AddressOfExpr) SetType(t *TypeReference)      {}
 func (_ ArrayAccessExpr) SetType(t *TypeReference)    {}
@@ -1268,10 +1200,103 @@ func (_ CallExpr) SetType(t *TypeReference)           {}
 func (_ DefaultMatchBranch) SetType(t *TypeReference) {}
 func (_ DerefAccessExpr) SetType(t *TypeReference)    {}
 func (_ EnumLiteral) SetType(t *TypeReference)        {}
-func (_ FunctionAccessExpr) SetType(t *TypeReference) {}
 func (_ LambdaExpr) SetType(t *TypeReference)         {}
 func (_ RuneLiteral) SetType(t *TypeReference)        {}
 func (_ VariableAccessExpr) SetType(t *TypeReference) {}
 func (_ SizeofExpr) SetType(t *TypeReference)         {}
 func (_ StructAccessExpr) SetType(t *TypeReference)   {}
 func (_ TupleAccessExpr) SetType(t *TypeReference)    {}
+
+// ExtractTypeVariable takes a pattern type containing one or more substitution
+// types together with a value type, and generates a map from the substitution
+// types to the the corresponding parts of the value type.
+// An example would be:
+// pattern: Pointer($T)
+//   value: Pointer(int)
+//  return: {T: int}
+func ExtractTypeVariable(pattern Type, value Type) (map[string]Type, error) {
+	res := make(map[string]Type)
+
+	// Start with the pattern and the value
+	ps := []Type{pattern}
+	vs := []Type{value}
+
+	for i := 0; i < len(ps); i++ {
+		// Fetch the next types to compare
+		ppart := ps[i]
+		vpart := vs[i]
+
+		if subst, ok := ppart.(*SubstitutionType); ok {
+			// If we reached a substitution type, add an entry to the map
+			res[subst.Name] = vpart
+		} else {
+			// If the pattern part is not a substitution type, delve deeper
+			ps = AddChildren(ppart, ps)
+			vs = AddChildren(vpart, vs)
+
+			// Also verify that things match up type wise
+			switch ppart.(type) {
+			case PrimitiveType, *NamedType:
+				if !ppart.Equals(vpart) {
+					return nil, fmt.Errorf("inferrer: type mismatch %s != %s", ppart.TypeName(), vpart.TypeName())
+				}
+
+			default:
+				if reflect.TypeOf(ppart) != reflect.TypeOf(vpart) {
+					return nil, fmt.Errorf("inferrer: type mismatch %s != %s", ppart.TypeName(), vpart.TypeName())
+				}
+			}
+		}
+	}
+
+	return res, nil
+}
+
+// AddChildren adds the children of a type to the passed list
+func AddChildren(typ Type, dest []Type) []Type {
+	switch typ := typ.(type) {
+	case StructType:
+		for _, mem := range typ.Members {
+			dest = append(dest, mem.Type.BaseType)
+		}
+
+	case *NamedType:
+		dest = append(dest, typ.Type)
+
+	case ArrayType:
+		dest = append(dest, typ.MemberType.BaseType)
+
+	case PointerType:
+		dest = append(dest, typ.Addressee.BaseType)
+
+	case TupleType:
+		for _, tref := range typ.Members {
+			dest = append(dest, tref.BaseType)
+		}
+
+	case EnumType:
+		for _, mem := range typ.Members {
+			dest = append(dest, mem.Type)
+		}
+
+	case FunctionType:
+		if typ.Receiver != nil {
+			dest = append(dest, typ.Receiver)
+		}
+		for _, tref := range typ.Parameters {
+			dest = append(dest, tref.BaseType)
+		}
+
+		if typ.Return != nil { // TODO: can it ever be nil?
+			dest = append(dest, typ.Return.BaseType)
+		}
+
+	case PrimitiveType, *SubstitutionType:
+		// noops
+
+	default:
+		panic("Unhandled type: " + reflect.TypeOf(typ).String())
+
+	}
+	return dest
+}
