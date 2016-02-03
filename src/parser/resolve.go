@@ -268,7 +268,9 @@ func (v *Resolver) ResolveNode(node *Node) {
 		v.EnterScope()
 		v.pushFunction(n.Function)
 		for _, par := range n.Function.Type.GenericParameters {
-			v.curScope.InsertType(par, false)
+			if v.curScope.InsertType(par, false) != nil {
+				v.err(n, "Illegal redeclaration of generic type parameter `%s`", par.TypeName())
+			}
 		}
 
 		n.Function.Type = v.ResolveType(n, n.Function.Type).(FunctionType)
