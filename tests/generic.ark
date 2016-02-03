@@ -1,5 +1,6 @@
 [c] func printf(fmt: ^u8, ...) -> int;
 [c] func malloc(size: uint) -> ^C::void;
+[c] func free(ptr: ^C::void);
 
 type Option enum<T> {
     None,
@@ -18,6 +19,10 @@ func do<T>(t: T) -> T {
 func alloc<T>() -> ^T {
     ptr := C::malloc(sizeof(T));
     return (^T)(ptr);
+}
+
+func free<T>(ptr: ^T) {
+    C::free((^C::void)(ptr));
 }
 
 pub func main() -> int {
@@ -58,6 +63,7 @@ pub func main() -> int {
     mut n := alloc<int>();
     ^n = 111;
     C::printf(c"^n = %d\n", ^n);
+    free<int>(n);
 
 	return 0;
 }
