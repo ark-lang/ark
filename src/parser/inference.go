@@ -748,7 +748,12 @@ func (v *Inferrer) HandleTyped(pos lexer.Position, typed Typed) int {
 
 	// A function access will always be the type of the function it accesses
 	case *FunctionAccessExpr:
-		v.AddIsConstraint(ann.Id, &TypeReference{BaseType: typed.Function.Type})
+		fnType := &TypeReference{BaseType: typed.Function.Type}
+		if len(typed.GenericArguments) > 0 {
+			gcon := NewGenericContext(getTypeGenericParameters(fnType.BaseType), typed.GenericArguments)
+			fnType = gcon.Replace(fnType)
+		}
+		v.AddIsConstraint(ann.Id, fnType)
 
 	// A lambda expr will always be the type of the function it is
 	case *LambdaExpr:

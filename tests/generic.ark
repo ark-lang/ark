@@ -48,14 +48,14 @@ pub func main() -> int {
 		return 1;
 	}
 
-    l: int = do<int>(5);
+    l := do<int>(5);
     C::printf(c"l = %d\n", l);
-    m: int = do<int>(10);
+    m := do<int>(10);
     C::printf(c"m = %d\n", m);
-    str: ^u8 = do<^u8>(c"hi!");
+    str := do<^u8>(c"hi!");
     C::printf(c"str = \"%s\"\n", str);
 
-    mut n: ^int = alloc<int>();
+    mut n := alloc<int>();
     ^n = 111;
     C::printf(c"^n = %d\n", ^n);
 
