@@ -1883,6 +1883,8 @@ func (v *parser) parseCastExpr() *CastExprNode {
 func (v *parser) parseUnaryExpr() *UnaryExprNode {
 	defer un(trace(v, "unaryexpr"))
 
+	startPos := v.currentToken
+
 	if !v.nextIs(lexer.TOKEN_OPERATOR) {
 		return nil
 	}
@@ -1895,7 +1897,10 @@ func (v *parser) parseUnaryExpr() *UnaryExprNode {
 
 	value := v.parsePostfixExpr()
 	if value == nil {
-		v.err("Expected valid expression after unary operator")
+		// TODO: Restore this error once we go through with #655
+		//v.err("Expected valid expression after unary operator")
+		v.currentToken = startPos
+		return nil
 	}
 
 	res := &UnaryExprNode{Value: value, Operator: op}
@@ -1978,7 +1983,10 @@ func (v *parser) parseTupleLit() *TupleLiteralNode {
 
 		value := v.parseExpr()
 		if value == nil {
-			v.err("Expected valid expression in tuple literal")
+			// TODO: Restore this error once we go through with #655
+			//v.err("Expected valid expression in tuple literal")
+			v.currentToken = startPos
+			return nil
 		}
 		values = append(values, value)
 

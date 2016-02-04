@@ -646,6 +646,9 @@ func (v *CastExprNode) construct(c *Constructor) Expr {
 		Type: v.Type.construct(c),
 		Expr: c.constructExpr(v.Value),
 	}
+	if ttyp, ok := res.Type.BaseType.(TupleType); ok && len(ttyp.Members) == 1 {
+		res.Type = ttyp.Members[0]
+	}
 	res.setPos(v.Where().Start())
 	return res
 }
