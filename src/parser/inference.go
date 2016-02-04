@@ -1017,6 +1017,7 @@ func (v *Inferrer) Finalize() {
 			if sae, ok := n.Function.(*StructAccessExpr); ok {
 				fn := TypeWithoutPointers(sae.Struct.GetType().BaseType).(*NamedType).GetMethod(sae.Member)
 				fae := &FunctionAccessExpr{Function: fn, GenericArguments: sae.GenericArguments}
+				fae.setPos(sae.Pos())
 				n.Function = fae
 				fn.Accesses = append(fn.Accesses, fae)
 				if n.Function == nil {
@@ -1035,7 +1036,9 @@ func (v *Inferrer) Finalize() {
 					accessType := n.ReceiverAccess.GetType()
 
 					if accessType.BaseType.LevelsOfIndirection() == recType.LevelsOfIndirection()+1 {
-						n.ReceiverAccess = &DerefAccessExpr{Expr: n.ReceiverAccess}
+						deref := &DerefAccessExpr{Expr: n.ReceiverAccess}
+						deref.setPos(n.ReceiverAccess.Pos())
+						n.ReceiverAccess = deref
 					}
 				}
 			}
@@ -1050,7 +1053,9 @@ func (v *Inferrer) Finalize() {
 			// Insert a deref in cases where the code tries to access a struct
 			// member from a pointer type.
 			if n.Struct.GetType().BaseType.ActualType().LevelsOfIndirection() == 1 {
-				n.Struct = &DerefAccessExpr{Expr: n.Struct}
+				deref := &DerefAccessExpr{Expr: n.Struct}
+				deref.setPos(n.Struct.Pos())
+				n.Struct = deref
 			}
 
 			// Verify that we're actually dealing with a struct.
