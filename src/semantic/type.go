@@ -1,6 +1,8 @@
 package semantic
 
-import "github.com/ark-lang/ark/src/parser"
+import (
+	"github.com/ark-lang/ark/src/parser"
+)
 
 type TypeCheck struct {
 	functions []*parser.Function
@@ -408,6 +410,11 @@ func (v *TypeCheck) CheckTupleLiteral(s *SemanticAnalyzer, lit *parser.TupleLite
 }
 
 func (v *TypeCheck) CheckCompositeLiteral(s *SemanticAnalyzer, lit *parser.CompositeLiteral) {
+	gcon := parser.NewGenericContext([]*parser.SubstitutionType{}, []*parser.TypeReference{})
+	if len(lit.Type.GenericArguments) > 0 {
+		gcon = parser.NewGenericContextFromTypeReference(lit.Type)
+	}
+
 	switch typ := lit.Type.BaseType.ActualType().(type) {
 	case parser.ArrayType:
 		memType := typ.MemberType
@@ -435,9 +442,10 @@ func (v *TypeCheck) CheckCompositeLiteral(s *SemanticAnalyzer, lit *parser.Compo
 				s.Err(lit, "No member named `%s` on struct of type `%s`", name, typ.String())
 			}
 
-			if !mem.GetType().Equals(sMem.Type) {
+			sMemType := sMem.Type
+			if !mem.GetType().Equals(sMemType) {
 				s.Err(lit, "Cannot use value of type `%s` as member of `%s` with type `%s`",
-					mem.GetType().String(), sMem.Type.String(), typ.String())
+					mem.GetType().String(), sMemType.String(), typ.String())
 			}
 		}
 
