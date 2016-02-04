@@ -16,14 +16,7 @@ func do<T>(t: T) -> T {
     return t;
 }
 
-func alloc<T>() -> ^T {
-    ptr := C::malloc(sizeof(T));
-    return (^T)(ptr);
-}
-
-func free<T>(ptr: ^T) {
-    C::free((^C::void)(ptr));
-}
+#use std::mem
 
 pub func main() -> int {
 	a: int = 0;
@@ -60,10 +53,13 @@ pub func main() -> int {
     str := do<^u8>(c"hi!");
     C::printf(c"str = \"%s\"\n", str);
 
-    mut n := alloc<int>();
+    mut n := mem::alloc<int>();
     ^n = 111;
     C::printf(c"^n = %d\n", ^n);
-    free<int>(n);
+    mem::free<int>(n);
+
+    mut arr := mem::allocArray<int>(5);
+    arr[4] = 4;
 
 	return 0;
 }
