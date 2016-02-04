@@ -442,7 +442,7 @@ func (v *TypeCheck) CheckCompositeLiteral(s *SemanticAnalyzer, lit *parser.Compo
 				s.Err(lit, "No member named `%s` on struct of type `%s`", name, typ.String())
 			}
 
-			sMemType := sMem.Type
+			sMemType := gcon.Replace(sMem.Type)
 			if !mem.GetType().Equals(sMemType) {
 				s.Err(lit, "Cannot use value of type `%s` as member of `%s` with type `%s`",
 					mem.GetType().String(), sMemType.String(), typ.String())
