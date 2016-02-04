@@ -923,8 +923,11 @@ func (v FunctionAccessExpr) GetType() *TypeReference {
 		BaseType:         v.Function.Type,
 		GenericArguments: v.GenericArguments,
 	}
-	ret := NewGenericContextFromTypeReference(ref).Replace(ref)
-	return ret
+
+	if len(v.GenericArguments) > 0 {
+		return NewGenericContextFromTypeReference(ref).Replace(ref)
+	}
+	return ref
 }
 
 func (_ FunctionAccessExpr) NodeName() string {
@@ -949,7 +952,10 @@ func (v VariableAccessExpr) String() string {
 
 func (v VariableAccessExpr) GetType() *TypeReference {
 	if v.Variable != nil {
-		return NewGenericContextFromTypeReference(v.Variable.Type).Replace(v.Variable.Type)
+		if len(v.Variable.Type.GenericArguments) > 0 {
+			return NewGenericContextFromTypeReference(v.Variable.Type).Replace(v.Variable.Type)
+		}
+		return v.Variable.Type
 	}
 	return nil
 }
