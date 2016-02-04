@@ -1150,10 +1150,18 @@ func (v *parser) parseTypeReference(doNamed bool, onlyComposites bool, mustParse
 		v.expect(lexer.TOKEN_OPERATOR, ">")
 	}
 
-	return &TypeReferenceNode{
+	res := &TypeReferenceNode{
 		Type:             typ,
 		GenericArguments: gargs,
 	}
+
+	res.SetWhere(lexer.NewSpan(typ.Where().Start(), typ.Where().End()))
+	if len(gargs) > 0 {
+		last := gargs[len(gargs)-1]
+		res.SetWhere(lexer.NewSpan(typ.Where().Start(), last.Where().End()))
+	}
+
+	return res
 }
 
 // NOTE onlyComposites does not affect doRefs.
