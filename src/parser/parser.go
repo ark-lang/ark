@@ -2024,7 +2024,12 @@ func (v *parser) parseBoolLit() *BoolLitNode {
 func parseInt(num string, base int) (*big.Int, bool) {
 	num = strings.ToLower(strings.Replace(num, "_", "", -1))
 
-	splitNum := strings.Split(num, "e")
+	var splitNum []string
+	if base == 10 {
+		splitNum = strings.Split(num, "e")
+	} else {
+		splitNum = []string{num}
+	}
 
 	if !(len(splitNum) == 1 || len(splitNum) == 2) {
 		return nil, false
