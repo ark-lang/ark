@@ -910,6 +910,8 @@ type FunctionAccessExpr struct {
 	Function *Function
 
 	GenericArguments []*TypeReference
+
+	ParentFunction *Function // the function this access expression is located in
 }
 
 func (_ FunctionAccessExpr) exprNode() {}

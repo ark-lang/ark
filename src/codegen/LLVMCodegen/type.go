@@ -1,6 +1,7 @@
 package LLVMCodegen
 
 import (
+	"fmt"
 	"reflect"
 
 	"github.com/ark-lang/ark/src/parser"
@@ -152,7 +153,8 @@ func (v *Codegen) typeToLLVMType(typ parser.Type, gcon *parser.GenericContext) l
 			panic("gcon == nil when getting substitution type")
 		}
 		if gcon.GetSubstitutionType(typ) == nil {
-			panic("missing generic map entry for type " + typ.TypeName())
+			fmt.Println(gcon)
+			panic("missing generic map entry for type " + typ.TypeName() + " " + fmt.Sprintf("(%p)", typ))
 		}
 		return v.typeRefToLLVMTypeWithOuter(gcon.GetSubstitutionType(typ), gcon)
 	default:

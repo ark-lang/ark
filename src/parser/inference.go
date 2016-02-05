@@ -1016,7 +1016,11 @@ func (v *Inferrer) Finalize() {
 			// this access represents.
 			if sae, ok := n.Function.(*StructAccessExpr); ok {
 				fn := TypeWithoutPointers(sae.Struct.GetType().BaseType).(*NamedType).GetMethod(sae.Member)
-				fae := &FunctionAccessExpr{Function: fn, GenericArguments: sae.GenericArguments}
+				fae := &FunctionAccessExpr{
+					Function:         fn,
+					GenericArguments: sae.GenericArguments,
+					ParentFunction:   v.Function(),
+				}
 				fae.setPos(sae.Pos())
 				n.Function = fae
 				fn.Accesses = append(fn.Accesses, fae)

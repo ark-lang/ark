@@ -346,6 +346,7 @@ func (v *Resolver) ResolveNode(node *Node) {
 			fan := &FunctionAccessExpr{
 				Function:         ident.Value.(*Function),
 				GenericArguments: v.ResolveTypeReferences(n, n.GenericArguments),
+				ParentFunction:   v.currentFunction(),
 			}
 			fan.Function.Accesses = append(fan.Function.Accesses, fan)
 			*node = fan

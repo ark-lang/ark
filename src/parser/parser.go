@@ -351,7 +351,7 @@ func (v *parser) parseDecl(isTopLevel bool) ParseNode {
 		}
 	}
 
-	if typeDecl := v.parseTypeDecl(); typeDecl != nil {
+	if typeDecl := v.parseTypeDecl(isTopLevel); typeDecl != nil {
 		res = typeDecl
 	} else if funcDecl := v.parseFuncDecl(isTopLevel); funcDecl != nil {
 		res = funcDecl
@@ -541,7 +541,7 @@ func (v *parser) parseFuncHeader(lambda bool) *FunctionHeaderNode {
 	return res
 }
 
-func (v *parser) parseTypeDecl() *TypeDeclNode {
+func (v *parser) parseTypeDecl(isTopLevel bool) *TypeDeclNode {
 	defer un(trace(v, "typdecl"))
 
 	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, "type") {
@@ -557,13 +557,15 @@ func (v *parser) parseTypeDecl() *TypeDeclNode {
 
 	typ := v.parseType(true, false, true)
 
-	endToken := v.expect(lexer.TOKEN_SEPARATOR, ";")
+	if isTopLevel {
+		v.expect(lexer.TOKEN_SEPARATOR, ";")
+	}
 
 	res := &TypeDeclNode{
 		Name: NewLocatedString(name),
 		Type: typ,
 	}
-	res.SetWhere(lexer.NewSpan(startToken.Where.Start(), endToken.Where.End()))
+	res.SetWhere(lexer.NewSpan(startToken.Where.Start(), typ.Where().End()))
 
 	return res
 }

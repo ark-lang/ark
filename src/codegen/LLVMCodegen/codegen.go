@@ -56,6 +56,8 @@ type Codegen struct {
 	variableLookup  map[variableAndFnGenericInstance]llvm.Value
 	namedTypeLookup map[string]llvm.Type
 
+	declForFunction map[*parser.Function]*parser.FunctionDecl
+
 	referenceAccess bool
 	inFunctions     []functionAndFnGenericInstance
 
@@ -147,6 +149,8 @@ func (v *Codegen) Generate(input []*parser.Module) {
 	v.curLoopExits = make(map[functionAndFnGenericInstance][]llvm.BasicBlock)
 	v.curLoopNexts = make(map[functionAndFnGenericInstance][]llvm.BasicBlock)
 
+	v.declForFunction = make(map[*parser.Function]*parser.FunctionDecl)
+
 	v.input = make([]*WrappedModule, len(input))
 	for idx, mod := range input {
 		v.input[idx] = &WrappedModule{Module: mod}
@@ -211,7 +215,36 @@ func (v *Codegen) Generate(input []*parser.Module) {
 
 }
 
+func (v *Codegen) recursiveGenericFunctionHelper(n *parser.FunctionDecl, access *parser.FunctionAccessExpr, gcon *parser.GenericContext, fn func(*parser.FunctionDecl, *parser.GenericContext)) {
+	exit := true
+	for _, garg := range access.GenericArguments {
+		if _, ok := garg.BaseType.(*parser.SubstitutionType); ok {
+			exit = false
+			break
+		}
+	}
+
+	if exit {
+		fn(n, gcon)
+		return
+	}
+
+	for _, subAccess := range access.ParentFunction.Accesses {
+		newGcon := parser.NewGenericContext(subAccess.Function.Type.GenericParameters, subAccess.GenericArguments)
+		newGcon.Outer = gcon
+
+		v.recursiveGenericFunctionHelper(n, subAccess, newGcon, fn)
+	}
+}
+
 func (v *Codegen) declareDecls(nodes []parser.Node) {
+	for _, node := range nodes {
+		switch n := node.(type) {
+		case *parser.FunctionDecl:
+			v.declForFunction[n.Function] = n
+		}
+	}
+
 	for _, node := range nodes {
 		switch n := node.(type) {
 		case *parser.FunctionDecl:
@@ -219,7 +252,9 @@ func (v *Codegen) declareDecls(nodes []parser.Node) {
 				v.declareFunctionDecl(n, nil)
 			} else {
 				for _, access := range n.Function.Accesses {
-					v.declareFunctionDecl(n, access.GenericArguments)
+					gcon := parser.NewGenericContext(access.Function.Type.GenericParameters, access.GenericArguments)
+
+					v.recursiveGenericFunctionHelper(n, access, gcon, v.declareFunctionDecl)
 				}
 			}
 		}
@@ -242,19 +277,13 @@ var inlineAttrType = map[string]llvm.Attribute{
 	"maybe":  llvm.InlineHintAttribute,
 }
 
-func (v *Codegen) declareFunctionDecl(n *parser.FunctionDecl, genericsArguments []*parser.TypeReference) {
-	gcon := parser.NewGenericContext(n.Function.Type.GenericParameters, genericsArguments)
-
+func (v *Codegen) declareFunctionDecl(n *parser.FunctionDecl, gcon *parser.GenericContext) {
+	fmt.Println(n.Function.Name)
 	mangledName := n.Function.MangledName(parser.MANGLE_ARK_UNSTABLE, gcon)
 	function := v.curFile.LlvmModule.NamedFunction(mangledName)
 	if !function.IsNil() {
 		// do nothing, only time this can happen is due to generics
 	} else {
-		/*numOfParams := len(n.Function.Parameters)
-		if n.Function.Type.Receiver != nil {
-			numOfParams++
-		}*/
-
 		// find them attributes yo
 		attrs := n.Function.Type.Attrs()
 		cBinding := attrs.Contains("c")
@@ -554,8 +583,9 @@ func (v *Codegen) genDecl(n parser.Decl) {
 			v.genFunctionDecl(n, nil)
 		} else {
 			for _, access := range n.Function.Accesses {
-				gcon := parser.NewGenericContext(n.Function.Type.GenericParameters, access.GenericArguments)
-				v.genFunctionDecl(n, gcon)
+				gcon := parser.NewGenericContext(access.Function.Type.GenericParameters, access.GenericArguments)
+
+				v.recursiveGenericFunctionHelper(n, access, gcon, v.genFunctionDecl)
 			}
 		}
 	case *parser.VariableDecl:
@@ -567,9 +597,7 @@ func (v *Codegen) genDecl(n parser.Decl) {
 	}
 }
 
-func (v *Codegen) genFunctionDecl(n *parser.FunctionDecl, gcon *parser.GenericContext) llvm.Value {
-	var res llvm.Value
-
+func (v *Codegen) genFunctionDecl(n *parser.FunctionDecl, gcon *parser.GenericContext) {
 	mangledName := n.Function.MangledName(parser.MANGLE_ARK_UNSTABLE, gcon)
 	function := v.curFile.LlvmModule.NamedFunction(mangledName)
 	if function.IsNil() {
@@ -582,8 +610,6 @@ func (v *Codegen) genFunctionDecl(n *parser.FunctionDecl, gcon *parser.GenericCo
 			}
 		}
 	}
-
-	return res
 }
 
 func (v *Codegen) genFunctionBody(fn *parser.Function, llvmFn llvm.Value, gcon *parser.GenericContext) {
@@ -738,6 +764,7 @@ func (v *Codegen) genAddressOfExpr(n *parser.AddressOfExpr) llvm.Value {
 func (v *Codegen) genAccessExpr(n parser.Expr) llvm.Value {
 	if fae, ok := n.(*parser.FunctionAccessExpr); ok {
 		gcon := parser.NewGenericContext(fae.Function.Type.GenericParameters, fae.GenericArguments)
+		gcon.Outer = v.currentFunction().gcon
 
 		fnName := fae.Function.MangledName(parser.MANGLE_ARK_UNSTABLE, gcon)
 
@@ -754,7 +781,7 @@ func (v *Codegen) genAccessExpr(n parser.Expr) llvm.Value {
 		if fn.IsNil() {
 			decl := &parser.FunctionDecl{Function: fae.Function, Prototype: true}
 			decl.SetPublic(true)
-			v.declareFunctionDecl(decl, fae.GenericArguments)
+			v.declareFunctionDecl(decl, gcon)
 
 			if v.curFile.LlvmModule.NamedFunction(fnName).IsNil() {
 				panic("how did this happen")
