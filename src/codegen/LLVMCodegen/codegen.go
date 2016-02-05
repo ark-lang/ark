@@ -811,7 +811,15 @@ func (v *Codegen) genAccessGEP(n parser.Expr) llvm.Value {
 
 	case *parser.ArrayAccessExpr:
 		gep := v.genAccessGEP(access.Array)
+
 		subscriptExpr := v.genExpr(access.Subscript)
+		subsTyp := access.Subscript.GetType().BaseType.ActualType().(parser.PrimitiveType)
+		// Extend access width to system poiner width
+		if !subsTyp.IsSigned() {
+			subscriptExpr = v.builder().CreateZExt(subscriptExpr, v.targetData.IntPtrType(), "")
+		} else {
+			subscriptExpr = v.builder().CreateSExt(subscriptExpr, v.targetData.IntPtrType(), "")
+		}
 
 		v.genBoundsCheck(v.builder().CreateLoad(v.builder().CreateStructGEP(gep, 0, ""), ""),
 			subscriptExpr, access.Subscript.GetType().BaseType.IsSigned())
