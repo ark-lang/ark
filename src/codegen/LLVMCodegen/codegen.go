@@ -98,7 +98,12 @@ func (v *Codegen) currentFunction() functionAndFnGenericInstance {
 
 func (v *Codegen) currentLLVMFunction() llvm.Value {
 	curFn := v.currentFunction()
-	return v.curFile.LlvmModule.NamedFunction(curFn.fn.MangledName(parser.MANGLE_ARK_UNSTABLE, curFn.gcon))
+
+	name := curFn.fn.MangledName(parser.MANGLE_ARK_UNSTABLE, curFn.gcon)
+	if curFn.fn.Type.Attrs().Contains("nomangle") {
+		name = curFn.fn.Name
+	}
+	return v.curFile.LlvmModule.NamedFunction(name)
 }
 
 func (v *Codegen) pushBlock(block *parser.Block) {
@@ -246,6 +251,10 @@ func (v *Codegen) declareFunctionDecl(n *parser.FunctionDecl, genericsArguments 
 	gcon := parser.NewGenericContext(n.Function.Type.GenericParameters, genericsArguments)
 
 	mangledName := n.Function.MangledName(parser.MANGLE_ARK_UNSTABLE, gcon)
+	if n.Function.Type.Attrs().Contains("nomangle") {
+		mangledName = n.Function.Name
+	}
+
 	function := v.curFile.LlvmModule.NamedFunction(mangledName)
 	if !function.IsNil() {
 		// do nothing, only time this can happen is due to generics
@@ -571,6 +580,10 @@ func (v *Codegen) genFunctionDecl(n *parser.FunctionDecl, gcon *parser.GenericCo
 	var res llvm.Value
 
 	mangledName := n.Function.MangledName(parser.MANGLE_ARK_UNSTABLE, gcon)
+	if n.Function.Type.Attrs().Contains("nomangle") {
+		mangledName = n.Function.Name
+	}
+
 	function := v.curFile.LlvmModule.NamedFunction(mangledName)
 	if function.IsNil() {
 		//v.err("genning function `%s` doesn't exist in module", n.Function.Name)
@@ -740,6 +753,9 @@ func (v *Codegen) genAccessExpr(n parser.Expr) llvm.Value {
 		gcon := parser.NewGenericContext(fae.Function.Type.GenericParameters, fae.GenericArguments)
 
 		fnName := fae.Function.MangledName(parser.MANGLE_ARK_UNSTABLE, gcon)
+		if fae.Function.Type.Attrs().Contains("nomangle") {
+			fnName = fae.Function.Name
+		}
 
 		cBinding := false
 		if fae.Function.Type.Attrs() != nil {
