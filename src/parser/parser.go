@@ -1996,7 +1996,14 @@ func (v *parser) parseTupleLit() *TupleLiteralNode {
 		v.consumeToken()
 	}
 
-	endToken := v.expect(lexer.TOKEN_SEPARATOR, ")")
+	endToken := v.peek(0)
+	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ")") {
+		// TODO: Restore this error once we go through wiht #655
+		// endToken := v.expect(lexer.TOKEN_SEPARATOR, ")")
+		v.currentToken = startPos
+		return nil
+	}
+	v.currentToken++
 
 	// Dirty hack
 	if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ".") {
