@@ -65,7 +65,8 @@ func arrayTest(y: arrayType) {
 }
 
 func tupleTest(y: tupleType) {
-    C::printf(c"(%d, %d)\n", y|0|, y|1|);
+    // (a, b) := y;
+    //C::printf(c"(%d, %d)\n", a, b);
 }
 
 func structAnonTest(struct_: struct {z: int}) {

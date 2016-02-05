@@ -725,15 +725,6 @@ func (v *ArrayAccessNode) construct(c *Constructor) Expr {
 	return res
 }
 
-func (v *TupleAccessNode) construct(c *Constructor) Expr {
-	res := &TupleAccessExpr{
-		Index: uint64(v.Index),
-	}
-	res.Tuple = c.constructExpr(v.Tuple).(AccessExpr) // TODO: Error message
-	res.setPos(v.Where().Start())
-	return res
-}
-
 func (v *TupleLiteralNode) construct(c *Constructor) Expr {
 	res := &TupleLiteral{
 		Members: c.constructExprs(v.Values),

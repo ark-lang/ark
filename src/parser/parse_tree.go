@@ -377,12 +377,6 @@ type ArrayAccessNode struct {
 	Index ParseNode
 }
 
-type TupleAccessNode struct {
-	baseNode
-	Tuple ParseNode
-	Index int
-}
-
 // literals
 
 type TupleLiteralNode struct {

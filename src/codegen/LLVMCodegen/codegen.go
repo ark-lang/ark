@@ -100,7 +100,12 @@ func (v *Codegen) currentFunction() functionAndFnGenericInstance {
 
 func (v *Codegen) currentLLVMFunction() llvm.Value {
 	curFn := v.currentFunction()
-	return v.curFile.LlvmModule.NamedFunction(curFn.fn.MangledName(parser.MANGLE_ARK_UNSTABLE, curFn.gcon))
+
+	name := curFn.fn.MangledName(parser.MANGLE_ARK_UNSTABLE, curFn.gcon)
+	if curFn.fn.Type.Attrs().Contains("nomangle") {
+		name = curFn.fn.Name
+	}
+	return v.curFile.LlvmModule.NamedFunction(name)
 }
 
 func (v *Codegen) pushBlock(block *parser.Block) {
@@ -280,6 +285,10 @@ var inlineAttrType = map[string]llvm.Attribute{
 func (v *Codegen) declareFunctionDecl(n *parser.FunctionDecl, gcon *parser.GenericContext) {
 	fmt.Println(n.Function.Name)
 	mangledName := n.Function.MangledName(parser.MANGLE_ARK_UNSTABLE, gcon)
+	if n.Function.Type.Attrs().Contains("nomangle") {
+		mangledName = n.Function.Name
+	}
+
 	function := v.curFile.LlvmModule.NamedFunction(mangledName)
 	if !function.IsNil() {
 		// do nothing, only time this can happen is due to generics
@@ -599,6 +608,10 @@ func (v *Codegen) genDecl(n parser.Decl) {
 
 func (v *Codegen) genFunctionDecl(n *parser.FunctionDecl, gcon *parser.GenericContext) {
 	mangledName := n.Function.MangledName(parser.MANGLE_ARK_UNSTABLE, gcon)
+	if n.Function.Type.Attrs().Contains("nomangle") {
+		mangledName = n.Function.Name
+	}
+
 	function := v.curFile.LlvmModule.NamedFunction(mangledName)
 	if function.IsNil() {
 		//v.err("genning function `%s` doesn't exist in module", n.Function.Name)
@@ -728,8 +741,8 @@ func (v *Codegen) genExpr(n parser.Expr) llvm.Value {
 	case *parser.CallExpr:
 		return v.genCallExpr(n)
 	case *parser.VariableAccessExpr, *parser.StructAccessExpr,
-		*parser.ArrayAccessExpr, *parser.TupleAccessExpr,
-		*parser.DerefAccessExpr, *parser.FunctionAccessExpr:
+		*parser.ArrayAccessExpr, *parser.DerefAccessExpr,
+		*parser.FunctionAccessExpr:
 		return v.genAccessExpr(n)
 	case *parser.SizeofExpr:
 		return v.genSizeofExpr(n)
@@ -767,6 +780,9 @@ func (v *Codegen) genAccessExpr(n parser.Expr) llvm.Value {
 		gcon.Outer = v.currentFunction().gcon
 
 		fnName := fae.Function.MangledName(parser.MANGLE_ARK_UNSTABLE, gcon)
+		if fae.Function.Type.Attrs().Contains("nomangle") {
+			fnName = fae.Function.Name
+		}
 
 		cBinding := false
 		if fae.Function.Type.Attrs() != nil {
@@ -833,12 +849,6 @@ func (v *Codegen) genAccessGEP(n parser.Expr) llvm.Value {
 
 		gepIndexes := []llvm.Value{subscriptExpr}
 		return v.builder().CreateGEP(load, gepIndexes, "")
-
-	case *parser.TupleAccessExpr:
-		gep := v.genAccessGEP(access.Tuple)
-
-		// TODO: Check overflow
-		return v.builder().CreateStructGEP(gep, int(access.Index), "")
 
 	case *parser.DerefAccessExpr:
 		return v.genExpr(access.Expr)

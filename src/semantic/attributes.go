@@ -45,6 +45,7 @@ func (v *AttributeCheck) CheckFunctionDecl(s *SemanticAnalyzer, n *parser.Functi
 		case "unused":
 		case "c":
 		case "call_conv":
+		case "nomangle":
 		case "inline":
 			switch attr.Value {
 			case "always":
