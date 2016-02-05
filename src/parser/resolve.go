@@ -374,6 +374,10 @@ func (v *Resolver) ResolveNode(node *Node) {
 			break
 		}
 
+		if n.Type == nil {
+			break
+		}
+
 		// NOTE: Here we check if we are referencing an actual struct,
 		// or the struct part of an enum type
 		if name, ok := n.Type.BaseType.(UnresolvedType); ok {
@@ -413,6 +417,32 @@ func (v *Resolver) ResolveNode(node *Node) {
 
 		if n.Type != nil {
 			n.Type = v.ResolveTypeReference(n, n.Type)
+
+			var gcon *GenericContext
+			if len(n.Type.GenericArguments) > 0 {
+				gcon = NewGenericContextFromTypeReference(n.Type)
+			}
+
+			// We do some preliminary type hinting to help out the inferrence pass
+			if at, ok := n.Type.BaseType.(ArrayType); ok {
+				for _, val := range n.Values {
+					if gcon != nil {
+						val.SetType(gcon.Replace(at.MemberType))
+					} else {
+						val.SetType(at.MemberType)
+					}
+				}
+			} else if st, ok := n.Type.BaseType.(StructType); ok {
+				for idx, val := range n.Values {
+					field := n.Fields[idx]
+					mem := st.GetMember(field)
+					if gcon != nil {
+						val.SetType(gcon.Replace(mem.Type))
+					} else {
+						val.SetType(mem.Type)
+					}
+				}
+			}
 		}
 
 	case *CallExpr:

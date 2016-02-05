@@ -733,7 +733,9 @@ func (v *TupleLiteralNode) construct(c *Constructor) Expr {
 
 func (v *CompositeLiteralNode) construct(c *Constructor) Expr {
 	res := &CompositeLiteral{}
-	res.Type = v.Type.construct(c)
+	if v.Type != nil {
+		res.Type = v.Type.construct(c)
+	}
 
 	for i, val := range v.Values {
 		res.Fields = append(res.Fields, v.Fields[i].Value)
