@@ -481,8 +481,8 @@ func (v *Resolver) ResolveNode(node *Node) {
 		*BlockStat, *BreakStat, *CallStat, *DeferStat, *IfStat, *MatchStat,
 		*LoopStat, *NextStat, *ReturnStat, *AddressOfExpr, *ArrayAccessExpr,
 		*BinaryExpr, *DerefAccessExpr, *UnaryExpr, *StructAccessExpr,
-		*TupleAccessExpr, *BoolLiteral, *NumericLiteral, *RuneLiteral,
-		*StringLiteral, *TupleLiteral:
+		*BoolLiteral, *NumericLiteral, *RuneLiteral, *StringLiteral,
+		*TupleLiteral:
 		break
 
 	default:

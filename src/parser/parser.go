@@ -1653,21 +1653,6 @@ func (v *parser) parsePostfixExpr() ParseNode {
 			res := &ArrayAccessNode{Array: expr, Index: index}
 			res.SetWhere(lexer.NewSpan(expr.Where().Start(), endToken.Where.End()))
 			expr = res
-		} else if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "|") {
-			// tuple index
-			v.consumeToken()
-			defer un(trace(v, "tupleindex"))
-
-			index := v.parseNumberLit()
-			if index == nil || index.IsFloat {
-				v.err("Expected integer for tuple index")
-			}
-
-			endToken := v.expect(lexer.TOKEN_OPERATOR, "|")
-
-			res := &TupleAccessNode{Tuple: expr, Index: int(index.IntValue.Int64())}
-			res.SetWhere(lexer.NewSpan(expr.Where().Start(), endToken.Where.End()))
-			expr = res
 		} else if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "(") {
 			// call expr
 			v.consumeToken()

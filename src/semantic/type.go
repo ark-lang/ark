@@ -72,9 +72,6 @@ func (v *TypeCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
 	case *parser.ArrayAccessExpr:
 		v.CheckArrayAccessExpr(s, n)
 
-	case *parser.TupleAccessExpr:
-		v.CheckTupleAccessExpr(s, n)
-
 	case *parser.DerefAccessExpr:
 		v.CheckDerefAccessExpr(s, n)
 
@@ -310,17 +307,6 @@ func (v *TypeCheck) CheckArrayAccessExpr(s *SemanticAnalyzer, expr *parser.Array
 
 	if !expr.Subscript.GetType().BaseType.IsIntegerType() {
 		s.Err(expr, "Array subscript must be an integer type, have `%s`", expr.Subscript.GetType().String())
-	}
-}
-
-func (v *TypeCheck) CheckTupleAccessExpr(s *SemanticAnalyzer, expr *parser.TupleAccessExpr) {
-	tupleType, ok := expr.Tuple.GetType().BaseType.ActualType().(parser.TupleType)
-	if !ok {
-		s.Err(expr, "Cannot index type `%s` as a tuple", expr.Tuple.GetType().String())
-	}
-
-	if expr.Index >= uint64(len(tupleType.Members)) {
-		s.Err(expr, "Index `%d` (element %d) is greater than size of tuple `%s`", expr.Index, expr.Index+1, tupleType.String())
 	}
 }
 

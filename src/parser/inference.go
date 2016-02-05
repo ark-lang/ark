@@ -54,10 +54,6 @@ type ConstructorId int
 const (
 	ConstructorInvalid ConstructorId = iota
 	ConstructorStructMember
-
-	// TODO: This guy goes away once we remove tuple indexing and replace with
-	// tuple destructuring
-	ConstructorTupleIndex
 )
 
 func (v *ConstructorType) Equals(other Type) bool {
@@ -227,13 +223,6 @@ func SubsType(typ *TypeReference, id int, what *TypeReference) *TypeReference {
 				}
 
 				return mtype
-			}
-
-		// Likewise we check if we can resolve the actual type tuple index and
-		// if we can, we return it.
-		case ConstructorTupleIndex:
-			if tt, ok := nargs[0].BaseType.ActualType().(TupleType); ok {
-				return tt.Members[t.Data.(uint64)]
 			}
 		}
 
@@ -623,21 +612,6 @@ func (v *Inferrer) HandleTyped(pos lexer.Position, typed Typed) int {
 				Id:   ConstructorStructMember,
 				Args: []*TypeReference{&TypeReference{BaseType: &TypeVariable{Id: id}}},
 				Data: typed.Member,
-			},
-		})
-
-	// Given a struct access we generate a constructor type. This type is used
-	// because inferring an order sensitive type is not practically possible,
-	// without a bit of jerry-rigging.
-	// This one however, will go away once we decomission tuple acceses in
-	// favor of tuple destructuring.
-	case *TupleAccessExpr:
-		id := v.HandleExpr(typed.Tuple)
-		v.AddIsConstraint(ann.Id, &TypeReference{
-			BaseType: &ConstructorType{
-				Id:   ConstructorTupleIndex,
-				Args: []*TypeReference{&TypeReference{BaseType: &TypeVariable{Id: id}}},
-				Data: typed.Index,
 			},
 		})
 
@@ -1210,7 +1184,6 @@ func (_ RuneLiteral) SetType(t *TypeReference)        {}
 func (_ VariableAccessExpr) SetType(t *TypeReference) {}
 func (_ SizeofExpr) SetType(t *TypeReference)         {}
 func (_ StructAccessExpr) SetType(t *TypeReference)   {}
-func (_ TupleAccessExpr) SetType(t *TypeReference)    {}
 
 // ExtractTypeVariable takes a pattern type containing one or more substitution
 // types together with a value type, and generates a map from the substitution

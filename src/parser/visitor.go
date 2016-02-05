@@ -222,9 +222,6 @@ func (v *ASTVisitor) VisitChildren(n Node) {
 	case *StructAccessExpr:
 		n.Struct = v.Visit(n.Struct).(AccessExpr)
 
-	case *TupleAccessExpr:
-		n.Tuple = v.Visit(n.Tuple).(AccessExpr)
-
 	case *DerefAccessExpr:
 		n.Expr = v.VisitExpr(n.Expr)
 

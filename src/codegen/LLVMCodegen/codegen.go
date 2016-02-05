@@ -715,8 +715,8 @@ func (v *Codegen) genExpr(n parser.Expr) llvm.Value {
 	case *parser.CallExpr:
 		return v.genCallExpr(n)
 	case *parser.VariableAccessExpr, *parser.StructAccessExpr,
-		*parser.ArrayAccessExpr, *parser.TupleAccessExpr,
-		*parser.DerefAccessExpr, *parser.FunctionAccessExpr:
+		*parser.ArrayAccessExpr, *parser.DerefAccessExpr,
+		*parser.FunctionAccessExpr:
 		return v.genAccessExpr(n)
 	case *parser.SizeofExpr:
 		return v.genSizeofExpr(n)
@@ -822,12 +822,6 @@ func (v *Codegen) genAccessGEP(n parser.Expr) llvm.Value {
 
 		gepIndexes := []llvm.Value{subscriptExpr}
 		return v.builder().CreateGEP(load, gepIndexes, "")
-
-	case *parser.TupleAccessExpr:
-		gep := v.genAccessGEP(access.Tuple)
-
-		// TODO: Check overflow
-		return v.builder().CreateStructGEP(gep, int(access.Index), "")
 
 	case *parser.DerefAccessExpr:
 		return v.genExpr(access.Expr)

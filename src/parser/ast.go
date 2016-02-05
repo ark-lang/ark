@@ -1056,40 +1056,6 @@ func (v ArrayAccessExpr) Mutable() bool {
 	return v.Array.Mutable()
 }
 
-// TupleAccessExpr
-
-type TupleAccessExpr struct {
-	nodePos
-	Tuple AccessExpr
-	Index uint64
-}
-
-func (_ TupleAccessExpr) exprNode() {}
-
-func (v TupleAccessExpr) String() string {
-	s := NewASTStringer("TupleAccessExpr")
-	s.AddString("tuple").Add(v.Tuple)
-	s.AddString("index").AddString(strconv.FormatUint(v.Index, 10))
-	return s.Finish()
-}
-
-func (v TupleAccessExpr) GetType() *TypeReference {
-	if v.Tuple.GetType() != nil {
-		return &TypeReference{
-			BaseType: v.Tuple.GetType().BaseType.ActualType().(TupleType).Members[v.Index].BaseType,
-		}
-	}
-	return nil
-}
-
-func (_ TupleAccessExpr) NodeName() string {
-	return "tuple access expression"
-}
-
-func (v TupleAccessExpr) Mutable() bool {
-	return v.Tuple.Mutable()
-}
-
 // DerefAccessExpr
 
 type DerefAccessExpr struct {
