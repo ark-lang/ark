@@ -5,7 +5,7 @@ func change_ref(mut x: &mut int) {
     // eventually you should be able to do ^x
     // you also wouldn't need to have the parameter
     // as mutable
-    mut handle: ^int = ^int(&x);
+    mut handle: ^int = (^int)(&x);
     ^handle = 21;
 }
 

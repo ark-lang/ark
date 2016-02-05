@@ -990,6 +990,7 @@ func (v *Inferrer) Finalize() {
 			// this access represents.
 			if sae, ok := n.Function.(*StructAccessExpr); ok {
 				fn := TypeWithoutPointers(sae.Struct.GetType().BaseType).(*NamedType).GetMethod(sae.Member)
+				fmt.Println(n.Function)
 				fae := &FunctionAccessExpr{
 					Function:         fn,
 					GenericArguments: sae.GenericArguments,

@@ -1,8 +1,6 @@
 package semantic
 
-import (
-	"github.com/ark-lang/ark/src/parser"
-)
+import "github.com/ark-lang/ark/src/parser"
 
 type TypeCheck struct {
 	functions []*parser.Function
@@ -25,9 +23,15 @@ func (v *TypeCheck) EnterScope(s *SemanticAnalyzer) {}
 func (v *TypeCheck) ExitScope(s *SemanticAnalyzer)  {}
 
 func (v *TypeCheck) PostVisit(s *SemanticAnalyzer, n parser.Node) {
-	switch n.(type) {
+	switch n := n.(type) {
 	case *parser.FunctionDecl, *parser.LambdaExpr:
 		v.popFunction()
+
+	case *parser.AssignStat:
+		v.CheckAssignStat(s, n)
+
+	case *parser.BinopAssignStat:
+		v.CheckBinopAssignStat(s, n)
 	}
 }
 
@@ -48,14 +52,8 @@ func (v *TypeCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
 	case *parser.IfStat:
 		v.CheckIfStat(s, n)
 
-	case *parser.AssignStat:
-		v.CheckAssignStat(s, n)
-
 	case *parser.ArrayLenExpr:
 		v.CheckArrayLenExpr(s, n)
-
-	case *parser.BinopAssignStat:
-		v.CheckBinopAssignStat(s, n)
 
 	case *parser.UnaryExpr:
 		v.CheckUnaryExpr(s, n)

@@ -3,7 +3,7 @@
 glob: int = 5;
 
 func getGlob() -> ^int {
-    return ^int(&glob);
+    return (^int)(&glob);
 }
 
 func printGlob() {

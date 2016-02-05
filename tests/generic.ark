@@ -19,6 +19,7 @@ func do<T>(t: T) -> T {
 #use std::mem
 
 pub func main() -> int {
+
 	a: int = 0;
 	x := Option::None<bool>;
 	y := Option::Some<int>(a, 5);
@@ -28,10 +29,10 @@ pub func main() -> int {
 
 	h: u8 = 1;
 	mut i := RC<u8>{refs: 0};
-	i.val = ^u8(&h);
+	i.val = (^u8)(&h);
 
     mut ival := i.val;
-    ival = ^u8(&h);
+    ival = (^u8)(&h);
 
 	C::printf(c"sizeof(^i.val) = %d\n", sizeof(^i.val));
 	if sizeof(^i.val) != 1 {
@@ -40,7 +41,7 @@ pub func main() -> int {
 
 	j: u16 = 1;
 	mut k := RC<u16>{refs: 0};
-	k.val = ^u16(&j);
+	k.val = (^u16)(&j);
 	C::printf(c"sizeof(^k.val) = %d\n", sizeof(^k.val));
 	if sizeof(^k.val) != 2 {
 		return 1;
@@ -60,6 +61,8 @@ pub func main() -> int {
 
     mut arr := mem::allocArray<int>(5);
     arr[4] = 4;
+    arr = mem::reallocArray<int>(arr, 10);
+    arr[9] = 100;
 
 	return 0;
 }

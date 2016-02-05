@@ -4,6 +4,6 @@ func deref<T>(v: ^T) -> T {
 
 pub func main() -> int {
 	i: int = 0;
-	ip := ^int(&i);
+	ip := (^int)(&i);
 	return deref(ip);
 }

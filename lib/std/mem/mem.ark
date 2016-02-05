@@ -1,5 +1,8 @@
 [c] func malloc(size: uint) -> ^C::void;
+[c] func realloc(ptr: ^C::void, size: uint) -> ^C::void;
 [c] func free(ptr: ^C::void);
+
+// TODO: check for overflow when doing `num * sizeof(T)``
 
 pub func alloc<T>() -> ^T {
     ptr := C::malloc(sizeof(T));
@@ -27,12 +30,12 @@ pub func allocArray<T>(num: uint) -> []T {
 }
 
 pub func reallocArray<T>(array: []T, newNum: uint) -> []T {
-    /*rawArray := (^struct{
-        size: uint,
-        raw: ^T,
-    })(&array);*/
+    mut rawArray := ^((^RawArray)(&array));
 
-    return allocArray<T>(0);
+    rawArray.ptr = (^u8)(C::realloc((^C::void)(rawArray.ptr), newNum));
+    rawArray.size = newNum;
+
+    return ^((^[]T)(&rawArray));
 }
 
 pub func free<T>(ptr: ^T) {

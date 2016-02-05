@@ -283,7 +283,6 @@ var inlineAttrType = map[string]llvm.Attribute{
 }
 
 func (v *Codegen) declareFunctionDecl(n *parser.FunctionDecl, gcon *parser.GenericContext) {
-	fmt.Println(n.Function.Name)
 	mangledName := n.Function.MangledName(parser.MANGLE_ARK_UNSTABLE, gcon)
 	if n.Function.Type.Attrs().Contains("nomangle") {
 		mangledName = n.Function.Name

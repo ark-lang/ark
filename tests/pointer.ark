@@ -12,7 +12,7 @@ pub func main() -> int
     a: s32 = 5;
     b: s32 = 6;
     C::printf(c"a: %d, b: %d\n", a, b);
-    swap(^s32(&a), ^s32(&b));
+    swap((^s32)(&a), (^s32)(&b));
     C::printf(c"a: %d, b: %d\n", a, b);
 
     return 6 - int(a); // Inference problems ugh

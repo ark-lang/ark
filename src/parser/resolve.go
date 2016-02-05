@@ -217,13 +217,6 @@ func (v *Resolver) PostVisit(node *Node) {
 
 	case *LambdaExpr:
 		v.popFunction()
-
-	case *DerefAccessExpr:
-		if ce, ok := n.Expr.(*CastExpr); ok {
-			res := &CastExpr{Type: &TypeReference{BaseType: PointerTo(ce.Type)}, Expr: ce.Expr}
-			res.setPos(n.Pos())
-			*node = res
-		}
 	}
 }
 

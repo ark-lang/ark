@@ -1072,7 +1072,11 @@ func (v DerefAccessExpr) String() string {
 }
 
 func (v DerefAccessExpr) GetType() *TypeReference {
-	return getAdressee(v.Expr.GetType().BaseType)
+	ret := getAdressee(v.Expr.GetType().BaseType)
+	if ret == nil {
+		return &TypeReference{BaseType: PRIMITIVE_void}
+	}
+	return ret
 }
 
 func (_ DerefAccessExpr) NodeName() string {
