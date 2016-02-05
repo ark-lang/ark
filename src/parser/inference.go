@@ -672,20 +672,20 @@ func (v *Inferrer) HandleTyped(pos lexer.Position, typed Typed) int {
 			ids[idx] = v.HandleExpr(mem)
 		}
 
-		typ := typed.Type.BaseType.ActualType()
-		if at, ok := typ.(ArrayType); ok {
-			for _, id := range ids {
-				v.AddIsConstraint(id, at.MemberType)
-			}
-		} else if st, ok := typ.(StructType); ok {
-			for idx, id := range ids {
-				field := typed.Fields[idx]
-				mem := st.GetMember(field)
-				v.AddIsConstraint(id, mem.Type)
-			}
-		}
-
 		if typed.Type != nil {
+			typ := typed.Type.BaseType.ActualType()
+			if at, ok := typ.(ArrayType); ok {
+				for _, id := range ids {
+					v.AddIsConstraint(id, at.MemberType)
+				}
+			} else if st, ok := typ.(StructType); ok {
+				for idx, id := range ids {
+					field := typed.Fields[idx]
+					mem := st.GetMember(field)
+					v.AddIsConstraint(id, mem.Type)
+				}
+			}
+
 			v.AddIsConstraint(ann.Id, typed.Type)
 		}
 

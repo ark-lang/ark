@@ -1903,7 +1903,7 @@ func (v *parser) parseCompositeLiteral() ParseNode {
 		v.currentToken = startPos
 		return nil
 	}
-	v.consumeToken() // eat opening bracket
+	start := v.consumeToken() // eat opening bracket
 
 	res := &CompositeLiteralNode{
 		Type: typ,
@@ -1946,7 +1946,11 @@ func (v *parser) parseCompositeLiteral() ParseNode {
 		}
 	}
 
-	res.SetWhere(lexer.NewSpan(typ.Where().Start(), lastToken.Where.End()))
+	if typ != nil {
+		res.SetWhere(lexer.NewSpan(typ.Where().Start(), lastToken.Where.End()))
+	} else {
+		res.SetWhere(lexer.NewSpanFromTokens(start, lastToken))
+	}
 
 	return res
 }
