@@ -411,15 +411,13 @@ func (v *Inferrer) Visit(node *Node) bool {
 	// statement that contains an expression it should be in here.
 	switch n := (*node).(type) {
 	case *VariableDecl:
-		a := v.HandleTyped(n.Pos(), n.Variable)
 		if n.Assignment != nil {
 			if n.Variable.Type != nil {
-				// Slightly hacky, but gets the job done
 				n.Assignment.SetType(n.Variable.Type)
+			} else {
+				n.Variable.SetType(n.Assignment.GetType())
 			}
-
-			b := v.HandleExpr(n.Assignment)
-			v.AddEqualsConstraint(a, b)
+			v.HandleExpr(n.Assignment)
 		}
 
 	case *AssignStat:
@@ -649,15 +647,6 @@ func (v *Inferrer) HandleTyped(pos lexer.Position, typed Typed) int {
 	case *BoolLiteral:
 		v.AddIsConstraint(ann.Id, &TypeReference{BaseType: PRIMITIVE_bool})
 
-	// A string literal will either be of type ^u8 or string respectively
-	// depending on whether or not the string is a c-style string.
-	case *StringLiteral:
-		if typed.IsCString {
-			v.AddIsConstraint(ann.Id, &TypeReference{BaseType: PointerTo(&TypeReference{BaseType: PRIMITIVE_u8})})
-		} else {
-			v.AddIsConstraint(ann.Id, &TypeReference{BaseType: stringType})
-		}
-
 	// A rune literal will always be of type rune
 	case *RuneLiteral:
 		v.AddIsConstraint(ann.Id, &TypeReference{BaseType: runeType})
@@ -708,8 +697,8 @@ func (v *Inferrer) HandleTyped(pos lexer.Position, typed Typed) int {
 			}
 		}
 
-		if typed.Type != nil {
-			v.AddIsConstraint(ann.Id, typed.Type)
+		if typed.GetType() != nil {
+			v.AddIsConstraint(ann.Id, typed.GetType())
 		} else {
 			v.AddIsConstraint(ann.Id, &TypeReference{BaseType: tupleOf(nt...)})
 		}
@@ -737,9 +726,7 @@ func (v *Inferrer) HandleTyped(pos lexer.Position, typed Typed) int {
 	case *LambdaExpr:
 		v.AddIsConstraint(ann.Id, &TypeReference{BaseType: typed.Function.Type})
 
-	// Numeric literals do not get to have any fun, because default types do
-	// not mesh well with the constraint based approach.
-	case *NumericLiteral:
+	case *NumericLiteral, *StringLiteral:
 		// noop
 
 	default:
@@ -916,49 +903,6 @@ func (v *Inferrer) Finalize() {
 		subList[ann.Id] = subs
 	}
 
-	// Check wither we managed to infer all type
-	resolved := true
-	for _, val := range subList {
-		resolved = resolved && (val == nil || val.Right.SideType != TypeSide)
-	}
-
-	// If we didn't manage to infer all the types in the first pass, transfer
-	// all the substitutions to the constraint list, and add default types for
-	// expression that have these
-	if !resolved {
-		v.Constraints = nil
-		for idx := 0; idx < v.IdCount; idx++ {
-			ann := v.Typeds[idx]
-			subs := subList[idx]
-			if subs != nil && subs.Right.SideType == TypeSide {
-				v.AddConstraint(subs)
-				continue
-			}
-
-			if lit, ok := ann.Typed.(*NumericLiteral); ok {
-				typ := PRIMITIVE_int
-				if lit.IsFloat {
-					typ = PRIMITIVE_f32
-					switch lit.floatSizeHint {
-					case 'f':
-						typ = PRIMITIVE_f32
-					case 'd':
-						typ = PRIMITIVE_f64
-					case 'q':
-						typ = PRIMITIVE_f128
-					}
-
-				}
-				v.AddIsConstraint(idx, &TypeReference{BaseType: typ})
-			} else if subs != nil {
-				v.AddConstraint(subs)
-			}
-		}
-
-		// Unify the new constraints
-		substitutions = v.Solve()
-	}
-
 	// Apply all substitutions
 	for _, subs := range substitutions {
 		if subs.Left.SideType != IdentSide {
@@ -967,6 +911,9 @@ func (v *Inferrer) Finalize() {
 
 		ann := v.Typeds[subs.Left.Id]
 		if subs.Right.SideType != TypeSide {
+			if ann.Typed.GetType() != nil {
+				continue
+			}
 			v.errPos(ann.Pos, "Couldn't infer type of expression")
 		}
 

@@ -16,8 +16,8 @@ offsets := []u32{
 };
 
 pub func num_runes(src: []u8) -> uint {
-	mut i := 0;
-	mut num := 0;
+	mut i: uint = 0;
+	mut num: uint = 0;
 
 	for i < len(src) {
 		nb := uint(trailing_bytes[src[i]]);
@@ -29,8 +29,8 @@ pub func num_runes(src: []u8) -> uint {
 }
 
 pub func num_bytes(src: []rune) -> uint {
-	mut i := 0;
-	mut num := 0;
+	mut i: uint = 0;
+	mut num: uint = 0;
 
 	for i < len(src) {
 		ch := src[i];
@@ -49,8 +49,8 @@ pub func num_bytes(src: []rune) -> uint {
 }
 
 pub func decode(mut dest: []rune, src: []u8) -> uint {
-	mut src_idx := 0;
-	mut dest_idx := 0;
+	mut src_idx: uint = 0;
+	mut dest_idx: uint = 0;
 
 	for dest_idx < len(dest) {
 		nb := uint(trailing_bytes[src[src_idx]]);
@@ -84,8 +84,8 @@ pub func decode(mut dest: []rune, src: []u8) -> uint {
 }
 
 pub func encode(mut dest: []u8, src: []rune) -> uint {
-	mut src_idx := 0;
-	mut dest_idx := 0;
+	mut src_idx: uint = 0;
+	mut dest_idx: uint = 0;
 	for src_idx < len(src) {
 		ch := src[src_idx];
 		if ch < 0x80 {

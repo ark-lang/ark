@@ -11,7 +11,7 @@ tests := [][]u8{
 };
 
 pub func main() -> int {
-	mut i := 0;
+	mut i: uint = 0;
 	for i < len(tests) {
 		test := tests[i];
 		C::printf(c"test: %d, len(test): %d, ", i, len(test));
@@ -19,13 +19,13 @@ pub func main() -> int {
 		runes := utf8::num_runes(test);
 		C::printf(c"#runes: %d, ", runes);
 
-		dest := mem::allocArray(runes);
+		dest := mem::allocArray<rune>(runes);
 		utf8::decode(dest, test);
 
 		bytes := utf8::num_bytes(dest);
 		C::printf(c"#bytes: %d\n", bytes);
 
-		mut h := 0;
+		mut h: uint = 0;
 		C::printf(c"runes: ");
 		for h < len(dest) {
 			C::printf(c"%d ", dest[h]);
@@ -33,7 +33,7 @@ pub func main() -> int {
 		}
 		C::printf(c"\n");
 
-		test_copy := mem::allocArray(bytes);
+		test_copy := mem::allocArray<u8>(bytes);
 		utf8::encode(test_copy, dest);
 
 		// Verify that the encoded output matches the original test
@@ -42,7 +42,7 @@ pub func main() -> int {
 			return 1;
 		}
 
-		mut j := 0;
+		mut j: uint = 0;
 		for j < len(test) {
 			x := test[j];
 			y := test_copy[j];

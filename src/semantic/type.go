@@ -315,21 +315,21 @@ func (v *TypeCheck) CheckDerefAccessExpr(s *SemanticAnalyzer, expr *parser.Deref
 }
 
 func (v *TypeCheck) CheckNumericLiteral(s *SemanticAnalyzer, lit *parser.NumericLiteral) {
-	if !(lit.Type.BaseType.IsIntegerType() || lit.Type.BaseType.IsFloatingType()) {
-		s.Err(lit, "Numeric literal was non-integer, non-float type: %s", lit.Type.String())
+	if !(lit.GetType().BaseType.IsIntegerType() || lit.GetType().BaseType.IsFloatingType()) {
+		s.Err(lit, "Numeric literal was non-integer, non-float type: %s", lit.GetType().String())
 	}
 
-	if lit.IsFloat && lit.Type.BaseType.IsIntegerType() {
-		s.Err(lit, "Floating numeric literal has integer type: %s", lit.Type.String())
+	if lit.IsFloat && lit.GetType().BaseType.IsIntegerType() {
+		s.Err(lit, "Floating numeric literal has integer type: %s", lit.GetType().String())
 	}
 
-	if lit.Type.BaseType.IsFloatingType() {
+	if lit.GetType().BaseType.IsFloatingType() {
 		// TODO
 	} else {
 		// Guaranteed to be integer type and integer literal
 		var bits int
 
-		switch lit.Type.BaseType.ActualType() {
+		switch lit.GetType().BaseType.ActualType() {
 		case parser.PRIMITIVE_int, parser.PRIMITIVE_uint, parser.PRIMITIVE_uintptr:
 			bits = 9000 // FIXME work out proper size
 		case parser.PRIMITIVE_u8, parser.PRIMITIVE_s8:
@@ -343,7 +343,7 @@ func (v *TypeCheck) CheckNumericLiteral(s *SemanticAnalyzer, lit *parser.Numeric
 		case parser.PRIMITIVE_u128, parser.PRIMITIVE_s128:
 			bits = 128
 		default:
-			panic("wrong type here: " + lit.Type.String())
+			panic("wrong type here: " + lit.GetType().String())
 		}
 
 		/*if lit.Type.IsSigned() {
@@ -354,7 +354,7 @@ func (v *TypeCheck) CheckNumericLiteral(s *SemanticAnalyzer, lit *parser.Numeric
 		}*/
 
 		if bits < lit.IntValue.BitLen() {
-			s.Warn(lit, "Integer overflows %s", lit.Type.String())
+			s.Warn(lit, "Integer overflows %s", lit.GetType().String())
 		}
 	}
 }
@@ -369,7 +369,7 @@ func exprsToTypeReferences(exprs []parser.Expr) []*parser.TypeReference {
 
 // parentEnum is nil if not in enum
 func (v *TypeCheck) CheckTupleLiteral(s *SemanticAnalyzer, lit *parser.TupleLiteral) {
-	tupleType, ok := lit.Type.BaseType.ActualType().(parser.TupleType)
+	tupleType, ok := lit.GetType().BaseType.ActualType().(parser.TupleType)
 	if !ok {
 		panic("Type of tuple literal was not `TupleType`")
 	}

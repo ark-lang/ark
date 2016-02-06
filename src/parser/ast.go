@@ -638,7 +638,22 @@ func (v NumericLiteral) String() string {
 }
 
 func (v NumericLiteral) GetType() *TypeReference {
-	return v.Type
+	if v.Type != nil {
+		return v.Type
+	} else if v.IsFloat {
+		typ := PRIMITIVE_f32
+		switch v.floatSizeHint {
+		case 'f':
+			typ = PRIMITIVE_f32
+		case 'd':
+			typ = PRIMITIVE_f64
+		case 'q':
+			typ = PRIMITIVE_f128
+		}
+		return &TypeReference{BaseType: typ}
+	} else {
+		return &TypeReference{BaseType: PRIMITIVE_int}
+	}
 }
 
 func (_ NumericLiteral) NodeName() string {
@@ -677,7 +692,14 @@ func (v StringLiteral) String() string {
 }
 
 func (v StringLiteral) GetType() *TypeReference {
-	return v.Type
+	if v.Type != nil {
+		return v.Type
+	} else if v.IsCString {
+		return &TypeReference{BaseType: PointerTo(&TypeReference{BaseType: PRIMITIVE_u8})}
+	} else {
+		return &TypeReference{BaseType: stringType}
+	}
+	return nil
 }
 
 func (_ StringLiteral) NodeName() string {
@@ -726,7 +748,18 @@ func (v TupleLiteral) String() string {
 }
 
 func (v TupleLiteral) GetType() *TypeReference {
-	return v.Type
+	if v.Type != nil {
+		return v.Type
+	}
+
+	tt := TupleType{Members: make([]*TypeReference, len(v.Members))}
+	for idx, mem := range v.Members {
+		if mem.GetType() == nil {
+			return nil
+		}
+		tt.Members[idx] = mem.GetType()
+	}
+	return &TypeReference{BaseType: tt}
 }
 
 func (_ TupleLiteral) NodeName() string {
@@ -953,7 +986,7 @@ func (v VariableAccessExpr) String() string {
 }
 
 func (v VariableAccessExpr) GetType() *TypeReference {
-	if v.Variable != nil {
+	if v.Variable != nil && v.Variable.Type != nil {
 		if len(v.Variable.Type.GenericArguments) > 0 {
 			return NewGenericContextFromTypeReference(v.Variable.Type).Replace(v.Variable.Type)
 		}

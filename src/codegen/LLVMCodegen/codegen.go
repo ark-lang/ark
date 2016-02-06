@@ -952,9 +952,9 @@ func (v *Codegen) genStringLiteral(n *parser.StringLiteral) llvm.Value {
 		backingArrayPointer = llvm.ConstBitCast(backingArray, llvm.PointerType(memberLLVMType, 0))
 	}
 
-	if n.Type.BaseType.ActualType().Equals(parser.ArrayOf(&parser.TypeReference{BaseType: parser.PRIMITIVE_u8})) {
+	if n.GetType().BaseType.ActualType().Equals(parser.ArrayOf(&parser.TypeReference{BaseType: parser.PRIMITIVE_u8})) {
 		lengthValue := llvm.ConstInt(v.primitiveTypeToLLVMType(parser.PRIMITIVE_uint), uint64(length), false)
-		structValue := llvm.Undef(v.typeRefToLLVMType(n.Type))
+		structValue := llvm.Undef(v.typeRefToLLVMType(n.GetType()))
 		structValue = v.builder().CreateInsertValue(structValue, lengthValue, 0, "")
 		structValue = v.builder().CreateInsertValue(structValue, backingArrayPointer, 1, "")
 		return structValue
@@ -1059,9 +1059,9 @@ func (v *Codegen) genTupleLiteral(n *parser.TupleLiteral) llvm.Value {
 	}
 
 	if n.ParentEnumLiteral != nil {
-		tupleLLVMType = v.typeRefToLLVMTypeWithGenericContext(&parser.TypeReference{BaseType: n.Type.BaseType, GenericArguments: n.ParentEnumLiteral.Type.GenericArguments}, gcon)
+		tupleLLVMType = v.typeRefToLLVMTypeWithGenericContext(&parser.TypeReference{BaseType: n.GetType().BaseType, GenericArguments: n.ParentEnumLiteral.Type.GenericArguments}, gcon)
 	} else {
-		tupleLLVMType = v.typeToLLVMType(n.Type.BaseType, gcon)
+		tupleLLVMType = v.typeToLLVMType(n.GetType().BaseType, gcon)
 	}
 
 	tupleValue := llvm.Undef(tupleLLVMType)
@@ -1138,10 +1138,10 @@ func (v *Codegen) genEnumLiteral(n *parser.EnumLiteral) llvm.Value {
 }
 
 func (v *Codegen) genNumericLiteral(n *parser.NumericLiteral) llvm.Value {
-	if n.Type.BaseType.IsFloatingType() {
-		return llvm.ConstFloat(v.typeRefToLLVMType(n.Type), n.AsFloat())
+	if n.GetType().BaseType.IsFloatingType() {
+		return llvm.ConstFloat(v.typeRefToLLVMType(n.GetType()), n.AsFloat())
 	} else {
-		return llvm.ConstInt(v.typeRefToLLVMType(n.Type), n.AsInt(), false)
+		return llvm.ConstInt(v.typeRefToLLVMType(n.GetType()), n.AsInt(), false)
 	}
 }
 
