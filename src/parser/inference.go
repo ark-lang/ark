@@ -276,15 +276,16 @@ func SubsType(typ *TypeReference, id int, what *TypeReference) *TypeReference {
 		}
 
 	case ReferenceType:
-		return &TypeReference{BaseType: ReferenceTo(SubsType(t.Referrer, id, what), t.IsMutable),
+		return &TypeReference{
+			BaseType:         ReferenceTo(SubsType(t.Referrer, id, what), t.IsMutable),
 			GenericArguments: typ.GenericArguments,
 		}
 
-		// The following are noops at the current time. For NamedType and EnumType
-		// this is only temporary, until we finalize implementaiton of generics
-		// in a solid maintainable way.
+	// The following are noops at the current time. For NamedType and EnumType
+	// this is only temporary, until we finalize implementaiton of generics
+	// in a solid maintainable way.
 	case PrimitiveType, StructType, *NamedType, InterfaceType, EnumType, *SubstitutionType:
-		return &TypeReference{BaseType: t, GenericArguments: typ.GenericArguments}
+		return typ
 
 	default:
 		panic("Unhandled type in Side.Subs(): " + reflect.TypeOf(t).String() + " (" + t.TypeName() + ")")
@@ -308,12 +309,13 @@ type AnnotatedTyped struct {
 }
 
 type Inferrer struct {
-	Submodule   *Submodule
-	Functions   []*Function
-	Typeds      map[int]*AnnotatedTyped
-	TypedLookup map[Typed]*AnnotatedTyped
-	Constraints []*Constraint
-	IdCount     int
+	Submodule         *Submodule
+	Functions         []*Function
+	Typeds            map[int]*AnnotatedTyped
+	TypedLookup       map[Typed]*AnnotatedTyped
+	SimpleConstraints []*Constraint
+	Constraints       []*Constraint
+	IdCount           int
 }
 
 func (v *Inferrer) err(msg string, args ...interface{}) {
@@ -382,6 +384,16 @@ func (v *Inferrer) AddIsConstraint(id int, typref *TypeReference) {
 	v.AddConstraint(c)
 }
 
+// AddSimpleIsConstraint creates and adds a constraint to the inferrer, where
+// the type given is guaranteed not to contain a type variable.
+func (v *Inferrer) AddSimpleIsConstraint(id int, typref *TypeReference) {
+	c := &Constraint{
+		Left:  Side{Id: id, SideType: IdentSide},
+		Right: Side{Type: typref, SideType: TypeSide},
+	}
+	v.SimpleConstraints = append(v.SimpleConstraints, c)
+}
+
 func (v *Inferrer) EnterScope() {}
 
 func (v *Inferrer) ExitScope() {}
@@ -423,12 +435,20 @@ func (v *Inferrer) Visit(node *Node) bool {
 	case *AssignStat:
 		a := v.HandleExpr(n.Access)
 		b := v.HandleExpr(n.Assignment)
-		v.AddEqualsConstraint(a, b)
+		if n.Access.GetType() != nil {
+			v.AddSimpleIsConstraint(b, n.Access.GetType())
+		} else {
+			v.AddEqualsConstraint(a, b)
+		}
 
 	case *BinopAssignStat:
 		a := v.HandleExpr(n.Access)
 		b := v.HandleExpr(n.Assignment)
-		v.AddEqualsConstraint(a, b)
+		if n.Access.GetType() != nil {
+			v.AddSimpleIsConstraint(b, n.Access.GetType())
+		} else {
+			v.AddEqualsConstraint(a, b)
+		}
 
 	case *CallStat:
 		v.HandleExpr(n.Call)
@@ -439,19 +459,19 @@ func (v *Inferrer) Visit(node *Node) bool {
 	case *IfStat:
 		for _, expr := range n.Exprs {
 			id := v.HandleExpr(expr)
-			v.AddIsConstraint(id, &TypeReference{BaseType: PRIMITIVE_bool})
+			v.AddSimpleIsConstraint(id, &TypeReference{BaseType: PRIMITIVE_bool})
 		}
 
 	case *ReturnStat:
 		if n.Value != nil {
 			id := v.HandleExpr(n.Value)
-			v.AddIsConstraint(id, v.Function().Type.Return)
+			v.AddSimpleIsConstraint(id, v.Function().Type.Return)
 		}
 
 	case *LoopStat:
 		if n.Condition != nil {
 			id := v.HandleExpr(n.Condition)
-			v.AddIsConstraint(id, &TypeReference{BaseType: PRIMITIVE_bool})
+			v.AddSimpleIsConstraint(id, &TypeReference{BaseType: PRIMITIVE_bool})
 		}
 
 	case *MatchStat:
@@ -490,36 +510,50 @@ func (v *Inferrer) HandleTyped(pos lexer.Position, typed Typed) int {
 		// sides must be of the same type, and that the result will be a bool
 		case BINOP_EQ, BINOP_NOT_EQ, BINOP_GREATER, BINOP_LESS,
 			BINOP_GREATER_EQ, BINOP_LESS_EQ:
-			v.AddEqualsConstraint(a, b)
-			v.AddIsConstraint(ann.Id, &TypeReference{BaseType: PRIMITIVE_bool})
+			if typed.Lhand.GetType() == nil || typed.Rhand.GetType() == nil {
+				v.AddEqualsConstraint(a, b)
+			}
+			v.AddSimpleIsConstraint(ann.Id, &TypeReference{BaseType: PRIMITIVE_bool})
 
 		// If we're dealing with bitwise and, or and xor we know that both
 		// sides must be the same type, and that the result will be of that
 		// type aswell.
 		case BINOP_BIT_AND, BINOP_BIT_OR, BINOP_BIT_XOR:
-			v.AddEqualsConstraint(a, b)
-			v.AddEqualsConstraint(ann.Id, a)
+			if typed.Lhand.GetType() != nil && typed.Rhand.GetType() != nil {
+				v.AddSimpleIsConstraint(ann.Id, typed.Lhand.GetType())
+			} else {
+				v.AddEqualsConstraint(a, b)
+				v.AddEqualsConstraint(ann.Id, a)
+			}
 
 		// If we're dealing with an arithmetic operation we know that both
 		// sides must be of the same type, and that the result will be of that
 		// type aswell.
 		// TODO: These assumptions don't hold once we add operator overloading
 		case BINOP_ADD, BINOP_SUB, BINOP_MUL, BINOP_DIV, BINOP_MOD:
-			v.AddEqualsConstraint(a, b)
-			v.AddEqualsConstraint(ann.Id, a)
+			if typed.Lhand.GetType() != nil && typed.Rhand.GetType() != nil {
+				v.AddSimpleIsConstraint(ann.Id, typed.Lhand.GetType())
+			} else {
+				v.AddEqualsConstraint(a, b)
+				v.AddEqualsConstraint(ann.Id, a)
+			}
 
 		// If we're dealing with a bit shift, we know that the result will be
 		// of the same type as the left hand side (the value being shifted).
 		case BINOP_BIT_LEFT, BINOP_BIT_RIGHT:
-			v.AddEqualsConstraint(a, b)
-			v.AddEqualsConstraint(ann.Id, a)
+			if typed.Lhand.GetType() != nil && typed.Rhand.GetType() != nil {
+				v.AddSimpleIsConstraint(ann.Id, typed.Lhand.GetType())
+			} else {
+				v.AddEqualsConstraint(a, b)
+				v.AddEqualsConstraint(ann.Id, a)
+			}
 
 		// If we're dealing with a logical operation, we know that both sides
 		// must be booleans, and that the result will also be a boolean.
 		case BINOP_LOG_AND, BINOP_LOG_OR:
-			v.AddIsConstraint(a, &TypeReference{BaseType: PRIMITIVE_bool})
-			v.AddIsConstraint(b, &TypeReference{BaseType: PRIMITIVE_bool})
-			v.AddIsConstraint(ann.Id, &TypeReference{BaseType: PRIMITIVE_bool})
+			v.AddSimpleIsConstraint(a, &TypeReference{BaseType: PRIMITIVE_bool})
+			v.AddSimpleIsConstraint(b, &TypeReference{BaseType: PRIMITIVE_bool})
+			v.AddSimpleIsConstraint(ann.Id, &TypeReference{BaseType: PRIMITIVE_bool})
 
 		default:
 			panic("Unhandled binary operator in type inference")
@@ -532,8 +566,8 @@ func (v *Inferrer) HandleTyped(pos lexer.Position, typed Typed) int {
 		// If we're dealing with a logical not the expression being not'ed must
 		// be a boolean, and the resul will also be a boolean.
 		case UNOP_LOG_NOT:
-			v.AddIsConstraint(id, &TypeReference{BaseType: PRIMITIVE_bool})
-			v.AddIsConstraint(ann.Id, &TypeReference{BaseType: PRIMITIVE_bool})
+			v.AddSimpleIsConstraint(id, &TypeReference{BaseType: PRIMITIVE_bool})
+			v.AddSimpleIsConstraint(ann.Id, &TypeReference{BaseType: PRIMITIVE_bool})
 
 		// If we're dealing with a bitwise not, the type will be the same type
 		// as the expression acted upon.
@@ -548,12 +582,27 @@ func (v *Inferrer) HandleTyped(pos lexer.Position, typed Typed) int {
 		}
 
 	case *CallExpr:
+		fnId := v.HandleExpr(typed.Function)
+		if typed.Function.GetType() != nil {
+			ft, ok := typed.Function.GetType().BaseType.ActualType().(FunctionType)
+			if ok && len(ft.GenericParameters) == 0 {
+				for idx, arg := range typed.Arguments {
+					id := v.HandleExpr(arg)
+					if idx >= len(ft.Parameters) {
+						continue
+					}
+					v.AddSimpleIsConstraint(id, ft.Parameters[idx])
+				}
+				v.AddSimpleIsConstraint(ann.Id, ft.Return)
+				break
+			}
+		}
+
 		// TODO generic arguments
 		if typed.ReceiverAccess != nil {
 			v.HandleExpr(typed.ReceiverAccess)
 		}
 
-		fnId := v.HandleExpr(typed.Function)
 		argIds := make([]int, len(typed.Arguments))
 		for idx, arg := range typed.Arguments {
 			argIds[idx] = v.HandleExpr(arg)
@@ -570,18 +619,28 @@ func (v *Inferrer) HandleTyped(pos lexer.Position, typed Typed) int {
 	// The type of a cast will always be the type casted to.
 	case *CastExpr:
 		v.HandleExpr(typed.Expr)
-		v.AddIsConstraint(ann.Id, typed.Type)
+		v.AddSimpleIsConstraint(ann.Id, typed.Type)
 
 	// Given an address of expr, we know that the result will be a pointer to
 	// the type of the access of which we took the address.
 	case *AddressOfExpr:
 		id := v.HandleExpr(typed.Access)
+		if typed.Access.GetType() != nil {
+			v.AddSimpleIsConstraint(ann.Id, &TypeReference{BaseType: PointerTo(typed.Access.GetType())})
+		}
 		v.AddIsConstraint(ann.Id, &TypeReference{BaseType: PointerTo(&TypeReference{BaseType: TypeVariable{Id: id}})})
 
 	// Given a deref, we know that the expression being dereferenced must be a
 	// pointer to the result of the dereference.
 	case *DerefAccessExpr:
 		id := v.HandleExpr(typed.Expr)
+		if typed.Expr.GetType() != nil {
+			addressee := getAdressee(typed.Expr.GetType().BaseType.ActualType())
+			if addressee != nil {
+				v.AddSimpleIsConstraint(ann.Id, addressee)
+				break
+			}
+		}
 		v.AddIsConstraint(id, &TypeReference{BaseType: PointerTo(&TypeReference{BaseType: TypeVariable{Id: ann.Id}})})
 
 	// A sizeof expr always return a uint
@@ -589,15 +648,16 @@ func (v *Inferrer) HandleTyped(pos lexer.Position, typed Typed) int {
 		if typed.Expr != nil {
 			v.HandleExpr(typed.Expr)
 		}
-		v.AddIsConstraint(ann.Id, &TypeReference{BaseType: PRIMITIVE_uint})
+		v.AddSimpleIsConstraint(ann.Id, &TypeReference{BaseType: PRIMITIVE_uint})
 
 	// Given a variable access, we know that the type of the access must be
 	// equal to the type of the variable being accessed.
 	case *VariableAccessExpr:
 		id := v.HandleTyped(typed.Pos(), typed.Variable)
-		v.AddEqualsConstraint(ann.Id, id)
 		if typed.Variable.Type != nil {
-			v.AddIsConstraint(ann.Id, typed.Variable.Type)
+			v.AddSimpleIsConstraint(ann.Id, typed.Variable.Type)
+		} else {
+			v.AddEqualsConstraint(ann.Id, id)
 		}
 
 	// Given a struct access we generate a constructor type. This type is used
@@ -618,12 +678,19 @@ func (v *Inferrer) HandleTyped(pos lexer.Position, typed Typed) int {
 	case *ArrayAccessExpr:
 		id := v.HandleExpr(typed.Array)
 		v.HandleExpr(typed.Subscript)
+		if typed.Array.GetType() != nil {
+			at, ok := typed.Array.GetType().BaseType.ActualType().(ArrayType)
+			if ok {
+				v.AddSimpleIsConstraint(id, at.MemberType)
+				break
+			}
+		}
 		v.AddIsConstraint(id, &TypeReference{BaseType: ArrayOf(&TypeReference{BaseType: TypeVariable{Id: ann.Id}})})
 
 	// An array length expression is always of type uint
 	case *ArrayLenExpr:
 		v.HandleExpr(typed.Expr)
-		v.AddIsConstraint(ann.Id, &TypeReference{BaseType: PRIMITIVE_uint})
+		v.AddSimpleIsConstraint(ann.Id, &TypeReference{BaseType: PRIMITIVE_uint})
 
 	// An enum literal must always come with a type, so we simply bind its type
 	// to it's type variable and to the variable from the contained literal
@@ -645,37 +712,33 @@ func (v *Inferrer) HandleTyped(pos lexer.Position, typed Typed) int {
 
 	// A bool literal will always be of type bool
 	case *BoolLiteral:
-		v.AddIsConstraint(ann.Id, &TypeReference{BaseType: PRIMITIVE_bool})
+		v.AddSimpleIsConstraint(ann.Id, &TypeReference{BaseType: PRIMITIVE_bool})
 
 	// A rune literal will always be of type rune
 	case *RuneLiteral:
-		v.AddIsConstraint(ann.Id, &TypeReference{BaseType: runeType})
+		v.AddSimpleIsConstraint(ann.Id, &TypeReference{BaseType: runeType})
 
 	// A composite literal is a mess to handle as it can be either an array or
 	// a struct, but in either case we go through and generate the type
 	// variables for the contained expression, and if we know the type of the
 	// literal we bind the generated type variables to their respective types.
 	case *CompositeLiteral:
-		ids := make([]int, len(typed.Values))
-		for idx, mem := range typed.Values {
-			ids[idx] = v.HandleExpr(mem)
-		}
-
 		if typed.Type != nil {
 			typ := typed.Type.BaseType.ActualType()
 			if at, ok := typ.(ArrayType); ok {
-				for _, id := range ids {
-					v.AddIsConstraint(id, at.MemberType)
+				for _, val := range typed.Values {
+					id := v.HandleExpr(val)
+					v.AddSimpleIsConstraint(id, at.MemberType)
 				}
 			} else if st, ok := typ.(StructType); ok {
-				for idx, id := range ids {
+				for idx, val := range typed.Values {
 					field := typed.Fields[idx]
 					mem := st.GetMember(field)
-					v.AddIsConstraint(id, mem.Type)
+					id := v.HandleExpr(val)
+					v.AddSimpleIsConstraint(id, mem.Type)
 				}
 			}
-
-			v.AddIsConstraint(ann.Id, typed.Type)
+			v.AddSimpleIsConstraint(ann.Id, typed.Type)
 		}
 
 	// Given a tuple literal we handle each member, and if we know the type of
@@ -692,13 +755,13 @@ func (v *Inferrer) HandleTyped(pos lexer.Position, typed Typed) int {
 			id := v.HandleExpr(mem)
 			nt[idx] = &TypeReference{BaseType: TypeVariable{Id: id}}
 			if ok {
-				v.AddIsConstraint(id, tt.Members[idx])
+				v.AddSimpleIsConstraint(id, tt.Members[idx])
 				nt[idx] = tt.Members[idx]
 			}
 		}
 
 		if typed.GetType() != nil {
-			v.AddIsConstraint(ann.Id, typed.GetType())
+			v.AddSimpleIsConstraint(ann.Id, typed.GetType())
 		} else {
 			v.AddIsConstraint(ann.Id, &TypeReference{BaseType: tupleOf(nt...)})
 		}
@@ -706,7 +769,7 @@ func (v *Inferrer) HandleTyped(pos lexer.Position, typed Typed) int {
 	// Given a variable, we bind it's type variable to it's type if its type is known
 	case *Variable:
 		if typed.GetType() != nil {
-			v.AddIsConstraint(ann.Id, typed.GetType())
+			v.AddSimpleIsConstraint(ann.Id, typed.GetType())
 		}
 
 	// A function access will always be the type of the function it accesses
@@ -716,15 +779,15 @@ func (v *Inferrer) HandleTyped(pos lexer.Position, typed Typed) int {
 			if len(typed.GenericArguments) > 0 {
 				gcon := NewGenericContext(getTypeGenericParameters(fnType.BaseType), typed.GenericArguments)
 				fnType = gcon.Replace(fnType)
-				v.AddIsConstraint(ann.Id, fnType)
+				v.AddSimpleIsConstraint(ann.Id, fnType)
 			}
 		} else {
-			v.AddIsConstraint(ann.Id, fnType)
+			v.AddSimpleIsConstraint(ann.Id, fnType)
 		}
 
 	// A lambda expr will always be the type of the function it is
 	case *LambdaExpr:
-		v.AddIsConstraint(ann.Id, &TypeReference{BaseType: typed.Function.Type})
+		v.AddSimpleIsConstraint(ann.Id, &TypeReference{BaseType: typed.Function.Type})
 
 	case *NumericLiteral, *StringLiteral:
 		// noop
@@ -745,6 +808,27 @@ func (v *Inferrer) Solve() []*Constraint {
 	// Create an array to hold all the final substitutions
 	var substitutions []*Constraint
 
+	// Run through the simple constraints
+	for _, cons := range v.SimpleConstraints {
+		stack, substitutions = v.SolveStep(stack, substitutions, false, cons)
+	}
+
+	// As long as we have a constraint on the stack
+	for len(stack) > 0 {
+		// Remove a constraint X = Y from the stack
+		element := stack[0]
+		stack[0], stack = nil, stack[1:]
+
+		stack, substitutions = v.SolveStep(stack, substitutions, true, element)
+	}
+
+	return substitutions
+}
+
+func (v *Inferrer) SolveStep(stackIn []*Constraint, subsIn []*Constraint, addSubs bool, element *Constraint) (stack []*Constraint, substitutions []*Constraint) {
+	stack = stackIn
+	substitutions = subsIn
+
 	// subsAll runs the substitues a given id for a new side, on all
 	// constraints, both on the stack and in the final substitutions
 	subsAll := func(id int, what Side) {
@@ -756,136 +840,133 @@ func (v *Inferrer) Solve() []*Constraint {
 		}
 	}
 
-	// As long as we have a constraint on the stack
-	for len(stack) > 0 {
-		// Remove a constraint X = Y from the stack
-		element := stack[0]
-		stack[0], stack = nil, stack[1:]
-		x, y := element.Left, element.Right
+	x, y := element.Left, element.Right
 
-		// 1. If X and Y are identical identifiers, do nothing.
-		if x.SideType == IdentSide && y.SideType == IdentSide && x.Id == y.Id {
-			continue
-		}
+	// 1. If X and Y are identical identifiers, do nothing.
+	if x.SideType == IdentSide && y.SideType == IdentSide && x.Id == y.Id {
+		return
+	}
 
-		// 2. If X is an identifier, replace all occurrences of X by Y both on
-		// the stack and in the substitution, and add X → Y to the substitution.
-		if x.SideType == IdentSide {
-			subsAll(x.Id, y)
+	// 2. If X is an identifier, replace all occurrences of X by Y both on
+	// the stack and in the substitution, and add X → Y to the substitution.
+	if x.SideType == IdentSide {
+		subsAll(x.Id, y)
+		if addSubs {
 			substitutions = append(substitutions, &Constraint{
 				Left: x, Right: y,
 			})
-			continue
 		}
-
-		// 3. If Y is an identifier, replace all occurrences of Y by X both on
-		// the stack and in the substitution, and add Y → X to the substitution.
-		if y.SideType == IdentSide {
-			subsAll(y.Id, x)
-			substitutions = append(substitutions, &Constraint{Left: y, Right: x})
-			continue
-		}
-
-		// 4. If X is of the form C(X_1, ..., X_n) for some constructor C, and
-		// Y is of the form C(Y_1, ..., Y_n) (i.e., it has the same constructor),
-		// then push X_i = Y_i for all 1 ≤ i ≤ n onto the stack.
-
-		// 4.0.1. Equal types
-		if x.SideType == TypeSide && y.SideType == TypeSide {
-			if x.Type.ActualTypesEqual(y.Type) {
-				continue
-			}
-		}
-
-		// 4.1. {^, &mut, &}x = {^, &mut, &}y
-		if x.SideType == TypeSide && y.SideType == TypeSide {
-			xAddressee := getAdressee(x.Type.BaseType)
-			yAddressee := getAdressee(y.Type.BaseType)
-			if xAddressee != nil && yAddressee != nil {
-				stack = append(stack, ConstraintFromTypes(xAddressee, yAddressee))
-				continue
-			}
-		}
-
-		// 4.2. []x = []y
-		if x.SideType == TypeSide && y.SideType == TypeSide {
-			atX, okX := x.Type.BaseType.ActualType().(ArrayType)
-			atY, okY := y.Type.BaseType.ActualType().(ArrayType)
-			if okX && okY {
-				stack = append(stack, ConstraintFromTypes(atX.MemberType, atY.MemberType))
-				continue
-			}
-		}
-
-		// 4.3 C(x1, ..., xn).d = C(y1, ... yn).d
-		// NOTE: This currently handles both struct members and tuple members
-		if x.SideType == TypeSide && y.SideType == TypeSide {
-			conX, okX := x.Type.BaseType.(*ConstructorType)
-			conY, okY := y.Type.BaseType.(*ConstructorType)
-			if okX && okY && conX.Id == conY.Id && len(conX.Args) == len(conY.Args) &&
-				conX.Data == conY.Data {
-				for idx, argX := range conX.Args {
-					argY := conY.Args[idx]
-					stack = append(stack, ConstraintFromTypes(argX, argY))
-				}
-				continue
-			}
-		}
-
-		// 4.4. fn(x1, ...) -> xn = fn(y1, ...) -> yn
-		if x.SideType == TypeSide && y.SideType == TypeSide {
-			xFunc, okX := x.Type.BaseType.ActualType().(FunctionType)
-			yFunc, okY := y.Type.BaseType.ActualType().(FunctionType)
-
-			if okX && okY {
-				// Determine minimum parameter list length.
-				// This is done to avoid problems with variadic arguments.
-				ln := len(xFunc.Parameters)
-				if len(yFunc.Parameters) < ln {
-					ln = len(yFunc.Parameters)
-				}
-
-				// Parameters
-				for idx := 0; idx < ln; idx++ {
-					stack = append(stack,
-						ConstraintFromTypes(xFunc.Parameters[idx], yFunc.Parameters[idx]))
-				}
-
-				// Return type
-				xRet := xFunc.Return
-				yRet := yFunc.Return
-				if xRet == nil {
-					xRet = &TypeReference{BaseType: PRIMITIVE_void}
-				}
-				if yRet == nil {
-					yRet = &TypeReference{BaseType: PRIMITIVE_void}
-				}
-
-				stack = append(stack, ConstraintFromTypes(xRet, yRet))
-				continue
-			}
-		}
-
-		// 4.5. (x1, ..., xn) = (y1, ..., yn)
-		if x.SideType == TypeSide && y.SideType == TypeSide {
-			xTup, okX := x.Type.BaseType.ActualType().(TupleType)
-			yTup, okY := y.Type.BaseType.ActualType().(TupleType)
-
-			if okX && okY && len(xTup.Members) == len(yTup.Members) {
-				for idx, memX := range xTup.Members {
-					memY := yTup.Members[idx]
-					stack = append(stack, ConstraintFromTypes(memX, memY))
-				}
-				continue
-			}
-		}
-
-		// 5. Otherwise, X and Y do not unify. Report an error.
-		// NOTE: We defer handling error until the semantic type check
-		// TODO: Verify if continuing is ok, or if we should return now
+		return
 	}
 
-	return substitutions
+	// 3. If Y is an identifier, replace all occurrences of Y by X both on
+	// the stack and in the substitution, and add Y → X to the substitution.
+	if y.SideType == IdentSide {
+		subsAll(y.Id, x)
+		if addSubs {
+			substitutions = append(substitutions, &Constraint{Left: y, Right: x})
+		}
+		return
+	}
+
+	// 4. If X is of the form C(X_1, ..., X_n) for some constructor C, and
+	// Y is of the form C(Y_1, ..., Y_n) (i.e., it has the same constructor),
+	// then push X_i = Y_i for all 1 ≤ i ≤ n onto the stack.
+
+	// 4.0.1. Equal types
+	if x.SideType == TypeSide && y.SideType == TypeSide {
+		if x.Type.ActualTypesEqual(y.Type) {
+			return
+		}
+	}
+
+	// 4.1. {^, &mut, &}x = {^, &mut, &}y
+	if x.SideType == TypeSide && y.SideType == TypeSide {
+		xAddressee := getAdressee(x.Type.BaseType)
+		yAddressee := getAdressee(y.Type.BaseType)
+		if xAddressee != nil && yAddressee != nil {
+			stack = append(stack, ConstraintFromTypes(xAddressee, yAddressee))
+			return
+		}
+	}
+
+	// 4.2. []x = []y
+	if x.SideType == TypeSide && y.SideType == TypeSide {
+		atX, okX := x.Type.BaseType.ActualType().(ArrayType)
+		atY, okY := y.Type.BaseType.ActualType().(ArrayType)
+		if okX && okY {
+			stack = append(stack, ConstraintFromTypes(atX.MemberType, atY.MemberType))
+			return
+		}
+	}
+
+	// 4.3 C(x1, ..., xn).d = C(y1, ... yn).d
+	// NOTE: This currently handles both struct members and tuple members
+	if x.SideType == TypeSide && y.SideType == TypeSide {
+		conX, okX := x.Type.BaseType.(*ConstructorType)
+		conY, okY := y.Type.BaseType.(*ConstructorType)
+		if okX && okY && conX.Id == conY.Id && len(conX.Args) == len(conY.Args) &&
+			conX.Data == conY.Data {
+			for idx, argX := range conX.Args {
+				argY := conY.Args[idx]
+				stack = append(stack, ConstraintFromTypes(argX, argY))
+			}
+			return
+		}
+	}
+
+	// 4.4. fn(x1, ...) -> xn = fn(y1, ...) -> yn
+	if x.SideType == TypeSide && y.SideType == TypeSide {
+		xFunc, okX := x.Type.BaseType.ActualType().(FunctionType)
+		yFunc, okY := y.Type.BaseType.ActualType().(FunctionType)
+
+		if okX && okY {
+			// Determine minimum parameter list length.
+			// This is done to avoid problems with variadic arguments.
+			ln := len(xFunc.Parameters)
+			if len(yFunc.Parameters) < ln {
+				ln = len(yFunc.Parameters)
+			}
+
+			// Parameters
+			for idx := 0; idx < ln; idx++ {
+				stack = append(stack,
+					ConstraintFromTypes(xFunc.Parameters[idx], yFunc.Parameters[idx]))
+			}
+
+			// Return type
+			xRet := xFunc.Return
+			yRet := yFunc.Return
+			if xRet == nil {
+				xRet = &TypeReference{BaseType: PRIMITIVE_void}
+			}
+			if yRet == nil {
+				yRet = &TypeReference{BaseType: PRIMITIVE_void}
+			}
+
+			stack = append(stack, ConstraintFromTypes(xRet, yRet))
+			return
+		}
+	}
+
+	// 4.5. (x1, ..., xn) = (y1, ..., yn)
+	if x.SideType == TypeSide && y.SideType == TypeSide {
+		xTup, okX := x.Type.BaseType.ActualType().(TupleType)
+		yTup, okY := y.Type.BaseType.ActualType().(TupleType)
+
+		if okX && okY && len(xTup.Members) == len(yTup.Members) {
+			for idx, memX := range xTup.Members {
+				memY := yTup.Members[idx]
+				stack = append(stack, ConstraintFromTypes(memX, memY))
+			}
+			return
+		}
+	}
+
+	// 5. Otherwise, X and Y do not unify. Report an error.
+	// NOTE: We defer handling error until the semantic type check
+	// TODO: Verify if continuing is ok, or if we should return now
+	return
 }
 
 // Finalize runs the actual unification, sets default types in cases where
@@ -903,8 +984,21 @@ func (v *Inferrer) Finalize() {
 		subList[ann.Id] = subs
 	}
 
+	// Add all the simple constraints
+	for _, subs := range v.SimpleConstraints {
+		if subs.Left.SideType != IdentSide {
+			panic("INTERNAL ERROR: Left side of substitution was not ident")
+		}
+		ann := v.Typeds[subs.Left.Id]
+		subList[ann.Id] = subs
+	}
+
 	// Apply all substitutions
-	for _, subs := range substitutions {
+	for _, subs := range subList {
+		if subs == nil {
+			continue
+		}
+
 		if subs.Left.SideType != IdentSide {
 			panic("INTERNAL ERROR: Left side of substitution was not ident")
 		}
@@ -1012,6 +1106,17 @@ func (v *Inferrer) Finalize() {
 			if ok1 && ok2 && nlr.IsFloat {
 				nll.SetType(nlr.GetType())
 				break
+			}
+
+			// Patch up the cases wher one side is a numeric literal and the
+			// other is not.
+			if ok1 {
+				nll.SetType(n.Rhand.GetType())
+				break
+			}
+
+			if ok2 {
+				nlr.SetType(n.Lhand.GetType())
 			}
 
 		case *CastExpr:

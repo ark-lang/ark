@@ -819,7 +819,6 @@ func (v *Codegen) genAccessGEP(n parser.Expr) llvm.Value {
 	switch access := n.(type) {
 	case *parser.VariableAccessExpr:
 		varType := v.getVariable(newvariableAndFnGenericInstance(access.Variable, curFngcon))
-		log.Debugln("codegen", "%v => %v", access.Variable, varType)
 		if varType.IsNil() {
 			panic("varType was nil")
 		}
