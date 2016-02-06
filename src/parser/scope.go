@@ -127,7 +127,7 @@ func (v *Scope) UseModuleAs(t *Module, name string) {
 func (v *Scope) GetIdent(name UnresolvedName) *Ident {
 	scope := v
 
-	for _, modname := range name.ModuleNames {
+	for idx, modname := range name.ModuleNames {
 		module, ok := scope.UsedModules[modname]
 		for !ok && scope.Outer != nil {
 			scope = scope.Outer
@@ -135,8 +135,21 @@ func (v *Scope) GetIdent(name UnresolvedName) *Ident {
 		}
 
 		if !ok {
-			scope = v
-			break
+			// Check for the case of the static method
+			if idx == len(name.ModuleNames)-1 {
+				lastName, method := name.Split()
+				if r := v.GetIdent(lastName); r != nil && r.Type == IDENT_TYPE {
+					typ := r.Value.(Type)
+					if nt, ok := typ.(*NamedType); ok {
+						fn := nt.GetStaticMethod(method)
+						if fn != nil {
+							return &Ident{IDENT_FUNCTION, fn, true, scope}
+						}
+					}
+				}
+			}
+
+			return nil
 		}
 
 		scope = module.ModScope

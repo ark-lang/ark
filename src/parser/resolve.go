@@ -129,7 +129,7 @@ func (v *Resolver) ResolveTopLevelDecls() {
 				}
 
 			case *FunctionDecl:
-				if node.Function.Receiver == nil {
+				if node.Function.Receiver == nil && node.Function.StaticReceiverType == nil {
 					scope := v.curScope
 					if node.Function.Type.Attrs().Contains("c") {
 						scope = v.cModule.ModScope
@@ -271,7 +271,7 @@ func (v *Resolver) ResolveNode(node *Node) {
 		if n.Function.StaticReceiverType != nil {
 			n.Function.StaticReceiverType = v.ResolveType(n, n.Function.StaticReceiverType)
 			if checkReceiverType(v, n, n.Function.StaticReceiverType, "static receiver") {
-				n.Function.StaticReceiverType.(*NamedType).addMethod(n.Function)
+				n.Function.StaticReceiverType.(*NamedType).addStaticMethod(n.Function)
 			}
 		}
 

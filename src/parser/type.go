@@ -250,14 +250,19 @@ func (v StructType) ActualType() Type {
 // NamedType
 
 type NamedType struct {
-	Name         string
-	Type         Type
-	ParentModule *Module
-	Methods      []*Function
+	Name          string
+	Type          Type
+	ParentModule  *Module
+	Methods       []*Function
+	StaticMethods []*Function
 }
 
 func (v *NamedType) addMethod(fn *Function) {
 	v.Methods = append(v.Methods, fn)
+}
+
+func (v *NamedType) addStaticMethod(fn *Function) {
+	v.StaticMethods = append(v.StaticMethods, fn)
 }
 
 func (v *NamedType) GetMethod(name string) *Function {
@@ -267,6 +272,15 @@ func (v *NamedType) GetMethod(name string) *Function {
 		}
 	}
 
+	return nil
+}
+
+func (v *NamedType) GetStaticMethod(name string) *Function {
+	for _, fn := range v.StaticMethods {
+		if fn.Name == name {
+			return fn
+		}
+	}
 	return nil
 }
 
