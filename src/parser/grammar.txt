@@ -1,9 +1,0 @@
-parse ::= { toplevelDirective | decl } ;
-
-toplevelDirective ::= '#' (linkDirective | useDirective) ;
-linkDirective ::= 'link' string ;
-useDirective ::= 'use' name ;
-
-node ::= decl | conditionalStat | blockStat | stat ;
-
-attributes ::= {'[' ident ['=' string] ']'} ;
