@@ -16,12 +16,12 @@ pub func print(message: string) -> int {
 	return C::printf(c"%.*s", len(message), &message[0]);
 }
 
-pub func printInt(num: int) -> int {
+pub func print_int(num: int) -> int {
 	// use z for register-sized integer
 	return C::printf(c"%zd", num);
 }
 
-pub func printUint(num: uint) -> int {
+pub func print_uint(num: uint) -> int {
 	// use z for register-sized integer
 	return C::printf(c"%zu", num);
 }

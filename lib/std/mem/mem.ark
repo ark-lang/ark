@@ -14,7 +14,7 @@ type RawArray struct {
     ptr: ^u8,
 };
 
-pub func allocArray<T>(num: uint) -> []T {
+pub func alloc_array<T>(num: uint) -> []T {
     ptr := C::malloc(sizeof(T) * num);
 
     rawPtr := (^u8)(ptr);
@@ -29,7 +29,7 @@ pub func allocArray<T>(num: uint) -> []T {
     return ^arrPtr;
 }
 
-pub func reallocArray<T>(array: []T, newNum: uint) -> []T {
+pub func realloc_array<T>(array: []T, newNum: uint) -> []T {
     mut rawArray := ^((^RawArray)(&array));
 
     rawArray.ptr = (^u8)(C::realloc((^C::void)(rawArray.ptr), newNum));
@@ -42,7 +42,7 @@ pub func free<T>(ptr: ^T) {
     C::free((^C::void)(ptr));
 }
 
-pub func freeArray<T>(array: []T) {
+pub func free_array<T>(array: []T) {
     mut rawArray := ^((^RawArray)(&array));
     C::free((^C::void)(rawArray.ptr));
 }

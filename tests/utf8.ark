@@ -39,14 +39,14 @@ pub func main() -> int {
             return 1;
         }
 
-        runeArray := mem::allocArray<rune>(num_runes);
+        runeArray := mem::alloc_array<rune>(num_runes);
         utf8::decode(runeArray, []u8(test_strings[i]));
         num_bytes := utf8::num_bytes(runeArray);
         if num_bytes != len(test_strings[i]) {
             return 2;
         }
 
-        byteArray := mem::allocArray<u8>(num_bytes);
+        byteArray := mem::alloc_array<u8>(num_bytes);
         utf8::encode(byteArray, runeArray);
         mut t: uint = 0;
         for t < num_bytes {

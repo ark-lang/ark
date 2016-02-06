@@ -59,10 +59,11 @@ pub func main() -> int {
     C::printf(c"^n = %d\n", ^n);
     mem::free<int>(n);
 
-    mut arr := mem::allocArray<int>(5);
+    mut arr := mem::alloc_array<int>(5);
     arr[4] = 4;
-    arr = mem::reallocArray<int>(arr, 10);
+    arr = mem::realloc_array<int>(arr, 10);
     arr[9] = 100;
+    mem::free_array<int>(arr);
 
 	return 0;
 }
