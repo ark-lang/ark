@@ -1,0 +1,63 @@
+#use std::io
+#use std::mem
+#use std::unicode::utf8
+
+test_strings := []string{
+    "hello",
+    "Test string 1234\n",
+    "こんにちは",
+    "東京",
+    "你好",
+    "weiß",
+    "ЁЂЃЄЅІЇЈЉЊЋЌЍЎЏАБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдежзийклмнопрстуфхцчшщъыьэюя",
+    "❤️ 💔 💌 💕 💞 💓 💗 💖 💘 💝 💟 💜 💛 💚 💙",
+    "1;DROP TABLE users",
+    "울란바토르",
+    "ﾟ･✿ヾ╲(｡◕‿◕｡)╱✿･ﾟ",
+};
+
+test_string_num_runes := []uint{
+    5,
+    17,
+    5,
+    2,
+    2,
+    4,
+    79,
+    30,
+    18,
+    5,
+    16,
+};
+
+pub func main() -> int {
+    mut i: uint = 0;
+    for i < len(test_strings) {
+
+        num_runes := utf8::num_runes([]u8(test_strings[i]));
+        if num_runes != test_string_num_runes[i] {
+            return 1;
+        }
+
+        runeArray := mem::allocArray<rune>(num_runes);
+        utf8::decode(runeArray, []u8(test_strings[i]));
+        num_bytes := utf8::num_bytes(runeArray);
+        if num_bytes != len(test_strings[i]) {
+            return 2;
+        }
+
+        byteArray := mem::allocArray<u8>(num_bytes);
+        utf8::encode(byteArray, runeArray);
+        mut t: uint = 0;
+        for t < num_bytes {
+            if byteArray[t] != test_strings[i][t] {
+                return 3;
+            }
+            t += 1;
+        }
+
+        i += 1;
+    }
+
+    return 0;
+}

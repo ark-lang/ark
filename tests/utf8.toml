@@ -1,0 +1,13 @@
+Name       = "utf8"
+Sourcefile = "utf8.ark"
+
+CompilerArgs = []
+RunArgs      = []
+
+CompilerError = 0
+RunError      = 0
+
+Input = ""
+
+CompilerOutput = ""
+RunOutput      = ""
