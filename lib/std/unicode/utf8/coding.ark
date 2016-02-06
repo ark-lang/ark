@@ -1,0 +1,129 @@
+
+trailing_bytes := []u8{
+	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+    2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2, 3,3,3,3,3,3,3,3,4,4,4,4,5,5,5,5
+};
+
+offsets := []u32{
+	0x00000000, 0x00003080, 0x000E2080,
+    0x03C82080, 0xFA082080, 0x82082080
+};
+
+pub func num_runes(src: []u8) -> uint {
+	mut i := 0;
+	mut num := 0;
+
+	for i < len(src) {
+		nb := uint(trailing_bytes[src[i]]);
+		i += nb + 1;
+		num += 1;
+	}
+
+	return num;
+}
+
+pub func num_bytes(src: []rune) -> uint {
+	mut i := 0;
+	mut num := 0;
+
+	for i < len(src) {
+		ch := src[i];
+		if ch < 0x80 {
+			num += 1;
+		} else if ch < 0x800 {
+			num += 2;
+        } else if ch < 0x10000 {
+        	num += 3;
+        } else if ch < 0x110000 {
+        	num += 4;
+        }
+        i += 1;
+	}
+	return num;
+}
+
+pub func decode(mut dest: []rune, src: []u8) -> uint {
+	mut src_idx := 0;
+	mut dest_idx := 0;
+
+	for dest_idx < len(dest) {
+		nb := uint(trailing_bytes[src[src_idx]]);
+		if src_idx + nb >= len(src) {
+			// Src to short, so we can't read more
+			return dest_idx;
+		}
+
+		mut ch: rune = 0;
+		if nb >= 3 {
+			ch += rune(src[src_idx]); ch <<= 6;
+			src_idx += 1;
+		} 
+		if nb >= 2 {
+			ch += rune(src[src_idx]); ch <<= 6;
+			src_idx += 1;
+		} 
+		if nb >= 1 {
+			ch += rune(src[src_idx]); ch <<= 6;
+			src_idx += 1;
+		}
+		ch += rune(src[src_idx]);
+		src_idx += 1;
+
+		ch -= rune(offsets[nb]);
+		dest[dest_idx] = ch;
+		dest_idx += 1;
+	}
+
+	return dest_idx;
+}
+
+pub func encode(mut dest: []u8, src: []rune) -> uint {
+	mut src_idx := 0;
+	mut dest_idx := 0;
+	for src_idx < len(src) {
+		ch := src[src_idx];
+		if ch < 0x80 {
+			if dest_idx >= len(dest) {
+				return dest_idx;
+			}
+			dest[dest_idx] = u8(ch);
+			dest_idx += 1;
+		}
+		else if ch < 0x800 {
+			if dest_idx >= len(dest)-1 {
+				return dest_idx;
+			}
+			dest[dest_idx+0] = u8((ch>>6) | 0xC0);
+            dest[dest_idx+1] = u8((ch & 0x3F) | 0x80);
+            dest_idx += 2;
+        }
+        else if ch < 0x10000 {
+			if dest_idx >= len(dest)-2 {
+				return dest_idx;
+			}
+            dest[dest_idx+0] = u8((ch>>12) | 0xE0);
+            dest[dest_idx+1] = u8(((ch>>6) & 0x3F) | 0x80);
+            dest[dest_idx+2] = u8((ch & 0x3F) | 0x80);
+            dest_idx += 3;
+        }
+        else if ch < 0x110000 {
+			if dest_idx >= len(dest)-3 {
+				return dest_idx;
+			}
+            dest[dest_idx+0] = u8((ch>>18) | 0xF0);
+            dest[dest_idx+1] = u8(((ch>>12) & 0x3F) | 0x80);
+            dest[dest_idx+2] = u8(((ch>>6) & 0x3F) | 0x80);
+            dest[dest_idx+3] = u8((ch & 0x3F) | 0x80);
+            dest_idx += 4;
+        }
+        src_idx += 1;
+	}
+
+	return dest_idx;
+}

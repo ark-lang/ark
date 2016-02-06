@@ -1,0 +1,6 @@
+#use io
+
+pub func main() -> int {
+	io::println(c"hello world");
+	return 0;
+}
