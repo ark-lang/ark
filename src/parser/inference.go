@@ -17,22 +17,22 @@ type TypeVariable struct {
 	Id int
 }
 
-func (v *TypeVariable) Equals(other Type) bool {
-	if ot, ok := other.(*TypeVariable); ok {
+func (v TypeVariable) Equals(other Type) bool {
+	if ot, ok := other.(TypeVariable); ok {
 		return v.Id == ot.Id
 	}
 	return false
 }
 
-func (v *TypeVariable) String() string {
+func (v TypeVariable) String() string {
 	return NewASTStringer("TypeVariable").AddType(v).Finish()
 }
 
-func (v *TypeVariable) TypeName() string {
+func (v TypeVariable) TypeName() string {
 	return fmt.Sprintf("$%d", v.Id)
 }
 
-func (v *TypeVariable) ActualType() Type {
+func (v TypeVariable) ActualType() Type {
 	return v
 }
 
@@ -135,10 +135,10 @@ type Side struct {
 }
 
 // SideFromType creates a new Side from the given type.
-// If the given type is a *TypeVariable an IdentSide will be created, otherwise
+// If the given type is a TypeVariable an IdentSide will be created, otherwise
 // a TypeSide will be created.
 func SideFromType(t *TypeReference) Side {
-	if tv, ok := t.BaseType.(*TypeVariable); ok {
+	if tv, ok := t.BaseType.(TypeVariable); ok {
 		return Side{SideType: IdentSide, Id: tv.Id}
 	}
 	return Side{SideType: TypeSide, Type: t}
@@ -163,7 +163,7 @@ func (v Side) Subs(id int, what Side) Side {
 		if what.SideType == TypeSide {
 			nt = SubsType(v.Type, id, what.Type)
 		} else {
-			nt = SubsType(v.Type, id, &TypeReference{BaseType: &TypeVariable{Id: what.Id}})
+			nt = SubsType(v.Type, id, &TypeReference{BaseType: TypeVariable{Id: what.Id}})
 		}
 		return Side{SideType: TypeSide, Type: nt}
 
@@ -176,7 +176,7 @@ func (v Side) Subs(id int, what Side) Side {
 // type variable by `what`
 func SubsType(typ *TypeReference, id int, what *TypeReference) *TypeReference {
 	switch t := typ.BaseType.(type) {
-	case *TypeVariable:
+	case TypeVariable:
 		if t.Id == id {
 			return what
 		}
@@ -561,9 +561,9 @@ func (v *Inferrer) HandleTyped(pos lexer.Position, typed Typed) int {
 
 		// Construct a function type containing the generated type variables.
 		// This will be used to infer the types of the arguments.
-		fnType := FunctionType{Return: &TypeReference{BaseType: &TypeVariable{Id: ann.Id}}}
+		fnType := FunctionType{Return: &TypeReference{BaseType: TypeVariable{Id: ann.Id}}}
 		for _, argId := range argIds {
-			fnType.Parameters = append(fnType.Parameters, &TypeReference{BaseType: &TypeVariable{Id: argId}})
+			fnType.Parameters = append(fnType.Parameters, &TypeReference{BaseType: TypeVariable{Id: argId}})
 		}
 		v.AddIsConstraint(fnId, &TypeReference{BaseType: fnType})
 
@@ -576,13 +576,13 @@ func (v *Inferrer) HandleTyped(pos lexer.Position, typed Typed) int {
 	// the type of the access of which we took the address.
 	case *AddressOfExpr:
 		id := v.HandleExpr(typed.Access)
-		v.AddIsConstraint(ann.Id, &TypeReference{BaseType: PointerTo(&TypeReference{BaseType: &TypeVariable{Id: id}})})
+		v.AddIsConstraint(ann.Id, &TypeReference{BaseType: PointerTo(&TypeReference{BaseType: TypeVariable{Id: id}})})
 
 	// Given a deref, we know that the expression being dereferenced must be a
 	// pointer to the result of the dereference.
 	case *DerefAccessExpr:
 		id := v.HandleExpr(typed.Expr)
-		v.AddIsConstraint(id, &TypeReference{BaseType: PointerTo(&TypeReference{BaseType: &TypeVariable{Id: ann.Id}})})
+		v.AddIsConstraint(id, &TypeReference{BaseType: PointerTo(&TypeReference{BaseType: TypeVariable{Id: ann.Id}})})
 
 	// A sizeof expr always return a uint
 	case *SizeofExpr:
@@ -608,7 +608,7 @@ func (v *Inferrer) HandleTyped(pos lexer.Position, typed Typed) int {
 		v.AddIsConstraint(ann.Id, &TypeReference{
 			BaseType: &ConstructorType{
 				Id:   ConstructorStructMember,
-				Args: []*TypeReference{&TypeReference{BaseType: &TypeVariable{Id: id}}},
+				Args: []*TypeReference{&TypeReference{BaseType: TypeVariable{Id: id}}},
 				Data: typed.Member,
 			},
 		})
@@ -618,7 +618,7 @@ func (v *Inferrer) HandleTyped(pos lexer.Position, typed Typed) int {
 	case *ArrayAccessExpr:
 		id := v.HandleExpr(typed.Array)
 		v.HandleExpr(typed.Subscript)
-		v.AddIsConstraint(id, &TypeReference{BaseType: ArrayOf(&TypeReference{BaseType: &TypeVariable{Id: ann.Id}})})
+		v.AddIsConstraint(id, &TypeReference{BaseType: ArrayOf(&TypeReference{BaseType: TypeVariable{Id: ann.Id}})})
 
 	// An array length expression is always of type uint
 	case *ArrayLenExpr:
@@ -690,7 +690,7 @@ func (v *Inferrer) HandleTyped(pos lexer.Position, typed Typed) int {
 		nt := make([]*TypeReference, len(typed.Members))
 		for idx, mem := range typed.Members {
 			id := v.HandleExpr(mem)
-			nt[idx] = &TypeReference{BaseType: &TypeVariable{Id: id}}
+			nt[idx] = &TypeReference{BaseType: TypeVariable{Id: id}}
 			if ok {
 				v.AddIsConstraint(id, tt.Members[idx])
 				nt[idx] = tt.Members[idx]
