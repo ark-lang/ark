@@ -128,16 +128,18 @@ func (v *Scope) GetIdent(name UnresolvedName) *Ident {
 	scope := v
 
 	for _, modname := range name.ModuleNames {
-		if module, ok := scope.UsedModules[modname]; ok {
-			//TODO: We might need to do somethign with UseScope here
-			scope = module.ModScope
-		} else if scope.Outer != nil {
-			if module, ok := scope.Outer.UsedModules[modname]; ok {
-				scope = module.ModScope
-			}
-		} else {
-			return nil
+		module, ok := scope.UsedModules[modname]
+		for !ok && scope.Outer != nil {
+			scope = scope.Outer
+			module, ok = scope.UsedModules[modname]
 		}
+
+		if !ok {
+			scope = v
+			break
+		}
+
+		scope = module.ModScope
 	}
 
 	if r := scope.Idents[name.Name]; r != nil {
