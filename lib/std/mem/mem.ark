@@ -29,13 +29,20 @@ pub func alloc_array<T>(num: uint) -> []T {
     return ^arrPtr;
 }
 
-pub func realloc_array<T>(array: []T, newNum: uint) -> []T {
-    mut rawArray := ^((^RawArray)(&array));
+pub func copy_array<T>(mut dest: []T, src: []T, num: uint) {
+    mut max := num;
+    if max > len(dest) {
+        max = len(dest);
+    }
+    if max > len(src) {
+        max = len(src);
+    }
 
-    rawArray.ptr = (^u8)(C::realloc((^C::void)(rawArray.ptr), newNum));
-    rawArray.size = newNum;
-
-    return ^((^[]T)(&rawArray));
+    mut i: uint = 0;
+    for i < max {
+        dest[i] = src[i];
+        i += 1;
+    }
 }
 
 pub func free<T>(ptr: ^T) {

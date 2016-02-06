@@ -61,8 +61,6 @@ pub func main() -> int {
 
     mut arr := mem::alloc_array<int>(5);
     arr[4] = 4;
-    arr = mem::realloc_array<int>(arr, 10);
-    arr[9] = 100;
     mem::free_array<int>(arr);
 
 	return 0;
