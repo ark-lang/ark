@@ -994,7 +994,7 @@ func (v *Inferrer) Finalize() {
 				fae := &FunctionAccessExpr{
 					Function:         fn,
 					GenericArguments: sae.GenericArguments,
-					ParentFunction:   v.Function(),
+					ParentFunction:   sae.ParentFunction,
 				}
 				fae.setPos(sae.Pos())
 				n.Function = fae

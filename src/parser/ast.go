@@ -977,6 +977,9 @@ type StructAccessExpr struct {
 	Member string
 
 	GenericArguments []*TypeReference // TODO check no gen args if variable, not function
+
+	// Needed for when we convert an struct access to function access
+	ParentFunction *Function
 }
 
 func (_ StructAccessExpr) exprNode() {}

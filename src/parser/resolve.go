@@ -500,13 +500,15 @@ func (v *Resolver) ResolveNode(node *Node) {
 			*node = cast
 		}
 
+	case *StructAccessExpr:
+		n.ParentFunction = v.currentFunction()
+
 	// No-Ops
 	case *Block, *DefaultMatchBranch, *UseDirective, *AssignStat, *BinopAssignStat,
 		*BlockStat, *BreakStat, *CallStat, *DeferStat, *IfStat, *MatchStat,
 		*LoopStat, *NextStat, *ReturnStat, *AddressOfExpr, *ArrayAccessExpr,
-		*BinaryExpr, *DerefAccessExpr, *UnaryExpr, *StructAccessExpr,
-		*BoolLiteral, *NumericLiteral, *RuneLiteral, *StringLiteral,
-		*TupleLiteral:
+		*BinaryExpr, *DerefAccessExpr, *UnaryExpr, *BoolLiteral,
+		*NumericLiteral, *RuneLiteral, *StringLiteral, *TupleLiteral:
 		break
 
 	default:
