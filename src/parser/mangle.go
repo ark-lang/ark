@@ -130,7 +130,7 @@ func (v Module) MangledName(typ MangleType) string {
 	}
 }
 
-func (v Function) MangledName(typ MangleType, gcon *GenericContext) string {
+func (v Function) MangledNameWithReceiver(typ MangleType, receiver Type, gcon *GenericContext) string {
 	if v.Name == "main" {
 		return "main" // TODO make sure only one main function
 	}
@@ -138,7 +138,7 @@ func (v Function) MangledName(typ MangleType, gcon *GenericContext) string {
 	switch typ {
 	case MANGLE_ARK_UNSTABLE:
 		var prefix string
-		if v.Type.Receiver != nil {
+		if receiver != nil {
 			prefix = "m"
 		} else if v.StaticReceiverType != nil {
 			prefix = "s"
@@ -151,8 +151,8 @@ func (v Function) MangledName(typ MangleType, gcon *GenericContext) string {
 
 		result += TypeReferenceMangledName(typ, v.Type.Return, gcon)
 
-		if v.Type.Receiver != nil {
-			result = TypeReferenceMangledName(typ, &TypeReference{BaseType: v.Type.Receiver}, gcon) + result
+		if receiver != nil {
+			result = TypeReferenceMangledName(typ, &TypeReference{BaseType: receiver}, gcon) + result
 		} else if v.StaticReceiverType != nil {
 			result = TypeReferenceMangledName(typ, &TypeReference{BaseType: v.StaticReceiverType}, gcon) + result
 		}
@@ -163,6 +163,10 @@ func (v Function) MangledName(typ MangleType, gcon *GenericContext) string {
 	default:
 		panic("")
 	}
+}
+
+func (v Function) MangledName(typ MangleType, gcon *GenericContext) string {
+	return v.MangledNameWithReceiver(typ, v.Type.Receiver, gcon)
 }
 
 func (v Variable) MangledName(typ MangleType) string {

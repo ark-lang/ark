@@ -940,7 +940,8 @@ func (_ CallExpr) NodeName() string {
 type FunctionAccessExpr struct {
 	nodePos
 
-	Function *Function
+	Function       *Function
+	ReceiverAccess Expr // should be same as on the callexpr
 
 	GenericArguments []*TypeReference
 

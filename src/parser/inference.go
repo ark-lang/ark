@@ -1099,6 +1099,7 @@ func (v *Inferrer) Finalize() {
 
 				fae := &FunctionAccessExpr{
 					Function:         fn,
+					ReceiverAccess:   n.ReceiverAccess,
 					GenericArguments: sae.GenericArguments,
 					ParentFunction:   sae.ParentFunction,
 				}

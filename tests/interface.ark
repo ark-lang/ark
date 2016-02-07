@@ -1,13 +1,24 @@
 #use std::io
 
+// TODO: make sure interfaces play nice with methods on generic types, eg:
+// func (v: Stack<T>) do() {
+//     io::print_int(sizeof(T));
+// }
+
 type IDoer interface {
     func do(),
 };
 
-type Doer struct {};
+type Doer1 struct {};
 
-func (v: Doer) do() {
+func (v: Doer1) do() {
+    io::println("did1!");
+}
 
+type Doer2 struct {};
+
+func (v: Doer2) do() {
+    io::println("did2!");
 }
 
 func runDoer<T: IDoer>(t: T) {
@@ -16,6 +27,12 @@ func runDoer<T: IDoer>(t: T) {
 
 pub func main() -> int {
     io::println("interface test");
+
+    doer1 := Doer1{};
+    doer2 := Doer2{};
+
+    runDoer<Doer1>(doer1);
+    runDoer<Doer2>(doer2);
 
     return 0;
 }

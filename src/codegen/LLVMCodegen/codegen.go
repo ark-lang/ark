@@ -784,7 +784,12 @@ func (v *Codegen) genAccessExpr(n parser.Expr) llvm.Value {
 		gcon := parser.NewGenericContext(fae.Function.Type.GenericParameters, fae.GenericArguments)
 		gcon.Outer = v.currentFunction().gcon
 
-		fnName := fae.Function.MangledName(parser.MANGLE_ARK_UNSTABLE, gcon)
+		var fnName string
+		if fae.ReceiverAccess != nil {
+			fnName = fae.Function.MangledNameWithReceiver(parser.MANGLE_ARK_UNSTABLE, fae.ReceiverAccess.GetType().BaseType, gcon)
+		} else {
+			fnName = fae.Function.MangledName(parser.MANGLE_ARK_UNSTABLE, gcon)
+		}
 		if fae.Function.Type.Attrs().Contains("nomangle") {
 			fnName = fae.Function.Name
 		}
@@ -1425,15 +1430,14 @@ func (v *Codegen) genCallExprWithArgs(n *parser.CallExpr, args []llvm.Value) llv
 }
 
 func (v *Codegen) genCallExpr(n *parser.CallExpr) llvm.Value {
-	fnType := n.Function.GetType().BaseType.(parser.FunctionType)
 	numArgs := len(n.Arguments)
-	if fnType.Receiver != nil {
+	if n.ReceiverAccess != nil {
 		numArgs++
 	}
 
 	args := make([]llvm.Value, 0, numArgs)
 
-	if fnType.Receiver != nil {
+	if n.ReceiverAccess != nil {
 		args = append(args, v.genExpr(n.ReceiverAccess))
 	}
 
