@@ -138,7 +138,7 @@ func stringToUnOpType(s string) UnOpType {
 	case "-":
 		return UNOP_NEGATIVE
 
-	case "^":
+	case "@":
 		return UNOP_DEREF
 
 	default:
@@ -158,7 +158,7 @@ func (v UnOpType) OpString() string {
 		return "-"
 
 	case UNOP_DEREF:
-		return "^"
+		return "@"
 
 	default:
 		return "ERR"

@@ -7,8 +7,8 @@ func getGlob() -> ^int {
 }
 
 func printGlob() {
-    C::printf(c"%d\n", ^getGlob());
-    C::printf(c"%d\n", ^(getGlob()));
+    C::printf(c"%d\n", @getGlob());
+    C::printf(c"%d\n", @(getGlob()));
 }
 
 pub func main() -> int {

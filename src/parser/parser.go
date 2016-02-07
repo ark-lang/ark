@@ -1360,31 +1360,6 @@ func (v *parser) parseStructMember() *StructMemberNode {
 	return res
 }
 
-func (v *parser) parseReferenceType() *ReferenceTypeNode {
-	defer un(trace(v, "referencetype"))
-
-	if !v.tokenMatches(0, lexer.TOKEN_OPERATOR, "&") {
-		return nil
-	}
-	startToken := v.consumeToken()
-
-	mutable := false
-	if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_MUT) {
-		v.consumeToken()
-		mutable = true
-	}
-
-	target := v.parseTypeReference(true, false, true)
-	if target == nil {
-		v.err("Expected valid type after '&' in reference type")
-	}
-
-	res := &ReferenceTypeNode{Mutable: mutable, TargetType: target}
-	res.SetWhere(lexer.NewSpan(startToken.Where.Start(), target.Where().End()))
-
-	return res
-}
-
 func (v *parser) parseFunctionType() *FunctionTypeNode {
 	defer un(trace(v, "functiontype"))
 
@@ -1466,20 +1441,50 @@ func (v *parser) parseFunctionType() *FunctionTypeNode {
 func (v *parser) parsePointerType() *PointerTypeNode {
 	defer un(trace(v, "pointertype"))
 
-	if !v.tokenMatches(0, lexer.TOKEN_OPERATOR, "^") {
+	mutable, target, where := v.parsePointerlikeType("^")
+	if target == nil {
 		return nil
+	}
+
+	res := &PointerTypeNode{Mutable: mutable, TargetType: target}
+	res.SetWhere(where)
+	return res
+}
+
+func (v *parser) parseReferenceType() *ReferenceTypeNode {
+	defer un(trace(v, "referencetype"))
+
+	mutable, target, where := v.parsePointerlikeType("&")
+	if target == nil {
+		return nil
+	}
+
+	res := &ReferenceTypeNode{Mutable: mutable, TargetType: target}
+	res.SetWhere(where)
+	return res
+}
+
+func (v *parser) parsePointerlikeType(symbol string) (mutable bool, target *TypeReferenceNode, where lexer.Span) {
+	defer un(trace(v, "pointerliketype"))
+
+	if !v.tokenMatches(0, lexer.TOKEN_OPERATOR, symbol) {
+		return false, nil, lexer.Span{}
 	}
 	startToken := v.consumeToken()
 
-	target := v.parseTypeReference(true, false, true)
-	if target == nil {
-		v.err("Expected valid type after `^` in pointer type")
+	mutable = false
+	if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_MUT) {
+		v.consumeToken()
+		mutable = true
 	}
 
-	res := &PointerTypeNode{TargetType: target}
-	res.SetWhere(lexer.NewSpan(startToken.Where.Start(), target.Where().End()))
+	target = v.parseTypeReference(true, false, true)
+	if target == nil {
+		v.err("Expected valid type after '%s' in pointer/reference type", symbol)
+	}
 
-	return res
+	where = lexer.NewSpan(startToken.Where.Start(), target.Where().End())
+	return
 }
 
 func (v *parser) parseTupleType(mustParse bool) *TupleTypeNode {
@@ -1801,8 +1806,14 @@ func (v *parser) parseSizeofExpr() *SizeofExprNode {
 
 func (v *parser) parseAddrofExpr() *AddrofExprNode {
 	defer un(trace(v, "addrofexpr"))
+	startPos := v.currentToken
 
-	if !v.tokenMatches(0, lexer.TOKEN_OPERATOR, "&") {
+	isReference := false
+	if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "&") {
+		isReference = true
+	} else if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "^") {
+		isReference = false
+	} else {
 		return nil
 	}
 	startToken := v.consumeToken()
@@ -1815,10 +1826,13 @@ func (v *parser) parseAddrofExpr() *AddrofExprNode {
 
 	value := v.parseExpr()
 	if value == nil {
-		v.err("Expected valid expression after addrof expression")
+		// TODO: Restore this error once we go through with #655
+		//v.err("Expected valid expression after addrof expression")
+		v.currentToken = startPos
+		return nil
 	}
 
-	res := &AddrofExprNode{Mutable: mutable, Value: value}
+	res := &AddrofExprNode{Mutable: mutable, Value: value, IsReference: isReference}
 	res.SetWhere(lexer.NewSpan(startToken.Where.Start(), value.Where().End()))
 	return res
 }

@@ -487,7 +487,6 @@ func (v *Resolver) ResolveNode(node *Node) {
 
 		// NOTE: Here we check whether this is a call or a cast
 		// Unwrap any deref access expressions as these might signify pointer types
-
 		if typ, ok := v.exprToType(n.Function); ok {
 			if len(n.Arguments) != 1 {
 				v.err(n, "Casts must recieve exactly one argument")
@@ -506,8 +505,8 @@ func (v *Resolver) ResolveNode(node *Node) {
 	// No-Ops
 	case *Block, *DefaultMatchBranch, *UseDirective, *AssignStat, *BinopAssignStat,
 		*BlockStat, *BreakStat, *CallStat, *DeferStat, *IfStat, *MatchStat,
-		*LoopStat, *NextStat, *ReturnStat, *AddressOfExpr, *ArrayAccessExpr,
-		*BinaryExpr, *DerefAccessExpr, *UnaryExpr, *BoolLiteral,
+		*LoopStat, *NextStat, *ReturnStat, *ReferenceToExpr, *PointerToExpr,
+		*ArrayAccessExpr, *BinaryExpr, *DerefAccessExpr, *UnaryExpr, *BoolLiteral,
 		*NumericLiteral, *RuneLiteral, *StringLiteral, *TupleLiteral:
 		break
 
@@ -517,11 +516,17 @@ func (v *Resolver) ResolveNode(node *Node) {
 }
 
 func (v *Resolver) exprToType(expr Expr) (Type, bool) {
-	derefs := 0
+	var references []bool
+	var mutable []bool
 	for {
-		if dae, ok := expr.(*DerefAccessExpr); ok {
-			derefs++
-			expr = dae.Expr
+		if rte, ok := expr.(*ReferenceToExpr); ok {
+			references = append(references, true)
+			mutable = append(mutable, rte.IsMutable)
+			expr = rte.Access
+		} else if pte, ok := expr.(*PointerToExpr); ok {
+			references = append(references, false)
+			mutable = append(mutable, pte.IsMutable)
+			expr = pte.Access
 		} else {
 			break
 		}
@@ -531,8 +536,13 @@ func (v *Resolver) exprToType(expr Expr) (Type, bool) {
 		ident := v.getIdent(vae, vae.Name)
 		if ident != nil && ident.Type == IDENT_TYPE {
 			res := ident.Value.(Type)
-			for i := 0; i < derefs; i++ {
-				res = PointerTo(&TypeReference{BaseType: res})
+			for idx, isReference := range references {
+				isMutable := mutable[idx]
+				if isReference {
+					res = ReferenceTo(&TypeReference{BaseType: res}, isMutable)
+				} else {
+					res = PointerTo(&TypeReference{BaseType: res}, isMutable)
+				}
 			}
 			return res, true
 		}
@@ -576,7 +586,7 @@ func (v *Resolver) ResolveType(src Locatable, t Type) Type {
 		return ReferenceTo(v.ResolveTypeReference(src, t.Referrer), t.IsMutable)
 
 	case PointerType:
-		return PointerTo(v.ResolveTypeReference(src, t.Addressee))
+		return PointerTo(v.ResolveTypeReference(src, t.Addressee), t.IsMutable)
 
 	case *SubstitutionType:
 		var constraints []Type

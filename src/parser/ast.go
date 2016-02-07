@@ -696,7 +696,7 @@ func (v StringLiteral) GetType() *TypeReference {
 	if v.Type != nil {
 		return v.Type
 	} else if v.IsCString {
-		return &TypeReference{BaseType: PointerTo(&TypeReference{BaseType: PRIMITIVE_u8})}
+		return &TypeReference{BaseType: PointerTo(&TypeReference{BaseType: PRIMITIVE_u8}, false)}
 	} else {
 		return &TypeReference{BaseType: stringType}
 	}
@@ -1122,8 +1122,12 @@ func (_ DerefAccessExpr) NodeName() string {
 func (v DerefAccessExpr) Mutable() bool {
 	access, ok := v.Expr.(AccessExpr)
 	if ok {
-		if refType, ok := access.GetType().BaseType.(ReferenceType); ok {
-			return refType.IsMutable
+		if rt, ok := access.GetType().BaseType.(ReferenceType); ok {
+			return rt.IsMutable
+		}
+
+		if pt, ok := access.GetType().BaseType.(PointerType); ok {
+			return pt.IsMutable
 		}
 
 		return access.Mutable()
@@ -1142,31 +1146,57 @@ func getAdressee(t Type) *TypeReference {
 	return nil
 }
 
-// AddressOfExpr
+// ReferenceToExpr
 
-type AddressOfExpr struct {
+type ReferenceToExpr struct {
 	nodePos
-	Mutable  bool
-	Access   Expr
-	TypeHint Type
+	IsMutable bool
+	Access    Expr
 }
 
-func (_ AddressOfExpr) exprNode() {}
+func (_ ReferenceToExpr) exprNode() {}
 
-func (v AddressOfExpr) String() string {
-	return NewASTStringer("AddressOfExpr").Add(v.Access).AddTypeReference(v.GetType()).Finish()
+func (v ReferenceToExpr) String() string {
+	return NewASTStringer("ReferenceToExpr").Add(v.Access).AddTypeReference(v.GetType()).Finish()
 }
 
-func (v AddressOfExpr) GetType() *TypeReference {
+func (v ReferenceToExpr) GetType() *TypeReference {
 	if v.Access.GetType() != nil {
-		return &TypeReference{BaseType: ReferenceTo(v.Access.GetType(), v.Mutable)}
+		return &TypeReference{BaseType: ReferenceTo(v.Access.GetType(), v.IsMutable)}
 	}
 	return nil
 }
 
-func (_ AddressOfExpr) NodeName() string {
-	return "address-of expression"
+func (_ ReferenceToExpr) NodeName() string {
+	return "reference-to expression"
 }
+
+// PointerToExpr
+
+type PointerToExpr struct {
+	nodePos
+	IsMutable bool
+	Access    Expr
+}
+
+func (_ PointerToExpr) exprNode() {}
+
+func (v PointerToExpr) String() string {
+	return NewASTStringer("PointerToExpr").Add(v.Access).AddTypeReference(v.GetType()).Finish()
+}
+
+func (v PointerToExpr) GetType() *TypeReference {
+	if v.Access.GetType() != nil {
+		return &TypeReference{BaseType: PointerTo(v.Access.GetType(), v.IsMutable)}
+	}
+	return nil
+}
+
+func (_ PointerToExpr) NodeName() string {
+	return "pointer-to expression"
+}
+
+// LambdaExpr
 
 type LambdaExpr struct {
 	nodePos
@@ -1187,6 +1217,8 @@ func (v LambdaExpr) GetType() *TypeReference {
 func (v LambdaExpr) NodeName() string {
 	return "lambda expr"
 }
+
+// ArrayLenExpr
 
 type ArrayLenExpr struct {
 	nodePos

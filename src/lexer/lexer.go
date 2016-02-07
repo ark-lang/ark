@@ -310,9 +310,9 @@ func (v *lexer) recognizeOperatorToken() {
 		v.consume()
 		v.consume()
 	} else {
-		// never consume ^ or = into an mixed/combined operator
 		v.consume()
-		if isOperator(v.peek(0)) && v.peek(0) != '^' && v.peek(0) != '=' {
+		// never consume @, ^ or = into an mixed/combined operator
+		if isOperator(v.peek(0)) && !strings.ContainsRune("@^=", v.peek(0)) {
 			v.consume()
 		}
 	}
@@ -346,11 +346,11 @@ func isLetter(r rune) bool {
 }
 
 func isOperator(r rune) bool {
-	return strings.ContainsRune("+-*/=><!~?:|&%^#", r)
+	return strings.ContainsRune("+-*/=><!~?:|&%^#@", r)
 }
 
 func isSeparator(r rune) bool {
-	return strings.ContainsRune(" ;,.`@(){}[]", r)
+	return strings.ContainsRune(" ;,.`(){}[]", r)
 }
 
 func isEOL(r rune) bool {

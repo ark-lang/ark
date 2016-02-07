@@ -484,16 +484,20 @@ func (v ReferenceType) ActualType() Type {
 
 type PointerType struct {
 	Addressee *TypeReference
+	IsMutable bool
 }
 
 // IMPORTANT:
 // Using this function is no longer important, just make sure to use
 // .Equals() to compare two types.
-func PointerTo(t *TypeReference) PointerType {
-	return PointerType{Addressee: t}
+func PointerTo(t *TypeReference, mutable bool) PointerType {
+	return PointerType{Addressee: t, IsMutable: mutable}
 }
 
 func (v PointerType) TypeName() string {
+	if v.IsMutable {
+		return "^mut " + v.Addressee.String()
+	}
 	return "^" + v.Addressee.String()
 }
 
@@ -527,11 +531,11 @@ func (v PointerType) IsSigned() bool {
 
 func (v PointerType) Equals(t Type) bool {
 	other, ok := t.(PointerType)
-	if !ok {
-		return false
+	if ok {
+		return v.IsMutable == other.IsMutable && v.Addressee.Equals(other.Addressee)
 	}
 
-	return v.Addressee.Equals(other.Addressee)
+	return false
 }
 
 func (v PointerType) ActualType() Type {

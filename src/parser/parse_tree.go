@@ -77,13 +77,14 @@ type UseDirectiveNode struct {
 // types
 type ReferenceTypeNode struct {
 	baseNode
-	Mutable    bool
 	TargetType *TypeReferenceNode
+	Mutable    bool
 }
 
 type PointerTypeNode struct {
 	baseNode
 	TargetType *TypeReferenceNode
+	Mutable    bool
 }
 
 type TupleTypeNode struct {
@@ -330,8 +331,9 @@ type SizeofExprNode struct {
 
 type AddrofExprNode struct {
 	baseNode
-	Mutable bool
-	Value   ParseNode
+	Value       ParseNode
+	Mutable     bool
+	IsReference bool
 }
 
 type CastExprNode struct {

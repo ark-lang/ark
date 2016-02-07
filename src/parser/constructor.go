@@ -154,7 +154,7 @@ func (v *ReferenceTypeNode) construct(c *Constructor) Type {
 
 func (v *PointerTypeNode) construct(c *Constructor) Type {
 	targetType := v.TargetType.construct(c)
-	return PointerTo(targetType)
+	return PointerTo(targetType, v.Mutable)
 }
 
 func (v *TupleTypeNode) construct(c *Constructor) Type {
@@ -587,7 +587,11 @@ func (v *CallStatNode) construct(c *Constructor) Node {
 
 func (v *AssignStatNode) construct(c *Constructor) Node {
 	res := &AssignStat{}
-	res.Access = c.constructExpr(v.Target).(AccessExpr) // TODO: Error message
+	acc, ok := c.constructExpr(v.Target).(AccessExpr)
+	if !ok {
+		c.errSpan(v.Target.Where(), "Cannot assign to non-access expression")
+	}
+	res.Access = acc
 	res.Assignment = c.constructExpr(v.Value)
 	res.setPos(v.Where().Start())
 	return res
@@ -598,7 +602,11 @@ func (v *BinopAssignStatNode) construct(c *Constructor) Node {
 		Operator:   v.Operator,
 		Assignment: c.constructExpr(v.Value),
 	}
-	res.Access = c.constructExpr(v.Target).(AccessExpr) // TODO: Error message
+	acc, ok := c.constructExpr(v.Target).(AccessExpr)
+	if !ok {
+		c.errSpan(v.Target.Where(), "Cannot assign to non-access expression")
+	}
+	res.Access = acc
 	res.setPos(v.Where().Start())
 	return res
 }
@@ -634,9 +642,17 @@ func (v *SizeofExprNode) construct(c *Constructor) Expr {
 }
 
 func (v *AddrofExprNode) construct(c *Constructor) Expr {
-	res := &AddressOfExpr{
-		Mutable: v.Mutable,
-		Access:  c.constructExpr(v.Value),
+	var res Expr
+	if v.IsReference {
+		res = &ReferenceToExpr{
+			IsMutable: v.Mutable,
+			Access:    c.constructExpr(v.Value),
+		}
+	} else {
+		res = &PointerToExpr{
+			IsMutable: v.Mutable,
+			Access:    c.constructExpr(v.Value),
+		}
 	}
 	res.setPos(v.Where().Start())
 	return res

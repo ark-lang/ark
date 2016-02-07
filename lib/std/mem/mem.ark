@@ -24,9 +24,9 @@ pub func alloc_array<T>(num: uint) -> []T {
         ptr: rawPtr,
     };
 
-    arrPtr := (^[]T)(&rawArray);
+    arrPtr := (^[]T)(^rawArray);
 
-    return ^arrPtr;
+    return @arrPtr;
 }
 
 pub func copy_array<T>(mut dest: []T, src: []T, num: uint) {
@@ -50,6 +50,6 @@ pub func free<T>(ptr: ^T) {
 }
 
 pub func free_array<T>(array: []T) {
-    mut rawArray := ^((^RawArray)(&array));
+    mut rawArray := @((^RawArray)(&array));
     C::free((^C::void)(rawArray.ptr));
 }

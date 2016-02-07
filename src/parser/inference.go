@@ -54,6 +54,7 @@ type ConstructorId int
 const (
 	ConstructorInvalid ConstructorId = iota
 	ConstructorStructMember
+	ConstructorDeref
 )
 
 func (v *ConstructorType) Equals(other Type) bool {
@@ -220,6 +221,14 @@ func SubsType(typ *TypeReference, id int, what *TypeReference) *TypeReference {
 
 				return mtype
 			}
+
+		// If we have a deref member we check if we know the pointer type and
+		// if we do we pull out the target type
+		case ConstructorDeref:
+			adressee := getAdressee(nargs[0].BaseType)
+			if adressee != nil {
+				return adressee
+			}
 		}
 
 		return &TypeReference{
@@ -267,7 +276,7 @@ func SubsType(typ *TypeReference, id int, what *TypeReference) *TypeReference {
 
 	case PointerType:
 		return &TypeReference{
-			BaseType:         PointerTo(SubsType(t.Addressee, id, what)),
+			BaseType:         PointerTo(SubsType(t.Addressee, id, what), t.IsMutable),
 			GenericArguments: typ.GenericArguments,
 		}
 
@@ -645,17 +654,24 @@ func (v *Inferrer) HandleTyped(pos lexer.Position, typed Typed) int {
 		v.HandleExpr(typed.Expr)
 		v.AddSimpleIsConstraint(ann.Id, typed.Type)
 
-	// Given an address of expr, we know that the result will be a pointer to
-	// the type of the access of which we took the address.
-	case *AddressOfExpr:
+	// Given an reference-to expr or a pointer-to expr, we know that the result
+	// will be a pointer to the type of the access of which we took the address
+	case *ReferenceToExpr:
 		id := v.HandleExpr(typed.Access)
 		if typed.Access.GetType() != nil {
-			v.AddSimpleIsConstraint(ann.Id, &TypeReference{BaseType: PointerTo(typed.Access.GetType())})
+			v.AddSimpleIsConstraint(ann.Id, &TypeReference{BaseType: ReferenceTo(typed.Access.GetType(), typed.IsMutable)})
 		}
-		v.AddIsConstraint(ann.Id, &TypeReference{BaseType: PointerTo(&TypeReference{BaseType: TypeVariable{Id: id}})})
+		v.AddIsConstraint(ann.Id, &TypeReference{BaseType: ReferenceTo(&TypeReference{BaseType: TypeVariable{Id: id}}, typed.IsMutable)})
 
-	// Given a deref, we know that the expression being dereferenced must be a
-	// pointer to the result of the dereference.
+	case *PointerToExpr:
+		id := v.HandleExpr(typed.Access)
+		if typed.Access.GetType() != nil {
+			v.AddSimpleIsConstraint(ann.Id, &TypeReference{BaseType: PointerTo(typed.Access.GetType(), typed.IsMutable)})
+		}
+		v.AddIsConstraint(ann.Id, &TypeReference{BaseType: PointerTo(&TypeReference{BaseType: TypeVariable{Id: id}}, typed.IsMutable)})
+
+	// Given a deref, we generate a constructor type as inferring the the types
+	// while maintaining the mutablility stuff is a pain.
 	case *DerefAccessExpr:
 		id := v.HandleExpr(typed.Expr)
 		if typed.Expr.GetType() != nil {
@@ -665,7 +681,14 @@ func (v *Inferrer) HandleTyped(pos lexer.Position, typed Typed) int {
 				break
 			}
 		}
-		v.AddIsConstraint(id, &TypeReference{BaseType: PointerTo(&TypeReference{BaseType: TypeVariable{Id: ann.Id}})})
+		v.AddIsConstraint(ann.Id, &TypeReference{
+			BaseType: &ConstructorType{
+				Id: ConstructorDeref,
+				Args: []*TypeReference{
+					&TypeReference{BaseType: TypeVariable{Id: id}},
+				},
+			},
+		})
 
 	// A sizeof expr always return a uint
 	case *SizeofExpr:
@@ -1035,8 +1058,20 @@ func (v *Inferrer) Finalize() {
 			v.errPos(ann.Pos, "Couldn't infer type of expression")
 		}
 
-		if _, ok := subs.Right.Type.BaseType.(*ConstructorType); ok {
-			panic("INTERNAL ERROR: ConstructorType escaped inference pass")
+		if ct, ok := subs.Right.Type.BaseType.(*ConstructorType); ok {
+			switch ct.Id {
+			case ConstructorStructMember:
+				typ := ct.Args[0]
+				if tv, ok := typ.BaseType.(TypeVariable); ok {
+					typ = subList[tv.Id].Right.Type
+				}
+
+				v.errPos(ann.Pos, "Unable to infer type of member `%s` on type `%s`",
+					ct.Data.(string), typ.BaseType.TypeName())
+
+			default:
+				panic("INTERNAL ERROR: Unhandled ConstructorType escaped inference pass")
+			}
 		}
 
 		// Set the type of the expression
@@ -1254,7 +1289,6 @@ func (v *FunctionAccessExpr) SetType(t *TypeReference) {
 }
 
 // Noops
-func (_ AddressOfExpr) SetType(t *TypeReference)      {}
 func (_ ArrayAccessExpr) SetType(t *TypeReference)    {}
 func (_ ArrayLenExpr) SetType(t *TypeReference)       {}
 func (_ BoolLiteral) SetType(t *TypeReference)        {}
@@ -1264,6 +1298,8 @@ func (_ DefaultMatchBranch) SetType(t *TypeReference) {}
 func (_ DerefAccessExpr) SetType(t *TypeReference)    {}
 func (_ EnumLiteral) SetType(t *TypeReference)        {}
 func (_ LambdaExpr) SetType(t *TypeReference)         {}
+func (_ PointerToExpr) SetType(t *TypeReference)      {}
+func (_ ReferenceToExpr) SetType(t *TypeReference)    {}
 func (_ RuneLiteral) SetType(t *TypeReference)        {}
 func (_ VariableAccessExpr) SetType(t *TypeReference) {}
 func (_ SizeofExpr) SetType(t *TypeReference)         {}
@@ -1292,6 +1328,13 @@ func ExtractTypeVariable(pattern Type, value Type) (map[string]Type, error) {
 			// If we reached a substitution type, add an entry to the map
 			res[subst.Name] = vpart
 		} else {
+			// Skip stuff that still contains type variables
+			_, ok1 := ppart.(TypeVariable)
+			_, ok2 := vpart.(TypeVariable)
+			if ok1 || ok2 {
+				continue
+			}
+
 			// If the pattern part is not a substitution type, delve deeper
 			ps = AddChildren(ppart, ps)
 			vs = AddChildren(vpart, vs)

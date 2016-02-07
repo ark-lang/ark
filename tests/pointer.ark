@@ -1,10 +1,10 @@
 [c] func printf(fmt: ^u8, ...) -> int;
 
-func swap(mut a: ^s32, mut b: ^s32)
+func swap<T>(a: ^mut T, b: ^mut T)
 {
-   mut temp: s32 = ^a;
-   ^a = ^b;
-   ^b = temp;
+	temp := @a;
+	@a = @b;
+	@b = temp;
 }
 
 pub func main() -> int
@@ -12,8 +12,8 @@ pub func main() -> int
     a: s32 = 5;
     b: s32 = 6;
     C::printf(c"a: %d, b: %d\n", a, b);
-    swap((^s32)(&a), (^s32)(&b));
+    swap(^mut a, ^mut b);
     C::printf(c"a: %d, b: %d\n", a, b);
 
-    return 6 - int(a); // Inference problems ugh
+    return 6 - int(a); // Not inference problems ugh
 }

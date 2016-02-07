@@ -2,9 +2,9 @@
 
 mut glob: int = 5;
 
-func getGlob() -> ^int {
+func getGlob() -> ^mut int {
 	glob += 1;
-	return (^int)(&glob);
+	return ^mut glob;
 }
 
 pub func main() -> int {
@@ -23,7 +23,7 @@ pub func main() -> int {
 		return 2;
 	}
 
-	^getGlob() += 0;
+	@getGlob() += 0;
 
 	C::printf(c"glob is `%d`\n", glob);
 	if glob != 6 {

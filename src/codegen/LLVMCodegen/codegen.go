@@ -715,8 +715,10 @@ func (v *Codegen) genVariableDecl(n *parser.VariableDecl, semicolon bool) llvm.V
 
 func (v *Codegen) genExpr(n parser.Expr) llvm.Value {
 	switch n := n.(type) {
-	case *parser.AddressOfExpr:
-		return v.genAddressOfExpr(n)
+	case *parser.ReferenceToExpr:
+		return v.genReferenceToExpr(n)
+	case *parser.PointerToExpr:
+		return v.genPointerToExpr(n)
 	case *parser.RuneLiteral:
 		return v.genRuneLiteral(n)
 	case *parser.NumericLiteral:
@@ -769,7 +771,11 @@ func (v *Codegen) genLambdaExpr(n *parser.LambdaExpr) llvm.Value {
 	return fn
 }
 
-func (v *Codegen) genAddressOfExpr(n *parser.AddressOfExpr) llvm.Value {
+func (v *Codegen) genReferenceToExpr(n *parser.ReferenceToExpr) llvm.Value {
+	return v.genAccessGEP(n.Access)
+}
+
+func (v *Codegen) genPointerToExpr(n *parser.PointerToExpr) llvm.Value {
 	return v.genAccessGEP(n.Access)
 }
 

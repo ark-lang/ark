@@ -207,7 +207,10 @@ func (v *ASTVisitor) VisitChildren(n Node) {
 	case *DeferStat:
 		n.Call = v.Visit(n.Call).(*CallExpr)
 
-	case *AddressOfExpr:
+	case *ReferenceToExpr:
+		n.Access = v.VisitExpr(n.Access)
+
+	case *PointerToExpr:
 		n.Access = v.VisitExpr(n.Access)
 
 	case *CastExpr:

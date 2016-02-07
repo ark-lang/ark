@@ -1,9 +1,9 @@
 func deref<T>(v: ^T) -> T {
-	return ^v;
+	return @v;
 }
 
 pub func main() -> int {
 	i: int = 0;
-	ip := (^int)(&i);
+	ip := ^i;
 	return deref(ip);
 }
