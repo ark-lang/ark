@@ -683,6 +683,7 @@ func (v *Codegen) genVariableDecl(n *parser.VariableDecl, semicolon bool) llvm.V
 
 		if n.Assignment != nil {
 			if value := v.genExpr(n.Assignment); !value.IsNil() {
+				fmt.Println(value.Type(), varType)
 				v.builder().CreateStore(value, alloc)
 			}
 		} else if !n.Variable.Attrs.Contains("nozero") {
@@ -851,23 +852,32 @@ func (v *Codegen) genAccessGEP(n parser.Expr) llvm.Value {
 		gep := v.genAccessGEP(access.Array)
 
 		subscriptExpr := v.genExpr(access.Subscript)
-		subsTyp := access.Subscript.GetType().BaseType.ActualType().(parser.PrimitiveType)
+		subscriptTyp := access.Subscript.GetType().BaseType.ActualType().(parser.PrimitiveType)
 		// Extend access width to system poiner width
-		if !subsTyp.IsSigned() {
+		if !subscriptTyp.IsSigned() {
 			subscriptExpr = v.builder().CreateZExt(subscriptExpr, v.targetData.IntPtrType(), "")
 		} else {
 			subscriptExpr = v.builder().CreateSExt(subscriptExpr, v.targetData.IntPtrType(), "")
 		}
 
-		v.genBoundsCheck(v.builder().CreateLoad(v.builder().CreateStructGEP(gep, 0, ""), ""),
-			subscriptExpr, access.Subscript.GetType().BaseType.IsSigned())
+		arrType := access.Array.GetType().BaseType.ActualType().(parser.ArrayType)
 
-		gep = v.builder().CreateStructGEP(gep, 1, "")
+		if arrType.IsFixedLength {
+			v.genBoundsCheck(llvm.ConstInt(v.primitiveTypeToLLVMType(parser.PRIMITIVE_uint), uint64(arrType.Length), false),
+				subscriptExpr, access.Subscript.GetType().BaseType.IsSigned())
 
-		load := v.builder().CreateLoad(gep, "")
+			return v.builder().CreateGEP(v.genAccessGEP(access.Array), []llvm.Value{llvm.ConstInt(llvm.Int32Type(), 0, false), subscriptExpr}, "")
+		} else {
+			v.genBoundsCheck(v.builder().CreateLoad(v.builder().CreateStructGEP(gep, 0, ""), ""),
+				subscriptExpr, access.Subscript.GetType().BaseType.IsSigned())
 
-		gepIndexes := []llvm.Value{subscriptExpr}
-		return v.builder().CreateGEP(load, gepIndexes, "")
+			gep = v.builder().CreateStructGEP(gep, 1, "")
+
+			load := v.builder().CreateLoad(gep, "")
+
+			gepIndexes := []llvm.Value{subscriptExpr}
+			return v.builder().CreateGEP(load, gepIndexes, "")
+		}
 
 	case *parser.DerefAccessExpr:
 		return v.genExpr(access.Expr)
@@ -964,7 +974,7 @@ func (v *Codegen) genStringLiteral(n *parser.StringLiteral) llvm.Value {
 		backingArrayPointer = llvm.ConstBitCast(backingArray, llvm.PointerType(memberLLVMType, 0))
 	}
 
-	if n.GetType().BaseType.ActualType().Equals(parser.ArrayOf(&parser.TypeReference{BaseType: parser.PRIMITIVE_u8})) {
+	if n.GetType().BaseType.ActualType().Equals(parser.ArrayOf(&parser.TypeReference{BaseType: parser.PRIMITIVE_u8}, false, 0)) {
 		lengthValue := llvm.ConstInt(v.primitiveTypeToLLVMType(parser.PRIMITIVE_uint), uint64(length), false)
 		structValue := llvm.Undef(v.typeRefToLLVMType(n.GetType()))
 		structValue = v.builder().CreateInsertValue(structValue, lengthValue, 0, "")
@@ -988,6 +998,7 @@ func (v *Codegen) genCompositeLiteral(n *parser.CompositeLiteral) llvm.Value {
 
 // Allocates a literal array on the stack
 func (v *Codegen) genArrayLiteral(n *parser.CompositeLiteral) llvm.Value {
+	arrayType := n.Type.BaseType.ActualType().(parser.ArrayType)
 	arrayLLVMType := v.typeRefToLLVMType(n.Type)
 	memberLLVMType := v.typeRefToLLVMType(n.Type.BaseType.ActualType().(parser.ArrayType).MemberType) // TODO works with generics?
 
@@ -1001,11 +1012,18 @@ func (v *Codegen) genArrayLiteral(n *parser.CompositeLiteral) llvm.Value {
 	}
 
 	lengthValue := llvm.ConstInt(v.primitiveTypeToLLVMType(parser.PRIMITIVE_uint), uint64(len(n.Values)), false)
-	var backingArrayPointer llvm.Value
+	var backingArrayPointer, backingArray llvm.Value
+
+	var length int
+	if arrayType.IsFixedLength {
+		length = arrayType.Length
+	} else {
+		length = len(n.Values)
+	}
 
 	if v.inFunction() {
 		// allocate backing array
-		backingArray := v.builder().CreateAlloca(llvm.ArrayType(memberLLVMType, len(n.Values)), "")
+		backingArray = v.builder().CreateAlloca(llvm.ArrayType(memberLLVMType, length), "")
 
 		// copy the constant array to the backing array
 		for idx, value := range arrayValues {
@@ -1018,12 +1036,16 @@ func (v *Codegen) genArrayLiteral(n *parser.CompositeLiteral) llvm.Value {
 		backName := fmt.Sprintf("_globarr_back_%d", v.arrayIndex)
 		v.arrayIndex++
 
-		backingArray := llvm.AddGlobal(v.curFile.LlvmModule, llvm.ArrayType(memberLLVMType, len(n.Values)), backName)
+		backingArray = llvm.AddGlobal(v.curFile.LlvmModule, llvm.ArrayType(memberLLVMType, length), backName)
 		backingArray.SetLinkage(llvm.InternalLinkage)
 		backingArray.SetGlobalConstant(false)
 		backingArray.SetInitializer(llvm.ConstArray(memberLLVMType, arrayValues))
 
 		backingArrayPointer = llvm.ConstBitCast(backingArray, llvm.PointerType(memberLLVMType, 0))
+	}
+
+	if arrayType.IsFixedLength {
+		return v.builder().CreateLoad(backingArray, "")
 	}
 
 	structValue := llvm.Undef(arrayLLVMType)
@@ -1451,10 +1473,15 @@ func (v *Codegen) genCallExpr(n *parser.CallExpr) llvm.Value {
 }
 
 func (v *Codegen) genArrayLenExpr(n *parser.ArrayLenExpr) llvm.Value {
+	arrType := n.Expr.GetType().BaseType.ActualType().(parser.ArrayType)
+	if arrType.IsFixedLength {
+		return llvm.ConstInt(v.targetData.IntPtrType(), uint64(arrType.Length), false)
+	}
+
 	if arrayLit, ok := n.Expr.(*parser.CompositeLiteral); ok {
 		arrayLen := len(arrayLit.Values)
 
-		return llvm.ConstInt(llvm.IntType(64), uint64(arrayLen), false)
+		return llvm.ConstInt(v.targetData.IntPtrType(), uint64(arrayLen), false)
 	}
 
 	gep := v.genAccessGEP(n.Expr)

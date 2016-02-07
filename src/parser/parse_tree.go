@@ -101,8 +101,9 @@ type FunctionTypeNode struct {
 
 type ArrayTypeNode struct {
 	baseNode
-	MemberType *TypeReferenceNode
-	Length     int
+	MemberType    *TypeReferenceNode
+	IsFixedLength bool
+	Length        int
 }
 
 type NamedTypeNode struct {

@@ -1,7 +1,7 @@
 [c] func printf(fmt: ^u8, ...) -> int;
 
 pub func main() -> int {
-    mut arrayLitTest: []s16 = []s16{100, 101, 102, 103, 104};
+    mut arrayLitTest: []s16 = {100, 101, 102, 103, 104};
 
     if arrayLitTest[1] != 101 {
         return 1;
@@ -27,6 +27,15 @@ pub func main() -> int {
     for i < 8 {
         C::printf(c"random contains %d at index %d\n", random[i], i);
         i = i + 1;
+    }
+
+    mut fixedArrayLitTest := [4]int{1, 2, 3, 4};
+    if fixedArrayLitTest[2] != 3 {
+        return 4;
+    }
+
+    if len(fixedArrayLitTest) != 4 {
+        return 5;
     }
 
     return 0;

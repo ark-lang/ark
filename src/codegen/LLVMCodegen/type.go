@@ -173,10 +173,14 @@ func (v *Codegen) tupleTypeToLLVMType(typ parser.TupleType, gcon *parser.Generic
 }
 
 func (v *Codegen) arrayTypeToLLVMType(typ parser.ArrayType, gcon *parser.GenericContext) llvm.Type {
-	fields := []llvm.Type{v.primitiveTypeToLLVMType(parser.PRIMITIVE_uint),
-		llvm.PointerType(v.typeRefToLLVMTypeWithOuter(typ.MemberType, gcon), 0)}
+	memType := v.typeRefToLLVMTypeWithOuter(typ.MemberType, gcon)
 
-	return llvm.StructType(fields, false)
+	if typ.IsFixedLength {
+		return llvm.ArrayType(memType, typ.Length)
+	} else {
+		fields := []llvm.Type{v.primitiveTypeToLLVMType(parser.PRIMITIVE_uint), llvm.PointerType(memType, 0)}
+		return llvm.StructType(fields, false)
+	}
 }
 
 func (v *Codegen) structTypeToLLVMType(typ parser.StructType, gcon *parser.GenericContext) llvm.Type {

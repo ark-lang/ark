@@ -180,7 +180,7 @@ func (v *FunctionTypeNode) construct(c *Constructor) Type {
 
 func (v *ArrayTypeNode) construct(c *Constructor) Type {
 	memberType := v.MemberType.construct(c)
-	return ArrayOf(memberType)
+	return ArrayOf(memberType, v.IsFixedLength, v.Length)
 }
 
 func (v *NamedTypeNode) construct(c *Constructor) Type {

@@ -1545,6 +1545,7 @@ func (v *parser) parseArrayType() *ArrayTypeNode {
 	if length != nil {
 		// TODO: Defend against overflow
 		res.Length = int(length.IntValue.Int64())
+		res.IsFixedLength = true
 	}
 	res.SetWhere(lexer.NewSpan(startToken.Where.Start(), memberType.Where().End()))
 	return res

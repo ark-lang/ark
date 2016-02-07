@@ -345,14 +345,18 @@ func (v *NamedType) Equals(t Type) bool {
 
 type ArrayType struct {
 	MemberType *TypeReference
-	attrs      AttrGroup
+
+	IsFixedLength bool
+	Length        int // TODO change to uint64
+
+	attrs AttrGroup
 }
 
 // IMPORTANT:
 // Using this function is no longer important, just make sure to use
 // .Equals() to compare two types.
-func ArrayOf(t *TypeReference) ArrayType {
-	return ArrayType{MemberType: t}
+func ArrayOf(t *TypeReference, isFixedLength bool, length int) ArrayType {
+	return ArrayType{MemberType: t, IsFixedLength: isFixedLength, Length: length}
 }
 
 func (v ArrayType) String() string {
@@ -364,7 +368,11 @@ func (v ArrayType) String() string {
 }
 
 func (v ArrayType) TypeName() string {
-	return "[]" + v.MemberType.String()
+	var l string
+	if v.IsFixedLength {
+		l = fmt.Sprintf("%d", v.Length)
+	}
+	return "[" + l + "]" + v.MemberType.String()
 }
 
 func (v ArrayType) IsSigned() bool {
@@ -406,6 +414,14 @@ func (v ArrayType) Equals(t Type) bool {
 	}
 
 	if !v.MemberType.Equals(other.MemberType) {
+		return false
+	}
+
+	if v.IsFixedLength != other.IsFixedLength {
+		return false
+	}
+
+	if v.IsFixedLength && v.Length != other.Length {
 		return false
 	}
 

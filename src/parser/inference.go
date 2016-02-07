@@ -270,7 +270,7 @@ func SubsType(typ *TypeReference, id int, what *TypeReference) *TypeReference {
 
 	case ArrayType:
 		return &TypeReference{
-			BaseType:         ArrayOf(SubsType(t.MemberType, id, what)),
+			BaseType:         ArrayOf(SubsType(t.MemberType, id, what), t.IsFixedLength, t.Length),
 			GenericArguments: typ.GenericArguments,
 		}
 
@@ -732,7 +732,7 @@ func (v *Inferrer) HandleTyped(pos lexer.Position, typed Typed) int {
 				break
 			}
 		}
-		v.AddIsConstraint(id, &TypeReference{BaseType: ArrayOf(&TypeReference{BaseType: TypeVariable{Id: ann.Id}})})
+		v.AddIsConstraint(id, &TypeReference{BaseType: ArrayOf(&TypeReference{BaseType: TypeVariable{Id: ann.Id}}, false, 0)})
 
 	// An array length expression is always of type uint
 	case *ArrayLenExpr:

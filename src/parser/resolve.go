@@ -580,7 +580,7 @@ func (v *Resolver) ResolveType(src Locatable, t Type) Type {
 		return t
 
 	case ArrayType:
-		return ArrayOf(v.ResolveTypeReference(src, t.MemberType))
+		return ArrayOf(v.ResolveTypeReference(src, t.MemberType), t.IsFixedLength, t.Length)
 
 	case ReferenceType:
 		return ReferenceTo(v.ResolveTypeReference(src, t.Referrer), t.IsMutable)
