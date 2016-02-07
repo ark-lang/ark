@@ -106,69 +106,75 @@ func realmain() int {
 	}
 
 	// Do jobs
-	outBuf := new(bytes.Buffer)
-	var results []Result
-	for _, job := range jobs {
-		outpath := fmt.Sprintf("%s_test", job.Sourcefile)
 
-		// Compile the test program
-		buildArgs := []string{"build"}
-		buildArgs = append(buildArgs, job.CompilerArgs...)
-		buildArgs = append(buildArgs, []string{"-I", "lib", "-o", outpath, job.Sourcefile}...)
+	results := make(chan Result)
 
-		outBuf.Reset()
-		if *showOutput {
-			fmt.Printf("Building test: %s\n", job.Name)
+	go func() {
+		outBuf := new(bytes.Buffer)
+		for _, job := range jobs {
+			outpath := fmt.Sprintf("%s_test", job.Sourcefile)
+
+			// Compile the test program
+			buildArgs := []string{"build"}
+			buildArgs = append(buildArgs, job.CompilerArgs...)
+			buildArgs = append(buildArgs, []string{"-I", "lib", "-o", outpath, job.Sourcefile}...)
+
+			outBuf.Reset()
+			if *showOutput {
+				fmt.Printf("Building test: %s\n", job.Name)
+			}
+
+			var err error
+			res := Result{Job: job}
+
+			res.CompilerError, err = runCommand(outBuf, "", "ark", buildArgs)
+			if err != nil {
+				fmt.Printf("Error while building test:\n%s\n", err.Error())
+				os.Exit(1)
+			}
+			res.CompilerOutput = outBuf.String()
+
+			if res.CompilerError != 0 {
+				results <- res
+				res.RunError = -1
+				continue
+			}
+
+			// Run the test program
+			outBuf.Reset()
+			if *showOutput {
+				fmt.Printf("\nRunning test: %s\n", job.Name)
+			}
+
+			res.RunError, err = runCommand(outBuf, job.Input, fmt.Sprintf("./%s", outpath), job.RunArgs)
+			if err != nil {
+				fmt.Printf("Error while running test:\n%s\n", err.Error())
+				os.Exit(1)
+			}
+			res.RunOutput = outBuf.String()
+
+			if *showOutput {
+				fmt.Printf("\n")
+			}
+
+			// Remove test executable
+			if err := os.Remove(outpath); err != nil {
+				fmt.Printf("Error while removing test executable:\n%s\n", err.Error())
+				os.Exit(1)
+			}
+
+			results <- res
 		}
-
-		var err error
-		res := Result{Job: job}
-
-		res.CompilerError, err = runCommand(outBuf, "", "ark", buildArgs)
-		if err != nil {
-			fmt.Printf("Error while building test:\n%s\n", err.Error())
-			return 1
-		}
-		res.CompilerOutput = outBuf.String()
-
-		if res.CompilerError != 0 {
-			results = append(results, res)
-			res.RunError = -1
-			continue
-		}
-
-		// Run the test program
-		outBuf.Reset()
-		if *showOutput {
-			fmt.Printf("\nRunning test: %s\n", job.Name)
-		}
-
-		res.RunError, err = runCommand(outBuf, job.Input, fmt.Sprintf("./%s", outpath), job.RunArgs)
-		if err != nil {
-			fmt.Printf("Error while running test:\n%s\n", err.Error())
-			return 1
-		}
-		res.RunOutput = outBuf.String()
-
-		if *showOutput {
-			fmt.Printf("\n")
-		}
-
-		// Remove test executable
-		if err := os.Remove(outpath); err != nil {
-			fmt.Printf("Error while removing test executable:\n%s\n", err.Error())
-			return 1
-		}
-
-		results = append(results, res)
-	}
+		close(results)
+	}()
 
 	// Check results
 	numSucceses := 0
+	numTests := 0
 
 	fmt.Printf("Test name              | Build error | Run error | B. output | R. output | Res  \n")
 	fmt.Printf("-----------------------|-------------|-----------|-----------|-----------|------\n")
-	for _, res := range results {
+	for res := range results {
 		failure := false
 		if len(res.Job.Name) > 22 {
 			fmt.Printf("%s... |", res.Job.Name[:19])
@@ -219,10 +225,11 @@ func realmain() int {
 			fmt.Printf(" %sSucc%s\n", util.TEXT_GREEN, util.TEXT_RESET)
 			numSucceses += 1
 		}
+		numTests += 1
 	}
 
-	fmt.Printf("\nTotal: %d / %d tests ran succesfully\n", numSucceses, len(results))
-	if numSucceses < len(results) {
+	fmt.Printf("\nTotal: %d / %d tests ran succesfully\n", numSucceses, numTests)
+	if numSucceses < numTests {
 		return 1
 	}
 	return 0
