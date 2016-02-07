@@ -579,6 +579,17 @@ func (v *Resolver) ResolveType(src Locatable, t Type) Type {
 		return PointerTo(v.ResolveTypeReference(src, t.Addressee))
 
 	case *SubstitutionType:
+		var constraints []Type
+		for _, c := range t.Constraints {
+			rc := v.ResolveType(src, c)
+
+			if _, ok := rc.ActualType().(InterfaceType); !ok {
+				v.err(src, "Generic parameter constraint must be interface")
+			}
+
+			constraints = append(constraints, rc)
+		}
+		t.Constraints = constraints
 		return t
 
 	case StructType:

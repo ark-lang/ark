@@ -134,7 +134,7 @@ func (v PrimitiveType) ActualType() Type {
 type StructType struct {
 	Members           []*StructMember
 	attrs             AttrGroup
-	GenericParameters []*SubstitutionType
+	GenericParameters GenericSigil
 }
 
 type StructMember struct {
@@ -153,7 +153,7 @@ func (v StructType) String() string {
 }
 
 func (v StructType) TypeName() string {
-	res := "struct {"
+	res := "struct" + v.GenericParameters.String() + " {"
 
 	for i, mem := range v.Members {
 		res += mem.Name + ": " + mem.Type.String()
@@ -713,7 +713,7 @@ func (v InterfaceType) ActualType() Type {
 // EnumType
 type EnumType struct {
 	Simple            bool
-	GenericParameters []*SubstitutionType
+	GenericParameters GenericSigil
 	Members           []EnumTypeMember
 	attrs             AttrGroup
 }
@@ -746,7 +746,7 @@ func (v EnumType) String() string {
 }
 
 func (v EnumType) TypeName() string {
-	res := "enum {"
+	res := "enum" + v.GenericParameters.String() + " {"
 
 	for idx, mem := range v.Members {
 		res += mem.Name + ": " + mem.Type.TypeName()
@@ -834,7 +834,7 @@ func (v EnumType) ActualType() Type {
 type FunctionType struct {
 	attrs AttrGroup
 
-	GenericParameters []*SubstitutionType
+	GenericParameters GenericSigil
 	Parameters        []*TypeReference
 	Return            *TypeReference
 	IsVariadic        bool
@@ -861,16 +861,7 @@ func (v FunctionType) TypeName() string {
 		res += "(v: " + v.Receiver.TypeName() + ")"
 	}
 
-	if len(v.GenericParameters) > 0 {
-		res += "<"
-		for i, gpar := range v.GenericParameters {
-			res += gpar.TypeName()
-			if i < len(v.GenericParameters)-1 {
-				res += ", "
-			}
-		}
-		res += ">"
-	}
+	res += v.GenericParameters.String()
 
 	res += "("
 
@@ -997,14 +988,34 @@ func (v metaType) Equals(t Type) bool {
 	panic("Equals() invalid on metaType")
 }
 
-// SubstitutionType
-type SubstitutionType struct {
-	attrs AttrGroup
-	Name  string
+// Generics helper objects
+
+type GenericSigil []*SubstitutionType
+
+func (v GenericSigil) String() string {
+	if len(v) <= 0 {
+		return ""
+	}
+
+	str := "<"
+	for i, par := range v {
+		str += par.TypeName()
+		if i < len(v)-1 {
+			str += ", "
+		}
+	}
+	return str + ">"
 }
 
-func NewSubstitutionType(name string) *SubstitutionType {
-	return &SubstitutionType{Name: name}
+// SubstitutionType
+type SubstitutionType struct {
+	attrs       AttrGroup
+	Name        string
+	Constraints []Type // should be all interface types
+}
+
+func NewSubstitutionType(name string, constraints []Type) *SubstitutionType {
+	return &SubstitutionType{Name: name, Constraints: constraints}
 }
 
 func (v *SubstitutionType) String() string {
@@ -1012,7 +1023,16 @@ func (v *SubstitutionType) String() string {
 }
 
 func (v *SubstitutionType) TypeName() string {
-	return v.Name
+	str := v.Name
+
+	if len(v.Constraints) > 0 {
+		str += ":"
+		for _, c := range v.Constraints {
+			str += " " + c.TypeName()
+		}
+	}
+
+	return str + v.String()
 }
 
 func (v *SubstitutionType) ActualType() Type {
@@ -1058,7 +1078,7 @@ type GenericContext struct {
 	Outer  *GenericContext
 }
 
-func NewGenericContext(parameters []*SubstitutionType, arguments []*TypeReference) *GenericContext {
+func NewGenericContext(parameters GenericSigil, arguments []*TypeReference) *GenericContext {
 	v := &GenericContext{
 		submap: make(map[*SubstitutionType]*TypeReference),
 	}
@@ -1074,7 +1094,7 @@ func NewGenericContext(parameters []*SubstitutionType, arguments []*TypeReferenc
 	return v
 }
 
-func getTypeGenericParameters(typ Type) []*SubstitutionType {
+func getTypeGenericParameters(typ Type) GenericSigil {
 	switch typ := typ.ActualType().(type) {
 	case EnumType:
 		return typ.GenericParameters

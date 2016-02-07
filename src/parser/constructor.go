@@ -225,7 +225,7 @@ func (v *InterfaceTypeNode) construct(c *Constructor) Type {
 func (v *StructTypeNode) construct(c *Constructor) Type {
 	structType := StructType{
 		attrs:             v.Attrs(),
-		GenericParameters: v.GenericSigil.toSubstitutionTypes(),
+		GenericParameters: v.GenericSigil.construct(c),
 	}
 
 	for _, member := range v.Members {
@@ -351,7 +351,7 @@ func (v *FunctionNode) construct(c *Constructor) *Function {
 	}
 
 	if v.Header.GenericSigil != nil {
-		function.Type.GenericParameters = v.Header.GenericSigil.toSubstitutionTypes()
+		function.Type.GenericParameters = v.Header.GenericSigil.construct(c)
 	}
 
 	if v.Expr != nil {
@@ -396,15 +396,16 @@ func (v *LambdaExprNode) construct(c *Constructor) Expr {
 	return res
 }
 
-func (v *GenericSigilNode) toSubstitutionTypes() []*SubstitutionType {
+func (v *GenericSigilNode) construct(c *Constructor) GenericSigil {
 	if v == nil {
 		return nil
 	}
-	// TODO restrictions
+
 	ret := make([]*SubstitutionType, 0, len(v.GenericParameters))
 	for _, p := range v.GenericParameters {
-		ret = append(ret, NewSubstitutionType(p.Name.Value))
+		ret = append(ret, NewSubstitutionType(p.Name.Value, c.constructTypes(p.Constraints)))
 	}
+
 	return ret
 }
 
@@ -412,7 +413,7 @@ func (v *EnumTypeNode) construct(c *Constructor) Type {
 	enumType := EnumType{
 		Simple:            true,
 		Members:           make([]EnumTypeMember, len(v.Members)),
-		GenericParameters: v.GenericSigil.toSubstitutionTypes(),
+		GenericParameters: v.GenericSigil.construct(c),
 	}
 
 	lastValue := 0

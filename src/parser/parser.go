@@ -601,15 +601,15 @@ func (v *parser) parseGenericSigil() *GenericSigilNode {
 func (v *parser) parseTypeParameter() *TypeParameterNode {
 	name := v.expect(lexer.TOKEN_IDENTIFIER, "")
 
-	var restrictions []*NameNode
+	var constraints []ParseNode
 	if v.tokenMatches(0, lexer.TOKEN_OPERATOR, ":") {
 		v.consumeToken()
 		for {
-			restriction := v.parseName()
-			if restriction == nil {
+			constraint := v.parseType(true, false, false)
+			if constraint == nil {
 				v.err("Expected valid name in type restriction")
 			}
-			restrictions = append(restrictions, restriction)
+			constraints = append(constraints, constraint)
 
 			if !v.tokenMatches(0, lexer.TOKEN_OPERATOR, "&") {
 				break
@@ -618,9 +618,9 @@ func (v *parser) parseTypeParameter() *TypeParameterNode {
 		}
 	}
 
-	res := &TypeParameterNode{Name: NewLocatedString(name), Restrictions: restrictions}
-	if idx := len(restrictions) - 1; idx >= 0 {
-		res.SetWhere(lexer.NewSpan(name.Where.Start(), restrictions[idx].Where().End()))
+	res := &TypeParameterNode{Name: NewLocatedString(name), Constraints: constraints}
+	if idx := len(constraints) - 1; idx >= 0 {
+		res.SetWhere(lexer.NewSpan(name.Where.Start(), constraints[idx].Where().End()))
 	} else {
 		res.SetWhere(lexer.NewSpanFromTokens(name, name))
 	}

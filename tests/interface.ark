@@ -10,11 +10,13 @@ func (v: Doer) do() {
 
 }
 
+func runDoer<T: IDoer>(t: T) {
+    t.do();
+    // uncomment for inferrence error
+}
+
 pub func main() -> int {
     io::println("interface test");
-
-    //doer: IDoer = Doer{};
-    //doer.do();
 
     return 0;
 }

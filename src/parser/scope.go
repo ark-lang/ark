@@ -105,6 +105,9 @@ func (v *Scope) InsertIdent(value interface{}, name string, typ IdentType, publi
 }
 
 func (v *Scope) InsertType(t Type, public bool) *Ident {
+	if sub, ok := t.(*SubstitutionType); ok {
+		return v.InsertIdent(t, sub.Name, IDENT_TYPE, public)
+	}
 	return v.InsertIdent(t, t.TypeName(), IDENT_TYPE, public)
 }
 

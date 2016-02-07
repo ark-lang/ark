@@ -187,6 +187,7 @@ type Function struct {
 func (v Function) String() string {
 	s := NewASTStringer("Function")
 	s.AddAttrs(v.Type.Attrs())
+	s.AddString(v.Type.GenericParameters.String())
 	s.AddString(v.Name)
 	for _, par := range v.Parameters {
 		s.Add(par)
@@ -699,7 +700,6 @@ func (v StringLiteral) GetType() *TypeReference {
 	} else {
 		return &TypeReference{BaseType: stringType}
 	}
-	return nil
 }
 
 func (_ StringLiteral) NodeName() string {
