@@ -1033,7 +1033,7 @@ func NewSubstitutionType(name string, constraints []Type) *SubstitutionType {
 }
 
 func (v *SubstitutionType) String() string {
-	return "(" + util.Blue("SubstitutionType") + ": " + v.Name + " " + fmt.Sprintf("%p", v) + ")"
+	return "(" + util.Blue("SubstitutionType") + ": " + v.TypeName() + " " + fmt.Sprintf("%p", v) + ")"
 }
 
 func (v *SubstitutionType) TypeName() string {
@@ -1046,7 +1046,7 @@ func (v *SubstitutionType) TypeName() string {
 		}
 	}
 
-	return str + v.String()
+	return str
 }
 
 func (v *SubstitutionType) ActualType() Type {
