@@ -196,15 +196,11 @@ func SubsType(typ *TypeReference, id int, what *TypeReference) *TypeReference {
 		// current point. If we do, we return the actual type.
 		case ConstructorStructMember:
 			// Method check
-			if nt, ok := TypeWithoutPointers(nargs[0].BaseType).(*NamedType); ok {
-				// TODO: This whole check and return is iffy, we could porbably
-				// go about it in a better way.
-				fn := nt.GetMethod(t.Data.(string))
-				if fn != nil {
-					return &TypeReference{
-						BaseType:         fn.Type,
-						GenericArguments: typ.GenericArguments,
-					}
+			fn := getMethod(nargs[0].BaseType, t.Data.(string))
+			if fn != nil {
+				return &TypeReference{
+					BaseType:         fn.Type,
+					GenericArguments: typ.GenericArguments,
 				}
 			}
 
@@ -290,6 +286,34 @@ func SubsType(typ *TypeReference, id int, what *TypeReference) *TypeReference {
 	default:
 		panic("Unhandled type in Side.Subs(): " + reflect.TypeOf(t).String() + " (" + t.TypeName() + ")")
 	}
+}
+
+func getMethod(typ Type, name string) *Function {
+	typNp := TypeWithoutPointers(typ)
+	if it, ok := typNp.ActualType().(InterfaceType); ok {
+		typNp = it
+	}
+
+	var fn *Function
+	switch t := typNp.(type) {
+	case *NamedType:
+		fn = t.GetMethod(name)
+
+	case InterfaceType:
+		fn = t.GetFunction(name)
+
+	case *SubstitutionType:
+		var ifn *Function
+		for _, con := range t.Constraints {
+			ifn = getMethod(con, name)
+			if ifn != nil {
+				break
+			}
+		}
+		fn = ifn
+	}
+
+	return fn
 }
 
 func (v Side) String() string {
@@ -1030,19 +1054,23 @@ func (v *Inferrer) Finalize() {
 			// If the function source is a struct access, resolve the method
 			// this access represents.
 			if sae, ok := n.Function.(*StructAccessExpr); ok {
-				fn := TypeWithoutPointers(sae.Struct.GetType().BaseType).(*NamedType).GetMethod(sae.Member)
-				fmt.Println(n.Function)
+				// TODO: This will need work once we actually get around to
+				// implementing interfaces with all the vtable horribleness
+				// it requires.
+				fn := getMethod(sae.Struct.GetType().BaseType, sae.Member)
+				if fn == nil {
+					v.errPos(sae.Pos(), "Type `%s` has no method `%s`", TypeWithoutPointers(sae.Struct.GetType().BaseType).TypeName(), sae.Member)
+				}
+
 				fae := &FunctionAccessExpr{
 					Function:         fn,
 					GenericArguments: sae.GenericArguments,
 					ParentFunction:   sae.ParentFunction,
 				}
 				fae.setPos(sae.Pos())
+
 				n.Function = fae
 				fn.Accesses = append(fn.Accesses, fae)
-				if n.Function == nil {
-					v.errPos(sae.Pos(), "Type `%s` has no method `%s`", TypeWithoutPointers(sae.Struct.GetType().BaseType).TypeName(), sae.Member)
-				}
 			}
 
 			if n.Function != nil {
@@ -1065,8 +1093,7 @@ func (v *Inferrer) Finalize() {
 
 		case *StructAccessExpr:
 			// Check if we're dealing with a method and exit early
-			baseType := TypeWithoutPointers(n.Struct.GetType().BaseType)
-			if nt, ok := baseType.(*NamedType); ok && nt.GetMethod(n.Member) != nil {
+			if getMethod(n.Struct.GetType().BaseType, n.Member) != nil {
 				break
 			}
 

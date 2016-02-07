@@ -11,8 +11,7 @@ func (v: Doer) do() {
 }
 
 func runDoer<T: IDoer>(t: T) {
-    //t.do();
-    // uncomment for inferrence error
+    t.do();
 }
 
 pub func main() -> int {

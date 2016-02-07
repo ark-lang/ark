@@ -679,6 +679,16 @@ func (v InterfaceType) addFunction(fn *Function) InterfaceType {
 	return v
 }
 
+func (v InterfaceType) GetFunction(name string) *Function {
+	for _, fn := range v.Functions {
+		if fn.Name == name {
+			return fn
+		}
+	}
+
+	return nil
+}
+
 func (v InterfaceType) MatchesType(t Type) {
 
 }
