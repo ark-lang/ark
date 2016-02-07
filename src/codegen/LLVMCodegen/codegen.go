@@ -785,11 +785,13 @@ func (v *Codegen) genAccessExpr(n parser.Expr) llvm.Value {
 		gcon.Outer = v.currentFunction().gcon
 
 		var fnName string
+
 		if fae.ReceiverAccess != nil {
-			fnName = fae.Function.MangledNameWithReceiver(parser.MANGLE_ARK_UNSTABLE, fae.ReceiverAccess.GetType().BaseType, gcon)
+			fnName = parser.GetMethod(gcon.Get(fae.ReceiverAccess.GetType()).BaseType, fae.Function.Name).MangledName(parser.MANGLE_ARK_UNSTABLE, gcon)
 		} else {
 			fnName = fae.Function.MangledName(parser.MANGLE_ARK_UNSTABLE, gcon)
 		}
+
 		if fae.Function.Type.Attrs().Contains("nomangle") {
 			fnName = fae.Function.Name
 		}

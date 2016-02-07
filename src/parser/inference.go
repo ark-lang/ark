@@ -197,7 +197,7 @@ func SubsType(typ *TypeReference, id int, what *TypeReference) *TypeReference {
 		// current point. If we do, we return the actual type.
 		case ConstructorStructMember:
 			// Method check
-			fn := getMethod(nargs[0].BaseType, t.Data.(string))
+			fn := GetMethod(nargs[0].BaseType, t.Data.(string))
 			if fn != nil {
 				return &TypeReference{
 					BaseType:         fn.Type,
@@ -297,7 +297,7 @@ func SubsType(typ *TypeReference, id int, what *TypeReference) *TypeReference {
 	}
 }
 
-func getMethod(typ Type, name string) *Function {
+func GetMethod(typ Type, name string) *Function {
 	typNp := TypeWithoutPointers(typ)
 	if it, ok := typNp.ActualType().(InterfaceType); ok {
 		typNp = it
@@ -314,7 +314,7 @@ func getMethod(typ Type, name string) *Function {
 	case *SubstitutionType:
 		var ifn *Function
 		for _, con := range t.Constraints {
-			ifn = getMethod(con, name)
+			ifn = GetMethod(con, name)
 			if ifn != nil {
 				break
 			}
@@ -1092,7 +1092,7 @@ func (v *Inferrer) Finalize() {
 				// TODO: This will need work once we actually get around to
 				// implementing interfaces with all the vtable horribleness
 				// it requires.
-				fn := getMethod(sae.Struct.GetType().BaseType, sae.Member)
+				fn := GetMethod(sae.Struct.GetType().BaseType, sae.Member)
 				if fn == nil {
 					v.errPos(sae.Pos(), "Type `%s` has no method `%s`", TypeWithoutPointers(sae.Struct.GetType().BaseType).TypeName(), sae.Member)
 				}
@@ -1129,7 +1129,7 @@ func (v *Inferrer) Finalize() {
 
 		case *StructAccessExpr:
 			// Check if we're dealing with a method and exit early
-			if getMethod(n.Struct.GetType().BaseType, n.Member) != nil {
+			if GetMethod(n.Struct.GetType().BaseType, n.Member) != nil {
 				break
 			}
 
