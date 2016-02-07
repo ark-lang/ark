@@ -62,6 +62,7 @@ func NewSemanticAnalyzer(module *parser.Submodule, useOwnership bool, ignoreUnus
 		&ImmutableAssignCheck{},
 		&UseBeforeDeclareCheck{},
 		&MiscCheck{},
+		&ReferenceCheck{},
 	}
 
 	if !ignoreUnused {
