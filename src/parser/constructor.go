@@ -483,6 +483,29 @@ func (v *VarDeclNode) construct(c *Constructor) Node {
 	return res
 }
 
+func (v *DestructVarDeclNode) construct(c *Constructor) Node {
+	variables := make([]*Variable, len(v.Names))
+	for idx, name := range v.Names {
+		mutable := v.Mutable[idx]
+
+		variables[idx] = &Variable{
+			Name:         name.Value,
+			Attrs:        make(AttrGroup),
+			Mutable:      mutable,
+			ParentModule: c.module,
+		}
+	}
+
+	res := &DestructVarDecl{
+		docs:       v.DocComments(),
+		Variables:  variables,
+		Assignment: c.constructExpr(v.Value),
+	}
+	res.setPos(v.Where().Start())
+
+	return res
+}
+
 func (v *DeferStatNode) construct(c *Constructor) Node {
 	res := &DeferStat{}
 	res.Call = c.constructExpr(v.Call).(*CallExpr) // TODO: Error message

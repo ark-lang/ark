@@ -283,6 +283,13 @@ func (v *Resolver) ResolveNode(node *Node) {
 			v.err(n, "Illegal redeclaration of variable `%s`", n.Variable.Name)
 		}
 
+	case *DestructVarDecl:
+		for _, vari := range n.Variables {
+			if v.curScope.InsertVariable(vari, false) != nil {
+				v.err(n, "Illegal redeclaration of variable `%s`", vari.Name)
+			}
+		}
+
 	// Expr
 
 	case *LambdaExpr:

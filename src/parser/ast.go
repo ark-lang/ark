@@ -282,6 +282,34 @@ func (v VariableDecl) DocComments() []*DocComment {
 	return v.docs
 }
 
+// DestructVarDecl
+type DestructVarDecl struct {
+	nodePos
+	Variables  []*Variable
+	Assignment Expr
+	docs       []*DocComment
+}
+
+func (_ DestructVarDecl) declNode() {}
+
+func (v DestructVarDecl) String() string {
+	s := NewASTStringer("DestructVarDecl")
+	for _, vari := range v.Variables {
+		s.Add(vari)
+	}
+	s.AddString(" =")
+	s.Add(v.Assignment)
+	return s.Finish()
+}
+
+func (_ DestructVarDecl) NodeName() string {
+	return "destructuring variable declaration"
+}
+
+func (v DestructVarDecl) DocComments() []*DocComment {
+	return v.docs
+}
+
 // TypeDecl
 
 type TypeDecl struct {

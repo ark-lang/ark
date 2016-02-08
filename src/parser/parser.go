@@ -357,6 +357,8 @@ func (v *parser) parseDecl(isTopLevel bool) ParseNode {
 		res = funcDecl
 	} else if varDecl := v.parseVarDecl(isTopLevel); varDecl != nil {
 		res = varDecl
+	} else if varTupleDecl := v.parseDestructVarDecl(isTopLevel); varTupleDecl != nil {
+		res = varTupleDecl
 	} else {
 		return nil
 	}
@@ -751,6 +753,55 @@ func (v *parser) parseVarDeclBody(isReceiver bool) *VarDeclNode {
 	}
 
 	res.SetWhere(lexer.NewSpan(start, end))
+	return res
+}
+
+func (v *parser) parseDestructVarDecl(isTopLevel bool) *DestructVarDeclNode {
+	defer un(trace(v, "vartupledecl"))
+
+	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "(") {
+		return nil
+	}
+	start := v.consumeToken()
+
+	var names []LocatedString
+	var mutable []bool
+	for {
+		isMutable := false
+		if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_MUT) {
+			isMutable = true
+			v.consumeToken()
+		}
+
+		if !v.nextIs(lexer.TOKEN_IDENTIFIER) {
+			v.errPos("Expected identifier in tuple destructuring variable declaration, got %s", v.peek(0).Type)
+		}
+		name := v.consumeToken()
+
+		names = append(names, NewLocatedString(name))
+		mutable = append(mutable, isMutable)
+
+		if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ",") {
+			break
+		}
+		v.consumeToken()
+	}
+
+	v.expect(lexer.TOKEN_SEPARATOR, ")")
+	v.expect(lexer.TOKEN_OPERATOR, ":")
+	v.expect(lexer.TOKEN_OPERATOR, "=")
+
+	value := v.parseExpr()
+	if value == nil {
+		v.err("Expected valid expression after tuple destructuring variable declaration")
+	}
+
+	res := &DestructVarDeclNode{
+		Names:   names,
+		Mutable: mutable,
+		Value:   value,
+	}
+	res.SetWhere(lexer.NewSpan(start.Where.Start(), value.Where().End()))
 	return res
 }
 

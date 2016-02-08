@@ -234,6 +234,9 @@ func (v *ASTVisitor) VisitChildren(n Node) {
 	case *VariableDecl:
 		n.Assignment = v.VisitExpr(n.Assignment)
 
+	case *DestructVarDecl:
+		n.Assignment = v.VisitExpr(n.Assignment)
+
 	case *FunctionAccessExpr:
 		n.ReceiverAccess = v.VisitExpr(n.ReceiverAccess)
 

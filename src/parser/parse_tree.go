@@ -211,6 +211,13 @@ type VarDeclNode struct {
 	ReceiverGenericSigil *GenericSigilNode
 }
 
+type DestructVarDeclNode struct {
+	baseDecl
+	Names   []LocatedString
+	Mutable []bool
+	Value   ParseNode
+}
+
 type TypeDeclNode struct {
 	baseDecl
 	Name         LocatedString
