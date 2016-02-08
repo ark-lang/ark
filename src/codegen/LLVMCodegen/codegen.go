@@ -1428,7 +1428,7 @@ func (v *Codegen) genCastExpr(n *parser.CastExpr) llvm.Value {
 			}
 		} else if castBaseType.IsFloatingType() {
 			exprBits := floatTypeBits(exprBaseType.(parser.PrimitiveType))
-			castBits := floatTypeBits(exprBaseType.(parser.PrimitiveType))
+			castBits := floatTypeBits(castBaseType.(parser.PrimitiveType))
 			if exprBits == castBits {
 				return expr
 			} else if exprBits > castBits {
