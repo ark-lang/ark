@@ -7,7 +7,6 @@ const (
 	OP_COMPARISON
 	OP_BITWISE
 	OP_LOGICAL
-	OP_ASSIGN
 )
 
 func (v OpCategory) PrettyString() string {
@@ -20,8 +19,6 @@ func (v OpCategory) PrettyString() string {
 		return "bitwise"
 	case OP_LOGICAL:
 		return "logical"
-	case OP_ASSIGN:
-		return "assignment"
 	default:
 		panic("missing opcategory")
 	}

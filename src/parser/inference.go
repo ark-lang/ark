@@ -537,21 +537,20 @@ func (v *Inferrer) HandleTyped(pos lexer.Position, typed Typed) int {
 	case *BinaryExpr:
 		a := v.HandleExpr(typed.Lhand)
 		b := v.HandleExpr(typed.Rhand)
-		switch typed.Op {
+		switch typed.Op.Category() {
 
 		// If we're dealing with a comparison operation, we know that both
 		// sides must be of the same type, and that the result will be a bool
-		case BINOP_EQ, BINOP_NOT_EQ, BINOP_GREATER, BINOP_LESS,
-			BINOP_GREATER_EQ, BINOP_LESS_EQ:
+		case OP_COMPARISON:
 			if typed.Lhand.GetType() == nil || typed.Rhand.GetType() == nil {
 				v.AddEqualsConstraint(a, b)
 			}
 			v.AddSimpleIsConstraint(ann.Id, &TypeReference{BaseType: PRIMITIVE_bool})
 
-		// If we're dealing with bitwise and, or and xor we know that both
-		// sides must be the same type, and that the result will be of that
-		// type aswell.
-		case BINOP_BIT_AND, BINOP_BIT_OR, BINOP_BIT_XOR:
+		// If we're dealing with bitwise operations we know that both sides
+		// must be the same type, and that the result will be of that type
+		// aswell.
+		case OP_BITWISE:
 			if typed.Lhand.GetType() != nil && typed.Rhand.GetType() != nil {
 				v.AddSimpleIsConstraint(ann.Id, typed.Lhand.GetType())
 			} else {
@@ -563,17 +562,7 @@ func (v *Inferrer) HandleTyped(pos lexer.Position, typed Typed) int {
 		// sides must be of the same type, and that the result will be of that
 		// type aswell.
 		// TODO: These assumptions don't hold once we add operator overloading
-		case BINOP_ADD, BINOP_SUB, BINOP_MUL, BINOP_DIV, BINOP_MOD:
-			if typed.Lhand.GetType() != nil && typed.Rhand.GetType() != nil {
-				v.AddSimpleIsConstraint(ann.Id, typed.Lhand.GetType())
-			} else {
-				v.AddEqualsConstraint(a, b)
-				v.AddEqualsConstraint(ann.Id, a)
-			}
-
-		// If we're dealing with a bit shift, we know that the result will be
-		// of the same type as the left hand side (the value being shifted).
-		case BINOP_BIT_LEFT, BINOP_BIT_RIGHT:
+		case OP_ARITHMETIC:
 			if typed.Lhand.GetType() != nil && typed.Rhand.GetType() != nil {
 				v.AddSimpleIsConstraint(ann.Id, typed.Lhand.GetType())
 			} else {
@@ -583,7 +572,7 @@ func (v *Inferrer) HandleTyped(pos lexer.Position, typed Typed) int {
 
 		// If we're dealing with a logical operation, we know that both sides
 		// must be booleans, and that the result will also be a boolean.
-		case BINOP_LOG_AND, BINOP_LOG_OR:
+		case OP_LOGICAL:
 			v.AddSimpleIsConstraint(a, &TypeReference{BaseType: PRIMITIVE_bool})
 			v.AddSimpleIsConstraint(b, &TypeReference{BaseType: PRIMITIVE_bool})
 			v.AddSimpleIsConstraint(ann.Id, &TypeReference{BaseType: PRIMITIVE_bool})
