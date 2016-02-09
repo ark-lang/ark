@@ -721,7 +721,9 @@ func (v *Inferrer) HandleTyped(pos lexer.Position, typed Typed) int {
 				break
 			}
 		}
-		v.AddIsConstraint(id, &TypeReference{BaseType: ArrayOf(&TypeReference{BaseType: TypeVariable{Id: ann.Id}}, false, 0)})
+		arrayAccessBaseType := typed.Array.GetType().BaseType.ActualType().(ArrayType)
+		v.AddIsConstraint(id, &TypeReference{BaseType: ArrayOf(&TypeReference{BaseType: TypeVariable{Id: ann.Id}},
+			arrayAccessBaseType.IsFixedLength, arrayAccessBaseType.Length)})
 
 	// An array length expression is always of type uint
 	case *ArrayLenExpr:
