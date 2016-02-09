@@ -8,7 +8,7 @@ pub func main(argc: int, argv: ^^u8) -> int {
     mut i := 0;
     for i < argc {
         str := (^^u8)(ptr);
-        C::printf(c"%s\n", ^str);
+        C::printf(c"%s\n", @str);
 
         ptr += 8;
         i += 1;
