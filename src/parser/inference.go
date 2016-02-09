@@ -483,6 +483,24 @@ func (v *Inferrer) Visit(node *Node) bool {
 			v.HandleExpr(n.Assignment)
 		}
 
+	case *DestructVarDecl:
+		id := v.HandleExpr(n.Assignment)
+		if n.Assignment.GetType() != nil {
+			if tt, ok := n.Assignment.GetType().BaseType.ActualType().(TupleType); ok {
+				for idx, vari := range n.Variables {
+					vari.SetType(tt.Members[idx])
+				}
+				break
+			}
+		}
+
+		ids := make([]*TypeReference, len(n.Variables))
+		for idx, vari := range n.Variables {
+			vid := v.HandleTyped(n.Pos(), vari)
+			ids[idx] = &TypeReference{BaseType: TypeVariable{Id: vid}}
+		}
+		v.AddIsConstraint(id, &TypeReference{BaseType: tupleOf(ids...)})
+
 	case *AssignStat:
 		a := v.HandleExpr(n.Access)
 		b := v.HandleExpr(n.Assignment)

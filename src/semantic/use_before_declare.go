@@ -33,15 +33,18 @@ func (v *UseBeforeDeclareCheck) ExitScope(s *SemanticAnalyzer) {
 func (v *UseBeforeDeclareCheck) PostVisit(s *SemanticAnalyzer, n parser.Node) {}
 
 func (v *UseBeforeDeclareCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
-	switch n.(type) {
+	switch n := n.(type) {
 	case *parser.VariableDecl:
-		decl := n.(*parser.VariableDecl)
-		v.scope[decl.Variable.Name] = true
+		v.scope[n.Variable.Name] = true
+
+	case *parser.DestructVarDecl:
+		for _, vari := range n.Variables {
+			v.scope[vari.Name] = true
+		}
 
 	case *parser.VariableAccessExpr:
-		expr := n.(*parser.VariableAccessExpr)
-		if !v.scope[expr.Variable.Name] && expr.Variable.ParentModule == s.Submodule.Parent {
-			s.Err(expr, "Use of variable before declaration: %s", expr.Variable.Name)
+		if !v.scope[n.Variable.Name] && n.Variable.ParentModule == s.Submodule.Parent {
+			s.Err(n, "Use of variable before declaration: %s", n.Variable.Name)
 		}
 	}
 }

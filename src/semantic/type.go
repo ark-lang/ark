@@ -46,6 +46,9 @@ func (v *TypeCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
 	case *parser.VariableDecl:
 		v.CheckVariableDecl(s, n)
 
+	case *parser.DestructVarDecl:
+		v.CheckDestructVarDecl(s, n)
+
 	case *parser.ReturnStat:
 		v.CheckReturnStat(s, n)
 
@@ -105,6 +108,17 @@ func (v *TypeCheck) CheckVariableDecl(s *SemanticAnalyzer, decl *parser.Variable
 			s.Err(decl, "Cannot assign expression of type `%s` to variable of type `%s`",
 				decl.Assignment.GetType().String(), decl.Variable.Type.String())
 		}
+	}
+}
+
+func (v *TypeCheck) CheckDestructVarDecl(s *SemanticAnalyzer, decl *parser.DestructVarDecl) {
+	tt, ok := decl.Assignment.GetType().BaseType.ActualType().(parser.TupleType)
+	if !ok {
+		s.Err(decl, "Assignment to destructing variable declaration must be tuple, was `%s`", decl.Assignment.GetType())
+	}
+
+	if len(tt.Members) != len(decl.Variables) {
+		s.Err(decl.Assignment, "Destructured tuple must have %d values, had %d", len(decl.Variables), len(tt.Members))
 	}
 }
 

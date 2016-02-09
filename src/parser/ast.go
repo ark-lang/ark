@@ -161,7 +161,7 @@ func (v Variable) String() string {
 	}
 	s.AddAttrs(v.Attrs)
 	s.AddString(v.Name)
-	//s.AddType(v.Type) TODO
+	s.AddTypeReference(v.Type)
 	return s.Finish()
 }
 
