@@ -599,7 +599,9 @@ func (v *Codegen) genDecl(n parser.Decl) {
 			}
 		}
 	case *parser.VariableDecl:
-		v.genVariableDecl(n, true)
+		v.genVariableDecl(n)
+	case *parser.DestructVarDecl:
+		v.genDestructVarDecl(n)
 	case *parser.TypeDecl:
 		// TODO nothing to gen?
 	default:
@@ -658,11 +660,28 @@ func (v *Codegen) genFunctionBody(fn *parser.Function, llvmFn llvm.Value, gcon *
 	v.popFunction()
 }
 
-func (v *Codegen) genVariableDecl(n *parser.VariableDecl, semicolon bool) llvm.Value {
-	var res llvm.Value
+func (v *Codegen) genVariableDecl(n *parser.VariableDecl) {
+	v.genVariable(n.IsPublic(), n.Variable, v.genExpr(n.Assignment))
+}
 
+func (v *Codegen) genDestructVarDecl(n *parser.DestructVarDecl) {
+	assignment := v.genExpr(n.Assignment)
+
+	for idx, vari := range n.Variables {
+		var value llvm.Value
+		if v.inFunction() {
+			assignment.Dump()
+			value = v.builder().CreateExtractValue(assignment, idx, "")
+		} else {
+			value = llvm.ConstExtractValue(assignment, []uint32{uint32(idx)})
+		}
+		v.genVariable(n.IsPublic(), vari, value)
+	}
+}
+
+func (v *Codegen) genVariable(isPublic bool, vari *parser.Variable, assignment llvm.Value) {
 	if v.inFunction() {
-		mangledName := n.Variable.MangledName(parser.MANGLE_ARK_UNSTABLE)
+		mangledName := vari.MangledName(parser.MANGLE_ARK_UNSTABLE)
 
 		funcEntry := v.currentLLVMFunction().EntryBasicBlock()
 
@@ -677,43 +696,39 @@ func (v *Codegen) genVariableDecl(n *parser.VariableDecl, semicolon bool) llvm.V
 			allocBuilder.SetInsertPointBefore(funcEntry.LastInstruction())
 		}
 
-		varType := v.typeRefToLLVMType(n.Variable.Type)
+		varType := v.typeRefToLLVMType(vari.Type)
 		alloc := allocBuilder.CreateAlloca(varType, mangledName)
 
 		allocBuilder.Dispose()
 
-		v.variableLookup[newvariableAndFnGenericInstance(n.Variable, v.currentFunction().gcon)] = alloc
+		v.variableLookup[newvariableAndFnGenericInstance(vari, v.currentFunction().gcon)] = alloc
 
-		if n.Assignment != nil {
-			if value := v.genExpr(n.Assignment); !value.IsNil() {
-				v.builder().CreateStore(value, alloc)
-			}
-		} else if !n.Variable.Attrs.Contains("nozero") {
+		if !assignment.IsNil() {
+			v.builder().CreateStore(assignment, alloc)
+		} else if !vari.Attrs.Contains("nozero") {
 			v.builder().CreateStore(llvm.ConstNull(varType), alloc)
 		}
 	} else {
 		// TODO cbindings
 		cBinding := false
 
-		mangledName := n.Variable.MangledName(parser.MANGLE_ARK_UNSTABLE)
-		varType := v.typeRefToLLVMType(n.Variable.Type)
+		mangledName := vari.MangledName(parser.MANGLE_ARK_UNSTABLE)
+		varType := v.typeRefToLLVMType(vari.Type)
 
 		value := llvm.AddGlobal(v.curFile.LlvmModule, varType, mangledName)
 		// TODO: External by default to export everything, change once we get access specifiers
 
-		if !cBinding && !n.IsPublic() {
+		if !cBinding && !isPublic {
 			value.SetLinkage(nonPublicLinkage)
 		}
-		value.SetGlobalConstant(!n.Variable.Mutable)
-		if n.Assignment != nil {
-			value.SetInitializer(v.genExpr(n.Assignment))
+		value.SetGlobalConstant(!vari.Mutable)
+		if !assignment.IsNil() {
+			value.SetInitializer(assignment)
 		} else {
 			value.SetInitializer(llvm.ConstNull(varType))
 		}
-		v.variableLookup[newvariableAndFnGenericInstance(n.Variable, nil)] = value
+		v.variableLookup[newvariableAndFnGenericInstance(vari, nil)] = value
 	}
-
-	return res
 }
 
 func (v *Codegen) genExpr(n parser.Expr) llvm.Value {
