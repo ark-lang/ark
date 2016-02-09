@@ -7,10 +7,9 @@ func something() -> (int, f32) {
 }
 
 pub func main() -> int {
-    [unused] x := something();
-    // (y, z) := x;
-    // C::printf(c"%d %f\n", y, z);
-
-    return 0;
-    // return y;
+    x := something();
+    (y, z) := x;
+    C::printf(c"%d %f\n", y, z);
+    
+    return y;
 }
