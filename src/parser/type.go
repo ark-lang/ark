@@ -9,8 +9,6 @@ package parser
 import (
 	"fmt"
 	"reflect"
-	"sort"
-	"strings"
 
 	"github.com/ark-lang/ark/src/util"
 )
@@ -720,43 +718,16 @@ func (v InterfaceType) MatchesType(t Type) bool {
 	return false
 }
 
-type fnNameSorter []*Function
-
-func (v fnNameSorter) Len() int {
-	return len(v)
-}
-
-func (v fnNameSorter) Less(i, j int) bool {
-	return strings.Compare(v[i].Name, v[j].Name) < 0
-}
-
-func (v fnNameSorter) Swap(i, j int) {
-	v[i], v[j] = v[j], v[i]
-}
-
-func FunctionsSortedByNameCopy(fns []*Function) []*Function {
-	ret := make([]*Function, len(fns))
-	copy(ret, fns)
-	sort.Sort(fnNameSorter(ret))
-	return ret
-}
-
 func (v InterfaceType) MatchesMethods(methods []*Function) bool {
-	if len(methods) < len(v.Functions) {
+outer:
+	for _, intFn := range v.Functions {
+		for _, method := range methods {
+			if method.Name == intFn.Name && method.Type.Equals(intFn.Type) {
+				continue outer
+			}
+		}
 		return false
 	}
-
-	sortedFns := FunctionsSortedByNameCopy(v.Functions)
-	sortedMethods := FunctionsSortedByNameCopy(methods)
-
-	for i, fn := range sortedFns {
-		if sortedMethods[i].Name != fn.Name {
-			return false
-		} else if !sortedMethods[i].Type.Equals(fn.Type) {
-			return false
-		}
-	}
-
 	return true
 }
 
