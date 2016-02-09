@@ -81,6 +81,11 @@ Writings tests are very important. The tests are located
 in the `tests/` directory in this repository. Each test has
 an ark module, and its corresponding TOML file.
 
+Note that there is a tool for creating template test files in
+the util directory:
+
+	./util/make-test.sh tests/the-program.ark
+
 In the TOML test file, you specify various arguments such as
 what sourcefile to target, the compiler arguments to pass, and
 so on.
