@@ -5,9 +5,9 @@ import (
 )
 
 type UnusedCheck struct {
-	// TODO: Remove `Uses` variable from various ast nodes and keep count here
-	encountered []parser.Node
-	uses        map[interface{}]int
+	encountered     []interface{}
+	encounteredDecl []parser.Node
+	uses            map[interface{}]int
 }
 
 func (v *UnusedCheck) Init(s *SemanticAnalyzer) {
@@ -22,23 +22,31 @@ func (v *UnusedCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
 	switch n := n.(type) {
 	case *parser.VariableDecl:
 		if !n.IsPublic() {
-			v.encountered = append(v.encountered, n)
+			v.encountered = append(v.encountered, n.Variable)
+			v.encounteredDecl = append(v.encounteredDecl, n)
+		}
+
+	case *parser.DestructVarDecl:
+		if !n.IsPublic() {
+			for _, vari := range n.Variables {
+				v.encountered = append(v.encountered, vari)
+				v.encounteredDecl = append(v.encounteredDecl, n)
+			}
 		}
 
 	case *parser.FunctionDecl:
 		if !n.IsPublic() {
-			v.encountered = append(v.encountered, n)
+			v.encountered = append(v.encountered, n.Function)
+			v.encounteredDecl = append(v.encounteredDecl, n)
 		}
 	}
 
-	switch n.(type) {
-	case *parser.CallExpr:
-		expr := n.(*parser.CallExpr)
-		v.uses[expr.Function]++
+	switch n := n.(type) {
+	case *parser.FunctionAccessExpr:
+		v.uses[n.Function]++
 
 	case *parser.VariableAccessExpr:
-		expr := n.(*parser.VariableAccessExpr)
-		v.uses[expr.Variable]++
+		v.uses[n.Variable]++
 	}
 }
 
@@ -47,16 +55,17 @@ func (v *UnusedCheck) Finalize(s *SemanticAnalyzer) {
 }
 
 func (v *UnusedCheck) AnalyzeUsage(s *SemanticAnalyzer) {
-	for _, node := range v.encountered {
-		switch node := node.(type) {
-		case *parser.VariableDecl:
-			if !node.Variable.Attrs.Contains("unused") && !node.Variable.IsParameter && !node.Variable.IsReceiver && !node.Variable.FromStruct && v.uses[node.Variable] == 0 {
-				s.Warn(node, "Unused variable `%s`", node.Variable.Name)
+	for idx, it := range v.encountered {
+		decl := v.encounteredDecl[idx]
+		switch it := it.(type) {
+		case *parser.Variable:
+			if !it.Attrs.Contains("unused") && !it.IsParameter && !it.IsReceiver && !it.FromStruct && v.uses[it] == 0 {
+				s.Warn(decl, "Unused variable `%s`", it.Name)
 			}
 
-		case *parser.FunctionDecl:
-			if !node.Function.Type.Attrs().Contains("unused") && v.uses[node.Function] == 0 {
-				s.Warn(node, "Unused function `%s`", node.Function.Name)
+		case *parser.Function:
+			if !it.Type.Attrs().Contains("unused") && v.uses[it] == 0 {
+				s.Warn(decl, "Unused function `%s`", it.Name)
 			}
 		}
 	}
