@@ -686,7 +686,6 @@ func (v *Codegen) genVariableDecl(n *parser.VariableDecl, semicolon bool) llvm.V
 
 		if n.Assignment != nil {
 			if value := v.genExpr(n.Assignment); !value.IsNil() {
-				fmt.Println(value.Type(), varType)
 				v.builder().CreateStore(value, alloc)
 			}
 		} else if !n.Variable.Attrs.Contains("nozero") {
