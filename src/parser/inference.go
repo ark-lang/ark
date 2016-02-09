@@ -55,6 +55,7 @@ const (
 	ConstructorInvalid ConstructorId = iota
 	ConstructorStructMember
 	ConstructorDeref
+	ConstructorArrayIndex
 )
 
 func (v *ConstructorType) Equals(other Type) bool {
@@ -227,7 +228,24 @@ func SubsType(typ *TypeReference, id int, what *TypeReference) *TypeReference {
 		case ConstructorDeref:
 			adressee := getAdressee(nargs[0].BaseType)
 			if adressee != nil {
+				if len(typ.GenericArguments) > 0 {
+					gn := NewGenericContextFromTypeReference(typ)
+					adressee = gn.Replace(adressee)
+				}
 				return adressee
+			}
+
+			// If we have a array member we check if we know the array type and if
+		// we do we pull out the member type
+		case ConstructorArrayIndex:
+			array := nargs[0].BaseType
+			if at, ok := array.ActualType().(ArrayType); ok {
+				mt := at.MemberType
+				if len(typ.GenericArguments) > 0 {
+					gn := NewGenericContextFromTypeReference(typ)
+					mt = gn.Replace(mt)
+				}
+				return mt
 			}
 		}
 
@@ -721,9 +739,14 @@ func (v *Inferrer) HandleTyped(pos lexer.Position, typed Typed) int {
 				break
 			}
 		}
-		arrayAccessBaseType := typed.Array.GetType().BaseType.ActualType().(ArrayType)
-		v.AddIsConstraint(id, &TypeReference{BaseType: ArrayOf(&TypeReference{BaseType: TypeVariable{Id: ann.Id}},
-			arrayAccessBaseType.IsFixedLength, arrayAccessBaseType.Length)})
+		v.AddIsConstraint(ann.Id, &TypeReference{
+			BaseType: &ConstructorType{
+				Id: ConstructorArrayIndex,
+				Args: []*TypeReference{
+					&TypeReference{BaseType: TypeVariable{Id: id}},
+				},
+			},
+		})
 
 	// An array length expression is always of type uint
 	case *ArrayLenExpr:
