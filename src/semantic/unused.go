@@ -19,12 +19,16 @@ func (v *UnusedCheck) ExitScope(s *SemanticAnalyzer)                {}
 func (v *UnusedCheck) PostVisit(s *SemanticAnalyzer, n parser.Node) {}
 
 func (v *UnusedCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
-	switch n.(type) {
+	switch n := n.(type) {
 	case *parser.VariableDecl:
-		v.encountered = append(v.encountered, n)
+		if !n.IsPublic() {
+			v.encountered = append(v.encountered, n)
+		}
 
 	case *parser.FunctionDecl:
-		v.encountered = append(v.encountered, n)
+		if !n.IsPublic() {
+			v.encountered = append(v.encountered, n)
+		}
 	}
 
 	switch n.(type) {
@@ -44,24 +48,16 @@ func (v *UnusedCheck) Finalize(s *SemanticAnalyzer) {
 
 func (v *UnusedCheck) AnalyzeUsage(s *SemanticAnalyzer) {
 	for _, node := range v.encountered {
-		switch node.(type) {
+		switch node := node.(type) {
 		case *parser.VariableDecl:
-			decl := node.(*parser.VariableDecl)
-			if !decl.Variable.Attrs.Contains("unused") && !decl.Variable.IsParameter && !decl.Variable.IsReceiver && !decl.Variable.FromStruct && v.uses[decl.Variable] == 0 {
-				s.Err(decl, "Unused variable `%s`", decl.Variable.Name)
+			if !node.Variable.Attrs.Contains("unused") && !node.Variable.IsParameter && !node.Variable.IsReceiver && !node.Variable.FromStruct && v.uses[node.Variable] == 0 {
+				s.Warn(node, "Unused variable `%s`", node.Variable.Name)
 			}
 
 		case *parser.FunctionDecl:
-			decl := node.(*parser.FunctionDecl)
-			if decl.Function.Name != "main" {
-				continue
+			if !node.Function.Type.Attrs().Contains("unused") && v.uses[node.Function] == 0 {
+				s.Warn(node, "Unused function `%s`", node.Function.Name)
 			}
-
-			if !decl.Function.Type.Attrs().Contains("unused") && v.uses[decl.Function] == 0 {
-				// TODO add compiler option for this?
-				//s.Err(decl, "Unused function `%s`", decl.Function.Name)
-			}
-
 		}
 	}
 }

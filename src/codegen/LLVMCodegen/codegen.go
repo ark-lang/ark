@@ -674,7 +674,6 @@ func (v *Codegen) genDestructVarDecl(n *parser.DestructVarDecl) {
 	for idx, vari := range n.Variables {
 		var value llvm.Value
 		if v.inFunction() {
-			assignment.Dump()
 			value = v.builder().CreateExtractValue(assignment, idx, "")
 		} else {
 			value = llvm.ConstExtractValue(assignment, []uint32{uint32(idx)})
