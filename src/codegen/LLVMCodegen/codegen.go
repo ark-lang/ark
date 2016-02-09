@@ -48,9 +48,10 @@ type Codegen struct {
 	input   []*WrappedModule
 	curFile *WrappedModule
 
-	builders     map[functionAndFnGenericInstance]llvm.Builder      // map of functions to builders
-	curLoopExits map[functionAndFnGenericInstance][]llvm.BasicBlock // map of functions to slices of blocks, where each block is the exit block for current loops
-	curLoopNexts map[functionAndFnGenericInstance][]llvm.BasicBlock // map of functions to slices of blocks, where each block is the eval block for current loops
+	builders      map[functionAndFnGenericInstance]llvm.Builder      // map of functions to builders
+	curLoopExits  map[functionAndFnGenericInstance][]llvm.BasicBlock // map of functions to slices of blocks, where each block is the exit block for current loops
+	curLoopNexts  map[functionAndFnGenericInstance][]llvm.BasicBlock // map of functions to slices of blocks, where each block is the eval block for current loops
+	curSegvBlocks map[functionAndFnGenericInstance]llvm.BasicBlock
 
 	globalBuilder   llvm.Builder // used non-function stuff
 	variableLookup  map[variableAndFnGenericInstance]llvm.Value
@@ -153,6 +154,7 @@ func (v *Codegen) Generate(input []*parser.Module) {
 
 	v.curLoopExits = make(map[functionAndFnGenericInstance][]llvm.BasicBlock)
 	v.curLoopNexts = make(map[functionAndFnGenericInstance][]llvm.BasicBlock)
+	v.curSegvBlocks = make(map[functionAndFnGenericInstance]llvm.BasicBlock)
 
 	v.declForFunction = make(map[*parser.Function]*parser.FunctionDecl)
 
@@ -652,6 +654,7 @@ func (v *Codegen) genFunctionBody(fn *parser.Function, llvmFn llvm.Value, gcon *
 	delete(v.builders, v.currentFunction())
 	delete(v.curLoopExits, v.currentFunction())
 	delete(v.curLoopNexts, v.currentFunction())
+	delete(v.curSegvBlocks, v.currentFunction())
 	v.popFunction()
 }
 
@@ -888,7 +891,16 @@ func (v *Codegen) genAccessGEP(n parser.Expr) llvm.Value {
 }
 
 func (v *Codegen) genBoundsCheck(limit llvm.Value, index llvm.Value, indexIsSigned bool) {
-	segvBlock := llvm.AddBasicBlock(v.currentLLVMFunction(), "boundscheck_segv")
+	var segvBlock llvm.BasicBlock
+	needToSetupSegvBlock := false
+	if b, ok := v.curSegvBlocks[v.currentFunction()]; ok {
+		segvBlock = b
+	} else {
+		segvBlock = llvm.AddBasicBlock(v.currentLLVMFunction(), "boundscheck_segv")
+		v.curSegvBlocks[v.currentFunction()] = segvBlock
+		needToSetupSegvBlock = true
+	}
+
 	endBlock := llvm.AddBasicBlock(v.currentLLVMFunction(), "boundscheck_end")
 	upperCheckBlock := llvm.AddBasicBlock(v.currentLLVMFunction(), "boundscheck_upper_block")
 
@@ -913,9 +925,11 @@ func (v *Codegen) genBoundsCheck(limit llvm.Value, index llvm.Value, indexIsSign
 	tooHigh := v.builder().CreateICmp(llvm.IntSLE, castedLimit, castedIndex, "boundscheck_upper")
 	v.builder().CreateCondBr(tooHigh, segvBlock, endBlock)
 
-	v.builder().SetInsertPointAtEnd(segvBlock)
-	v.genRaiseSegfault()
-	v.builder().CreateUnreachable()
+	if needToSetupSegvBlock {
+		v.builder().SetInsertPointAtEnd(segvBlock)
+		v.genRaiseSegfault()
+		v.builder().CreateUnreachable()
+	}
 
 	v.builder().SetInsertPointAtEnd(endBlock)
 }
