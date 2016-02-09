@@ -661,7 +661,11 @@ func (v *Codegen) genFunctionBody(fn *parser.Function, llvmFn llvm.Value, gcon *
 }
 
 func (v *Codegen) genVariableDecl(n *parser.VariableDecl) {
-	v.genVariable(n.IsPublic(), n.Variable, v.genExpr(n.Assignment))
+	var value llvm.Value
+	if n.Assignment != nil {
+		value = v.genExpr(n.Assignment)
+	}
+	v.genVariable(n.IsPublic(), n.Variable, value)
 }
 
 func (v *Codegen) genDestructVarDecl(n *parser.DestructVarDecl) {
