@@ -2,7 +2,10 @@
 #use io
 
 pub func main() -> int {
-	myFilePath := io::Path::new("test.ark");
+	myFilePath : ^mut io::Path = (^mut io::Path)(io::Path::new("/home/felix/index.html"));
+	myFile : ^mut io::File = io::File::open(myFilePath, io::FileMode::Read);
+
+	myFile.close();
 
 	return 0;
 }
