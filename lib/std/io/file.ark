@@ -1,0 +1,41 @@
+#use mem
+
+type FILE struct {};
+
+[c] func fopen(loc: ^u8, mode: ^u8) -> ^FILE;
+[c] func fseek(handle: ^FILE, offset: uint, whence: uint);
+[c] func ftell(handle: ^FILE) -> uint;
+[c] func rewind(handle: ^FILE);
+[c] func fread(where: ^u8, sz: uint, dunno: uint, handle: ^FILE);
+[c] func fclose(handle: ^FILE);
+[c] func getenv(what: ^u8) -> ^u8;
+
+pub type Path struct {
+	location: string,
+};
+
+pub func (Path) new(location: string) -> ^Path {
+	mut p: ^Path = mem::alloc<Path>();
+	return p;
+}
+
+pub type File struct {
+	name: string,
+	path: ^Path,
+	handle: ^FILE,
+};
+
+pub func (File) open(mut path: ^Path) -> ^File {
+	mut f: ^File = mem::alloc<File>();
+	f.path = path;
+	f.handle = C::fopen(f.path.location); 
+	return f;
+}
+
+pub func (f: ^File) readToString() -> string {
+	return "hey sexy";
+}
+
+pub func (f: ^File) close() {
+	// this causes a bug wtf.
+}

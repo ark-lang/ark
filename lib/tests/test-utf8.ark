@@ -16,13 +16,13 @@ pub func main() -> int {
 		test := tests[i];
 		C::printf(c"test: %d, len(test): %d, ", i, len(test));
 
-		runes := utf8::num_runes(test);
+		runes := utf8::numRunes(test);
 		C::printf(c"#runes: %d, ", runes);
 
 		dest := mem::allocArray<rune>(runes);
 		utf8::decode(dest, test);
 
-		bytes := utf8::num_bytes(dest);
+		bytes := utf8::numBytes(dest);
 		C::printf(c"#bytes: %d\n", bytes);
 
 		mut h: uint = 0;
@@ -33,19 +33,19 @@ pub func main() -> int {
 		}
 		C::printf(c"\n");
 
-		test_copy := mem::allocArray<u8>(bytes);
-		utf8::encode(test_copy, dest);
+		testCopy := mem::allocArray<u8>(bytes);
+		utf8::encode(testCopy, dest);
 
 		// Verify that the encoded output matches the original test
-		if len(test) != len(test_copy) {
-			C::printf(c"len(test) != len(test_copy) : %d != %d\n", len(test), len(test_copy));
+		if len(test) != len(testCopy) {
+			C::printf(c"len(test) != len(testCopy) : %d != %d\n", len(test), len(testCopy));
 			return 1;
 		}
 
 		mut j: uint = 0;
 		for j < len(test) {
 			x := test[j];
-			y := test_copy[j];
+			y := testCopy[j];
 			if x != y {
 				C::printf(c"#%d: %d != %d\n", j, x, y);
 				return 1;

@@ -9,12 +9,13 @@ pub func alloc<T>() -> ^T {
     return (^T)(ptr);
 }
 
+// can we maybe move this to mem/array.ark?
 type RawArray struct {
     size: uint,
     ptr: ^u8,
 };
 
-pub func alloc_array<T>(num: uint) -> []T {
+pub func allocArray<T>(num: uint) -> []T {
     ptr := C::malloc(sizeof(T) * num);
 
     rawPtr := (^u8)(ptr);
@@ -29,7 +30,7 @@ pub func alloc_array<T>(num: uint) -> []T {
     return @arrPtr;
 }
 
-pub func copy_array<T>(mut dest: []T, src: []T, num: uint) {
+pub func copyArray<T>(mut dest: []T, src: []T, num: uint) {
     mut max := num;
     if max > len(dest) {
         max = len(dest);
@@ -49,7 +50,7 @@ pub func free<T>(ptr: ^T) {
     C::free((^C::void)(ptr));
 }
 
-pub func free_array<T>(array: []T) {
+pub func freeArray<T>(array: []T) {
     mut rawArray := @((^RawArray)(&array));
     C::free((^C::void)(rawArray.ptr));
 }
