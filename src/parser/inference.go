@@ -475,14 +475,15 @@ func (v *Inferrer) Visit(node *Node) bool {
 	switch n := (*node).(type) {
 	case *VariableDecl:
 		if n.Assignment != nil {
-			if n.Variable.Type != nil {
-				n.Assignment.SetType(n.Variable.Type)
-			} else {
-				n.Variable.SetType(n.Assignment.GetType())
-			}
 			aid := v.HandleExpr(n.Assignment)
 			vid := v.HandleTyped(n.Pos(), n.Variable)
-			v.AddEqualsConstraint(vid, aid)
+			if n.Variable.Type != nil {
+				v.AddSimpleIsConstraint(aid, n.Variable.Type)
+			} else if n.Assignment.GetType() != nil {
+				v.AddSimpleIsConstraint(vid, n.Assignment.GetType())
+			} else {
+				v.AddEqualsConstraint(vid, aid)
+			}
 		}
 
 	case *DestructVarDecl:
