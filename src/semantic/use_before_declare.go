@@ -38,8 +38,10 @@ func (v *UseBeforeDeclareCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
 		v.scope[n.Variable.Name] = true
 
 	case *parser.DestructVarDecl:
-		for _, vari := range n.Variables {
-			v.scope[vari.Name] = true
+		for idx, vari := range n.Variables {
+			if !n.ShouldDiscard[idx] {
+				v.scope[vari.Name] = true
+			}
 		}
 
 	case *parser.VariableAccessExpr:

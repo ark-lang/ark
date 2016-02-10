@@ -286,9 +286,10 @@ func (v VariableDecl) DocComments() []*DocComment {
 type DestructVarDecl struct {
 	nodePos
 	PublicHandler
-	Variables  []*Variable
-	Assignment Expr
-	docs       []*DocComment
+	Variables     []*Variable
+	ShouldDiscard []bool
+	Assignment    Expr
+	docs          []*DocComment
 }
 
 func (_ DestructVarDecl) declNode() {}

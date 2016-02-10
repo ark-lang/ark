@@ -490,7 +490,9 @@ func (v *Inferrer) Visit(node *Node) bool {
 		if n.Assignment.GetType() != nil {
 			if tt, ok := n.Assignment.GetType().BaseType.ActualType().(TupleType); ok {
 				for idx, vari := range n.Variables {
-					vari.SetType(tt.Members[idx])
+					if !n.ShouldDiscard[idx] {
+						vari.SetType(tt.Members[idx])
+					}
 				}
 				break
 			}
@@ -498,7 +500,12 @@ func (v *Inferrer) Visit(node *Node) bool {
 
 		ids := make([]*TypeReference, len(n.Variables))
 		for idx, vari := range n.Variables {
-			vid := v.HandleTyped(n.Pos(), vari)
+			var vid int
+			if n.ShouldDiscard[idx] {
+				vid = v.GetDiscardingId()
+			} else {
+				vid = v.HandleTyped(n.Pos(), vari)
+			}
 			ids[idx] = &TypeReference{BaseType: TypeVariable{Id: vid}}
 		}
 		v.AddIsConstraint(id, &TypeReference{BaseType: tupleOf(ids...)})
@@ -551,6 +558,12 @@ func (v *Inferrer) Visit(node *Node) bool {
 	}
 
 	return true
+}
+
+func (v *Inferrer) GetDiscardingId() int {
+	id := v.IdCount
+	v.IdCount++
+	return id
 }
 
 func (v *Inferrer) HandleExpr(expr Expr) int {

@@ -5,6 +5,7 @@ const (
 	KEYWORD_BREAK     string = "break"
 	KEYWORD_C         string = "C"
 	KEYWORD_DEFER     string = "defer"
+	KEYWORD_DISCARD   string = "_"
 	KEYWORD_DO        string = "do"
 	KEYWORD_ELSE      string = "else"
 	KEYWORD_ENUM      string = "enum"
@@ -31,6 +32,7 @@ var keywordList = []string{
 	KEYWORD_BREAK,
 	KEYWORD_C,
 	KEYWORD_DEFER,
+	KEYWORD_DISCARD,
 	KEYWORD_DO,
 	KEYWORD_ELSE,
 	KEYWORD_ENUM,

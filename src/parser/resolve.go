@@ -284,8 +284,8 @@ func (v *Resolver) ResolveNode(node *Node) {
 		}
 
 	case *DestructVarDecl:
-		for _, vari := range n.Variables {
-			if v.curScope.InsertVariable(vari, false) != nil {
+		for idx, vari := range n.Variables {
+			if !n.ShouldDiscard[idx] && v.curScope.InsertVariable(vari, false) != nil {
 				v.err(n, "Illegal redeclaration of variable `%s`", vari.Name)
 			}
 		}

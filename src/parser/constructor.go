@@ -457,6 +457,10 @@ func (v *EnumTypeNode) construct(c *Constructor) Type {
 }
 
 func (v *VarDeclNode) construct(c *Constructor) Node {
+	if isReservedKeyword(v.Name.Value) {
+		c.err(v.Name.Where, "Variable name was reserved keyword `%s`", v.Name.Value)
+	}
+
 	variable := &Variable{
 		Name:         v.Name.Value,
 		Attrs:        v.Attrs(),
@@ -484,24 +488,28 @@ func (v *VarDeclNode) construct(c *Constructor) Node {
 }
 
 func (v *DestructVarDeclNode) construct(c *Constructor) Node {
-	variables := make([]*Variable, len(v.Names))
+	res := &DestructVarDecl{
+		docs:          v.DocComments(),
+		Variables:     make([]*Variable, len(v.Names)),
+		ShouldDiscard: make([]bool, len(v.Names)),
+		Assignment:    c.constructExpr(v.Value),
+	}
+	res.setPos(v.Where().Start())
+
 	for idx, name := range v.Names {
 		mutable := v.Mutable[idx]
 
-		variables[idx] = &Variable{
-			Name:         name.Value,
-			Attrs:        make(AttrGroup),
-			Mutable:      mutable,
-			ParentModule: c.module,
+		if name.Value == KEYWORD_DISCARD {
+			res.ShouldDiscard[idx] = true
+		} else {
+			res.Variables[idx] = &Variable{
+				Name:         name.Value,
+				Attrs:        make(AttrGroup),
+				Mutable:      mutable,
+				ParentModule: c.module,
+			}
 		}
 	}
-
-	res := &DestructVarDecl{
-		docs:       v.DocComments(),
-		Variables:  variables,
-		Assignment: c.constructExpr(v.Value),
-	}
-	res.setPos(v.Where().Start())
 
 	return res
 }
