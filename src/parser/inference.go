@@ -480,7 +480,9 @@ func (v *Inferrer) Visit(node *Node) bool {
 			} else {
 				n.Variable.SetType(n.Assignment.GetType())
 			}
-			v.HandleExpr(n.Assignment)
+			aid := v.HandleExpr(n.Assignment)
+			vid := v.HandleTyped(n.Pos(), n.Variable)
+			v.AddEqualsConstraint(vid, aid)
 		}
 
 	case *DestructVarDecl:
