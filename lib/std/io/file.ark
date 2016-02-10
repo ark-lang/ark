@@ -33,7 +33,7 @@ pub func (File) open(mut path: ^Path) -> ^File {
 }
 
 pub func (f: ^File) readToString() -> string {
-	return "hey sexy";
+	return f.name;
 }
 
 pub func (f: ^File) close() {

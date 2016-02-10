@@ -2,7 +2,7 @@
 #use std::mem
 #use std::unicode::utf8
 
-test_strings := []string{
+TEST_STRINGS := []string{
     "hello",
     "Test string 1234\n",
     "こんにちは",
@@ -16,7 +16,7 @@ test_strings := []string{
     "ﾟ･✿ヾ╲(｡◕‿◕｡)╱✿･ﾟ",
 };
 
-test_string_num_runes := []uint{
+TEST_STRING_NUM_RUNES := []uint{
     5,
     17,
     5,
@@ -32,25 +32,25 @@ test_string_num_runes := []uint{
 
 pub func main() -> int {
     mut i: uint = 0;
-    for i < len(test_strings) {
+    for i < len(TEST_STRINGS) {
 
-        num_runes := utf8::num_runes([]u8(test_strings[i]));
-        if num_runes != test_string_num_runes[i] {
+        numRunes := utf8::numRunes([]u8(TEST_STRINGS[i]));
+        if numRunes != TEST_STRING_NUM_RUNES[i] {
             return 1;
         }
 
-        runeArray := mem::alloc_array<rune>(num_runes);
-        utf8::decode(runeArray, []u8(test_strings[i]));
-        num_bytes := utf8::num_bytes(runeArray);
-        if num_bytes != len(test_strings[i]) {
+        runeArray := mem::allocArray<rune>(numRunes);
+        utf8::decode(runeArray, []u8(TEST_STRINGS[i]));
+        numBytes := utf8::numBytes(runeArray);
+        if numBytes != len(TEST_STRING_NUM_RUNES[i]) {
             return 2;
         }
 
-        byteArray := mem::alloc_array<u8>(num_bytes);
+        byteArray := mem::allocArray<u8>(numBytes);
         utf8::encode(byteArray, runeArray);
         mut t: uint = 0;
-        for t < num_bytes {
-            if byteArray[t] != test_strings[i][t] {
+        for t < numBytes {
+            if byteArray[t] != TEST_STRINGS[i][t] {
                 return 3;
             }
             t += 1;

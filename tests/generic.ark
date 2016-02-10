@@ -60,9 +60,9 @@ pub func main() -> int {
     C::printf(c"@o = %d\n", @o);
     mem::free<int>(n);
 
-    mut arr := mem::alloc_array<int>(5);
+    mut arr := mem::allocArray<int>(5);
     arr[4] = 4;
-    mem::free_array<int>(arr);
+    mem::freeArray<int>(arr);
 
 	return 0;
 }
