@@ -213,14 +213,15 @@ func SubsType(typ *TypeReference, id int, what *TypeReference) *TypeReference {
 			}
 			if st, ok := typ.BaseType.ActualType().(StructType); ok {
 				mem := st.GetMember(t.Data.(string))
+				if mem != nil {
+					mtype := mem.Type
+					if len(typ.GenericArguments) > 0 {
+						gn := NewGenericContextFromTypeReference(typ)
+						mtype = gn.Replace(mtype)
+					}
 
-				mtype := mem.Type
-				if len(typ.GenericArguments) > 0 {
-					gn := NewGenericContextFromTypeReference(typ)
-					mtype = gn.Replace(mtype)
+					return mtype
 				}
-
-				return mtype
 			}
 
 		// If we have a deref member we check if we know the pointer type and
