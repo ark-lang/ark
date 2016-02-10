@@ -4,7 +4,7 @@
 if [[ $# -eq 0 ]] ; then
 	echo 'Expected an Ark source file'
 	echo 'usage:'
-	echo '   ./util/make-test.sh tests/some-test.ark'
+	echo '   ./make-test.sh tests/some-test.ark'
 	exit 0
 fi
 
