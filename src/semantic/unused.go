@@ -28,9 +28,11 @@ func (v *UnusedCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
 
 	case *parser.DestructVarDecl:
 		if !n.IsPublic() {
-			for _, vari := range n.Variables {
-				v.encountered = append(v.encountered, vari)
-				v.encounteredDecl = append(v.encounteredDecl, n)
+			for idx, vari := range n.Variables {
+				if !n.ShouldDiscard[idx] {
+					v.encountered = append(v.encountered, vari)
+					v.encounteredDecl = append(v.encounteredDecl, n)
+				}
 			}
 		}
 

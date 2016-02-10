@@ -31,11 +31,11 @@ pub func main() -> int {
 
     thing.do();
 
-    thingptr: ^Thing = (^Thing)(&thing);
+    thingptr: ^Thing = ^thing;
     thingptr.dop();
     thingptr.do();
 
-    thingptrptr: ^^Thing = (^^Thing)(&thingptr);
+    thingptrptr: ^^Thing = ^thingptr;
     thingptrptr.dop();
 
     mut thing2: Thing2;
