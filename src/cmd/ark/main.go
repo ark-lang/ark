@@ -85,25 +85,7 @@ func parseFiles(inputs []string) ([]*parser.Module, *parser.ModuleLookup) {
 		}
 		moduleLookup.Create(modname).Module = module
 
-		// Read
-		sourcefile, err := lexer.NewSourcefile(input)
-		if err != nil {
-			setupErr("%s", err.Error())
-		}
-
-		// Lex
-		sourcefile.Tokens = lexer.Lex(sourcefile)
-
-		// Parse
-		parsedFile, deps := parser.Parse(sourcefile)
-		module.Trees = append(module.Trees, parsedFile)
-
-		// Add dependencies to parse array
-		for _, dep := range deps {
-			depname := parser.NewModuleName(dep)
-			modulesToRead = append(modulesToRead, depname)
-			depGraph.AddDependency(modname, depname)
-		}
+		modulesToRead = doFile(input, module, depGraph, modulesToRead)
 
 		modules = append(modules, module)
 	} else {
@@ -151,26 +133,7 @@ func parseFiles(inputs []string) ([]*parser.Module, *parser.ModuleLookup) {
 				}
 
 				actualFile := filepath.Join(dirpath, childFile.Name())
-
-				// Read
-				sourcefile, err := lexer.NewSourcefile(actualFile)
-				if err != nil {
-					setupErr("%s", err.Error())
-				}
-
-				// Lex
-				sourcefile.Tokens = lexer.Lex(sourcefile)
-
-				// Parse
-				parsedFile, deps := parser.Parse(sourcefile)
-				module.Trees = append(module.Trees, parsedFile)
-
-				// Add dependencies to parse array
-				for _, dep := range deps {
-					depname := parser.NewModuleName(dep)
-					modulesToRead = append(modulesToRead, depname)
-					depGraph.AddDependency(modname, depname)
-				}
+				modulesToRead = doFile(actualFile, module, depGraph, modulesToRead)
 			}
 
 			modules = append(modules, module)
@@ -198,6 +161,38 @@ func parseFiles(inputs []string) ([]*parser.Module, *parser.ModuleLookup) {
 	})
 
 	return modules, moduleLookup
+}
+
+func doFile(path string, module *parser.Module, depGraph *parser.DependencyGraph, modulesToRead []*parser.ModuleName) []*parser.ModuleName {
+	// Read
+	sourcefile, err := lexer.NewSourcefile(path)
+	if err != nil {
+		setupErr("%s", err.Error())
+	}
+
+	// Lex
+	sourcefile.Tokens = lexer.Lex(sourcefile)
+
+	// Parse
+	parsedFile, deps := parser.Parse(sourcefile)
+	module.Trees = append(module.Trees, parsedFile)
+
+	// Add dependencies to parse array
+	for _, dep := range deps {
+		depname := parser.NewModuleName(dep)
+		modulesToRead = append(modulesToRead, depname)
+		depGraph.AddDependency(module.Name, depname)
+
+		fi, _ := findModuleDir(*buildSearchpaths, depname.ToPath())
+		if fi == nil {
+			log.Errorln("main", "%s [%s:%d:%d] Couldn't find module `%s`", util.Red("error:"),
+				dep.Where().Filename, dep.Where().StartLine, dep.Where().EndLine,
+				depname.String())
+			log.Errorln("main", "%s", sourcefile.MarkSpan(dep.Where()))
+			os.Exit(1)
+		}
+	}
+	return modulesToRead
 }
 
 func findModuleDir(searchPaths []string, modulePath string) (fi os.FileInfo, path string) {
