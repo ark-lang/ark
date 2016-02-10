@@ -25,17 +25,17 @@ pub type File struct {
 	handle: ^FILE,
 };
 
-pub func (File) open(mut path: ^Path) -> ^File {
-	mut f: ^File = mem::alloc<File>();
+pub func (File) open(mut path: ^Path) -> ^mut File {
+	mut f: ^mut File = mem::alloc<File>();
 	f.path = path;
 	f.handle = C::fopen(f.path.location); 
 	return f;
 }
 
-pub func (f: ^File) readToString() -> string {
+pub func (f: ^mut File) readToString() -> string {
 	return f.name;
 }
 
-pub func (f: ^File) close() {
-	// this causes a bug wtf.
+pub func (f: ^mut File) close() {
+
 }

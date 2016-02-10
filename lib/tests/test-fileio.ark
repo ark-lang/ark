@@ -4,10 +4,5 @@
 pub func main() -> int {
 	myFilePath := io::Path::new("test.ark");
 
-	myFile := io::File::open(myFilePath);
-	contents := myFile.readToString();
-		
-	myFile.close();
-
 	return 0;
 }

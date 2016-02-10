@@ -84,21 +84,19 @@ contains all of the C functions and other bindings you may write.
 Given the following project structure:
 
     src/
+      - entities/
+        - entity.ark
+        - player.ark
       - main.ark
-      - entity.ark
-      - player.ark
 
 To compile this, you would pass through the file which contains the main
-entry point (main function) to your program, which is most likely going to
-be called "main.ark".
-However, because our projects source files are in another directory ("src/"),
-we need to set the "base directory" -- the base directory is where the ark compiler
-will scan for other modules.
+entry point (main function) to your program, which is conventionally named "main.ark".
 
-To do this we use the `--basedir` flag, which can be shortened to `-b`. We can
-then pass in the main module after this, and any flags you want to use:
+Since our main file is in another folder, we need to set the src folder as
+an include directory so that the compiler doesn't think it's a module. We use
+the `-I` flag for this:
 
-    ark build -b src main --loglevel=debug
+    ark build -I src src/main.ark --loglevel=debug
 
 This should compile your code, and produce an executable called "main", which
 you can then run.
