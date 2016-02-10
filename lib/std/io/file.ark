@@ -1,4 +1,4 @@
-#use mem
+#use std::mem
 
 type FILE struct {};
 
@@ -36,24 +36,24 @@ pub type Path struct {
 };
 
 pub func (Path) new(location: string) -> ^mut Path {
-	mut p: ^mut Path = mem::alloc<Path>();
+	mut p: ^mut Path = (^mut Path)(mem::alloc<Path>());
 	p.location = location;
 	return p;
 }
 
 pub type File struct {
 	name: string,
-	path: ^Path,
+	path: ^mut Path,
 	handle: ^FILE,
 };
 
-pub func (File) open(mut path: ^Path, mode: FileMode) -> ^mut File {
+pub func (File) open(path: ^mut Path, mode: FileMode) -> ^mut File {
 	mut f: ^mut File = (^mut File)(mem::alloc<File>());
 	f.path = path;
 	// this is to avoid a parsing error where you can't
 	// index a call expr (call expr ! access expr)
 	legacyMode: string = mode.getLegacyMode();
-	f.handle = C::fopen((^u8)(&f.path.location[0]), (^u8)(&legacyMode[0])); 
+	// f.handle = C::fopen((^u8)(&f.path.location[0]), (^u8)(&legacyMode[0])); 
 	return f;
 }
 
@@ -62,5 +62,5 @@ pub func (f: ^mut File) readToString() -> string {
 }
 
 pub func (f: ^mut File) close() {
-	C::fclose(f.handle);
+	// C::fclose(f.handle);
 }

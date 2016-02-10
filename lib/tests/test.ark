@@ -1,4 +1,4 @@
-#use io
+#use std::io
 
 pub func main() -> int {
 	io::println(c"hello world");

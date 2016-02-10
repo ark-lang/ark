@@ -1,9 +1,9 @@
-#use mem
-#use io
+#use std::mem
+#use std::io
 
 pub func main() -> int {
-	myFilePath : ^mut io::Path = (^mut io::Path)(io::Path::new("/home/felix/index.html"));
-	myFile : ^mut io::File = io::File::open(myFilePath, io::FileMode::Read);
+	myFilePath := io::Path::new("/home/felix/index.html");
+	myFile := io::File::open(myFilePath, io::FileMode::Read);
 
 	myFile.close();
 

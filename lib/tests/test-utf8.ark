@@ -1,5 +1,5 @@
-#use unicode::utf8
-#use mem
+#use std::unicode::utf8
+#use std::mem
 
 [c] func printf(fmt: ^u8, ...) -> int;
 
