@@ -5,8 +5,7 @@
 
 [Ark](//www.ark-lang.org) is a systems programming language focused on being practical and pragmatic. We want a language that is simple, easy to write, yet powerful enough to create readable, performant and concise code for any problem
 
-On the right is a gif of an example program [ark-gl](//github.com/ark-lang/ark-gl)
-written in Ark using OpenGL and GLFW.
+On the right is a gif of an example program [ark-gl](//github.com/ark-lang/ark-gl) written in Ark using OpenGL and GLFW.
 
 ## Index
 * [Getting Involved](#getting-involved)
@@ -17,8 +16,7 @@ written in Ark using OpenGL and GLFW.
     * [Compiling Ark code](#compiling-ark-code)
 
 ## <a name="getting-involed"></a> Getting Involved
-Check out the [contributing guide](/CONTRIBUTING.md), there's a lot of information
-there to give you ideas of how you can help out.
+Check out the [contributing guide](/CONTRIBUTING.md), there's a lot of information there to give you ideas of how you can help out.
 
 ## <a name="example"></a> Example
 Ark is still a work in progress, this code sample reflects what Ark can
