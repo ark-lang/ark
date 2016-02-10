@@ -2,7 +2,7 @@ func add(a: int, b: int) -> int {
     return a + b;
 }
 
-func this_is_void(swag: int) {
+func thisIsVoid(swag: int) {
     [unused] x := swag;
 }
 
@@ -13,7 +13,7 @@ pub func main() -> int {
     [unused] runeTest := 'h';
     [unused] floatTest := 12.34;
 
-    this_is_void(5);
+    thisIsVoid(5);
 
     if 1 == 1 {
         if 5 == 5 {

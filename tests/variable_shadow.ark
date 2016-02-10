@@ -5,7 +5,6 @@ pub func main() -> int {
 
     if true {
         x = 1;
-
         mut x := 5;
         C::printf(c"x2: %d\n", x);
     }

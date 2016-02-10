@@ -16,13 +16,13 @@ pub func main() -> int {
 		true, true, true, true, true, true, true, true, true, true,
 	};
 
-	mut num_primes: int = 0;
+	mut numPrimes: int = 0;
 	mut i := 2;
 	for i < 100 {
 		if primes[i-1] {
 			C::printf(c"`%d` is prime\n", i);
 			
-			num_primes = num_primes + 1;
+			numPrimes = numPrimes + 1;
 			
 			mut j := i+1;
 			for j < 100 {
@@ -35,5 +35,5 @@ pub func main() -> int {
 		i = i + 1;
 	}
 
-	return 25 - num_primes;
+	return 25 - numPrimes;
 }

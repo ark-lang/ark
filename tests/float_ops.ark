@@ -1,4 +1,4 @@
-func do_stuff(a: f32) {
+func doStuff(a: f32) {
 }
 
 // use this to prevent LLVM constant-folding away numbers
@@ -8,8 +8,8 @@ func get5() -> f32 {
 
 pub func main() -> int {
 	mut foo: f32 = 42.0;
-    do_stuff(-120);
-    do_stuff(-foo);
+    doStuff(-120);
+    doStuff(-foo);
 
     foo = foo / 24;
 

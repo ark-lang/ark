@@ -18,8 +18,8 @@ pub func main() -> int {
 	// i haven't looked into it
 	// but #foo seems to just be
 	// a copy of the foo array or something? ...
-	foo_len := len(foo);
-	C::printf(c"foo is %d long\n", foo_len);
+	fooLen := len(foo);
+	C::printf(c"foo is %d long\n", fooLen);
 
 	i = 0;
 	for i < len(foo) {

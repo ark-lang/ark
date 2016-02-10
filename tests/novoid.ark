@@ -1,10 +1,10 @@
 [c] func printf(fmt: ^u8, ...) -> int;
 
-func say_hi() {
+func sayHi() {
     C::printf(c"hi\n");
 }
 
 pub func main() -> int {
-    say_hi();
+    sayHi();
     return 0;
 }
