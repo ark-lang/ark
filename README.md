@@ -3,10 +3,7 @@
 
 <img width="50%" align="right" style="display: block; margin:40px auto;" src="https://raw.githubusercontent.com/ark-lang/ark-gl/master/example.gif">
 
-[Ark](//www.ark-lang.org) is a systems
-programming language somewhere inbetween C and C++. It's goals are to
-modernize the C language, yet remove the cruft that is present in C++
-due to backwards compatibility.
+[Ark](//www.ark-lang.org) is a systems programming language focused on being practical and pragmatic. We want a language that is simple, easy to write, yet powerful enough to create readable, performant and concise code for any problem
 
 On the right is a gif of an example program [ark-gl](//github.com/ark-lang/ark-gl)
 written in Ark using OpenGL and GLFW.
