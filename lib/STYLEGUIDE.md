@@ -17,14 +17,14 @@ Use camelCase for variables, constants in capitalized snake_case:
   
 ## Bracing
 Bracing should be on the same line as the
-declaration. The `else` and `else if` conditions
-should be on a separate line.
-  
+declaration.
+
     if foo == 12 {
     
-    }
-    else if bar == 32 {
+    } else if bar == 32 {
     
+    } else {
+        
     }
   
 ## Commas
