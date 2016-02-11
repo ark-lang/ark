@@ -24,6 +24,19 @@ declaration.
     } else if bar == 32 {
     
     } else {
+
+    }
+
+    match foo {
+        blah -> {
+
+        },
+        foo -> {
+
+        }, 
+    }
+
+    type Foo T {
         
     }
   
