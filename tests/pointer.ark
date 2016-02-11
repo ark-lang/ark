@@ -2,9 +2,7 @@
 
 func swap<T>(a: ^mut T, b: ^mut T)
 {
-	temp := @a;
-	@a = @b;
-	@b = temp;
+	(@a, @b) = (@b, @a);
 }
 
 pub func main() -> int
