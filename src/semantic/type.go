@@ -156,13 +156,13 @@ func (v *TypeCheck) CheckIfStat(s *SemanticAnalyzer, stat *parser.IfStat) {
 }
 
 func (v *TypeCheck) CheckAssignStat(s *SemanticAnalyzer, stat *parser.AssignStat) {
-	if !stat.Access.GetType().Equals(stat.Assignment.GetType()) {
+	if stat.Access.GetType() != nil && !stat.Access.GetType().Equals(stat.Assignment.GetType()) {
 		s.Err(stat, "Mismatched types: `%s` and `%s`", stat.Access.GetType().String(), stat.Assignment.GetType().String())
 	}
 }
 
 func (v *TypeCheck) CheckBinopAssignStat(s *SemanticAnalyzer, stat *parser.BinopAssignStat) {
-	if !stat.Access.GetType().Equals(stat.Assignment.GetType()) {
+	if stat.Access.GetType() != nil && !stat.Access.GetType().Equals(stat.Assignment.GetType()) {
 		s.Err(stat, "Mismatched types: `%s` and `%s`", stat.Access.GetType().String(), stat.Assignment.GetType().String())
 	}
 }

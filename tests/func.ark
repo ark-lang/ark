@@ -3,30 +3,36 @@ func add(a: int, b: int) -> int {
 }
 
 func thisIsVoid(swag: int) {
-    [unused] x := swag;
+    x := swag;
+    _ = x;
 }
 
 pub func main() -> int {
-    [unused] x: int = 5;
-    [unused] z: int = add(5, 10);
-    [unused] y: int = 19 - 25;
-    [unused] runeTest := 'h';
-    [unused] floatTest := 12.34;
+    x: int = 5;
+    z: int = add(5, 10);
+    y: int = 19 - 25;
+    runeTest := 'h';
+    floatTest := 12.34;
 
     thisIsVoid(5);
 
     if 1 == 1 {
         if 5 == 5 {
-            [unused] second1 := 0;
+            second1 := 0;
+            _ = second1;
         } else {
-            [unused] second2 := 1;
+            second2 := 1;
+            _ = second2;
         }
     } else if 1 == 0 {
-        [unused] duh2: int = 6;
+        duh2: int = 6;
+        _ = duh2;
     } else if 1 == 6 {
-        [unused] duh3: int = 7;
+        duh3: int = 7;
+        _ = duh3;
     } else {
-        [unused] duh4: int = 8;
+        duh4: int = 8;
+        _ = duh4;
     }
 
     return 0;

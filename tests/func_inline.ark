@@ -7,10 +7,8 @@ func sub(a: int, b: int) -> int {
   return a - b;
 }
 
-[unused]
 [inline="never"]
 func never_inline() {}
 
-[unused]
 [inline="maybe"]
 func maybe_inline() {}

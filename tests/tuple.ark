@@ -1,7 +1,8 @@
 [c] func printf(fmt: ^u8, ...) -> int;
 
 func something() -> (int, f32) {
-    [unused] x := (4, 2.3); // inferred
+    x := (4, 2.3); // inferred
+    _ = x;
     y: (int, f32) = (0, 2.4);
     return y;
 }

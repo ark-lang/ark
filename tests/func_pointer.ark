@@ -16,7 +16,8 @@ pub func main() -> int {
     mut dofn: func(int);
     dofn = do;
 
-    [unused] dofn2 := do;
+    dofn2 := do;
+    _ = dofn2;
 
     dofn(fn());
     dofn(another());

@@ -2,7 +2,8 @@
 
 pub func main() -> int {
     mut x: int = 1337;
-    [unused] y: &int = &x;
+    y: &int = &x;
+    _ = y;
     x = 32;
     C::printf(c"%d\n", x);
 

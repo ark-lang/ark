@@ -3,11 +3,13 @@
 pub func main() -> int {
     t1: f64 = 10f;
     t2: f64 = 0.4d;
-    [unused] t3: f64 = 1214.935735q;
+    t3: f64 = 1214.935735q;
+    _ = t3;
 
     t4: f64 = 10F;
     t5: f64 = 0.4D;
-    [unused] t6: f64 = 1214.935735Q;
+    t6: f64 = 1214.935735Q;
+    _ = t6;
 
     C::printf(c"%f %f %f %f\n", t1, t2, t4, t5);
 

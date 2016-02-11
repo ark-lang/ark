@@ -1,6 +1,6 @@
 [c] func printf(fmt: ^u8, ...) -> int;
 
-[unused] func add(a: int, b: int) -> int => a + b;
+func add(a: int, b: int) -> int => a + b;
 
 func fuck(mut a: int, b: int) => for a + b >= 32 {
 	a -= 1;

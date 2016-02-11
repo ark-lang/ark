@@ -42,7 +42,6 @@ func (v *AttributeCheck) CheckFunctionDecl(s *SemanticAnalyzer, n *parser.Functi
 	for _, attr := range n.Function.Type.Attrs() {
 		switch attr.Key {
 		case "deprecated":
-		case "unused":
 		case "c":
 		case "call_conv":
 		case "nomangle":
@@ -92,7 +91,6 @@ func (v *AttributeCheck) CheckVariableDecl(s *SemanticAnalyzer, n *parser.Variab
 		switch attr.Key {
 		case "deprecated":
 			// value is optional, nothing to check
-		case "unused":
 		case "nozero":
 		default:
 			s.Err(attr, "Invalid variable attribute key `%s`", attr.Key)
