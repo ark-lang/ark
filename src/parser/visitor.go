@@ -136,6 +136,18 @@ func (v *ASTVisitor) VisitChildren(n Node) {
 		n.Assignment = v.VisitExpr(n.Assignment)
 		n.Access = v.Visit(n.Access).(AccessExpr)
 
+	case *DestructAssignStat:
+		n.Assignment = v.VisitExpr(n.Assignment)
+		for idx, acc := range n.Accesses {
+			n.Accesses[idx] = v.Visit(acc).(AccessExpr)
+		}
+
+	case *DestructBinopAssignStat:
+		n.Assignment = v.VisitExpr(n.Assignment)
+		for idx, acc := range n.Accesses {
+			n.Accesses[idx] = v.Visit(acc).(AccessExpr)
+		}
+
 	case *LoopStat:
 		n.Body = v.Visit(n.Body).(*Block)
 
@@ -242,7 +254,7 @@ func (v *ASTVisitor) VisitChildren(n Node) {
 
 	case *NumericLiteral, *StringLiteral, *BoolLiteral, *RuneLiteral,
 		*VariableAccessExpr, *TypeDecl, *DefaultMatchBranch, *UseDirective,
-		*BreakStat, *NextStat:
+		*BreakStat, *NextStat, *DiscardAccessExpr:
 		// do nothing
 
 	default:

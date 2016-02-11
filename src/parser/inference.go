@@ -529,6 +529,58 @@ func (v *Inferrer) Visit(node *Node) bool {
 			v.AddEqualsConstraint(a, b)
 		}
 
+	case *DestructAssignStat:
+		// If we're dealing with a raw tuple literal we have to patch up the
+		// types due to the whole default integer type thing
+		tl, ok := n.Assignment.(*TupleLiteral)
+		if ok {
+			for idx, acc := range n.Accesses {
+				if acc.GetType() != nil {
+					tl.Members[idx].SetType(acc.GetType())
+				}
+			}
+		}
+
+		assId := v.HandleExpr(n.Assignment)
+		accIds := make([]*TypeReference, len(n.Accesses))
+		for idx, acc := range n.Accesses {
+			id := v.HandleExpr(acc)
+			if acc.GetType() != nil {
+				accIds[idx] = acc.GetType()
+			} else {
+				accIds[idx] = &TypeReference{BaseType: TypeVariable{Id: id}}
+			}
+		}
+		v.AddIsConstraint(assId, &TypeReference{
+			BaseType: tupleOf(accIds...),
+		})
+
+	case *DestructBinopAssignStat:
+		// If we're dealing with a raw tuple literal we have to patch up the
+		// types due to the whole default integer type thing
+		tl, ok := n.Assignment.(*TupleLiteral)
+		if ok {
+			for idx, acc := range n.Accesses {
+				if acc.GetType() != nil {
+					tl.Members[idx].SetType(acc.GetType())
+				}
+			}
+		}
+
+		assId := v.HandleExpr(n.Assignment)
+		accIds := make([]*TypeReference, len(n.Accesses))
+		for idx, acc := range n.Accesses {
+			id := v.HandleExpr(acc)
+			if acc.GetType() != nil {
+				accIds[idx] = acc.GetType()
+			} else {
+				accIds[idx] = &TypeReference{BaseType: TypeVariable{Id: id}}
+			}
+		}
+		v.AddIsConstraint(assId, &TypeReference{
+			BaseType: tupleOf(accIds...),
+		})
+
 	case *CallStat:
 		v.HandleExpr(n.Call)
 
@@ -884,7 +936,7 @@ func (v *Inferrer) HandleTyped(pos lexer.Position, typed Typed) int {
 	case *LambdaExpr:
 		v.AddSimpleIsConstraint(ann.Id, &TypeReference{BaseType: typed.Function.Type})
 
-	case *NumericLiteral, *StringLiteral:
+	case *NumericLiteral, *StringLiteral, *DiscardAccessExpr:
 		// noop
 
 	default:
@@ -1345,6 +1397,7 @@ func (_ CastExpr) SetType(t *TypeReference)           {}
 func (_ CallExpr) SetType(t *TypeReference)           {}
 func (_ DefaultMatchBranch) SetType(t *TypeReference) {}
 func (_ DerefAccessExpr) SetType(t *TypeReference)    {}
+func (_ DiscardAccessExpr) SetType(t *TypeReference)  {}
 func (_ EnumLiteral) SetType(t *TypeReference)        {}
 func (_ LambdaExpr) SetType(t *TypeReference)         {}
 func (_ PointerToExpr) SetType(t *TypeReference)      {}

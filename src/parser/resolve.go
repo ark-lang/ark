@@ -511,9 +511,10 @@ func (v *Resolver) ResolveNode(node *Node) {
 
 	// No-Ops
 	case *Block, *DefaultMatchBranch, *UseDirective, *AssignStat, *BinopAssignStat,
-		*BlockStat, *BreakStat, *CallStat, *DeferStat, *IfStat, *MatchStat,
-		*LoopStat, *NextStat, *ReturnStat, *ReferenceToExpr, *PointerToExpr,
-		*ArrayAccessExpr, *BinaryExpr, *DerefAccessExpr, *UnaryExpr, *BoolLiteral,
+		*DestructAssignStat, *DestructBinopAssignStat, *BlockStat, *BreakStat,
+		*CallStat, *DeferStat, *IfStat, *MatchStat, *LoopStat, *NextStat,
+		*ReturnStat, *ReferenceToExpr, *PointerToExpr, *ArrayAccessExpr,
+		*BinaryExpr, *DerefAccessExpr, *UnaryExpr, *DiscardAccessExpr, *BoolLiteral,
 		*NumericLiteral, *RuneLiteral, *StringLiteral, *TupleLiteral:
 		break
 

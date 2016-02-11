@@ -387,6 +387,10 @@ type ArrayAccessNode struct {
 	Index ParseNode
 }
 
+type DiscardAccessNode struct {
+	baseNode
+}
+
 // literals
 
 type TupleLiteralNode struct {

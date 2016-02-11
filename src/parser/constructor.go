@@ -617,27 +617,67 @@ func (v *CallStatNode) construct(c *Constructor) Node {
 }
 
 func (v *AssignStatNode) construct(c *Constructor) Node {
-	res := &AssignStat{}
-	acc, ok := c.constructExpr(v.Target).(AccessExpr)
-	if !ok {
+	var res Node
+
+	acc := c.constructExpr(v.Target)
+	if tl, ok := acc.(*TupleLiteral); ok {
+		accesses := make([]AccessExpr, len(tl.Members))
+		for idx, mem := range tl.Members {
+			if ae, ok := mem.(AccessExpr); ok {
+				accesses[idx] = ae
+			} else {
+				c.errPos(mem.Pos(), "Cannot assign to non-access expression")
+			}
+		}
+
+		res = &DestructAssignStat{
+			Accesses:   accesses,
+			Assignment: c.constructExpr(v.Value),
+		}
+
+	} else if ae, ok := acc.(AccessExpr); ok {
+		res = &AssignStat{
+			Access:     ae,
+			Assignment: c.constructExpr(v.Value),
+		}
+	} else {
 		c.errSpan(v.Target.Where(), "Cannot assign to non-access expression")
 	}
-	res.Access = acc
-	res.Assignment = c.constructExpr(v.Value)
+
 	res.setPos(v.Where().Start())
 	return res
 }
 
 func (v *BinopAssignStatNode) construct(c *Constructor) Node {
-	res := &BinopAssignStat{
-		Operator:   v.Operator,
-		Assignment: c.constructExpr(v.Value),
-	}
-	acc, ok := c.constructExpr(v.Target).(AccessExpr)
-	if !ok {
+	var res Node
+
+	acc := c.constructExpr(v.Target)
+	if tl, ok := acc.(*TupleLiteral); ok {
+		accesses := make([]AccessExpr, len(tl.Members))
+		for idx, mem := range tl.Members {
+			if ae, ok := mem.(AccessExpr); ok {
+				accesses[idx] = ae
+			} else {
+				c.errPos(mem.Pos(), "Cannot assign to non-access expression")
+			}
+		}
+
+		res = &DestructBinopAssignStat{
+			Operator:   v.Operator,
+			Accesses:   accesses,
+			Assignment: c.constructExpr(v.Value),
+		}
+
+	} else if ae, ok := acc.(AccessExpr); ok {
+		res = &BinopAssignStat{
+			Operator:   v.Operator,
+			Access:     ae,
+			Assignment: c.constructExpr(v.Value),
+		}
+	} else {
 		c.errSpan(v.Target.Where(), "Cannot assign to non-access expression")
 	}
-	res.Access = acc
+
 	res.setPos(v.Where().Start())
 	return res
 }
@@ -764,6 +804,12 @@ func (v *ArrayAccessNode) construct(c *Constructor) Expr {
 		Subscript: c.constructExpr(v.Index),
 	}
 	res.Array = c.constructExpr(v.Array).(AccessExpr) // TODO: Error message
+	res.setPos(v.Where().Start())
+	return res
+}
+
+func (v *DiscardAccessNode) construct(c *Constructor) Expr {
+	res := &DiscardAccessExpr{}
 	res.setPos(v.Where().Start())
 	return res
 }

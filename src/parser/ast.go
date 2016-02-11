@@ -520,6 +520,51 @@ func (_ BinopAssignStat) NodeName() string {
 	return "binop assignment statement"
 }
 
+// DestructAssignStat
+
+type DestructAssignStat struct {
+	nodePos
+	Accesses   []AccessExpr
+	Assignment Expr
+}
+
+func (_ DestructAssignStat) statNode() {}
+
+func (v DestructAssignStat) String() string {
+	s := NewASTStringer("DestructAssignStat")
+	for _, acc := range v.Accesses {
+		s.Add(acc)
+	}
+	return s.AddString(" =").Add(v.Assignment).Finish()
+}
+
+func (_ DestructAssignStat) NodeName() string {
+	return "destructuring assignment statement"
+}
+
+// DestructBinopAssignStat
+
+type DestructBinopAssignStat struct {
+	nodePos
+	Accesses   []AccessExpr
+	Operator   BinOpType
+	Assignment Expr
+}
+
+func (_ DestructBinopAssignStat) statNode() {}
+
+func (v DestructBinopAssignStat) String() string {
+	s := NewASTStringer("DestructBinopAssignStat")
+	for _, acc := range v.Accesses {
+		s.Add(acc)
+	}
+	return s.Add(v.Operator).AddString(" =").Add(v.Assignment).Finish()
+}
+
+func (_ DestructBinopAssignStat) NodeName() string {
+	return "destructuring binop assignment statement"
+}
+
 // IfStat
 
 type IfStat struct {
@@ -1175,6 +1220,30 @@ func getAdressee(t Type) *TypeReference {
 		return t.Referrer
 	}
 	return nil
+}
+
+// DiscardAccess
+
+type DiscardAccessExpr struct {
+	nodePos
+}
+
+func (_ DiscardAccessExpr) exprNode() {}
+
+func (v DiscardAccessExpr) String() string {
+	return NewASTStringer("DiscardAccessExpr").Finish()
+}
+
+func (v DiscardAccessExpr) GetType() *TypeReference {
+	return nil
+}
+
+func (_ DiscardAccessExpr) NodeName() string {
+	return "discard access expression"
+}
+
+func (v DiscardAccessExpr) Mutable() bool {
+	return true
 }
 
 // ReferenceToExpr

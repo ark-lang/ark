@@ -32,6 +32,12 @@ func (v *TypeCheck) PostVisit(s *SemanticAnalyzer, n parser.Node) {
 
 	case *parser.BinopAssignStat:
 		v.CheckBinopAssignStat(s, n)
+
+	case *parser.DestructAssignStat:
+		v.CheckDestructAssignStat(s, n)
+
+	case *parser.DestructBinopAssignStat:
+		v.CheckDestructBinopAssignStat(s, n)
 	}
 }
 
@@ -158,6 +164,40 @@ func (v *TypeCheck) CheckAssignStat(s *SemanticAnalyzer, stat *parser.AssignStat
 func (v *TypeCheck) CheckBinopAssignStat(s *SemanticAnalyzer, stat *parser.BinopAssignStat) {
 	if !stat.Access.GetType().Equals(stat.Assignment.GetType()) {
 		s.Err(stat, "Mismatched types: `%s` and `%s`", stat.Access.GetType().String(), stat.Assignment.GetType().String())
+	}
+}
+
+func (v *TypeCheck) CheckDestructAssignStat(s *SemanticAnalyzer, stat *parser.DestructAssignStat) {
+	tt, ok := stat.Assignment.GetType().BaseType.ActualType().(parser.TupleType)
+	if !ok {
+		s.Err(stat, "Value in destruturing assignment must be tuple, was `%s`", stat.Assignment.GetType())
+	}
+
+	if len(tt.Members) != len(stat.Accesses) {
+		s.Err(stat.Assignment, "Destructured tuple must have %d values, had %d", len(stat.Accesses), len(tt.Members))
+	}
+
+	for idx, acc := range stat.Accesses {
+		if acc.GetType() != nil && !acc.GetType().ActualTypesEqual(tt.Members[idx]) {
+			s.Err(acc, "Mismatched types: `%s` and `%s`", acc.GetType().String(), tt.Members[idx].String())
+		}
+	}
+}
+
+func (v *TypeCheck) CheckDestructBinopAssignStat(s *SemanticAnalyzer, stat *parser.DestructBinopAssignStat) {
+	tt, ok := stat.Assignment.GetType().BaseType.ActualType().(parser.TupleType)
+	if !ok {
+		s.Err(stat, "Value in destruturing assignment must be tuple, was `%s`", stat.Assignment.GetType())
+	}
+
+	if len(tt.Members) != len(stat.Accesses) {
+		s.Err(stat.Assignment, "Destructured tuple must have %d values, had %d", len(stat.Accesses), len(tt.Members))
+	}
+
+	for idx, acc := range stat.Accesses {
+		if acc.GetType() != nil && !acc.GetType().ActualTypesEqual(tt.Members[idx]) {
+			s.Err(acc, "Mismatched types: `%s` and `%s`", acc.GetType().String(), tt.Members[idx].String())
+		}
 	}
 }
 
@@ -402,7 +442,7 @@ func (v *TypeCheck) CheckTupleLiteral(s *SemanticAnalyzer, lit *parser.TupleLite
 
 	for idx, mem := range lit.Members {
 		if !mem.GetType().Equals(gcon.Get(memberTypes[idx])) {
-			s.Err(lit, "Cannot use component of type `%s` in tuple position of type `%s`", mem.GetType().String(), memberTypes[idx])
+			s.Err(mem, "Cannot use component of type `%s` in tuple position of type `%s`", mem.GetType().String(), memberTypes[idx])
 		}
 	}
 }

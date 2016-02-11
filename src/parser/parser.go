@@ -757,7 +757,8 @@ func (v *parser) parseVarDeclBody(isReceiver bool) *VarDeclNode {
 }
 
 func (v *parser) parseDestructVarDecl(isTopLevel bool) *DestructVarDeclNode {
-	defer un(trace(v, "vartupledecl"))
+	defer un(trace(v, "destructvardecl"))
+	startPos := v.currentToken
 
 	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "(") {
 		return nil
@@ -788,6 +789,11 @@ func (v *parser) parseDestructVarDecl(isTopLevel bool) *DestructVarDeclNode {
 	}
 
 	v.expect(lexer.TOKEN_SEPARATOR, ")")
+
+	if !v.tokenMatches(0, lexer.TOKEN_OPERATOR, ":") {
+		v.currentToken = startPos
+		return nil
+	}
 	v.expect(lexer.TOKEN_OPERATOR, ":")
 	v.expect(lexer.TOKEN_OPERATOR, "=")
 
@@ -1770,34 +1776,40 @@ func (v *parser) parsePrimaryExpr() ParseNode {
 	} else if name := v.parseName(); name != nil {
 		startPos := v.currentToken
 
-		var parameters []*TypeReferenceNode
-		if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "<") {
-			v.consumeToken()
-
-			for {
-				typ := v.parseTypeReference(true, false, false)
-				if typ == nil {
-					break
-				}
-				parameters = append(parameters, typ)
-
-				if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ",") {
-					break
-				}
+		// Handle discard access
+		if len(name.Modules) == 0 && name.Name.Value == "_" {
+			res = &DiscardAccessNode{}
+			res.SetWhere(name.Where())
+		} else {
+			var parameters []*TypeReferenceNode
+			if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "<") {
 				v.consumeToken()
+
+				for {
+					typ := v.parseTypeReference(true, false, false)
+					if typ == nil {
+						break
+					}
+					parameters = append(parameters, typ)
+
+					if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ",") {
+						break
+					}
+					v.consumeToken()
+				}
+
+				if !v.tokenMatches(0, lexer.TOKEN_OPERATOR, ">") {
+					v.currentToken = startPos
+					parameters = nil
+				} else {
+					endToken := v.consumeToken()
+					_ = endToken // TODO: Do somethign with end token?
+				}
 			}
 
-			if !v.tokenMatches(0, lexer.TOKEN_OPERATOR, ">") {
-				v.currentToken = startPos
-				parameters = nil
-			} else {
-				endToken := v.consumeToken()
-				_ = endToken // TODO: Do somethign with end token?
-			}
+			res = &VariableAccessNode{Name: name, GenericParameters: parameters}
+			res.SetWhere(lexer.NewSpan(name.Where().Start(), name.Where().End()))
 		}
-
-		res = &VariableAccessNode{Name: name, GenericParameters: parameters}
-		res.SetWhere(lexer.NewSpan(name.Where().Start(), name.Where().End()))
 	}
 
 	return res

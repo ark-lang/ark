@@ -379,6 +379,10 @@ func (v *Codegen) genStat(n parser.Stat) {
 		v.genAssignStat(n)
 	case *parser.BinopAssignStat:
 		v.genBinopAssignStat(n)
+	case *parser.DestructAssignStat:
+		v.genDestructAssignStat(n)
+	case *parser.DestructBinopAssignStat:
+		v.genDestructBinopAssignStat(n)
 	case *parser.IfStat:
 		v.genIfStat(n)
 	case *parser.LoopStat:
@@ -464,17 +468,51 @@ func (v *Codegen) genCallStat(n *parser.CallStat) {
 }
 
 func (v *Codegen) genAssignStat(n *parser.AssignStat) {
-	v.builder().CreateStore(v.genExpr(n.Assignment), v.genAccessGEP(n.Access))
+	v.genAssign(n.Access, v.genExpr(n.Assignment))
 }
 
 func (v *Codegen) genBinopAssignStat(n *parser.BinopAssignStat) {
-	storage := v.genAccessGEP(n.Access)
+	v.genBinopAssign(n.Operator, n.Access, v.genExpr(n.Assignment), n.Assignment.GetType())
+}
 
+func (v *Codegen) genDestructAssignStat(n *parser.DestructAssignStat) {
+	assignment := v.genExpr(n.Assignment)
+	for idx, acc := range n.Accesses {
+		value := v.builder().CreateExtractValue(assignment, idx, "")
+		v.genAssign(acc, value)
+	}
+}
+
+func (v *Codegen) genDestructBinopAssignStat(n *parser.DestructBinopAssignStat) {
+	assignment := v.genExpr(n.Assignment)
+	tt, _ := n.Assignment.GetType().BaseType.ActualType().(parser.TupleType)
+	for idx, acc := range n.Accesses {
+		value := v.builder().CreateExtractValue(assignment, idx, "")
+		v.genBinopAssign(n.Operator, acc, value, tt.Members[idx])
+	}
+}
+
+func (v *Codegen) genAssign(acc parser.AccessExpr, value llvm.Value) {
+	if _, isDiscard := acc.(*parser.DiscardAccessExpr); isDiscard {
+		return
+	}
+
+	access := v.genAccessGEP(acc)
+	value.Dump()
+	access.Dump()
+	v.builder().CreateStore(value, access)
+}
+
+func (v *Codegen) genBinopAssign(op parser.BinOpType, acc parser.AccessExpr, value llvm.Value, valueType *parser.TypeReference) {
+	if _, isDiscard := acc.(*parser.DiscardAccessExpr); isDiscard {
+		return
+	}
+
+	storage := v.genAccessGEP(acc)
 	storageValue := v.builder().CreateLoad(storage, "")
-	assignmentValue := v.genExpr(n.Assignment)
 
-	value := v.genBinop(n.Operator, n.Access.GetType(), n.Access.GetType(), n.Assignment.GetType(), storageValue, assignmentValue)
-	v.builder().CreateStore(value, storage)
+	result := v.genBinop(op, acc.GetType(), acc.GetType(), valueType, storageValue, value)
+	v.builder().CreateStore(result, storage)
 }
 
 func isBreakOrNext(n parser.Node) bool {
