@@ -42,7 +42,7 @@ pub func main() -> int {
         runeArray := mem::allocArray<rune>(numRunes);
         utf8::decode(runeArray, []u8(TEST_STRINGS[i]));
         numBytes := utf8::numBytes(runeArray);
-        if numBytes != len(TEST_STRING_NUM_RUNES[i]) {
+        if numBytes != TEST_STRING_NUM_RUNES[i] {
             return 2;
         }
 
