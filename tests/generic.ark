@@ -55,10 +55,10 @@ pub func main() -> int {
     C::printf(c"str = \"%s\"\n", str);
 
     n := mem::alloc<int>();
-    o := (^mut int)(n);
+    o := n;
     @o = 111;
     C::printf(c"@o = %d\n", @o);
-    mem::free<int>(n);
+    mem::free<int>((^int)(n));
 
     mut arr := mem::allocArray<int>(5);
     arr[4] = 4;

@@ -13,7 +13,7 @@ type FILE struct {};
 pub type FileMode enum {
 	Read,
 	Write,
-	Append,	
+	Append,
 };
 
 // this is kinda cheeky
@@ -36,7 +36,7 @@ pub type Path struct {
 };
 
 pub func (Path) new(location: string) -> ^mut Path {
-	mut p: ^mut Path = (^mut Path)(mem::alloc<Path>());
+	mut p: ^mut Path = mem::alloc<Path>();
 	p.location = location;
 	return p;
 }
@@ -48,12 +48,12 @@ pub type File struct {
 };
 
 pub func (File) open(path: ^mut Path, mode: FileMode) -> ^mut File {
-	mut f: ^mut File = (^mut File)(mem::alloc<File>());
+	mut f: ^mut File = mem::alloc<File>();
 	f.path = path;
 	// this is to avoid a parsing error where you can't
 	// index a call expr (call expr ! access expr)
 	legacyMode: string = mode.getLegacyMode();
-	// f.handle = C::fopen((^u8)(&f.path.location[0]), (^u8)(&legacyMode[0])); 
+	// f.handle = C::fopen((^u8)(&f.path.location[0]), (^u8)(&legacyMode[0]));
 	return f;
 }
 

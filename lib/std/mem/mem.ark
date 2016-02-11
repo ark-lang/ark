@@ -4,9 +4,9 @@
 
 // TODO: check for overflow when doing `num * sizeof(T)``
 
-pub func alloc<T>() -> ^T {
+pub func alloc<T>() -> ^mut T {
     ptr := C::malloc(sizeof(T));
-    return (^T)(ptr);
+    return (^mut T)(ptr);
 }
 
 // can we maybe move this to mem/array.ark?
