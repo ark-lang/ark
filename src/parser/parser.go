@@ -775,7 +775,10 @@ func (v *parser) parseDestructVarDecl(isTopLevel bool) *DestructVarDeclNode {
 		}
 
 		if !v.nextIs(lexer.TOKEN_IDENTIFIER) {
-			v.errPos("Expected identifier in tuple destructuring variable declaration, got %s", v.peek(0).Type)
+			// TODO(#655):
+			//v.errPos("Expected identifier in tuple destructuring variable declaration, got %s", v.peek(0).Type)
+			v.currentToken = startPos
+			return nil
 		}
 		name := v.consumeToken()
 
