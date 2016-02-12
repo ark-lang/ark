@@ -2,6 +2,33 @@ package semantic
 
 import "github.com/ark-lang/ark/src/parser"
 
+// Takes a pointer to the expr, so we can replace it with a cast if necessary.
+// TODO: do we need an ImplicitCastExpr node? Or just an InterfaceWrapExpr node.
+func expectType(s *SemanticAnalyzer, loc parser.Locatable, expect *parser.TypeReference, expr *parser.Expr) {
+	exprType := (*expr).GetType()
+	if expect.Equals(exprType) {
+		return
+	}
+
+	if expectPtr, ok := expect.BaseType.(parser.PointerType); ok {
+		if exprPtr, ok := exprType.BaseType.(parser.PointerType); ok {
+			if expectPtr.Addressee.Equals(exprPtr.Addressee) && exprPtr.IsMutable && !expectPtr.IsMutable {
+				return
+			}
+		}
+	}
+
+	if expectPtr, ok := expect.BaseType.(parser.ReferenceType); ok {
+		if exprPtr, ok := exprType.BaseType.(parser.ReferenceType); ok {
+			if expectPtr.Referrer.Equals(exprPtr.Referrer) && exprPtr.IsMutable && !expectPtr.IsMutable {
+				return
+			}
+		}
+	}
+
+	s.Err(loc, "Mismatched types: %s and %s", expect.String(), exprType.String())
+}
+
 type TypeCheck struct {
 	functions []*parser.Function
 }
@@ -110,10 +137,7 @@ func (v *TypeCheck) CheckVariableDecl(s *SemanticAnalyzer, decl *parser.Variable
 	}
 
 	if decl.Assignment != nil {
-		if !decl.Variable.Type.Equals(decl.Assignment.GetType()) {
-			s.Err(decl, "Cannot assign expression of type `%s` to variable of type `%s`",
-				decl.Assignment.GetType().String(), decl.Variable.Type.String())
-		}
+		expectType(s, decl, decl.Variable.Type, &decl.Assignment)
 	}
 }
 
@@ -138,10 +162,7 @@ func (v *TypeCheck) CheckReturnStat(s *SemanticAnalyzer, stat *parser.ReturnStat
 		if v.Function().Type.Return.BaseType == parser.PRIMITIVE_void {
 			s.Err(stat.Value, "Cannot return expression from void function")
 		} else {
-			if !stat.Value.GetType().Equals(v.Function().Type.Return) {
-				s.Err(stat.Value, "Cannot return expression of type `%s` from function `%s` of type `%s`",
-					stat.Value.GetType().String(), v.Function().Name, v.Function().Type.Return.String())
-			}
+			expectType(s, stat.Value, v.Function().Type.Return, &stat.Value)
 		}
 	}
 }
@@ -156,14 +177,14 @@ func (v *TypeCheck) CheckIfStat(s *SemanticAnalyzer, stat *parser.IfStat) {
 }
 
 func (v *TypeCheck) CheckAssignStat(s *SemanticAnalyzer, stat *parser.AssignStat) {
-	if stat.Access.GetType() != nil && !stat.Access.GetType().Equals(stat.Assignment.GetType()) {
-		s.Err(stat, "Mismatched types: `%s` and `%s`", stat.Access.GetType().String(), stat.Assignment.GetType().String())
+	if stat.Access.GetType() != nil {
+		expectType(s, stat, stat.Access.GetType(), &stat.Assignment)
 	}
 }
 
 func (v *TypeCheck) CheckBinopAssignStat(s *SemanticAnalyzer, stat *parser.BinopAssignStat) {
-	if stat.Access.GetType() != nil && !stat.Access.GetType().Equals(stat.Assignment.GetType()) {
-		s.Err(stat, "Mismatched types: `%s` and `%s`", stat.Access.GetType().String(), stat.Assignment.GetType().String())
+	if stat.Access.GetType() != nil {
+		expectType(s, stat, stat.Access.GetType(), &stat.Assignment)
 	}
 }
 
@@ -344,9 +365,8 @@ func (v *TypeCheck) CheckCallExpr(s *SemanticAnalyzer, expr *parser.CallExpr) {
 			}
 		} else {
 			par := fnType.Parameters[i]
-			if arg.GetType() != nil && !arg.GetType().Equals(par) {
-				s.Err(arg, "Mismatched types in function call: `%s` and `%s`",
-					arg.GetType().String(), par.String())
+			if arg.GetType() != nil { // TODO should arg type ever be nil?
+				expectType(s, arg, par, &arg)
 			}
 		}
 	}
@@ -441,9 +461,7 @@ func (v *TypeCheck) CheckTupleLiteral(s *SemanticAnalyzer, lit *parser.TupleLite
 	}
 
 	for idx, mem := range lit.Members {
-		if !mem.GetType().Equals(gcon.Get(memberTypes[idx])) {
-			s.Err(mem, "Cannot use component of type `%s` in tuple position of type `%s`", mem.GetType().String(), memberTypes[idx])
-		}
+		expectType(s, mem, gcon.Get(memberTypes[idx]), &mem)
 	}
 }
 
@@ -457,9 +475,7 @@ func (v *TypeCheck) CheckCompositeLiteral(s *SemanticAnalyzer, lit *parser.Compo
 	case parser.ArrayType:
 		memType := typ.MemberType
 		for i, mem := range lit.Values {
-			if !mem.GetType().Equals(memType) {
-				s.Err(mem, "Cannot use element of type `%s` in array of type `%s`", mem.GetType().String(), memType.String())
-			}
+			expectType(s, mem, memType, &mem)
 
 			if lit.Fields[i] != "" {
 				s.Err(mem, "Unexpected field in array literal: `%s`", lit.Fields[i])
@@ -481,10 +497,7 @@ func (v *TypeCheck) CheckCompositeLiteral(s *SemanticAnalyzer, lit *parser.Compo
 			}
 
 			sMemType := gcon.Replace(sMem.Type)
-			if !mem.GetType().Equals(sMemType) {
-				s.Err(lit, "Cannot use value of type `%s` as member of `%s` with type `%s`",
-					mem.GetType().String(), sMemType.String(), typ.String())
-			}
+			expectType(s, lit, sMemType, &mem)
 		}
 
 	default:

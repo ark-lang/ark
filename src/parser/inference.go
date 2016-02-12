@@ -1352,7 +1352,9 @@ func (v *CompositeLiteral) SetType(t *TypeReference) {
 
 // StringLiteral
 func (v *StringLiteral) SetType(t *TypeReference) {
-	v.Type = t
+	if t.BaseType.ActualType() == stringType {
+		v.Type = t
+	} // TODO arrays
 }
 
 // TupleLiteral

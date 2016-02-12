@@ -58,7 +58,7 @@ pub func main() -> int {
     o := n;
     @o = 111;
     C::printf(c"@o = %d\n", @o);
-    mem::free<int>((^int)(n));
+    mem::free<int>(n);
 
     mut arr := mem::allocArray<int>(5);
     arr[4] = 4;

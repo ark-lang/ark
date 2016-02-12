@@ -9,13 +9,5 @@ RunError      = 0
 
 Input = ""
 
-CompilerOutput = """error: [func_type_mismatch:2:17] Mismatched types in function call: `func(int, int) -> int` and `func(int, bool) -> int`
-  return invoke(sub, 55, 55);
-                ^
-
-error: [func_type_mismatch:9:1] Function declaration must not be in function
-func invoke(fn: func(int, bool) -> int, a: int, b: int) -> int {
-^
-
-"""
+CompilerOutput = ""
 RunOutput      = ""
