@@ -1,101 +1,57 @@
-# Object files
-*.o
-*.ko
-*.obj
-*.elf
-
-local/
-
-# Ark executables
-main
-main.o
-main.exe
-
-# Precompiled headers
-*.gch
-*.pch
-
-# Emacs
-\#*\#
-
-# Libraries
-*.lib
+# TODO: Recategorise this
 *.a
-*.la
-*.lo
-
-# Ark specific things
-_gen_*.c
-_gen_*.h
-main
-ark_run_tmp
-tests/*.test
-*.s
-
-# Shared objects
-*.dll
-*.so
-*.so.*
-*.dylib
-
-# Eclipse
-.settings
-.cproject
-.project
-
-# Floo
-.floo
-.flooignore
-
-# Binaries
-*.exe
-*.out
 *.app
-*.i*86
-*.x86_64
-*.hex
-bin/
-
-# Other
-builds/
-*~
-.DS_Store
-*.swp
-*.swo
-*.dSYM
-*sublime-*
-*.stackdump
 *.bc
-*.ll
-=======
-# Compiled Object files, Static and Dynamic libs (Shared Objects)
-*.o
-*.a
-*.so
-
-# Folders
-_obj
-_test
-
-# Architecture specific extensions/prefixes
-*.[568vq]
-[568vq].out
-
 *.cgo1.go
 *.cgo2.c
-_cgo_defun.c
-_cgo_gotypes.go
-_cgo_export.*
-
-_testmain.go
-
+*.dll
+*.dSYM
+*.dylib
+*.elf
 *.exe
-*.test
+*.gch
+*.hex
+*.i*86
+*.ko
+*.la
+*.lib
+*.ll
+*.lo
+*.o
+*.obj
+*.out
+*.pch
 *.prof
-
-.DS_Store
+*.s
+*.so
+*.so.*
+*.stackdump
+*.swo
+*.swp
+*.test
+*.x86_64
+*.[568vq]
+*sublime-*
+*~
+.cproject
 .dSYM/
-
-# Ark codegen out files
-*.ark.out
+.DS_Store
+.floo
+.flooignore
+.project
+.settings
+ark_run_tmp
+bin/
+builds/
 docgen/
+local/
+main
+\#*\#
+_cgo_defun.c
+_cgo_export.*
+_cgo_gotypes.go
+_gen_*.c
+_gen_*.h
+_obj
+_test
+_testmain.go
