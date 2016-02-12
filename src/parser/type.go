@@ -467,7 +467,7 @@ func (v ReferenceType) IsVoidType() bool {
 }
 
 func (v ReferenceType) CanCastTo(t Type) bool {
-	return IsPointerOrReferenceType(t) || t.ActualType() == PRIMITIVE_uintptr
+	return t.ActualType() == PRIMITIVE_uintptr
 }
 
 func (v ReferenceType) Attrs() AttrGroup {
@@ -534,7 +534,7 @@ func (v PointerType) IsVoidType() bool {
 }
 
 func (v PointerType) CanCastTo(t Type) bool {
-	return IsPointerOrReferenceType(t) || t.ActualType() == PRIMITIVE_uintptr
+	return t.ActualType() == PRIMITIVE_uintptr
 }
 
 func (v PointerType) Attrs() AttrGroup {

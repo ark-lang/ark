@@ -6,7 +6,7 @@
 
 pub func alloc<T>() -> ^mut T {
     ptr := C::malloc(sizeof(T));
-    return (^mut T)(ptr);
+    return (^mut T)(uintptr(ptr));
 }
 
 // can we maybe move this to mem/array.ark?
@@ -18,14 +18,14 @@ type RawArray struct {
 pub func allocArray<T>(num: uint) -> []T {
     ptr := C::malloc(sizeof(T) * num);
 
-    rawPtr := (^u8)(ptr);
+    rawPtr := (^u8)(uintptr(ptr));
 
     rawArray := RawArray{
         size: num,
         ptr: rawPtr,
     };
 
-    arrPtr := (^[]T)(^rawArray);
+    arrPtr := (^[]T)(uintptr(^rawArray));
 
     return @arrPtr;
 }
@@ -47,10 +47,10 @@ pub func copyArray<T>(mut dest: []T, src: []T, num: uint) {
 }
 
 pub func free<T>(ptr: ^T) {
-    C::free((^C::void)(ptr));
+    C::free((^C::void)(uintptr(ptr)));
 }
 
 pub func freeArray<T>(array: []T) {
-    mut rawArray := @((^RawArray)(&array));
-    C::free((^C::void)(rawArray.ptr));
+    mut rawArray := @((^RawArray)(uintptr(&array)));
+    C::free((^C::void)(uintptr(rawArray.ptr)));
 }
