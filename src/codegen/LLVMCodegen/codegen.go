@@ -12,6 +12,11 @@ import (
 	"github.com/ark-lang/go-llvm/llvm"
 )
 
+// Assorted "constants" used in the codegen. Do not ever set them, only read them
+var (
+	enumTagType = llvm.IntType(32)
+)
+
 type functionAndFnGenericInstance struct {
 	fn   *parser.Function
 	gcon *parser.GenericContext // nil for no generics
@@ -621,7 +626,69 @@ func (v *Codegen) genLoopStat(n *parser.LoopStat) {
 }
 
 func (v *Codegen) genMatchStat(n *parser.MatchStat) {
-	// TODO: implement
+	// TODO: implement integral and string versions
+
+	targetType := n.Target.GetType()
+	switch targetType.BaseType.ActualType().(type) {
+	case parser.EnumType:
+		v.genEnumMatchStat(n)
+	}
+}
+
+func (v *Codegen) genEnumMatchStat(n *parser.MatchStat) {
+	et, ok := n.Target.GetType().BaseType.ActualType().(parser.EnumType)
+	if !ok {
+		panic("INTERNAL ERROR: Arrived in genEnumMatchStat with non enum type")
+	}
+
+	target := v.genExpr(n.Target)
+	tag := v.builder().CreateExtractValue(target, 0, "")
+
+	enterBlock := llvm.AddBasicBlock(v.currentLLVMFunction(), "match_enter")
+	exitBlock := llvm.AddBasicBlock(v.currentLLVMFunction(), "match_exit")
+
+	v.builder().CreateBr(enterBlock)
+
+	tags := make([]int, len(n.Branches))
+	blocks := make([]llvm.BasicBlock, len(n.Branches))
+
+	// TODO: Branch gen order is non-deterministic. We probably do not want that
+	idx := 0
+	for expr, branch := range n.Branches {
+		enumLit, ok := expr.(*parser.EnumLiteral)
+		if !ok {
+			panic("INTERNAL ERROR: Branch in enum match was not enum literal")
+		}
+
+		mem, ok := et.GetMember(enumLit.Member)
+		if !ok {
+			panic("INTERNAL ERROR: Enum match branch member was non existant")
+		}
+
+		tags[idx] = mem.Tag
+		blocks[idx] = llvm.AddBasicBlock(v.currentLLVMFunction(), "match_branch_"+mem.Name)
+
+		v.builder().SetInsertPointAtEnd(blocks[idx])
+		v.genNode(branch)
+
+		if !semantic.IsNodeTerminating(branch) {
+			v.builder().CreateBr(exitBlock)
+		}
+
+		exitBlock.MoveAfter(blocks[idx])
+
+		idx++
+	}
+
+	v.builder().SetInsertPointAtEnd(enterBlock)
+
+	sw := v.builder().CreateSwitch(tag, exitBlock, len(n.Branches))
+	for idx := 0; idx < len(n.Branches); idx++ {
+		sw.AddCase(llvm.ConstInt(enumTagType, uint64(tags[idx]), false), blocks[idx])
+	}
+
+	v.builder().SetInsertPointAtEnd(exitBlock)
+
 }
 
 func (v *Codegen) genDecl(n parser.Decl) {
@@ -1207,7 +1274,7 @@ func (v *Codegen) genEnumLiteral(n *parser.EnumLiteral) llvm.Value {
 	}
 
 	// TODO: Handle other integer size, maybe dynamic depending on max value?
-	tagValue := llvm.ConstInt(llvm.IntType(32), uint64(member.Tag), false)
+	tagValue := llvm.ConstInt(enumTagType, uint64(member.Tag), false)
 
 	enumValue := llvm.Undef(enumLLVMType)
 	enumValue = v.builder().CreateInsertValue(enumValue, tagValue, 0, "")
