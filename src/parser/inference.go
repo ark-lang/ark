@@ -1389,6 +1389,15 @@ func (v *FunctionAccessExpr) SetType(t *TypeReference) {
 	}
 }
 
+func (v *EnumLiteral) SetType(t *TypeReference) {
+	et, ok := v.Type.BaseType.ActualType().(EnumType)
+	if ok && len(et.GenericParameters) > 0 {
+		if len(v.Type.GenericArguments) != len(et.GenericParameters) {
+			v.Type.GenericArguments = t.GenericArguments
+		}
+	}
+}
+
 // Noops
 func (_ ArrayAccessExpr) SetType(t *TypeReference)    {}
 func (_ ArrayLenExpr) SetType(t *TypeReference)       {}
@@ -1398,7 +1407,6 @@ func (_ CallExpr) SetType(t *TypeReference)           {}
 func (_ DefaultMatchBranch) SetType(t *TypeReference) {}
 func (_ DerefAccessExpr) SetType(t *TypeReference)    {}
 func (_ DiscardAccessExpr) SetType(t *TypeReference)  {}
-func (_ EnumLiteral) SetType(t *TypeReference)        {}
 func (_ LambdaExpr) SetType(t *TypeReference)         {}
 func (_ PointerToExpr) SetType(t *TypeReference)      {}
 func (_ ReferenceToExpr) SetType(t *TypeReference)    {}
