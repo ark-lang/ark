@@ -253,8 +253,8 @@ func (v *ASTVisitor) VisitChildren(n Node) {
 		n.ReceiverAccess = v.VisitExpr(n.ReceiverAccess)
 
 	case *NumericLiteral, *StringLiteral, *BoolLiteral, *RuneLiteral,
-		*VariableAccessExpr, *TypeDecl, *DefaultMatchBranch, *UseDirective,
-		*BreakStat, *NextStat, *DiscardAccessExpr:
+		*VariableAccessExpr, *TypeDecl, *UseDirective, *BreakStat, *NextStat,
+		*DiscardAccessExpr, *EnumPatternExpr:
 		// do nothing
 
 	default:

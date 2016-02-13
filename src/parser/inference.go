@@ -606,8 +606,18 @@ func (v *Inferrer) Visit(node *Node) bool {
 		}
 
 	case *MatchStat:
-		// TODO: Implement once we actuall do match statement
+		// TODO: Make sure this is enough to hande match on integer and string aswell
+		targetId := v.HandleExpr(n.Target)
 
+		for pattern, _ := range n.Branches {
+			patternId := v.HandleExpr(pattern)
+
+			if n.Target.GetType() != nil {
+				pattern.SetType(n.Target.GetType())
+			} else {
+				v.AddEqualsConstraint(patternId, targetId)
+			}
+		}
 	}
 
 	return true
@@ -936,7 +946,7 @@ func (v *Inferrer) HandleTyped(pos lexer.Position, typed Typed) int {
 	case *LambdaExpr:
 		v.AddSimpleIsConstraint(ann.Id, &TypeReference{BaseType: typed.Function.Type})
 
-	case *NumericLiteral, *StringLiteral, *DiscardAccessExpr:
+	case *NumericLiteral, *StringLiteral, *DiscardAccessExpr, *EnumPatternExpr:
 		// noop
 
 	default:
@@ -1162,7 +1172,7 @@ func (v *Inferrer) Finalize() {
 			switch ct.Id {
 			case ConstructorStructMember:
 				typ := ct.Args[0]
-				if tv, ok := typ.BaseType.(TypeVariable); ok {
+				if tv, ok := typ.BaseType.(TypeVariable); ok && subList[tv.Id] != nil {
 					typ = subList[tv.Id].Right.Type
 				}
 
@@ -1400,13 +1410,41 @@ func (v *EnumLiteral) SetType(t *TypeReference) {
 	}
 }
 
+func (v *EnumPatternExpr) SetType(t *TypeReference) {
+	et, ok := t.BaseType.ActualType().(EnumType)
+	if !ok {
+		// We'll catch this case in the semantic checks later
+		return
+	}
+
+	gcon := NewGenericContextFromTypeReference(t)
+
+	mem, ok := et.GetMember(v.MemberName.Name)
+	if !ok {
+		// We'll catch this case in the semantic checks later
+		return
+	}
+
+	st, isStruct := mem.Type.(StructType)
+	tt, isTuple := mem.Type.(TupleType)
+
+	for idx, vari := range v.Variables {
+		if isStruct {
+			vari.Type = gcon.Replace(st.Members[idx].Type)
+		} else if isTuple {
+			vari.Type = gcon.Replace(tt.Members[idx])
+		} else {
+			// We'll catch this case in the semantic checks later
+		}
+	}
+}
+
 // Noops
 func (_ ArrayAccessExpr) SetType(t *TypeReference)    {}
 func (_ ArrayLenExpr) SetType(t *TypeReference)       {}
 func (_ BoolLiteral) SetType(t *TypeReference)        {}
 func (_ CastExpr) SetType(t *TypeReference)           {}
 func (_ CallExpr) SetType(t *TypeReference)           {}
-func (_ DefaultMatchBranch) SetType(t *TypeReference) {}
 func (_ DerefAccessExpr) SetType(t *TypeReference)    {}
 func (_ DiscardAccessExpr) SetType(t *TypeReference)  {}
 func (_ LambdaExpr) SetType(t *TypeReference)         {}

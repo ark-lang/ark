@@ -44,6 +44,13 @@ func (v *UseBeforeDeclareCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
 			}
 		}
 
+	case *parser.EnumPatternExpr:
+		for _, vari := range n.Variables {
+			if vari != nil {
+				v.scope[vari.Name] = true
+			}
+		}
+
 	case *parser.VariableAccessExpr:
 		if !v.scope[n.Variable.Name] && n.Variable.ParentModule == s.Submodule.Parent {
 			s.Err(n, "Use of variable before declaration: %s", n.Variable.Name)

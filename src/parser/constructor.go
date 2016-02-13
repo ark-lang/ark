@@ -539,23 +539,10 @@ func (v *MatchStatNode) construct(c *Constructor) Node {
 	res.Target = c.constructExpr(v.Value)
 	res.Branches = make(map[Expr]Node)
 	for _, branch := range v.Cases {
-		var pattern Expr
-		if dpn, ok := branch.Pattern.(*DefaultPatternNode); ok {
-			pattern = &DefaultMatchBranch{}
-			pattern.setPos(dpn.Where().Start())
-		} else {
-			pattern = c.constructExpr(branch.Pattern)
-		}
-
+		pattern := c.constructExpr(branch.Pattern)
 		body := c.constructNode(branch.Body)
 		res.Branches[pattern] = body
 	}
-	res.setPos(v.Where().Start())
-	return res
-}
-
-func (v *DefaultPatternNode) construct(c *Constructor) Node {
-	res := &DefaultMatchBranch{}
 	res.setPos(v.Where().Start())
 	return res
 }
@@ -810,6 +797,23 @@ func (v *ArrayAccessNode) construct(c *Constructor) Expr {
 
 func (v *DiscardAccessNode) construct(c *Constructor) Expr {
 	res := &DiscardAccessExpr{}
+	res.setPos(v.Where().Start())
+	return res
+}
+
+func (v *EnumPatternNode) construct(c *Constructor) Expr {
+	res := &EnumPatternExpr{
+		MemberName: toUnresolvedName(v.MemberName),
+		Variables:  make([]*Variable, len(v.Names)),
+	}
+	for idx, name := range v.Names {
+		if name.Value != KEYWORD_DISCARD {
+			res.Variables[idx] = &Variable{
+				Name:         name.Value,
+				ParentModule: c.module,
+			}
+		}
+	}
 	res.setPos(v.Where().Start())
 	return res
 }

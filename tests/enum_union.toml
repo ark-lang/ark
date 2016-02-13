@@ -10,4 +10,7 @@ RunError      = 0
 Input = ""
 
 CompilerOutput = ""
-RunOutput      = ""
+RunOutput      = """Node
+Leaf: 42
+Leaf: 36
+"""

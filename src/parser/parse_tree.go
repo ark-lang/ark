@@ -266,10 +266,6 @@ type MatchCaseNode struct {
 	Body    ParseNode
 }
 
-type DefaultPatternNode struct {
-	baseNode
-}
-
 type LoopStatNode struct {
 	baseNode
 	Condition ParseNode
@@ -389,6 +385,12 @@ type ArrayAccessNode struct {
 
 type DiscardAccessNode struct {
 	baseNode
+}
+
+type EnumPatternNode struct {
+	baseNode
+	MemberName *NameNode
+	Names      []LocatedString
 }
 
 // literals

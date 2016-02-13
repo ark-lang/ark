@@ -218,7 +218,7 @@ func (v *Codegen) enumTypeToLLVMTypeFields(typ parser.EnumType, gcon *parser.Gen
 	}
 
 	// TODO: verify no overflow
-	return []llvm.Type{llvm.IntType(32), llvm.ArrayType(llvm.IntType(8), int(longestLength))}
+	return []llvm.Type{enumTagType, llvm.ArrayType(llvm.IntType(8), int(longestLength))}
 }
 
 func (v *Codegen) functionTypeToLLVMType(typ parser.FunctionType, ptr bool, gcon *parser.GenericContext) llvm.Type {

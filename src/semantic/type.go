@@ -88,6 +88,9 @@ func (v *TypeCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
 	case *parser.IfStat:
 		v.CheckIfStat(s, n)
 
+	case *parser.MatchStat:
+		v.CheckMatchStat(s, n)
+
 	case *parser.ArrayLenExpr:
 		v.CheckArrayLenExpr(s, n)
 
@@ -171,6 +174,36 @@ func (v *TypeCheck) CheckIfStat(s *SemanticAnalyzer, stat *parser.IfStat) {
 	for _, expr := range stat.Exprs {
 		if expr.GetType().BaseType != parser.PRIMITIVE_bool {
 			s.Err(expr, "If condition must have a boolean condition")
+		}
+	}
+}
+
+func (v *TypeCheck) CheckMatchStat(s *SemanticAnalyzer, stat *parser.MatchStat) {
+	// TODO: Handle string and integer matches
+	et, isEnum := stat.Target.GetType().BaseType.ActualType().(parser.EnumType)
+	for pattern, _ := range stat.Branches {
+		if _, isDiscard := pattern.(*parser.DiscardAccessExpr); isDiscard {
+			continue
+		}
+
+		if isEnum {
+			patt, ok := pattern.(*parser.EnumPatternExpr)
+			if !ok {
+				s.Err(pattern, "Expected enum pattern in match on enum type `%s`", stat.Target.GetType().String())
+				continue
+			}
+
+			mem, ok := et.GetMember(patt.MemberName.Name)
+			if !ok {
+				s.Err(patt, "Enum type `%s` has no such member `%s`", stat.Target.GetType().String(), patt.MemberName.Name)
+				continue
+			}
+
+			_, isStruct := mem.Type.(parser.StructType)
+			_, isTuple := mem.Type.(parser.TupleType)
+			if !isStruct && !isTuple && len(patt.Variables) > 0 {
+				s.Err(patt, "Tried destructuring simple enum member `%s`", patt.MemberName.Name)
+			}
 		}
 	}
 

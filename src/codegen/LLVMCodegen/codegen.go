@@ -503,8 +503,6 @@ func (v *Codegen) genAssign(acc parser.AccessExpr, value llvm.Value) {
 	}
 
 	access := v.genAccessGEP(acc)
-	value.Dump()
-	access.Dump()
 	v.builder().CreateStore(value, access)
 }
 
@@ -642,53 +640,89 @@ func (v *Codegen) genEnumMatchStat(n *parser.MatchStat) {
 	}
 
 	target := v.genExpr(n.Target)
-	tag := v.builder().CreateExtractValue(target, 0, "")
+	tag := v.builder().CreateExtractValue(v.builder().CreateLoad(target, ""), 0, "")
 
 	enterBlock := llvm.AddBasicBlock(v.currentLLVMFunction(), "match_enter")
 	exitBlock := llvm.AddBasicBlock(v.currentLLVMFunction(), "match_exit")
 
 	v.builder().CreateBr(enterBlock)
 
-	tags := make([]int, len(n.Branches))
-	blocks := make([]llvm.BasicBlock, len(n.Branches))
+	var tags []int
+	var blocks []llvm.BasicBlock
+	var defaultBlock llvm.BasicBlock
 
 	// TODO: Branch gen order is non-deterministic. We probably do not want that
 	idx := 0
 	for expr, branch := range n.Branches {
-		enumLit, ok := expr.(*parser.EnumLiteral)
-		if !ok {
-			panic("INTERNAL ERROR: Branch in enum match was not enum literal")
+		var block llvm.BasicBlock
+		if patt, ok := expr.(*parser.EnumPatternExpr); ok {
+			mem, ok := et.GetMember(patt.MemberName.Name)
+			if !ok {
+				panic("INTERNAL ERROR: Enum match branch member was non existant")
+			}
+
+			block = llvm.AddBasicBlock(v.currentLLVMFunction(), "match_branch_"+mem.Name)
+
+			tags = append(tags, mem.Tag)
+			blocks = append(blocks, block)
+		} else if _, ok := expr.(*parser.DiscardAccessExpr); ok {
+			block = llvm.AddBasicBlock(v.currentLLVMFunction(), "match_branch_default")
+			defaultBlock = block
+		} else {
+			panic("INTERNAL ERROR: Branch in enum match was not enum pattern or discard")
 		}
 
-		mem, ok := et.GetMember(enumLit.Member)
-		if !ok {
-			panic("INTERNAL ERROR: Enum match branch member was non existant")
+		v.builder().SetInsertPointAtEnd(block)
+
+		// Destructure the variables
+		if patt, ok := expr.(*parser.EnumPatternExpr); ok {
+			mem, ok := et.GetMember(patt.MemberName.Name)
+			if !ok {
+				panic("INTERNAL ERROR: Enum match branch member was non existant")
+			}
+
+			for idx, vari := range patt.Variables {
+				if vari != nil {
+					gcon := parser.NewGenericContextFromTypeReference(n.Target.GetType())
+					value := v.genEnumUnionValue(target, mem.Type, gcon)
+					value = v.builder().CreateExtractValue(value, idx, "")
+					v.genVariable(false, vari, value)
+				}
+			}
 		}
 
-		tags[idx] = mem.Tag
-		blocks[idx] = llvm.AddBasicBlock(v.currentLLVMFunction(), "match_branch_"+mem.Name)
-
-		v.builder().SetInsertPointAtEnd(blocks[idx])
 		v.genNode(branch)
 
 		if !semantic.IsNodeTerminating(branch) {
 			v.builder().CreateBr(exitBlock)
 		}
 
-		exitBlock.MoveAfter(blocks[idx])
+		exitBlock.MoveAfter(block)
 
 		idx++
 	}
 
 	v.builder().SetInsertPointAtEnd(enterBlock)
 
-	sw := v.builder().CreateSwitch(tag, exitBlock, len(n.Branches))
-	for idx := 0; idx < len(n.Branches); idx++ {
+	var sw llvm.Value
+	if defaultBlock.IsNil() {
+		sw = v.builder().CreateSwitch(tag, exitBlock, len(n.Branches))
+	} else {
+		sw = v.builder().CreateSwitch(tag, defaultBlock, len(n.Branches))
+	}
+
+	for idx := 0; idx < len(tags); idx++ {
 		sw.AddCase(llvm.ConstInt(enumTagType, uint64(tags[idx]), false), blocks[idx])
 	}
 
 	v.builder().SetInsertPointAtEnd(exitBlock)
+}
 
+func (v *Codegen) genEnumUnionValue(enum llvm.Value, memberType parser.Type, gcon *parser.GenericContext) llvm.Value {
+	memberLLVMType := llvm.PointerType(v.typeToLLVMType(memberType, gcon), 0)
+	pointer := v.builder().CreateStructGEP(enum, 1, "")
+	pointer = v.builder().CreateBitCast(pointer, memberLLVMType, "")
+	return v.builder().CreateLoad(pointer, "")
 }
 
 func (v *Codegen) genDecl(n parser.Decl) {
@@ -948,7 +982,15 @@ func (v *Codegen) genAccessExpr(n parser.Expr) llvm.Value {
 		return fn
 	}
 
-	return v.builder().CreateLoad(v.genAccessGEP(n), "")
+	access := v.genAccessGEP(n)
+
+	// If we're dealing with a union enum, don't deref the pointer, as we need
+	// to bitcast it to get at the actual values
+	if et, isEnum := n.GetType().BaseType.ActualType().(parser.EnumType); isEnum && !et.Simple {
+		return access
+	}
+
+	return v.builder().CreateLoad(access, "")
 }
 
 func (v *Codegen) genAccessGEP(n parser.Expr) llvm.Value {
@@ -1600,11 +1642,25 @@ func (v *Codegen) genCallExpr(n *parser.CallExpr) llvm.Value {
 	args := make([]llvm.Value, 0, numArgs)
 
 	if n.ReceiverAccess != nil {
-		args = append(args, v.genExpr(n.ReceiverAccess))
+		llvmReciverAccess := v.genExpr(n.ReceiverAccess)
+
+		// If we're dealing with an enum union we have to deref to pass to function
+		if et, isEnum := n.ReceiverAccess.GetType().BaseType.ActualType().(parser.EnumType); isEnum && !et.Simple {
+			llvmReciverAccess = v.builder().CreateLoad(llvmReciverAccess, "")
+		}
+
+		args = append(args, llvmReciverAccess)
 	}
 
 	for _, arg := range n.Arguments {
-		args = append(args, v.genExpr(arg))
+		llvmArg := v.genExpr(arg)
+
+		// If we're dealing with an enum union we have to deref to pass to function
+		if et, isEnum := arg.GetType().BaseType.ActualType().(parser.EnumType); isEnum && !et.Simple {
+			llvmArg = v.builder().CreateLoad(llvmArg, "")
+		}
+
+		args = append(args, llvmArg)
 	}
 
 	return v.genCallExprWithArgs(n, args)

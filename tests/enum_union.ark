@@ -5,13 +5,28 @@ type Tree enum {
     Leaf(int)
 };
 
+func (tree: Tree) dump() {
+	match tree {
+		Node(left, right) => {
+			C::printf(c"Node\n");
+			left.dump();
+			right.dump();
+		},
+		Leaf(value) => {
+			C::printf(c"Leaf: %d\n", value);
+		},
+		_ => {
+			C::printf(c"Invalid tree instance\n");
+		},
+	}
+}
+
 pub func main() -> int {
 	x := Tree::Leaf(42);
 	y := Tree::Leaf(36);
 	z := Tree::Node{left: ^x, right: ^y};
 
-    C::printf(c"Leaf-tag: %d\n", x);
-    C::printf(c"Leaf-tag: %d\n", y);
-    C::printf(c"Node-tag: %d\n", z);
+    z.dump();
+
     return 0;
 }

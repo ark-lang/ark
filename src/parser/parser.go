@@ -944,18 +944,9 @@ func (v *parser) parseMatchStat() *MatchStatNode {
 			break
 		}
 
-		var pattern ParseNode
-		if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, "_") {
-			patTok := v.consumeToken()
-
-			pattern = &DefaultPatternNode{}
-			pattern.SetWhere(patTok.Where)
-		} else {
-			pattern = v.parseExpr()
-		}
-
+		pattern := v.parseMatchPattern()
 		if pattern == nil {
-			v.err("Expected valid expression as pattern in match statement")
+			v.err("Expected valid pattern in match statement")
 		}
 
 		v.expect(lexer.TOKEN_OPERATOR, "=>")
@@ -981,6 +972,75 @@ func (v *parser) parseMatchStat() *MatchStatNode {
 
 	res := &MatchStatNode{Value: value, Cases: cases}
 	res.SetWhere(lexer.NewSpanFromTokens(startToken, endToken))
+	return res
+}
+
+func (v *parser) parseMatchPattern() ParseNode {
+	defer un(trace(v, "matchpattern"))
+	if numLit := v.parseNumberLit(); numLit != nil {
+		return numLit
+	} else if stringLit := v.parseStringLit(); stringLit != nil {
+		return stringLit
+	} else if discardAccess := v.parseDiscardAccess(); discardAccess != nil {
+		return discardAccess
+	} else if enumPattern := v.parseEnumPattern(); enumPattern != nil {
+		return enumPattern
+	}
+	return nil
+}
+
+func (v *parser) parseDiscardAccess() *DiscardAccessNode {
+	defer un(trace(v, "discardaccess"))
+	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_DISCARD) {
+		return nil
+	}
+	token := v.expect(lexer.TOKEN_IDENTIFIER, KEYWORD_DISCARD)
+
+	res := &DiscardAccessNode{}
+	res.SetWhere(token.Where)
+	return res
+}
+
+func (v *parser) parseEnumPattern() *EnumPatternNode {
+	defer un(trace(v, "enumpattern"))
+	enumName := v.parseName()
+	if enumName == nil {
+		return nil
+	}
+
+	res := &EnumPatternNode{
+		MemberName: enumName,
+	}
+
+	var endParens *lexer.Token
+	if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "(") {
+		v.consumeToken()
+
+		for {
+			if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ")") {
+				break
+			}
+
+			if !v.nextIs(lexer.TOKEN_IDENTIFIER) {
+				v.err("Expected identifier in enum pattern")
+			}
+
+			name := v.consumeToken()
+			res.Names = append(res.Names, NewLocatedString(name))
+
+			if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ",") {
+				break
+			}
+			v.consumeToken()
+		}
+		endParens = v.expect(lexer.TOKEN_SEPARATOR, ")")
+	}
+
+	if endParens != nil {
+		res.SetWhere(lexer.NewSpan(enumName.Where().Start(), endParens.Where.End()))
+	} else {
+		res.SetWhere(enumName.Where())
+	}
 	return res
 }
 

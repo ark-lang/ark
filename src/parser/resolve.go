@@ -260,6 +260,13 @@ func (v *Resolver) ResolveNode(node *Node) {
 	case *FunctionDecl:
 		v.EnterScope()
 		v.pushFunction(n.Function)
+
+		if n.Function.Receiver != nil {
+			if v.curScope.InsertVariable(n.Function.Receiver.Variable, false) != nil {
+				v.err(n, "Illegal redeclaration of variable `%s`", n.Function.Receiver.Variable.Name)
+			}
+		}
+
 		for _, par := range n.Function.Type.GenericParameters {
 			if v.curScope.InsertType(par, false) != nil {
 				v.err(n, "Illegal redeclaration of generic type parameter `%s`", par.TypeName())
@@ -509,8 +516,15 @@ func (v *Resolver) ResolveNode(node *Node) {
 	case *StructAccessExpr:
 		n.ParentFunction = v.currentFunction()
 
+	case *EnumPatternExpr:
+		for _, vari := range n.Variables {
+			if vari != nil && v.curScope.InsertVariable(vari, false) != nil {
+				v.err(n, "Illegal redeclaration of variable `%s`", vari.Name)
+			}
+		}
+
 	// No-Ops
-	case *Block, *DefaultMatchBranch, *UseDirective, *AssignStat, *BinopAssignStat,
+	case *Block, *UseDirective, *AssignStat, *BinopAssignStat,
 		*DestructAssignStat, *DestructBinopAssignStat, *BlockStat, *BreakStat,
 		*CallStat, *DeferStat, *IfStat, *MatchStat, *LoopStat, *NextStat,
 		*ReturnStat, *ReferenceToExpr, *PointerToExpr, *ArrayAccessExpr,

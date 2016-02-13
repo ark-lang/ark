@@ -640,10 +640,6 @@ type MatchStat struct {
 	Branches map[Expr]Node
 }
 
-func newMatch() *MatchStat {
-	return &MatchStat{Branches: make(map[Expr]Node)}
-}
-
 func (_ MatchStat) statNode() {}
 
 func (v MatchStat) String() string {
@@ -1102,8 +1098,10 @@ func (v StructAccessExpr) String() string {
 
 func (v StructAccessExpr) GetType() *TypeReference {
 	// TODO sort out type references and stuff
-
 	stype := v.Struct.GetType()
+	if stype == nil {
+		return nil
+	}
 
 	if typ, ok := TypeWithoutPointers(stype.BaseType).(*NamedType); ok {
 		fn := typ.GetMethod(v.Member)
@@ -1246,6 +1244,31 @@ func (v DiscardAccessExpr) Mutable() bool {
 	return true
 }
 
+// EnumPatternExpr
+
+type EnumPatternExpr struct {
+	nodePos
+
+	MemberName UnresolvedName
+	Variables  []*Variable
+
+	EnumType *TypeReference
+}
+
+func (_ EnumPatternExpr) exprNode() {}
+
+func (v EnumPatternExpr) String() string {
+	return NewASTStringer("EnumPatternExpr").Finish()
+}
+
+func (v EnumPatternExpr) GetType() *TypeReference {
+	return nil
+}
+
+func (_ EnumPatternExpr) NodeName() string {
+	return "enum match pattern"
+}
+
 // ReferenceToExpr
 
 type ReferenceToExpr struct {
@@ -1376,26 +1399,6 @@ func (v SizeofExpr) GetType() *TypeReference {
 
 func (_ SizeofExpr) NodeName() string {
 	return "sizeof expression"
-}
-
-// DefaultMatchBranch
-
-type DefaultMatchBranch struct {
-	nodePos
-}
-
-func (_ DefaultMatchBranch) exprNode() {}
-
-func (v DefaultMatchBranch) String() string {
-	return NewASTStringer("DefaultMatchBranch").Finish()
-}
-
-func (v DefaultMatchBranch) GetType() *TypeReference {
-	return nil
-}
-
-func (_ DefaultMatchBranch) NodeName() string {
-	return "default match branch"
 }
 
 // String representation util
