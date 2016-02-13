@@ -1,6 +1,6 @@
 pub func main() -> int {
- 	a: u16 = 42;
- 	b: int = 31;
+ 	mut a: u16 = 42;
+ 	mut b: int = 31;
 
  	(_, a, _, b) = (-4, 16, 242, 32);
  	(b, _) -= (int(a), 0);

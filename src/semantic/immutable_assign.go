@@ -38,6 +38,19 @@ func (v *ImmutableAssignCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
 			s.Err(n, "Cannot assign value to immutable access")
 		}
 
+	case *parser.DestructAssignStat:
+		for _, acc := range n.Accesses {
+			if !acc.Mutable() {
+				s.Err(acc, "Cannot assign value to immutable access")
+			}
+		}
+
+	case *parser.DestructBinopAssignStat:
+		for _, acc := range n.Accesses {
+			if !acc.Mutable() {
+				s.Err(acc, "Cannot assign value to immutable access")
+			}
+		}
 	}
 }
 
