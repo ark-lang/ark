@@ -5,10 +5,10 @@ type Tree enum {
     Leaf(int)
 };
 
-func (tree: Tree) dump() {
-	match tree {
+func (tree: ^Tree) dump() {
+	match @tree {
 		Node(left, right) => {
-			C::printf(c"Node\n");
+			C::printf(c"Node, Left: %p, Right: %p\n", left, right);
 			left.dump();
 			right.dump();
 		},
@@ -21,12 +21,18 @@ func (tree: Tree) dump() {
 	}
 }
 
+x := Tree::Leaf(42);
+
 pub func main() -> int {
-	x := Tree::Leaf(42);
 	y := Tree::Leaf(36);
 	z := Tree::Node{left: ^x, right: ^y};
 
-    z.dump();
+	//C::printf(c"^x: %p\n", ^x);
+	//C::printf(c"^y: %p\n", ^y);
+	//C::printf(c"^x: %p, ^y: %p\n", ^x, ^y);
+
+	zp := ^z;
+    zp.dump();
 
     return 0;
 }

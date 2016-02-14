@@ -221,6 +221,33 @@ func (v *Codegen) enumTypeToLLVMTypeFields(typ parser.EnumType, gcon *parser.Gen
 	return []llvm.Type{enumTagType, llvm.ArrayType(llvm.IntType(8), int(longestLength))}
 }
 
+func (v *Codegen) enumMemberTypeToPaddedLLVMType(enumType parser.EnumType, memberIdx int, gcon *parser.GenericContext) llvm.Type {
+	longestLength := uint64(0)
+	for _, member := range enumType.Members {
+		memLength := v.targetData.TypeAllocSize(v.typeToLLVMType(member.Type, gcon))
+		if memLength > longestLength {
+			longestLength = memLength
+		}
+	}
+
+	member := enumType.Members[memberIdx]
+	actualType := v.typeToLLVMType(member.Type, gcon)
+	amountPad := longestLength - v.targetData.TypeAllocSize(actualType)
+
+	if amountPad > 0 {
+		types := make([]llvm.Type, actualType.StructElementTypesCount()+1)
+		copy(types, actualType.StructElementTypes())
+		types[len(types)-1] = llvm.ArrayType(llvm.IntType(8), int(amountPad))
+		return llvm.StructType(types, false)
+	} else {
+		return actualType
+	}
+}
+
+func (v *Codegen) llvmEnumTypeForMember(enumType parser.EnumType, memberIdx int, gcon *parser.GenericContext) llvm.Type {
+	return llvm.StructType([]llvm.Type{enumTagType, v.enumMemberTypeToPaddedLLVMType(enumType, memberIdx, gcon)}, false)
+}
+
 func (v *Codegen) functionTypeToLLVMType(typ parser.FunctionType, ptr bool, gcon *parser.GenericContext) llvm.Type {
 	numOfParams := len(typ.Parameters)
 	if typ.Receiver != nil {
