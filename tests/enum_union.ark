@@ -8,7 +8,7 @@ type Tree enum {
 func (tree: ^Tree) dump() {
 	match @tree {
 		Node(left, right) => {
-			C::printf(c"Node, Left: %p, Right: %p\n", left, right);
+			C::printf(c"Node\n", left, right);
 			left.dump();
 			right.dump();
 		},
