@@ -36,7 +36,7 @@ func (v *ReferenceCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
 
 	case *parser.VariableDecl:
 		if v.InFunction <= 0 {
-			if typeReferenceContainsReferenceType(n.Variable.Type) {
+			if typeReferenceContainsReferenceType(n.Variable.Type, nil) {
 				s.Err(n, "Global variable has reference-containing type `%s`", n.Variable.Type.String())
 			}
 		}
@@ -44,7 +44,7 @@ func (v *ReferenceCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
 }
 
 func (v *ReferenceCheck) checkFunction(s *SemanticAnalyzer, loc parser.Locatable, fn *parser.Function) {
-	if typeReferenceContainsReferenceType(fn.Type.Return) {
+	if typeReferenceContainsReferenceType(fn.Type.Return, nil) {
 		s.Err(loc, "Function has reference-containing return type `%s`", fn.Type.Return.String())
 	}
 }
@@ -53,13 +53,24 @@ func (v *ReferenceCheck) Finalize(s *SemanticAnalyzer) {
 
 }
 
-func typeReferenceContainsReferenceType(typ *parser.TypeReference) bool {
-	if typeContainsReferenceType(typ.BaseType) {
+func typeReferenceContainsReferenceType(typ *parser.TypeReference, visited map[*parser.TypeReference]struct{ visited, value bool }) bool {
+	if visited == nil {
+		visited = make(map[*parser.TypeReference]struct{ visited, value bool })
+	}
+
+	if visited[typ].visited {
+		return visited[typ].value
+	}
+	visited[typ] = struct{ visited, value bool }{true, false}
+
+	if typeContainsReferenceType(typ.BaseType, visited) {
+		visited[typ] = struct{ visited, value bool }{true, true}
 		return true
 	}
 
 	for _, garg := range typ.GenericArguments {
-		if typeReferenceContainsReferenceType(garg) {
+		if typeReferenceContainsReferenceType(garg, visited) {
+			visited[typ] = struct{ visited, value bool }{true, true}
 			return true
 		}
 	}
@@ -67,20 +78,20 @@ func typeReferenceContainsReferenceType(typ *parser.TypeReference) bool {
 	return false
 }
 
-func typeContainsReferenceType(typ parser.Type) bool {
+func typeContainsReferenceType(typ parser.Type, visited map[*parser.TypeReference]struct{ visited, value bool }) bool {
 	switch typ := typ.ActualType().(type) {
 	case parser.ReferenceType:
 		return true
 
 	case parser.PointerType:
-		return typeReferenceContainsReferenceType(typ.Addressee)
+		return typeReferenceContainsReferenceType(typ.Addressee, visited)
 
 	case parser.ArrayType:
-		return typeReferenceContainsReferenceType(typ.MemberType)
+		return typeReferenceContainsReferenceType(typ.MemberType, visited)
 
 	case parser.StructType:
 		for _, field := range typ.Members {
-			if typeReferenceContainsReferenceType(field.Type) {
+			if typeReferenceContainsReferenceType(field.Type, visited) {
 				return true
 			}
 		}
@@ -88,7 +99,7 @@ func typeContainsReferenceType(typ parser.Type) bool {
 
 	case parser.EnumType:
 		for _, member := range typ.Members {
-			if typeContainsReferenceType(member.Type) {
+			if typeContainsReferenceType(member.Type, visited) {
 				return true
 			}
 		}
@@ -96,7 +107,7 @@ func typeContainsReferenceType(typ parser.Type) bool {
 
 	case parser.TupleType:
 		for _, field := range typ.Members {
-			if typeReferenceContainsReferenceType(field) {
+			if typeReferenceContainsReferenceType(field, visited) {
 				return true
 			}
 		}
