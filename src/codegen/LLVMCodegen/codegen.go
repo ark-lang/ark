@@ -174,6 +174,7 @@ func (v *Codegen) Generate(input []*parser.Module) {
 	// initialize llvm target
 	llvm.InitializeNativeTarget()
 	llvm.InitializeNativeAsmPrinter()
+	llvm.InitializeAllAsmParsers()
 
 	// setup target stuff
 	var err error
