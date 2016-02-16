@@ -43,8 +43,6 @@ func (v *SemanticAnalyzer) Warn(thing parser.Locatable, err string, stuff ...int
 	log.Warning("semantic", util.TEXT_YELLOW+util.TEXT_BOLD+"warning:"+util.TEXT_RESET+" [%s:%d:%d] %s\n",
 		pos.Filename, pos.Line, pos.Char, fmt.Sprintf(err, stuff...))
 
-	thing.Pos()
-
 	log.Warningln("semantic", v.Submodule.File.MarkPos(pos))
 }
 
