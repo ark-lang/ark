@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/ark-lang/ark/src/codegen"
 	"github.com/ark-lang/ark/src/parser"
 	"github.com/ark-lang/ark/src/semantic"
 	"github.com/ark-lang/ark/src/util"
@@ -44,7 +45,7 @@ func newvariableAndFnGenericInstance(variable *parser.Variable, gcon *parser.Gen
 type Codegen struct {
 	// public options
 	OutputName string
-	OutputType OutputType
+	OutputType codegen.OutputType
 	LinkerArgs []string
 	Linker     string // defaults to cc
 	OptLevel   int

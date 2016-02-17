@@ -6,19 +6,11 @@ import (
 	"os"
 	"os/exec"
 
+	"github.com/ark-lang/ark/src/codegen"
 	"github.com/ark-lang/ark/src/parser"
 	"github.com/ark-lang/ark/src/util/log"
 
 	"github.com/ark-lang/go-llvm/llvm"
-)
-
-type OutputType int
-
-const (
-	OUTPUT_ASSEMBLY OutputType = iota
-	OUTPUT_OBJECT
-	OUTPUT_LLVM_IR
-	OUTPUT_EXECUTABLE
 )
 
 func (v *Codegen) createIR(mod *WrappedModule) string {
@@ -54,14 +46,14 @@ func (v *Codegen) createObjectOrAssembly(mod *WrappedModule, typ llvm.CodeGenFil
 }
 
 func (v *Codegen) createBinary() {
-	if v.OutputType == OUTPUT_LLVM_IR {
+	if v.OutputType == codegen.OutputLLVMIR {
 		for _, mod := range v.input {
 			log.Timed("creating ir", mod.Name.String(), func() {
 				v.createIR(mod)
 			})
 		}
 		return
-	} else if v.OutputType == OUTPUT_ASSEMBLY {
+	} else if v.OutputType == codegen.OutputAssembly {
 		for _, mod := range v.input {
 			log.Timed("creating assembly", mod.Name.String(), func() {
 				v.createObjectOrAssembly(mod, llvm.AssemblyFile)
@@ -85,7 +77,7 @@ func (v *Codegen) createBinary() {
 		})
 	}
 
-	if v.OutputType == OUTPUT_OBJECT {
+	if v.OutputType == codegen.OutputObject {
 		return
 	}
 

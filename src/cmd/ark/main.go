@@ -34,21 +34,34 @@ func main() {
 	log.SetLevel(*logLevel)
 	log.SetTags(*logTags)
 
+	context := NewContext()
+
 	switch command {
 	case buildCom.FullCommand():
-		if len(*buildInputs) == 0 {
+		if *buildInput == "" {
 			setupErr("No input files passed.")
 		}
 
-		// build the files
-		outputType := parseOutputType(*buildOutputType)
-		build(*buildInputs, *buildOutput, *buildCodegen, outputType, *buildOptLevel)
+		context.Searchpaths = *buildSearchpaths
+		context.Input = *buildInput
 
-		printFinishedMessage(startTime, buildCom.FullCommand(), len(*buildInputs))
+		outputType, err := codegen.ParseOutputType(*buildOutputType)
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+
+		// build the files
+		context.Build(*buildOutput, outputType, *buildCodegen, *buildOptLevel)
+
+		printFinishedMessage(startTime, buildCom.FullCommand(), 1)
 
 	case docgenCom.FullCommand():
-		docgen(*docgenInputs, *docgenDir)
-		printFinishedMessage(startTime, docgenCom.FullCommand(), len(*docgenInputs))
+		context.Searchpaths = *docgenSearchpaths
+		context.Input = *docgenInput
+		context.Docgen(*docgenDir)
+
+		printFinishedMessage(startTime, docgenCom.FullCommand(), 1)
 	}
 }
 
@@ -65,165 +78,38 @@ func setupErr(err string, stuff ...interface{}) {
 	os.Exit(util.EXIT_FAILURE_SETUP)
 }
 
-func parseFiles(inputs []string) ([]*parser.Module, *parser.ModuleLookup) {
-	if len(inputs) != 1 {
-		setupErr("Please specify only one file or module to build")
-	}
+type Context struct {
+	Searchpaths []string
 
-	var modulesToRead []*parser.ModuleName
-	var modules []*parser.Module
-	moduleLookup := parser.NewModuleLookup("")
-	depGraph := parser.NewDependencyGraph()
+	Input string
 
-	input := inputs[0]
-	if strings.HasSuffix(input, ".ark") {
-		// Handle the special case of a single .ark file
-		modname := &parser.ModuleName{Parts: []string{"__main"}}
-		module := &parser.Module{
-			Name:    modname,
-			Dirpath: "",
-		}
-		moduleLookup.Create(modname).Module = module
+	moduleLookup *parser.ModuleLookup
+	depGraph     *parser.DependencyGraph
+	modules      []*parser.Module
 
-		modulesToRead = doFile(input, module, depGraph, modulesToRead)
-
-		modules = append(modules, module)
-	} else {
-		if strings.ContainsAny(input, `\/. `) {
-			setupErr("Invalid module name: %s", input)
-		}
-
-		modname := &parser.ModuleName{Parts: strings.Split(input, "::")}
-		modulesToRead = append(modulesToRead, modname)
-	}
-
-	log.Timed("read/lex/parse phase", "", func() {
-		for i := 0; i < len(modulesToRead); i++ {
-			modname := modulesToRead[i]
-
-			// Skip already loaded modules
-			if _, err := moduleLookup.Get(modname); err == nil {
-				continue
-			}
-
-			fi, dirpath := findModuleDir(*buildSearchpaths, modname.ToPath())
-			if fi == nil {
-				setupErr("Couldn't find module `%s`", modname)
-			}
-
-			if !fi.IsDir() {
-				setupErr("Expected path `%s` to be directory, was file.", dirpath)
-			}
-
-			module := &parser.Module{
-				Name:    modname,
-				Dirpath: dirpath,
-			}
-			moduleLookup.Create(modname).Module = module
-
-			// Check module children
-			childFiles, err := ioutil.ReadDir(dirpath)
-			if err != nil {
-				setupErr("%s", err.Error())
-			}
-
-			for _, childFile := range childFiles {
-				if strings.HasPrefix(childFile.Name(), ".") || !strings.HasSuffix(childFile.Name(), ".ark") {
-					continue
-				}
-
-				actualFile := filepath.Join(dirpath, childFile.Name())
-				modulesToRead = doFile(actualFile, module, depGraph, modulesToRead)
-			}
-
-			modules = append(modules, module)
-		}
-	})
-
-	// Check for cyclic dependencies (in modules)
-	log.Timed("cyclic dependency check", "", func() {
-		errs := depGraph.DetectCycles()
-		if len(errs) > 0 {
-			log.Errorln("main", "error: Encountered cyclic dependecies:")
-			for _, cycle := range errs {
-				log.Errorln("main", "%s", cycle)
-			}
-			os.Exit(util.EXIT_FAILURE_SETUP)
-		}
-	})
-
-	// construction
-	log.Timed("construction phase", "", func() {
-		for _, module := range modules {
-			parser.Construct(module, moduleLookup)
-
-		}
-	})
-
-	return modules, moduleLookup
+	modulesToRead []*parser.ModuleName
 }
 
-func doFile(path string, module *parser.Module, depGraph *parser.DependencyGraph, modulesToRead []*parser.ModuleName) []*parser.ModuleName {
-	// Read
-	sourcefile, err := lexer.NewSourcefile(path)
-	if err != nil {
-		setupErr("%s", err.Error())
+func NewContext() *Context {
+	res := &Context{
+		moduleLookup: parser.NewModuleLookup(""),
+		depGraph:     parser.NewDependencyGraph(),
 	}
-
-	// Lex
-	sourcefile.Tokens = lexer.Lex(sourcefile)
-
-	// Parse
-	parsedFile, deps := parser.Parse(sourcefile)
-	module.Trees = append(module.Trees, parsedFile)
-
-	// Add dependencies to parse array
-	for _, dep := range deps {
-		depname := parser.NewModuleName(dep)
-		modulesToRead = append(modulesToRead, depname)
-		depGraph.AddDependency(module.Name, depname)
-
-		fi, _ := findModuleDir(*buildSearchpaths, depname.ToPath())
-		if fi == nil {
-			log.Errorln("main", "%s [%s:%d:%d] Couldn't find module `%s`", util.Red("error:"),
-				dep.Where().Filename, dep.Where().StartLine, dep.Where().EndLine,
-				depname.String())
-			log.Errorln("main", "%s", sourcefile.MarkSpan(dep.Where()))
-			os.Exit(1)
-		}
-	}
-	return modulesToRead
+	return res
 }
 
-func findModuleDir(searchPaths []string, modulePath string) (fi os.FileInfo, path string) {
-	for _, searchPath := range searchPaths {
-		path := filepath.Join(searchPath, modulePath)
-		fi, err := os.Stat(path)
-		if err == nil {
-			return fi, path
-		}
-
-		if !os.IsNotExist(err) {
-			setupErr("%s\n", err)
-		}
-	}
-
-	return nil, ""
-}
-
-func build(files []string, outputFile string, cg string, outputType LLVMCodegen.OutputType, optLevel int) {
+func (v *Context) Build(output string, outputType codegen.OutputType, usedCodegen string, optLevel int) {
 	// Start by loading the runtime
 	parser.LoadRuntime()
 
 	// Parse the passed files
-	constructedModules, moduleLookup := parseFiles(files)
+	v.parseFiles()
 
 	// resolve
-
 	hasMainFunc := false
 	log.Timed("resolve phase", "", func() {
-		for _, module := range constructedModules {
-			parser.Resolve(module, moduleLookup)
+		for _, module := range v.modules {
+			parser.Resolve(module, v.moduleLookup)
 
 			// Use module scope to check for main function
 			mainIdent := module.ModScope.GetIdent(parser.UnresolvedName{Name: "main"})
@@ -242,7 +128,7 @@ func build(files []string, outputFile string, cg string, outputType LLVMCodegen.
 
 	// type inference
 	log.Timed("inference phase", "", func() {
-		for _, module := range constructedModules {
+		for _, module := range v.modules {
 			for _, submod := range module.Parts {
 				parser.Infer(submod)
 
@@ -258,7 +144,7 @@ func build(files []string, outputFile string, cg string, outputType LLVMCodegen.
 
 	// semantic analysis
 	log.Timed("semantic analysis phase", "", func() {
-		for _, module := range constructedModules {
+		for _, module := range v.modules {
 			for _, submod := range module.Parts {
 				sem := semantic.NewSemanticAnalyzer(submod, *buildOwnership, *ignoreUnused)
 				vis := parser.NewASTVisitor(sem)
@@ -269,35 +155,165 @@ func build(files []string, outputFile string, cg string, outputType LLVMCodegen.
 	})
 
 	// codegen
-	if cg != "none" {
+	if usedCodegen != "none" {
 		var gen codegen.Codegen
 
-		switch cg {
+		switch usedCodegen {
 		case "llvm":
 			gen = &LLVMCodegen.Codegen{
-				OutputName: outputFile,
+				OutputName: output,
 				OutputType: outputType,
 				OptLevel:   optLevel,
 			}
 		default:
-			log.Error("main", util.Red("error: ")+"Invalid backend choice `"+cg+"`")
+			log.Error("main", util.Red("error: ")+"Invalid backend choice `"+usedCodegen+"`")
 			os.Exit(1)
 		}
 
 		log.Timed("codegen phase", "", func() {
-			gen.Generate(constructedModules)
+			gen.Generate(v.modules)
 		})
 	}
-
 }
 
-func docgen(input []string, dir string) {
-	constructedModules, _ := parseFiles(input)
+func (v *Context) Docgen(dir string) {
+	v.parseFiles()
 
 	gen := &doc.Docgen{
-		Input: constructedModules,
+		Input: v.modules,
 		Dir:   dir,
 	}
 
 	gen.Generate()
+}
+
+func (v *Context) parseFiles() {
+	if strings.HasSuffix(v.Input, ".ark") {
+		// Handle the special case of a single .ark file
+		modname := &parser.ModuleName{Parts: []string{"__main"}}
+		module := &parser.Module{
+			Name:    modname,
+			Dirpath: "",
+		}
+		v.moduleLookup.Create(modname).Module = module
+
+		v.parseFile(v.Input, module)
+
+		v.modules = append(v.modules, module)
+	} else {
+		if strings.ContainsAny(v.Input, `\/. `) {
+			setupErr("Invalid module name: %s", v.Input)
+		}
+
+		modname := &parser.ModuleName{Parts: strings.Split(v.Input, "::")}
+		v.modulesToRead = append(v.modulesToRead, modname)
+	}
+
+	log.Timed("read/lex/parse phase", "", func() {
+		for i := 0; i < len(v.modulesToRead); i++ {
+			modname := v.
+				modulesToRead[i]
+
+			// Skip already loaded modules
+			if _, err := v.moduleLookup.Get(modname); err == nil {
+				continue
+			}
+
+			fi, dirpath, err := v.findModuleDir(modname.ToPath())
+			if err != nil {
+				setupErr("Couldn't find module `%s`: %s", modname, err)
+			}
+
+			if !fi.IsDir() {
+				setupErr("Expected path `%s` to be directory, was file.", dirpath)
+			}
+
+			module := &parser.Module{
+				Name:    modname,
+				Dirpath: dirpath,
+			}
+			v.moduleLookup.Create(modname).Module = module
+
+			// Check module children
+			childFiles, err := ioutil.ReadDir(dirpath)
+			if err != nil {
+				setupErr("%s", err.Error())
+			}
+
+			for _, childFile := range childFiles {
+				if strings.HasPrefix(childFile.Name(), ".") || !strings.HasSuffix(childFile.Name(), ".ark") {
+					continue
+				}
+
+				actualFile := filepath.Join(dirpath, childFile.Name())
+				v.parseFile(actualFile, module)
+			}
+
+			v.modules = append(v.modules, module)
+		}
+	})
+
+	// Check for cyclic dependencies (in modules)
+	log.Timed("cyclic dependency check", "", func() {
+		errs := v.depGraph.DetectCycles()
+		if len(errs) > 0 {
+			log.Errorln("main", "error: Encountered cyclic dependecies:")
+			for _, cycle := range errs {
+				log.Errorln("main", "%s", cycle)
+			}
+			os.Exit(util.EXIT_FAILURE_SETUP)
+		}
+	})
+
+	// construction
+	log.Timed("construction phase", "", func() {
+		for _, module := range v.modules {
+			parser.Construct(module, v.moduleLookup)
+
+		}
+	})
+}
+
+func (v *Context) parseFile(path string, module *parser.Module) {
+	// Read
+	sourcefile, err := lexer.NewSourcefile(path)
+	if err != nil {
+		setupErr("%s", err.Error())
+	}
+
+	// Lex
+	sourcefile.Tokens = lexer.Lex(sourcefile)
+
+	// Parse
+	parsedFile, deps := parser.Parse(sourcefile)
+	module.Trees = append(module.Trees, parsedFile)
+
+	// Add dependencies to parse array
+	for _, dep := range deps {
+		depname := parser.NewModuleName(dep)
+		v.modulesToRead = append(v.modulesToRead, depname)
+		v.depGraph.AddDependency(module.Name, depname)
+
+		if _, _, err := v.findModuleDir(depname.ToPath()); err != nil {
+			log.Errorln("main", "%s [%s:%d:%d] Couldn't find module `%s`", util.Red("error:"),
+				dep.Where().Filename, dep.Where().StartLine, dep.Where().EndLine,
+				depname.String())
+			log.Errorln("main", "%s", sourcefile.MarkSpan(dep.Where()))
+			os.Exit(1)
+		}
+	}
+}
+
+func (v *Context) findModuleDir(modulePath string) (fi os.FileInfo, path string, err error) {
+	for _, searchPath := range v.Searchpaths {
+		path := filepath.Join(searchPath, modulePath)
+		fi, err := os.Stat(path)
+		if err != nil {
+			return nil, "", err
+		}
+		return fi, path, nil
+
+	}
+
+	return nil, "", fmt.Errorf("ark: Unable to find module `%s`", path)
 }
