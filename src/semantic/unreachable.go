@@ -1,7 +1,7 @@
 package semantic
 
 import (
-	"github.com/ark-lang/ark/src/parser"
+	"github.com/ark-lang/ark/src/ast"
 )
 
 type UnreachableCheck struct {
@@ -11,11 +11,11 @@ func (v *UnreachableCheck) Init(s *SemanticAnalyzer)       {}
 func (v *UnreachableCheck) EnterScope(s *SemanticAnalyzer) {}
 func (v *UnreachableCheck) ExitScope(s *SemanticAnalyzer)  {}
 
-func (v *UnreachableCheck) Visit(s *SemanticAnalyzer, n parser.Node) {}
+func (v *UnreachableCheck) Visit(s *SemanticAnalyzer, n ast.Node) {}
 
-func (v *UnreachableCheck) PostVisit(s *SemanticAnalyzer, n parser.Node) {
+func (v *UnreachableCheck) PostVisit(s *SemanticAnalyzer, n ast.Node) {
 	switch n := n.(type) {
-	case *parser.Block:
+	case *ast.Block:
 		for i, c := range n.Nodes {
 			if i < len(n.Nodes)-1 && IsNodeTerminating(c) {
 				s.Err(n.Nodes[i+1], "Unreachable code")
@@ -26,21 +26,21 @@ func (v *UnreachableCheck) PostVisit(s *SemanticAnalyzer, n parser.Node) {
 			n.IsTerminating = IsNodeTerminating(n.Nodes[len(n.Nodes)-1])
 		}
 
-	case *parser.FunctionDecl:
+	case *ast.FunctionDecl:
 		v.visitFunction(s, n, n.Function)
 
-	case *parser.LambdaExpr:
+	case *ast.LambdaExpr:
 		v.visitFunction(s, n, n.Function)
 	}
 
 }
 
-func (v *UnreachableCheck) visitFunction(s *SemanticAnalyzer, loc parser.Locatable, fn *parser.Function) {
+func (v *UnreachableCheck) visitFunction(s *SemanticAnalyzer, loc ast.Locatable, fn *ast.Function) {
 	if fn.Body != nil && !fn.Body.IsTerminating {
 		if fn.Type.Return != nil && !fn.Type.Return.BaseType.ActualType().IsVoidType() {
 			s.Err(loc, "Missing return statement")
 		} else {
-			fn.Body.Nodes = append(fn.Body.Nodes, &parser.ReturnStat{})
+			fn.Body.Nodes = append(fn.Body.Nodes, &ast.ReturnStat{})
 			fn.Body.IsTerminating = true
 		}
 	}
@@ -50,13 +50,13 @@ func (v *UnreachableCheck) Finalize(s *SemanticAnalyzer) {
 
 }
 
-func IsNodeTerminating(n parser.Node) bool {
+func IsNodeTerminating(n ast.Node) bool {
 	switch n := n.(type) {
-	case *parser.Block:
+	case *ast.Block:
 		return n.IsTerminating
-	case *parser.ReturnStat:
+	case *ast.ReturnStat:
 		return true
-	case *parser.IfStat:
+	case *ast.IfStat:
 		if n.Else == nil || n.Else != nil && !n.Else.IsTerminating {
 			return false
 		}

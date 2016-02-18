@@ -1,7 +1,7 @@
 package semantic
 
 import (
-	"github.com/ark-lang/ark/src/parser"
+	"github.com/ark-lang/ark/src/ast"
 )
 
 type UseBeforeDeclareCheck struct {
@@ -30,28 +30,28 @@ func (v *UseBeforeDeclareCheck) ExitScope(s *SemanticAnalyzer) {
 	}
 }
 
-func (v *UseBeforeDeclareCheck) PostVisit(s *SemanticAnalyzer, n parser.Node) {}
+func (v *UseBeforeDeclareCheck) PostVisit(s *SemanticAnalyzer, n ast.Node) {}
 
-func (v *UseBeforeDeclareCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
+func (v *UseBeforeDeclareCheck) Visit(s *SemanticAnalyzer, n ast.Node) {
 	switch n := n.(type) {
-	case *parser.VariableDecl:
+	case *ast.VariableDecl:
 		v.scope[n.Variable.Name] = true
 
-	case *parser.DestructVarDecl:
+	case *ast.DestructVarDecl:
 		for idx, vari := range n.Variables {
 			if !n.ShouldDiscard[idx] {
 				v.scope[vari.Name] = true
 			}
 		}
 
-	case *parser.EnumPatternExpr:
+	case *ast.EnumPatternExpr:
 		for _, vari := range n.Variables {
 			if vari != nil {
 				v.scope[vari.Name] = true
 			}
 		}
 
-	case *parser.VariableAccessExpr:
+	case *ast.VariableAccessExpr:
 		if !v.scope[n.Variable.Name] && n.Variable.ParentModule == s.Submodule.Parent {
 			s.Err(n, "Use of variable before declaration: %s", n.Variable.Name)
 		}

@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/ark-lang/ark/src/parser"
+	"github.com/ark-lang/ark/src/ast"
 	"github.com/ark-lang/ark/src/util"
 	"github.com/ark-lang/ark/src/util/log"
 )
 
 type SemanticAnalyzer struct {
-	Submodule       *parser.Submodule
-	unresolvedNodes []*parser.Node
+	Submodule       *ast.Submodule
+	unresolvedNodes []*ast.Node
 	shouldExit      bool
 
 	Checks []SemanticCheck
@@ -21,12 +21,12 @@ type SemanticCheck interface {
 	Init(s *SemanticAnalyzer)
 	EnterScope(s *SemanticAnalyzer)
 	ExitScope(s *SemanticAnalyzer)
-	Visit(*SemanticAnalyzer, parser.Node)
-	PostVisit(*SemanticAnalyzer, parser.Node)
+	Visit(*SemanticAnalyzer, ast.Node)
+	PostVisit(*SemanticAnalyzer, ast.Node)
 	Finalize(*SemanticAnalyzer)
 }
 
-func (v *SemanticAnalyzer) Err(thing parser.Locatable, err string, stuff ...interface{}) {
+func (v *SemanticAnalyzer) Err(thing ast.Locatable, err string, stuff ...interface{}) {
 	pos := thing.Pos()
 
 	log.Error("semantic", util.TEXT_RED+util.TEXT_BOLD+"error:"+util.TEXT_RESET+" [%s:%d:%d] %s\n",
@@ -37,7 +37,7 @@ func (v *SemanticAnalyzer) Err(thing parser.Locatable, err string, stuff ...inte
 	v.shouldExit = true
 }
 
-func (v *SemanticAnalyzer) Warn(thing parser.Locatable, err string, stuff ...interface{}) {
+func (v *SemanticAnalyzer) Warn(thing ast.Locatable, err string, stuff ...interface{}) {
 	pos := thing.Pos()
 
 	log.Warning("semantic", util.TEXT_YELLOW+util.TEXT_BOLD+"warning:"+util.TEXT_RESET+" [%s:%d:%d] %s\n",
@@ -46,7 +46,7 @@ func (v *SemanticAnalyzer) Warn(thing parser.Locatable, err string, stuff ...int
 	log.Warningln("semantic", v.Submodule.File.MarkPos(pos))
 }
 
-func NewSemanticAnalyzer(module *parser.Submodule, useOwnership bool, ignoreUnused bool) *SemanticAnalyzer {
+func NewSemanticAnalyzer(module *ast.Submodule, useOwnership bool, ignoreUnused bool) *SemanticAnalyzer {
 	res := &SemanticAnalyzer{}
 	res.shouldExit = false
 	res.Submodule = module
@@ -100,7 +100,7 @@ func (v *SemanticAnalyzer) Finalize() {
 	}
 }
 
-func (v *SemanticAnalyzer) Visit(n *parser.Node) bool {
+func (v *SemanticAnalyzer) Visit(n *ast.Node) bool {
 	for _, check := range v.Checks {
 		check.Visit(v, *n)
 	}
@@ -114,7 +114,7 @@ func (v *SemanticAnalyzer) Visit(n *parser.Node) bool {
 	return !v.shouldExit
 }
 
-func (v *SemanticAnalyzer) PostVisit(n *parser.Node) {
+func (v *SemanticAnalyzer) PostVisit(n *ast.Node) {
 	for _, check := range v.Checks {
 		check.PostVisit(v, *n)
 	}

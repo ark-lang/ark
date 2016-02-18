@@ -1,4 +1,4 @@
-package parser
+package ast
 
 // IDEA for rewrite: have separate:
 // --> Type - raw type info
@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/ark-lang/ark/src/parser"
 	"github.com/ark-lang/ark/src/util"
 )
 
@@ -28,7 +29,7 @@ type Type interface {
 	IsFloatingType() bool     // true for all floating-point types
 	IsSigned() bool           // true for all signed integer types
 	CanCastTo(Type) bool      // true if the receiver can be typecast to the parameter
-	Attrs() AttrGroup         // fetches the attributes associated with the type
+	Attrs() parser.AttrGroup  // fetches the attributes associated with the type
 	Equals(Type) bool         // compares whether two types are equal
 	ActualType() Type         // returns the actual type disregarding named types
 	IsVoidType() bool
@@ -112,7 +113,7 @@ func (v PrimitiveType) CanCastTo(t Type) bool {
 		(t.IsFloatingType() || t.IsIntegerType())
 }
 
-func (v PrimitiveType) Attrs() AttrGroup {
+func (v PrimitiveType) Attrs() parser.AttrGroup {
 	return nil
 }
 
@@ -133,7 +134,7 @@ func (v PrimitiveType) ActualType() Type {
 
 type StructType struct {
 	Members           []*StructMember
-	attrs             AttrGroup
+	attrs             parser.AttrGroup
 	GenericParameters GenericSigil
 }
 
@@ -212,7 +213,7 @@ func (v StructType) MemberIndex(name string) int {
 	return -1
 }
 
-func (v StructType) Attrs() AttrGroup {
+func (v StructType) Attrs() parser.AttrGroup {
 	return v.attrs
 }
 
@@ -320,7 +321,7 @@ func (v *NamedType) CanCastTo(t Type) bool {
 	return v.ActualType().CanCastTo(t)
 }
 
-func (v *NamedType) Attrs() AttrGroup {
+func (v *NamedType) Attrs() parser.AttrGroup {
 	return v.Type.Attrs()
 }
 
@@ -349,7 +350,7 @@ type ArrayType struct {
 	IsFixedLength bool
 	Length        int // TODO change to uint64
 
-	attrs AttrGroup
+	attrs parser.AttrGroup
 }
 
 // IMPORTANT:
@@ -399,7 +400,7 @@ func (v ArrayType) CanCastTo(t Type) bool {
 	return t.ActualType().Equals(v)
 }
 
-func (v ArrayType) Attrs() AttrGroup {
+func (v ArrayType) Attrs() parser.AttrGroup {
 	return v.attrs
 }
 
@@ -470,7 +471,7 @@ func (v ReferenceType) CanCastTo(t Type) bool {
 	return t.ActualType() == PRIMITIVE_uintptr
 }
 
-func (v ReferenceType) Attrs() AttrGroup {
+func (v ReferenceType) Attrs() parser.AttrGroup {
 	return nil
 }
 
@@ -537,7 +538,7 @@ func (v PointerType) CanCastTo(t Type) bool {
 	return t.ActualType() == PRIMITIVE_uintptr
 }
 
-func (v PointerType) Attrs() AttrGroup {
+func (v PointerType) Attrs() parser.AttrGroup {
 	return nil
 }
 
@@ -618,7 +619,7 @@ func (v TupleType) addMember(decl *TypeReference) {
 	v.Members = append(v.Members, decl)
 }
 
-func (v TupleType) Attrs() AttrGroup {
+func (v TupleType) Attrs() parser.AttrGroup {
 	return nil
 }
 
@@ -649,7 +650,7 @@ func (v TupleType) ActualType() Type {
 
 type InterfaceType struct {
 	Functions []*Function
-	attrs     AttrGroup
+	attrs     parser.AttrGroup
 }
 
 func (v InterfaceType) String() string {
@@ -731,7 +732,7 @@ outer:
 	return true
 }
 
-func (v InterfaceType) Attrs() AttrGroup {
+func (v InterfaceType) Attrs() parser.AttrGroup {
 	return nil
 }
 
@@ -763,7 +764,7 @@ type EnumType struct {
 	Simple            bool
 	GenericParameters GenericSigil
 	Members           []EnumTypeMember
-	attrs             AttrGroup
+	attrs             parser.AttrGroup
 }
 
 type EnumTypeMember struct {
@@ -839,7 +840,7 @@ func (v EnumType) MemberIndex(name string) int {
 	return -1
 }
 
-func (v EnumType) Attrs() AttrGroup {
+func (v EnumType) Attrs() parser.AttrGroup {
 	return v.attrs
 }
 
@@ -880,7 +881,7 @@ func (v EnumType) ActualType() Type {
 
 // FunctionType
 type FunctionType struct {
-	attrs AttrGroup
+	attrs parser.AttrGroup
 
 	GenericParameters GenericSigil
 	Parameters        []*TypeReference
@@ -953,7 +954,7 @@ func (v FunctionType) CanCastTo(t Type) bool {
 	return false
 }
 
-func (v FunctionType) Attrs() AttrGroup {
+func (v FunctionType) Attrs() parser.AttrGroup {
 	return v.attrs
 }
 
@@ -1028,7 +1029,7 @@ func (v metaType) CanCastTo(t Type) bool {
 	panic("CanCastTo() invalid on metaType")
 }
 
-func (v metaType) Attrs() AttrGroup {
+func (v metaType) Attrs() parser.AttrGroup {
 	panic("Attrs() invalid on metaType")
 }
 
@@ -1057,7 +1058,7 @@ func (v GenericSigil) String() string {
 
 // SubstitutionType
 type SubstitutionType struct {
-	attrs       AttrGroup
+	attrs       parser.AttrGroup
 	Name        string
 	Constraints []Type // should be all interface types
 }
@@ -1091,7 +1092,7 @@ func (v *SubstitutionType) Equals(t Type) bool {
 	return v == t
 }
 
-func (v *SubstitutionType) Attrs() AttrGroup {
+func (v *SubstitutionType) Attrs() parser.AttrGroup {
 	return v.attrs
 }
 

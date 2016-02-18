@@ -1,65 +1,65 @@
 package semantic
 
 import (
-	"github.com/ark-lang/ark/src/parser"
+	"github.com/ark-lang/ark/src/ast"
 	"github.com/ark-lang/ark/src/util"
 )
 
 // TODO handle match/switch, if we need to
 
 type BreakAndNextCheck struct {
-	nestedLoopCount map[*parser.Function]int
-	functions       []*parser.Function
+	nestedLoopCount map[*ast.Function]int
+	functions       []*ast.Function
 }
 
 func (v *BreakAndNextCheck) Init(s *SemanticAnalyzer) {
-	v.nestedLoopCount = make(map[*parser.Function]int)
+	v.nestedLoopCount = make(map[*ast.Function]int)
 }
 
 func (v *BreakAndNextCheck) EnterScope(s *SemanticAnalyzer) {}
 func (v *BreakAndNextCheck) ExitScope(s *SemanticAnalyzer)  {}
 func (v *BreakAndNextCheck) Finalize(s *SemanticAnalyzer)   {}
 
-func (v *BreakAndNextCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
+func (v *BreakAndNextCheck) Visit(s *SemanticAnalyzer, n ast.Node) {
 	switch n := n.(type) {
-	case *parser.NextStat, *parser.BreakStat:
+	case *ast.NextStat, *ast.BreakStat:
 		if v.nestedLoopCount[v.functions[len(v.functions)-1]] == 0 {
 			s.Err(n, "%s must be in a loop", util.CapitalizeFirst(n.NodeName()))
 		}
 
-	case *parser.LoopStat:
+	case *ast.LoopStat:
 		v.nestedLoopCount[v.functions[len(v.functions)-1]]++
 
-	case *parser.FunctionDecl:
+	case *ast.FunctionDecl:
 		v.functions = append(v.functions, n.Function)
-	case *parser.LambdaExpr:
+	case *ast.LambdaExpr:
 		v.functions = append(v.functions, n.Function)
 	}
 }
 
-func (v *BreakAndNextCheck) PostVisit(s *SemanticAnalyzer, n parser.Node) {
+func (v *BreakAndNextCheck) PostVisit(s *SemanticAnalyzer, n ast.Node) {
 	switch n := n.(type) {
-	case *parser.Block:
+	case *ast.Block:
 		for i, c := range n.Nodes {
 			if i < len(n.Nodes)-1 && isBreakOrNext(c) {
 				s.Err(n.Nodes[i+1], "Unreachable code")
 			}
 		}
 
-	case *parser.LoopStat:
+	case *ast.LoopStat:
 		v.nestedLoopCount[v.functions[len(v.functions)-1]]--
-	case *parser.FunctionDecl:
+	case *ast.FunctionDecl:
 		v.functions = v.functions[:len(v.functions)-1]
 		delete(v.nestedLoopCount, n.Function)
-	case *parser.LambdaExpr:
+	case *ast.LambdaExpr:
 		v.functions = v.functions[:len(v.functions)-1]
 		delete(v.nestedLoopCount, n.Function)
 	}
 }
 
-func isBreakOrNext(n parser.Node) bool {
+func isBreakOrNext(n ast.Node) bool {
 	switch n.(type) {
-	case *parser.BreakStat, *parser.NextStat:
+	case *ast.BreakStat, *ast.NextStat:
 		return true
 	}
 	return false

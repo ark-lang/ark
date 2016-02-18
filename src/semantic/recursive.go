@@ -1,7 +1,7 @@
 package semantic
 
 import (
-	"github.com/ark-lang/ark/src/parser"
+	"github.com/ark-lang/ark/src/ast"
 	"github.com/ark-lang/ark/src/util/log"
 )
 
@@ -12,12 +12,12 @@ func (v *RecursiveDefinitionCheck) Init(s *SemanticAnalyzer)       {}
 func (v *RecursiveDefinitionCheck) EnterScope(s *SemanticAnalyzer) {}
 func (v *RecursiveDefinitionCheck) ExitScope(s *SemanticAnalyzer)  {}
 
-func (v *RecursiveDefinitionCheck) PostVisit(s *SemanticAnalyzer, n parser.Node) {}
+func (v *RecursiveDefinitionCheck) PostVisit(s *SemanticAnalyzer, n ast.Node) {}
 
-func (v *RecursiveDefinitionCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
-	var typ parser.Type
+func (v *RecursiveDefinitionCheck) Visit(s *SemanticAnalyzer, n ast.Node) {
+	var typ ast.Type
 
-	if typeDecl, ok := n.(*parser.TypeDecl); ok {
+	if typeDecl, ok := n.(*ast.TypeDecl); ok {
 		typ = typeDecl.NamedType
 	} else {
 		return
@@ -40,13 +40,13 @@ func (v *RecursiveDefinitionCheck) Finalize(s *SemanticAnalyzer) {
 
 }
 
-func isTypeRecursive(typ parser.Type) (bool, []parser.Type) {
+func isTypeRecursive(typ ast.Type) (bool, []ast.Type) {
 	typ = typ.ActualType()
 
-	var check func(current parser.Type, path *[]parser.Type, traversed map[parser.Type]bool) bool
-	check = func(current parser.Type, path *[]parser.Type, traversed map[parser.Type]bool) bool {
+	var check func(current ast.Type, path *[]ast.Type, traversed map[ast.Type]bool) bool
+	check = func(current ast.Type, path *[]ast.Type, traversed map[ast.Type]bool) bool {
 		switch current.(type) {
-		case *parser.NamedType:
+		case *ast.NamedType:
 			if traversed[current] {
 				return true
 			}
@@ -54,8 +54,8 @@ func isTypeRecursive(typ parser.Type) (bool, []parser.Type) {
 		}
 
 		switch current.(type) {
-		case parser.StructType:
-			st := current.(parser.StructType)
+		case ast.StructType:
+			st := current.(ast.StructType)
 			for _, mem := range st.Members {
 				if check(mem.Type.BaseType, path, traversed) {
 					*path = append(*path, mem.Type.BaseType)
@@ -63,8 +63,8 @@ func isTypeRecursive(typ parser.Type) (bool, []parser.Type) {
 				}
 			}
 
-		case parser.TupleType:
-			tt := current.(parser.TupleType)
+		case ast.TupleType:
+			tt := current.(ast.TupleType)
 			for _, mem := range tt.Members {
 				if check(mem.BaseType, path, traversed) {
 					*path = append(*path, mem.BaseType)
@@ -72,8 +72,8 @@ func isTypeRecursive(typ parser.Type) (bool, []parser.Type) {
 				}
 			}
 
-		case parser.EnumType:
-			et := current.(parser.EnumType)
+		case ast.EnumType:
+			et := current.(ast.EnumType)
 			for _, mem := range et.Members {
 				if check(mem.Type, path, traversed) {
 					*path = append(*path, mem.Type)
@@ -81,8 +81,8 @@ func isTypeRecursive(typ parser.Type) (bool, []parser.Type) {
 				}
 			}
 
-		case *parser.NamedType:
-			nt := current.(*parser.NamedType)
+		case *ast.NamedType:
+			nt := current.(*ast.NamedType)
 			if check(nt.Type, path, traversed) {
 				*path = append(*path, nt.Type)
 				return true
@@ -93,6 +93,6 @@ func isTypeRecursive(typ parser.Type) (bool, []parser.Type) {
 		return false
 	}
 
-	var path []parser.Type
-	return check(typ, &path, make(map[parser.Type]bool)), path
+	var path []ast.Type
+	return check(typ, &path, make(map[ast.Type]bool)), path
 }

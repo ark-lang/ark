@@ -1,4 +1,4 @@
-package parser
+package ast
 
 import (
 	"bytes"
@@ -7,12 +7,13 @@ import (
 	"strconv"
 
 	"github.com/ark-lang/ark/src/lexer"
+	"github.com/ark-lang/ark/src/parser"
 	"github.com/ark-lang/ark/src/util"
 )
 
 type Locatable interface {
 	Pos() lexer.Position
-	setPos(pos lexer.Position)
+	SetPos(pos lexer.Position)
 }
 
 type Node interface {
@@ -49,10 +50,6 @@ type Decl interface {
 	SetPublic(bool)
 }
 
-type Documentable interface {
-	DocComments() []*DocComment
-}
-
 // an implementation of Locatable that is used for Nodes
 type nodePos struct {
 	pos lexer.Position
@@ -62,7 +59,7 @@ func (v nodePos) Pos() lexer.Position {
 	return v.pos
 }
 
-func (v *nodePos) setPos(pos lexer.Position) {
+func (v *nodePos) SetPos(pos lexer.Position) {
 	v.pos = pos
 }
 
@@ -134,16 +131,11 @@ func (v *TypeReference) CanCastTo(t *TypeReference) bool {
 	return v.BaseType.CanCastTo(t.BaseType) && len(v.GenericArguments) == 0 && len(t.GenericArguments) == 0
 }
 
-type DocComment struct {
-	Contents string
-	Where    lexer.Span
-}
-
 type Variable struct {
 	Type         *TypeReference
 	Name         string
 	Mutable      bool
-	Attrs        AttrGroup
+	Attrs        parser.AttrGroup
 	FromStruct   bool
 	ParentStruct StructType
 	ParentModule *Module
@@ -259,7 +251,7 @@ type VariableDecl struct {
 	PublicHandler
 	Variable   *Variable
 	Assignment Expr
-	docs       []*DocComment
+	docs       []*parser.DocComment
 }
 
 func (_ VariableDecl) declNode() {}
@@ -278,7 +270,7 @@ func (_ VariableDecl) NodeName() string {
 	return "variable declaration"
 }
 
-func (v VariableDecl) DocComments() []*DocComment {
+func (v VariableDecl) DocComments() []*parser.DocComment {
 	return v.docs
 }
 
@@ -289,7 +281,7 @@ type DestructVarDecl struct {
 	Variables     []*Variable
 	ShouldDiscard []bool
 	Assignment    Expr
-	docs          []*DocComment
+	docs          []*parser.DocComment
 }
 
 func (_ DestructVarDecl) declNode() {}
@@ -308,7 +300,7 @@ func (_ DestructVarDecl) NodeName() string {
 	return "destructuring variable declaration"
 }
 
-func (v DestructVarDecl) DocComments() []*DocComment {
+func (v DestructVarDecl) DocComments() []*parser.DocComment {
 	return v.docs
 }
 
@@ -330,7 +322,7 @@ func (_ TypeDecl) NodeName() string {
 	return "named type declaration"
 }
 
-func (v TypeDecl) DocComments() []*DocComment {
+func (v TypeDecl) DocComments() []*parser.DocComment {
 	return nil // TODO
 }
 
@@ -341,7 +333,7 @@ type FunctionDecl struct {
 	PublicHandler
 	Function  *Function
 	Prototype bool
-	docs      []*DocComment
+	docs      []*parser.DocComment
 }
 
 func (_ FunctionDecl) declNode() {}
@@ -354,7 +346,7 @@ func (_ FunctionDecl) NodeName() string {
 	return "function declaration"
 }
 
-func (v FunctionDecl) DocComments() []*DocComment {
+func (v FunctionDecl) DocComments() []*parser.DocComment {
 	return v.docs
 }
 
@@ -506,7 +498,7 @@ func (_ AssignStat) NodeName() string {
 type BinopAssignStat struct {
 	nodePos
 	Access     AccessExpr
-	Operator   BinOpType
+	Operator   parser.BinOpType
 	Assignment Expr
 }
 
@@ -547,7 +539,7 @@ func (_ DestructAssignStat) NodeName() string {
 type DestructBinopAssignStat struct {
 	nodePos
 	Accesses   []AccessExpr
-	Operator   BinOpType
+	Operator   parser.BinOpType
 	Assignment Expr
 }
 
@@ -909,7 +901,7 @@ func (_ EnumLiteral) NodeName() string {
 type BinaryExpr struct {
 	nodePos
 	Lhand, Rhand Expr
-	Op           BinOpType
+	Op           parser.BinOpType
 	Type         *TypeReference
 }
 
@@ -932,7 +924,7 @@ func (_ BinaryExpr) NodeName() string {
 type UnaryExpr struct {
 	nodePos
 	Expr Expr
-	Op   UnOpType
+	Op   parser.UnOpType
 	Type *TypeReference
 }
 
@@ -1419,7 +1411,7 @@ func NewASTStringer(name string) *ASTStringer {
 	return res
 }
 
-func (v *ASTStringer) AddAttrs(attrs AttrGroup) *ASTStringer {
+func (v *ASTStringer) AddAttrs(attrs parser.AttrGroup) *ASTStringer {
 	for _, attr := range attrs {
 		v.Add(attr)
 	}

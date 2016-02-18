@@ -67,7 +67,7 @@ type Attr struct {
 	Key       string
 	Value     string
 	FromBlock bool
-	nodePos
+	pos       lexer.Position
 }
 
 func (v *Attr) String() string {
@@ -80,6 +80,14 @@ func (v *Attr) String() string {
 	return util.Green(result)
 }
 
+func (v *Attr) Pos() lexer.Position {
+	return v.pos
+}
+
+func (v *Attr) SetPos(pos lexer.Position) {
+	v.pos = pos
+}
+
 func (v *parser) parseAttrs() AttrGroup {
 	ret := make(AttrGroup)
 	for v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "[") {
@@ -90,7 +98,7 @@ func (v *parser) parseAttrs() AttrGroup {
 			attr := &Attr{
 				Key: v.consumeToken().Contents,
 			}
-			attr.setPos(v.peek(0).Where.Start())
+			attr.SetPos(v.peek(0).Where.Start())
 
 			if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "=") {
 				v.consumeToken() // eat =

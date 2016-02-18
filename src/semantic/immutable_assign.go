@@ -1,7 +1,7 @@
 package semantic
 
 import (
-	"github.com/ark-lang/ark/src/parser"
+	"github.com/ark-lang/ark/src/ast"
 )
 
 type ImmutableAssignCheck struct {
@@ -11,12 +11,12 @@ func (v *ImmutableAssignCheck) Init(s *SemanticAnalyzer)       {}
 func (v *ImmutableAssignCheck) EnterScope(s *SemanticAnalyzer) {}
 func (v *ImmutableAssignCheck) ExitScope(s *SemanticAnalyzer)  {}
 
-func (v *ImmutableAssignCheck) PostVisit(s *SemanticAnalyzer, n parser.Node) {}
+func (v *ImmutableAssignCheck) PostVisit(s *SemanticAnalyzer, n ast.Node) {}
 
-func (v *ImmutableAssignCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
+func (v *ImmutableAssignCheck) Visit(s *SemanticAnalyzer, n ast.Node) {
 	switch n := n.(type) {
-	case *parser.VariableDecl:
-		_, isStructure := n.Variable.Type.BaseType.(parser.StructType)
+	case *ast.VariableDecl:
+		_, isStructure := n.Variable.Type.BaseType.(ast.StructType)
 
 		if n.Assignment == nil && !n.Variable.Mutable && !n.Variable.FromStruct && !isStructure && !n.Variable.IsParameter && !n.Variable.IsReceiver {
 			// note the parent struct is nil!
@@ -28,24 +28,24 @@ func (v *ImmutableAssignCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
 			s.Err(n, "Variable `%s` is immutable, yet has no initial value", n.Variable.Name)
 		}
 
-	case *parser.AssignStat:
+	case *ast.AssignStat:
 		if !n.Access.Mutable() {
 			s.Err(n, "Cannot assign value to immutable access")
 		}
 
-	case *parser.BinopAssignStat:
+	case *ast.BinopAssignStat:
 		if !n.Access.Mutable() {
 			s.Err(n, "Cannot assign value to immutable access")
 		}
 
-	case *parser.DestructAssignStat:
+	case *ast.DestructAssignStat:
 		for _, acc := range n.Accesses {
 			if !acc.Mutable() {
 				s.Err(acc, "Cannot assign value to immutable access")
 			}
 		}
 
-	case *parser.DestructBinopAssignStat:
+	case *ast.DestructBinopAssignStat:
 		for _, acc := range n.Accesses {
 			if !acc.Mutable() {
 				s.Err(acc, "Cannot assign value to immutable access")

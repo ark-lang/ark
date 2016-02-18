@@ -66,7 +66,7 @@ func init() {
 	}
 }
 
-func isReservedKeyword(s string) bool {
+func IsReservedKeyword(s string) bool {
 	if m := keywordMap[s]; m {
 		return true
 	}

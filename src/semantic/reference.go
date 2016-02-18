@@ -3,7 +3,7 @@ package semantic
 import (
 	"reflect"
 
-	"github.com/ark-lang/ark/src/parser"
+	"github.com/ark-lang/ark/src/ast"
 )
 
 type ReferenceCheck struct {
@@ -14,27 +14,27 @@ func (v *ReferenceCheck) Init(s *SemanticAnalyzer)       {}
 func (v *ReferenceCheck) EnterScope(s *SemanticAnalyzer) {}
 func (v *ReferenceCheck) ExitScope(s *SemanticAnalyzer)  {}
 
-func (v *ReferenceCheck) PostVisit(s *SemanticAnalyzer, n parser.Node) {
+func (v *ReferenceCheck) PostVisit(s *SemanticAnalyzer, n ast.Node) {
 	switch n.(type) {
-	case *parser.FunctionDecl, *parser.LambdaExpr:
+	case *ast.FunctionDecl, *ast.LambdaExpr:
 		v.InFunction--
 	}
 }
 
-func (v *ReferenceCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
+func (v *ReferenceCheck) Visit(s *SemanticAnalyzer, n ast.Node) {
 	switch n.(type) {
-	case *parser.FunctionDecl, *parser.LambdaExpr:
+	case *ast.FunctionDecl, *ast.LambdaExpr:
 		v.InFunction++
 	}
 
 	switch n := n.(type) {
-	case *parser.FunctionDecl:
+	case *ast.FunctionDecl:
 		v.checkFunction(s, n, n.Function)
 
-	case *parser.LambdaExpr:
+	case *ast.LambdaExpr:
 		v.checkFunction(s, n, n.Function)
 
-	case *parser.VariableDecl:
+	case *ast.VariableDecl:
 		if v.InFunction <= 0 {
 			if typeReferenceContainsReferenceType(n.Variable.Type, nil) {
 				s.Err(n, "Global variable has reference-containing type `%s`", n.Variable.Type.String())
@@ -43,7 +43,7 @@ func (v *ReferenceCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
 	}
 }
 
-func (v *ReferenceCheck) checkFunction(s *SemanticAnalyzer, loc parser.Locatable, fn *parser.Function) {
+func (v *ReferenceCheck) checkFunction(s *SemanticAnalyzer, loc ast.Locatable, fn *ast.Function) {
 	if typeReferenceContainsReferenceType(fn.Type.Return, nil) {
 		s.Err(loc, "Function has reference-containing return type `%s`", fn.Type.Return.String())
 	}
@@ -53,9 +53,9 @@ func (v *ReferenceCheck) Finalize(s *SemanticAnalyzer) {
 
 }
 
-func typeReferenceContainsReferenceType(typ *parser.TypeReference, visited map[*parser.TypeReference]struct{ visited, value bool }) bool {
+func typeReferenceContainsReferenceType(typ *ast.TypeReference, visited map[*ast.TypeReference]struct{ visited, value bool }) bool {
 	if visited == nil {
-		visited = make(map[*parser.TypeReference]struct{ visited, value bool })
+		visited = make(map[*ast.TypeReference]struct{ visited, value bool })
 	}
 
 	if visited[typ].visited {
@@ -78,18 +78,18 @@ func typeReferenceContainsReferenceType(typ *parser.TypeReference, visited map[*
 	return false
 }
 
-func typeContainsReferenceType(typ parser.Type, visited map[*parser.TypeReference]struct{ visited, value bool }) bool {
+func typeContainsReferenceType(typ ast.Type, visited map[*ast.TypeReference]struct{ visited, value bool }) bool {
 	switch typ := typ.ActualType().(type) {
-	case parser.ReferenceType:
+	case ast.ReferenceType:
 		return true
 
-	case parser.PointerType:
+	case ast.PointerType:
 		return typeReferenceContainsReferenceType(typ.Addressee, visited)
 
-	case parser.ArrayType:
+	case ast.ArrayType:
 		return typeReferenceContainsReferenceType(typ.MemberType, visited)
 
-	case parser.StructType:
+	case ast.StructType:
 		for _, field := range typ.Members {
 			if typeReferenceContainsReferenceType(field.Type, visited) {
 				return true
@@ -97,7 +97,7 @@ func typeContainsReferenceType(typ parser.Type, visited map[*parser.TypeReferenc
 		}
 		return false
 
-	case parser.EnumType:
+	case ast.EnumType:
 		for _, member := range typ.Members {
 			if typeContainsReferenceType(member.Type, visited) {
 				return true
@@ -105,7 +105,7 @@ func typeContainsReferenceType(typ parser.Type, visited map[*parser.TypeReferenc
 		}
 		return false
 
-	case parser.TupleType:
+	case ast.TupleType:
 		for _, field := range typ.Members {
 			if typeReferenceContainsReferenceType(field, visited) {
 				return true
@@ -113,7 +113,7 @@ func typeContainsReferenceType(typ parser.Type, visited map[*parser.TypeReferenc
 		}
 		return false
 
-	case *parser.SubstitutionType, parser.PrimitiveType, parser.FunctionType:
+	case *ast.SubstitutionType, ast.PrimitiveType, ast.FunctionType:
 		return false
 
 	default:

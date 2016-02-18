@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/ark-lang/ark/src/ast"
 	"github.com/ark-lang/ark/src/codegen"
 	"github.com/ark-lang/ark/src/parser"
 	"github.com/ark-lang/ark/src/semantic"
@@ -19,11 +20,11 @@ var (
 )
 
 type functionAndFnGenericInstance struct {
-	fn   *parser.Function
-	gcon *parser.GenericContext // nil for no generics
+	fn   *ast.Function
+	gcon *ast.GenericContext // nil for no generics
 }
 
-func newfunctionAndFnGenericInstance(fn *parser.Function, gcon *parser.GenericContext) functionAndFnGenericInstance {
+func newfunctionAndFnGenericInstance(fn *ast.Function, gcon *ast.GenericContext) functionAndFnGenericInstance {
 	return functionAndFnGenericInstance{
 		fn:   fn,
 		gcon: gcon,
@@ -31,11 +32,11 @@ func newfunctionAndFnGenericInstance(fn *parser.Function, gcon *parser.GenericCo
 }
 
 type variableAndFnGenericInstance struct {
-	variable *parser.Variable
-	gcon     *parser.GenericContext // nil for no generics
+	variable *ast.Variable
+	gcon     *ast.GenericContext // nil for no generics
 }
 
-func newvariableAndFnGenericInstance(variable *parser.Variable, gcon *parser.GenericContext) variableAndFnGenericInstance {
+func newvariableAndFnGenericInstance(variable *ast.Variable, gcon *ast.GenericContext) variableAndFnGenericInstance {
 	return variableAndFnGenericInstance{
 		variable: variable,
 		gcon:     gcon,
@@ -63,15 +64,15 @@ type Codegen struct {
 	variableLookup  map[variableAndFnGenericInstance]llvm.Value
 	namedTypeLookup map[string]llvm.Type
 
-	declForFunction map[*parser.Function]*parser.FunctionDecl
+	declForFunction map[*ast.Function]*ast.FunctionDecl
 
 	referenceAccess bool
 	inFunctions     []functionAndFnGenericInstance
 
 	lambdaID int
 
-	inBlocks       map[functionAndFnGenericInstance][]*parser.Block
-	blockDeferData map[*parser.Block][]*deferData // TODO make sure works with generics
+	inBlocks       map[functionAndFnGenericInstance][]*ast.Block
+	blockDeferData map[*ast.Block][]*deferData // TODO make sure works with generics
 
 	// dirty thing for global arrays
 	arrayIndex int
@@ -108,14 +109,14 @@ func (v *Codegen) currentFunction() functionAndFnGenericInstance {
 func (v *Codegen) currentLLVMFunction() llvm.Value {
 	curFn := v.currentFunction()
 
-	name := curFn.fn.MangledName(parser.MANGLE_ARK_UNSTABLE, curFn.gcon)
+	name := curFn.fn.MangledName(ast.MANGLE_ARK_UNSTABLE, curFn.gcon)
 	if curFn.fn.Type.Attrs().Contains("nomangle") {
 		name = curFn.fn.Name
 	}
 	return v.curFile.LlvmModule.NamedFunction(name)
 }
 
-func (v *Codegen) pushBlock(block *parser.Block) {
+func (v *Codegen) pushBlock(block *ast.Block) {
 	fn := v.currentFunction()
 	v.inBlocks[fn] = append(v.inBlocks[fn], block)
 }
@@ -125,7 +126,7 @@ func (v *Codegen) popBlock() {
 	v.inBlocks[fn] = v.inBlocks[fn][:len(v.inBlocks[fn])-1]
 }
 
-func (v *Codegen) currentBlock() *parser.Block {
+func (v *Codegen) currentBlock() *ast.Block {
 	fn := v.currentFunction()
 	return v.inBlocks[fn][len(v.inBlocks[fn])-1]
 }
@@ -137,12 +138,12 @@ func (v *Codegen) nextLambdaID() int {
 }
 
 type WrappedModule struct {
-	*parser.Module
+	*ast.Module
 	LlvmModule llvm.Module
 }
 
 type deferData struct {
-	stat *parser.DeferStat
+	stat *ast.DeferStat
 	args []llvm.Value
 }
 
@@ -152,9 +153,9 @@ func (v *Codegen) err(err string, stuff ...interface{}) {
 	os.Exit(util.EXIT_FAILURE_CODEGEN)
 }
 
-func (v *Codegen) Generate(input []*parser.Module) {
+func (v *Codegen) Generate(input []*ast.Module) {
 	v.builders = make(map[functionAndFnGenericInstance]llvm.Builder)
-	v.inBlocks = make(map[functionAndFnGenericInstance][]*parser.Block)
+	v.inBlocks = make(map[functionAndFnGenericInstance][]*ast.Block)
 	v.globalBuilder = llvm.NewBuilder()
 	defer v.globalBuilder.Dispose()
 
@@ -162,7 +163,7 @@ func (v *Codegen) Generate(input []*parser.Module) {
 	v.curLoopNexts = make(map[functionAndFnGenericInstance][]llvm.BasicBlock)
 	v.curSegvBlocks = make(map[functionAndFnGenericInstance]llvm.BasicBlock)
 
-	v.declForFunction = make(map[*parser.Function]*parser.FunctionDecl)
+	v.declForFunction = make(map[*ast.Function]*ast.FunctionDecl)
 
 	v.input = make([]*WrappedModule, len(input))
 	for idx, mod := range input {
@@ -193,7 +194,7 @@ func (v *Codegen) Generate(input []*parser.Module) {
 		passBuilder.Populate(passManager)
 	}
 
-	v.blockDeferData = make(map[*parser.Block][]*deferData)
+	v.blockDeferData = make(map[*ast.Block][]*deferData)
 
 	for _, infile := range v.input {
 		log.Timed("codegenning", infile.Name.String(), func() {
@@ -229,10 +230,10 @@ func (v *Codegen) Generate(input []*parser.Module) {
 
 }
 
-func (v *Codegen) recursiveGenericFunctionHelper(n *parser.FunctionDecl, access *parser.FunctionAccessExpr, gcon *parser.GenericContext, fn func(*parser.FunctionDecl, *parser.GenericContext)) {
+func (v *Codegen) recursiveGenericFunctionHelper(n *ast.FunctionDecl, access *ast.FunctionAccessExpr, gcon *ast.GenericContext, fn func(*ast.FunctionDecl, *ast.GenericContext)) {
 	exit := true
 	for _, garg := range access.GenericArguments {
-		if _, ok := garg.BaseType.(*parser.SubstitutionType); ok {
+		if _, ok := garg.BaseType.(*ast.SubstitutionType); ok {
 			exit = false
 			break
 		}
@@ -244,29 +245,29 @@ func (v *Codegen) recursiveGenericFunctionHelper(n *parser.FunctionDecl, access 
 	}
 
 	for _, subAccess := range access.ParentFunction.Accesses {
-		newGcon := parser.NewGenericContext(subAccess.Function.Type.GenericParameters, subAccess.GenericArguments)
+		newGcon := ast.NewGenericContext(subAccess.Function.Type.GenericParameters, subAccess.GenericArguments)
 		newGcon.Outer = gcon
 
 		v.recursiveGenericFunctionHelper(n, subAccess, newGcon, fn)
 	}
 }
 
-func (v *Codegen) declareDecls(nodes []parser.Node) {
+func (v *Codegen) declareDecls(nodes []ast.Node) {
 	for _, node := range nodes {
 		switch n := node.(type) {
-		case *parser.FunctionDecl:
+		case *ast.FunctionDecl:
 			v.declForFunction[n.Function] = n
 		}
 	}
 
 	for _, node := range nodes {
 		switch n := node.(type) {
-		case *parser.FunctionDecl:
+		case *ast.FunctionDecl:
 			if len(n.Function.Type.GenericParameters) == 0 {
 				v.declareFunctionDecl(n, nil)
 			} else {
 				for _, access := range n.Function.Accesses {
-					gcon := parser.NewGenericContext(access.Function.Type.GenericParameters, access.GenericArguments)
+					gcon := ast.NewGenericContext(access.Function.Type.GenericParameters, access.GenericArguments)
 
 					v.recursiveGenericFunctionHelper(n, access, gcon, v.declareFunctionDecl)
 				}
@@ -291,8 +292,8 @@ var inlineAttrType = map[string]llvm.Attribute{
 	"maybe":  llvm.InlineHintAttribute,
 }
 
-func (v *Codegen) declareFunctionDecl(n *parser.FunctionDecl, gcon *parser.GenericContext) {
-	mangledName := n.Function.MangledName(parser.MANGLE_ARK_UNSTABLE, gcon)
+func (v *Codegen) declareFunctionDecl(n *ast.FunctionDecl, gcon *ast.GenericContext) {
+	mangledName := n.Function.MangledName(ast.MANGLE_ARK_UNSTABLE, gcon)
 	if n.Function.Type.Attrs().Contains("nomangle") {
 		mangledName = n.Function.Name
 	}
@@ -336,7 +337,7 @@ func (v *Codegen) declareFunctionDecl(n *parser.FunctionDecl, gcon *parser.Gener
 		/*// do some magical shit for later
 		for i := 0; i < numOfParams; i++ {
 			funcParam := function.Param(i)
-			funcParam.SetName(n.Function.Parameters[i].Variable.MangledName(parser.MANGLE_ARK_UNSTABLE))
+			funcParam.SetName(n.Function.Parameters[i].Variable.MangledName(ast.MANGLE_ARK_UNSTABLE))
 		}*/
 	}
 }
@@ -347,7 +348,7 @@ func (v *Codegen) getVariable(vari variableAndFnGenericInstance) llvm.Value {
 	}
 
 	if vari.variable.ParentModule != v.curFile.Module {
-		value := llvm.AddGlobal(v.curFile.LlvmModule, v.typeRefToLLVMType(vari.variable.Type), vari.variable.MangledName(parser.MANGLE_ARK_UNSTABLE))
+		value := llvm.AddGlobal(v.curFile.LlvmModule, v.typeRefToLLVMType(vari.variable.Type), vari.variable.MangledName(ast.MANGLE_ARK_UNSTABLE))
 		value.SetLinkage(llvm.ExternalLinkage)
 		v.variableLookup[vari] = value
 		return value
@@ -357,63 +358,63 @@ func (v *Codegen) getVariable(vari variableAndFnGenericInstance) llvm.Value {
 	return llvm.Value{}
 }
 
-func (v *Codegen) genNode(n parser.Node) {
+func (v *Codegen) genNode(n ast.Node) {
 	switch n := n.(type) {
-	case parser.Decl:
+	case ast.Decl:
 		v.genDecl(n)
-	case parser.Expr:
+	case ast.Expr:
 		v.genExpr(n)
-	case parser.Stat:
+	case ast.Stat:
 		v.genStat(n)
-	case *parser.Block:
+	case *ast.Block:
 		v.genBlock(n)
 	}
 }
 
-func (v *Codegen) genStat(n parser.Stat) {
+func (v *Codegen) genStat(n ast.Stat) {
 	switch n := n.(type) {
-	case *parser.ReturnStat:
+	case *ast.ReturnStat:
 		v.genReturnStat(n)
-	case *parser.BreakStat:
+	case *ast.BreakStat:
 		v.genBreakStat(n)
-	case *parser.NextStat:
+	case *ast.NextStat:
 		v.genNextStat(n)
-	case *parser.BlockStat:
+	case *ast.BlockStat:
 		v.genBlockStat(n)
-	case *parser.CallStat:
+	case *ast.CallStat:
 		v.genCallStat(n)
-	case *parser.AssignStat:
+	case *ast.AssignStat:
 		v.genAssignStat(n)
-	case *parser.BinopAssignStat:
+	case *ast.BinopAssignStat:
 		v.genBinopAssignStat(n)
-	case *parser.DestructAssignStat:
+	case *ast.DestructAssignStat:
 		v.genDestructAssignStat(n)
-	case *parser.DestructBinopAssignStat:
+	case *ast.DestructBinopAssignStat:
 		v.genDestructBinopAssignStat(n)
-	case *parser.IfStat:
+	case *ast.IfStat:
 		v.genIfStat(n)
-	case *parser.LoopStat:
+	case *ast.LoopStat:
 		v.genLoopStat(n)
-	case *parser.MatchStat:
+	case *ast.MatchStat:
 		v.genMatchStat(n)
-	case *parser.DeferStat:
+	case *ast.DeferStat:
 		v.genDeferStat(n)
 	default:
 		panic("unimplemented stat")
 	}
 }
 
-func (v *Codegen) genBreakStat(n *parser.BreakStat) {
+func (v *Codegen) genBreakStat(n *ast.BreakStat) {
 	curExits := v.curLoopExits[v.currentFunction()]
 	v.builder().CreateBr(curExits[len(curExits)-1])
 }
 
-func (v *Codegen) genNextStat(n *parser.NextStat) {
+func (v *Codegen) genNextStat(n *ast.NextStat) {
 	curNexts := v.curLoopNexts[v.currentFunction()]
 	v.builder().CreateBr(curNexts[len(curNexts)-1])
 }
 
-func (v *Codegen) genDeferStat(n *parser.DeferStat) {
+func (v *Codegen) genDeferStat(n *ast.DeferStat) {
 	data := &deferData{
 		stat: n,
 	}
@@ -425,7 +426,7 @@ func (v *Codegen) genDeferStat(n *parser.DeferStat) {
 	}
 }
 
-func (v *Codegen) genRunDefers(block *parser.Block) {
+func (v *Codegen) genRunDefers(block *ast.Block) {
 	deferDat := v.blockDeferData[block]
 
 	if len(deferDat) > 0 {
@@ -435,7 +436,7 @@ func (v *Codegen) genRunDefers(block *parser.Block) {
 	}
 }
 
-func (v *Codegen) genBlock(n *parser.Block) {
+func (v *Codegen) genBlock(n *ast.Block) {
 	v.pushBlock(n)
 	for i, x := range n.Nodes {
 		v.genNode(x)
@@ -449,7 +450,7 @@ func (v *Codegen) genBlock(n *parser.Block) {
 	v.popBlock()
 }
 
-func (v *Codegen) genReturnStat(n *parser.ReturnStat) {
+func (v *Codegen) genReturnStat(n *ast.ReturnStat) {
 	var ret llvm.Value
 	if n.Value != nil {
 		ret = v.genExprAndLoadIfNeccesary(n.Value)
@@ -466,23 +467,23 @@ func (v *Codegen) genReturnStat(n *parser.ReturnStat) {
 	}
 }
 
-func (v *Codegen) genBlockStat(n *parser.BlockStat) {
+func (v *Codegen) genBlockStat(n *ast.BlockStat) {
 	v.genBlock(n.Block)
 }
 
-func (v *Codegen) genCallStat(n *parser.CallStat) {
+func (v *Codegen) genCallStat(n *ast.CallStat) {
 	v.genExpr(n.Call)
 }
 
-func (v *Codegen) genAssignStat(n *parser.AssignStat) {
+func (v *Codegen) genAssignStat(n *ast.AssignStat) {
 	v.genAssign(n.Access, v.genExprAndLoadIfNeccesary(n.Assignment))
 }
 
-func (v *Codegen) genBinopAssignStat(n *parser.BinopAssignStat) {
+func (v *Codegen) genBinopAssignStat(n *ast.BinopAssignStat) {
 	v.genBinopAssign(n.Operator, n.Access, v.genExpr(n.Assignment), n.Assignment.GetType())
 }
 
-func (v *Codegen) genDestructAssignStat(n *parser.DestructAssignStat) {
+func (v *Codegen) genDestructAssignStat(n *ast.DestructAssignStat) {
 	assignment := v.genExprAndLoadIfNeccesary(n.Assignment)
 	for idx, acc := range n.Accesses {
 		value := v.builder().CreateExtractValue(assignment, idx, "")
@@ -490,17 +491,17 @@ func (v *Codegen) genDestructAssignStat(n *parser.DestructAssignStat) {
 	}
 }
 
-func (v *Codegen) genDestructBinopAssignStat(n *parser.DestructBinopAssignStat) {
+func (v *Codegen) genDestructBinopAssignStat(n *ast.DestructBinopAssignStat) {
 	assignment := v.genExprAndLoadIfNeccesary(n.Assignment)
-	tt, _ := n.Assignment.GetType().BaseType.ActualType().(parser.TupleType)
+	tt, _ := n.Assignment.GetType().BaseType.ActualType().(ast.TupleType)
 	for idx, acc := range n.Accesses {
 		value := v.builder().CreateExtractValue(assignment, idx, "")
 		v.genBinopAssign(n.Operator, acc, value, tt.Members[idx])
 	}
 }
 
-func (v *Codegen) genAssign(acc parser.AccessExpr, value llvm.Value) {
-	if _, isDiscard := acc.(*parser.DiscardAccessExpr); isDiscard {
+func (v *Codegen) genAssign(acc ast.AccessExpr, value llvm.Value) {
+	if _, isDiscard := acc.(*ast.DiscardAccessExpr); isDiscard {
 		return
 	}
 
@@ -508,8 +509,8 @@ func (v *Codegen) genAssign(acc parser.AccessExpr, value llvm.Value) {
 	v.builder().CreateStore(value, access)
 }
 
-func (v *Codegen) genBinopAssign(op parser.BinOpType, acc parser.AccessExpr, value llvm.Value, valueType *parser.TypeReference) {
-	if _, isDiscard := acc.(*parser.DiscardAccessExpr); isDiscard {
+func (v *Codegen) genBinopAssign(op parser.BinOpType, acc ast.AccessExpr, value llvm.Value, valueType *ast.TypeReference) {
+	if _, isDiscard := acc.(*ast.DiscardAccessExpr); isDiscard {
 		return
 	}
 
@@ -520,15 +521,15 @@ func (v *Codegen) genBinopAssign(op parser.BinOpType, acc parser.AccessExpr, val
 	v.builder().CreateStore(result, storage)
 }
 
-func isBreakOrNext(n parser.Node) bool {
+func isBreakOrNext(n ast.Node) bool {
 	switch n.(type) {
-	case *parser.BreakStat, *parser.NextStat:
+	case *ast.BreakStat, *ast.NextStat:
 		return true
 	}
 	return false
 }
 
-func (v *Codegen) genIfStat(n *parser.IfStat) {
+func (v *Codegen) genIfStat(n *ast.IfStat) {
 	// Warning to all who tread here:
 	// This function is complicated, but theoretically it should never need to
 	// be changed again. God help the soul who has to edit this.
@@ -579,13 +580,13 @@ func (v *Codegen) genIfStat(n *parser.IfStat) {
 	}
 }
 
-func (v *Codegen) genLoopStat(n *parser.LoopStat) {
+func (v *Codegen) genLoopStat(n *ast.LoopStat) {
 	curfn := v.currentFunction()
 	afterBlock := llvm.AddBasicBlock(v.currentLLVMFunction(), "loop_exit")
 	v.curLoopExits[curfn] = append(v.curLoopExits[curfn], afterBlock)
 
 	switch n.LoopType {
-	case parser.LOOP_TYPE_INFINITE:
+	case ast.LOOP_TYPE_INFINITE:
 		loopBlock := llvm.AddBasicBlock(v.currentLLVMFunction(), "loop_body")
 		v.curLoopNexts[curfn] = append(v.curLoopNexts[curfn], loopBlock)
 		v.builder().CreateBr(loopBlock)
@@ -598,7 +599,7 @@ func (v *Codegen) genLoopStat(n *parser.LoopStat) {
 		}
 
 		v.builder().SetInsertPointAtEnd(afterBlock)
-	case parser.LOOP_TYPE_CONDITIONAL:
+	case ast.LOOP_TYPE_CONDITIONAL:
 		evalBlock := llvm.AddBasicBlock(v.currentLLVMFunction(), "loop_condeval")
 		v.builder().CreateBr(evalBlock)
 		v.curLoopNexts[curfn] = append(v.curLoopNexts[curfn], evalBlock)
@@ -625,18 +626,18 @@ func (v *Codegen) genLoopStat(n *parser.LoopStat) {
 	v.curLoopNexts[curfn] = v.curLoopNexts[curfn][:len(v.curLoopNexts[curfn])-1]
 }
 
-func (v *Codegen) genMatchStat(n *parser.MatchStat) {
+func (v *Codegen) genMatchStat(n *ast.MatchStat) {
 	// TODO: implement integral and string versions
 
 	targetType := n.Target.GetType()
 	switch targetType.BaseType.ActualType().(type) {
-	case parser.EnumType:
+	case ast.EnumType:
 		v.genEnumMatchStat(n)
 	}
 }
 
-func (v *Codegen) genEnumMatchStat(n *parser.MatchStat) {
-	et, ok := n.Target.GetType().BaseType.ActualType().(parser.EnumType)
+func (v *Codegen) genEnumMatchStat(n *ast.MatchStat) {
+	et, ok := n.Target.GetType().BaseType.ActualType().(ast.EnumType)
 	if !ok {
 		panic("INTERNAL ERROR: Arrived in genEnumMatchStat with non enum type")
 	}
@@ -657,7 +658,7 @@ func (v *Codegen) genEnumMatchStat(n *parser.MatchStat) {
 	idx := 0
 	for expr, branch := range n.Branches {
 		var block llvm.BasicBlock
-		if patt, ok := expr.(*parser.EnumPatternExpr); ok {
+		if patt, ok := expr.(*ast.EnumPatternExpr); ok {
 			mem, ok := et.GetMember(patt.MemberName.Name)
 			if !ok {
 				panic("INTERNAL ERROR: Enum match branch member was non existant")
@@ -667,7 +668,7 @@ func (v *Codegen) genEnumMatchStat(n *parser.MatchStat) {
 
 			tags = append(tags, mem.Tag)
 			blocks = append(blocks, block)
-		} else if _, ok := expr.(*parser.DiscardAccessExpr); ok {
+		} else if _, ok := expr.(*ast.DiscardAccessExpr); ok {
 			block = llvm.AddBasicBlock(v.currentLLVMFunction(), "match_branch_default")
 			defaultBlock = block
 		} else {
@@ -677,13 +678,13 @@ func (v *Codegen) genEnumMatchStat(n *parser.MatchStat) {
 		v.builder().SetInsertPointAtEnd(block)
 
 		// Destructure the variables
-		if patt, ok := expr.(*parser.EnumPatternExpr); ok {
+		if patt, ok := expr.(*ast.EnumPatternExpr); ok {
 			memIdx := et.MemberIndex(patt.MemberName.Name)
 			if memIdx == -1 {
 				panic("INTERNAL ERROR: Enum match branch member was non existant")
 			}
 
-			gcon := parser.NewGenericContextFromTypeReference(n.Target.GetType())
+			gcon := ast.NewGenericContextFromTypeReference(n.Target.GetType())
 			value := v.genEnumUnionValue(target, et, memIdx, gcon)
 			for idx, vari := range patt.Variables {
 				if vari != nil {
@@ -720,38 +721,38 @@ func (v *Codegen) genEnumMatchStat(n *parser.MatchStat) {
 	v.builder().SetInsertPointAtEnd(exitBlock)
 }
 
-func (v *Codegen) genEnumUnionValue(enum llvm.Value, enumType parser.EnumType, memIdx int, gcon *parser.GenericContext) llvm.Value {
+func (v *Codegen) genEnumUnionValue(enum llvm.Value, enumType ast.EnumType, memIdx int, gcon *ast.GenericContext) llvm.Value {
 	enumTypeForMember := llvm.PointerType(v.llvmEnumTypeForMember(enumType, memIdx, gcon), 0)
 	pointer := v.builder().CreateBitCast(enum, enumTypeForMember, "")
 	value := v.builder().CreateLoad(pointer, "")
 	return v.builder().CreateExtractValue(value, 1, "")
 }
 
-func (v *Codegen) genDecl(n parser.Decl) {
+func (v *Codegen) genDecl(n ast.Decl) {
 	switch n := n.(type) {
-	case *parser.FunctionDecl:
+	case *ast.FunctionDecl:
 		if len(n.Function.Type.GenericParameters) == 0 {
 			v.genFunctionDecl(n, nil)
 		} else {
 			for _, access := range n.Function.Accesses {
-				gcon := parser.NewGenericContext(access.Function.Type.GenericParameters, access.GenericArguments)
+				gcon := ast.NewGenericContext(access.Function.Type.GenericParameters, access.GenericArguments)
 
 				v.recursiveGenericFunctionHelper(n, access, gcon, v.genFunctionDecl)
 			}
 		}
-	case *parser.VariableDecl:
+	case *ast.VariableDecl:
 		v.genVariableDecl(n)
-	case *parser.DestructVarDecl:
+	case *ast.DestructVarDecl:
 		v.genDestructVarDecl(n)
-	case *parser.TypeDecl:
+	case *ast.TypeDecl:
 		// TODO nothing to gen?
 	default:
 		v.err("unimplemented decl found: `%s`", n.NodeName())
 	}
 }
 
-func (v *Codegen) genFunctionDecl(n *parser.FunctionDecl, gcon *parser.GenericContext) {
-	mangledName := n.Function.MangledName(parser.MANGLE_ARK_UNSTABLE, gcon)
+func (v *Codegen) genFunctionDecl(n *ast.FunctionDecl, gcon *ast.GenericContext) {
+	mangledName := n.Function.MangledName(ast.MANGLE_ARK_UNSTABLE, gcon)
 	if n.Function.Type.Attrs().Contains("nomangle") {
 		mangledName = n.Function.Name
 	}
@@ -769,7 +770,7 @@ func (v *Codegen) genFunctionDecl(n *parser.FunctionDecl, gcon *parser.GenericCo
 	}
 }
 
-func (v *Codegen) genFunctionBody(fn *parser.Function, llvmFn llvm.Value, gcon *parser.GenericContext) {
+func (v *Codegen) genFunctionBody(fn *ast.Function, llvmFn llvm.Value, gcon *ast.GenericContext) {
 	block := llvm.AddBasicBlock(llvmFn, "entry")
 
 	v.pushFunction(newfunctionAndFnGenericInstance(fn, gcon))
@@ -779,7 +780,7 @@ func (v *Codegen) genFunctionBody(fn *parser.Function, llvmFn llvm.Value, gcon *
 	pars := fn.Parameters
 
 	if fn.Type.Receiver != nil {
-		newPars := make([]*parser.VariableDecl, len(pars)+1)
+		newPars := make([]*ast.VariableDecl, len(pars)+1)
 		newPars[0] = fn.Receiver
 		copy(newPars[1:], pars)
 		pars = newPars
@@ -801,7 +802,7 @@ func (v *Codegen) genFunctionBody(fn *parser.Function, llvmFn llvm.Value, gcon *
 	v.popFunction()
 }
 
-func (v *Codegen) genVariableDecl(n *parser.VariableDecl) {
+func (v *Codegen) genVariableDecl(n *ast.VariableDecl) {
 	var value llvm.Value
 	if n.Assignment != nil {
 		value = v.genExprAndLoadIfNeccesary(n.Assignment)
@@ -809,7 +810,7 @@ func (v *Codegen) genVariableDecl(n *parser.VariableDecl) {
 	v.genVariable(n.IsPublic(), n.Variable, value)
 }
 
-func (v *Codegen) genDestructVarDecl(n *parser.DestructVarDecl) {
+func (v *Codegen) genDestructVarDecl(n *ast.DestructVarDecl) {
 	assignment := v.genExprAndLoadIfNeccesary(n.Assignment)
 
 	for idx, vari := range n.Variables {
@@ -825,8 +826,8 @@ func (v *Codegen) genDestructVarDecl(n *parser.DestructVarDecl) {
 	}
 }
 
-func (v *Codegen) genVariable(isPublic bool, vari *parser.Variable, assignment llvm.Value) {
-	mangledName := vari.MangledName(parser.MANGLE_ARK_UNSTABLE)
+func (v *Codegen) genVariable(isPublic bool, vari *ast.Variable, assignment llvm.Value) {
+	mangledName := vari.MangledName(ast.MANGLE_ARK_UNSTABLE)
 
 	var varType llvm.Type
 	if !assignment.IsNil() {
@@ -880,43 +881,43 @@ func (v *Codegen) genVariable(isPublic bool, vari *parser.Variable, assignment l
 	}
 }
 
-func (v *Codegen) genExpr(n parser.Expr) llvm.Value {
+func (v *Codegen) genExpr(n ast.Expr) llvm.Value {
 	switch n := n.(type) {
-	case *parser.ReferenceToExpr:
+	case *ast.ReferenceToExpr:
 		return v.genReferenceToExpr(n)
-	case *parser.PointerToExpr:
+	case *ast.PointerToExpr:
 		return v.genPointerToExpr(n)
-	case *parser.RuneLiteral:
+	case *ast.RuneLiteral:
 		return v.genRuneLiteral(n)
-	case *parser.NumericLiteral:
+	case *ast.NumericLiteral:
 		return v.genNumericLiteral(n)
-	case *parser.StringLiteral:
+	case *ast.StringLiteral:
 		return v.genStringLiteral(n)
-	case *parser.BoolLiteral:
+	case *ast.BoolLiteral:
 		return v.genBoolLiteral(n)
-	case *parser.TupleLiteral:
+	case *ast.TupleLiteral:
 		return v.genTupleLiteral(n)
-	case *parser.CompositeLiteral:
+	case *ast.CompositeLiteral:
 		return v.genCompositeLiteral(n)
-	case *parser.EnumLiteral:
+	case *ast.EnumLiteral:
 		return v.genEnumLiteral(n)
-	case *parser.BinaryExpr:
+	case *ast.BinaryExpr:
 		return v.genBinaryExpr(n)
-	case *parser.UnaryExpr:
+	case *ast.UnaryExpr:
 		return v.genUnaryExpr(n)
-	case *parser.CastExpr:
+	case *ast.CastExpr:
 		return v.genCastExpr(n)
-	case *parser.CallExpr:
+	case *ast.CallExpr:
 		return v.genCallExpr(n)
-	case *parser.VariableAccessExpr, *parser.StructAccessExpr,
-		*parser.ArrayAccessExpr, *parser.DerefAccessExpr,
-		*parser.FunctionAccessExpr:
+	case *ast.VariableAccessExpr, *ast.StructAccessExpr,
+		*ast.ArrayAccessExpr, *ast.DerefAccessExpr,
+		*ast.FunctionAccessExpr:
 		return v.genAccessExpr(n)
-	case *parser.SizeofExpr:
+	case *ast.SizeofExpr:
 		return v.genSizeofExpr(n)
-	case *parser.ArrayLenExpr:
+	case *ast.ArrayLenExpr:
 		return v.genArrayLenExpr(n)
-	case *parser.LambdaExpr:
+	case *ast.LambdaExpr:
 		return v.genLambdaExpr(n)
 	default:
 		log.Debug("codegen", "expr: %s\n", n)
@@ -924,7 +925,7 @@ func (v *Codegen) genExpr(n parser.Expr) llvm.Value {
 	}
 }
 
-func (v *Codegen) genLambdaExpr(n *parser.LambdaExpr) llvm.Value {
+func (v *Codegen) genLambdaExpr(n *ast.LambdaExpr) llvm.Value {
 	typ := v.functionTypeToLLVMType(n.Function.Type, false, nil)
 	mod := v.curFile.LlvmModule
 	fn := llvm.AddFunction(mod, fmt.Sprintf("_Lambda%d", v.nextLambdaID()), typ)
@@ -938,36 +939,36 @@ func (v *Codegen) genLambdaExpr(n *parser.LambdaExpr) llvm.Value {
 	return fn
 }
 
-func (v *Codegen) genReferenceToExpr(n *parser.ReferenceToExpr) llvm.Value {
+func (v *Codegen) genReferenceToExpr(n *ast.ReferenceToExpr) llvm.Value {
 	return v.genAccessExpr(n.Access)
 }
 
-func (v *Codegen) genPointerToExpr(n *parser.PointerToExpr) llvm.Value {
+func (v *Codegen) genPointerToExpr(n *ast.PointerToExpr) llvm.Value {
 	return v.genAccessExpr(n.Access)
 }
 
-func (v *Codegen) genLoadIfNeccesary(n parser.Expr, val llvm.Value) llvm.Value {
-	if _, isAccess := n.(parser.AccessExpr); isAccess {
+func (v *Codegen) genLoadIfNeccesary(n ast.Expr, val llvm.Value) llvm.Value {
+	if _, isAccess := n.(ast.AccessExpr); isAccess {
 		return v.builder().CreateLoad(val, "")
 	}
 	return val
 }
 
-func (v *Codegen) genExprAndLoadIfNeccesary(n parser.Expr) llvm.Value {
+func (v *Codegen) genExprAndLoadIfNeccesary(n ast.Expr) llvm.Value {
 	return v.genLoadIfNeccesary(n, v.genExpr(n))
 }
 
-func (v *Codegen) genAccessExpr(n parser.Expr) llvm.Value {
-	if fae, ok := n.(*parser.FunctionAccessExpr); ok {
-		gcon := parser.NewGenericContext(fae.Function.Type.GenericParameters, fae.GenericArguments)
+func (v *Codegen) genAccessExpr(n ast.Expr) llvm.Value {
+	if fae, ok := n.(*ast.FunctionAccessExpr); ok {
+		gcon := ast.NewGenericContext(fae.Function.Type.GenericParameters, fae.GenericArguments)
 		gcon.Outer = v.currentFunction().gcon
 
 		var fnName string
 
 		if fae.ReceiverAccess != nil {
-			fnName = parser.GetMethod(gcon.Get(fae.ReceiverAccess.GetType()).BaseType, fae.Function.Name).MangledName(parser.MANGLE_ARK_UNSTABLE, gcon)
+			fnName = ast.GetMethod(gcon.Get(fae.ReceiverAccess.GetType()).BaseType, fae.Function.Name).MangledName(ast.MANGLE_ARK_UNSTABLE, gcon)
 		} else {
-			fnName = fae.Function.MangledName(parser.MANGLE_ARK_UNSTABLE, gcon)
+			fnName = fae.Function.MangledName(ast.MANGLE_ARK_UNSTABLE, gcon)
 		}
 
 		if fae.Function.Type.Attrs().Contains("nomangle") {
@@ -985,7 +986,7 @@ func (v *Codegen) genAccessExpr(n parser.Expr) llvm.Value {
 		fn := v.curFile.LlvmModule.NamedFunction(fnName)
 
 		if fn.IsNil() {
-			decl := &parser.FunctionDecl{Function: fae.Function, Prototype: true}
+			decl := &ast.FunctionDecl{Function: fae.Function, Prototype: true}
 			decl.SetPublic(true)
 			v.declareFunctionDecl(decl, gcon)
 
@@ -1006,14 +1007,14 @@ func (v *Codegen) genAccessExpr(n parser.Expr) llvm.Value {
 	return v.builder().CreateBitCast(access, llvm.PointerType(accessLlvmType, 0), "")
 }
 
-func (v *Codegen) genAccessGEP(n parser.Expr) llvm.Value {
-	var curFngcon *parser.GenericContext
+func (v *Codegen) genAccessGEP(n ast.Expr) llvm.Value {
+	var curFngcon *ast.GenericContext
 	if v.inFunction() {
 		curFngcon = v.currentFunction().gcon
 	}
 
 	switch access := n.(type) {
-	case *parser.VariableAccessExpr:
+	case *ast.VariableAccessExpr:
 		vari := v.getVariable(newvariableAndFnGenericInstance(access.Variable, curFngcon))
 		if vari.IsNil() {
 			panic("vari was nil")
@@ -1021,19 +1022,19 @@ func (v *Codegen) genAccessGEP(n parser.Expr) llvm.Value {
 
 		return vari
 
-	case *parser.StructAccessExpr:
+	case *ast.StructAccessExpr:
 		gep := v.genAccessGEP(access.Struct)
 
 		typ := access.Struct.GetType().BaseType.ActualType()
-		index := typ.(parser.StructType).MemberIndex(access.Member)
+		index := typ.(ast.StructType).MemberIndex(access.Member)
 
 		return v.builder().CreateStructGEP(gep, index, "")
 
-	case *parser.ArrayAccessExpr:
+	case *ast.ArrayAccessExpr:
 		gep := v.genAccessGEP(access.Array)
 
 		subscriptExpr := v.genExprAndLoadIfNeccesary(access.Subscript)
-		subscriptTyp := access.Subscript.GetType().BaseType.ActualType().(parser.PrimitiveType)
+		subscriptTyp := access.Subscript.GetType().BaseType.ActualType().(ast.PrimitiveType)
 		// Extend access width to system poiner width
 		if !subscriptTyp.IsSigned() {
 			subscriptExpr = v.builder().CreateZExt(subscriptExpr, v.targetData.IntPtrType(), "")
@@ -1041,10 +1042,10 @@ func (v *Codegen) genAccessGEP(n parser.Expr) llvm.Value {
 			subscriptExpr = v.builder().CreateSExt(subscriptExpr, v.targetData.IntPtrType(), "")
 		}
 
-		arrType := access.Array.GetType().BaseType.ActualType().(parser.ArrayType)
+		arrType := access.Array.GetType().BaseType.ActualType().(ast.ArrayType)
 
 		if arrType.IsFixedLength {
-			v.genBoundsCheck(llvm.ConstInt(v.primitiveTypeToLLVMType(parser.PRIMITIVE_uint), uint64(arrType.Length), false),
+			v.genBoundsCheck(llvm.ConstInt(v.primitiveTypeToLLVMType(ast.PRIMITIVE_uint), uint64(arrType.Length), false),
 				subscriptExpr, access.Subscript.GetType().BaseType.IsSigned())
 
 			return v.builder().CreateGEP(v.genAccessGEP(access.Array), []llvm.Value{llvm.ConstInt(llvm.Int32Type(), 0, false), subscriptExpr}, "")
@@ -1060,7 +1061,7 @@ func (v *Codegen) genAccessGEP(n parser.Expr) llvm.Value {
 			return v.builder().CreateGEP(load, gepIndexes, "")
 		}
 
-	case *parser.DerefAccessExpr:
+	case *ast.DerefAccessExpr:
 		return v.genExprAndLoadIfNeccesary(access.Expr)
 
 	default:
@@ -1114,7 +1115,7 @@ func (v *Codegen) genBoundsCheck(limit llvm.Value, index llvm.Value, indexIsSign
 
 func (v *Codegen) genRaiseSegfault() {
 	fn := v.curFile.LlvmModule.NamedFunction("raise")
-	intType := v.primitiveTypeToLLVMType(parser.PRIMITIVE_int)
+	intType := v.primitiveTypeToLLVMType(ast.PRIMITIVE_int)
 
 	if fn.IsNil() {
 		fnType := llvm.FunctionType(intType, []llvm.Type{intType}, false)
@@ -1124,7 +1125,7 @@ func (v *Codegen) genRaiseSegfault() {
 	v.builder().CreateCall(fn, []llvm.Value{llvm.ConstInt(intType, 11, false)}, "segfault")
 }
 
-func (v *Codegen) genBoolLiteral(n *parser.BoolLiteral) llvm.Value {
+func (v *Codegen) genBoolLiteral(n *ast.BoolLiteral) llvm.Value {
 	var num uint64
 
 	if n.Value {
@@ -1134,12 +1135,12 @@ func (v *Codegen) genBoolLiteral(n *parser.BoolLiteral) llvm.Value {
 	return llvm.ConstInt(v.typeRefToLLVMType(n.GetType()), num, true)
 }
 
-func (v *Codegen) genRuneLiteral(n *parser.RuneLiteral) llvm.Value {
+func (v *Codegen) genRuneLiteral(n *ast.RuneLiteral) llvm.Value {
 	return llvm.ConstInt(v.typeRefToLLVMType(n.GetType()), uint64(n.Value), true)
 }
 
-func (v *Codegen) genStringLiteral(n *parser.StringLiteral) llvm.Value {
-	memberLLVMType := v.primitiveTypeToLLVMType(parser.PRIMITIVE_u8)
+func (v *Codegen) genStringLiteral(n *ast.StringLiteral) llvm.Value {
+	memberLLVMType := v.primitiveTypeToLLVMType(ast.PRIMITIVE_u8)
 	nullTerm := n.IsCString
 	length := len(n.Value)
 	if nullTerm {
@@ -1166,8 +1167,8 @@ func (v *Codegen) genStringLiteral(n *parser.StringLiteral) llvm.Value {
 		backingArrayPointer = llvm.ConstBitCast(backingArray, llvm.PointerType(memberLLVMType, 0))
 	}
 
-	if n.GetType().BaseType.ActualType().Equals(parser.ArrayOf(&parser.TypeReference{BaseType: parser.PRIMITIVE_u8}, false, 0)) {
-		lengthValue := llvm.ConstInt(v.primitiveTypeToLLVMType(parser.PRIMITIVE_uint), uint64(length), false)
+	if n.GetType().BaseType.ActualType().Equals(ast.ArrayOf(&ast.TypeReference{BaseType: ast.PRIMITIVE_u8}, false, 0)) {
+		lengthValue := llvm.ConstInt(v.primitiveTypeToLLVMType(ast.PRIMITIVE_uint), uint64(length), false)
 		structValue := llvm.Undef(v.typeRefToLLVMType(n.GetType()))
 		structValue = v.builder().CreateInsertValue(structValue, lengthValue, 0, "")
 		structValue = v.builder().CreateInsertValue(structValue, backingArrayPointer, 1, "")
@@ -1177,11 +1178,11 @@ func (v *Codegen) genStringLiteral(n *parser.StringLiteral) llvm.Value {
 	}
 }
 
-func (v *Codegen) genCompositeLiteral(n *parser.CompositeLiteral) llvm.Value {
+func (v *Codegen) genCompositeLiteral(n *ast.CompositeLiteral) llvm.Value {
 	switch n.GetType().BaseType.ActualType().(type) {
-	case parser.ArrayType:
+	case ast.ArrayType:
 		return v.genArrayLiteral(n)
-	case parser.StructType:
+	case ast.StructType:
 		return v.genStructLiteral(n)
 	default:
 		panic("invalid composite literal type")
@@ -1189,10 +1190,10 @@ func (v *Codegen) genCompositeLiteral(n *parser.CompositeLiteral) llvm.Value {
 }
 
 // Allocates a literal array on the stack
-func (v *Codegen) genArrayLiteral(n *parser.CompositeLiteral) llvm.Value {
-	arrayType := n.Type.BaseType.ActualType().(parser.ArrayType)
+func (v *Codegen) genArrayLiteral(n *ast.CompositeLiteral) llvm.Value {
+	arrayType := n.Type.BaseType.ActualType().(ast.ArrayType)
 	arrayLLVMType := v.typeRefToLLVMType(n.Type)
-	memberLLVMType := v.typeRefToLLVMType(n.Type.BaseType.ActualType().(parser.ArrayType).MemberType) // TODO works with generics?
+	memberLLVMType := v.typeRefToLLVMType(n.Type.BaseType.ActualType().(ast.ArrayType).MemberType) // TODO works with generics?
 
 	arrayValues := make([]llvm.Value, len(n.Values))
 	for idx, mem := range n.Values {
@@ -1203,7 +1204,7 @@ func (v *Codegen) genArrayLiteral(n *parser.CompositeLiteral) llvm.Value {
 		arrayValues[idx] = value
 	}
 
-	lengthValue := llvm.ConstInt(v.primitiveTypeToLLVMType(parser.PRIMITIVE_uint), uint64(len(n.Values)), false)
+	lengthValue := llvm.ConstInt(v.primitiveTypeToLLVMType(ast.PRIMITIVE_uint), uint64(len(n.Values)), false)
 	var backingArrayPointer, backingArray llvm.Value
 
 	var length int
@@ -1246,14 +1247,14 @@ func (v *Codegen) genArrayLiteral(n *parser.CompositeLiteral) llvm.Value {
 	return structValue
 }
 
-func (v *Codegen) genStructLiteral(n *parser.CompositeLiteral) llvm.Value {
+func (v *Codegen) genStructLiteral(n *ast.CompositeLiteral) llvm.Value {
 	structLLVMType := v.typeRefToLLVMType(n.Type)
 
 	return v.genStructLiteralValues(n, llvm.Undef(structLLVMType))
 }
 
-func (v *Codegen) genStructLiteralValues(n *parser.CompositeLiteral, target llvm.Value) llvm.Value {
-	structBaseType := n.Type.BaseType.ActualType().(parser.StructType)
+func (v *Codegen) genStructLiteralValues(n *ast.CompositeLiteral, target llvm.Value) llvm.Value {
+	structBaseType := n.Type.BaseType.ActualType().(ast.StructType)
 
 	for i, value := range n.Values {
 		name := n.Fields[i]
@@ -1270,12 +1271,12 @@ func (v *Codegen) genStructLiteralValues(n *parser.CompositeLiteral, target llvm
 	return target
 }
 
-func (v *Codegen) genTupleLiteral(n *parser.TupleLiteral) llvm.Value {
+func (v *Codegen) genTupleLiteral(n *ast.TupleLiteral) llvm.Value {
 	var tupleLLVMType llvm.Type
 
-	var gcon *parser.GenericContext
+	var gcon *ast.GenericContext
 	if n.ParentEnumLiteral != nil {
-		gcon = parser.NewGenericContext(n.ParentEnumLiteral.Type.BaseType.ActualType().(parser.EnumType).GenericParameters,
+		gcon = ast.NewGenericContext(n.ParentEnumLiteral.Type.BaseType.ActualType().(ast.EnumType).GenericParameters,
 			n.ParentEnumLiteral.Type.GenericArguments)
 	}
 
@@ -1288,7 +1289,7 @@ func (v *Codegen) genTupleLiteral(n *parser.TupleLiteral) llvm.Value {
 	}
 
 	if n.ParentEnumLiteral != nil {
-		tupleLLVMType = v.typeRefToLLVMTypeWithGenericContext(&parser.TypeReference{BaseType: n.GetType().BaseType, GenericArguments: n.ParentEnumLiteral.Type.GenericArguments}, gcon)
+		tupleLLVMType = v.typeRefToLLVMTypeWithGenericContext(&ast.TypeReference{BaseType: n.GetType().BaseType, GenericArguments: n.ParentEnumLiteral.Type.GenericArguments}, gcon)
 	} else {
 		tupleLLVMType = v.typeToLLVMType(n.GetType().BaseType, gcon)
 	}
@@ -1296,7 +1297,7 @@ func (v *Codegen) genTupleLiteral(n *parser.TupleLiteral) llvm.Value {
 	return v.genTupleLiteralValues(n, llvm.ConstNull(tupleLLVMType))
 }
 
-func (v *Codegen) genTupleLiteralValues(n *parser.TupleLiteral, target llvm.Value) llvm.Value {
+func (v *Codegen) genTupleLiteralValues(n *ast.TupleLiteral, target llvm.Value) llvm.Value {
 	for idx, mem := range n.Members {
 		memberValue := v.genExprAndLoadIfNeccesary(mem)
 
@@ -1309,10 +1310,10 @@ func (v *Codegen) genTupleLiteralValues(n *parser.TupleLiteral, target llvm.Valu
 	return target
 }
 
-func (v *Codegen) genEnumLiteral(n *parser.EnumLiteral) llvm.Value {
-	enumBaseType := n.Type.BaseType.ActualType().(parser.EnumType)
+func (v *Codegen) genEnumLiteral(n *ast.EnumLiteral) llvm.Value {
+	enumBaseType := n.Type.BaseType.ActualType().(ast.EnumType)
 
-	gcon := parser.NewGenericContext(enumBaseType.GenericParameters,
+	gcon := ast.NewGenericContext(enumBaseType.GenericParameters,
 		n.Type.GenericArguments)
 
 	if v.inFunction() {
@@ -1353,7 +1354,7 @@ func (v *Codegen) genEnumLiteral(n *parser.EnumLiteral) llvm.Value {
 	return enumValue
 }
 
-func (v *Codegen) genNumericLiteral(n *parser.NumericLiteral) llvm.Value {
+func (v *Codegen) genNumericLiteral(n *ast.NumericLiteral) llvm.Value {
 	if n.GetType().BaseType.IsFloatingType() {
 		return llvm.ConstFloat(v.typeRefToLLVMType(n.GetType()), n.AsFloat())
 	} else {
@@ -1361,7 +1362,7 @@ func (v *Codegen) genNumericLiteral(n *parser.NumericLiteral) llvm.Value {
 	}
 }
 
-func (v *Codegen) genLogicalBinop(n *parser.BinaryExpr) llvm.Value {
+func (v *Codegen) genLogicalBinop(n *ast.BinaryExpr) llvm.Value {
 	and := n.Op == parser.BINOP_LOG_AND
 
 	next := llvm.AddBasicBlock(v.currentLLVMFunction(), "and_next")
@@ -1395,7 +1396,7 @@ func (v *Codegen) genLogicalBinop(n *parser.BinaryExpr) llvm.Value {
 	return phi
 }
 
-func (v *Codegen) genBinaryExpr(n *parser.BinaryExpr) llvm.Value {
+func (v *Codegen) genBinaryExpr(n *ast.BinaryExpr) llvm.Value {
 	if n.Op.Category() == parser.OP_LOGICAL {
 		return v.genLogicalBinop(n)
 	}
@@ -1406,7 +1407,7 @@ func (v *Codegen) genBinaryExpr(n *parser.BinaryExpr) llvm.Value {
 	return v.genBinop(n.Op, n.GetType(), n.Lhand.GetType(), n.Rhand.GetType(), lhand, rhand)
 }
 
-func (v *Codegen) genBinop(operator parser.BinOpType, resType, lhandType, rhandType *parser.TypeReference, lhand, rhand llvm.Value) llvm.Value {
+func (v *Codegen) genBinop(operator parser.BinOpType, resType, lhandType, rhandType *ast.TypeReference, lhand, rhand llvm.Value) llvm.Value {
 	if lhand.IsNil() || rhand.IsNil() {
 		v.err("invalid binary expr")
 	} else {
@@ -1537,7 +1538,7 @@ func comparisonOpToFloatPredicate(op parser.BinOpType) llvm.FloatPredicate {
 	}
 }
 
-func (v *Codegen) genUnaryExpr(n *parser.UnaryExpr) llvm.Value {
+func (v *Codegen) genUnaryExpr(n *ast.UnaryExpr) llvm.Value {
 	expr := v.genExprAndLoadIfNeccesary(n.Expr)
 
 	switch n.Op {
@@ -1557,7 +1558,7 @@ func (v *Codegen) genUnaryExpr(n *parser.UnaryExpr) llvm.Value {
 	}
 }
 
-func (v *Codegen) genCastExpr(n *parser.CastExpr) llvm.Value {
+func (v *Codegen) genCastExpr(n *ast.CastExpr) llvm.Value {
 	if n.GetType().ActualTypesEqual(n.Expr.GetType()) {
 		return v.genExprAndLoadIfNeccesary(n.Expr)
 	}
@@ -1567,11 +1568,11 @@ func (v *Codegen) genCastExpr(n *parser.CastExpr) llvm.Value {
 	castBaseType := n.GetType().BaseType.ActualType()
 	castLLVMType := v.typeRefToLLVMType(n.GetType())
 
-	if parser.IsPointerOrReferenceType(exprBaseType) && castBaseType == parser.PRIMITIVE_uintptr {
+	if ast.IsPointerOrReferenceType(exprBaseType) && castBaseType == ast.PRIMITIVE_uintptr {
 		return v.builder().CreatePtrToInt(expr, castLLVMType, "")
-	} else if parser.IsPointerOrReferenceType(castBaseType) && exprBaseType == parser.PRIMITIVE_uintptr {
+	} else if ast.IsPointerOrReferenceType(castBaseType) && exprBaseType == ast.PRIMITIVE_uintptr {
 		return v.builder().CreateIntToPtr(expr, castLLVMType, "")
-	} else if parser.IsPointerOrReferenceType(castBaseType) && parser.IsPointerOrReferenceType(exprBaseType) {
+	} else if ast.IsPointerOrReferenceType(castBaseType) && ast.IsPointerOrReferenceType(exprBaseType) {
 		return v.builder().CreateBitCast(expr, castLLVMType, "")
 	}
 
@@ -1609,8 +1610,8 @@ func (v *Codegen) genCastExpr(n *parser.CastExpr) llvm.Value {
 				return v.builder().CreateFPToUI(expr, castLLVMType, "")
 			}
 		} else if castBaseType.IsFloatingType() {
-			exprBits := floatTypeBits(exprBaseType.(parser.PrimitiveType))
-			castBits := floatTypeBits(castBaseType.(parser.PrimitiveType))
+			exprBits := floatTypeBits(exprBaseType.(ast.PrimitiveType))
+			castBits := floatTypeBits(castBaseType.(ast.PrimitiveType))
 			if exprBits == castBits {
 				return expr
 			} else if exprBits > castBits {
@@ -1624,10 +1625,10 @@ func (v *Codegen) genCastExpr(n *parser.CastExpr) llvm.Value {
 	panic("unimplimented typecast: " + n.String())
 }
 
-func (v *Codegen) genCallExprWithArgs(n *parser.CallExpr, args []llvm.Value) llvm.Value {
+func (v *Codegen) genCallExprWithArgs(n *ast.CallExpr, args []llvm.Value) llvm.Value {
 	call := v.builder().CreateCall(v.genExprAndLoadIfNeccesary(n.Function), args, "")
 
-	attrs := n.Function.GetType().BaseType.(parser.FunctionType).Attrs()
+	attrs := n.Function.GetType().BaseType.(ast.FunctionType).Attrs()
 	if attr, ok := attrs["call_conv"]; ok {
 		call.SetInstructionCallConv(callConvTypes[attr.Value])
 	}
@@ -1635,7 +1636,7 @@ func (v *Codegen) genCallExprWithArgs(n *parser.CallExpr, args []llvm.Value) llv
 	return call
 }
 
-func (v *Codegen) genCallExpr(n *parser.CallExpr) llvm.Value {
+func (v *Codegen) genCallExpr(n *ast.CallExpr) llvm.Value {
 	numArgs := len(n.Arguments)
 	if n.ReceiverAccess != nil {
 		numArgs++
@@ -1656,13 +1657,13 @@ func (v *Codegen) genCallExpr(n *parser.CallExpr) llvm.Value {
 	return v.genCallExprWithArgs(n, args)
 }
 
-func (v *Codegen) genArrayLenExpr(n *parser.ArrayLenExpr) llvm.Value {
-	arrType := n.Expr.GetType().BaseType.ActualType().(parser.ArrayType)
+func (v *Codegen) genArrayLenExpr(n *ast.ArrayLenExpr) llvm.Value {
+	arrType := n.Expr.GetType().BaseType.ActualType().(ast.ArrayType)
 	if arrType.IsFixedLength {
 		return llvm.ConstInt(v.targetData.IntPtrType(), uint64(arrType.Length), false)
 	}
 
-	if arrayLit, ok := n.Expr.(*parser.CompositeLiteral); ok {
+	if arrayLit, ok := n.Expr.(*ast.CompositeLiteral); ok {
 		arrayLen := len(arrayLit.Values)
 
 		return llvm.ConstInt(v.targetData.IntPtrType(), uint64(arrayLen), false)
@@ -1673,7 +1674,7 @@ func (v *Codegen) genArrayLenExpr(n *parser.ArrayLenExpr) llvm.Value {
 	return gep
 }
 
-func (v *Codegen) genSizeofExpr(n *parser.SizeofExpr) llvm.Value {
+func (v *Codegen) genSizeofExpr(n *ast.SizeofExpr) llvm.Value {
 	var typ llvm.Type
 
 	if n.Expr != nil {

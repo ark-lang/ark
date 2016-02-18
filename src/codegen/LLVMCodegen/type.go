@@ -4,43 +4,43 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/ark-lang/ark/src/parser"
+	"github.com/ark-lang/ark/src/ast"
 	"github.com/ark-lang/ark/src/util/log"
 
 	"github.com/ark-lang/go-llvm/llvm"
 )
 
-func floatTypeBits(ty parser.PrimitiveType) int {
+func floatTypeBits(ty ast.PrimitiveType) int {
 	switch ty {
-	case parser.PRIMITIVE_f32:
+	case ast.PRIMITIVE_f32:
 		return 32
-	case parser.PRIMITIVE_f64:
+	case ast.PRIMITIVE_f64:
 		return 64
-	case parser.PRIMITIVE_f128:
+	case ast.PRIMITIVE_f128:
 		return 128
 	default:
 		panic("this isn't a float type")
 	}
 }
 
-func (v *Codegen) addNamedTypeReference(n *parser.TypeReference, gcon *parser.GenericContext) {
+func (v *Codegen) addNamedTypeReference(n *ast.TypeReference, gcon *ast.GenericContext) {
 	if v.inFunction() {
 		gcon.Outer = v.currentFunction().gcon
 	}
 
-	v.addNamedType(n.BaseType.(*parser.NamedType), parser.TypeReferenceMangledName(parser.MANGLE_ARK_UNSTABLE, n, gcon), gcon)
+	v.addNamedType(n.BaseType.(*ast.NamedType), ast.TypeReferenceMangledName(ast.MANGLE_ARK_UNSTABLE, n, gcon), gcon)
 }
 
-func (v *Codegen) addNamedType(n *parser.NamedType, name string, gcon *parser.GenericContext) {
+func (v *Codegen) addNamedType(n *ast.NamedType, name string, gcon *ast.GenericContext) {
 	switch actualtyp := n.Type.ActualType().(type) {
-	case parser.StructType:
+	case ast.StructType:
 		v.addStructType(actualtyp, name, gcon)
-	case parser.EnumType:
+	case ast.EnumType:
 		v.addEnumType(actualtyp, name, gcon)
 	}
 }
 
-func (v *Codegen) addStructType(typ parser.StructType, name string, gcon *parser.GenericContext) {
+func (v *Codegen) addStructType(typ ast.StructType, name string, gcon *ast.GenericContext) {
 	if _, ok := v.namedTypeLookup[name]; ok {
 		return
 	}
@@ -50,7 +50,7 @@ func (v *Codegen) addStructType(typ parser.StructType, name string, gcon *parser
 	v.namedTypeLookup[name] = structure
 
 	for _, field := range typ.Members {
-		if _, ok := field.Type.BaseType.(*parser.NamedType); ok {
+		if _, ok := field.Type.BaseType.(*ast.NamedType); ok {
 			v.addNamedTypeReference(field.Type, gcon)
 		}
 	}
@@ -58,7 +58,7 @@ func (v *Codegen) addStructType(typ parser.StructType, name string, gcon *parser
 	structure.StructSetBody(v.structTypeToLLVMTypeFields(typ, gcon), typ.Attrs().Contains("packed"))
 }
 
-func (v *Codegen) addEnumType(typ parser.EnumType, name string, gcon *parser.GenericContext) {
+func (v *Codegen) addEnumType(typ ast.EnumType, name string, gcon *ast.GenericContext) {
 	if _, ok := v.namedTypeLookup[name]; ok {
 		return
 	}
@@ -71,8 +71,8 @@ func (v *Codegen) addEnumType(typ parser.EnumType, name string, gcon *parser.Gen
 		v.namedTypeLookup[name] = enum
 
 		for _, member := range typ.Members {
-			if named, ok := member.Type.(*parser.NamedType); ok {
-				v.addNamedType(named, parser.TypeReferenceMangledName(parser.MANGLE_ARK_UNSTABLE, &parser.TypeReference{BaseType: member.Type}, gcon), gcon)
+			if named, ok := member.Type.(*ast.NamedType); ok {
+				v.addNamedType(named, ast.TypeReferenceMangledName(ast.MANGLE_ARK_UNSTABLE, &ast.TypeReference{BaseType: member.Type}, gcon), gcon)
 			}
 		}
 
@@ -80,17 +80,17 @@ func (v *Codegen) addEnumType(typ parser.EnumType, name string, gcon *parser.Gen
 	}
 }
 
-func (v *Codegen) typeRefToLLVMType(typ *parser.TypeReference) llvm.Type {
+func (v *Codegen) typeRefToLLVMType(typ *ast.TypeReference) llvm.Type {
 	return v.typeRefToLLVMTypeWithOuter(typ, nil)
 }
 
-func (v *Codegen) typeRefToLLVMTypeWithGenericContext(typ *parser.TypeReference, gcon *parser.GenericContext) llvm.Type {
+func (v *Codegen) typeRefToLLVMTypeWithGenericContext(typ *ast.TypeReference, gcon *ast.GenericContext) llvm.Type {
 	switch nt := typ.BaseType.(type) {
-	case *parser.NamedType:
+	case *ast.NamedType:
 		switch nt.ActualType().(type) {
-		case parser.StructType, parser.EnumType:
+		case ast.StructType, ast.EnumType:
 			v.addNamedTypeReference(typ, gcon)
-			lt := v.namedTypeLookup[parser.TypeReferenceMangledName(parser.MANGLE_ARK_UNSTABLE, typ, gcon)]
+			lt := v.namedTypeLookup[ast.TypeReferenceMangledName(ast.MANGLE_ARK_UNSTABLE, typ, gcon)]
 			return lt
 
 		default:
@@ -102,8 +102,8 @@ func (v *Codegen) typeRefToLLVMTypeWithGenericContext(typ *parser.TypeReference,
 }
 
 // if outer is not nil, this function does not add the current function gcon as outer, as it assumes it is already there
-func (v *Codegen) typeRefToLLVMTypeWithOuter(typ *parser.TypeReference, outer *parser.GenericContext) llvm.Type {
-	gcon := parser.NewGenericContextFromTypeReference(typ)
+func (v *Codegen) typeRefToLLVMTypeWithOuter(typ *ast.TypeReference, outer *ast.GenericContext) llvm.Type {
+	gcon := ast.NewGenericContextFromTypeReference(typ)
 
 	if outer != nil {
 		gcon.Outer = outer
@@ -114,32 +114,32 @@ func (v *Codegen) typeRefToLLVMTypeWithOuter(typ *parser.TypeReference, outer *p
 	return v.typeRefToLLVMTypeWithGenericContext(typ, gcon)
 }
 
-func (v *Codegen) typeToLLVMType(typ parser.Type, gcon *parser.GenericContext) llvm.Type {
+func (v *Codegen) typeToLLVMType(typ ast.Type, gcon *ast.GenericContext) llvm.Type {
 	switch typ := typ.(type) {
-	case parser.PrimitiveType:
+	case ast.PrimitiveType:
 		return v.primitiveTypeToLLVMType(typ)
-	case parser.FunctionType:
+	case ast.FunctionType:
 		return v.functionTypeToLLVMType(typ, true, gcon)
-	case parser.StructType:
+	case ast.StructType:
 		return v.structTypeToLLVMType(typ, gcon)
-	case parser.PointerType:
+	case ast.PointerType:
 		return llvm.PointerType(v.typeRefToLLVMTypeWithOuter(typ.Addressee, gcon), 0)
-	case parser.ArrayType:
+	case ast.ArrayType:
 		return v.arrayTypeToLLVMType(typ, gcon)
-	case parser.TupleType:
+	case ast.TupleType:
 		return v.tupleTypeToLLVMType(typ, gcon)
-	case parser.EnumType:
+	case ast.EnumType:
 		return v.enumTypeToLLVMType(typ, gcon)
-	case parser.ReferenceType:
+	case ast.ReferenceType:
 		return llvm.PointerType(v.typeRefToLLVMTypeWithOuter(typ.Referrer, gcon), 0)
-	case *parser.NamedType:
+	case *ast.NamedType:
 		switch typ.Type.(type) {
-		case parser.StructType, parser.EnumType:
+		case ast.StructType, ast.EnumType:
 			// If something seems wrong with the code and thie problems seems to come from here,
 			// make sure the type doesn't need generics arguments as well.
 			// This here ignores them.
 
-			name := parser.TypeReferenceMangledName(parser.MANGLE_ARK_UNSTABLE, &parser.TypeReference{BaseType: typ}, gcon)
+			name := ast.TypeReferenceMangledName(ast.MANGLE_ARK_UNSTABLE, &ast.TypeReference{BaseType: typ}, gcon)
 			v.addNamedType(typ, name, gcon)
 			lt := v.namedTypeLookup[name]
 
@@ -148,7 +148,7 @@ func (v *Codegen) typeToLLVMType(typ parser.Type, gcon *parser.GenericContext) l
 		default:
 			return v.typeToLLVMType(typ.Type, gcon)
 		}
-	case *parser.SubstitutionType:
+	case *ast.SubstitutionType:
 		if gcon == nil {
 			panic("gcon == nil when getting substitution type")
 		}
@@ -163,7 +163,7 @@ func (v *Codegen) typeToLLVMType(typ parser.Type, gcon *parser.GenericContext) l
 	}
 }
 
-func (v *Codegen) tupleTypeToLLVMType(typ parser.TupleType, gcon *parser.GenericContext) llvm.Type {
+func (v *Codegen) tupleTypeToLLVMType(typ ast.TupleType, gcon *ast.GenericContext) llvm.Type {
 	fields := make([]llvm.Type, len(typ.Members))
 	for idx, mem := range typ.Members {
 		fields[idx] = v.typeRefToLLVMTypeWithOuter(mem, gcon)
@@ -172,22 +172,22 @@ func (v *Codegen) tupleTypeToLLVMType(typ parser.TupleType, gcon *parser.Generic
 	return llvm.StructType(fields, false)
 }
 
-func (v *Codegen) arrayTypeToLLVMType(typ parser.ArrayType, gcon *parser.GenericContext) llvm.Type {
+func (v *Codegen) arrayTypeToLLVMType(typ ast.ArrayType, gcon *ast.GenericContext) llvm.Type {
 	memType := v.typeRefToLLVMTypeWithOuter(typ.MemberType, gcon)
 
 	if typ.IsFixedLength {
 		return llvm.ArrayType(memType, typ.Length)
 	} else {
-		fields := []llvm.Type{v.primitiveTypeToLLVMType(parser.PRIMITIVE_uint), llvm.PointerType(memType, 0)}
+		fields := []llvm.Type{v.primitiveTypeToLLVMType(ast.PRIMITIVE_uint), llvm.PointerType(memType, 0)}
 		return llvm.StructType(fields, false)
 	}
 }
 
-func (v *Codegen) structTypeToLLVMType(typ parser.StructType, gcon *parser.GenericContext) llvm.Type {
+func (v *Codegen) structTypeToLLVMType(typ ast.StructType, gcon *ast.GenericContext) llvm.Type {
 	return llvm.StructType(v.structTypeToLLVMTypeFields(typ, gcon), typ.Attrs().Contains("packed"))
 }
 
-func (v *Codegen) structTypeToLLVMTypeFields(typ parser.StructType, gcon *parser.GenericContext) []llvm.Type {
+func (v *Codegen) structTypeToLLVMTypeFields(typ ast.StructType, gcon *ast.GenericContext) []llvm.Type {
 	numOfFields := len(typ.Members)
 	fields := make([]llvm.Type, numOfFields)
 
@@ -199,7 +199,7 @@ func (v *Codegen) structTypeToLLVMTypeFields(typ parser.StructType, gcon *parser
 	return fields
 }
 
-func (v *Codegen) enumTypeToLLVMType(typ parser.EnumType, gcon *parser.GenericContext) llvm.Type {
+func (v *Codegen) enumTypeToLLVMType(typ ast.EnumType, gcon *ast.GenericContext) llvm.Type {
 	if typ.Simple {
 		// TODO: Handle other integer size, maybe dynamic depending on max value? (1 / 2)
 		return llvm.IntType(32)
@@ -208,7 +208,7 @@ func (v *Codegen) enumTypeToLLVMType(typ parser.EnumType, gcon *parser.GenericCo
 	return llvm.StructType(v.enumTypeToLLVMTypeFields(typ, gcon), false)
 }
 
-func (v *Codegen) enumTypeToLLVMTypeFields(typ parser.EnumType, gcon *parser.GenericContext) []llvm.Type {
+func (v *Codegen) enumTypeToLLVMTypeFields(typ ast.EnumType, gcon *ast.GenericContext) []llvm.Type {
 	longestLength := uint64(0)
 	for _, member := range typ.Members {
 		memLength := v.targetData.TypeAllocSize(v.typeToLLVMType(member.Type, gcon))
@@ -221,7 +221,7 @@ func (v *Codegen) enumTypeToLLVMTypeFields(typ parser.EnumType, gcon *parser.Gen
 	return []llvm.Type{enumTagType, llvm.ArrayType(llvm.IntType(8), int(longestLength))}
 }
 
-func (v *Codegen) enumMemberTypeToPaddedLLVMType(enumType parser.EnumType, memberIdx int, gcon *parser.GenericContext) llvm.Type {
+func (v *Codegen) enumMemberTypeToPaddedLLVMType(enumType ast.EnumType, memberIdx int, gcon *ast.GenericContext) llvm.Type {
 	longestLength := uint64(0)
 	for _, member := range enumType.Members {
 		memLength := v.targetData.TypeAllocSize(v.typeToLLVMType(member.Type, gcon))
@@ -244,11 +244,11 @@ func (v *Codegen) enumMemberTypeToPaddedLLVMType(enumType parser.EnumType, membe
 	}
 }
 
-func (v *Codegen) llvmEnumTypeForMember(enumType parser.EnumType, memberIdx int, gcon *parser.GenericContext) llvm.Type {
+func (v *Codegen) llvmEnumTypeForMember(enumType ast.EnumType, memberIdx int, gcon *ast.GenericContext) llvm.Type {
 	return llvm.StructType([]llvm.Type{enumTagType, v.enumMemberTypeToPaddedLLVMType(enumType, memberIdx, gcon)}, false)
 }
 
-func (v *Codegen) functionTypeToLLVMType(typ parser.FunctionType, ptr bool, gcon *parser.GenericContext) llvm.Type {
+func (v *Codegen) functionTypeToLLVMType(typ ast.FunctionType, ptr bool, gcon *ast.GenericContext) llvm.Type {
 	numOfParams := len(typ.Parameters)
 	if typ.Receiver != nil {
 		numOfParams++
@@ -281,32 +281,32 @@ func (v *Codegen) functionTypeToLLVMType(typ parser.FunctionType, ptr bool, gcon
 	return funcType
 }
 
-func (v *Codegen) primitiveTypeToLLVMType(typ parser.PrimitiveType) llvm.Type {
+func (v *Codegen) primitiveTypeToLLVMType(typ ast.PrimitiveType) llvm.Type {
 	switch typ {
-	case parser.PRIMITIVE_int, parser.PRIMITIVE_uint, parser.PRIMITIVE_uintptr:
+	case ast.PRIMITIVE_int, ast.PRIMITIVE_uint, ast.PRIMITIVE_uintptr:
 		return v.targetData.IntPtrType()
 
-	case parser.PRIMITIVE_s8, parser.PRIMITIVE_u8:
+	case ast.PRIMITIVE_s8, ast.PRIMITIVE_u8:
 		return llvm.IntType(8)
-	case parser.PRIMITIVE_s16, parser.PRIMITIVE_u16:
+	case ast.PRIMITIVE_s16, ast.PRIMITIVE_u16:
 		return llvm.IntType(16)
-	case parser.PRIMITIVE_s32, parser.PRIMITIVE_u32:
+	case ast.PRIMITIVE_s32, ast.PRIMITIVE_u32:
 		return llvm.IntType(32)
-	case parser.PRIMITIVE_s64, parser.PRIMITIVE_u64:
+	case ast.PRIMITIVE_s64, ast.PRIMITIVE_u64:
 		return llvm.IntType(64)
-	case parser.PRIMITIVE_s128, parser.PRIMITIVE_u128:
+	case ast.PRIMITIVE_s128, ast.PRIMITIVE_u128:
 		return llvm.IntType(128)
 
-	case parser.PRIMITIVE_f32:
+	case ast.PRIMITIVE_f32:
 		return llvm.FloatType()
-	case parser.PRIMITIVE_f64:
+	case ast.PRIMITIVE_f64:
 		return llvm.DoubleType()
-	case parser.PRIMITIVE_f128:
+	case ast.PRIMITIVE_f128:
 		return llvm.FP128Type()
 
-	case parser.PRIMITIVE_bool:
+	case ast.PRIMITIVE_bool:
 		return llvm.IntType(1)
-	case parser.PRIMITIVE_void:
+	case ast.PRIMITIVE_void:
 		return llvm.VoidType()
 
 	default:

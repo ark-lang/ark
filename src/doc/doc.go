@@ -4,14 +4,14 @@ import (
 	"os"
 	"time"
 
-	"github.com/ark-lang/ark/src/util/log"
-
+	"github.com/ark-lang/ark/src/ast"
 	"github.com/ark-lang/ark/src/parser"
 	"github.com/ark-lang/ark/src/util"
+	"github.com/ark-lang/ark/src/util/log"
 )
 
 type Docgen struct {
-	Input []*parser.Module
+	Input []*ast.Module
 	Dir   string
 
 	output    []*File
@@ -43,7 +43,7 @@ func (v *Docgen) traverse() {
 		for _, submod := range file.Parts {
 			for _, n := range submod.Nodes {
 				switch n.(type) {
-				case parser.Decl:
+				case ast.Decl:
 					decl := &Decl{
 						Node: n.(parser.Documentable),
 					}
@@ -55,15 +55,15 @@ func (v *Docgen) traverse() {
 					decl.process()
 
 					switch n.(type) {
-					case *parser.FunctionDecl:
+					case *ast.FunctionDecl:
 						v.curOutput.FunctionDecls = append(v.curOutput.FunctionDecls, decl)
-					//case *parser.StructDecl:
+					//case *ast.StructDecl:
 					//	v.curOutput.StructDecls = append(v.curOutput.StructDecls, decl)
-					//case *parser.TraitDecl:
+					//case *ast.TraitDecl:
 					//	v.curOutput.TraitDecls = append(v.curOutput.TraitDecls, decl)
-					//case *parser.ImplDecl:
+					//case *ast.ImplDecl:
 					//	v.curOutput.ImplDecls = append(v.curOutput.ImplDecls, decl)
-					case *parser.VariableDecl:
+					case *ast.VariableDecl:
 						v.curOutput.VariableDecls = append(v.curOutput.VariableDecls, decl)
 					default:
 						panic("dammit")

@@ -17,6 +17,15 @@ type ParseNode interface {
 	SetDocComments([]*DocComment)
 }
 
+type DocComment struct {
+	Contents string
+	Where    lexer.Span
+}
+
+type Documentable interface {
+	DocComments() []*DocComment
+}
+
 // utility
 type baseNode struct {
 	where lexer.Span

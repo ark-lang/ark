@@ -1,25 +1,28 @@
 package semantic
 
-import "github.com/ark-lang/ark/src/parser"
+import (
+	"github.com/ark-lang/ark/src/ast"
+	"github.com/ark-lang/ark/src/parser"
+)
 
 // Takes a pointer to the expr, so we can replace it with a cast if necessary.
 // TODO: do we need an ImplicitCastExpr node? Or just an InterfaceWrapExpr node.
-func expectType(s *SemanticAnalyzer, loc parser.Locatable, expect *parser.TypeReference, expr *parser.Expr) {
+func expectType(s *SemanticAnalyzer, loc ast.Locatable, expect *ast.TypeReference, expr *ast.Expr) {
 	exprType := (*expr).GetType()
 	if expect.Equals(exprType) {
 		return
 	}
 
-	if expectPtr, ok := expect.BaseType.(parser.PointerType); ok {
-		if exprPtr, ok := exprType.BaseType.(parser.PointerType); ok {
+	if expectPtr, ok := expect.BaseType.(ast.PointerType); ok {
+		if exprPtr, ok := exprType.BaseType.(ast.PointerType); ok {
 			if expectPtr.Addressee.Equals(exprPtr.Addressee) && exprPtr.IsMutable && !expectPtr.IsMutable {
 				return
 			}
 		}
 	}
 
-	if expectPtr, ok := expect.BaseType.(parser.ReferenceType); ok {
-		if exprPtr, ok := exprType.BaseType.(parser.ReferenceType); ok {
+	if expectPtr, ok := expect.BaseType.(ast.ReferenceType); ok {
+		if exprPtr, ok := exprType.BaseType.(ast.ReferenceType); ok {
 			if expectPtr.Referrer.Equals(exprPtr.Referrer) && exprPtr.IsMutable && !expectPtr.IsMutable {
 				return
 			}
@@ -30,10 +33,10 @@ func expectType(s *SemanticAnalyzer, loc parser.Locatable, expect *parser.TypeRe
 }
 
 type TypeCheck struct {
-	functions []*parser.Function
+	functions []*ast.Function
 }
 
-func (v *TypeCheck) pushFunction(fn *parser.Function) {
+func (v *TypeCheck) pushFunction(fn *ast.Function) {
 	v.functions = append(v.functions, fn)
 }
 
@@ -41,7 +44,7 @@ func (v *TypeCheck) popFunction() {
 	v.functions = v.functions[:len(v.functions)-1]
 }
 
-func (v *TypeCheck) Function() *parser.Function {
+func (v *TypeCheck) Function() *ast.Function {
 	return v.functions[len(v.functions)-1]
 }
 
@@ -49,79 +52,79 @@ func (v *TypeCheck) Init(s *SemanticAnalyzer)       {}
 func (v *TypeCheck) EnterScope(s *SemanticAnalyzer) {}
 func (v *TypeCheck) ExitScope(s *SemanticAnalyzer)  {}
 
-func (v *TypeCheck) PostVisit(s *SemanticAnalyzer, n parser.Node) {
+func (v *TypeCheck) PostVisit(s *SemanticAnalyzer, n ast.Node) {
 	switch n := n.(type) {
-	case *parser.FunctionDecl, *parser.LambdaExpr:
+	case *ast.FunctionDecl, *ast.LambdaExpr:
 		v.popFunction()
 
-	case *parser.AssignStat:
+	case *ast.AssignStat:
 		v.CheckAssignStat(s, n)
 
-	case *parser.BinopAssignStat:
+	case *ast.BinopAssignStat:
 		v.CheckBinopAssignStat(s, n)
 
-	case *parser.DestructAssignStat:
+	case *ast.DestructAssignStat:
 		v.CheckDestructAssignStat(s, n)
 
-	case *parser.DestructBinopAssignStat:
+	case *ast.DestructBinopAssignStat:
 		v.CheckDestructBinopAssignStat(s, n)
 	}
 }
 
-func (v *TypeCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
+func (v *TypeCheck) Visit(s *SemanticAnalyzer, n ast.Node) {
 	switch n := n.(type) {
-	case *parser.FunctionDecl:
+	case *ast.FunctionDecl:
 		v.pushFunction(n.Function)
 
-	case *parser.LambdaExpr:
+	case *ast.LambdaExpr:
 		v.pushFunction(n.Function)
 
-	case *parser.VariableDecl:
+	case *ast.VariableDecl:
 		v.CheckVariableDecl(s, n)
 
-	case *parser.DestructVarDecl:
+	case *ast.DestructVarDecl:
 		v.CheckDestructVarDecl(s, n)
 
-	case *parser.ReturnStat:
+	case *ast.ReturnStat:
 		v.CheckReturnStat(s, n)
 
-	case *parser.IfStat:
+	case *ast.IfStat:
 		v.CheckIfStat(s, n)
 
-	case *parser.MatchStat:
+	case *ast.MatchStat:
 		v.CheckMatchStat(s, n)
 
-	case *parser.ArrayLenExpr:
+	case *ast.ArrayLenExpr:
 		v.CheckArrayLenExpr(s, n)
 
-	case *parser.UnaryExpr:
+	case *ast.UnaryExpr:
 		v.CheckUnaryExpr(s, n)
 
-	case *parser.BinaryExpr:
+	case *ast.BinaryExpr:
 		v.CheckBinaryExpr(s, n)
 
-	case *parser.CastExpr:
+	case *ast.CastExpr:
 		v.CheckCastExpr(s, n)
 
-	case *parser.CallExpr:
+	case *ast.CallExpr:
 		v.CheckCallExpr(s, n)
 
-	case *parser.ArrayAccessExpr:
+	case *ast.ArrayAccessExpr:
 		v.CheckArrayAccessExpr(s, n)
 
-	case *parser.DerefAccessExpr:
+	case *ast.DerefAccessExpr:
 		v.CheckDerefAccessExpr(s, n)
 
-	case *parser.NumericLiteral:
+	case *ast.NumericLiteral:
 		v.CheckNumericLiteral(s, n)
 
-	case *parser.CompositeLiteral:
+	case *ast.CompositeLiteral:
 		v.CheckCompositeLiteral(s, n)
 
-	case *parser.TupleLiteral:
+	case *ast.TupleLiteral:
 		v.CheckTupleLiteral(s, n)
 
-	case *parser.EnumLiteral:
+	case *ast.EnumLiteral:
 		v.CheckEnumLiteral(s, n)
 	}
 }
@@ -130,12 +133,12 @@ func (v *TypeCheck) Finalize(s *SemanticAnalyzer) {
 
 }
 
-func typeRefTo(typ parser.Type) *parser.TypeReference {
-	return parser.NewTypeReference(typ, nil)
+func typeRefTo(typ ast.Type) *ast.TypeReference {
+	return ast.NewTypeReference(typ, nil)
 }
 
-func (v *TypeCheck) CheckVariableDecl(s *SemanticAnalyzer, decl *parser.VariableDecl) {
-	if decl.Variable.Type.BaseType.ActualType() == parser.PRIMITIVE_void {
+func (v *TypeCheck) CheckVariableDecl(s *SemanticAnalyzer, decl *ast.VariableDecl) {
+	if decl.Variable.Type.BaseType.ActualType() == ast.PRIMITIVE_void {
 		s.Err(decl, "Variable cannot be of type `void`")
 	}
 
@@ -144,8 +147,8 @@ func (v *TypeCheck) CheckVariableDecl(s *SemanticAnalyzer, decl *parser.Variable
 	}
 }
 
-func (v *TypeCheck) CheckDestructVarDecl(s *SemanticAnalyzer, decl *parser.DestructVarDecl) {
-	tt, ok := decl.Assignment.GetType().BaseType.ActualType().(parser.TupleType)
+func (v *TypeCheck) CheckDestructVarDecl(s *SemanticAnalyzer, decl *ast.DestructVarDecl) {
+	tt, ok := decl.Assignment.GetType().BaseType.ActualType().(ast.TupleType)
 	if !ok {
 		s.Err(decl, "Assignment to destructing variable declaration must be tuple, was `%s`", decl.Assignment.GetType())
 	}
@@ -155,14 +158,14 @@ func (v *TypeCheck) CheckDestructVarDecl(s *SemanticAnalyzer, decl *parser.Destr
 	}
 }
 
-func (v *TypeCheck) CheckReturnStat(s *SemanticAnalyzer, stat *parser.ReturnStat) {
+func (v *TypeCheck) CheckReturnStat(s *SemanticAnalyzer, stat *ast.ReturnStat) {
 	if stat.Value == nil {
-		if v.Function().Type.Return.BaseType.ActualType() != parser.PRIMITIVE_void {
+		if v.Function().Type.Return.BaseType.ActualType() != ast.PRIMITIVE_void {
 			s.Err(stat, "Cannot return void from function `%s` of type `%s`",
 				v.Function().Name, v.Function().Type.Return.String())
 		}
 	} else {
-		if v.Function().Type.Return.BaseType == parser.PRIMITIVE_void {
+		if v.Function().Type.Return.BaseType == ast.PRIMITIVE_void {
 			s.Err(stat.Value, "Cannot return expression from void function")
 		} else {
 			expectType(s, stat.Value, v.Function().Type.Return, &stat.Value)
@@ -170,24 +173,24 @@ func (v *TypeCheck) CheckReturnStat(s *SemanticAnalyzer, stat *parser.ReturnStat
 	}
 }
 
-func (v *TypeCheck) CheckIfStat(s *SemanticAnalyzer, stat *parser.IfStat) {
+func (v *TypeCheck) CheckIfStat(s *SemanticAnalyzer, stat *ast.IfStat) {
 	for _, expr := range stat.Exprs {
-		if expr.GetType().BaseType != parser.PRIMITIVE_bool {
+		if expr.GetType().BaseType != ast.PRIMITIVE_bool {
 			s.Err(expr, "If condition must have a boolean condition")
 		}
 	}
 }
 
-func (v *TypeCheck) CheckMatchStat(s *SemanticAnalyzer, stat *parser.MatchStat) {
+func (v *TypeCheck) CheckMatchStat(s *SemanticAnalyzer, stat *ast.MatchStat) {
 	// TODO: Handle string and integer matches
-	et, isEnum := stat.Target.GetType().BaseType.ActualType().(parser.EnumType)
+	et, isEnum := stat.Target.GetType().BaseType.ActualType().(ast.EnumType)
 	for pattern, _ := range stat.Branches {
-		if _, isDiscard := pattern.(*parser.DiscardAccessExpr); isDiscard {
+		if _, isDiscard := pattern.(*ast.DiscardAccessExpr); isDiscard {
 			continue
 		}
 
 		if isEnum {
-			patt, ok := pattern.(*parser.EnumPatternExpr)
+			patt, ok := pattern.(*ast.EnumPatternExpr)
 			if !ok {
 				s.Err(pattern, "Expected enum pattern in match on enum type `%s`", stat.Target.GetType().String())
 				continue
@@ -199,8 +202,8 @@ func (v *TypeCheck) CheckMatchStat(s *SemanticAnalyzer, stat *parser.MatchStat) 
 				continue
 			}
 
-			_, isStruct := mem.Type.(parser.StructType)
-			_, isTuple := mem.Type.(parser.TupleType)
+			_, isStruct := mem.Type.(ast.StructType)
+			_, isTuple := mem.Type.(ast.TupleType)
 			if !isStruct && !isTuple && len(patt.Variables) > 0 {
 				s.Err(patt, "Tried destructuring simple enum member `%s`", patt.MemberName.Name)
 			}
@@ -209,20 +212,20 @@ func (v *TypeCheck) CheckMatchStat(s *SemanticAnalyzer, stat *parser.MatchStat) 
 
 }
 
-func (v *TypeCheck) CheckAssignStat(s *SemanticAnalyzer, stat *parser.AssignStat) {
+func (v *TypeCheck) CheckAssignStat(s *SemanticAnalyzer, stat *ast.AssignStat) {
 	if stat.Access.GetType() != nil {
 		expectType(s, stat, stat.Access.GetType(), &stat.Assignment)
 	}
 }
 
-func (v *TypeCheck) CheckBinopAssignStat(s *SemanticAnalyzer, stat *parser.BinopAssignStat) {
+func (v *TypeCheck) CheckBinopAssignStat(s *SemanticAnalyzer, stat *ast.BinopAssignStat) {
 	if stat.Access.GetType() != nil {
 		expectType(s, stat, stat.Access.GetType(), &stat.Assignment)
 	}
 }
 
-func (v *TypeCheck) CheckDestructAssignStat(s *SemanticAnalyzer, stat *parser.DestructAssignStat) {
-	tt, ok := stat.Assignment.GetType().BaseType.ActualType().(parser.TupleType)
+func (v *TypeCheck) CheckDestructAssignStat(s *SemanticAnalyzer, stat *ast.DestructAssignStat) {
+	tt, ok := stat.Assignment.GetType().BaseType.ActualType().(ast.TupleType)
 	if !ok {
 		s.Err(stat, "Value in destruturing assignment must be tuple, was `%s`", stat.Assignment.GetType())
 	}
@@ -238,8 +241,8 @@ func (v *TypeCheck) CheckDestructAssignStat(s *SemanticAnalyzer, stat *parser.De
 	}
 }
 
-func (v *TypeCheck) CheckDestructBinopAssignStat(s *SemanticAnalyzer, stat *parser.DestructBinopAssignStat) {
-	tt, ok := stat.Assignment.GetType().BaseType.ActualType().(parser.TupleType)
+func (v *TypeCheck) CheckDestructBinopAssignStat(s *SemanticAnalyzer, stat *ast.DestructBinopAssignStat) {
+	tt, ok := stat.Assignment.GetType().BaseType.ActualType().(ast.TupleType)
 	if !ok {
 		s.Err(stat, "Value in destruturing assignment must be tuple, was `%s`", stat.Assignment.GetType())
 	}
@@ -255,14 +258,14 @@ func (v *TypeCheck) CheckDestructBinopAssignStat(s *SemanticAnalyzer, stat *pars
 	}
 }
 
-func (v *TypeCheck) CheckArrayLenExpr(s *SemanticAnalyzer, expr *parser.ArrayLenExpr) {
+func (v *TypeCheck) CheckArrayLenExpr(s *SemanticAnalyzer, expr *ast.ArrayLenExpr) {
 
 }
 
-func (v *TypeCheck) CheckUnaryExpr(s *SemanticAnalyzer, expr *parser.UnaryExpr) {
+func (v *TypeCheck) CheckUnaryExpr(s *SemanticAnalyzer, expr *ast.UnaryExpr) {
 	switch expr.Op {
 	case parser.UNOP_LOG_NOT:
-		if !expr.Expr.GetType().ActualTypesEqual(typeRefTo(parser.PRIMITIVE_bool)) {
+		if !expr.Expr.GetType().ActualTypesEqual(typeRefTo(ast.PRIMITIVE_bool)) {
 			s.Err(expr, "Used logical not on non-boolean expression")
 		}
 	case parser.UNOP_BIT_NOT:
@@ -278,13 +281,13 @@ func (v *TypeCheck) CheckUnaryExpr(s *SemanticAnalyzer, expr *parser.UnaryExpr) 
 	}
 }
 
-func (v *TypeCheck) CheckBinaryExpr(s *SemanticAnalyzer, expr *parser.BinaryExpr) {
+func (v *TypeCheck) CheckBinaryExpr(s *SemanticAnalyzer, expr *ast.BinaryExpr) {
 	switch expr.Op {
 	case parser.BINOP_EQ, parser.BINOP_NOT_EQ:
 		if !expr.Lhand.GetType().Equals(expr.Rhand.GetType()) {
 			s.Err(expr, "Operands for binary operator `%s` must have the same type, have `%s` and `%s`",
 				expr.Op.OpString(), expr.Lhand.GetType().String(), expr.Rhand.GetType().String())
-		} else if lht := expr.Lhand.GetType(); !(lht.ActualTypesEqual(typeRefTo(parser.PRIMITIVE_bool)) || lht.BaseType.IsIntegerType() || lht.BaseType.IsFloatingType() || lht.BaseType.LevelsOfIndirection() > 0) {
+		} else if lht := expr.Lhand.GetType(); !(lht.ActualTypesEqual(typeRefTo(ast.PRIMITIVE_bool)) || lht.BaseType.IsIntegerType() || lht.BaseType.IsFloatingType() || lht.BaseType.LevelsOfIndirection() > 0) {
 			s.Err(expr, "Operands for binary operator `%s` must be numeric, or pointers or booleans, have `%s`",
 				expr.Op.OpString(), expr.Lhand.GetType().String())
 		}
@@ -310,7 +313,7 @@ func (v *TypeCheck) CheckBinaryExpr(s *SemanticAnalyzer, expr *parser.BinaryExpr
 		}
 
 	case parser.BINOP_LOG_AND, parser.BINOP_LOG_OR:
-		if !expr.Lhand.GetType().ActualTypesEqual(typeRefTo(parser.PRIMITIVE_bool)) || !expr.Lhand.GetType().Equals(expr.Rhand.GetType()) {
+		if !expr.Lhand.GetType().ActualTypesEqual(typeRefTo(ast.PRIMITIVE_bool)) || !expr.Lhand.GetType().Equals(expr.Rhand.GetType()) {
 			s.Err(expr, "Operands for logical operator `%s` must have same boolean type, have `%s` and `%s`",
 				expr.Op.OpString(), expr.Lhand.GetType().String(), expr.Rhand.GetType().String())
 		}
@@ -320,7 +323,7 @@ func (v *TypeCheck) CheckBinaryExpr(s *SemanticAnalyzer, expr *parser.BinaryExpr
 	}
 }
 
-func (v *TypeCheck) CheckCastExpr(s *SemanticAnalyzer, expr *parser.CastExpr) {
+func (v *TypeCheck) CheckCastExpr(s *SemanticAnalyzer, expr *ast.CastExpr) {
 	if expr.Type.Equals(expr.Expr.GetType()) {
 		s.Warn(expr, "Casting expression of type `%s` to the same type",
 			expr.Type.String())
@@ -330,8 +333,8 @@ func (v *TypeCheck) CheckCastExpr(s *SemanticAnalyzer, expr *parser.CastExpr) {
 	}
 }
 
-func (v *TypeCheck) CheckCallExpr(s *SemanticAnalyzer, expr *parser.CallExpr) {
-	fnType := expr.Function.GetType().BaseType.(parser.FunctionType)
+func (v *TypeCheck) CheckCallExpr(s *SemanticAnalyzer, expr *ast.CallExpr) {
+	fnType := expr.Function.GetType().BaseType.(ast.FunctionType)
 
 	argLen := len(expr.Arguments)
 	paramLen := len(fnType.Parameters)
@@ -346,7 +349,7 @@ func (v *TypeCheck) CheckCallExpr(s *SemanticAnalyzer, expr *parser.CallExpr) {
 	}
 
 	var fnName string
-	if fae, ok := expr.Function.(*parser.FunctionAccessExpr); ok {
+	if fae, ok := expr.Function.(*ast.FunctionAccessExpr); ok {
 		fnName = fae.Function.Name
 	} else {
 		fnName = "some func"
@@ -380,20 +383,20 @@ func (v *TypeCheck) CheckCallExpr(s *SemanticAnalyzer, expr *parser.CallExpr) {
 
 			// varargs take type promotions. If we don't do these, the whole thing fucks up.
 			switch arg.GetType().BaseType.ActualType() {
-			case parser.PRIMITIVE_f32:
-				expr.Arguments[i] = &parser.CastExpr{
+			case ast.PRIMITIVE_f32:
+				expr.Arguments[i] = &ast.CastExpr{
 					Expr: arg,
-					Type: typeRefTo(parser.PRIMITIVE_f64),
+					Type: typeRefTo(ast.PRIMITIVE_f64),
 				}
-			case parser.PRIMITIVE_s8, parser.PRIMITIVE_s16:
-				expr.Arguments[i] = &parser.CastExpr{
+			case ast.PRIMITIVE_s8, ast.PRIMITIVE_s16:
+				expr.Arguments[i] = &ast.CastExpr{
 					Expr: arg,
-					Type: typeRefTo(parser.PRIMITIVE_int),
+					Type: typeRefTo(ast.PRIMITIVE_int),
 				}
-			case parser.PRIMITIVE_u8, parser.PRIMITIVE_u16:
-				expr.Arguments[i] = &parser.CastExpr{
+			case ast.PRIMITIVE_u8, ast.PRIMITIVE_u16:
+				expr.Arguments[i] = &ast.CastExpr{
 					Expr: arg,
-					Type: typeRefTo(parser.PRIMITIVE_uint),
+					Type: typeRefTo(ast.PRIMITIVE_uint),
 				}
 			}
 		} else {
@@ -405,8 +408,8 @@ func (v *TypeCheck) CheckCallExpr(s *SemanticAnalyzer, expr *parser.CallExpr) {
 	}
 }
 
-func (v *TypeCheck) CheckArrayAccessExpr(s *SemanticAnalyzer, expr *parser.ArrayAccessExpr) {
-	if _, ok := expr.Array.GetType().BaseType.ActualType().(parser.ArrayType); !ok {
+func (v *TypeCheck) CheckArrayAccessExpr(s *SemanticAnalyzer, expr *ast.ArrayAccessExpr) {
+	if _, ok := expr.Array.GetType().BaseType.ActualType().(ast.ArrayType); !ok {
 		s.Err(expr, "Cannot index type `%s` as an array", expr.Array.GetType().String())
 	}
 
@@ -415,13 +418,13 @@ func (v *TypeCheck) CheckArrayAccessExpr(s *SemanticAnalyzer, expr *parser.Array
 	}
 }
 
-func (v *TypeCheck) CheckDerefAccessExpr(s *SemanticAnalyzer, expr *parser.DerefAccessExpr) {
-	if !parser.IsPointerOrReferenceType(expr.Expr.GetType().BaseType) {
+func (v *TypeCheck) CheckDerefAccessExpr(s *SemanticAnalyzer, expr *ast.DerefAccessExpr) {
+	if !ast.IsPointerOrReferenceType(expr.Expr.GetType().BaseType) {
 		s.Err(expr, "Cannot dereference expression of type `%s`", expr.Expr.GetType().String())
 	}
 }
 
-func (v *TypeCheck) CheckNumericLiteral(s *SemanticAnalyzer, lit *parser.NumericLiteral) {
+func (v *TypeCheck) CheckNumericLiteral(s *SemanticAnalyzer, lit *ast.NumericLiteral) {
 	if !(lit.GetType().BaseType.IsIntegerType() || lit.GetType().BaseType.IsFloatingType()) {
 		s.Err(lit, "Numeric literal was non-integer, non-float type: %s", lit.GetType().String())
 	}
@@ -437,17 +440,17 @@ func (v *TypeCheck) CheckNumericLiteral(s *SemanticAnalyzer, lit *parser.Numeric
 		var bits int
 
 		switch lit.GetType().BaseType.ActualType() {
-		case parser.PRIMITIVE_int, parser.PRIMITIVE_uint, parser.PRIMITIVE_uintptr:
+		case ast.PRIMITIVE_int, ast.PRIMITIVE_uint, ast.PRIMITIVE_uintptr:
 			bits = 9000 // FIXME work out proper size
-		case parser.PRIMITIVE_u8, parser.PRIMITIVE_s8:
+		case ast.PRIMITIVE_u8, ast.PRIMITIVE_s8:
 			bits = 8
-		case parser.PRIMITIVE_u16, parser.PRIMITIVE_s16:
+		case ast.PRIMITIVE_u16, ast.PRIMITIVE_s16:
 			bits = 16
-		case parser.PRIMITIVE_u32, parser.PRIMITIVE_s32:
+		case ast.PRIMITIVE_u32, ast.PRIMITIVE_s32:
 			bits = 32
-		case parser.PRIMITIVE_u64, parser.PRIMITIVE_s64:
+		case ast.PRIMITIVE_u64, ast.PRIMITIVE_s64:
 			bits = 64
-		case parser.PRIMITIVE_u128, parser.PRIMITIVE_s128:
+		case ast.PRIMITIVE_u128, ast.PRIMITIVE_s128:
 			bits = 128
 		default:
 			panic("wrong type here: " + lit.GetType().String())
@@ -466,8 +469,8 @@ func (v *TypeCheck) CheckNumericLiteral(s *SemanticAnalyzer, lit *parser.Numeric
 	}
 }
 
-func exprsToTypeReferences(exprs []parser.Expr) []*parser.TypeReference {
-	res := make([]*parser.TypeReference, 0, len(exprs))
+func exprsToTypeReferences(exprs []ast.Expr) []*ast.TypeReference {
+	res := make([]*ast.TypeReference, 0, len(exprs))
 	for _, expr := range exprs {
 		res = append(res, expr.GetType())
 	}
@@ -475,8 +478,8 @@ func exprsToTypeReferences(exprs []parser.Expr) []*parser.TypeReference {
 }
 
 // parentEnum is nil if not in enum
-func (v *TypeCheck) CheckTupleLiteral(s *SemanticAnalyzer, lit *parser.TupleLiteral) {
-	tupleType, ok := lit.GetType().BaseType.ActualType().(parser.TupleType)
+func (v *TypeCheck) CheckTupleLiteral(s *SemanticAnalyzer, lit *ast.TupleLiteral) {
+	tupleType, ok := lit.GetType().BaseType.ActualType().(ast.TupleType)
 	if !ok {
 		panic("Type of tuple literal was not `TupleType`")
 	}
@@ -486,11 +489,11 @@ func (v *TypeCheck) CheckTupleLiteral(s *SemanticAnalyzer, lit *parser.TupleLite
 		s.Err(lit, "Invalid amount of entries in tuple")
 	}
 
-	var gcon *parser.GenericContext
+	var gcon *ast.GenericContext
 	if lit.ParentEnumLiteral != nil {
-		gcon = parser.NewGenericContext(lit.ParentEnumLiteral.GetType().BaseType.ActualType().(parser.EnumType).GenericParameters, lit.ParentEnumLiteral.Type.GenericArguments)
+		gcon = ast.NewGenericContext(lit.ParentEnumLiteral.GetType().BaseType.ActualType().(ast.EnumType).GenericParameters, lit.ParentEnumLiteral.Type.GenericArguments)
 	} else {
-		gcon = parser.NewGenericContext(nil, nil)
+		gcon = ast.NewGenericContext(nil, nil)
 	}
 
 	for idx, mem := range lit.Members {
@@ -498,14 +501,14 @@ func (v *TypeCheck) CheckTupleLiteral(s *SemanticAnalyzer, lit *parser.TupleLite
 	}
 }
 
-func (v *TypeCheck) CheckCompositeLiteral(s *SemanticAnalyzer, lit *parser.CompositeLiteral) {
-	gcon := parser.NewGenericContext([]*parser.SubstitutionType{}, []*parser.TypeReference{})
+func (v *TypeCheck) CheckCompositeLiteral(s *SemanticAnalyzer, lit *ast.CompositeLiteral) {
+	gcon := ast.NewGenericContext([]*ast.SubstitutionType{}, []*ast.TypeReference{})
 	if len(lit.Type.GenericArguments) > 0 {
-		gcon = parser.NewGenericContextFromTypeReference(lit.Type)
+		gcon = ast.NewGenericContextFromTypeReference(lit.Type)
 	}
 
 	switch typ := lit.Type.BaseType.ActualType().(type) {
-	case parser.ArrayType:
+	case ast.ArrayType:
 		memType := typ.MemberType
 		for i, mem := range lit.Values {
 			expectType(s, mem, memType, &mem)
@@ -515,7 +518,7 @@ func (v *TypeCheck) CheckCompositeLiteral(s *SemanticAnalyzer, lit *parser.Compo
 			}
 		}
 
-	case parser.StructType:
+	case ast.StructType:
 		for i, mem := range lit.Values {
 			name := lit.Fields[i]
 
@@ -538,8 +541,8 @@ func (v *TypeCheck) CheckCompositeLiteral(s *SemanticAnalyzer, lit *parser.Compo
 	}
 }
 
-func (v *TypeCheck) CheckEnumLiteral(s *SemanticAnalyzer, lit *parser.EnumLiteral) {
-	enumType, ok := lit.Type.BaseType.ActualType().(parser.EnumType)
+func (v *TypeCheck) CheckEnumLiteral(s *SemanticAnalyzer, lit *ast.EnumLiteral) {
+	enumType, ok := lit.Type.BaseType.ActualType().(ast.EnumType)
 	if !ok {
 		panic("Type of enum literal was not `EnumType`")
 	}

@@ -1,4 +1,4 @@
-package parser
+package ast
 
 import (
 	"fmt"
@@ -338,7 +338,7 @@ func (v *Resolver) ResolveNode(node *Node) {
 						GenericArguments: v.ResolveTypeReferences(n, n.GenericArguments),
 					}
 					enum.Type = v.ResolveTypeReference(n, enum.Type)
-					enum.setPos(n.Pos())
+					enum.SetPos(n.Pos())
 
 					*node = enum
 					break
@@ -357,7 +357,7 @@ func (v *Resolver) ResolveNode(node *Node) {
 			}
 			fan.Function.Accesses = append(fan.Function.Accesses, fan)
 			*node = fan
-			(*node).setPos(n.Pos())
+			(*node).SetPos(n.Pos())
 			break
 		} else if ident.Type == IDENT_VARIABLE {
 			n.Variable = ident.Value.(*Variable)
@@ -420,7 +420,7 @@ func (v *Resolver) ResolveNode(node *Node) {
 						enum.CompositeLiteral = n
 						enum.CompositeLiteral.Type = &TypeReference{BaseType: member.Type, GenericArguments: et.GenericArguments}
 						enum.CompositeLiteral.InEnum = true
-						enum.setPos(n.Pos())
+						enum.SetPos(n.Pos())
 
 						*node = enum
 						break
@@ -489,8 +489,8 @@ func (v *Resolver) ResolveNode(node *Node) {
 							Type:              &TypeReference{BaseType: member.Type, GenericArguments: et.GenericArguments},
 							ParentEnumLiteral: enum,
 						}
-						enum.TupleLiteral.setPos(n.Pos())
-						enum.setPos(n.Pos())
+						enum.TupleLiteral.SetPos(n.Pos())
+						enum.SetPos(n.Pos())
 
 						*node = enum
 						break
@@ -509,7 +509,7 @@ func (v *Resolver) ResolveNode(node *Node) {
 			cast := &CastExpr{}
 			cast.Type = &TypeReference{BaseType: typ}
 			cast.Expr = n.Arguments[0]
-			cast.setPos(n.Pos())
+			cast.SetPos(n.Pos())
 			*node = cast
 		}
 

@@ -1,6 +1,7 @@
 package semantic
 
 import (
+	"github.com/ark-lang/ark/src/ast"
 	"github.com/ark-lang/ark/src/parser"
 )
 
@@ -11,23 +12,23 @@ func (v *AttributeCheck) Init(s *SemanticAnalyzer)       {}
 func (v *AttributeCheck) EnterScope(s *SemanticAnalyzer) {}
 func (v *AttributeCheck) ExitScope(s *SemanticAnalyzer)  {}
 
-func (v *AttributeCheck) PostVisit(s *SemanticAnalyzer, n parser.Node) {}
+func (v *AttributeCheck) PostVisit(s *SemanticAnalyzer, n ast.Node) {}
 
-func (v *AttributeCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
+func (v *AttributeCheck) Visit(s *SemanticAnalyzer, n ast.Node) {
 	switch n := n.(type) {
-	case *parser.TypeDecl:
+	case *ast.TypeDecl:
 		typ := n.NamedType.Type
 		switch typ.(type) {
-		case parser.StructType:
-			v.CheckStructType(s, typ.(parser.StructType))
+		case ast.StructType:
+			v.CheckStructType(s, typ.(ast.StructType))
 		}
 
-	case *parser.FunctionDecl:
+	case *ast.FunctionDecl:
 		v.CheckFunctionDecl(s, n)
-	//case *parser.TraitDecl:
+	//case *ast.TraitDecl:
 	//	v.CheckTraitDecl(s, n)
 
-	case *parser.VariableDecl:
+	case *ast.VariableDecl:
 		v.CheckVariableDecl(s, n)
 	}
 }
@@ -36,7 +37,7 @@ func (v *AttributeCheck) Finalize(s *SemanticAnalyzer) {
 
 }
 
-func (v *AttributeCheck) CheckFunctionDecl(s *SemanticAnalyzer, n *parser.FunctionDecl) {
+func (v *AttributeCheck) CheckFunctionDecl(s *SemanticAnalyzer, n *ast.FunctionDecl) {
 	v.CheckAttrsDistanceFromLine(s, n.Function.Type.Attrs(), n.Pos().Line, "function", n.Function.Name)
 
 	for _, attr := range n.Function.Type.Attrs() {
@@ -59,7 +60,7 @@ func (v *AttributeCheck) CheckFunctionDecl(s *SemanticAnalyzer, n *parser.Functi
 	}
 }
 
-func (v *AttributeCheck) CheckStructType(s *SemanticAnalyzer, n parser.StructType) {
+func (v *AttributeCheck) CheckStructType(s *SemanticAnalyzer, n ast.StructType) {
 	for _, attr := range n.Attrs() {
 		switch attr.Key {
 		case "packed":
@@ -74,7 +75,7 @@ func (v *AttributeCheck) CheckStructType(s *SemanticAnalyzer, n parser.StructTyp
 	}
 }
 
-/*func (v *AttributeCheck) CheckTraitDecl(s *SemanticAnalyzer, n *parser.TraitDecl) {
+/*func (v *AttributeCheck) CheckTraitDecl(s *SemanticAnalyzer, n *ast.TraitDecl) {
 	v.CheckAttrsDistanceFromLine(s, n.Trait.Attrs(), n.Pos().Line, "type", n.Trait.TypeName())
 
 	for _, attr := range n.Trait.Attrs() {
@@ -84,7 +85,7 @@ func (v *AttributeCheck) CheckStructType(s *SemanticAnalyzer, n parser.StructTyp
 	}
 }*/
 
-func (v *AttributeCheck) CheckVariableDecl(s *SemanticAnalyzer, n *parser.VariableDecl) {
+func (v *AttributeCheck) CheckVariableDecl(s *SemanticAnalyzer, n *ast.VariableDecl) {
 	v.CheckAttrsDistanceFromLine(s, n.Variable.Attrs, n.Pos().Line, "variable", n.Variable.Name)
 
 	for _, attr := range n.Variable.Attrs {

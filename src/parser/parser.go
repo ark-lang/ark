@@ -283,7 +283,7 @@ func (v *parser) parseAttributes() AttrGroup {
 			attr := &Attr{}
 
 			keyToken := v.expect(lexer.TOKEN_IDENTIFIER, "")
-			attr.setPos(keyToken.Where.Start())
+			attr.SetPos(keyToken.Where.Start())
 			attr.Key = keyToken.Contents
 
 			if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "=") {
@@ -553,7 +553,7 @@ func (v *parser) parseTypeDecl(isTopLevel bool) *TypeDeclNode {
 	startToken := v.consumeToken()
 
 	name := v.expect(lexer.TOKEN_IDENTIFIER, "")
-	if isReservedKeyword(name.Contents) {
+	if IsReservedKeyword(name.Contents) {
 		v.err("Cannot use reserved keyword `%s` as type name", name.Contents)
 	}
 
@@ -637,7 +637,7 @@ func (v *parser) parseEnumEntry() *EnumEntryNode {
 	}
 	name := v.consumeToken()
 
-	if isReservedKeyword(name.Contents) {
+	if IsReservedKeyword(name.Contents) {
 		v.err("Cannot use reserved keyword `%s` as name for enum entry", name.Contents)
 	}
 

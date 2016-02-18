@@ -1,7 +1,8 @@
-package parser
+package ast
 
 import (
 	"github.com/ark-lang/ark/src/lexer"
+	"github.com/ark-lang/ark/src/parser"
 	"github.com/ark-lang/ark/src/util/log"
 )
 
@@ -32,7 +33,7 @@ func LoadRuntime() {
 	}
 	lexer.Lex(sourcefile)
 
-	tree, deps := Parse(sourcefile)
+	tree, deps := parser.Parse(sourcefile)
 	if len(deps) > 0 {
 		panic("INTERNAL ERROR: No dependencies allowed in runtime")
 	}

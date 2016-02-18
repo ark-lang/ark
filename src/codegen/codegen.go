@@ -3,11 +3,11 @@ package codegen
 import (
 	"fmt"
 
-	"github.com/ark-lang/ark/src/parser"
+	"github.com/ark-lang/ark/src/ast"
 )
 
 type Codegen interface {
-	Generate(input []*parser.Module)
+	Generate(input []*ast.Module)
 }
 
 type OutputType int

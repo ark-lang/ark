@@ -6,8 +6,8 @@ import (
 	"os"
 	"os/exec"
 
+	"github.com/ark-lang/ark/src/ast"
 	"github.com/ark-lang/ark/src/codegen"
-	"github.com/ark-lang/ark/src/parser"
 	"github.com/ark-lang/ark/src/util/log"
 
 	"github.com/ark-lang/go-llvm/llvm"
@@ -25,7 +25,7 @@ func (v *Codegen) createIR(mod *WrappedModule) string {
 }
 
 func (v *Codegen) createObjectOrAssembly(mod *WrappedModule, typ llvm.CodeGenFileType) string {
-	filename := v.OutputName + "-" + mod.MangledName(parser.MANGLE_ARK_UNSTABLE)
+	filename := v.OutputName + "-" + mod.MangledName(ast.MANGLE_ARK_UNSTABLE)
 	if typ == llvm.AssemblyFile {
 		filename += ".s"
 	} else {

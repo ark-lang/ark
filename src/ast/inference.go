@@ -1,4 +1,4 @@
-package parser
+package ast
 
 import (
 	"fmt"
@@ -6,6 +6,7 @@ import (
 	"reflect"
 
 	"github.com/ark-lang/ark/src/lexer"
+	"github.com/ark-lang/ark/src/parser"
 	"github.com/ark-lang/ark/src/util"
 	"github.com/ark-lang/ark/src/util/log"
 )
@@ -655,7 +656,7 @@ func (v *Inferrer) HandleTyped(pos lexer.Position, typed Typed) int {
 
 		// If we're dealing with a comparison operation, we know that both
 		// sides must be of the same type, and that the result will be a bool
-		case OP_COMPARISON:
+		case parser.OP_COMPARISON:
 			if typed.Lhand.GetType() == nil || typed.Rhand.GetType() == nil {
 				v.AddEqualsConstraint(a, b)
 			}
@@ -664,7 +665,7 @@ func (v *Inferrer) HandleTyped(pos lexer.Position, typed Typed) int {
 		// If we're dealing with bitwise operations we know that both sides
 		// must be the same type, and that the result will be of that type
 		// aswell.
-		case OP_BITWISE:
+		case parser.OP_BITWISE:
 			if typed.Lhand.GetType() != nil && typed.Rhand.GetType() != nil {
 				v.AddSimpleIsConstraint(ann.Id, typed.Lhand.GetType())
 			} else {
@@ -676,7 +677,7 @@ func (v *Inferrer) HandleTyped(pos lexer.Position, typed Typed) int {
 		// sides must be of the same type, and that the result will be of that
 		// type aswell.
 		// TODO: These assumptions don't hold once we add operator overloading
-		case OP_ARITHMETIC:
+		case parser.OP_ARITHMETIC:
 			if typed.Lhand.GetType() != nil && typed.Rhand.GetType() != nil {
 				v.AddSimpleIsConstraint(ann.Id, typed.Lhand.GetType())
 			} else {
@@ -686,7 +687,7 @@ func (v *Inferrer) HandleTyped(pos lexer.Position, typed Typed) int {
 
 		// If we're dealing with a logical operation, we know that both sides
 		// must be booleans, and that the result will also be a boolean.
-		case OP_LOGICAL:
+		case parser.OP_LOGICAL:
 			v.AddSimpleIsConstraint(a, &TypeReference{BaseType: PRIMITIVE_bool})
 			v.AddSimpleIsConstraint(b, &TypeReference{BaseType: PRIMITIVE_bool})
 			v.AddSimpleIsConstraint(ann.Id, &TypeReference{BaseType: PRIMITIVE_bool})
@@ -701,18 +702,18 @@ func (v *Inferrer) HandleTyped(pos lexer.Position, typed Typed) int {
 		switch typed.Op {
 		// If we're dealing with a logical not the expression being not'ed must
 		// be a boolean, and the resul will also be a boolean.
-		case UNOP_LOG_NOT:
+		case parser.UNOP_LOG_NOT:
 			v.AddSimpleIsConstraint(id, &TypeReference{BaseType: PRIMITIVE_bool})
 			v.AddSimpleIsConstraint(ann.Id, &TypeReference{BaseType: PRIMITIVE_bool})
 
 		// If we're dealing with a bitwise not, the type will be the same type
 		// as the expression acted upon.
-		case UNOP_BIT_NOT:
+		case parser.UNOP_BIT_NOT:
 			v.AddEqualsConstraint(ann.Id, id)
 
 		// If we're dealing with a arithmetic negation, the type will be the
 		// same type as the expression acted upon.
-		case UNOP_NEGATIVE:
+		case parser.UNOP_NEGATIVE:
 			v.AddEqualsConstraint(ann.Id, id)
 
 		}
@@ -1213,7 +1214,7 @@ func (v *Inferrer) Finalize() {
 					GenericArguments: sae.GenericArguments,
 					ParentFunction:   sae.ParentFunction,
 				}
-				fae.setPos(sae.Pos())
+				fae.SetPos(sae.Pos())
 
 				n.Function = fae
 				fn.Accesses = append(fn.Accesses, fae)
@@ -1231,7 +1232,7 @@ func (v *Inferrer) Finalize() {
 
 					if accessType.BaseType.LevelsOfIndirection() == recType.LevelsOfIndirection()+1 {
 						deref := &DerefAccessExpr{Expr: n.ReceiverAccess}
-						deref.setPos(n.ReceiverAccess.Pos())
+						deref.SetPos(n.ReceiverAccess.Pos())
 						n.ReceiverAccess = deref
 					}
 				}
@@ -1247,7 +1248,7 @@ func (v *Inferrer) Finalize() {
 			// member from a pointer type.
 			if n.Struct.GetType().BaseType.ActualType().LevelsOfIndirection() == 1 {
 				deref := &DerefAccessExpr{Expr: n.Struct}
-				deref.setPos(n.Struct.Pos())
+				deref.SetPos(n.Struct.Pos())
 				n.Struct = deref
 			}
 

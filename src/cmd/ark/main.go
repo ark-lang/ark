@@ -10,6 +10,7 @@ import (
 
 	"gopkg.in/alecthomas/kingpin.v2"
 
+	"github.com/ark-lang/ark/src/ast"
 	"github.com/ark-lang/ark/src/codegen"
 	"github.com/ark-lang/ark/src/codegen/LLVMCodegen"
 	"github.com/ark-lang/ark/src/doc"
@@ -83,24 +84,24 @@ type Context struct {
 
 	Input string
 
-	moduleLookup *parser.ModuleLookup
-	depGraph     *parser.DependencyGraph
-	modules      []*parser.Module
+	moduleLookup *ast.ModuleLookup
+	depGraph     *ast.DependencyGraph
+	modules      []*ast.Module
 
-	modulesToRead []*parser.ModuleName
+	modulesToRead []*ast.ModuleName
 }
 
 func NewContext() *Context {
 	res := &Context{
-		moduleLookup: parser.NewModuleLookup(""),
-		depGraph:     parser.NewDependencyGraph(),
+		moduleLookup: ast.NewModuleLookup(""),
+		depGraph:     ast.NewDependencyGraph(),
 	}
 	return res
 }
 
 func (v *Context) Build(output string, outputType codegen.OutputType, usedCodegen string, optLevel int) {
 	// Start by loading the runtime
-	parser.LoadRuntime()
+	ast.LoadRuntime()
 
 	// Parse the passed files
 	v.parseFiles()
@@ -109,11 +110,11 @@ func (v *Context) Build(output string, outputType codegen.OutputType, usedCodege
 	hasMainFunc := false
 	log.Timed("resolve phase", "", func() {
 		for _, module := range v.modules {
-			parser.Resolve(module, v.moduleLookup)
+			ast.Resolve(module, v.moduleLookup)
 
 			// Use module scope to check for main function
-			mainIdent := module.ModScope.GetIdent(parser.UnresolvedName{Name: "main"})
-			if mainIdent != nil && mainIdent.Type == parser.IDENT_FUNCTION && mainIdent.Public {
+			mainIdent := module.ModScope.GetIdent(ast.UnresolvedName{Name: "main"})
+			if mainIdent != nil && mainIdent.Type == ast.IDENT_FUNCTION && mainIdent.Public {
 				hasMainFunc = true
 			}
 		}
@@ -130,7 +131,7 @@ func (v *Context) Build(output string, outputType codegen.OutputType, usedCodege
 	log.Timed("inference phase", "", func() {
 		for _, module := range v.modules {
 			for _, submod := range module.Parts {
-				parser.Infer(submod)
+				ast.Infer(submod)
 
 				// Dump AST
 				log.Debugln("main", "AST of submodule `%s/%s`:", module.Name, submod.File.Name)
@@ -147,7 +148,7 @@ func (v *Context) Build(output string, outputType codegen.OutputType, usedCodege
 		for _, module := range v.modules {
 			for _, submod := range module.Parts {
 				sem := semantic.NewSemanticAnalyzer(submod, *buildOwnership, *ignoreUnused)
-				vis := parser.NewASTVisitor(sem)
+				vis := ast.NewASTVisitor(sem)
 				vis.VisitSubmodule(submod)
 				sem.Finalize()
 			}
@@ -190,8 +191,8 @@ func (v *Context) Docgen(dir string) {
 func (v *Context) parseFiles() {
 	if strings.HasSuffix(v.Input, ".ark") {
 		// Handle the special case of a single .ark file
-		modname := &parser.ModuleName{Parts: []string{"__main"}}
-		module := &parser.Module{
+		modname := &ast.ModuleName{Parts: []string{"__main"}}
+		module := &ast.Module{
 			Name:    modname,
 			Dirpath: "",
 		}
@@ -205,7 +206,7 @@ func (v *Context) parseFiles() {
 			setupErr("Invalid module name: %s", v.Input)
 		}
 
-		modname := &parser.ModuleName{Parts: strings.Split(v.Input, "::")}
+		modname := &ast.ModuleName{Parts: strings.Split(v.Input, "::")}
 		v.modulesToRead = append(v.modulesToRead, modname)
 	}
 
@@ -228,7 +229,7 @@ func (v *Context) parseFiles() {
 				setupErr("Expected path `%s` to be directory, was file.", dirpath)
 			}
 
-			module := &parser.Module{
+			module := &ast.Module{
 				Name:    modname,
 				Dirpath: dirpath,
 			}
@@ -268,13 +269,12 @@ func (v *Context) parseFiles() {
 	// construction
 	log.Timed("construction phase", "", func() {
 		for _, module := range v.modules {
-			parser.Construct(module, v.moduleLookup)
-
+			ast.Construct(module, v.moduleLookup)
 		}
 	})
 }
 
-func (v *Context) parseFile(path string, module *parser.Module) {
+func (v *Context) parseFile(path string, module *ast.Module) {
 	// Read
 	sourcefile, err := lexer.NewSourcefile(path)
 	if err != nil {
@@ -290,7 +290,7 @@ func (v *Context) parseFile(path string, module *parser.Module) {
 
 	// Add dependencies to parse array
 	for _, dep := range deps {
-		depname := parser.NewModuleName(dep)
+		depname := ast.NewModuleName(dep)
 		v.modulesToRead = append(v.modulesToRead, depname)
 		v.depGraph.AddDependency(module.Name, depname)
 

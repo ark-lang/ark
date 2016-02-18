@@ -1,4 +1,4 @@
-package parser
+package ast
 
 import (
 	"bytes"
@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/ark-lang/ark/src/lexer"
+	"github.com/ark-lang/ark/src/parser"
 	"github.com/ark-lang/ark/src/util/log"
 )
 
@@ -14,7 +15,7 @@ type Module struct {
 	Name            *ModuleName
 	ModScope        *Scope
 	Dirpath         string
-	Trees           []*ParseTree
+	Trees           []*parser.ParseTree
 	Parts           map[string]*Submodule
 	LinkedLibraries []string
 	resolved        bool
@@ -88,7 +89,7 @@ type ModuleName struct {
 	Parts []string
 }
 
-func NewModuleName(node *NameNode) *ModuleName {
+func NewModuleName(node *parser.NameNode) *ModuleName {
 	res := &ModuleName{
 		Parts: make([]string, len(node.Modules)+1),
 	}

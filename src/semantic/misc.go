@@ -1,7 +1,7 @@
 package semantic
 
 import (
-	"github.com/ark-lang/ark/src/parser"
+	"github.com/ark-lang/ark/src/ast"
 	"github.com/ark-lang/ark/src/util"
 )
 
@@ -13,23 +13,23 @@ func (v *MiscCheck) Init(s *SemanticAnalyzer)       {}
 func (v *MiscCheck) EnterScope(s *SemanticAnalyzer) {}
 func (v *MiscCheck) ExitScope(s *SemanticAnalyzer)  {}
 
-func (v *MiscCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
+func (v *MiscCheck) Visit(s *SemanticAnalyzer, n ast.Node) {
 	switch n.(type) {
-	case *parser.FunctionDecl, *parser.LambdaExpr:
+	case *ast.FunctionDecl, *ast.LambdaExpr:
 		v.InFunction++
 	}
 
 	if v.InFunction <= 0 {
 		switch n.(type) {
-		case *parser.ReturnStat:
+		case *ast.ReturnStat:
 			s.Err(n, "%s must be in function", util.CapitalizeFirst(n.NodeName()))
 		}
 	} else {
 		switch n.(type) {
-		case *parser.TypeDecl:
+		case *ast.TypeDecl:
 			s.Err(n, "%s must not be in function", util.CapitalizeFirst(n.NodeName()))
 
-		case *parser.FunctionDecl:
+		case *ast.FunctionDecl:
 			if v.InFunction > 1 {
 				s.Err(n, "%s must not be in function", util.CapitalizeFirst(n.NodeName()))
 			}
@@ -37,9 +37,9 @@ func (v *MiscCheck) Visit(s *SemanticAnalyzer, n parser.Node) {
 	}
 }
 
-func (v *MiscCheck) PostVisit(s *SemanticAnalyzer, n parser.Node) {
+func (v *MiscCheck) PostVisit(s *SemanticAnalyzer, n ast.Node) {
 	switch n.(type) {
-	case *parser.FunctionDecl, *parser.LambdaExpr:
+	case *ast.FunctionDecl, *ast.LambdaExpr:
 		v.InFunction--
 	}
 }
