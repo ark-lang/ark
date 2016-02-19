@@ -101,7 +101,7 @@ func NewContext() *Context {
 
 func (v *Context) Build(output string, outputType codegen.OutputType, usedCodegen string, optLevel int) {
 	// Start by loading the runtime
-	ast.LoadRuntime()
+	LoadRuntime()
 
 	// Parse the passed files
 	v.parseFiles()
