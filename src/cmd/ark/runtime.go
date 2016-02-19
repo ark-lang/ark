@@ -5,7 +5,6 @@ import (
 	"github.com/ark-lang/ark/src/lexer"
 	"github.com/ark-lang/ark/src/parser"
 	"github.com/ark-lang/ark/src/semantic"
-	"github.com/ark-lang/ark/src/util/log"
 )
 
 // TODO: Move this at a file and handle locating/specifying this file
@@ -14,10 +13,8 @@ type rune u32;
 type string []u8;
 `
 
-var runtimeModule *ast.Module
-
 func LoadRuntime() {
-	runtimeModule = &ast.Module{
+	runtimeModule := &ast.Module{
 		Name: &ast.ModuleName{
 			Parts: []string{"__runtime"},
 		},
@@ -53,25 +50,5 @@ func LoadRuntime() {
 		sem.Finalize()
 	}
 
-	LoadValues()
-}
-
-var runeType ast.Type
-var stringType ast.Type
-
-func LoadValues() {
-	rts := &ast.RuntimeTypes{
-		RuneType: runtimeMustLoadType("rune"),
-		StringType: runtimeMustLoadType("string"),
-	}
-	ast.SetRuntimeTypes(rts)
-}
-
-func runtimeMustLoadType(name string) ast.Type {
-	log.Debugln("runtime", "Loading runtime type: %s", name)
-	ident := runtimeModule.ModScope.GetIdent(ast.UnresolvedName{Name: name})
-	if ident.Type != ast.IDENT_TYPE {
-		panic("INTERNAL ERROR: Type not defined in runtime: " + name)
-	}
-	return ident.Value.(ast.Type)
+	ast.LoadRuntimeModule(runtimeModule)
 }
