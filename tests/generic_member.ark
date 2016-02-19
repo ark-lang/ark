@@ -1,0 +1,26 @@
+
+type Cell struct<T> {
+	data: T,
+};
+
+func (Cell) new<T>(val: T) -> Cell<T> {
+	res := Cell<T>{data: val};
+	return res;
+}
+
+func (this: Cell<T>) get() -> T {
+	return this.data;
+}
+
+func (mut this: Cell<T>) set(val: T) {
+	this.data = val;
+}
+
+pub func main() -> int {
+ 	a := Cell::new<int>(13);
+
+ 	// I am fully aware that this doesn't actually do anything
+ 	a.set(42);
+
+ 	return 13 - a.get();
+}

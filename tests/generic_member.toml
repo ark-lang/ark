@@ -1,0 +1,13 @@
+Name       = "generic_member"
+Sourcefile = "generic_member.ark"
+
+CompilerArgs = []
+RunArgs      = []
+
+CompilerError = 0
+RunError      = 0
+
+Input = ""
+
+CompilerOutput = ""
+RunOutput      = ""

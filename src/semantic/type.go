@@ -9,13 +9,13 @@ import (
 // TODO: do we need an ImplicitCastExpr node? Or just an InterfaceWrapExpr node.
 func expectType(s *SemanticAnalyzer, loc ast.Locatable, expect *ast.TypeReference, expr *ast.Expr) {
 	exprType := (*expr).GetType()
-	if expect.Equals(exprType) {
+	if expect.ActualTypesEqual(exprType) {
 		return
 	}
 
 	if expectPtr, ok := expect.BaseType.(ast.PointerType); ok {
 		if exprPtr, ok := exprType.BaseType.(ast.PointerType); ok {
-			if expectPtr.Addressee.Equals(exprPtr.Addressee) && exprPtr.IsMutable && !expectPtr.IsMutable {
+			if expectPtr.Addressee.ActualTypesEqual(exprPtr.Addressee) && exprPtr.IsMutable && !expectPtr.IsMutable {
 				return
 			}
 		}
@@ -23,7 +23,7 @@ func expectType(s *SemanticAnalyzer, loc ast.Locatable, expect *ast.TypeReferenc
 
 	if expectPtr, ok := expect.BaseType.(ast.ReferenceType); ok {
 		if exprPtr, ok := exprType.BaseType.(ast.ReferenceType); ok {
-			if expectPtr.Referrer.Equals(exprPtr.Referrer) && exprPtr.IsMutable && !expectPtr.IsMutable {
+			if expectPtr.Referrer.ActualTypesEqual(exprPtr.Referrer) && exprPtr.IsMutable && !expectPtr.IsMutable {
 				return
 			}
 		}
@@ -284,7 +284,7 @@ func (v *TypeCheck) CheckUnaryExpr(s *SemanticAnalyzer, expr *ast.UnaryExpr) {
 func (v *TypeCheck) CheckBinaryExpr(s *SemanticAnalyzer, expr *ast.BinaryExpr) {
 	switch expr.Op {
 	case parser.BINOP_EQ, parser.BINOP_NOT_EQ:
-		if !expr.Lhand.GetType().Equals(expr.Rhand.GetType()) {
+		if !expr.Lhand.GetType().ActualTypesEqual(expr.Rhand.GetType()) {
 			s.Err(expr, "Operands for binary operator `%s` must have the same type, have `%s` and `%s`",
 				expr.Op.OpString(), expr.Lhand.GetType().String(), expr.Rhand.GetType().String())
 		} else if lht := expr.Lhand.GetType(); !(lht.ActualTypesEqual(typeRefTo(ast.PRIMITIVE_bool)) || lht.BaseType.IsIntegerType() || lht.BaseType.IsFloatingType() || lht.BaseType.LevelsOfIndirection() > 0) {
@@ -295,7 +295,7 @@ func (v *TypeCheck) CheckBinaryExpr(s *SemanticAnalyzer, expr *ast.BinaryExpr) {
 	case parser.BINOP_ADD, parser.BINOP_SUB, parser.BINOP_MUL, parser.BINOP_DIV, parser.BINOP_MOD,
 		parser.BINOP_GREATER, parser.BINOP_LESS, parser.BINOP_GREATER_EQ, parser.BINOP_LESS_EQ,
 		parser.BINOP_BIT_AND, parser.BINOP_BIT_OR, parser.BINOP_BIT_XOR:
-		if !expr.Lhand.GetType().Equals(expr.Rhand.GetType()) {
+		if !expr.Lhand.GetType().ActualTypesEqual(expr.Rhand.GetType()) {
 			s.Err(expr, "Operands for binary operator `%s` must have the same type, have `%s` and `%s`",
 				expr.Op.OpString(), expr.Lhand.GetType().String(), expr.Rhand.GetType().String())
 		} else if lht := expr.Lhand.GetType(); !(lht.BaseType.IsIntegerType() || lht.BaseType.IsFloatingType() || lht.BaseType.LevelsOfIndirection() > 0) {
@@ -313,7 +313,7 @@ func (v *TypeCheck) CheckBinaryExpr(s *SemanticAnalyzer, expr *ast.BinaryExpr) {
 		}
 
 	case parser.BINOP_LOG_AND, parser.BINOP_LOG_OR:
-		if !expr.Lhand.GetType().ActualTypesEqual(typeRefTo(ast.PRIMITIVE_bool)) || !expr.Lhand.GetType().Equals(expr.Rhand.GetType()) {
+		if !expr.Lhand.GetType().ActualTypesEqual(typeRefTo(ast.PRIMITIVE_bool)) || !expr.Lhand.GetType().ActualTypesEqual(expr.Rhand.GetType()) {
 			s.Err(expr, "Operands for logical operator `%s` must have same boolean type, have `%s` and `%s`",
 				expr.Op.OpString(), expr.Lhand.GetType().String(), expr.Rhand.GetType().String())
 		}
@@ -324,7 +324,7 @@ func (v *TypeCheck) CheckBinaryExpr(s *SemanticAnalyzer, expr *ast.BinaryExpr) {
 }
 
 func (v *TypeCheck) CheckCastExpr(s *SemanticAnalyzer, expr *ast.CastExpr) {
-	if expr.Type.Equals(expr.Expr.GetType()) {
+	if expr.Type.ActualTypesEqual(expr.Expr.GetType()) {
 		s.Warn(expr, "Casting expression of type `%s` to the same type",
 			expr.Type.String())
 	} else if !expr.Expr.GetType().CanCastTo(expr.Type) {
@@ -358,16 +358,18 @@ func (v *TypeCheck) CheckCallExpr(s *SemanticAnalyzer, expr *ast.CallExpr) {
 	if argLen < paramLen {
 		s.Err(expr, "Call to `%s` has too few arguments, expects %d, have %d",
 			fnName, paramLen, argLen)
+		return
 	} else if !isVariadic && argLen > paramLen {
 		// we only care if it's not variadic
 		s.Err(expr, "Call to `%s` has too many arguments, expects %d, have %d",
 			fnName, paramLen, argLen)
+		return
 	}
 
 	if fnType.Receiver != nil {
-		if !expr.ReceiverAccess.GetType().BaseType.Equals(fnType.Receiver) {
+		if !expr.ReceiverAccess.GetType().ActualTypesEqual(fnType.Receiver) {
 			s.Err(expr, "Mismatched receiver types for call to `%s`: `%s` and `%s`",
-				fnName, expr.ReceiverAccess.GetType().BaseType.TypeName(), fnType.Receiver.TypeName())
+				fnName, expr.ReceiverAccess.GetType(), fnType.Receiver)
 		}
 	}
 

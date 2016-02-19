@@ -248,23 +248,23 @@ func (v *Constructor) constructTypeReferences(refs []*parser.TypeReferenceNode) 
 	return ret
 }
 
-func (c *Constructor) constructReferenceTypeNode(v *parser.ReferenceTypeNode) Type {
+func (c *Constructor) constructReferenceTypeNode(v *parser.ReferenceTypeNode) ReferenceType {
 	targetType := c.constructTypeReferenceNode(v.TargetType)
 	return ReferenceTo(targetType, v.Mutable)
 }
 
-func (c *Constructor) constructPointerTypeNode(v *parser.PointerTypeNode) Type {
+func (c *Constructor) constructPointerTypeNode(v *parser.PointerTypeNode) PointerType {
 	targetType := c.constructTypeReferenceNode(v.TargetType)
 	return PointerTo(targetType, v.Mutable)
 }
 
-func (c *Constructor) constructTupleTypeNode(v *parser.TupleTypeNode) Type {
+func (c *Constructor) constructTupleTypeNode(v *parser.TupleTypeNode) TupleType {
 	res := TupleType{}
 	res.Members = c.constructTypeReferences(v.MemberTypes)
 	return res
 }
 
-func (c *Constructor) constructFunctionTypeNode(v *parser.FunctionTypeNode) Type {
+func (c *Constructor) constructFunctionTypeNode(v *parser.FunctionTypeNode) FunctionType {
 	res := FunctionType{
 		IsVariadic: v.IsVariadic,
 		Parameters: c.constructTypeReferences(v.ParameterTypes),
@@ -279,16 +279,16 @@ func (c *Constructor) constructFunctionTypeNode(v *parser.FunctionTypeNode) Type
 	return res
 }
 
-func (c *Constructor) constructArrayTypeNode(v *parser.ArrayTypeNode) Type {
+func (c *Constructor) constructArrayTypeNode(v *parser.ArrayTypeNode) ArrayType {
 	memberType := c.constructTypeReferenceNode(v.MemberType)
 	return ArrayOf(memberType, v.IsFixedLength, v.Length)
 }
 
-func (c *Constructor) constructNamedTypeNode(v *parser.NamedTypeNode) Type {
+func (c *Constructor) constructNamedTypeNode(v *parser.NamedTypeNode) UnresolvedType {
 	return UnresolvedType{Name: toUnresolvedName(v.Name)}
 }
 
-func (c *Constructor) constructInterfaceTypeNode(v *parser.InterfaceTypeNode) Type {
+func (c *Constructor) constructInterfaceTypeNode(v *parser.InterfaceTypeNode) InterfaceType {
 	interfaceType := InterfaceType{
 		attrs: v.Attrs(),
 	}
@@ -309,7 +309,7 @@ func (c *Constructor) constructInterfaceTypeNode(v *parser.InterfaceTypeNode) Ty
 	return interfaceType
 }
 
-func (c *Constructor) constructStructTypeNode(v *parser.StructTypeNode) Type {
+func (c *Constructor) constructStructTypeNode(v *parser.StructTypeNode) StructType {
 	structType := StructType{
 		attrs:             v.Attrs(),
 		GenericParameters: c.constructGenericSigilNode(v.GenericSigil),
@@ -322,7 +322,7 @@ func (c *Constructor) constructStructTypeNode(v *parser.StructTypeNode) Type {
 	return structType
 }
 
-func (c *Constructor) constructEnumTypeNode(v *parser.EnumTypeNode) Type {
+func (c *Constructor) constructEnumTypeNode(v *parser.EnumTypeNode) EnumType {
 	enumType := EnumType{
 		Simple:            true,
 		Members:           make([]EnumTypeMember, len(v.Members)),
@@ -369,7 +369,7 @@ func (c *Constructor) constructEnumTypeNode(v *parser.EnumTypeNode) Type {
 	return enumType
 }
 
-func (c *Constructor) constructTypeDeclNode(v *parser.TypeDeclNode) Node {
+func (c *Constructor) constructTypeDeclNode(v *parser.TypeDeclNode) *TypeDecl {
 	var paramNodes []parser.ParseNode
 
 	if v.GenericSigil != nil {
@@ -400,14 +400,14 @@ func (c *Constructor) constructLinkDirectiveNode(v *parser.LinkDirectiveNode) No
 	return nil
 }
 
-func (c *Constructor) constructUseDirectiveNode(v *parser.UseDirectiveNode) Node {
+func (c *Constructor) constructUseDirectiveNode(v *parser.UseDirectiveNode) *UseDirective {
 	res := &UseDirective{}
 	res.ModuleName = toUnresolvedName(v.Module)
 	res.SetPos(v.Where().Start())
 	return res
 }
 
-func (c *Constructor) constructFunctionDeclNode(v *parser.FunctionDeclNode) Node {
+func (c *Constructor) constructFunctionDeclNode(v *parser.FunctionDeclNode) *FunctionDecl {
 	function := c.constructFunctionNode(v.Function)
 	function.Type.attrs = v.Attrs()
 
@@ -422,7 +422,7 @@ func (c *Constructor) constructFunctionDeclNode(v *parser.FunctionDeclNode) Node
 	return res
 }
 
-func (c *Constructor) constructVarDeclNode(v *parser.VarDeclNode) Node {
+func (c *Constructor) constructVarDeclNode(v *parser.VarDeclNode) *VariableDecl {
 	if parser.IsReservedKeyword(v.Name.Value) {
 		c.err(v.Name.Where, "Variable name was reserved keyword `%s`", v.Name.Value)
 	}
@@ -453,7 +453,7 @@ func (c *Constructor) constructVarDeclNode(v *parser.VarDeclNode) Node {
 	return res
 }
 
-func (c *Constructor) constructDestructVarDeclNode(v *parser.DestructVarDeclNode) Node {
+func (c *Constructor) constructDestructVarDeclNode(v *parser.DestructVarDeclNode) *DestructVarDecl {
 	res := &DestructVarDecl{
 		docs:          v.DocComments(),
 		Variables:     make([]*Variable, len(v.Names)),
@@ -480,27 +480,27 @@ func (c *Constructor) constructDestructVarDeclNode(v *parser.DestructVarDeclNode
 	return res
 }
 
-func (c *Constructor) constructDeferStatNode(v *parser.DeferStatNode) Node {
+func (c *Constructor) constructDeferStatNode(v *parser.DeferStatNode) *DeferStat {
 	res := &DeferStat{}
-	res.Call = c.constructExpr(v.Call).(*CallExpr) // TODO: Error message
+	res.Call = c.constructCallExprNode(v.Call)
 	res.SetPos(v.Where().Start())
 	return res
 }
 
-func (c *Constructor) constructIfStatNode(v *parser.IfStatNode) Node {
+func (c *Constructor) constructIfStatNode(v *parser.IfStatNode) *IfStat {
 	res := &IfStat{}
 	for _, part := range v.Parts {
-		res.Exprs = append(res.Exprs, c.constructExpr(part.Condition))       // TODO: Error message
-		res.Bodies = append(res.Bodies, c.constructNode(part.Body).(*Block)) // TODO: Error message
+		res.Exprs = append(res.Exprs, c.constructExpr(part.Condition))
+		res.Bodies = append(res.Bodies, c.constructBlockNode(part.Body))
 	}
 	if v.ElseBody != nil {
-		res.Else = c.constructNode(v.ElseBody).(*Block) // TODO: Error message
+		res.Else = c.constructBlockNode(v.ElseBody)
 	}
 	res.SetPos(v.Where().Start())
 	return res
 }
 
-func (c *Constructor) constructMatchStatNode(v *parser.MatchStatNode) Node {
+func (c *Constructor) constructMatchStatNode(v *parser.MatchStatNode) *MatchStat {
 	res := &MatchStat{}
 	res.Target = c.constructExpr(v.Value)
 	res.Branches = make(map[Expr]Node)
@@ -513,7 +513,7 @@ func (c *Constructor) constructMatchStatNode(v *parser.MatchStatNode) Node {
 	return res
 }
 
-func (c *Constructor) constructLoopStatNode(v *parser.LoopStatNode) Node {
+func (c *Constructor) constructLoopStatNode(v *parser.LoopStatNode) *LoopStat {
 	res := &LoopStat{}
 	if v.Condition != nil {
 		res.LoopType = LOOP_TYPE_CONDITIONAL
@@ -521,12 +521,12 @@ func (c *Constructor) constructLoopStatNode(v *parser.LoopStatNode) Node {
 	} else {
 		res.LoopType = LOOP_TYPE_INFINITE
 	}
-	res.Body = c.constructNode(v.Body).(*Block) // TODO: Error message
+	res.Body = c.constructBlockNode(v.Body)
 	res.SetPos(v.Where().Start())
 	return res
 }
 
-func (c *Constructor) constructReturnStatNode(v *parser.ReturnStatNode) Node {
+func (c *Constructor) constructReturnStatNode(v *parser.ReturnStatNode) *ReturnStat {
 	res := &ReturnStat{}
 	if v.Value != nil {
 		res.Value = c.constructExpr(v.Value)
@@ -535,26 +535,26 @@ func (c *Constructor) constructReturnStatNode(v *parser.ReturnStatNode) Node {
 	return res
 }
 
-func (c *Constructor) constructBreakStatNode(v *parser.BreakStatNode) Node {
+func (c *Constructor) constructBreakStatNode(v *parser.BreakStatNode) *BreakStat {
 	res := &BreakStat{}
 	res.SetPos(v.Where().Start())
 	return res
 }
 
-func (c *Constructor) constructNextStatNode(v *parser.NextStatNode) Node {
+func (c *Constructor) constructNextStatNode(v *parser.NextStatNode) *NextStat {
 	res := &NextStat{}
 	res.SetPos(v.Where().Start())
 	return res
 }
 
-func (c *Constructor) constructBlockStatNode(v *parser.BlockStatNode) Node {
+func (c *Constructor) constructBlockStatNode(v *parser.BlockStatNode) *BlockStat {
 	res := &BlockStat{}
-	res.Block = c.constructNode(v.Body).(*Block) // TODO: Error message
+	res.Block = c.constructBlockNode(v.Body)
 	res.SetPos(v.Where().Start())
 	return res
 }
 
-func (c *Constructor) constructBlockNode(v *parser.BlockNode) Node {
+func (c *Constructor) constructBlockNode(v *parser.BlockNode) *Block {
 	res := &Block{}
 	res.NonScoping = v.NonScoping
 	res.Nodes = c.constructNodes(v.Nodes)
@@ -562,7 +562,7 @@ func (c *Constructor) constructBlockNode(v *parser.BlockNode) Node {
 	return res
 }
 
-func (c *Constructor) constructCallStatNode(v *parser.CallStatNode) Node {
+func (c *Constructor) constructCallStatNode(v *parser.CallStatNode) *CallStat {
 	res := &CallStat{}
 	res.Call = c.constructExpr(v.Call).(*CallExpr)
 	res.SetPos(v.Where().Start())
@@ -635,7 +635,7 @@ func (c *Constructor) constructBinopAssignStatNode(v *parser.BinopAssignStatNode
 	return res
 }
 
-func (c *Constructor) constructBinaryExprNode(v *parser.BinaryExprNode) Expr {
+func (c *Constructor) constructBinaryExprNode(v *parser.BinaryExprNode) *BinaryExpr {
 	res := &BinaryExpr{
 		Lhand: c.constructExpr(v.Lhand),
 		Rhand: c.constructExpr(v.Rhand),
@@ -645,7 +645,7 @@ func (c *Constructor) constructBinaryExprNode(v *parser.BinaryExprNode) Expr {
 	return res
 }
 
-func (c *Constructor) constructArrayLenExprNode(v *parser.ArrayLenExprNode) Expr {
+func (c *Constructor) constructArrayLenExprNode(v *parser.ArrayLenExprNode) *ArrayLenExpr {
 	res := &ArrayLenExpr{}
 	if v.ArrayExpr != nil {
 		res.Expr = c.constructExpr(v.ArrayExpr)
@@ -654,7 +654,7 @@ func (c *Constructor) constructArrayLenExprNode(v *parser.ArrayLenExprNode) Expr
 	return res
 }
 
-func (c *Constructor) constructSizeofExprNode(v *parser.SizeofExprNode) Expr {
+func (c *Constructor) constructSizeofExprNode(v *parser.SizeofExprNode) *SizeofExpr {
 	res := &SizeofExpr{}
 	if v.Value != nil {
 		res.Expr = c.constructExpr(v.Value)
@@ -682,7 +682,7 @@ func (c *Constructor) constructAddrofExprNode(v *parser.AddrofExprNode) Expr {
 	return res
 }
 
-func (c *Constructor) constructCastExprNode(v *parser.CastExprNode) Expr {
+func (c *Constructor) constructCastExprNode(v *parser.CastExprNode) *CastExpr {
 	res := &CastExpr{
 		Type: c.constructTypeReferenceNode(v.Type),
 		Expr: c.constructExpr(v.Value),
@@ -719,7 +719,7 @@ func (c *Constructor) constructUnaryExprNode(v *parser.UnaryExprNode) Expr {
 	return res
 }
 
-func (c *Constructor) constructCallExprNode(v *parser.CallExprNode) Expr {
+func (c *Constructor) constructCallExprNode(v *parser.CallExprNode) *CallExpr {
 	// TODO: when we allow function types, allow all access forms (eg. `thing[0]()``)
 	res := &CallExpr{
 		Arguments: c.constructExprs(v.Arguments),
@@ -727,14 +727,14 @@ func (c *Constructor) constructCallExprNode(v *parser.CallExprNode) Expr {
 	}
 
 	if sae, ok := v.Function.(*parser.StructAccessNode); ok {
-		res.ReceiverAccess = c.constructStructAccessNode(sae).(*StructAccessExpr).Struct
+		res.ReceiverAccess = c.constructStructAccessNode(sae).Struct
 	}
 
 	res.SetPos(v.Where().Start())
 	return res
 }
 
-func (c *Constructor) constructVariableAccessNode(v *parser.VariableAccessNode) Expr {
+func (c *Constructor) constructVariableAccessNode(v *parser.VariableAccessNode) *VariableAccessExpr {
 	res := &VariableAccessExpr{
 		Name:             toUnresolvedName(v.Name),
 		GenericArguments: c.constructTypeReferences(v.GenericParameters),
@@ -743,7 +743,7 @@ func (c *Constructor) constructVariableAccessNode(v *parser.VariableAccessNode) 
 	return res
 }
 
-func (c *Constructor) constructStructAccessNode(v *parser.StructAccessNode) Expr {
+func (c *Constructor) constructStructAccessNode(v *parser.StructAccessNode) *StructAccessExpr {
 	res := &StructAccessExpr{
 		Member: v.Member.Value,
 	}
@@ -752,7 +752,7 @@ func (c *Constructor) constructStructAccessNode(v *parser.StructAccessNode) Expr
 	return res
 }
 
-func (c *Constructor) constructArrayAccessNode(v *parser.ArrayAccessNode) Expr {
+func (c *Constructor) constructArrayAccessNode(v *parser.ArrayAccessNode) *ArrayAccessExpr {
 	res := &ArrayAccessExpr{
 		Subscript: c.constructExpr(v.Index),
 	}
@@ -761,13 +761,13 @@ func (c *Constructor) constructArrayAccessNode(v *parser.ArrayAccessNode) Expr {
 	return res
 }
 
-func (c *Constructor) constructDiscardAccessNode(v *parser.DiscardAccessNode) Expr {
+func (c *Constructor) constructDiscardAccessNode(v *parser.DiscardAccessNode) *DiscardAccessExpr {
 	res := &DiscardAccessExpr{}
 	res.SetPos(v.Where().Start())
 	return res
 }
 
-func (c *Constructor) constructEnumPatternNode(v *parser.EnumPatternNode) Expr {
+func (c *Constructor) constructEnumPatternNode(v *parser.EnumPatternNode) *EnumPatternExpr {
 	res := &EnumPatternExpr{
 		MemberName: toUnresolvedName(v.MemberName),
 		Variables:  make([]*Variable, len(v.Names)),
@@ -795,7 +795,7 @@ func (c *Constructor) constructTupleLiteralNode(v *parser.TupleLiteralNode) Expr
 	return res
 }
 
-func (c *Constructor) constructCompositeLiteralNode(v *parser.CompositeLiteralNode) Expr {
+func (c *Constructor) constructCompositeLiteralNode(v *parser.CompositeLiteralNode) *CompositeLiteral {
 	res := &CompositeLiteral{}
 	if v.Type != nil {
 		res.Type = c.constructTypeReferenceNode(v.Type)
@@ -810,13 +810,13 @@ func (c *Constructor) constructCompositeLiteralNode(v *parser.CompositeLiteralNo
 	return res
 }
 
-func (c *Constructor) constructBoolLitNode(v *parser.BoolLitNode) Expr {
+func (c *Constructor) constructBoolLitNode(v *parser.BoolLitNode) *BoolLiteral {
 	res := &BoolLiteral{Value: v.Value}
 	res.SetPos(v.Where().Start())
 	return res
 }
 
-func (c *Constructor) constructNumberLitNode(v *parser.NumberLitNode) Expr {
+func (c *Constructor) constructNumberLitNode(v *parser.NumberLitNode) *NumericLiteral {
 	res := &NumericLiteral{
 		IsFloat:    v.IsFloat,
 		IntValue:   v.IntValue,
@@ -829,19 +829,19 @@ func (c *Constructor) constructNumberLitNode(v *parser.NumberLitNode) Expr {
 
 }
 
-func (c *Constructor) constructStringLitNode(v *parser.StringLitNode) Expr {
+func (c *Constructor) constructStringLitNode(v *parser.StringLitNode) *StringLiteral {
 	res := &StringLiteral{Value: v.Value, IsCString: v.IsCString}
 	res.SetPos(v.Where().Start())
 	return res
 }
 
-func (c *Constructor) constructRuneLitNode(v *parser.RuneLitNode) Expr {
+func (c *Constructor) constructRuneLitNode(v *parser.RuneLitNode) *RuneLiteral {
 	res := &RuneLiteral{Value: v.Value}
 	res.SetPos(v.Where().Start())
 	return res
 }
 
-func (c *Constructor) constructLambdaExprNode(v *parser.LambdaExprNode) Expr {
+func (c *Constructor) constructLambdaExprNode(v *parser.LambdaExprNode) *LambdaExpr {
 	function := c.constructFunctionNode(v.Function)
 	function.Type.attrs = v.Attrs()
 
@@ -868,11 +868,27 @@ func (c *Constructor) constructFunctionNode(v *parser.FunctionNode) *Function {
 	}
 
 	if v.Header.Receiver != nil {
-		function.Receiver = c.constructNode(v.Header.Receiver).(*VariableDecl) // TODO: error
+		function.Receiver = c.constructVarDeclNode(v.Header.Receiver)
 		if !function.Receiver.Variable.IsReceiver {
-			panic("oh no")
+			panic("INTERNAL ERROR: Reciever variable was not marked a reciever")
 		}
-		function.Type.Receiver = function.Receiver.Variable.Type.BaseType
+
+		// Propagate generic parameters from reciever to method
+		typ := TypeReferenceWithoutPointers(function.Receiver.Variable.Type)
+		if len(typ.GenericArguments) > 0 {
+			for _, param := range typ.GenericArguments {
+				if unres, ok := param.BaseType.(UnresolvedType); ok {
+					name := unres.Name.Name
+					subt := &SubstitutionType{Name: name}
+					function.Type.GenericParameters = append(function.Type.GenericParameters, subt)
+				} else {
+					panic("INTERNAL ERROR: Any type parameters used in reciever must not be actual types")
+				}
+
+			}
+		}
+
+		function.Type.Receiver = function.Receiver.Variable.Type
 	} else if v.Header.StaticReceiverType != nil {
 		function.StaticReceiverType = c.constructType(v.Header.StaticReceiverType)
 	}
@@ -880,7 +896,7 @@ func (c *Constructor) constructFunctionNode(v *parser.FunctionNode) *Function {
 	var arguments []parser.ParseNode
 	for _, arg := range v.Header.Arguments { // TODO rename v.Header.Arguments to v.Header.Parameters
 		arguments = append(arguments, arg)
-		decl := c.constructNode(arg).(*VariableDecl) // TODO: Error message
+		decl := c.constructVarDeclNode(arg)
 		decl.Variable.IsParameter = true
 		function.Parameters = append(function.Parameters, decl)
 		function.Type.Parameters = append(function.Type.Parameters, decl.Variable.Type)
@@ -904,7 +920,7 @@ func (c *Constructor) constructFunctionNode(v *parser.FunctionNode) *Function {
 		v.Body = &parser.BlockNode{Nodes: []parser.ParseNode{v.Stat}}
 	}
 	if v.Body != nil {
-		function.Body = c.constructNode(v.Body).(*Block) // TODO: Error message
+		function.Body = c.constructBlockNode(v.Body)
 	} else if v.Header.Anonymous {
 		c.err(v.Where(), "Lambda cannot be prototype")
 	}

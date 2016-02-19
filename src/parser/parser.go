@@ -702,18 +702,7 @@ func (v *parser) parseVarDeclBody(isReceiver bool) *VarDeclNode {
 	// consume ':'
 	v.consumeToken()
 
-	var varType *TypeReferenceNode
-	var sigil *GenericSigilNode
-	if isReceiver {
-		typ := v.parseType(true, false, true)
-		if typ != nil {
-			varType = &TypeReferenceNode{Type: typ}
-		}
-
-		sigil = v.parseGenericSigil()
-	} else {
-		varType = v.parseTypeReference(true, false, true)
-	}
+	varType := v.parseTypeReference(true, false, true)
 	if varType == nil && !v.tokenMatches(0, lexer.TOKEN_OPERATOR, "=") {
 		v.err("Expected valid type in variable declaration")
 	}
@@ -733,10 +722,9 @@ func (v *parser) parseVarDeclBody(isReceiver bool) *VarDeclNode {
 	}
 
 	res := &VarDeclNode{
-		Name:                 NewLocatedString(name),
-		Type:                 varType,
-		IsReceiver:           isReceiver,
-		ReceiverGenericSigil: sigil,
+		Name:       NewLocatedString(name),
+		Type:       varType,
+		IsReceiver: isReceiver,
 	}
 	start := name.Where.Start()
 	if mutable != nil {

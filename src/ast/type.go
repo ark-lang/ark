@@ -888,7 +888,7 @@ type FunctionType struct {
 	Return            *TypeReference
 	IsVariadic        bool
 
-	Receiver Type // non-nil if non-static method
+	Receiver *TypeReference // non-nil if non-static method
 }
 
 func (v FunctionType) String() string {
@@ -907,7 +907,7 @@ func (v FunctionType) TypeName() string {
 	res += "func"
 
 	if v.Receiver != nil {
-		res += "(v: " + v.Receiver.TypeName() + ")"
+		res += "(v: " + v.Receiver.String() + ")"
 	}
 
 	res += v.GenericParameters.String()
@@ -1232,7 +1232,7 @@ func (v *GenericContext) replaceType(ty Type) Type {
 	case FunctionType:
 		t.Parameters = v.replaceTypeReferences(t.Parameters)
 		if t.Receiver != nil {
-			t.Receiver = v.replaceType(t.Receiver)
+			t.Receiver = v.Replace(t.Receiver)
 		}
 		t.Return = v.Replace(t.Return)
 		return t
@@ -1306,9 +1306,12 @@ func (v UnresolvedType) ActualType() Type {
 }
 
 func TypeWithoutPointers(t Type) Type {
-	if ptr, ok := t.(PointerType); ok {
-		return TypeWithoutPointers(ptr.Addressee.BaseType)
-	}
+	return TypeReferenceWithoutPointers(&TypeReference{BaseType: t}).BaseType
+}
 
+func TypeReferenceWithoutPointers(t *TypeReference) *TypeReference {
+	if ptr, ok := t.BaseType.(PointerType); ok {
+		return TypeReferenceWithoutPointers(ptr.Addressee)
+	}
 	return t
 }

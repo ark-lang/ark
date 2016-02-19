@@ -256,7 +256,7 @@ func (v *Codegen) functionTypeToLLVMType(typ ast.FunctionType, ptr bool, gcon *a
 
 	params := make([]llvm.Type, 0, numOfParams)
 	if typ.Receiver != nil {
-		params = append(params, v.typeToLLVMType(typ.Receiver, gcon))
+		params = append(params, v.typeRefToLLVMTypeWithOuter(typ.Receiver, gcon))
 	}
 	for _, par := range typ.Parameters {
 		params = append(params, v.typeRefToLLVMTypeWithOuter(par, gcon))

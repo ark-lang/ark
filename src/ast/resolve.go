@@ -232,15 +232,15 @@ func (v *Resolver) ExitScope() {
 }
 
 // returns true if no error
-func checkReceiverType(res *Resolver, loc Locatable, t Type, purpose string) bool {
-	if named, ok := TypeWithoutPointers(t).(*NamedType); ok {
+func checkReceiverType(res *Resolver, loc Locatable, t *TypeReference, purpose string) bool {
+	if named, ok := TypeReferenceWithoutPointers(t).BaseType.(*NamedType); ok {
 		if named.ParentModule != res.module {
 			res.err(loc, "Cannot use type `%s` declared in module `%s` as %s",
-				t.TypeName(), named.ParentModule.Name, purpose)
+				t.String(), named.ParentModule.Name, purpose)
 			return false
 		}
 	} else {
-		res.err(loc, "Expected named type for %s, found `%s`", purpose, t.TypeName())
+		res.err(loc, "Expected named type for %s, found `%s`", purpose, t.String())
 		return false
 	}
 	return true
@@ -277,7 +277,7 @@ func (v *Resolver) ResolveNode(node *Node) {
 
 		if n.Function.StaticReceiverType != nil {
 			n.Function.StaticReceiverType = v.ResolveType(n, n.Function.StaticReceiverType)
-			if checkReceiverType(v, n, n.Function.StaticReceiverType, "static receiver") {
+			if checkReceiverType(v, n, &TypeReference{BaseType: n.Function.StaticReceiverType}, "static receiver") {
 				n.Function.StaticReceiverType.(*NamedType).addStaticMethod(n.Function)
 			}
 		}
@@ -692,7 +692,7 @@ func (v *Resolver) ResolveType(src Locatable, t Type) Type {
 		}
 
 		if t.Receiver != nil {
-			nv.Receiver = v.ResolveType(src, t.Receiver)
+			nv.Receiver = v.ResolveTypeReference(src, t.Receiver)
 			checkReceiverType(v, src, nv.Receiver, "receiver")
 		}
 		if t.Return != nil { // TODO can this ever be nil

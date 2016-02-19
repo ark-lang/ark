@@ -74,7 +74,7 @@ func TypeReferenceMangledName(mangleType MangleType, typ *TypeReference, gcon *G
 			str += TypeReferenceMangledName(mangleType, typ.Return, gcon)
 
 			if typ.Receiver != nil {
-				str = TypeReferenceMangledName(mangleType, &TypeReference{BaseType: typ.Receiver}, gcon) + str
+				str = TypeReferenceMangledName(mangleType, typ.Receiver, gcon) + str
 			}
 
 			res += fmt.Sprintf("%dFT%s", len(str), str)
@@ -152,7 +152,7 @@ func (v Function) MangledName(typ MangleType, gcon *GenericContext) string {
 		result += TypeReferenceMangledName(typ, v.Type.Return, gcon)
 
 		if v.Type.Receiver != nil {
-			result = TypeReferenceMangledName(typ, &TypeReference{BaseType: v.Type.Receiver}, gcon) + result
+			result = TypeReferenceMangledName(typ, v.Type.Receiver, gcon) + result
 		} else if v.StaticReceiverType != nil {
 			result = TypeReferenceMangledName(typ, &TypeReference{BaseType: v.StaticReceiverType}, gcon) + result
 		}

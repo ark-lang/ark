@@ -142,8 +142,7 @@ type Variable struct {
 	IsParameter  bool
 	IsArgument   bool
 
-	IsReceiver                bool             // TODO separate this out so it isn't as messy
-	ReceiverGenericParameters []*TypeReference // only used if IsReceiver == true
+	IsReceiver bool // TODO separate this out so it isn't as messy
 }
 
 func (v Variable) String() string {
