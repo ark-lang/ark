@@ -9,8 +9,6 @@ import (
 )
 
 // TODO: Move this at a file and handle locating/specifying this file
-// NOTE: Code specified in the runtime MUST be guaranteed semantically correct,
-// as running semantic tests on it is a pain in the butt.
 const RuntimeSource = `
 type rune u32;
 type string []u8;
