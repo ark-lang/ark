@@ -949,6 +949,14 @@ func (v *Codegen) genPointerToExpr(n *ast.PointerToExpr) llvm.Value {
 }
 
 func (v *Codegen) genLoadIfNeccesary(n ast.Expr, val llvm.Value) llvm.Value {
+	if el, isEnumLit := n.(*ast.EnumLiteral); isEnumLit {
+		et := el.Type.BaseType.ActualType().(ast.EnumType)
+		isEnumLit = !et.Simple && v.inFunction()
+		if !et.Simple && v.inFunction() {
+			return v.builder().CreateLoad(val, "")
+		}
+	}
+
 	if _, isAccess := n.(ast.AccessExpr); isAccess {
 		return v.builder().CreateLoad(val, "")
 	}
@@ -1339,9 +1347,8 @@ func (v *Codegen) genEnumLiteral(n *ast.EnumLiteral) llvm.Value {
 
 	memberLLVMType := v.enumMemberTypeToPaddedLLVMType(enumBaseType, memberIdx, gcon)
 
-	enumValue := llvm.ConstNull(
-		llvm.StructType([]llvm.Type{enumTagType, memberLLVMType}, false),
-	)
+	enumLitType := v.llvmEnumTypeForMember(enumBaseType, memberIdx, gcon)
+	enumValue := llvm.ConstNull(enumLitType)
 	enumValue = v.builder().CreateInsertValue(enumValue, tagValue, 0, "")
 
 	memberValue := llvm.ConstNull(memberLLVMType)
@@ -1351,6 +1358,13 @@ func (v *Codegen) genEnumLiteral(n *ast.EnumLiteral) llvm.Value {
 		memberValue = v.genStructLiteralValues(n.CompositeLiteral, memberValue)
 	}
 	enumValue = v.builder().CreateInsertValue(enumValue, memberValue, 1, "")
+
+	if v.inFunction() {
+		alloc := v.builder().CreateAlloca(enumLitType, "")
+		v.builder().CreateStore(enumValue, alloc)
+		alloc = v.builder().CreateBitCast(alloc, llvm.PointerType(enumLLVMType, 0), "")
+		return alloc
+	}
 
 	return enumValue
 }

@@ -23,6 +23,7 @@ pub func main() -> int {
 
     debugDumpOption<int>(some);
     debugDumpOption<int>(none);
+    debugDumpOption<int>(Option::Some<int>(5));
 
     return 0;
 }

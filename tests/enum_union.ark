@@ -8,7 +8,7 @@ type Tree enum {
 func (tree: ^Tree) dump() {
 	match @tree {
 		Node(left, right) => {
-			C::printf(c"Node\n", left, right);
+			C::printf(c"Node\n");
 			left.dump();
 			right.dump();
 		},
@@ -26,10 +26,6 @@ x := Tree::Leaf(42);
 pub func main() -> int {
 	y := Tree::Leaf(36);
 	z := Tree::Node{left: ^x, right: ^y};
-
-	//C::printf(c"^x: %p\n", ^x);
-	//C::printf(c"^y: %p\n", ^y);
-	//C::printf(c"^x: %p, ^y: %p\n", ^x, ^y);
 
 	zp := ^z;
     zp.dump();
