@@ -1,0 +1,28 @@
+[c] func printf(fmt: ^u8, ...) -> int;
+
+#use std::io
+
+type Option enum<T> {
+    Some(T),
+    None,
+};
+
+// this function should be removed eventually
+func debugDumpOption<T>(o: Option<T>) {
+    match o {
+        Some(_) => io::println("Option::Some"),
+        None => io::println("Option::None"),
+    }
+}
+
+pub func main() -> int {
+    io::println("Option test");
+
+    some := Option::Some<int>(5);
+    none := Option::None<int>();
+
+    debugDumpOption<int>(some);
+    debugDumpOption<int>(none);
+
+    return 0;
+}

@@ -1455,6 +1455,10 @@ func (v *EnumPatternExpr) SetType(t *TypeReference) {
 	tt, isTuple := mem.Type.(TupleType)
 
 	for idx, vari := range v.Variables {
+		if vari == nil {
+			continue
+		}
+
 		if isStruct {
 			vari.Type = gcon.Replace(st.Members[idx].Type)
 		} else if isTuple {

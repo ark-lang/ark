@@ -685,6 +685,7 @@ func (v *Codegen) genEnumMatchStat(n *ast.MatchStat) {
 			}
 
 			gcon := ast.NewGenericContextFromTypeReference(n.Target.GetType())
+			gcon.Outer = v.currentFunction().gcon
 			value := v.genEnumUnionValue(target, et, memIdx, gcon)
 			for idx, vari := range patt.Variables {
 				if vari != nil {
