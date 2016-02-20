@@ -422,7 +422,7 @@ func (v *Codegen) genDeferStat(n *ast.DeferStat) {
 	v.blockDeferData[v.currentBlock()] = append(v.blockDeferData[v.currentBlock()], data)
 
 	for _, arg := range n.Call.Arguments {
-		data.args = append(data.args, v.genExpr(arg))
+		data.args = append(data.args, v.genExprAndLoadIfNeccesary(arg))
 	}
 }
 
