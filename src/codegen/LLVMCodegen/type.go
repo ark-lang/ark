@@ -205,7 +205,7 @@ func (v *Codegen) enumTypeToLLVMType(typ ast.EnumType, gcon *ast.GenericContext)
 		return llvm.IntType(32)
 	}
 
-	return llvm.StructType(v.enumTypeToLLVMTypeFields(typ, gcon), false)
+	return llvm.StructType(v.enumTypeToLLVMTypeFields(typ, gcon), true)
 }
 
 func (v *Codegen) enumTypeToLLVMTypeFields(typ ast.EnumType, gcon *ast.GenericContext) []llvm.Type {
@@ -245,7 +245,7 @@ func (v *Codegen) enumMemberTypeToPaddedLLVMType(enumType ast.EnumType, memberId
 }
 
 func (v *Codegen) llvmEnumTypeForMember(enumType ast.EnumType, memberIdx int, gcon *ast.GenericContext) llvm.Type {
-	return llvm.StructType([]llvm.Type{enumTagType, v.enumMemberTypeToPaddedLLVMType(enumType, memberIdx, gcon)}, false)
+	return llvm.StructType([]llvm.Type{enumTagType, v.enumMemberTypeToPaddedLLVMType(enumType, memberIdx, gcon)}, true)
 }
 
 func (v *Codegen) functionTypeToLLVMType(typ ast.FunctionType, ptr bool, gcon *ast.GenericContext) llvm.Type {
