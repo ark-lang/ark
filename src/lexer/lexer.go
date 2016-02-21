@@ -128,65 +128,75 @@ func (v *lexer) lex() {
 
 // returns true if a comment was skipped
 func (v *lexer) skipComment() bool {
-	pos := v.curPos
-
-	// Block comments
-	// TODO refactor this it's kind of messy
-	if v.peek(0) == '/' && v.peek(1) == '*' {
-		v.consume()
-		v.consume()
-		isDoc := v.peek(0) == '*'
-		depth := 1
-
-		for depth > 0 {
-			if v.peek(0) == '/' && v.peek(1) == '*' {
-				v.consume()
-				v.consume()
-				depth += 1
-			}
-
-			if isEOF(v.peek(0)) {
-				v.errPos(pos, "Unterminated block comment")
-			}
-
-			if v.peek(0) == '*' && v.peek(1) == '/' {
-				v.consume()
-				v.consume()
-				depth -= 1
-			}
-
-			v.consume()
-		}
-
-		if isDoc {
-			v.pushToken(TOKEN_DOCCOMMENT)
-		} else {
-			v.discardBuffer()
-		}
+	if v.skipBlockComment() {
 		return true
+	} else if v.skipLineComment() {
+		return true
+	} else {
+		return false
+	}
+}
+
+func (v *lexer) skipBlockComment() bool {
+	pos := v.curPos
+	if v.peek(0) != '/' || v.peek(1) != '*' {
+		return false
 	}
 
-	// Single-line comments
-	if v.peek(0) == '/' && v.peek(1) == '/' {
-		v.consume()
-		v.consume()
-		isDoc := v.peek(0) == '/'
+	v.consume()
+	v.consume()
+	isDoc := v.peek(0) == '*'
 
-		for {
-			if isEOL(v.peek(0)) || isEOF(v.peek(0)) {
-				if isDoc {
-					v.pushToken(TOKEN_DOCCOMMENT)
-				} else {
-					v.discardBuffer()
-				}
-				v.consume()
-				return true
+	depth := 1
+	for depth > 0 {
+		if isEOF(v.peek(0)) {
+			v.errPos(pos, "Unterminated block comment")
+		}
+
+		if v.peek(0) == '/' && v.peek(1) == '*' {
+			v.consume()
+			v.consume()
+			depth += 1
+		}
+
+		if v.peek(0) == '*' && v.peek(1) == '/' {
+			v.consume()
+			v.consume()
+			depth -= 1
+		}
+
+		v.consume()
+	}
+
+	if isDoc {
+		v.pushToken(TOKEN_DOCCOMMENT)
+	} else {
+		v.discardBuffer()
+	}
+	return true
+}
+
+func (v *lexer) skipLineComment() bool {
+	if v.peek(0) != '/' || v.peek(1) != '/' {
+		return false
+	}
+
+	v.consume()
+	v.consume()
+	isDoc := v.peek(0) == '/'
+
+	for {
+		if isEOL(v.peek(0)) || isEOF(v.peek(0)) {
+			if isDoc {
+				v.pushToken(TOKEN_DOCCOMMENT)
+			} else {
+				v.discardBuffer()
 			}
 			v.consume()
+			return true
 		}
+		v.consume()
 	}
-
-	return false
 }
 
 func (v *lexer) skipLayoutAndComments() {
