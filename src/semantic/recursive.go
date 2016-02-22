@@ -72,9 +72,9 @@ func isTypeRecursive(typ ast.Type) (bool, []ast.Type) {
 			}
 
 		case *ast.NamedType:
+			traversed[current] = true
 			if check(typ.Type, path, traversed) {
 				*path = append(*path, typ.Type)
-				traversed[current] = true
 				return true
 			}
 			traversed[current] = false
