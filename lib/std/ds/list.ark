@@ -1,0 +1,47 @@
+#use std::mem
+
+type List struct<T> {
+    data: []T,
+    length: uint,
+    capacity: uint,
+};
+
+BaseCapacity: uint = 4;
+
+func (List) new<T>(mut cap: uint) -> List<T> {
+    if cap <= 0 {
+        cap = BaseCapacity;
+    }
+    
+    res := List<T>{
+        data: mem::allocArray<T>(cap),
+	length: 0,
+	capacity: cap,
+    };
+    return res;
+}
+
+func (it: List<T>) destroy() {
+    mem::freeArray(it.data);
+}
+
+func (it: ^List<T>) toRawPointer() -> ^T {
+    return ^it.data[0];
+}
+
+func (it: ^mut List<T>) grow() {
+    oldData := it.data;
+    newCap := it.capacity * 2;
+    it.data = mem::allocArray<T>(newCap);
+    mem::copyArray(it.data, oldData, it.length);
+    mem::freeArray(oldData);
+}
+
+func (it: ^mut List<T>) append(value: T) {
+    if it.length == it.capacity {
+        it.grow();
+    }
+    
+    it.data[it.length] = value;
+    it.length += 1;
+}
