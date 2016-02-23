@@ -1,6 +1,6 @@
 #use std::mem
 
-type List struct<T> {
+pub type List struct<T> {
     data: []T,
     length: uint,
     capacity: uint,
@@ -8,7 +8,7 @@ type List struct<T> {
 
 BaseCapacity: uint = 4;
 
-func (List) new<T>(mut cap: uint) -> List<T> {
+pub func (List) new<T>(mut cap: uint) -> List<T> {
     if cap <= 0 {
         cap = BaseCapacity;
     }
@@ -21,11 +21,11 @@ func (List) new<T>(mut cap: uint) -> List<T> {
     return res;
 }
 
-func (it: List<T>) destroy() {
+pub func (it: List<T>) destroy() {
     mem::freeArray(it.data);
 }
 
-func (it: ^List<T>) toRawPointer() -> ^T {
+pub func (it: ^List<T>) toRawPointer() -> ^T {
     return ^it.data[0];
 }
 
@@ -37,7 +37,7 @@ func (it: ^mut List<T>) grow() {
     mem::freeArray(oldData);
 }
 
-func (it: ^mut List<T>) append(value: T) {
+pub func (it: ^mut List<T>) append(value: T) {
     if it.length == it.capacity {
         it.grow();
     }
