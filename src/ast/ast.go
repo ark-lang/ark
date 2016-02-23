@@ -1146,7 +1146,9 @@ func (v ArrayAccessExpr) String() string {
 
 func (v ArrayAccessExpr) GetType() *TypeReference {
 	if v.Array.GetType() != nil {
-		return v.Array.GetType().BaseType.ActualType().(ArrayType).MemberType
+		if base, ok := v.Array.GetType().BaseType.ActualType().(ArrayType); ok {
+			return base.MemberType
+		}
 	}
 	return nil
 }

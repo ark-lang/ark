@@ -1188,6 +1188,13 @@ func (v *Inferrer) Finalize() {
 				v.errPos(ann.Pos, "Unable to infer type of member `%s` on type `%s`",
 					ct.Data.(string), typ.BaseType.TypeName())
 
+			case ConstructorArrayIndex:
+				typ := ct.Args[0];
+				if _, ok := typ.BaseType.(ArrayType); !ok {
+					v.errPos(ann.Pos, "Cannot index non-array type `%s`", typ.String())
+				}
+				panic("INTERNAL ERROR: Assumed unreachable")
+
 			default:
 				panic("INTERNAL ERROR: Unhandled ConstructorType escaped inference pass")
 			}
