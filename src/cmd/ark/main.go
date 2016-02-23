@@ -309,7 +309,7 @@ func (v *Context) findModuleDir(modulePath string) (fi os.FileInfo, path string,
 		path := filepath.Join(searchPath, modulePath)
 		fi, err := os.Stat(path)
 		if err != nil {
-			return nil, "", err
+			continue
 		}
 		return fi, path, nil
 
