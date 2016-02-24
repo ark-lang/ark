@@ -368,8 +368,7 @@ func (v *TypeCheck) CheckCallExpr(s *SemanticAnalyzer, expr *ast.CallExpr) {
 
 	if fnType.Receiver != nil {
 		if !expr.ReceiverAccess.GetType().ActualTypesEqual(fnType.Receiver) {
-			s.Err(expr, "Mismatched receiver types for call to `%s`: `%s` and `%s`",
-				fnName, expr.ReceiverAccess.GetType(), fnType.Receiver)
+			expectType(s, expr, fnType.Receiver, &expr.ReceiverAccess)
 		}
 	}
 
