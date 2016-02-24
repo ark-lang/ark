@@ -1189,7 +1189,7 @@ func (v *Inferrer) Finalize() {
 					ct.Data.(string), typ.BaseType.TypeName())
 
 			case ConstructorArrayIndex:
-				typ := ct.Args[0];
+				typ := ct.Args[0]
 				if _, ok := typ.BaseType.(ArrayType); !ok {
 					v.errPos(ann.Pos, "Cannot index non-array type `%s`", typ.String())
 				}
@@ -1424,7 +1424,6 @@ func (v *FunctionAccessExpr) SetType(t *TypeReference) {
 		if err != nil {
 			panic(err)
 		}
-		log.Debugln("inference", "%v", types)
 
 		genArgs := make([]*TypeReference, len(v.Function.Type.GenericParameters))
 		for idx, param := range v.Function.Type.GenericParameters {
@@ -1500,7 +1499,6 @@ func (_ StructAccessExpr) SetType(t *TypeReference)   {}
 //   value: Pointer(int)
 //  return: {T: int}
 func ExtractTypeVariable(pattern *TypeReference, value *TypeReference) (map[string]*TypeReference, error) {
-	log.Debugln("inference", "%v\n%v", pattern.String(), value.String())
 	res := make(map[string]*TypeReference)
 
 	// Start with the pattern and the value

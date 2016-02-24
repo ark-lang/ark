@@ -24,9 +24,9 @@ func floatTypeBits(ty ast.PrimitiveType) int {
 }
 
 func (v *Codegen) addNamedTypeReference(n *ast.TypeReference, gcon *ast.GenericContext) {
-	if v.inFunction() {
-		gcon.Outer = v.currentFunction().gcon
-	}
+	outer := gcon
+	gcon = ast.NewGenericContextFromTypeReference(n)
+	gcon.Outer = outer
 
 	v.addNamedType(n.BaseType.(*ast.NamedType), ast.TypeReferenceMangledName(ast.MANGLE_ARK_UNSTABLE, n, gcon), gcon)
 }
@@ -153,7 +153,6 @@ func (v *Codegen) typeToLLVMType(typ ast.Type, gcon *ast.GenericContext) llvm.Ty
 			panic("gcon == nil when getting substitution type")
 		}
 		if gcon.GetSubstitutionType(typ) == nil {
-			fmt.Println(gcon)
 			panic("missing generic map entry for type " + typ.TypeName() + " " + fmt.Sprintf("(%p)", typ))
 		}
 		return v.typeRefToLLVMTypeWithOuter(gcon.GetSubstitutionType(typ), gcon)
@@ -266,7 +265,7 @@ func (v *Codegen) functionTypeToLLVMType(typ ast.FunctionType, ptr bool, gcon *a
 
 	// oo theres a type, let's try figure it out
 	if typ.Return != nil {
-		returnType = v.typeRefToLLVMTypeWithOuter(typ.Return, gcon)
+		returnType = v.typeRefToLLVMTypeWithOuter(gcon.Replace(typ.Return), gcon)
 	} else {
 		returnType = llvm.VoidType()
 	}
