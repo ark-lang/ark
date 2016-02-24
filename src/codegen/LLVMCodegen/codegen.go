@@ -230,6 +230,28 @@ func (v *Codegen) Generate(input []*ast.Module) {
 
 }
 
+func (v *Codegen) recursiveGenericFunctionHelper(n *ast.FunctionDecl, access *ast.FunctionAccessExpr, gcon *ast.GenericContext, fn func(*ast.FunctionDecl, *ast.GenericContext)) {
+	exit := true
+	for _, garg := range access.GenericArguments {
+		if _, ok := garg.BaseType.(*ast.SubstitutionType); ok {
+			exit = false
+			break
+		}
+	}
+
+	if exit {
+		fn(n, gcon)
+		return
+	}
+
+	for _, subAccess := range access.ParentFunction.Accesses {
+		newGcon := ast.NewGenericContext(subAccess.Function.Type.GenericParameters, subAccess.GenericArguments)
+		newGcon.Outer = gcon
+
+		v.recursiveGenericFunctionHelper(n, subAccess, newGcon, fn)
+	}
+}
+
 func (v *Codegen) declareDecls(nodes []ast.Node) {
 	for _, node := range nodes {
 		switch n := node.(type) {
@@ -246,7 +268,8 @@ func (v *Codegen) declareDecls(nodes []ast.Node) {
 			} else {
 				for _, access := range n.Function.Accesses {
 					gcon := ast.NewGenericContext(access.Function.Type.GenericParameters, access.GenericArguments)
-					v.declareFunctionDecl(n, gcon)
+
+					v.recursiveGenericFunctionHelper(n, access, gcon, v.declareFunctionDecl)
 				}
 			}
 		}
@@ -716,7 +739,8 @@ func (v *Codegen) genDecl(n ast.Decl) {
 		} else {
 			for _, access := range n.Function.Accesses {
 				gcon := ast.NewGenericContext(access.Function.Type.GenericParameters, access.GenericArguments)
-				v.genFunctionDecl(n, gcon)
+
+				v.recursiveGenericFunctionHelper(n, access, gcon, v.genFunctionDecl)
 			}
 		}
 	case *ast.VariableDecl:
