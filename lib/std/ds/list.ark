@@ -8,21 +8,25 @@ pub type List struct<T> {
 
 BaseCapacity: uint = 4;
 
-pub func (List) new<T>(mut cap: uint) -> List<T> {
+pub func (List) new<T>(mut cap: uint) -> ^mut List<T> {
     if cap <= 0 {
         cap = BaseCapacity;
     }
-    
-    res := List<T>{
+
+    // TODO: Fix the lexer to allow >> here but still parse shift ops
+    res := mem::alloc<List<T> >();
+    @res = List<T>{
         data: mem::allocArray<T>(cap),
-	length: 0,
-	capacity: cap,
+        length: 0,
+        capacity: cap,
     };
+    
     return res;
 }
 
-pub func (it: List<T>) destroy() {
+pub func (it: ^List<T>) destroy() {
     mem::freeArray(it.data);
+    mem::free(it);
 }
 
 pub func (it: ^List<T>) toRawPointer() -> ^T {
