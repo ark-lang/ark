@@ -103,7 +103,12 @@ func (v *Codegen) typeRefToLLVMTypeWithGenericContext(typ *ast.TypeReference, gc
 
 // if outer is not nil, this function does not add the current function gcon as outer, as it assumes it is already there
 func (v *Codegen) typeRefToLLVMTypeWithOuter(typ *ast.TypeReference, outer *ast.GenericContext) llvm.Type {
-	gcon := ast.NewGenericContextFromTypeReference(typ)
+	var gcon *ast.GenericContext
+	if len(typ.GenericArguments) > 0 {
+		gcon = ast.NewGenericContextFromTypeReference(typ)
+	} else {
+		gcon = ast.NewGenericContext(nil, nil)
+	}
 
 	if outer != nil {
 		gcon.Outer = outer
@@ -265,7 +270,7 @@ func (v *Codegen) functionTypeToLLVMType(typ ast.FunctionType, ptr bool, gcon *a
 
 	// oo theres a type, let's try figure it out
 	if typ.Return != nil {
-		returnType = v.typeRefToLLVMTypeWithOuter(gcon.Replace(typ.Return), gcon)
+		returnType = v.typeRefToLLVMTypeWithOuter(typ.Return, gcon)
 	} else {
 		returnType = llvm.VoidType()
 	}
