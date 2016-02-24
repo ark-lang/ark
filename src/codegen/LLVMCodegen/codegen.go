@@ -347,6 +347,12 @@ func (v *Codegen) getVariable(vari variableAndFnGenericInstance) llvm.Value {
 		return value
 	}
 
+	// Try with gcon == nil in case it's a global
+	vari.gcon = nil
+	if value, ok := v.variableLookup[vari]; ok {
+		return value
+	}
+
 	if vari.variable.ParentModule != v.curFile.Module {
 		value := llvm.AddGlobal(v.curFile.LlvmModule, v.typeRefToLLVMType(vari.variable.Type), vari.variable.MangledName(ast.MANGLE_ARK_UNSTABLE))
 		value.SetLinkage(llvm.ExternalLinkage)
@@ -354,8 +360,7 @@ func (v *Codegen) getVariable(vari variableAndFnGenericInstance) llvm.Value {
 		return value
 	}
 
-	v.err("Encountered undeclared variable `%s` in same modules", vari.variable.Name)
-	return llvm.Value{}
+	panic("INTERNAL ERROR: Encountered undeclared variable: " + vari.variable.Name)
 }
 
 func (v *Codegen) genNode(n ast.Node) {
@@ -826,6 +831,7 @@ func (v *Codegen) genDestructVarDecl(n *ast.DestructVarDecl) {
 
 func (v *Codegen) genVariable(isPublic bool, vari *ast.Variable, assignment llvm.Value) {
 	mangledName := vari.MangledName(ast.MANGLE_ARK_UNSTABLE)
+	log.Debugln("codegen", "%v => %s", vari.Name, mangledName)
 
 	var varType llvm.Type
 	if !assignment.IsNil() {
