@@ -35,11 +35,12 @@ pub func (it: ^List<T>) toRawPointer() -> ^T {
 
 func (it: ^mut List<T>) grow() {
     oldData := it.data;
-    newCap := it.capacity * 2;
-    it.data = mem::allocArray<T>(newCap);
+    it.capacity *= 2;
+    it.data = mem::allocArray<T>(it.capacity);
     mem::copyArray(it.data, oldData, it.length);
     mem::freeArray(oldData);
 }
+
 
 pub func (it: ^mut List<T>) append(value: T) {
     if it.length == it.capacity {
