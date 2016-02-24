@@ -417,13 +417,10 @@ func (v *Codegen) genNextStat(n *ast.NextStat) {
 func (v *Codegen) genDeferStat(n *ast.DeferStat) {
 	data := &deferData{
 		stat: n,
+		args: v.genCallArgs(n.Call),
 	}
 
 	v.blockDeferData[v.currentBlock()] = append(v.blockDeferData[v.currentBlock()], data)
-
-	for _, arg := range n.Call.Arguments {
-		data.args = append(data.args, v.genExprAndLoadIfNeccesary(arg))
-	}
 }
 
 func (v *Codegen) genRunDefers(block *ast.Block) {
@@ -1652,6 +1649,12 @@ func (v *Codegen) genCallExprWithArgs(n *ast.CallExpr, args []llvm.Value) llvm.V
 }
 
 func (v *Codegen) genCallExpr(n *ast.CallExpr) llvm.Value {
+
+	args := v.genCallArgs(n)
+	return v.genCallExprWithArgs(n, args)
+}
+
+func (v *Codegen) genCallArgs(n *ast.CallExpr) []llvm.Value {
 	numArgs := len(n.Arguments)
 	if n.ReceiverAccess != nil {
 		numArgs++
@@ -1669,7 +1672,7 @@ func (v *Codegen) genCallExpr(n *ast.CallExpr) llvm.Value {
 		args = append(args, llvmArg)
 	}
 
-	return v.genCallExprWithArgs(n, args)
+	return args
 }
 
 func (v *Codegen) genArrayLenExpr(n *ast.ArrayLenExpr) llvm.Value {
