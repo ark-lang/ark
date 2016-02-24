@@ -233,7 +233,7 @@ func (v *Codegen) Generate(input []*ast.Module) {
 func (v *Codegen) recursiveGenericFunctionHelper(n *ast.FunctionDecl, access *ast.FunctionAccessExpr, gcon *ast.GenericContext, fn func(*ast.FunctionDecl, *ast.GenericContext)) {
 	exit := true
 	for _, garg := range access.GenericArguments {
-		if _, ok := garg.BaseType.(*ast.SubstitutionType); ok {
+		if ast.ContainsSubstitutionType(garg) {
 			exit = false
 			break
 		}

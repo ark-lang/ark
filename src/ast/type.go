@@ -1120,6 +1120,67 @@ func (v *SubstitutionType) LevelsOfIndirection() int {
 	return 0
 }
 
+func ContainsSubstitutionType(typeRef *TypeReference) bool {
+	genSigil := getTypeGenericParameters(typeRef.BaseType)
+	if genSigil != nil {
+		return true
+	}
+
+	switch typ := typeRef.BaseType.ActualType().(type) {
+	case *SubstitutionType:
+		return true
+
+	case PrimitiveType, *NamedType:
+		return false
+
+	case ArrayType:
+		return ContainsSubstitutionType(typ.MemberType)
+
+	case PointerType:
+		return ContainsSubstitutionType(typ.Addressee)
+
+	case ReferenceType:
+		return ContainsSubstitutionType(typ.Referrer)
+
+	case TupleType:
+		res := false
+		for _, mem := range typ.Members {
+			res = res || ContainsSubstitutionType(mem)
+		}
+		return res
+
+	case StructType:
+		res := false
+		for _, mem := range typ.Members {
+			res = res || ContainsSubstitutionType(mem.Type)
+		}
+		return res
+
+	case EnumType:
+		res := false
+		for _, mem := range typ.Members {
+			res = res || ContainsSubstitutionType(&TypeReference{BaseType: mem.Type})
+		}
+		return res
+
+	case FunctionType:
+		res := false
+		if typ.Receiver != nil {
+			res = res || ContainsSubstitutionType(typ.Receiver)
+		}
+		for _, param := range typ.Parameters {
+			res = res || ContainsSubstitutionType(param)
+		}
+		if typ.Return != nil {
+			res = res || ContainsSubstitutionType(typ.Return)
+		}
+		return res
+
+	default:
+		panic("unim base type: " + reflect.TypeOf(typ).String())
+	}
+}
+
 // GenericInstance
 // Substition GenericContext to real type mappings override parameters to self mappings.
 type GenericContext struct {
