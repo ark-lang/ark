@@ -1512,7 +1512,11 @@ func ExtractTypeVariable(pattern *TypeReference, value *TypeReference) (map[stri
 
 		if subst, ok := ppart.BaseType.(*SubstitutionType); ok {
 			// If we reached a substitution type, add an entry to the map
-			res[subst.Name] = vpart
+			if res[subst.Name] == nil {
+				res[subst.Name] = vpart
+			} else if _, ok := res[subst.Name].BaseType.(*SubstitutionType); ok {
+				res[subst.Name] = vpart
+			}
 		} else {
 			// Skip stuff that still contains type variables
 			_, ok1 := ppart.BaseType.(TypeVariable)
@@ -1568,11 +1572,12 @@ func AddChildren(typ *TypeReference, dest []*TypeReference) []*TypeReference {
 		}
 
 	case FunctionType:
-		if t.Receiver != nil {
-			dest = append(dest, t.Receiver)
-		}
 		for _, tref := range t.Parameters {
 			dest = append(dest, tref)
+		}
+
+		if t.Receiver != nil {
+			dest = append(dest, t.Receiver)
 		}
 
 		if t.Return != nil { // TODO: can it ever be nil?
