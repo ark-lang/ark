@@ -81,6 +81,9 @@ type Codegen struct {
 	target        llvm.Target
 	targetMachine llvm.TargetMachine
 	targetData    llvm.TargetData
+
+	// for debug info
+	debug *DebugCodegen
 }
 
 func (v *Codegen) builder() llvm.Builder {
@@ -202,8 +205,12 @@ func (v *Codegen) Generate(input []*ast.Module) {
 			v.curFile = infile
 
 			for _, submod := range infile.Parts {
-				v.declareDecls(submod.Nodes)
+				v.debug = NewDebugCodegen(v, v.curFile.LlvmModule)
+				defer v.debug.finalize()
 
+				v.debug.createCompilationUnit(submod)
+
+				v.declareDecls(submod.Nodes)
 				for _, node := range submod.Nodes {
 					v.genNode(node)
 				}
