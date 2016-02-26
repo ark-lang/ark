@@ -290,7 +290,8 @@ func (c *Constructor) constructNamedTypeNode(v *parser.NamedTypeNode) Unresolved
 
 func (c *Constructor) constructInterfaceTypeNode(v *parser.InterfaceTypeNode) InterfaceType {
 	interfaceType := InterfaceType{
-		attrs: v.Attrs(),
+		attrs:        v.Attrs(),
+		GenericSigil: c.constructGenericSigilNode(v.GenericSigil),
 	}
 
 	for _, function := range v.Functions {

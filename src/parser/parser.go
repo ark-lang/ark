@@ -1389,6 +1389,9 @@ func (v *parser) parseInterfaceType() *InterfaceTypeNode {
 	}
 
 	startToken := v.consumeToken()
+
+	sigil := v.parseGenericSigil()
+
 	v.expect(lexer.Separator, "{")
 
 	// when we hit a };
@@ -1412,7 +1415,8 @@ func (v *parser) parseInterfaceType() *InterfaceTypeNode {
 	endToken := v.expect(lexer.Separator, "}")
 
 	res := &InterfaceTypeNode{
-		Functions: functions,
+		Functions:    functions,
+		GenericSigil: sigil,
 	}
 	res.SetWhere(lexer.NewSpanFromTokens(startToken, endToken))
 	return res

@@ -149,7 +149,8 @@ func (v baseDecl) IsPublic() bool {
 
 type InterfaceTypeNode struct {
 	baseNode
-	Functions []*FunctionHeaderNode
+	Functions    []*FunctionHeaderNode
+	GenericSigil *GenericSigilNode
 }
 
 type StructTypeNode struct {

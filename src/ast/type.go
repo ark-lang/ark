@@ -649,8 +649,9 @@ func (v TupleType) ActualType() Type {
 // InterfaceType
 
 type InterfaceType struct {
-	Functions []*Function
-	attrs     parser.AttrGroup
+	Functions    []*Function
+	GenericSigil GenericSigil
+	attrs        parser.AttrGroup
 }
 
 func (v InterfaceType) String() string {
@@ -663,7 +664,7 @@ func (v InterfaceType) String() string {
 }
 
 func (v InterfaceType) TypeName() string {
-	result := "interface {\n"
+	result := "interface" + v.GenericSigil.String() + " {\n"
 	for _, function := range v.Functions {
 		result += "\t" + function.String() + "\n"
 	}
