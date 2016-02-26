@@ -1338,7 +1338,7 @@ func (v *Inferrer) Finalize() {
 		}
 	}
 
-	// TODO: Bandaid for #704
+	// TODO: Bandaid for #706
 	for node := range v.Submodule.IterNodes() {
 		if varDecl, ok := node.(*VariableDecl); ok {
 			if varDecl.Assignment != nil {
