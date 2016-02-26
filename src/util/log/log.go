@@ -76,15 +76,7 @@ func Log(level LogLevel, tag string, msg string, args ...interface{}) {
 }
 
 func Logln(level LogLevel, tag string, msg string, args ...interface{}) {
-	if !enableAll {
-		if !enabledTags[tag] {
-			return
-		}
-	}
-
-	if AtLevel(level) {
-		fmt.Printf(msg+"\n", args...)
-	}
+	Log(level, tag, msg+"\n", args...)
 }
 
 func Debug(tag string, msg string, args ...interface{}) {

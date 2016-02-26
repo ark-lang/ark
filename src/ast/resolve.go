@@ -118,6 +118,8 @@ func (v *Resolver) ResolveUsedModules() {
 func (v *Resolver) ResolveTopLevelDecls() {
 	modScope := v.module.ModScope
 
+	var staticFuncList []*FunctionDecl
+
 	for _, submod := range v.module.Parts {
 		for _, node := range submod.Nodes {
 			switch node := node.(type) {
@@ -129,15 +131,19 @@ func (v *Resolver) ResolveTopLevelDecls() {
 				}
 
 			case *FunctionDecl:
-				if node.Function.Receiver == nil && node.Function.StaticReceiverType == nil {
-					scope := v.curScope
-					if node.Function.Type.Attrs().Contains("c") {
-						scope = v.cModule.ModScope
-						node.SetPublic(true)
-					}
+				if node.Function.Receiver == nil {
+					if node.Function.StaticReceiverType == nil {
+						scope := v.curScope
+						if node.Function.Type.Attrs().Contains("c") {
+							scope = v.cModule.ModScope
+							node.SetPublic(true)
+						}
 
-					if scope.InsertFunction(node.Function, node.IsPublic()) != nil {
-						v.err(node, "Illegal redeclaration of function `%s`", node.Function.Name)
+						if scope.InsertFunction(node.Function, node.IsPublic()) != nil {
+							v.err(node, "Illegal redeclaration of function `%s`", node.Function.Name)
+						}
+					} else {
+						staticFuncList = append(staticFuncList, node)
 					}
 				}
 
@@ -149,6 +155,13 @@ func (v *Resolver) ResolveTopLevelDecls() {
 			default:
 				continue
 			}
+		}
+	}
+
+	for _, node := range staticFuncList {
+		node.Function.StaticReceiverType = v.ResolveType(node, node.Function.StaticReceiverType)
+		if checkReceiverType(v, node, &TypeReference{BaseType: node.Function.StaticReceiverType}, "static receiver") {
+			node.Function.StaticReceiverType.(*NamedType).addStaticMethod(node.Function)
 		}
 	}
 }
@@ -274,13 +287,6 @@ func (v *Resolver) ResolveNode(node *Node) {
 		}
 
 		n.Function.Type = v.ResolveType(n, n.Function.Type).(FunctionType)
-
-		if n.Function.StaticReceiverType != nil {
-			n.Function.StaticReceiverType = v.ResolveType(n, n.Function.StaticReceiverType)
-			if checkReceiverType(v, n, &TypeReference{BaseType: n.Function.StaticReceiverType}, "static receiver") {
-				n.Function.StaticReceiverType.(*NamedType).addStaticMethod(n.Function)
-			}
-		}
 
 	case *VariableDecl:
 		if n.Variable.Type != nil {

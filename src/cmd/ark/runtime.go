@@ -16,7 +16,7 @@ pub func panic(message: string) {
 	if len(message) == 0 {
 		C::printf(c"\n");
 	} else {
-		C::printf(c"%.*s\n", len(message), &message[0]);
+		C::printf(c"panic: %.*s\n", len(message), &message[0]);
 	}
     C::exit(-1);
 }

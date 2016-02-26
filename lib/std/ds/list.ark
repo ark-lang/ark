@@ -8,7 +8,11 @@ pub type List struct<T> {
 
 BaseCapacity: uint = 4;
 
-pub func (List) new<T>(mut cap: uint) -> ^mut List<T> {
+pub func (List) new<T>() -> ^mut List<T> {
+    return List::newWithCapacity<T>(0);
+}
+
+pub func (List) newWithCapacity<T>(mut cap: uint) -> ^mut List<T> {
     if cap <= 0 {
         cap = BaseCapacity;
     }
@@ -31,10 +35,10 @@ pub func (it: ^List<T>) destroy() {
 pub func (it: ^List<T>) toRawPointer() -> ^T {
     return ^it.data[0];
 }
-
+#use std::io
 pub func (it: List<T>) get(index: uint) -> T {
-    if index > it.capacity {
-        panic("List.grow: index > length");
+    if index >= it.length {
+        panic("List.grow: index >= length");
     }
 
     return it.data[index];

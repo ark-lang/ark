@@ -4,10 +4,11 @@
 pub func main() -> int {
     io::println("list test");
 
-    list := ds::List::new<int>(0);
+    list := ds::List::newWithCapacity<int>(0);
     list.append(5);
 
-    val := list.get(0);
+    io::printInt(list.get(1));
+    io::println("");
 
     return 0;
 }
