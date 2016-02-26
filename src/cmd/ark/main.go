@@ -101,7 +101,7 @@ func NewContext() *Context {
 
 func (v *Context) Build(output string, outputType codegen.OutputType, usedCodegen string, optLevel int) {
 	// Start by loading the runtime
-	LoadRuntime()
+	runtimeModule := LoadRuntime()
 
 	// Parse the passed files
 	v.parseFiles()
@@ -172,7 +172,11 @@ func (v *Context) Build(output string, outputType codegen.OutputType, usedCodege
 		}
 
 		log.Timed("codegen phase", "", func() {
-			gen.Generate(v.modules)
+			mods := v.modules
+			if runtimeModule != nil {
+				mods = append(mods, runtimeModule)
+			}
+			gen.Generate(mods)
 		})
 	}
 }

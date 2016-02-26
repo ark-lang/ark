@@ -4,15 +4,12 @@ import (
 	"github.com/ark-lang/ark/src/util/log"
 )
 
-var runeType Type
-var stringType Type
-
 func LoadRuntimeModule(mod *Module) {
-	runeType = runtimeMustLoadType(mod, "rune")
-	stringType = runtimeMustLoadType(mod, "string")
-
-	builtinScope.InsertType(runeType, true)
-	builtinScope.InsertType(stringType, true)
+	for name, ident := range mod.ModScope.Idents {
+		if ident.Public {
+			builtinScope.InsertIdent(ident.Value, name, ident.Type, ident.Public)
+		}
+	}
 }
 
 func runtimeMustLoadType(mod *Module, name string) Type {

@@ -1,7 +1,0 @@
-[c] func printf(fmt: ^u8, ...) -> int;
-[c] func exit(code: C::int);
-
-pub func panic(message: string) {
-    C::printf(c"%s\n", message);
-    C::exit(-1);
-}

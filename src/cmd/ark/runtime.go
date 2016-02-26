@@ -9,11 +9,31 @@ import (
 
 // TODO: Move this at a file and handle locating/specifying this file
 const RuntimeSource = `
-type rune u32;
-type string []u8;
+[c] func printf(fmt: ^u8, ...) -> int;
+[c] func exit(code: C::int);
+
+pub func panic(message: string) {
+    C::printf(c"%s\n", message);
+    C::exit(-1);
+}
+
+pub type Option enum<T> {
+    Some(T),
+    None,
+};
+
+pub func (o: Option<T>) unwrap() -> T {
+    match o {
+        Some(t) => return t,
+        None => panic("hi!"),
+    }
+
+    mut a: T;
+    return a;
+}
 `
 
-func LoadRuntime() {
+func LoadRuntime() *ast.Module {
 	runtimeModule := &ast.Module{
 		Name: &ast.ModuleName{
 			Parts: []string{"__runtime"},
@@ -51,4 +71,6 @@ func LoadRuntime() {
 	}
 
 	ast.LoadRuntimeModule(runtimeModule)
+
+	return runtimeModule
 }

@@ -61,12 +61,20 @@ func newScope(outer *Scope, mod *Module, fn *Function) *Scope {
 
 var builtinScope *Scope
 
+var runeType, stringType Type
+
 func init() {
 	builtinScope = newScope(nil, nil, nil)
 
 	for i := 0; i < len(_PrimitiveType_index); i++ {
 		builtinScope.InsertType(PrimitiveType(i), true)
 	}
+
+	stringType = &NamedType{Type: ArrayOf(&TypeReference{BaseType: PRIMITIVE_u8}, false, 0), Name: "string"}
+	runeType = &NamedType{Type: PRIMITIVE_u32, Name: "rune"}
+
+	builtinScope.InsertType(stringType, true)
+	builtinScope.InsertType(runeType, true)
 }
 
 func NewGlobalScope(mod *Module) *Scope {

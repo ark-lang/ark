@@ -1,22 +1,5 @@
 #use std::io
-#use std::panic
 
-type Option enum<T> {
-    Some(T),
-    None,
-};
-
-func (o: Option<T>) unwrap() -> T {
-    match o {
-        Some(t) => return t,
-        None => panic::panic("hi!"),
-    }
-
-    mut a: T;
-    return a;
-}
-
-// this function should be removed eventually
 func debugDumpOption<T>(o: Option<T>) {
     match o {
         Some(_) => io::println("Option::Some"),
