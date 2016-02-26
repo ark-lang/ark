@@ -1,14 +1,36 @@
 #use std::io
 #use std::ds
 
+func printIntList(list: ^ds::List<int>) {
+    io::print("[");
+
+    mut i: uint = 0;
+    length := list.getLength();
+    for i < length {
+        io::printInt(list.get(i));
+
+        if i < length - 1 {
+            io::print(", ");
+        }
+
+        i += 1;
+    }
+
+    io::println("]");
+}
+
 pub func main() -> int {
     io::println("list test");
 
-    list := ds::List::newWithCapacity<int>(0);
+    list := ds::List::new<int>();
     list.append(5);
 
-    io::printInt(list.get(1));
+    io::printInt(list.get(0));
     io::println("");
+
+    list.append(10);
+
+    printIntList(list);
 
     return 0;
 }
