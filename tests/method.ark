@@ -47,3 +47,12 @@ pub func main() -> int {
 
     return Thing2::do();
 }
+
+type Thing3 int;
+
+func (Thing3) do1() {
+    Thing3::do2();
+}
+
+func (Thing3) do2() {
+}
