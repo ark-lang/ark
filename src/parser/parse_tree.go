@@ -161,8 +161,9 @@ type StructTypeNode struct {
 
 type StructMemberNode struct {
 	baseNode
-	Name LocatedString
-	Type *TypeReferenceNode
+	Public bool
+	Name   LocatedString
+	Type   *TypeReferenceNode
 }
 
 type FunctionHeaderNode struct {

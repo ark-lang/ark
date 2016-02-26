@@ -638,6 +638,7 @@ func (v *Resolver) ResolveType(src Locatable, t Type) Type {
 		}
 
 		nt := StructType{
+			Module:            t.Module,
 			Members:           make([]*StructMember, len(t.Members)),
 			attrs:             t.attrs,
 			GenericParameters: t.GenericParameters,

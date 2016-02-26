@@ -314,10 +314,11 @@ func (c *Constructor) constructStructTypeNode(v *parser.StructTypeNode) StructTy
 	structType := StructType{
 		attrs:             v.Attrs(),
 		GenericParameters: c.constructGenericSigilNode(v.GenericSigil),
+		Module:            c.module,
 	}
 
 	for _, member := range v.Members {
-		structType = structType.addMember(member.Name.Value, c.constructTypeReferenceNode(member.Type))
+		structType = structType.addMember(member.Name.Value, c.constructTypeReferenceNode(member.Type), member.Public)
 	}
 
 	return structType

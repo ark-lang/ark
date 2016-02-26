@@ -126,6 +126,9 @@ func (v *TypeCheck) Visit(s *SemanticAnalyzer, n ast.Node) {
 
 	case *ast.EnumLiteral:
 		v.CheckEnumLiteral(s, n)
+
+	case *ast.StructAccessExpr:
+		v.CheckStructAccessExpr(s, n)
 	}
 }
 
@@ -135,6 +138,14 @@ func (v *TypeCheck) Finalize(s *SemanticAnalyzer) {
 
 func typeRefTo(typ ast.Type) *ast.TypeReference {
 	return ast.NewTypeReference(typ, nil)
+}
+
+func (v *TypeCheck) CheckStructAccessExpr(s *SemanticAnalyzer, access *ast.StructAccessExpr) {
+	structType := access.Struct.GetType().BaseType.ActualType().(ast.StructType)
+	member := structType.GetMember(access.Member)
+	if !member.Public && structType.Module != s.Submodule.Parent {
+		s.Err(access, "Cannot access private struct member `%s`", access.Member)
+	}
 }
 
 func (v *TypeCheck) CheckVariableDecl(s *SemanticAnalyzer, decl *ast.VariableDecl) {

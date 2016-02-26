@@ -133,14 +133,16 @@ func (v PrimitiveType) ActualType() Type {
 // StructType
 
 type StructType struct {
+	Module            *Module
 	Members           []*StructMember
 	attrs             parser.AttrGroup
 	GenericParameters GenericSigil
 }
 
 type StructMember struct {
-	Name string
-	Type *TypeReference
+	Name   string
+	Public bool
+	Type   *TypeReference
 }
 
 func (v StructType) String() string {
@@ -199,8 +201,8 @@ func (v StructType) GetMember(name string) *StructMember {
 	return nil
 }
 
-func (v StructType) addMember(name string, typ *TypeReference) StructType {
-	v.Members = append(v.Members, &StructMember{Name: name, Type: typ})
+func (v StructType) addMember(name string, typ *TypeReference, public bool) StructType {
+	v.Members = append(v.Members, &StructMember{Name: name, Type: typ, Public: public})
 	return v
 }
 
@@ -237,6 +239,9 @@ func (v StructType) Equals(t Type) bool {
 			return false
 		}
 		if !member.Type.Equals(otherMember.Type) {
+			return false
+		}
+		if member.Public != otherMember.Public {
 			return false
 		}
 	}

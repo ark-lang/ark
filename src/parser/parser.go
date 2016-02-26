@@ -1469,11 +1469,22 @@ func (v *parser) parseStructType(requireKeyword bool) *StructTypeNode {
 }
 
 func (v *parser) parseStructMember() *StructMemberNode {
-	if !v.tokensMatch(lexer.Identifier, "", lexer.Operator, ":") {
+	if !(v.tokensMatch(lexer.Identifier, "", lexer.Operator, ":") ||
+		v.tokensMatch(lexer.Identifier, KEYWORD_PUB, lexer.Identifier, "", lexer.Operator, ":")) {
 		return nil
 	}
 
+	var firstToken *lexer.Token
+	var isPublic bool
+	if v.tokenMatches(0, lexer.Identifier, KEYWORD_PUB) {
+		firstToken = v.consumeToken()
+		isPublic = true
+	}
+
 	name := v.consumeToken()
+	if !isPublic {
+		firstToken = name
+	}
 
 	// consume ':'
 	v.consumeToken()
@@ -1483,8 +1494,8 @@ func (v *parser) parseStructMember() *StructMemberNode {
 		v.err("Expected valid type in struct member")
 	}
 
-	res := &StructMemberNode{Name: NewLocatedString(name), Type: memType}
-	res.SetWhere(lexer.NewSpan(name.Where.Start(), memType.Where().End()))
+	res := &StructMemberNode{Name: NewLocatedString(name), Type: memType, Public: isPublic}
+	res.SetWhere(lexer.NewSpan(firstToken.Where.Start(), memType.Where().End()))
 	return res
 }
 

@@ -377,7 +377,7 @@ func (v *Inferrer) err(msg string, args ...interface{}) {
 }
 
 func (v *Inferrer) errPos(pos lexer.Position, msg string, args ...interface{}) {
-	log.Errorln("inferrer", "%s: [%s:%d:%d] %s", util.Red("error:"),
+	log.Errorln("inferrer", "%s: [%s:%d:%d] %s", util.Bold(util.Red("error")),
 		pos.Filename, pos.Line, pos.Char,
 		fmt.Sprintf(msg, args...))
 	log.Errorln("inferrer", "%s", v.Submodule.File.MarkPos(pos))
