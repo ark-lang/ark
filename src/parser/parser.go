@@ -193,15 +193,15 @@ func (v *parser) parse() {
 func (v *parser) parseToplevelDirective() ParseNode {
 	defer un(trace(v, "toplevel-directive"))
 
-	if !v.tokensMatch(lexer.TOKEN_OPERATOR, "#", lexer.TOKEN_IDENTIFIER, "") {
+	if !v.tokensMatch(lexer.Operator, "#", lexer.Identifier, "") {
 		return nil
 	}
-	start := v.expect(lexer.TOKEN_OPERATOR, "#")
+	start := v.expect(lexer.Operator, "#")
 
-	directive := v.expect(lexer.TOKEN_IDENTIFIER, "")
+	directive := v.expect(lexer.Identifier, "")
 	switch directive.Contents {
 	case "link":
-		library := v.expect(lexer.TOKEN_STRING, "")
+		library := v.expect(lexer.String, "")
 		res := &LinkDirectiveNode{Library: NewLocatedString(library)}
 		res.SetWhere(lexer.NewSpanFromTokens(start, library))
 		return res
@@ -251,7 +251,7 @@ func (v *parser) parseDocComments() []*DocComment {
 
 	var dcs []*DocComment
 
-	for v.nextIs(lexer.TOKEN_DOCCOMMENT) {
+	for v.nextIs(lexer.Doccomment) {
 		tok := v.consumeToken()
 
 		var contents string
@@ -272,23 +272,23 @@ func (v *parser) parseDocComments() []*DocComment {
 func (v *parser) parseAttributes() AttrGroup {
 	defer un(trace(v, "attributes"))
 
-	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "[") {
+	if !v.tokenMatches(0, lexer.Separator, "[") {
 		return nil
 	}
 	attrs := make(AttrGroup)
 
-	for v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "[") {
+	for v.tokenMatches(0, lexer.Separator, "[") {
 		v.consumeToken()
 		for {
 			attr := &Attr{}
 
-			keyToken := v.expect(lexer.TOKEN_IDENTIFIER, "")
+			keyToken := v.expect(lexer.Identifier, "")
 			attr.SetPos(keyToken.Where.Start())
 			attr.Key = keyToken.Contents
 
-			if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "=") {
+			if v.tokenMatches(0, lexer.Operator, "=") {
 				v.consumeToken()
-				attr.Value = v.expect(lexer.TOKEN_STRING, "").Contents
+				attr.Value = v.expect(lexer.String, "").Contents
 			}
 
 			if attrs.Set(attr.Key, attr) {
@@ -296,13 +296,13 @@ func (v *parser) parseAttributes() AttrGroup {
 				v.err("Duplicate attribute `%s`", attr.Key)
 			}
 
-			if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ",") {
+			if !v.tokenMatches(0, lexer.Separator, ",") {
 				break
 			}
 			v.consumeToken()
 		}
 
-		v.expect(lexer.TOKEN_SEPARATOR, "]")
+		v.expect(lexer.Separator, "]")
 	}
 
 	return attrs
@@ -311,16 +311,16 @@ func (v *parser) parseAttributes() AttrGroup {
 func (v *parser) parseName() *NameNode {
 	defer un(trace(v, "name"))
 
-	if !v.nextIs(lexer.TOKEN_IDENTIFIER) {
+	if !v.nextIs(lexer.Identifier) {
 		return nil
 	}
 
 	var parts []LocatedString
 	for {
-		part := v.expect(lexer.TOKEN_IDENTIFIER, "")
+		part := v.expect(lexer.Identifier, "")
 		parts = append(parts, NewLocatedString(part))
 
-		if !v.tokenMatches(0, lexer.TOKEN_OPERATOR, "::") {
+		if !v.tokenMatches(0, lexer.Operator, "::") {
 			break
 		}
 		v.consumeToken()
@@ -345,7 +345,7 @@ func (v *parser) parseDecl(isTopLevel bool) ParseNode {
 
 	var pub bool
 	if isTopLevel {
-		if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_PUB) {
+		if v.tokenMatches(0, lexer.Identifier, KEYWORD_PUB) {
 			pub = true
 			v.consumeToken()
 		}
@@ -412,10 +412,10 @@ func (v *parser) parseFunc(lambda bool, topLevelNode bool) *FunctionNode {
 	var stat, expr ParseNode
 	var end lexer.Position
 
-	if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ";") {
+	if v.tokenMatches(0, lexer.Separator, ";") {
 		terminator := v.consumeToken()
 		end = terminator.Where.End()
-	} else if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "=>") {
+	} else if v.tokenMatches(0, lexer.Operator, "=>") {
 		v.consumeToken()
 
 		isCond := false
@@ -431,7 +431,7 @@ func (v *parser) parseFunc(lambda bool, topLevelNode bool) *FunctionNode {
 		}
 
 		if topLevelNode && !isCond {
-			v.expect(lexer.TOKEN_SEPARATOR, ";")
+			v.expect(lexer.Separator, ";")
 		}
 	} else {
 		body = v.parseBlock()
@@ -450,7 +450,7 @@ func (v *parser) parseFunc(lambda bool, topLevelNode bool) *FunctionNode {
 func (v *parser) parseFuncHeader(lambda bool) *FunctionHeaderNode {
 	defer un(trace(v, "funcheader"))
 
-	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_FUNC) {
+	if !v.tokenMatches(0, lexer.Identifier, KEYWORD_FUNC) {
 		return nil
 	}
 	startToken := v.consumeToken()
@@ -459,11 +459,11 @@ func (v *parser) parseFuncHeader(lambda bool) *FunctionHeaderNode {
 
 	if !lambda {
 		// parses the function receiver if there is one.
-		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "(") {
+		if v.tokenMatches(0, lexer.Separator, "(") {
 			// we have a method receiver
 			v.consumeToken()
 
-			if v.tokensMatch(lexer.TOKEN_IDENTIFIER, "", lexer.TOKEN_SEPARATOR, ")") {
+			if v.tokensMatch(lexer.Identifier, "", lexer.Separator, ")") {
 				res.StaticReceiverType = v.parseNamedType()
 				if res.StaticReceiverType == nil {
 					v.errToken("Expected type name in method receiver, found `%s`", v.peek(0).Contents)
@@ -475,27 +475,27 @@ func (v *parser) parseFuncHeader(lambda bool) *FunctionHeaderNode {
 				}
 			}
 
-			v.expect(lexer.TOKEN_SEPARATOR, ")")
+			v.expect(lexer.Separator, ")")
 		}
 
 		// parses the function identifier/name
-		name := v.expect(lexer.TOKEN_IDENTIFIER, "")
+		name := v.expect(lexer.Identifier, "")
 		res.Name = NewLocatedString(name)
 	}
 
 	genericSigil := v.parseGenericSigil()
-	v.expect(lexer.TOKEN_SEPARATOR, "(")
+	v.expect(lexer.Separator, "(")
 
 	var args []*VarDeclNode
 	variadic := false
 	// parse the function arguments
 	for {
-		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ")") {
+		if v.tokenMatches(0, lexer.Separator, ")") {
 			break
 		}
 
 		// parse our variadic sigil (three magical dots)
-		if v.tokensMatch(lexer.TOKEN_SEPARATOR, ".", lexer.TOKEN_SEPARATOR, ".", lexer.TOKEN_SEPARATOR, ".") {
+		if v.tokensMatch(lexer.Separator, ".", lexer.Separator, ".", lexer.Separator, ".") {
 			v.consumeTokens(3)
 			if !variadic {
 				variadic = true
@@ -510,16 +510,16 @@ func (v *parser) parseFuncHeader(lambda bool) *FunctionHeaderNode {
 			args = append(args, arg)
 		}
 
-		if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ",") {
+		if !v.tokenMatches(0, lexer.Separator, ",") {
 			break
 		}
 		v.consumeToken()
 	}
 
-	maybeEndToken := v.expect(lexer.TOKEN_SEPARATOR, ")")
+	maybeEndToken := v.expect(lexer.Separator, ")")
 
 	var returnType *TypeReferenceNode
-	if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "->") {
+	if v.tokenMatches(0, lexer.Operator, "->") {
 		v.consumeToken()
 
 		returnType = v.parseTypeReference(true, false, true)
@@ -546,13 +546,13 @@ func (v *parser) parseFuncHeader(lambda bool) *FunctionHeaderNode {
 func (v *parser) parseTypeDecl(isTopLevel bool) *TypeDeclNode {
 	defer un(trace(v, "typdecl"))
 
-	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, "type") {
+	if !v.tokenMatches(0, lexer.Identifier, "type") {
 		return nil
 	}
 
 	startToken := v.consumeToken()
 
-	name := v.expect(lexer.TOKEN_IDENTIFIER, "")
+	name := v.expect(lexer.Identifier, "")
 	if IsReservedKeyword(name.Contents) {
 		v.err("Cannot use reserved keyword `%s` as type name", name.Contents)
 	}
@@ -560,7 +560,7 @@ func (v *parser) parseTypeDecl(isTopLevel bool) *TypeDeclNode {
 	typ := v.parseType(true, false, true)
 
 	if isTopLevel {
-		v.expect(lexer.TOKEN_SEPARATOR, ";")
+		v.expect(lexer.Separator, ";")
 	}
 
 	res := &TypeDeclNode{
@@ -575,7 +575,7 @@ func (v *parser) parseTypeDecl(isTopLevel bool) *TypeDeclNode {
 func (v *parser) parseGenericSigil() *GenericSigilNode {
 	defer un(trace(v, "genericsigil"))
 
-	if !v.tokenMatches(0, lexer.TOKEN_OPERATOR, "<") {
+	if !v.tokenMatches(0, lexer.Operator, "<") {
 		return nil
 	}
 	startToken := v.consumeToken()
@@ -588,12 +588,12 @@ func (v *parser) parseGenericSigil() *GenericSigilNode {
 		}
 		parameters = append(parameters, parameter)
 
-		if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ",") {
+		if !v.tokenMatches(0, lexer.Separator, ",") {
 			break
 		}
 		v.consumeToken()
 	}
-	endToken := v.expect(lexer.TOKEN_OPERATOR, ">")
+	endToken := v.expect(lexer.Operator, ">")
 
 	res := &GenericSigilNode{GenericParameters: parameters}
 	res.SetWhere(lexer.NewSpanFromTokens(startToken, endToken))
@@ -601,10 +601,10 @@ func (v *parser) parseGenericSigil() *GenericSigilNode {
 }
 
 func (v *parser) parseTypeParameter() *TypeParameterNode {
-	name := v.expect(lexer.TOKEN_IDENTIFIER, "")
+	name := v.expect(lexer.Identifier, "")
 
 	var constraints []ParseNode
-	if v.tokenMatches(0, lexer.TOKEN_OPERATOR, ":") {
+	if v.tokenMatches(0, lexer.Operator, ":") {
 		v.consumeToken()
 		for {
 			constraint := v.parseType(true, false, false)
@@ -613,7 +613,7 @@ func (v *parser) parseTypeParameter() *TypeParameterNode {
 			}
 			constraints = append(constraints, constraint)
 
-			if !v.tokenMatches(0, lexer.TOKEN_OPERATOR, "&") {
+			if !v.tokenMatches(0, lexer.Operator, "&") {
 				break
 			}
 			v.consumeToken()
@@ -632,7 +632,7 @@ func (v *parser) parseTypeParameter() *TypeParameterNode {
 func (v *parser) parseEnumEntry() *EnumEntryNode {
 	defer un(trace(v, "enumentry"))
 
-	if !v.nextIs(lexer.TOKEN_IDENTIFIER) {
+	if !v.nextIs(lexer.Identifier) {
 		return nil
 	}
 	name := v.consumeToken()
@@ -645,7 +645,7 @@ func (v *parser) parseEnumEntry() *EnumEntryNode {
 	var structBody *StructTypeNode
 	var tupleBody *TupleTypeNode
 	var lastPos lexer.Position
-	if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "=") {
+	if v.tokenMatches(0, lexer.Operator, "=") {
 		v.consumeToken()
 
 		value = v.parseNumberLit()
@@ -676,7 +676,7 @@ func (v *parser) parseVarDecl(isTopLevel bool) *VarDeclNode {
 		return nil
 	}
 	if isTopLevel {
-		v.expect(lexer.TOKEN_SEPARATOR, ";")
+		v.expect(lexer.Separator, ";")
 	}
 
 	return body
@@ -688,11 +688,11 @@ func (v *parser) parseVarDeclBody(isReceiver bool) *VarDeclNode {
 	startPos := v.currentToken
 
 	var mutable *lexer.Token
-	if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_MUT) {
+	if v.tokenMatches(0, lexer.Identifier, KEYWORD_MUT) {
 		mutable = v.consumeToken()
 	}
 
-	if !v.tokensMatch(lexer.TOKEN_IDENTIFIER, "", lexer.TOKEN_OPERATOR, ":") {
+	if !v.tokensMatch(lexer.Identifier, "", lexer.Operator, ":") {
 		v.currentToken = startPos
 		return nil
 	}
@@ -703,12 +703,12 @@ func (v *parser) parseVarDeclBody(isReceiver bool) *VarDeclNode {
 	v.consumeToken()
 
 	varType := v.parseTypeReference(true, false, true)
-	if varType == nil && !v.tokenMatches(0, lexer.TOKEN_OPERATOR, "=") {
+	if varType == nil && !v.tokenMatches(0, lexer.Operator, "=") {
 		v.err("Expected valid type in variable declaration")
 	}
 
 	var value ParseNode
-	if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "=") {
+	if v.tokenMatches(0, lexer.Operator, "=") {
 		v.consumeToken()
 
 		value = v.parseCompositeLiteral()
@@ -748,7 +748,7 @@ func (v *parser) parseDestructVarDecl(isTopLevel bool) *DestructVarDeclNode {
 	defer un(trace(v, "destructvardecl"))
 	startPos := v.currentToken
 
-	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "(") {
+	if !v.tokenMatches(0, lexer.Separator, "(") {
 		return nil
 	}
 	start := v.consumeToken()
@@ -757,12 +757,12 @@ func (v *parser) parseDestructVarDecl(isTopLevel bool) *DestructVarDeclNode {
 	var mutable []bool
 	for {
 		isMutable := false
-		if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_MUT) {
+		if v.tokenMatches(0, lexer.Identifier, KEYWORD_MUT) {
 			isMutable = true
 			v.consumeToken()
 		}
 
-		if !v.nextIs(lexer.TOKEN_IDENTIFIER) {
+		if !v.nextIs(lexer.Identifier) {
 			// TODO(#655):
 			//v.errPos("Expected identifier in tuple destructuring variable declaration, got %s", v.peek(0).Type)
 			v.currentToken = startPos
@@ -773,20 +773,20 @@ func (v *parser) parseDestructVarDecl(isTopLevel bool) *DestructVarDeclNode {
 		names = append(names, NewLocatedString(name))
 		mutable = append(mutable, isMutable)
 
-		if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ",") {
+		if !v.tokenMatches(0, lexer.Separator, ",") {
 			break
 		}
 		v.consumeToken()
 	}
 
-	v.expect(lexer.TOKEN_SEPARATOR, ")")
+	v.expect(lexer.Separator, ")")
 
-	if !v.tokenMatches(0, lexer.TOKEN_OPERATOR, ":") {
+	if !v.tokenMatches(0, lexer.Operator, ":") {
 		v.currentToken = startPos
 		return nil
 	}
-	v.expect(lexer.TOKEN_OPERATOR, ":")
-	v.expect(lexer.TOKEN_OPERATOR, "=")
+	v.expect(lexer.Operator, ":")
+	v.expect(lexer.Operator, "=")
 
 	value := v.parseExpr()
 	if value == nil {
@@ -846,7 +846,7 @@ func (v *parser) parseStat() ParseNode {
 func (v *parser) parseDeferStat() *DeferStatNode {
 	defer un(trace(v, "deferstat"))
 
-	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_DEFER) {
+	if !v.tokenMatches(0, lexer.Identifier, KEYWORD_DEFER) {
 		return nil
 	}
 	startToken := v.consumeToken()
@@ -864,7 +864,7 @@ func (v *parser) parseDeferStat() *DeferStatNode {
 func (v *parser) parseIfStat() *IfStatNode {
 	defer un(trace(v, "ifstat"))
 
-	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_IF) {
+	if !v.tokenMatches(0, lexer.Identifier, KEYWORD_IF) {
 		return nil
 	}
 	startToken := v.consumeToken()
@@ -886,14 +886,14 @@ func (v *parser) parseIfStat() *IfStatNode {
 		lastPart.SetWhere(lexer.NewSpan(condition.Where().Start(), body.Where().End()))
 		parts = append(parts, lastPart)
 
-		if !v.tokensMatch(lexer.TOKEN_IDENTIFIER, KEYWORD_ELSE, lexer.TOKEN_IDENTIFIER, KEYWORD_IF) {
+		if !v.tokensMatch(lexer.Identifier, KEYWORD_ELSE, lexer.Identifier, KEYWORD_IF) {
 			break
 		}
 		v.consumeTokens(2)
 	}
 
 	var elseBody *BlockNode
-	if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_ELSE) {
+	if v.tokenMatches(0, lexer.Identifier, KEYWORD_ELSE) {
 		v.consumeToken()
 
 		elseBody = v.parseBlock()
@@ -914,7 +914,7 @@ func (v *parser) parseIfStat() *IfStatNode {
 func (v *parser) parseMatchStat() *MatchStatNode {
 	defer un(trace(v, "matchstat"))
 
-	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_MATCH) {
+	if !v.tokenMatches(0, lexer.Identifier, KEYWORD_MATCH) {
 		return nil
 	}
 	startToken := v.consumeToken()
@@ -924,11 +924,11 @@ func (v *parser) parseMatchStat() *MatchStatNode {
 		v.err("Expected valid expresson as value in match statement")
 	}
 
-	v.expect(lexer.TOKEN_SEPARATOR, "{")
+	v.expect(lexer.Separator, "{")
 
 	var cases []*MatchCaseNode
 	for {
-		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "}") {
+		if v.tokenMatches(0, lexer.Separator, "}") {
 			break
 		}
 
@@ -937,10 +937,10 @@ func (v *parser) parseMatchStat() *MatchStatNode {
 			v.err("Expected valid pattern in match statement")
 		}
 
-		v.expect(lexer.TOKEN_OPERATOR, "=>")
+		v.expect(lexer.Operator, "=>")
 
 		var body ParseNode
-		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "{") {
+		if v.tokenMatches(0, lexer.Separator, "{") {
 			body = v.parseBlock()
 		} else {
 			body = v.parseStat()
@@ -949,14 +949,14 @@ func (v *parser) parseMatchStat() *MatchStatNode {
 			v.err("Expected valid arm statement in match clause")
 		}
 
-		v.expect(lexer.TOKEN_SEPARATOR, ",")
+		v.expect(lexer.Separator, ",")
 
 		caseNode := &MatchCaseNode{Pattern: pattern, Body: body}
 		caseNode.SetWhere(lexer.NewSpan(pattern.Where().Start(), body.Where().End()))
 		cases = append(cases, caseNode)
 	}
 
-	endToken := v.expect(lexer.TOKEN_SEPARATOR, "}")
+	endToken := v.expect(lexer.Separator, "}")
 
 	res := &MatchStatNode{Value: value, Cases: cases}
 	res.SetWhere(lexer.NewSpanFromTokens(startToken, endToken))
@@ -979,10 +979,10 @@ func (v *parser) parseMatchPattern() ParseNode {
 
 func (v *parser) parseDiscardAccess() *DiscardAccessNode {
 	defer un(trace(v, "discardaccess"))
-	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_DISCARD) {
+	if !v.tokenMatches(0, lexer.Identifier, KEYWORD_DISCARD) {
 		return nil
 	}
-	token := v.expect(lexer.TOKEN_IDENTIFIER, KEYWORD_DISCARD)
+	token := v.expect(lexer.Identifier, KEYWORD_DISCARD)
 
 	res := &DiscardAccessNode{}
 	res.SetWhere(token.Where)
@@ -1001,27 +1001,27 @@ func (v *parser) parseEnumPattern() *EnumPatternNode {
 	}
 
 	var endParens *lexer.Token
-	if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "(") {
+	if v.tokenMatches(0, lexer.Separator, "(") {
 		v.consumeToken()
 
 		for {
-			if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ")") {
+			if v.tokenMatches(0, lexer.Separator, ")") {
 				break
 			}
 
-			if !v.nextIs(lexer.TOKEN_IDENTIFIER) {
+			if !v.nextIs(lexer.Identifier) {
 				v.err("Expected identifier in enum pattern")
 			}
 
 			name := v.consumeToken()
 			res.Names = append(res.Names, NewLocatedString(name))
 
-			if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ",") {
+			if !v.tokenMatches(0, lexer.Separator, ",") {
 				break
 			}
 			v.consumeToken()
 		}
-		endParens = v.expect(lexer.TOKEN_SEPARATOR, ")")
+		endParens = v.expect(lexer.Separator, ")")
 	}
 
 	if endParens != nil {
@@ -1035,7 +1035,7 @@ func (v *parser) parseEnumPattern() *EnumPatternNode {
 func (v *parser) parseLoopStat() *LoopStatNode {
 	defer un(trace(v, "loopstat"))
 
-	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_FOR) {
+	if !v.tokenMatches(0, lexer.Identifier, KEYWORD_FOR) {
 		return nil
 	}
 	startToken := v.consumeToken()
@@ -1055,7 +1055,7 @@ func (v *parser) parseLoopStat() *LoopStatNode {
 func (v *parser) parseReturnStat() *ReturnStatNode {
 	defer un(trace(v, "returnstat"))
 
-	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_RETURN) {
+	if !v.tokenMatches(0, lexer.Identifier, KEYWORD_RETURN) {
 		return nil
 	}
 	startToken := v.consumeToken()
@@ -1077,7 +1077,7 @@ func (v *parser) parseReturnStat() *ReturnStatNode {
 func (v *parser) parseBreakStat() *BreakStatNode {
 	defer un(trace(v, "breakstat"))
 
-	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_BREAK) {
+	if !v.tokenMatches(0, lexer.Identifier, KEYWORD_BREAK) {
 		return nil
 	}
 	startToken := v.consumeToken()
@@ -1090,7 +1090,7 @@ func (v *parser) parseBreakStat() *BreakStatNode {
 func (v *parser) parseNextStat() *NextStatNode {
 	defer un(trace(v, "nextstat"))
 
-	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_NEXT) {
+	if !v.tokenMatches(0, lexer.Identifier, KEYWORD_NEXT) {
 		return nil
 	}
 	startToken := v.consumeToken()
@@ -1105,7 +1105,7 @@ func (v *parser) parseBlockStat() *BlockStatNode {
 
 	startPos := v.currentToken
 	var doToken *lexer.Token
-	if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_DO) {
+	if v.tokenMatches(0, lexer.Identifier, KEYWORD_DO) {
 		doToken = v.consumeToken()
 	}
 
@@ -1128,7 +1128,7 @@ func (v *parser) parseBlockStat() *BlockStatNode {
 func (v *parser) parseBlock() *BlockNode {
 	defer un(trace(v, "block"))
 
-	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "{") {
+	if !v.tokenMatches(0, lexer.Separator, "{") {
 		return nil
 	}
 	startToken := v.consumeToken()
@@ -1140,12 +1140,12 @@ func (v *parser) parseBlock() *BlockNode {
 			break
 		}
 		if !is_cond {
-			v.expect(lexer.TOKEN_SEPARATOR, ";")
+			v.expect(lexer.Separator, ";")
 		}
 		nodes = append(nodes, node)
 	}
 
-	endToken := v.expect(lexer.TOKEN_SEPARATOR, "}")
+	endToken := v.expect(lexer.Separator, "}")
 
 	res := &BlockNode{Nodes: nodes}
 	res.SetWhere(lexer.NewSpanFromTokens(startToken, endToken))
@@ -1174,7 +1174,7 @@ func (v *parser) parseAssignStat() ParseNode {
 	startPos := v.currentToken
 
 	accessExpr := v.parseExpr()
-	if accessExpr == nil || !v.tokenMatches(0, lexer.TOKEN_OPERATOR, "=") {
+	if accessExpr == nil || !v.tokenMatches(0, lexer.Operator, "=") {
 		v.currentToken = startPos
 		return nil
 	}
@@ -1204,7 +1204,7 @@ func (v *parser) parseBinopAssignStat() ParseNode {
 	startPos := v.currentToken
 
 	accessExpr := v.parseExpr()
-	if accessExpr == nil || !v.tokensMatch(lexer.TOKEN_OPERATOR, "", lexer.TOKEN_OPERATOR, "=") {
+	if accessExpr == nil || !v.tokensMatch(lexer.Operator, "", lexer.Operator, "=") {
 		v.currentToken = startPos
 		return nil
 	}
@@ -1241,7 +1241,7 @@ func (v *parser) parseTypeReference(doNamed bool, onlyComposites bool, mustParse
 	}
 
 	var gargs []*TypeReferenceNode
-	if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "<") {
+	if v.tokenMatches(0, lexer.Operator, "<") {
 		v.consumeToken()
 
 		for {
@@ -1251,13 +1251,13 @@ func (v *parser) parseTypeReference(doNamed bool, onlyComposites bool, mustParse
 			}
 			gargs = append(gargs, typ)
 
-			if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ",") {
+			if !v.tokenMatches(0, lexer.Separator, ",") {
 				break
 			}
 			v.consumeToken()
 		}
 
-		v.expect(lexer.TOKEN_OPERATOR, ">")
+		v.expect(lexer.Operator, ">")
 	}
 
 	res := &TypeReferenceNode{
@@ -1289,20 +1289,20 @@ func (v *parser) parseType(doNamed bool, onlyComposites bool, mustParse bool) Pa
 	}()
 
 	// If the next token is a [ and identifier it must be a group of attributes
-	if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "[") && v.tokenMatches(1, lexer.TOKEN_IDENTIFIER, "") {
+	if v.tokenMatches(0, lexer.Separator, "[") && v.tokenMatches(1, lexer.Identifier, "") {
 		attrs = v.parseAttributes()
 	}
 
 	if !onlyComposites {
-		if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_FUNC) {
+		if v.tokenMatches(0, lexer.Identifier, KEYWORD_FUNC) {
 			res = v.parseFunctionType()
-		} else if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "^") {
+		} else if v.tokenMatches(0, lexer.Operator, "^") {
 			res = v.parsePointerType()
-		} else if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "&") {
+		} else if v.tokenMatches(0, lexer.Operator, "&") {
 			res = v.parseReferenceType()
-		} else if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "(") {
+		} else if v.tokenMatches(0, lexer.Separator, "(") {
 			res = v.parseTupleType(mustParse)
-		} else if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_INTERFACE) {
+		} else if v.tokenMatches(0, lexer.Identifier, KEYWORD_INTERFACE) {
 			res = v.parseInterfaceType()
 		}
 	}
@@ -1311,13 +1311,13 @@ func (v *parser) parseType(doNamed bool, onlyComposites bool, mustParse bool) Pa
 		return res
 	}
 
-	if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "[") {
+	if v.tokenMatches(0, lexer.Separator, "[") {
 		res = v.parseArrayType()
-	} else if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_STRUCT) {
+	} else if v.tokenMatches(0, lexer.Identifier, KEYWORD_STRUCT) {
 		res = v.parseStructType(true)
-	} else if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_ENUM) {
+	} else if v.tokenMatches(0, lexer.Identifier, KEYWORD_ENUM) {
 		res = v.parseEnumType()
-	} else if doNamed && v.nextIs(lexer.TOKEN_IDENTIFIER) {
+	} else if doNamed && v.nextIs(lexer.Identifier) {
 		res = v.parseNamedType()
 	}
 
@@ -1327,18 +1327,18 @@ func (v *parser) parseType(doNamed bool, onlyComposites bool, mustParse bool) Pa
 func (v *parser) parseEnumType() *EnumTypeNode {
 	defer un(trace(v, "enumtype"))
 
-	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_ENUM) {
+	if !v.tokenMatches(0, lexer.Identifier, KEYWORD_ENUM) {
 		return nil
 	}
 	startToken := v.consumeToken()
 
 	genericsigil := v.parseGenericSigil()
 
-	v.expect(lexer.TOKEN_SEPARATOR, "{")
+	v.expect(lexer.Separator, "{")
 
 	var members []*EnumEntryNode
 	for {
-		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "}") {
+		if v.tokenMatches(0, lexer.Separator, "}") {
 			break
 		}
 
@@ -1348,13 +1348,13 @@ func (v *parser) parseEnumType() *EnumTypeNode {
 		}
 		members = append(members, member)
 
-		if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ",") {
+		if !v.tokenMatches(0, lexer.Separator, ",") {
 			break
 		}
 		v.consumeToken()
 	}
 
-	endToken := v.expect(lexer.TOKEN_SEPARATOR, "}")
+	endToken := v.expect(lexer.Separator, "}")
 
 	res := &EnumTypeNode{
 		Members:      members,
@@ -1368,32 +1368,32 @@ func (v *parser) parseEnumType() *EnumTypeNode {
 func (v *parser) parseInterfaceType() *InterfaceTypeNode {
 	defer un(trace(v, "interfacetype"))
 
-	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_INTERFACE) {
+	if !v.tokenMatches(0, lexer.Identifier, KEYWORD_INTERFACE) {
 		return nil
 	}
 
 	startToken := v.consumeToken()
-	v.expect(lexer.TOKEN_SEPARATOR, "{")
+	v.expect(lexer.Separator, "{")
 
 	// when we hit a };
 	// this means our interface is done...
 	var functions []*FunctionHeaderNode
 	for {
-		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "}") && v.tokenMatches(1, lexer.TOKEN_SEPARATOR, ";") {
+		if v.tokenMatches(0, lexer.Separator, "}") && v.tokenMatches(1, lexer.Separator, ";") {
 			break
 		}
 
 		function := v.parseFuncHeader(false)
 		if function != nil {
 			// TODO trailing comma
-			v.expect(lexer.TOKEN_SEPARATOR, ",")
+			v.expect(lexer.Separator, ",")
 			functions = append(functions, function)
 		} else {
 			v.err("Failed to parse function in interface")
 		}
 	}
 
-	endToken := v.expect(lexer.TOKEN_SEPARATOR, "}")
+	endToken := v.expect(lexer.Separator, "}")
 
 	res := &InterfaceTypeNode{
 		Functions: functions,
@@ -1410,15 +1410,15 @@ func (v *parser) parseStructType(requireKeyword bool) *StructTypeNode {
 	var sigil *GenericSigilNode
 
 	if requireKeyword {
-		if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_STRUCT) {
+		if !v.tokenMatches(0, lexer.Identifier, KEYWORD_STRUCT) {
 			return nil
 		}
 		startToken = v.consumeToken()
 
 		sigil = v.parseGenericSigil()
-		v.expect(lexer.TOKEN_SEPARATOR, "{")
+		v.expect(lexer.Separator, "{")
 	} else {
-		if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "{") {
+		if !v.tokenMatches(0, lexer.Separator, "{") {
 			return nil
 		}
 		startToken = v.consumeToken()
@@ -1426,7 +1426,7 @@ func (v *parser) parseStructType(requireKeyword bool) *StructTypeNode {
 
 	var members []*StructMemberNode
 	for {
-		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "}") {
+		if v.tokenMatches(0, lexer.Separator, "}") {
 			break
 		}
 
@@ -1436,12 +1436,12 @@ func (v *parser) parseStructType(requireKeyword bool) *StructTypeNode {
 		}
 		members = append(members, member)
 
-		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ",") {
+		if v.tokenMatches(0, lexer.Separator, ",") {
 			v.consumeToken()
 		}
 	}
 
-	endToken := v.expect(lexer.TOKEN_SEPARATOR, "}")
+	endToken := v.expect(lexer.Separator, "}")
 
 	res := &StructTypeNode{Members: members, GenericSigil: sigil}
 	res.SetWhere(lexer.NewSpanFromTokens(startToken, endToken))
@@ -1449,7 +1449,7 @@ func (v *parser) parseStructType(requireKeyword bool) *StructTypeNode {
 }
 
 func (v *parser) parseStructMember() *StructMemberNode {
-	if !v.tokensMatch(lexer.TOKEN_IDENTIFIER, "", lexer.TOKEN_OPERATOR, ":") {
+	if !v.tokensMatch(lexer.Identifier, "", lexer.Operator, ":") {
 		return nil
 	}
 
@@ -1471,12 +1471,12 @@ func (v *parser) parseStructMember() *StructMemberNode {
 func (v *parser) parseFunctionType() *FunctionTypeNode {
 	defer un(trace(v, "functiontype"))
 
-	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_FUNC) {
+	if !v.tokenMatches(0, lexer.Identifier, KEYWORD_FUNC) {
 		return nil
 	}
 	startToken := v.consumeToken()
 
-	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "(") {
+	if !v.tokenMatches(0, lexer.Separator, "(") {
 		v.err("Expected `(` after `func` keyword")
 	}
 	lastParens := v.consumeToken()
@@ -1485,7 +1485,7 @@ func (v *parser) parseFunctionType() *FunctionTypeNode {
 	variadic := false
 
 	for {
-		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ")") {
+		if v.tokenMatches(0, lexer.Separator, ")") {
 			lastParens = v.consumeToken()
 			break
 		}
@@ -1494,7 +1494,7 @@ func (v *parser) parseFunctionType() *FunctionTypeNode {
 			v.err("Variadic signifier must be the last argument in a variadic function")
 		}
 
-		if v.tokensMatch(lexer.TOKEN_SEPARATOR, ".", lexer.TOKEN_SEPARATOR, ".", lexer.TOKEN_SEPARATOR, ".") {
+		if v.tokensMatch(lexer.Separator, ".", lexer.Separator, ".", lexer.Separator, ".") {
 			v.consumeTokens(3)
 			if !variadic {
 				variadic = true
@@ -1510,10 +1510,10 @@ func (v *parser) parseFunctionType() *FunctionTypeNode {
 			pars = append(pars, par)
 		}
 
-		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ",") {
+		if v.tokenMatches(0, lexer.Separator, ",") {
 			v.consumeToken()
 			continue
-		} else if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ")") {
+		} else if v.tokenMatches(0, lexer.Separator, ")") {
 			lastParens = v.consumeToken()
 			break
 		} else {
@@ -1522,7 +1522,7 @@ func (v *parser) parseFunctionType() *FunctionTypeNode {
 	}
 
 	var returnType *TypeReferenceNode
-	if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "->") {
+	if v.tokenMatches(0, lexer.Operator, "->") {
 		v.consumeToken()
 		returnType = v.parseTypeReference(true, false, true)
 		if returnType == nil {
@@ -1575,13 +1575,13 @@ func (v *parser) parseReferenceType() *ReferenceTypeNode {
 func (v *parser) parsePointerlikeType(symbol string) (mutable bool, target *TypeReferenceNode, where lexer.Span) {
 	defer un(trace(v, "pointerliketype"))
 
-	if !v.tokenMatches(0, lexer.TOKEN_OPERATOR, symbol) {
+	if !v.tokenMatches(0, lexer.Operator, symbol) {
 		return false, nil, lexer.Span{}
 	}
 	startToken := v.consumeToken()
 
 	mutable = false
-	if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_MUT) {
+	if v.tokenMatches(0, lexer.Identifier, KEYWORD_MUT) {
 		v.consumeToken()
 		mutable = true
 	}
@@ -1598,7 +1598,7 @@ func (v *parser) parsePointerlikeType(symbol string) (mutable bool, target *Type
 func (v *parser) parseTupleType(mustParse bool) *TupleTypeNode {
 	defer un(trace(v, "tupletype"))
 
-	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "(") {
+	if !v.tokenMatches(0, lexer.Separator, "(") {
 		return nil
 	}
 	startToken := v.consumeToken()
@@ -1616,13 +1616,13 @@ func (v *parser) parseTupleType(mustParse bool) *TupleTypeNode {
 		}
 		members = append(members, memberType)
 
-		if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ",") {
+		if !v.tokenMatches(0, lexer.Separator, ",") {
 			break
 		}
 		v.consumeToken()
 	}
 
-	endToken := v.expect(lexer.TOKEN_SEPARATOR, ")")
+	endToken := v.expect(lexer.Separator, ")")
 
 	res := &TupleTypeNode{MemberTypes: members}
 	res.SetWhere(lexer.NewSpanFromTokens(startToken, endToken))
@@ -1632,7 +1632,7 @@ func (v *parser) parseTupleType(mustParse bool) *TupleTypeNode {
 func (v *parser) parseArrayType() *ArrayTypeNode {
 	defer un(trace(v, "arraytype"))
 
-	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "[") {
+	if !v.tokenMatches(0, lexer.Separator, "[") {
 		return nil
 	}
 	startToken := v.consumeToken()
@@ -1642,7 +1642,7 @@ func (v *parser) parseArrayType() *ArrayTypeNode {
 		v.err("Expected integer length for array type")
 	}
 
-	v.expect(lexer.TOKEN_SEPARATOR, "]")
+	v.expect(lexer.Separator, "]")
 
 	memberType := v.parseTypeReference(true, false, true)
 	if memberType == nil {
@@ -1694,7 +1694,7 @@ func (v *parser) parseBinaryOperator(upperPrecedence int, lhand ParseNode) Parse
 	startPos := v.currentToken
 
 	tok := v.peek(0)
-	if tok.Type != lexer.TOKEN_OPERATOR || v.peek(1).Contents == ";" {
+	if tok.Type != lexer.Operator || v.peek(1).Contents == ";" {
 		return nil
 	}
 
@@ -1744,17 +1744,17 @@ func (v *parser) parsePostfixExpr() ParseNode {
 	}
 
 	for {
-		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ".") {
+		if v.tokenMatches(0, lexer.Separator, ".") {
 			// struct access
 			v.consumeToken()
 			defer un(trace(v, "structaccess"))
 
-			member := v.expect(lexer.TOKEN_IDENTIFIER, "")
+			member := v.expect(lexer.Identifier, "")
 
 			res := &StructAccessNode{Struct: expr, Member: NewLocatedString(member)}
 			res.SetWhere(lexer.NewSpan(expr.Where().Start(), member.Where.End()))
 			expr = res
-		} else if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "[") {
+		} else if v.tokenMatches(0, lexer.Separator, "[") {
 			// array index
 			v.consumeToken()
 			defer un(trace(v, "arrayindex"))
@@ -1764,19 +1764,19 @@ func (v *parser) parsePostfixExpr() ParseNode {
 				v.err("Expected valid expression as array index")
 			}
 
-			endToken := v.expect(lexer.TOKEN_SEPARATOR, "]")
+			endToken := v.expect(lexer.Separator, "]")
 
 			res := &ArrayAccessNode{Array: expr, Index: index}
 			res.SetWhere(lexer.NewSpan(expr.Where().Start(), endToken.Where.End()))
 			expr = res
-		} else if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "(") {
+		} else if v.tokenMatches(0, lexer.Separator, "(") {
 			// call expr
 			v.consumeToken()
 			defer un(trace(v, "callexpr"))
 
 			var args []ParseNode
 			for {
-				if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ")") {
+				if v.tokenMatches(0, lexer.Separator, ")") {
 					break
 				}
 
@@ -1786,13 +1786,13 @@ func (v *parser) parsePostfixExpr() ParseNode {
 				}
 				args = append(args, arg)
 
-				if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ",") {
+				if !v.tokenMatches(0, lexer.Separator, ",") {
 					break
 				}
 				v.consumeToken()
 			}
 
-			endToken := v.expect(lexer.TOKEN_SEPARATOR, ")")
+			endToken := v.expect(lexer.Separator, ")")
 
 			res := &CallExprNode{Function: expr, Arguments: args}
 			res.SetWhere(lexer.NewSpan(expr.Where().Start(), endToken.Where.End()))
@@ -1833,7 +1833,7 @@ func (v *parser) parsePrimaryExpr() ParseNode {
 			res.SetWhere(name.Where())
 		} else {
 			var parameters []*TypeReferenceNode
-			if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "<") {
+			if v.tokenMatches(0, lexer.Operator, "<") {
 				v.consumeToken()
 
 				for {
@@ -1843,13 +1843,13 @@ func (v *parser) parsePrimaryExpr() ParseNode {
 					}
 					parameters = append(parameters, typ)
 
-					if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ",") {
+					if !v.tokenMatches(0, lexer.Separator, ",") {
 						break
 					}
 					v.consumeToken()
 				}
 
-				if !v.tokenMatches(0, lexer.TOKEN_OPERATOR, ">") {
+				if !v.tokenMatches(0, lexer.Operator, ">") {
 					v.currentToken = startPos
 					parameters = nil
 				} else {
@@ -1869,12 +1869,12 @@ func (v *parser) parsePrimaryExpr() ParseNode {
 func (v *parser) parseArrayLenExpr() *ArrayLenExprNode {
 	defer un(trace(v, "arraylenexpr"))
 
-	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_LEN) {
+	if !v.tokenMatches(0, lexer.Identifier, KEYWORD_LEN) {
 		return nil
 	}
 	startToken := v.consumeToken()
 
-	v.expect(lexer.TOKEN_SEPARATOR, "(")
+	v.expect(lexer.Separator, "(")
 
 	var array ParseNode
 	array = v.parseCompositeLiteral()
@@ -1885,7 +1885,7 @@ func (v *parser) parseArrayLenExpr() *ArrayLenExprNode {
 		v.err("Expected valid expression in array length expression")
 	}
 
-	v.expect(lexer.TOKEN_SEPARATOR, ")")
+	v.expect(lexer.Separator, ")")
 
 	end := v.peek(0)
 	res := &ArrayLenExprNode{ArrayExpr: array}
@@ -1896,12 +1896,12 @@ func (v *parser) parseArrayLenExpr() *ArrayLenExprNode {
 func (v *parser) parseSizeofExpr() *SizeofExprNode {
 	defer un(trace(v, "sizeofexpr"))
 
-	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_SIZEOF) {
+	if !v.tokenMatches(0, lexer.Identifier, KEYWORD_SIZEOF) {
 		return nil
 	}
 	startToken := v.consumeToken()
 
-	v.expect(lexer.TOKEN_SEPARATOR, "(")
+	v.expect(lexer.Separator, "(")
 
 	var typ *TypeReferenceNode
 	value := v.parseExpr()
@@ -1912,7 +1912,7 @@ func (v *parser) parseSizeofExpr() *SizeofExprNode {
 		}
 	}
 
-	endToken := v.expect(lexer.TOKEN_SEPARATOR, ")")
+	endToken := v.expect(lexer.Separator, ")")
 
 	res := &SizeofExprNode{Value: value, Type: typ}
 	res.SetWhere(lexer.NewSpanFromTokens(startToken, endToken))
@@ -1924,9 +1924,9 @@ func (v *parser) parseAddrofExpr() *AddrofExprNode {
 	startPos := v.currentToken
 
 	isReference := false
-	if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "&") {
+	if v.tokenMatches(0, lexer.Operator, "&") {
 		isReference = true
-	} else if v.tokenMatches(0, lexer.TOKEN_OPERATOR, "^") {
+	} else if v.tokenMatches(0, lexer.Operator, "^") {
 		isReference = false
 	} else {
 		return nil
@@ -1934,7 +1934,7 @@ func (v *parser) parseAddrofExpr() *AddrofExprNode {
 	startToken := v.consumeToken()
 
 	mutable := false
-	if v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, KEYWORD_MUT) {
+	if v.tokenMatches(0, lexer.Identifier, KEYWORD_MUT) {
 		v.consumeToken()
 		mutable = true
 	}
@@ -1978,7 +1978,7 @@ func (v *parser) parseCastExpr() *CastExprNode {
 	startPos := v.currentToken
 
 	typ := v.parseTypeReference(false, false, false)
-	if typ == nil || !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "(") {
+	if typ == nil || !v.tokenMatches(0, lexer.Separator, "(") {
 		v.currentToken = startPos
 		return nil
 	}
@@ -1989,7 +1989,7 @@ func (v *parser) parseCastExpr() *CastExprNode {
 		v.err("Expected valid expression in cast expression")
 	}
 
-	endToken := v.expect(lexer.TOKEN_SEPARATOR, ")")
+	endToken := v.expect(lexer.Separator, ")")
 
 	res := &CastExprNode{Type: typ, Value: value}
 	res.SetWhere(lexer.NewSpan(typ.Where().Start(), endToken.Where.End()))
@@ -2001,7 +2001,7 @@ func (v *parser) parseUnaryExpr() *UnaryExprNode {
 
 	startPos := v.currentToken
 
-	if !v.nextIs(lexer.TOKEN_OPERATOR) {
+	if !v.nextIs(lexer.Operator) {
 		return nil
 	}
 
@@ -2030,7 +2030,7 @@ func (v *parser) parseCompositeLiteral() ParseNode {
 	startPos := v.currentToken
 	typ := v.parseTypeReference(true, true, true)
 
-	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "{") {
+	if !v.tokenMatches(0, lexer.Separator, "{") {
 		v.currentToken = startPos
 		return nil
 	}
@@ -2043,14 +2043,14 @@ func (v *parser) parseCompositeLiteral() ParseNode {
 	var lastToken *lexer.Token
 
 	for {
-		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "}") {
+		if v.tokenMatches(0, lexer.Separator, "}") {
 			lastToken = v.consumeToken()
 			break
 		}
 
 		var field LocatedString
 
-		if v.tokensMatch(lexer.TOKEN_IDENTIFIER, "", lexer.TOKEN_OPERATOR, ":") {
+		if v.tokensMatch(lexer.Identifier, "", lexer.Operator, ":") {
 			field = NewLocatedString(v.consumeToken())
 			v.consumeToken()
 		}
@@ -2066,10 +2066,10 @@ func (v *parser) parseCompositeLiteral() ParseNode {
 		res.Fields = append(res.Fields, field)
 		res.Values = append(res.Values, val)
 
-		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ",") {
+		if v.tokenMatches(0, lexer.Separator, ",") {
 			v.consumeToken()
 			continue
-		} else if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "}") {
+		} else if v.tokenMatches(0, lexer.Separator, "}") {
 			lastToken = v.consumeToken()
 			break
 		} else {
@@ -2090,14 +2090,14 @@ func (v *parser) parseTupleLit() *TupleLiteralNode {
 	defer un(trace(v, "tuplelit"))
 
 	startPos := v.currentToken
-	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, "(") {
+	if !v.tokenMatches(0, lexer.Separator, "(") {
 		return nil
 	}
 	startToken := v.consumeToken()
 
 	var values []ParseNode
 	for {
-		if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ")") {
+		if v.tokenMatches(0, lexer.Separator, ")") {
 			break
 		}
 
@@ -2110,14 +2110,14 @@ func (v *parser) parseTupleLit() *TupleLiteralNode {
 		}
 		values = append(values, value)
 
-		if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ",") {
+		if !v.tokenMatches(0, lexer.Separator, ",") {
 			break
 		}
 		v.consumeToken()
 	}
 
 	endToken := v.peek(0)
-	if !v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ")") {
+	if !v.tokenMatches(0, lexer.Separator, ")") {
 		// TODO: Restore this error once we go through wiht #655
 		// endToken := v.expect(lexer.TOKEN_SEPARATOR, ")")
 		v.currentToken = startPos
@@ -2126,7 +2126,7 @@ func (v *parser) parseTupleLit() *TupleLiteralNode {
 	v.currentToken++
 
 	// Dirty hack
-	if v.tokenMatches(0, lexer.TOKEN_SEPARATOR, ".") {
+	if v.tokenMatches(0, lexer.Separator, ".") {
 		v.currentToken = startPos
 		return nil
 	}
@@ -2139,7 +2139,7 @@ func (v *parser) parseTupleLit() *TupleLiteralNode {
 func (v *parser) parseBoolLit() *BoolLitNode {
 	defer un(trace(v, "boollit"))
 
-	if !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, "true") && !v.tokenMatches(0, lexer.TOKEN_IDENTIFIER, "false") {
+	if !v.tokenMatches(0, lexer.Identifier, "true") && !v.tokenMatches(0, lexer.Identifier, "false") {
 		return nil
 	}
 	token := v.consumeToken()
@@ -2213,7 +2213,7 @@ func parseInt(num string, base int) (*big.Int, bool) {
 func (v *parser) parseNumberLit() *NumberLitNode {
 	defer un(trace(v, "numberlit"))
 
-	if !v.nextIs(lexer.TOKEN_NUMBER) {
+	if !v.nextIs(lexer.Number) {
 		return nil
 	}
 	token := v.consumeToken()
@@ -2286,11 +2286,11 @@ func (v *parser) parseStringLit() *StringLitNode {
 	var cstring bool
 	var firstToken, stringToken *lexer.Token
 
-	if v.tokenMatches(0, lexer.TOKEN_STRING, "") {
+	if v.tokenMatches(0, lexer.String, "") {
 		cstring = false
 		firstToken = v.consumeToken()
 		stringToken = firstToken
-	} else if v.tokensMatch(lexer.TOKEN_IDENTIFIER, "c", lexer.TOKEN_STRING, "") {
+	} else if v.tokensMatch(lexer.Identifier, "c", lexer.String, "") {
 		cstring = true
 		firstToken = v.consumeToken()
 		stringToken = v.consumeToken()
@@ -2311,7 +2311,7 @@ func (v *parser) parseStringLit() *StringLitNode {
 func (v *parser) parseRuneLit() *RuneLitNode {
 	defer un(trace(v, "runelit"))
 
-	if !v.nextIs(lexer.TOKEN_RUNE) {
+	if !v.nextIs(lexer.Rune) {
 		return nil
 	}
 	token := v.consumeToken()

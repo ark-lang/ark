@@ -169,7 +169,7 @@ func (v *lexer) skipBlockComment() bool {
 	}
 
 	if isDoc {
-		v.pushToken(TOKEN_DOCCOMMENT)
+		v.pushToken(Doccomment)
 	} else {
 		v.discardBuffer()
 	}
@@ -188,7 +188,7 @@ func (v *lexer) skipLineComment() bool {
 	for {
 		if isEOL(v.peek(0)) || isEOF(v.peek(0)) {
 			if isDoc {
-				v.pushToken(TOKEN_DOCCOMMENT)
+				v.pushToken(Doccomment)
 			} else {
 				v.discardBuffer()
 			}
@@ -225,7 +225,7 @@ func (v *lexer) lexNumberWithValidator(validator func(rune) bool) {
 				v.consume()
 			}
 		} else {
-			v.pushToken(TOKEN_NUMBER)
+			v.pushToken(Number)
 			return
 		}
 	}
@@ -265,7 +265,7 @@ func (v *lexer) recognizeIdentifierToken() {
 		v.consume()
 	}
 
-	v.pushToken(TOKEN_IDENTIFIER)
+	v.pushToken(Identifier)
 }
 
 func (v *lexer) recognizeStringToken() {
@@ -279,7 +279,7 @@ func (v *lexer) recognizeStringToken() {
 			v.consume()
 			v.consume()
 		} else if v.peek(0) == '"' {
-			v.pushToken(TOKEN_STRING)
+			v.pushToken(String)
 			v.consume()
 			return
 		} else if isEOF(v.peek(0)) {
@@ -305,7 +305,7 @@ func (v *lexer) recognizeCharacterToken() {
 			v.consume()
 		} else if v.peek(0) == '\'' {
 			v.consume()
-			v.pushToken(TOKEN_RUNE)
+			v.pushToken(Rune)
 			return
 		} else if isEOF(v.peek(0)) {
 			v.errPos(pos, "Unterminated character literal")
@@ -327,12 +327,12 @@ func (v *lexer) recognizeOperatorToken() {
 		}
 	}
 
-	v.pushToken(TOKEN_OPERATOR)
+	v.pushToken(Operator)
 }
 
 func (v *lexer) recognizeSeparatorToken() {
 	v.consume()
-	v.pushToken(TOKEN_SEPARATOR)
+	v.pushToken(Separator)
 }
 
 func isDecimalDigit(r rune) bool {

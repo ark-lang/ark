@@ -3,18 +3,17 @@ package lexer
 type TokenType int
 
 const (
-	TOKEN_RUNE TokenType = iota
-	TOKEN_IDENTIFIER
-	TOKEN_SEPARATOR
-	TOKEN_OPERATOR
-	TOKEN_NUMBER
-	TOKEN_ERRONEOUS
-	TOKEN_STRING
-	TOKEN_UNKNOWNS
-	TOKEN_DOCCOMMENT
+	Rune TokenType = iota
+	Identifier
+	Separator
+	Operator
+	Number
+	Erroneous
+	String
+	Doccomment
 )
 
-var tokenStrings = []string{"rune", "identifier", "separator", "operator", "number", "erroneous", "string", "unknowns", "doccomment"}
+var tokenStrings = []string{"rune", "identifier", "separator", "operator", "number", "erroneous", "string", "doccomment"}
 
 func (v TokenType) String() string {
 	return tokenStrings[v]
