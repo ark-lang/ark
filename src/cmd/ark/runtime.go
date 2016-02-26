@@ -13,7 +13,11 @@ const RuntimeSource = `
 [c] func exit(code: C::int);
 
 pub func panic(message: string) {
-    C::printf(c"%s\n", message);
+	if len(message) == 0 {
+		C::printf(c"\n");
+	} else {
+		C::printf(c"%.*s\n", len(message), &message[0]);
+	}
     C::exit(-1);
 }
 

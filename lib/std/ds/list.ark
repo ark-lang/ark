@@ -32,6 +32,14 @@ pub func (it: ^List<T>) toRawPointer() -> ^T {
     return ^it.data[0];
 }
 
+pub func (it: List<T>) get(index: uint) -> T {
+    if index > it.capacity {
+        panic("List.grow: index > length");
+    }
+
+    return it.data[index];
+}
+
 func (it: ^mut List<T>) grow() {
     oldData := it.data;
     it.capacity *= 2;

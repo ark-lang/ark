@@ -1,0 +1,13 @@
+#use std::io
+#use std::ds
+
+pub func main() -> int {
+    io::println("list test");
+
+    list := ds::List::new<int>(0);
+    list.append(5);
+
+    val := list.get(0);
+
+    return 0;
+}
