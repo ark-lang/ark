@@ -13,14 +13,13 @@ pub func (List) new<T>(mut cap: uint) -> ^mut List<T> {
         cap = BaseCapacity;
     }
 
-    // TODO: Fix the lexer to allow >> here but still parse shift ops
-    res := mem::alloc<List<T> >();
+    res := mem::alloc<List<T>>();
     @res = List<T>{
         data: mem::allocArray<T>(cap),
         length: 0,
         capacity: cap,
     };
-    
+
     return res;
 }
 
@@ -46,7 +45,7 @@ pub func (it: ^mut List<T>) append(value: T) {
     if it.length == it.capacity {
         it.grow();
     }
-    
+
     it.data[it.length] = value;
     it.length += 1;
 }

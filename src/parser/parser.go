@@ -1198,6 +1198,22 @@ func (v *parser) parseAssignStat() ParseNode {
 	return res
 }
 
+func (v *parser) peekBinop() (BinOpType, int) {
+	var str string
+	var numTokens int
+	if v.tokensMatch(lexer.Operator, ">", lexer.Operator, ">") {
+		str = ">>"
+		numTokens = 2
+	} else {
+		str = v.peek(0).Contents
+		numTokens = 1
+	}
+
+	typ := stringToBinOpType(str)
+
+	return typ, numTokens
+}
+
 func (v *parser) parseBinopAssignStat() ParseNode {
 	defer un(trace(v, "binopassignstat"))
 
@@ -1209,11 +1225,11 @@ func (v *parser) parseBinopAssignStat() ParseNode {
 		return nil
 	}
 
-	typ := stringToBinOpType(v.peek(0).Contents)
+	typ, numTokens := v.peekBinop()
 	if typ == BINOP_ERR || typ.Category() == OP_COMPARISON {
 		v.err("Invalid binary operator `%s`", v.peek(0).Contents)
 	}
-	v.consumeToken()
+	v.consumeTokens(numTokens)
 
 	// consume '='
 	v.consumeToken()
@@ -1699,16 +1715,18 @@ func (v *parser) parseBinaryOperator(upperPrecedence int, lhand ParseNode) Parse
 	}
 
 	for {
-		tokPrecedence := v.getPrecedence(stringToBinOpType(v.peek(0).Contents))
+		typ, numTokens := v.peekBinop()
+
+		tokPrecedence := v.getPrecedence(typ)
 		if tokPrecedence < upperPrecedence {
 			return lhand
 		}
 
-		typ := stringToBinOpType(v.peek(0).Contents)
 		if typ == BINOP_ERR {
 			v.err("Invalid binary operator `%s`", v.peek(0).Contents)
 		}
-		v.consumeToken()
+
+		v.consumeTokens(numTokens)
 
 		rhand := v.parsePostfixExpr()
 		if rhand == nil {

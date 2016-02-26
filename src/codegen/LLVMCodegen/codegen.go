@@ -232,12 +232,20 @@ func (v *Codegen) Generate(input []*ast.Module) {
 
 func (v *Codegen) recursiveGenericFunctionHelper(n *ast.FunctionDecl, access *ast.FunctionAccessExpr, gcon *ast.GenericContext, fn func(*ast.FunctionDecl, *ast.GenericContext)) {
 	exit := true
-	for _, garg := range access.GenericArguments {
-		if ast.ContainsSubstitutionType(garg) {
-			exit = false
-			break
+
+	var checkgargs func(gargs []*ast.TypeReference)
+	checkgargs = func(gargs []*ast.TypeReference) {
+		for _, garg := range gargs {
+			if _, ok := garg.BaseType.(*ast.SubstitutionType); ok {
+				exit = false
+				break
+			}
+
+			checkgargs(garg.GenericArguments)
 		}
 	}
+
+	checkgargs(access.GenericArguments)
 
 	if exit {
 		fn(n, gcon)

@@ -319,6 +319,8 @@ func (v *lexer) recognizeOperatorToken() {
 	if strings.ContainsRune("=!><", v.peek(0)) && v.peek(1) == '=' {
 		v.consume()
 		v.consume()
+	} else if v.peek(0) == '>' && v.peek(1) == '>' {
+		v.consume()
 	} else {
 		v.consume()
 		// never consume @, ^ or = into an mixed/combined operator
