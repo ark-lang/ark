@@ -1337,6 +1337,15 @@ func (v *Inferrer) Finalize() {
 			}
 		}
 	}
+
+	// TODO: Bandaid for #704
+	for node := range v.Submodule.IterNodes() {
+		if varDecl, ok := node.(*VariableDecl); ok {
+			if varDecl.Assignment != nil {
+				varDecl.Variable.Type = varDecl.Assignment.GetType()
+			}
+		}
+	}
 }
 
 // SetType Methods
