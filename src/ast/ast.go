@@ -1175,11 +1175,14 @@ func (v DerefAccessExpr) String() string {
 }
 
 func (v DerefAccessExpr) GetType() *TypeReference {
-	ret := getAdressee(v.Expr.GetType().BaseType)
-	if ret == nil {
-		return &TypeReference{BaseType: PRIMITIVE_void}
+	if v.Expr.GetType() != nil {
+		ret := getAdressee(v.Expr.GetType().BaseType)
+		if ret == nil {
+			return &TypeReference{BaseType: PRIMITIVE_void}
+		}
+		return ret
 	}
-	return ret
+	return nil
 }
 
 func (_ DerefAccessExpr) NodeName() string {
