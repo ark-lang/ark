@@ -68,16 +68,18 @@ func (v *DebugCodegen) createFunction(decl *ast.FunctionDecl) llvm.Metadata {
 }
 
 func (v *DebugCodegen) createDebugType(typ ast.Type) llvm.Metadata {
-	llvmType := v.codegen.typeToLLVMType(typ, gcon)
+	// TODO: llvmType := v.codegen.typeToLLVMType(typ, gcon)
 	switch typ := typ.(type) {
 	case ast.PrimitiveType:
 		bt := llvm.DIBasicType{
 			Name: typ.TypeName(),
-			SizeInBits: v.codegen.
+			// TODO: SizeInBits: v.codegen.
 		}
 		return v.builder.CreateBasicType(bt)
 	}
 
+	// TODO:
+	return llvm.Metadata{}
 }
 
 func (v *DebugCodegen) createSubroutineType(typ ast.FunctionType) llvm.Metadata {
