@@ -1,11 +1,20 @@
-[c] func printf(fmt: ^u8, ...) -> int;
-
 #use std::io
+#use std::panic
 
 type Option enum<T> {
     Some(T),
     None,
 };
+
+func (o: Option<T>) unwrap() -> T {
+    match o {
+        Some(t) => return t,
+        None => panic::panic("hi!"),
+    }
+
+    mut a: T;
+    return a;
+}
 
 // this function should be removed eventually
 func debugDumpOption<T>(o: Option<T>) {
@@ -24,6 +33,9 @@ pub func main() -> int {
     debugDumpOption<int>(some);
     debugDumpOption<int>(none);
     debugDumpOption<int>(Option::Some<int>(5));
+
+    io::printInt(some.unwrap());
+    io::println("");
 
     return 0;
 }
