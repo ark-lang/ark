@@ -1,4 +1,4 @@
-PACKAGES = src/{codegen{/LLVMCodegen,},lexer,doc,parser,semantic,util,cmd/ark}
+PACKAGES = src/{codegen{/LLVMCodegen,},lexer,doc,parser,ast,semantic,util,cmd/ark}
 
 .PHONY: all fmt gen wc
 
