@@ -279,6 +279,34 @@ func (v *ASTVisitor) VisitFunction(fn *Function) {
 	v.ExitScope()
 }
 
+// IterNodes allows for looping over all nodes using a for range loop
+func (v *Submodule) IterNodes() chan Node {
+	cv := &channelingVisitor{
+		channel: make(chan Node),
+	}
+	go cv.run(v)
+	return cv.channel
+}
+
+type channelingVisitor struct {
+	channel chan Node
+}
+
+func (v *channelingVisitor) run(submod *Submodule) {
+	vis := NewASTVisitor(v)
+	vis.VisitSubmodule(submod)
+	close(v.channel)
+}
+
+func (v *channelingVisitor) Visit(n *Node) bool {
+	v.channel <- *n
+	return true
+}
+
+func (v *channelingVisitor) EnterScope()       {}
+func (v *channelingVisitor) ExitScope()        {}
+func (v *channelingVisitor) PostVisit(n *Node) {}
+
 func isNil(a interface{}) bool {
 	defer func() { recover() }()
 	return a == nil || reflect.ValueOf(a).IsNil()

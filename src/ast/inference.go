@@ -479,8 +479,10 @@ func (v *Inferrer) Visit(node *Node) bool {
 		if n.Assignment != nil {
 			if n.Variable.Type != nil {
 				n.Assignment.SetType(n.Variable.Type)
-			} else {
-				n.Variable.SetType(n.Assignment.GetType())
+			} else if n.Assignment.GetType() != nil {
+				if _, isSubst := n.Assignment.GetType().BaseType.(*SubstitutionType); !isSubst {
+					n.Variable.SetType(n.Assignment.GetType())
+				}
 			}
 			aid := v.HandleExpr(n.Assignment)
 			vid := v.HandleTyped(n.Pos(), n.Variable)
@@ -1335,6 +1337,15 @@ func (v *Inferrer) Finalize() {
 			}
 		}
 	}
+
+	// TODO: Bandaid for #704
+	for node := range v.Submodule.IterNodes() {
+		if varDecl, ok := node.(*VariableDecl); ok {
+			if varDecl.Assignment != nil {
+				varDecl.Variable.Type = varDecl.Assignment.GetType()
+			}
+		}
+	}
 }
 
 // SetType Methods
@@ -1525,22 +1536,26 @@ func ExtractTypeVariable(pattern *TypeReference, value *TypeReference) (map[stri
 				continue
 			}
 
+			// Handle the case of automatically deref'ing a pointer
+			pPointer, pIsPointer := ppart.BaseType.(PointerType)
+			vPointer, vIsPointer := vpart.BaseType.(PointerType)
+			if pIsPointer && !vIsPointer {
+				ppart = pPointer.Addressee
+			} else if !pIsPointer && vIsPointer {
+				vpart = vPointer.Addressee
+			}
+
+			// Verify that the pattern matches
+			pGoTyp := reflect.TypeOf(ppart.BaseType)
+			vGoTyp := reflect.TypeOf(vpart.BaseType)
+			if !pGoTyp.AssignableTo(vGoTyp) {
+				// TODO: Figure out a way to do better error messages
+				return nil, fmt.Errorf("inference: type mismatch %v != %v", pGoTyp, vGoTyp)
+			}
+
 			// If the pattern part is not a substitution type, delve deeper
 			ps = AddChildren(ppart, ps)
 			vs = AddChildren(vpart, vs)
-
-			// Also verify that things match up type wise
-			switch ppart.BaseType.(type) {
-			case PrimitiveType:
-				if !ppart.Equals(vpart) {
-					return nil, fmt.Errorf("inferrer: type mismatch %s != %s", ppart.String(), vpart.String())
-				}
-
-			default:
-				if reflect.TypeOf(ppart) != reflect.TypeOf(vpart) {
-					return nil, fmt.Errorf("inferrer: type mismatch %s != %s", ppart.String(), vpart.String())
-				}
-			}
 		}
 	}
 
@@ -1572,16 +1587,16 @@ func AddChildren(typ *TypeReference, dest []*TypeReference) []*TypeReference {
 		}
 
 	case FunctionType:
-		for _, tref := range t.Parameters {
-			dest = append(dest, tref)
+		if t.Return != nil { // TODO: can it ever be nil?
+			dest = append(dest, t.Return)
 		}
 
 		if t.Receiver != nil {
 			dest = append(dest, t.Receiver)
 		}
 
-		if t.Return != nil { // TODO: can it ever be nil?
-			dest = append(dest, t.Return)
+		for _, tref := range t.Parameters {
+			dest = append(dest, tref)
 		}
 
 	case *NamedType:
