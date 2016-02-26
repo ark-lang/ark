@@ -25,7 +25,7 @@ pub type Option enum<T> {
 pub func (o: Option<T>) unwrap() -> T {
     match o {
         Some(t) => return t,
-        None => panic("hi!"),
+        None => panic("Option.unwrap: expected Some, have None"),
     }
 
     mut a: T;
