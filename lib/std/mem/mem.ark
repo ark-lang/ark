@@ -1,12 +1,7 @@
-[c] func malloc(size: uint) -> ^C::void;
-[c] func realloc(ptr: ^C::void, size: uint) -> ^C::void;
-[c] func free(ptr: ^C::void);
-
 // TODO: check for overflow when doing `num * sizeof(T)``
 
 pub func alloc<T>() -> ^mut T {
-    ptr := C::malloc(sizeof(T));
-    return (^mut T)(uintptr(ptr));
+    return (^mut T)(raw_alloc(sizeof(T)));
 }
 
 // can we maybe move this to mem/array.ark?
@@ -16,9 +11,7 @@ type RawArray struct {
 };
 
 pub func allocArray<T>(num: uint) -> []T {
-    ptr := C::malloc(sizeof(T) * num);
-
-    rawPtr := (^u8)(uintptr(ptr));
+    rawPtr := (^u8)(raw_alloc(sizeof(T) * num));
 
     rawArray := RawArray{
         size: num,
@@ -47,10 +40,10 @@ pub func copyArray<T>(mut dest: []T, src: []T, num: uint) {
 }
 
 pub func free<T>(ptr: ^T) {
-    C::free((^C::void)(uintptr(ptr)));
+    raw_free(uintptr(ptr));
 }
 
 pub func freeArray<T>(array: []T) {
     mut rawArray := @((^RawArray)(uintptr(&array)));
-    C::free((^C::void)(uintptr(rawArray.ptr)));
+    raw_free(uintptr(rawArray.ptr));
 }
