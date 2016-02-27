@@ -19,7 +19,7 @@ func (t: ^mut Test) iterate() -> Option<int> {
 func iterateOver<T: Iterator<int>>(t: T) {
     for {
         i := t.iterate();
-        match t {
+        match i {
             Some(val) => {io::printInt(val); io::println("");},
             None => return,
         }
