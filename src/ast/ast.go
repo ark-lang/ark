@@ -996,6 +996,10 @@ func (v CallExpr) GetType() *TypeReference {
 	return nil
 }
 
+func (v CallExpr) Mutable() bool {
+	return true
+}
+
 func (_ CallExpr) NodeName() string {
 	return "call expression"
 }
@@ -1007,7 +1011,8 @@ type FunctionAccessExpr struct {
 	Function       *Function
 	ReceiverAccess Expr // should be same as on the callexpr
 
-	GenericArguments []*TypeReference
+	GenericArguments    []*TypeReference
+	ExtraGenericContext *GenericContext // used when we're calling on a substitution type wth generic interface constraints
 
 	ParentFunction *Function // the function this access expression is located in
 }
@@ -1022,6 +1027,10 @@ func (v FunctionAccessExpr) GetType() *TypeReference {
 	ref := &TypeReference{
 		BaseType:         v.Function.Type,
 		GenericArguments: v.GenericArguments,
+	}
+
+	if v.ExtraGenericContext != nil {
+		ref = v.ExtraGenericContext.Replace(ref)
 	}
 
 	if len(v.GenericArguments) > 0 {

@@ -290,8 +290,8 @@ func (c *Constructor) constructNamedTypeNode(v *parser.NamedTypeNode) Unresolved
 
 func (c *Constructor) constructInterfaceTypeNode(v *parser.InterfaceTypeNode) InterfaceType {
 	interfaceType := InterfaceType{
-		attrs:        v.Attrs(),
-		GenericSigil: c.constructGenericSigilNode(v.GenericSigil),
+		attrs:             v.Attrs(),
+		GenericParameters: c.constructGenericSigilNode(v.GenericSigil),
 	}
 
 	for _, function := range v.Functions {
@@ -937,7 +937,7 @@ func (c *Constructor) constructGenericSigilNode(v *parser.GenericSigilNode) Gene
 
 	ret := make([]*SubstitutionType, 0, len(v.GenericParameters))
 	for _, p := range v.GenericParameters {
-		ret = append(ret, NewSubstitutionType(p.Name.Value, c.constructTypes(p.Constraints)))
+		ret = append(ret, NewSubstitutionType(p.Name.Value, c.constructTypeReferences(p.Constraints)))
 	}
 
 	return ret

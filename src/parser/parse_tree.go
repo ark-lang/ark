@@ -244,7 +244,7 @@ type GenericSigilNode struct {
 type TypeParameterNode struct {
 	baseNode
 	Name        LocatedString
-	Constraints []ParseNode // should be all interface types
+	Constraints []*TypeReferenceNode // should be all interface type references
 }
 
 // statements

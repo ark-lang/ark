@@ -604,8 +604,31 @@ func (v *Resolver) ResolveTypeReference(src Locatable, t *TypeReference) *TypeRe
 
 func (v *Resolver) ResolveType(src Locatable, t Type) Type {
 	switch t := t.(type) {
-	case PrimitiveType, *NamedType, InterfaceType:
+	case PrimitiveType, *NamedType:
 		return t
+
+	case InterfaceType:
+		v.EnterScope()
+
+		for _, gpar := range t.GenericParameters {
+			v.curScope.InsertType(gpar, false)
+		}
+
+		for _, fn := range t.Functions {
+			fn.Type = v.ResolveType(src, fn.Type).(FunctionType)
+
+			if fn.StaticReceiverType != nil {
+				fn.StaticReceiverType = v.ResolveType(src, fn.StaticReceiverType)
+			}
+		}
+
+		v.ExitScope()
+
+		return &InterfaceType{
+			Functions:         t.Functions,
+			attrs:             t.attrs,
+			GenericParameters: t.GenericParameters,
+		}
 
 	case ArrayType:
 		return ArrayOf(v.ResolveTypeReference(src, t.MemberType), t.IsFixedLength, t.Length)
@@ -617,11 +640,11 @@ func (v *Resolver) ResolveType(src Locatable, t Type) Type {
 		return PointerTo(v.ResolveTypeReference(src, t.Addressee), t.IsMutable)
 
 	case *SubstitutionType:
-		var constraints []Type
+		var constraints []*TypeReference
 		for _, c := range t.Constraints {
-			rc := v.ResolveType(src, c)
+			rc := v.ResolveTypeReference(src, c)
 
-			if _, ok := rc.ActualType().(InterfaceType); !ok {
+			if _, ok := rc.BaseType.ActualType().(InterfaceType); !ok {
 				v.err(src, "Generic parameter constraint must be interface")
 			}
 

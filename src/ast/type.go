@@ -654,9 +654,9 @@ func (v TupleType) ActualType() Type {
 // InterfaceType
 
 type InterfaceType struct {
-	Functions    []*Function
-	GenericSigil GenericSigil
-	attrs        parser.AttrGroup
+	Functions         []*Function
+	GenericParameters GenericSigil
+	attrs             parser.AttrGroup
 }
 
 func (v InterfaceType) String() string {
@@ -669,7 +669,7 @@ func (v InterfaceType) String() string {
 }
 
 func (v InterfaceType) TypeName() string {
-	result := "interface" + v.GenericSigil.String() + " {\n"
+	result := "interface" + v.GenericParameters.String() + " {\n"
 	for _, function := range v.Functions {
 		result += "\t" + function.String() + "\n"
 	}
@@ -1066,10 +1066,10 @@ func (v GenericSigil) String() string {
 type SubstitutionType struct {
 	attrs       parser.AttrGroup
 	Name        string
-	Constraints []Type // should be all interface types
+	Constraints []*TypeReference // should be all interface type references
 }
 
-func NewSubstitutionType(name string, constraints []Type) *SubstitutionType {
+func NewSubstitutionType(name string, constraints []*TypeReference) *SubstitutionType {
 	return &SubstitutionType{Name: name, Constraints: constraints}
 }
 
@@ -1083,7 +1083,7 @@ func (v *SubstitutionType) TypeName() string {
 	if len(v.Constraints) > 0 {
 		str += ":"
 		for _, c := range v.Constraints {
-			str += " " + c.TypeName()
+			str += " " + c.String()
 		}
 	}
 

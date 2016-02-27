@@ -603,11 +603,11 @@ func (v *parser) parseGenericSigil() *GenericSigilNode {
 func (v *parser) parseTypeParameter() *TypeParameterNode {
 	name := v.expect(lexer.Identifier, "")
 
-	var constraints []ParseNode
+	var constraints []*TypeReferenceNode
 	if v.tokenMatches(0, lexer.Operator, ":") {
 		v.consumeToken()
 		for {
-			constraint := v.parseType(true, false, false)
+			constraint := v.parseTypeReference(true, false, false)
 			if constraint == nil {
 				v.err("Expected valid name in type restriction")
 			}
@@ -1398,7 +1398,7 @@ func (v *parser) parseInterfaceType() *InterfaceTypeNode {
 	// this means our interface is done...
 	var functions []*FunctionHeaderNode
 	for {
-		if v.tokenMatches(0, lexer.Separator, "}") && v.tokenMatches(1, lexer.Separator, ";") {
+		if v.tokenMatches(0, lexer.Separator, "}") {
 			break
 		}
 

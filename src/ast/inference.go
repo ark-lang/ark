@@ -334,7 +334,7 @@ func GetMethod(typ Type, name string) *Function {
 	case *SubstitutionType:
 		var ifn *Function
 		for _, con := range t.Constraints {
-			ifn = GetMethod(con, name)
+			ifn = GetMethod(con.BaseType, name)
 			if ifn != nil {
 				break
 			}
@@ -1225,11 +1225,27 @@ func (v *Inferrer) Finalize() {
 					v.errPos(sae.Pos(), "Type `%s` has no method `%s`", TypeWithoutPointers(sae.Struct.GetType().BaseType).TypeName(), sae.Member)
 				}
 
+				// Some extra generic context used with interface constraints
+				var extraGcon *GenericContext
+				if sub, ok := sae.Struct.GetType().BaseType.(*SubstitutionType); ok {
+				outer:
+					for _, con := range sub.Constraints {
+						inter := con.BaseType.ActualType().(InterfaceType)
+						for _, ifn := range inter.Functions {
+							if ifn == fn {
+								extraGcon = NewGenericContext(inter.GenericParameters, con.GenericArguments)
+								break outer
+							}
+						}
+					}
+				}
+
 				fae := &FunctionAccessExpr{
-					Function:         fn,
-					ReceiverAccess:   n.ReceiverAccess,
-					GenericArguments: sae.GenericArguments,
-					ParentFunction:   sae.ParentFunction,
+					Function:            fn,
+					ReceiverAccess:      n.ReceiverAccess,
+					GenericArguments:    sae.GenericArguments,
+					ParentFunction:      sae.ParentFunction,
+					ExtraGenericContext: extraGcon,
 				}
 				fae.SetPos(sae.Pos())
 

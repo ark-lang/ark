@@ -1,0 +1,37 @@
+#use std::io
+
+type Iterator interface<T> {
+    func iterate() -> Option<T>,
+};
+
+type Test struct {
+    i: int,
+};
+
+func (t: ^mut Test) iterate() -> Option<int> {
+    if t.i > 0 {
+        t.i -= 1;
+        return Option::Some<int>(t.i);
+    }
+    return Option::None;
+}
+
+func iterateOver<T: Iterator<int>>(t: T) {
+    for {
+        i := t.iterate();
+        match t {
+            Some(val) => {io::printInt(val); io::println("");},
+            None => return,
+        }
+    }
+}
+
+pub func main() -> int {
+    io::println("iter");
+
+    test := Test{i: 5};
+
+    iterateOver(^mut test);
+
+    return 0;
+}
