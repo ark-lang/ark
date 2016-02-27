@@ -262,10 +262,11 @@ func (v *Context) parseFiles() {
 	log.Timed("cyclic dependency check", "", func() {
 		errs := v.depGraph.DetectCycles()
 		if len(errs) > 0 {
-			log.Errorln("main", "error: Encountered cyclic dependecies:")
+			log.Error("main", "%s: Encountered cyclic dependency between: ", util.Bold(util.Red("error")))
 			for _, cycle := range errs {
-				log.Errorln("main", "%s", cycle)
+				log.Error("main", "%s", cycle)
 			}
+			log.Errorln("main", "")
 			os.Exit(util.EXIT_FAILURE_SETUP)
 		}
 	})

@@ -12,36 +12,39 @@ type DependencyNode struct {
 }
 
 type Dependency struct{ Src, Dst *DependencyNode }
-type NodeSet map[string]*DependencyNode
+type NodeSet []*DependencyNode
 
 type DependencyGraph struct {
-	Nodes     NodeSet
-	EdgesFrom map[string][]Dependency
+	Nodes       NodeSet
+	NodeIndices map[string]int
+	EdgesFrom   map[string][]Dependency
 
 	index int
 	stack []*DependencyNode
+	out   []NodeSet
 }
 
 func NewDependencyGraph() *DependencyGraph {
 	return &DependencyGraph{
-		Nodes:     make(NodeSet),
-		EdgesFrom: make(map[string][]Dependency),
+		Nodes:       make(NodeSet, 0),
+		NodeIndices: make(map[string]int),
+		EdgesFrom:   make(map[string][]Dependency),
 	}
 }
 
+func (v *DependencyGraph) getOrCreate(modname *ModuleName) *DependencyNode {
+	idx, ok := v.NodeIndices[modname.String()]
+	if !ok {
+		idx = len(v.Nodes)
+		v.Nodes = append(v.Nodes, &DependencyNode{Module: modname})
+		v.NodeIndices[modname.String()] = idx
+	}
+	return v.Nodes[idx]
+}
+
 func (v *DependencyGraph) AddDependency(source, dependency *ModuleName) {
-	srcNode, ok := v.Nodes[source.String()]
-	if !ok {
-		srcNode = &DependencyNode{Module: source}
-		v.Nodes[source.String()] = srcNode
-	}
-
-	dstNode, ok := v.Nodes[dependency.String()]
-	if !ok {
-		dstNode = &DependencyNode{Module: dependency}
-		v.Nodes[dependency.String()] = dstNode
-	}
-
+	srcNode := v.getOrCreate(source)
+	dstNode := v.getOrCreate(dependency)
 	dep := Dependency{Src: srcNode, Dst: dstNode}
 	v.EdgesFrom[source.String()] = append(v.EdgesFrom[source.String()], dep)
 }
@@ -56,20 +59,11 @@ func (d *DependencyGraph) DetectCycles() []string {
 		}
 
 		buf := new(bytes.Buffer)
-		for _, v := range scg {
-			edges := d.EdgesFrom[v.Module.String()]
-			for _, edge := range edges {
-				w := edge.Dst
-				if _, ok := scg[w.Module.String()]; !ok {
-					continue
-				}
-
-				buf.WriteString(v.Module.String())
-				buf.WriteString(" => ")
-				buf.WriteString(w.Module.String())
+		for idx, v := range scg {
+			buf.WriteString(v.Module.String())
+			if idx != len(scg)-1 {
 				buf.WriteString(", ")
 			}
-			buf.WriteString("\n")
 		}
 		errs = append(errs, buf.String())
 	}
@@ -80,7 +74,7 @@ func (d *DependencyGraph) DetectCycles() []string {
 func (v *DependencyGraph) tarjan() []NodeSet {
 	// Tarjan's strongly connected components algorithm, as per:
 	// https://en.wikipedia.org/wiki/Tarjan%27s_strongly_connected_components_algorithm
-	var out []NodeSet
+	v.out = nil
 
 	v.index = 0
 	v.stack = nil
@@ -93,18 +87,14 @@ func (v *DependencyGraph) tarjan() []NodeSet {
 	// Actual algorithm run
 	for _, node := range v.Nodes {
 		if node.index == -1 {
-			res := v.strongConnect(node)
-			if res == nil {
-				panic("Illegal state in depencency check")
-			}
-			out = append(out, res)
+			v.strongConnect(node)
 		}
 	}
 
-	return out
+	return v.out
 }
 
-func (d *DependencyGraph) strongConnect(v *DependencyNode) NodeSet {
+func (d *DependencyGraph) strongConnect(v *DependencyNode) {
 	v.index = d.index
 	v.lowlink = d.index
 	d.index++
@@ -124,23 +114,23 @@ func (d *DependencyGraph) strongConnect(v *DependencyNode) NodeSet {
 	}
 
 	if v.lowlink == v.index {
-		out := make(NodeSet)
+		out := make(NodeSet, 0)
 		for {
 			idx := len(d.stack) - 1
 			w := d.stack[idx]
 			d.stack[idx] = nil
 			d.stack = d.stack[:idx]
+
 			w.onStack = false
 
-			out[w.Module.String()] = w
+			out = append(out, w)
 
 			if w == v {
 				break
 			}
 		}
-		return out
+		d.out = append(d.out, out)
 	}
-	return nil
 }
 
 func min(a, b int) int {
