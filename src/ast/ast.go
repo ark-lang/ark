@@ -996,10 +996,6 @@ func (v CallExpr) GetType() *TypeReference {
 	return nil
 }
 
-func (v CallExpr) Mutable() bool {
-	return true
-}
-
 func (_ CallExpr) NodeName() string {
 	return "call expression"
 }
