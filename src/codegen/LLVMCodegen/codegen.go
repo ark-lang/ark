@@ -872,8 +872,6 @@ func (v *Codegen) genVariable(isPublic bool, vari *ast.Variable, assignment llvm
 }
 
 func (v *Codegen) createAlignedAlloca(typ llvm.Type, name string) llvm.Value {
-	log.Debugln("codegen", "thefunc: %v", v.currentLLVMFunction())
-	v.currentLLVMFunction().Dump()
 	funcEntry := v.currentLLVMFunction().EntryBasicBlock()
 
 	// use this builder() for the variable alloca
@@ -1167,10 +1165,10 @@ func (v *Codegen) genStringLiteral(n *ast.StringLiteral) llvm.Value {
 	var backingArrayPointer llvm.Value
 	if v.inFunction() {
 		// allocate backing array
+		globString := v.builder().CreateGlobalStringPtr(n.Value, ".str")
 		backingArray := v.createAlignedAlloca(llvm.ArrayType(memberLLVMType, length), ".stackstr")
-		v.builder().CreateStore(llvm.ConstString(n.Value, n.IsCString), backingArray)
-
 		backingArrayPointer = v.builder().CreateBitCast(backingArray, llvm.PointerType(memberLLVMType, 0), "")
+		v.genMemcpy(globString, backingArrayPointer, llvm.ConstInt(llvm.IntType(32), uint64(length), false))
 	} else {
 		backingArray := llvm.AddGlobal(v.curFile.LlvmModule, llvm.ArrayType(memberLLVMType, length), ".str")
 		backingArray.SetLinkage(llvm.InternalLinkage)
@@ -1189,6 +1187,26 @@ func (v *Codegen) genStringLiteral(n *ast.StringLiteral) llvm.Value {
 	} else {
 		return backingArrayPointer
 	}
+}
+
+func (v *Codegen) genMemcpy(src llvm.Value, dst llvm.Value, length llvm.Value) {
+	memcpyFn := v.curFile.LlvmModule.NamedFunction("llvm.memcpy.p0i8.p0i8.i32")
+	if memcpyFn.IsNil() {
+		//i8* <dest>, i8* <src>, i32 <len>, i32 <align>, i1 <isvolatile>
+		fnType := llvm.FunctionType(llvm.VoidType(), []llvm.Type{
+			llvm.PointerType(llvm.IntType(8), 0), // dest
+			llvm.PointerType(llvm.IntType(8), 0), // src
+			llvm.IntType(32),                     // len
+			llvm.IntType(32),                     // align
+			llvm.IntType(1),                      // isvolatile
+		}, false)
+		memcpyFn = llvm.AddFunction(v.curFile.LlvmModule, "llvm.memcpy.p0i8.p0i8.i32", fnType)
+	}
+	v.builder().CreateCall(memcpyFn, []llvm.Value{
+		dst, src, length,
+		llvm.ConstInt(llvm.IntType(32), 1, false),
+		llvm.ConstInt(llvm.IntType(1), 1, false),
+	}, "")
 }
 
 func (v *Codegen) genCompositeLiteral(n *ast.CompositeLiteral) llvm.Value {
