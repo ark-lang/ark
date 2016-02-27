@@ -677,8 +677,9 @@ func (v *Resolver) ResolveType(src Locatable, t Type) Type {
 		v.EnterScope()
 		for idx, mem := range t.Members {
 			nt.Members[idx] = &StructMember{
-				Name: mem.Name,
-				Type: v.ResolveTypeReference(src, mem.Type),
+				Name:   mem.Name,
+				Type:   v.ResolveTypeReference(src, mem.Type),
+				Public: mem.Public,
 			}
 		}
 		v.ExitScope()
