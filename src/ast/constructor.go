@@ -863,6 +863,7 @@ func (c *Constructor) constructFunctionNode(v *parser.FunctionNode) *Function {
 			IsVariadic: v.Header.Variadic,
 			//attrs:      v.Attrs(),
 		},
+		Anonymous: v.Header.Anonymous,
 	}
 
 	if len(v.Attrs()) != 0 {

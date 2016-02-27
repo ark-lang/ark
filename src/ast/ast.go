@@ -173,6 +173,8 @@ type Function struct {
 	Receiver *VariableDecl // non-nil if non-static method
 
 	StaticReceiverType Type // non-nil if static
+
+	Anonymous bool
 }
 
 func (v Function) String() string {

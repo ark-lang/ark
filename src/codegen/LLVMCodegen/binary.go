@@ -14,7 +14,7 @@ import (
 )
 
 func (v *Codegen) createIR(mod *WrappedModule) string {
-	filename := v.OutputName + ".ll"
+	filename := v.OutputName + "-" + mod.MangledName(ast.MANGLE_ARK_UNSTABLE) + ".ll"
 
 	err := ioutil.WriteFile(filename, []byte(mod.LlvmModule.String()), 0666)
 	if err != nil {

@@ -74,9 +74,6 @@ type Codegen struct {
 	inBlocks       map[functionAndFnGenericInstance][]*ast.Block
 	blockDeferData map[*ast.Block][]*deferData // TODO make sure works with generics
 
-	// dirty thing for global arrays
-	arrayIndex int
-
 	// size calculation stuff
 	target        llvm.Target
 	targetMachine llvm.TargetMachine
@@ -110,7 +107,7 @@ func (v *Codegen) currentLLVMFunction() llvm.Value {
 	curFn := v.currentFunction()
 
 	name := curFn.fn.MangledName(ast.MANGLE_ARK_UNSTABLE, curFn.gcon)
-	if curFn.fn.Type.Attrs().Contains("nomangle") {
+	if curFn.fn.Type.Attrs().Contains("nomangle") || curFn.fn.Anonymous {
 		name = curFn.fn.Name
 	}
 	return v.curFile.LlvmModule.NamedFunction(name)
@@ -798,10 +795,7 @@ func (v *Codegen) genFunctionBody(fn *ast.Function, llvmFn llvm.Value, gcon *ast
 	}
 
 	for i, par := range pars {
-		alloc := v.builder().CreateAlloca(v.typeRefToLLVMType(par.Variable.Type), par.Variable.Name)
-		v.variableLookup[newvariableAndFnGenericInstance(par.Variable, gcon)] = alloc
-
-		v.builder().CreateStore(llvmFn.Params()[i], alloc)
+		v.genVariable(false, par.Variable, llvmFn.Params()[i])
 	}
 
 	v.genBlock(fn.Body)
@@ -839,7 +833,6 @@ func (v *Codegen) genDestructVarDecl(n *ast.DestructVarDecl) {
 
 func (v *Codegen) genVariable(isPublic bool, vari *ast.Variable, assignment llvm.Value) {
 	mangledName := vari.MangledName(ast.MANGLE_ARK_UNSTABLE)
-	log.Debugln("codegen", "%v => %s", vari.Name, mangledName)
 
 	var varType llvm.Type
 	if !assignment.IsNil() {
@@ -853,23 +846,8 @@ func (v *Codegen) genVariable(isPublic bool, vari *ast.Variable, assignment llvm
 	}
 
 	if v.inFunction() {
-		funcEntry := v.currentLLVMFunction().EntryBasicBlock()
-
-		// use this builder() for the variable alloca
-		// this means all allocas go at the start of the function
-		// so each variable is only allocated once
-		allocBuilder := llvm.NewBuilder()
-
-		if funcEntry == v.builder().GetInsertBlock() {
-			allocBuilder.SetInsertPointAtEnd(funcEntry)
-		} else {
-			allocBuilder.SetInsertPointBefore(funcEntry.LastInstruction())
-		}
-
-		alloc := allocBuilder.CreateAlloca(varType, mangledName)
+		alloc := v.createAlignedAlloca(varType, mangledName)
 		v.variableLookup[newvariableAndFnGenericInstance(vari, v.currentFunction().gcon)] = alloc
-
-		allocBuilder.Dispose()
 
 		if !assignment.IsNil() {
 			v.builder().CreateStore(assignment, alloc)
@@ -891,6 +869,25 @@ func (v *Codegen) genVariable(isPublic bool, vari *ast.Variable, assignment llvm
 
 		value.SetGlobalConstant(!vari.Mutable)
 	}
+}
+
+func (v *Codegen) createAlignedAlloca(typ llvm.Type, name string) llvm.Value {
+	log.Debugln("codegen", "thefunc: %v", v.currentLLVMFunction())
+	v.currentLLVMFunction().Dump()
+	funcEntry := v.currentLLVMFunction().EntryBasicBlock()
+
+	// use this builder() for the variable alloca
+	// this means all allocas go at the start of the function
+	// so each variable is only allocated once
+	allocBuilder := llvm.NewBuilder()
+	defer allocBuilder.Dispose()
+
+	allocBuilder.SetInsertPoint(funcEntry, funcEntry.FirstInstruction())
+
+	align := v.targetData.ABITypeAlignment(typ)
+	alloc := allocBuilder.CreateAlloca(typ, name)
+	alloc.SetAlignment(align)
+	return alloc
 }
 
 func (v *Codegen) genExpr(n ast.Expr) llvm.Value {
@@ -940,7 +937,8 @@ func (v *Codegen) genExpr(n ast.Expr) llvm.Value {
 func (v *Codegen) genLambdaExpr(n *ast.LambdaExpr) llvm.Value {
 	typ := v.functionTypeToLLVMType(n.Function.Type, false, nil)
 	mod := v.curFile.LlvmModule
-	fn := llvm.AddFunction(mod, fmt.Sprintf("_Lambda%d", v.nextLambdaID()), typ)
+	n.Function.Name = fmt.Sprintf("_lambda%d", v.nextLambdaID())
+	fn := llvm.AddFunction(mod, n.Function.Name, typ)
 
 	if len(n.Function.Type.GenericParameters) > 0 {
 		panic("generic lambdas unimplemented")
@@ -1068,7 +1066,7 @@ func (v *Codegen) genAccessGEP(n ast.Expr) llvm.Value {
 			v.genBoundsCheck(llvm.ConstInt(v.primitiveTypeToLLVMType(ast.PRIMITIVE_uint), uint64(arrType.Length), false),
 				subscriptExpr, access.Subscript.GetType().BaseType.IsSigned())
 
-			return v.builder().CreateGEP(v.genAccessGEP(access.Array), []llvm.Value{llvm.ConstInt(llvm.Int32Type(), 0, false), subscriptExpr}, "")
+			return v.builder().CreateGEP(gep, []llvm.Value{llvm.ConstInt(llvm.Int32Type(), 0, false), subscriptExpr}, "")
 		} else {
 			v.genBoundsCheck(v.builder().CreateLoad(v.builder().CreateStructGEP(gep, 0, ""), ""),
 				subscriptExpr, access.Subscript.GetType().BaseType.IsSigned())
@@ -1161,28 +1159,23 @@ func (v *Codegen) genRuneLiteral(n *ast.RuneLiteral) llvm.Value {
 
 func (v *Codegen) genStringLiteral(n *ast.StringLiteral) llvm.Value {
 	memberLLVMType := v.primitiveTypeToLLVMType(ast.PRIMITIVE_u8)
-	nullTerm := n.IsCString
 	length := len(n.Value)
-	if nullTerm {
+	if n.IsCString {
 		length++
 	}
 
 	var backingArrayPointer llvm.Value
-
 	if v.inFunction() {
 		// allocate backing array
-		backingArray := v.builder().CreateAlloca(llvm.ArrayType(memberLLVMType, length), "stackstr")
-		v.builder().CreateStore(llvm.ConstString(n.Value, nullTerm), backingArray)
+		backingArray := v.createAlignedAlloca(llvm.ArrayType(memberLLVMType, length), ".stackstr")
+		v.builder().CreateStore(llvm.ConstString(n.Value, n.IsCString), backingArray)
 
 		backingArrayPointer = v.builder().CreateBitCast(backingArray, llvm.PointerType(memberLLVMType, 0), "")
 	} else {
-		backName := fmt.Sprintf("_globarr_back_%d", v.arrayIndex)
-		v.arrayIndex++
-
-		backingArray := llvm.AddGlobal(v.curFile.LlvmModule, llvm.ArrayType(memberLLVMType, length), backName)
+		backingArray := llvm.AddGlobal(v.curFile.LlvmModule, llvm.ArrayType(memberLLVMType, length), ".str")
 		backingArray.SetLinkage(llvm.InternalLinkage)
 		backingArray.SetGlobalConstant(false)
-		backingArray.SetInitializer(llvm.ConstString(n.Value, nullTerm))
+		backingArray.SetInitializer(llvm.ConstString(n.Value, n.IsCString))
 
 		backingArrayPointer = llvm.ConstBitCast(backingArray, llvm.PointerType(memberLLVMType, 0))
 	}
@@ -1236,7 +1229,7 @@ func (v *Codegen) genArrayLiteral(n *ast.CompositeLiteral) llvm.Value {
 
 	if v.inFunction() {
 		// allocate backing array
-		backingArray = v.builder().CreateAlloca(llvm.ArrayType(memberLLVMType, length), "")
+		backingArray = v.createAlignedAlloca(llvm.ArrayType(memberLLVMType, length), "")
 
 		// copy the constant array to the backing array
 		for idx, value := range arrayValues {
@@ -1245,20 +1238,20 @@ func (v *Codegen) genArrayLiteral(n *ast.CompositeLiteral) llvm.Value {
 		}
 
 		backingArrayPointer = v.builder().CreateBitCast(backingArray, llvm.PointerType(memberLLVMType, 0), "")
+		if arrayType.IsFixedLength {
+			return v.builder().CreateLoad(backingArray, "")
+		}
 	} else {
-		backName := fmt.Sprintf("_globarr_back_%d", v.arrayIndex)
-		v.arrayIndex++
+		arrayInit := llvm.ConstArray(memberLLVMType, arrayValues)
+		if arrayType.IsFixedLength {
+			return arrayInit
+		}
 
-		backingArray = llvm.AddGlobal(v.curFile.LlvmModule, llvm.ArrayType(memberLLVMType, length), backName)
+		backingArray = llvm.AddGlobal(v.curFile.LlvmModule, llvm.ArrayType(memberLLVMType, length), ".array")
 		backingArray.SetLinkage(llvm.InternalLinkage)
 		backingArray.SetGlobalConstant(false)
-		backingArray.SetInitializer(llvm.ConstArray(memberLLVMType, arrayValues))
-
+		backingArray.SetInitializer(arrayInit)
 		backingArrayPointer = llvm.ConstBitCast(backingArray, llvm.PointerType(memberLLVMType, 0))
-	}
-
-	if arrayType.IsFixedLength {
-		return v.builder().CreateLoad(backingArray, "")
 	}
 
 	structValue := llvm.ConstNull(arrayLLVMType)
@@ -1371,7 +1364,7 @@ func (v *Codegen) genEnumLiteral(n *ast.EnumLiteral) llvm.Value {
 	enumValue = v.builder().CreateInsertValue(enumValue, memberValue, 1, "")
 
 	if v.inFunction() {
-		alloc := v.builder().CreateAlloca(enumLitType, "")
+		alloc := v.createAlignedAlloca(enumLitType, "")
 		v.builder().CreateStore(enumValue, alloc)
 		alloc = v.builder().CreateBitCast(alloc, llvm.PointerType(enumLLVMType, 0), "")
 		return alloc
