@@ -14,6 +14,8 @@ func (_ UnusedCheck) Name() string { return "unused" }
 
 func (v *UnusedCheck) Init(s *SemanticAnalyzer) {
 	v.uses = make(map[interface{}]int)
+	v.encountered = nil
+	v.encounteredDecl = nil
 }
 
 func (v *UnusedCheck) EnterScope(s *SemanticAnalyzer)            {}

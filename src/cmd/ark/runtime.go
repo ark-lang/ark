@@ -67,12 +67,7 @@ func LoadRuntime() *ast.Module {
 		ast.Infer(submod)
 	}
 
-	for _, submod := range runtimeModule.Parts {
-		sem := semantic.NewSemanticAnalyzer(submod, *buildOwnership, *ignoreUnused)
-		vis := ast.NewASTVisitor(sem)
-		vis.VisitSubmodule(submod)
-		sem.Finalize()
-	}
+	semantic.SemCheck(runtimeModule, *ignoreUnused)
 
 	ast.LoadRuntimeModule(runtimeModule)
 

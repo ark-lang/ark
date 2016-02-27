@@ -50,7 +50,10 @@ func (v *TypeCheck) Function() *ast.Function {
 	return v.functions[len(v.functions)-1]
 }
 
-func (v *TypeCheck) Init(s *SemanticAnalyzer)       {}
+func (v *TypeCheck) Init(s *SemanticAnalyzer) {
+	v.functions = nil
+}
+
 func (v *TypeCheck) EnterScope(s *SemanticAnalyzer) {}
 func (v *TypeCheck) ExitScope(s *SemanticAnalyzer)  {}
 

@@ -17,7 +17,6 @@ var (
 	buildCodegen     = buildCom.Flag("codegen", "Codegen backend to use").Default("llvm").Enum("none", "llvm")
 	buildOutputType  = buildCom.Flag("output-type", "The format to produce after code generation").Default("executable").Enum("executable", "assembly", "object", "llvm-ir")
 	buildOptLevel    = buildCom.Flag("opt-level", "LLVM optimization level").Short('O').Default("0").Int()
-	buildOwnership   = buildCom.Flag("ownership", "Do ownership checks").Bool()
 	ignoreUnused     = buildCom.Flag("unused", "Do not error on unused declarations").Bool()
 
 	docgenCom         = app.Command("docgen", "Generate documentation.")

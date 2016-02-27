@@ -14,7 +14,7 @@ type SemanticAnalyzer struct {
 	unresolvedNodes []*ast.Node
 	shouldExit      bool
 
-	Checks []SemanticCheck
+	Check SemanticCheck
 }
 
 type SemanticCheck interface {
@@ -47,11 +47,8 @@ func (v *SemanticAnalyzer) Warn(thing ast.Locatable, err string, stuff ...interf
 	log.Warningln("semantic", v.Submodule.File.MarkPos(pos))
 }
 
-func NewSemanticAnalyzer(module *ast.Submodule, useOwnership bool, ignoreUnused bool) *SemanticAnalyzer {
-	res := &SemanticAnalyzer{}
-	res.shouldExit = false
-	res.Submodule = module
-	res.Checks = []SemanticCheck{
+func SemCheck(module *ast.Module, ignoreUnused bool) {
+	checks := []SemanticCheck{
 		&AttributeCheck{},
 		&UnreachableCheck{},
 		&BreakAndNextCheck{},
@@ -65,21 +62,36 @@ func NewSemanticAnalyzer(module *ast.Submodule, useOwnership bool, ignoreUnused 
 	}
 
 	if !ignoreUnused {
-		res.Checks = append(res.Checks, &UnusedCheck{})
+		checks = append(checks, &UnusedCheck{})
 	}
 
-	res.Init()
+	for _, check := range checks {
+		log.Timed("analysis pass", check.Name(), func() {
+			for _, submod := range module.Parts {
+				log.Timed("checking submodule", module.Name.String()+"/"+submod.File.Name, func() {
+					res := &SemanticAnalyzer{}
+					res.shouldExit = false
+					res.Submodule = submod
+					res.Check = check
 
-	return res
+					res.Init()
+
+					vis := ast.NewASTVisitor(res)
+					vis.VisitSubmodule(submod)
+
+					res.Finalize()
+				})
+
+			}
+		})
+	}
 }
 
 // the initial check for a semantic pass
 // this will be called _once_ and should be
 // used to initialize things, etc...
 func (v *SemanticAnalyzer) Init() {
-	for _, check := range v.Checks {
-		check.Init(v)
-	}
+	v.Check.Init(v)
 }
 
 // Finalize is called after all checks have been run, and should be used for
@@ -92,9 +104,7 @@ func (v *SemanticAnalyzer) Finalize() {
 	}
 
 	// destroy stuff before finalisation
-	for _, check := range v.Checks {
-		check.Finalize(v)
-	}
+	v.Check.Finalize(v)
 
 	if v.shouldExit {
 		os.Exit(util.EXIT_FAILURE_SEMANTIC)
@@ -102,9 +112,7 @@ func (v *SemanticAnalyzer) Finalize() {
 }
 
 func (v *SemanticAnalyzer) Visit(n *ast.Node) bool {
-	for _, check := range v.Checks {
-		check.Visit(v, *n)
-	}
+	v.Check.Visit(v, *n)
 
 	// NOTE: The following means that if we encountered an error we will not
 	// analyze further down the AST. This should hinder some panics with
@@ -116,19 +124,13 @@ func (v *SemanticAnalyzer) Visit(n *ast.Node) bool {
 }
 
 func (v *SemanticAnalyzer) PostVisit(n *ast.Node) {
-	for _, check := range v.Checks {
-		check.PostVisit(v, *n)
-	}
+	v.Check.PostVisit(v, *n)
 }
 
 func (v *SemanticAnalyzer) EnterScope() {
-	for _, check := range v.Checks {
-		check.EnterScope(v)
-	}
+	v.Check.EnterScope(v)
 }
 
 func (v *SemanticAnalyzer) ExitScope() {
-	for _, check := range v.Checks {
-		check.ExitScope(v)
-	}
+	v.Check.ExitScope(v)
 }

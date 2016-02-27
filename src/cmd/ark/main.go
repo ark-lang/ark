@@ -146,12 +146,7 @@ func (v *Context) Build(output string, outputType codegen.OutputType, usedCodege
 	// semantic analysis
 	log.Timed("semantic analysis phase", "", func() {
 		for _, module := range v.modules {
-			for _, submod := range module.Parts {
-				sem := semantic.NewSemanticAnalyzer(submod, *buildOwnership, *ignoreUnused)
-				vis := ast.NewASTVisitor(sem)
-				vis.VisitSubmodule(submod)
-				sem.Finalize()
-			}
+			semantic.SemCheck(module, *ignoreUnused)
 		}
 	})
 

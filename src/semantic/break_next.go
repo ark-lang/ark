@@ -16,6 +16,7 @@ func (_ BreakAndNextCheck) Name() string { return "break and next" }
 
 func (v *BreakAndNextCheck) Init(s *SemanticAnalyzer) {
 	v.nestedLoopCount = make(map[*ast.Function]int)
+	v.functions = nil
 }
 
 func (v *BreakAndNextCheck) EnterScope(s *SemanticAnalyzer) {}
