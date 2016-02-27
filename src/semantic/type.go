@@ -337,7 +337,7 @@ func (v *TypeCheck) CheckBinaryExpr(s *SemanticAnalyzer, expr *ast.BinaryExpr) {
 }
 
 func (v *TypeCheck) CheckCastExpr(s *SemanticAnalyzer, expr *ast.CastExpr) {
-	if expr.Type.ActualTypesEqual(expr.Expr.GetType()) {
+	if expr.Type.Equals(expr.Expr.GetType()) {
 		s.Warn(expr, "Casting expression of type `%s` to the same type",
 			expr.Type.String())
 	} else if !expr.Expr.GetType().CanCastTo(expr.Type) {
