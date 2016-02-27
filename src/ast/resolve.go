@@ -463,6 +463,13 @@ func (v *Resolver) ResolveNode(node *Node) {
 					}
 				}
 			}
+
+			switch n.Type.BaseType.ActualType().(type) {
+			case StructType, ArrayType:
+
+			default:
+				v.err(n, "Type `%s` is not composite type", n.Type.String())
+			}
 		}
 
 	case *CallExpr:
