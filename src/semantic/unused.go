@@ -10,6 +10,8 @@ type UnusedCheck struct {
 	uses            map[interface{}]int
 }
 
+func (_ UnusedCheck) Name() string { return "unused" }
+
 func (v *UnusedCheck) Init(s *SemanticAnalyzer) {
 	v.uses = make(map[interface{}]int)
 }

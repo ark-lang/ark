@@ -9,6 +9,8 @@ type UseBeforeDeclareCheck struct {
 	scope  map[string]bool
 }
 
+func (_ UseBeforeDeclareCheck) Name() string { return "use before declare" }
+
 func (v *UseBeforeDeclareCheck) Init(s *SemanticAnalyzer) {}
 func (v *UseBeforeDeclareCheck) EnterScope(s *SemanticAnalyzer) {
 	lastScope := v.scope

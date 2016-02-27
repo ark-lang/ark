@@ -10,6 +10,8 @@ type ReferenceCheck struct {
 	InFunction int
 }
 
+func (_ ReferenceCheck) Name() string { return "reference" }
+
 func (v *ReferenceCheck) Init(s *SemanticAnalyzer)       {}
 func (v *ReferenceCheck) EnterScope(s *SemanticAnalyzer) {}
 func (v *ReferenceCheck) ExitScope(s *SemanticAnalyzer)  {}

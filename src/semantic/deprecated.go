@@ -9,6 +9,8 @@ import (
 type DeprecatedCheck struct {
 }
 
+func (_ DeprecatedCheck) Name() string { return "deprecated" }
+
 func (v *DeprecatedCheck) WarnDeprecated(s *SemanticAnalyzer, thing ast.Locatable, typ, name, message string) {
 	mess := fmt.Sprintf("Access of deprecated %s `%s`", typ, name)
 	if message == "" {

@@ -14,6 +14,8 @@ func (v *AttributeCheck) ExitScope(s *SemanticAnalyzer)  {}
 
 func (v *AttributeCheck) PostVisit(s *SemanticAnalyzer, n ast.Node) {}
 
+func (_ AttributeCheck) Name() string { return "attribute" }
+
 func (v *AttributeCheck) Visit(s *SemanticAnalyzer, n ast.Node) {
 	switch n := n.(type) {
 	case *ast.TypeDecl:

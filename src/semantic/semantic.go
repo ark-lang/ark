@@ -24,6 +24,7 @@ type SemanticCheck interface {
 	Visit(*SemanticAnalyzer, ast.Node)
 	PostVisit(*SemanticAnalyzer, ast.Node)
 	Finalize(*SemanticAnalyzer)
+	Name() string
 }
 
 func (v *SemanticAnalyzer) Err(thing ast.Locatable, err string, stuff ...interface{}) {

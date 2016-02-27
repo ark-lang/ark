@@ -5,6 +5,8 @@ import (
 	"github.com/ark-lang/ark/src/parser"
 )
 
+func (_ TypeCheck) Name() string { return "type" }
+
 // Takes a pointer to the expr, so we can replace it with a cast if necessary.
 // TODO: do we need an ImplicitCastExpr node? Or just an InterfaceWrapExpr node.
 func expectType(s *SemanticAnalyzer, loc ast.Locatable, expect *ast.TypeReference, expr *ast.Expr) {

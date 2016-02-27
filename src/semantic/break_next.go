@@ -12,6 +12,8 @@ type BreakAndNextCheck struct {
 	functions       []*ast.Function
 }
 
+func (_ BreakAndNextCheck) Name() string { return "break and next" }
+
 func (v *BreakAndNextCheck) Init(s *SemanticAnalyzer) {
 	v.nestedLoopCount = make(map[*ast.Function]int)
 }

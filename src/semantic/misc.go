@@ -9,6 +9,8 @@ type MiscCheck struct {
 	InFunction int
 }
 
+func (_ MiscCheck) Name() string { return "misc" }
+
 func (v *MiscCheck) Init(s *SemanticAnalyzer)       {}
 func (v *MiscCheck) EnterScope(s *SemanticAnalyzer) {}
 func (v *MiscCheck) ExitScope(s *SemanticAnalyzer)  {}

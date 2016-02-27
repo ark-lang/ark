@@ -7,6 +7,8 @@ import (
 type UnreachableCheck struct {
 }
 
+func (_ UnreachableCheck) Name() string { return "unreachable" }
+
 func (v *UnreachableCheck) Init(s *SemanticAnalyzer)       {}
 func (v *UnreachableCheck) EnterScope(s *SemanticAnalyzer) {}
 func (v *UnreachableCheck) ExitScope(s *SemanticAnalyzer)  {}

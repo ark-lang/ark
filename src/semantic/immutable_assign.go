@@ -7,6 +7,8 @@ import (
 type ImmutableAssignCheck struct {
 }
 
+func (_ ImmutableAssignCheck) Name() string { return "immutable assign" }
+
 func (v *ImmutableAssignCheck) Init(s *SemanticAnalyzer)       {}
 func (v *ImmutableAssignCheck) EnterScope(s *SemanticAnalyzer) {}
 func (v *ImmutableAssignCheck) ExitScope(s *SemanticAnalyzer)  {}

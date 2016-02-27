@@ -8,6 +8,8 @@ import (
 type RecursiveDefinitionCheck struct {
 }
 
+func (_ RecursiveDefinitionCheck) Name() string { return "recusrive definition" }
+
 func (v *RecursiveDefinitionCheck) Init(s *SemanticAnalyzer)       {}
 func (v *RecursiveDefinitionCheck) EnterScope(s *SemanticAnalyzer) {}
 func (v *RecursiveDefinitionCheck) ExitScope(s *SemanticAnalyzer)  {}
