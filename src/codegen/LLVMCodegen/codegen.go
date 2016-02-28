@@ -650,7 +650,10 @@ func (v *Codegen) genEnumMatchStat(n *ast.MatchStat) {
 	}
 
 	target := v.genExpr(n.Target)
-	tag := v.builder().CreateExtractValue(v.genLoadIfNeccesary(n.Target, target), 0, "")
+	tag := v.genLoadIfNeccesary(n.Target, target)
+	if !et.Simple {
+		tag = v.builder().CreateExtractValue(tag, 0, "")
+	}
 
 	enterBlock := llvm.AddBasicBlock(v.currentLLVMFunction(), "match_enter")
 	exitBlock := llvm.AddBasicBlock(v.currentLLVMFunction(), "match_exit")
@@ -685,7 +688,7 @@ func (v *Codegen) genEnumMatchStat(n *ast.MatchStat) {
 		v.builder().SetInsertPointAtEnd(block)
 
 		// Destructure the variables
-		if patt, ok := expr.(*ast.EnumPatternExpr); ok {
+		if patt, ok := expr.(*ast.EnumPatternExpr); ok && !et.Simple {
 			memIdx := et.MemberIndex(patt.MemberName.Name)
 			if memIdx == -1 {
 				panic("INTERNAL ERROR: Enum match branch member was non existant")
