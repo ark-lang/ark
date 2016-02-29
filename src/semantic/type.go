@@ -552,7 +552,7 @@ func (v *TypeCheck) CheckCompositeLiteral(s *SemanticAnalyzer, lit *ast.Composit
 			}
 
 			sMemType := gcon.Replace(sMem.Type)
-			expectType(s, lit, sMemType, &mem)
+			expectType(s, mem, sMemType, &mem)
 		}
 
 	default:
