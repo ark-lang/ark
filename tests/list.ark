@@ -1,7 +1,7 @@
 #use std::io
-#use std::ds
+#use std::adt
 
-func printIntList(list: ^ds::List<int>) {
+func printIntList(list: ^adt::List<int>) {
     io::print("[");
 
     mut i: uint = 0;
@@ -22,7 +22,7 @@ func printIntList(list: ^ds::List<int>) {
 pub func main() -> int {
     io::println("list test");
 
-    list := ds::List::new<int>();
+    list := adt::List::new<int>();
     list.append(5);
 
     io::printInt(list.get(0));

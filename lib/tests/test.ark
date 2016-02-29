@@ -1,6 +1,6 @@
 #use std::io
 
 pub func main() -> int {
-	io::println(c"hello world");
+	io::println("hello world");
 	return 0;
 }

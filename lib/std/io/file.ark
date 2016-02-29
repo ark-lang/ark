@@ -16,8 +16,9 @@ pub type FileMode enum {
 	Append,
 };
 
-// this is kinda cheeky
-// match pls senpai
+/*
+	Note this is just placeholder stuff...
+*/
 pub func (f: FileMode) getLegacyMode() -> string {
 	if f == FileMode::Read {
 		return "r";
@@ -50,10 +51,6 @@ pub type File struct {
 pub func (File) open(path: ^mut Path, mode: FileMode) -> ^mut File {
 	mut f: ^mut File = mem::alloc<File>();
 	f.path = path;
-	// this is to avoid a parsing error where you can't
-	// index a call expr (call expr ! access expr)
-	legacyMode: string = mode.getLegacyMode();
-	// f.handle = C::fopen((^u8)(&f.path.location[0]), (^u8)(&legacyMode[0]));
 	return f;
 }
 
