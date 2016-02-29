@@ -893,10 +893,6 @@ func (v *Codegen) createAlignedAlloca(typ llvm.Type, name string) llvm.Value {
 
 func (v *Codegen) genExpr(n ast.Expr) llvm.Value {
 	switch n := n.(type) {
-	case *ast.ReferenceToExpr:
-		return v.genReferenceToExpr(n)
-	case *ast.PointerToExpr:
-		return v.genPointerToExpr(n)
 	case *ast.RuneLiteral:
 		return v.genRuneLiteral(n)
 	case *ast.NumericLiteral:
@@ -911,6 +907,18 @@ func (v *Codegen) genExpr(n ast.Expr) llvm.Value {
 		return v.genCompositeLiteral(n)
 	case *ast.EnumLiteral:
 		return v.genEnumLiteral(n)
+	}
+
+	if !v.inFunction() {
+		v.err("[%s:%d:%d] Non-literal expressions in global scope are not currently supported",
+			n.Pos().Filename, n.Pos().Line, n.Pos().Char)
+	}
+
+	switch n := n.(type) {
+	case *ast.ReferenceToExpr:
+		return v.genReferenceToExpr(n)
+	case *ast.PointerToExpr:
+		return v.genPointerToExpr(n)
 	case *ast.BinaryExpr:
 		return v.genBinaryExpr(n)
 	case *ast.UnaryExpr:
