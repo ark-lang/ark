@@ -3,11 +3,11 @@
 
 [c] func printf(fmt: ^u8, ...) -> int;
 
-tests := [][]u8{
-	[]u8("Iñtërnâtiônàlizætiøn"),
-	[]u8("κόσμε"),
-	[]u8("東京"),
-	[]u8("北京市"),
+tests := []string{
+	"Iñtërnâtiônàlizætiøn",
+	"κόσμε",
+	"東京",
+	"北京市",
 };
 
 pub func main() -> int {
