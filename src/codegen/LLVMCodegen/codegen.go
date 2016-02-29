@@ -487,7 +487,7 @@ func (v *Codegen) genAssignStat(n *ast.AssignStat) {
 }
 
 func (v *Codegen) genBinopAssignStat(n *ast.BinopAssignStat) {
-	v.genBinopAssign(n.Operator, n.Access, v.genExpr(n.Assignment), n.Assignment.GetType())
+	v.genBinopAssign(n.Operator, n.Access, v.genExprAndLoadIfNeccesary(n.Assignment), n.Assignment.GetType())
 }
 
 func (v *Codegen) genDestructAssignStat(n *ast.DestructAssignStat) {
