@@ -54,16 +54,20 @@ pub func (it: List<T>) getCapacity() -> uint {
     return it.capacity;
 }
 
-[c] func memcpy(dst: uintptr, src: uintptr, length: uint);
-
 func (it: ^mut List<T>) grow() {
     oldData := it.data;
     it.capacity *= 2;
-    it.data = (^mut T)(mem::rawAlloc(sizeof(T) * it.capacity));
-    C::memcpy(uintptr(it.data), uintptr(oldData), it.length);
-    mem::rawFree(uintptr(oldData));
-}
+    newData := (^mut T)(mem::rawAlloc(sizeof(T) * it.capacity));
 
+    mut i := uint(0);
+    for i < it.length {
+        newData[i] = oldData[i];
+        i += 1;
+    }
+
+    mem::rawFree(uintptr(oldData));
+    it.data = (^mut T)(newData);
+}
 
 pub func (it: ^mut List<T>) append(value: T) {
     if it.length == it.capacity {
