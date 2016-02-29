@@ -1,0 +1,13 @@
+Name       = "pointer_index"
+Sourcefile = "pointer_index.ark"
+
+CompilerArgs = []
+RunArgs      = []
+
+CompilerError = 0
+RunError      = 0
+
+Input = ""
+
+CompilerOutput = ""
+RunOutput      = ""

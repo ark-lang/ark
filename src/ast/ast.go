@@ -1158,6 +1158,9 @@ func (v ArrayAccessExpr) GetType() *TypeReference {
 		if base, ok := v.Array.GetType().BaseType.ActualType().(ArrayType); ok {
 			return base.MemberType
 		}
+		if base, ok := v.Array.GetType().BaseType.ActualType().(PointerType); ok {
+			return base.Addressee
+		}
 	}
 	return nil
 }
@@ -1167,6 +1170,9 @@ func (_ ArrayAccessExpr) NodeName() string {
 }
 
 func (v ArrayAccessExpr) Mutable() bool {
+	if pt, ok := v.Array.GetType().BaseType.ActualType().(PointerType); ok {
+		return pt.IsMutable;
+	}
 	return v.Array.Mutable()
 }
 

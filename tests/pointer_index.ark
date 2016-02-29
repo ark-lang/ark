@@ -1,0 +1,9 @@
+[c] func malloc(size: uint) -> ^mut u8;
+
+pub func main() -> int {
+    it := C::malloc(64);
+
+    it[10] = 0;
+
+    return int(it[10]);
+}

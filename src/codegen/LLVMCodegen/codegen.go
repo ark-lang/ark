@@ -1061,23 +1061,29 @@ func (v *Codegen) genAccessGEP(n ast.Expr) llvm.Value {
 			subscriptExpr = v.builder().CreateSExt(subscriptExpr, v.targetData.IntPtrType(), "")
 		}
 
-		arrType := access.Array.GetType().BaseType.ActualType().(ast.ArrayType)
+		if arrType, ok := access.Array.GetType().BaseType.ActualType().(ast.ArrayType); ok {
+			if arrType.IsFixedLength {
+				v.genBoundsCheck(llvm.ConstInt(v.primitiveTypeToLLVMType(ast.PRIMITIVE_uint), uint64(arrType.Length), false),
+					subscriptExpr, access.Subscript.GetType().BaseType.IsSigned())
 
-		if arrType.IsFixedLength {
-			v.genBoundsCheck(llvm.ConstInt(v.primitiveTypeToLLVMType(ast.PRIMITIVE_uint), uint64(arrType.Length), false),
-				subscriptExpr, access.Subscript.GetType().BaseType.IsSigned())
+				return v.builder().CreateGEP(gep, []llvm.Value{llvm.ConstInt(llvm.Int32Type(), 0, false), subscriptExpr}, "")
+			} else {
+				v.genBoundsCheck(v.builder().CreateLoad(v.builder().CreateStructGEP(gep, 0, ""), ""),
+					subscriptExpr, access.Subscript.GetType().BaseType.IsSigned())
 
-			return v.builder().CreateGEP(gep, []llvm.Value{llvm.ConstInt(llvm.Int32Type(), 0, false), subscriptExpr}, "")
-		} else {
-			v.genBoundsCheck(v.builder().CreateLoad(v.builder().CreateStructGEP(gep, 0, ""), ""),
-				subscriptExpr, access.Subscript.GetType().BaseType.IsSigned())
+				gep = v.builder().CreateStructGEP(gep, 1, "")
 
-			gep = v.builder().CreateStructGEP(gep, 1, "")
+				load := v.builder().CreateLoad(gep, "")
 
-			load := v.builder().CreateLoad(gep, "")
-
+				gepIndexes := []llvm.Value{subscriptExpr}
+				return v.builder().CreateGEP(load, gepIndexes, "")
+			}
+		} else if _, ok := access.Array.GetType().BaseType.ActualType().(ast.PointerType); ok {
 			gepIndexes := []llvm.Value{subscriptExpr}
-			return v.builder().CreateGEP(load, gepIndexes, "")
+			gep = v.genLoadIfNeccesary(access.Array, gep)
+			return v.builder().CreateGEP(gep, gepIndexes, "")
+		} else {
+			panic("INTERNAL ERROR: ArrayAccessExpr type was not Array or Pointer")
 		}
 
 	case *ast.DerefAccessExpr:

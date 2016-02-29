@@ -249,6 +249,14 @@ func SubsType(typ *TypeReference, id int, what *TypeReference) *TypeReference {
 				}
 				return mt
 			}
+			if pt, ok := array.ActualType().(PointerType); ok {
+				mt := pt.Addressee
+				if len(typ.GenericArguments) > 0 {
+					gn := NewGenericContextFromTypeReference(typ)
+					mt = gn.Replace(mt)
+				}
+				return mt
+			}
 		}
 
 		return &TypeReference{

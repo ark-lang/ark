@@ -426,7 +426,9 @@ func (v *TypeCheck) CheckCallExpr(s *SemanticAnalyzer, expr *ast.CallExpr) {
 }
 
 func (v *TypeCheck) CheckArrayAccessExpr(s *SemanticAnalyzer, expr *ast.ArrayAccessExpr) {
-	if _, ok := expr.Array.GetType().BaseType.ActualType().(ast.ArrayType); !ok {
+	_, isArray := expr.Array.GetType().BaseType.ActualType().(ast.ArrayType)
+	_, isPointer := expr.Array.GetType().BaseType.ActualType().(ast.PointerType)
+	if !isPointer && !isArray {
 		s.Err(expr, "Cannot index type `%s` as an array", expr.Array.GetType().String())
 	}
 
