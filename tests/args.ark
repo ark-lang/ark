@@ -3,14 +3,10 @@
 pub func main(argc: int, argv: ^^u8) -> int {
     C::printf(c"%d\n", argc);
 
-    mut ptr := uintptr(argv);
-
     mut i := 0;
     for i < argc {
-        str := (^^u8)(ptr);
-        C::printf(c"%s\n", @str);
-
-        ptr += 8;
+        str := argv[i];
+        C::printf(c"%s\n", str);
         i += 1;
     }
 
