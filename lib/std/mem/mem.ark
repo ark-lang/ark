@@ -1,7 +1,7 @@
 // TODO: check for overflow when doing `num * sizeof(T)``
 
 pub func alloc<T>() -> ^mut T {
-    return (^mut T)(raw_alloc(sizeof(T)));
+    return (^mut T)(rawAlloc(sizeof(T)));
 }
 
 // can we maybe move this to mem/array.ark?
@@ -11,7 +11,7 @@ type RawArray struct {
 };
 
 pub func allocArray<T>(num: uint) -> []T {
-    rawPtr := (^u8)(raw_alloc(sizeof(T) * num));
+    rawPtr := (^u8)(rawAlloc(sizeof(T) * num));
 
     rawArray := RawArray{
         size: num,
@@ -40,10 +40,10 @@ pub func copyArray<T>(mut dest: []T, src: []T, num: uint) {
 }
 
 pub func free<T>(ptr: ^T) {
-    raw_free(uintptr(ptr));
+    rawFree(uintptr(ptr));
 }
 
 pub func freeArray<T>(array: []T) {
     mut rawArray := @((^RawArray)(uintptr(&array)));
-    raw_free(uintptr(rawArray.ptr));
+    rawFree(uintptr(rawArray.ptr));
 }

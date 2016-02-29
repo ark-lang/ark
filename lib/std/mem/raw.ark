@@ -2,10 +2,10 @@
 [c] func realloc(ptr: ^C::void, size: uint) -> ^C::void;
 [c] func free(ptr: ^C::void);
 
-func raw_alloc(bytes: uint) -> uintptr {
+pub func rawAlloc(bytes: uint) -> uintptr {
     return uintptr(C::malloc(bytes));
 }
 
-func raw_free(ptr: uintptr) {
+pub func rawFree(ptr: uintptr) {
     C::free((^C::void)(ptr));
 }
