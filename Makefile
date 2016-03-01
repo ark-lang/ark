@@ -1,5 +1,3 @@
-PACKAGES = src/{codegen{/LLVMCodegen,},lexer,doc,parser,ast,semantic,util,cmd/ark}
-
 .PHONY: all fmt gen wc
 
 all:
@@ -12,4 +10,4 @@ gen:
 	go generate ./...
 
 wc:
-	wc ./${PACKAGES}/*.go
+	find src/ -name *.go | xargs wc
