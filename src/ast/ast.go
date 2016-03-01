@@ -1171,7 +1171,7 @@ func (_ ArrayAccessExpr) NodeName() string {
 
 func (v ArrayAccessExpr) Mutable() bool {
 	if pt, ok := v.Array.GetType().BaseType.ActualType().(PointerType); ok {
-		return pt.IsMutable;
+		return pt.IsMutable
 	}
 	return v.Array.Mutable()
 }
