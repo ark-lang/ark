@@ -990,7 +990,7 @@ func (v CallExpr) GetType() *TypeReference {
 	if v.Function != nil {
 		fnType := v.Function.GetType()
 		if fnType != nil {
-			if fnType, ok := fnType.BaseType.(FunctionType); ok {
+			if fnType, ok := fnType.BaseType.ActualType().(FunctionType); ok {
 				return fnType.Return
 			}
 		}

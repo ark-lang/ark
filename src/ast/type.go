@@ -339,6 +339,10 @@ func (v *NamedType) Attrs() parser.AttrGroup {
 }
 
 func (v *NamedType) Equals(t Type) bool {
+	if _, ok := t.(FunctionType); ok {
+		return t.Equals(v)
+	}
+
 	other, ok := t.(*NamedType)
 	if !ok {
 		return false
@@ -978,12 +982,24 @@ func (v FunctionType) Attrs() parser.AttrGroup {
 }
 
 func (v FunctionType) Equals(t Type) bool {
-	other, ok := t.(FunctionType)
-	if !ok {
-		return false
+	var other FunctionType
+	var otherAttrs parser.AttrGroup
+	if named, ok := t.(*NamedType); ok {
+		ft, ok := named.Type.(FunctionType)
+		if !ok {
+			return false
+		}
+		other = ft
+		otherAttrs = named.Attrs()
+	} else {
+		ft, ok := t.(FunctionType)
+		if !ok {
+			return false
+		}
+		other = ft
 	}
 
-	if !v.Attrs().Equals(other.Attrs()) {
+	if !v.Attrs().Equals(otherAttrs) {
 		return false
 	}
 
