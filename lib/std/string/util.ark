@@ -19,7 +19,7 @@ pub func hasSuffix(source: string, suffix: string) -> bool {
 }
 
 pub func toLowerCase(a: ^string) {
-	a[0] = 'a';	
+
 }
 
 pub func toUpperCase(a: ^string) {

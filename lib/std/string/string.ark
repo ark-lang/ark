@@ -1,4 +1,4 @@
 // Dynamic string?
-#use adt::list
+#use std::adt
 
-type String 
+type String adt::List;

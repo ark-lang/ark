@@ -66,7 +66,7 @@ func (it: ^mut List<T>) grow() {
     }
 
     mem::rawFree(uintptr(oldData));
-    it.data = (^mut T)(newData);
+    it.data = newData;
 }
 
 pub func (it: ^mut List<T>) append(value: T) {
