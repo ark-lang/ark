@@ -32,14 +32,20 @@ pub func (List) new<T>() -> ^mut List<T> {
     return List::newWithCapacity<T>(0);
 }
 
+/// Creates a List, allocating memory
+/// of the given capacity
 ///
 /// ## Examples
 ///
 /// ```
 /// #use std::adt
-/// 
+/// #use std::io
+///
 /// pub func main() -> int {
-/// 
+///     fupa := adt::List::newWithCapacity<int>(32);
+///     io::printUint(fupa.getCapacity());
+///     fupa.destroy();
+///     return fupa; 
 /// }
 /// ```
 pub func (List) newWithCapacity<T>(mut cap: uint) -> ^mut List<T> {
@@ -60,14 +66,16 @@ pub func (List) newWithCapacity<T>(mut cap: uint) -> ^mut List<T> {
     return res;
 }
 
-///
+/// Destroys the List and its data
+/// 
 /// ## Examples
 ///
 /// ```
 /// #use std::adt
 /// 
 /// pub func main() -> int {
-/// 
+///     list := adt::List::new<int>(666);
+///     defer list.destroy();
 /// }
 /// ```
 pub func (it: ^List<T>) destroy() {
@@ -75,6 +83,8 @@ pub func (it: ^List<T>) destroy() {
     mem::free(it);
 }
 
+/// Returns a raw pointer to the
+/// data of the list
 ///
 /// ## Examples
 ///
@@ -82,7 +92,10 @@ pub func (it: ^List<T>) destroy() {
 /// #use std::adt
 /// 
 /// pub func main() -> int {
-/// 
+///     something := adt::List::new<int>();
+///     something.append(4);
+///     raw := something.toRawPointer();
+///     return @raw;
 /// }
 /// ```
 pub func (it: ^List<T>) toRawPointer() -> ^T {
@@ -97,14 +110,18 @@ pub func (it: ^List<T>) toRawPointer() -> ^T {
 /// #use std::adt
 /// 
 /// pub func main() -> int {
-/// 
+///     foo := adt::List::new<int>();
+///     foo.append(16);
+///     foo.append(32);
+///     foo.append(64);
+///     fooValue := foo.get(2);
+///     return fooValue.unwrap();
 /// }
 /// ```
 pub func (it: List<T>) get(index: uint) -> Option<T> {
     if index < 0 || index >= it.length {
         return Option::None;
     }
-
     return Option::Some(it.data[index]);
 }
 
@@ -117,7 +134,7 @@ pub func (it: List<T>) get(index: uint) -> Option<T> {
 /// #use std::adt
 /// 
 /// pub func main() -> int {
-///     foo := adt::List::new();
+///     foo := adt::List::new<int>();
 ///     return foo.getLength();
 /// }
 /// ```
@@ -135,7 +152,7 @@ pub func (it: List<T>) getLength() -> uint {
 /// #use std::adt
 /// 
 /// pub func main() -> int {
-///     foo := adt::List::newWithCapacity(555);
+///     foo := adt::List::newWithCapacity<int>(555);
 ///     return foo.getCapacity();
 /// }
 /// ```
@@ -210,7 +227,7 @@ pub func (it: ^mut List<T>) top() -> Option<T> {
     if it.length == 0 {
         return Option::None;
     }
-    return Option::Some(it.get(it.length - 1));
+    return it.get(it.length - 1);
 }
 
 /// Pop the last value T from the list. Note that
