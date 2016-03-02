@@ -1,0 +1,10 @@
+#use std::string
+
+pub func main() -> int {
+	a := "foo";
+	b := "bar";
+	if string::compare(a, b) {
+		return -1;
+	}
+	return 0;
+}

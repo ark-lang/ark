@@ -1,0 +1,4 @@
+// Dynamic string?
+#use adt::list
+
+type String 

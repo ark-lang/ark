@@ -1,0 +1,42 @@
+#use std::io
+
+pub func contains(haystack: string, needle: string) -> bool {
+	if len(haystack) < len(needle) {
+		return false;
+	}
+	return true;
+}
+
+pub func hasPrefix(source: string, prefix: string) -> bool {
+	if len(prefix) > len(source) {
+		return false;
+	}
+	return false;
+}
+
+pub func hasSuffix(source: string, suffix: string) -> bool {
+	return false;	
+}
+
+pub func toLowerCase(a: ^string) {
+	a[0] = 'a';	
+}
+
+pub func toUpperCase(a: ^string) {
+	
+}
+
+pub func compare(a: string, b: string) -> bool {
+	if len(a) != len(b) {
+		return false;
+	}
+
+	mut i := uint(0);
+	for i < len(a) {
+		if a[i] != b[i] {
+			return false;
+		}
+	}
+
+	return true;
+}

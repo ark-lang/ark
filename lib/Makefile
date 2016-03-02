@@ -1,4 +1,4 @@
-flags := --loglevel=debug --unused
+flags := --unused
 entry_src := tests/test.ark
 stdlib_path := .
 
@@ -8,7 +8,7 @@ tests := $(patsubst %.ark,%.test,$(wildcard tests/*.ark))
 .PHONY: test clean
 
 %.test: %.ark
-	ark build -I$(stdlib_path) -o $@ $< $(flags)
+	ark build -I$(stdlib_path) -o $@ $< $(flags) $(debug)
 	./$@
 
 test: clean $(tests)

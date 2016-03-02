@@ -154,7 +154,11 @@ func (v *parser) getPrecedence(op BinOpType) int {
 }
 
 func (v *parser) nextIs(typ lexer.TokenType) bool {
-	return v.peek(0).Type == typ
+	next := v.peek(0)
+	if next == nil {
+		v.err("Expected token of type %s, got EOF", typ)
+	}
+	return next.Type == typ
 }
 
 func (v *parser) expect(typ lexer.TokenType, val string) *lexer.Token {
