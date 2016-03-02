@@ -4,8 +4,18 @@
 
 [c] func printf(fmt: ^u8, ...) -> int;
 
-// a very unsophisticated println
-// function
+/// Prints the given static string
+/// to standard out, with a newline
+///
+/// ## Examples
+///
+/// ```
+/// #use std::io
+/// pub func main() -> int {
+/// 	io::println("Hello, World!");
+/// 	return 0;
+/// }
+/// ```
 pub func println(message: string) -> int {
 	if len(message) == 0 {
 		return C::printf(c"\n");
@@ -13,6 +23,20 @@ pub func println(message: string) -> int {
 	return C::printf(c"%.*s\n", len(message), &message[0]);
 }
 
+/// Prints the given static string 
+/// to standard out. Does not write
+/// a new line.
+///
+/// ## Examples
+///
+/// ```
+/// #use std::io
+/// pub func main() -> int {
+/// 	io::print("hello ");
+/// 	io::print("world\n");
+/// 	return 0;
+/// }
+/// ```
 pub func print(message: string) -> int {
 	if len(message) == 0 {
 		return 0;
@@ -20,6 +44,22 @@ pub func print(message: string) -> int {
 	return C::printf(c"%.*s", len(message), &message[0]);
 }
 
+/// Prints a dynamic, heap allocated string
+/// to the standard out
+///
+/// ## Examples
+///
+/// ```
+/// #use std::io
+/// #use std::string
+/// 
+/// pub func main() -> int {
+/// 	name := string::String::from("Felix");
+/// 	defer name.destroy();	
+/// 	io::printDynamicString(name);
+/// 	return 0;
+/// }
+/// ```
 pub func printDynamicString(s: ^string::String) -> int {
 	mut idx := uint(0);
 	for idx < s.length() {
@@ -31,6 +71,19 @@ pub func printDynamicString(s: ^string::String) -> int {
 	return int(idx);
 }
 
+/// Prints a rune character to
+/// standard output
+///
+/// ## Examples
+///
+/// ```
+/// #use std::io
+/// 
+/// pub func main() -> int {
+///  	io::printRune('A');	
+/// 	return 0;
+/// }
+/// ```
 pub func printRune(r: rune) -> int {
 	mut rPtr := (^u8)(uintptr(&r));
 	rCast := []rune{r};
@@ -39,15 +92,51 @@ pub func printRune(r: rune) -> int {
 	return 0;
 }
 
+/// Prints an unsigned 8 bit integer (byte)
+/// to standard output
+///
+/// ## Examples
+///
+/// ```
+/// #use std::io
+/// pub func main() -> int {
+/// 	io::printByte(u8(32));
+/// 	return 0;
+/// }
+/// ```
 pub func printByte(byte: u8) -> int {
 	return C::printf(c"%c", byte);
 }
 
+/// Prints a signed register-sized integer
+/// to standard output
+///
+/// ## Examples
+///
+/// ```
+/// #use std::io
+/// pub func main() -> int {
+/// 	io::printInt(32);
+/// 	return 0;
+/// }
+/// ```
 pub func printInt(num: int) -> int {
 	// use z for register-sized integer
 	return C::printf(c"%zd", num);
 }
 
+/// Prints an unsigned integer to
+/// standard output.
+///
+/// ## Examples
+///
+/// ```
+/// #use std::io
+/// pub func main() -> int {
+/// 	io::printUint(uint(32));
+/// 	return 0;
+/// }
+/// ```
 pub func printUint(num: uint) -> int {
 	// use z for register-sized integer
 	return C::printf(c"%zu", num);

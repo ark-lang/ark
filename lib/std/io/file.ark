@@ -1,5 +1,9 @@
 #use std::mem
 
+/*
+	WIP library that needs a bit more planning
+*/ 
+
 type FILE struct {};
 
 [c] func fopen(loc: ^u8, mode: ^u8) -> ^FILE;
