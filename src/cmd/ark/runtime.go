@@ -35,6 +35,21 @@ pub func (o: Option<T>) unwrap() -> T {
     mut a: T;
     return a;
 }
+
+type RawArray struct {
+    size: uint,
+    ptr: uintptr,
+};
+
+pub func makeArray<T>(ptr: ^T, size: uint) -> []T {
+	raw := RawArray{size: size, ptr: uintptr(ptr)};
+	return @(^[]T)(uintptr(^raw));
+}
+
+pub func breakArray<T>(arr: []T) -> (uint, ^T) {
+	raw := @(^RawArray)(uintptr(^arr));
+	return (raw.size, (^T)(raw.ptr));
+}
 `
 
 func LoadRuntime() *ast.Module {
