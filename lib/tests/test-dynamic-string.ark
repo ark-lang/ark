@@ -2,9 +2,14 @@
 #use std::string
 
 pub func main() -> int {
-	test := string::String::from("hello, world!");
+	test := string::String::from("hello ");
 	defer test.destroy();
 
+	io::printDynamicString(test);
+
+	test.append('w');
+	test.append('o');
+	test.concat("rld");
 	io::printDynamicString(test);
 
 	return 0;

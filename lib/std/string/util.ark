@@ -2,26 +2,56 @@ pub func contains(haystack: string, needle: string) -> bool {
 	if len(haystack) < len(needle) {
 		return false;
 	}
-	return true;
+	
+	mut idx := uint(0);
+	mut count := uint(0);
+	for idx < len(haystack) {
+		if haystack[idx] == needle[count] {
+			count += 1;
+		} else {
+			count = 0;
+		}
+
+		if count == len(needle) {
+			return true;
+		}
+
+		idx += 1;
+	}
+
+	return false;
 }
 
 pub func hasPrefix(source: string, prefix: string) -> bool {
 	if len(prefix) > len(source) {
 		return false;
 	}
-	return false;
+	mut idx := uint(0);
+	for idx < len(prefix) {
+		if source[idx] != prefix[idx] {
+			return false;
+		}
+		idx += 1;
+	}
+	return true;
 }
 
 pub func hasSuffix(source: string, suffix: string) -> bool {
-	return false;	
-}
-
-pub func toLowerCase(a: ^string) {
-
-}
-
-pub func toUpperCase(a: ^string) {
 	
+	if len(suffix) > len(source) {
+		return false;
+	}
+
+	mut idx := len(source) - len(suffix);
+	// im too tired to know why this works
+	// but it works
+	for idx < len(suffix) - idx {
+		if source[idx] != suffix[idx] {
+			return false;
+		}
+		idx += 1;
+	}
+	return true;
 }
 
 pub func compare(a: string, b: string) -> bool {

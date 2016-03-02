@@ -21,6 +21,15 @@ pub func (String) from(source: string) -> ^mut String {
 	return str;
 }
 
+pub func (a: ^String) concat(other: string) {
+	mut idx := uint(0);
+	for idx < len(other) {
+		otherRunePointer := uintptr(other[idx]);
+		a.append((rune)(otherRunePointer));
+		idx += 1;
+	}
+}
+
 pub func (a: ^String) append(char: rune) {
 	a.data.append(char);
 }

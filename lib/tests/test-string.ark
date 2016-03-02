@@ -1,8 +1,27 @@
 #use std::string
+#use std::io
+
+// todo non-shit test
 
 pub func main() -> int {
 	a := "foo";
 	b := "bar";
+	something := "this is some kind of string!";
+
+	if string::hasPrefix(a, "fo") {
+		io::println("foo has the prefix fo!");
+	}
+	if string::hasSuffix("test.ark", ".ark") {
+		io::println("test.ark has the suffix .ark");
+	}
+	if string::hasSuffix(b, "bar") {
+		io::println("nice");
+	}
+
+	if string::contains(something, "kind") {
+		io::println("nice...");
+	}
+
 	if string::compare(a, b) {
 		return -1;
 	}

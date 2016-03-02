@@ -25,6 +25,7 @@ pub func printDynamicString(s: ^string::String) -> int {
 		printRune(s.at(idx));
 		idx += 1;
 	}
+	printRune('\n');
 	return int(idx);
 }
 
