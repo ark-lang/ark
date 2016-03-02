@@ -12,6 +12,14 @@ pub func (Stack) new<T>() -> ^mut Stack<T> {
 	return stack;
 }
 
+pub func (s: ^Stack<T>) getLength() -> uint {
+	return s.getLength();
+}
+
+pub func (s: ^Stack<T>) getCapacity() -> uint {
+	return s.getCapacity();
+}
+
 pub func (s: ^Stack<T>) push(val: T) {
 	s.data.append(val);	
 }
