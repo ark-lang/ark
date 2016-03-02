@@ -1,5 +1,6 @@
 #use std::unicode::utf8
 #use std::string
+#use std::mem
 
 [c] func printf(fmt: ^u8, ...) -> int;
 
@@ -30,8 +31,10 @@ pub func printDynamicString(s: ^string::String) -> int {
 }
 
 pub func printRune(r: rune) -> int {
-	mut rPtr := uintptr(r);
-	printByte((u8)(rPtr));
+	mut rPtr := (^u8)(uintptr(&r));
+	rCast := []rune{r};
+	numBytes := utf8::numBytes(rCast);
+   	C::printf(c"%.*s", numBytes, rPtr);
 	return 0;
 }
 

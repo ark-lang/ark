@@ -27,8 +27,6 @@ pub func main() -> int {
 		idx += 1;
 	}
 
-	test.pop(); // none
-
 	test.append('京');
 	value := test.pop();
 
