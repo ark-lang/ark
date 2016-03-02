@@ -37,6 +37,19 @@ pub func (String) withCapacity(size: uint) -> ^mut String {
 	return str;
 }
 
+/// Clear the entire string
+/// returning it back to a length
+/// of zero.
+pub func (a: ^String) clear() {
+	mut idx := uint(0);
+	for idx < a.length() {
+		a.pop();
+		idx += 1;
+	}
+}
+
+/// Pops and returns the last rune
+/// in the string
 pub func (a: ^String) pop() -> Option<rune> {
 	if a.length() == 0 {
 		return Option::None;
@@ -44,6 +57,7 @@ pub func (a: ^String) pop() -> Option<rune> {
 	return a.data.pop();
 }
 
+/// Append a string
 pub func (a: ^String) concat(other: string) {
 	mut idx := uint(0);
 	for idx < len(other) {
@@ -53,6 +67,7 @@ pub func (a: ^String) concat(other: string) {
 	}
 }
 
+/// Append a single rune
 pub func (a: ^String) append(char: rune) {
 	a.data.append(char);
 }
@@ -66,5 +81,6 @@ pub func (a: ^String) length() -> uint {
 }
 
 pub func (a: ^String) destroy() {
+	a.data.destroy();
 	mem::free(a);
 }
