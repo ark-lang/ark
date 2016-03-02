@@ -191,7 +191,7 @@ pub func (a: ^String) append(char: rune) {
 ///		return 0;
 /// }
 /// ```
-pub func (a: ^String) at(index: uint) -> Option<rune> {
+pub func (a: ^String) get(index: uint) -> Option<rune> {
 	if index < 0 || index > a.length() {
 		return Option::None;
 	}

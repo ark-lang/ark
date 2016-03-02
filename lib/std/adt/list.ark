@@ -1,5 +1,9 @@
 #use std::mem
 
+/// A generic List data structure
+/// note that this structure, by default,
+/// has a growth rate of 2, meaning it
+/// will double in size. 
 pub type List struct<T> {
     data: ^mut T,
     length: uint,
@@ -10,10 +14,34 @@ pub type List struct<T> {
 BASE_CAPACITY: uint = 4;
 DEFAULT_GROWTH_RATE: f32 = 2;
 
+/// Creates a new List with a capacity
+/// of zero, i.e. no space allocated.
+///
+/// ## Examples
+///
+/// ```
+/// #use std::adt
+/// 
+/// pub func main() -> int {
+///     something := adt::List::new<u8>();
+///     defer something.destroy();
+///     return 0;
+/// }
+/// ```
 pub func (List) new<T>() -> ^mut List<T> {
     return List::newWithCapacity<T>(0);
 }
 
+///
+/// ## Examples
+///
+/// ```
+/// #use std::adt
+/// 
+/// pub func main() -> int {
+/// 
+/// }
+/// ```
 pub func (List) newWithCapacity<T>(mut cap: uint) -> ^mut List<T> {
     if cap <= 0 {
         cap = BASE_CAPACITY;
@@ -32,27 +60,85 @@ pub func (List) newWithCapacity<T>(mut cap: uint) -> ^mut List<T> {
     return res;
 }
 
+///
+/// ## Examples
+///
+/// ```
+/// #use std::adt
+/// 
+/// pub func main() -> int {
+/// 
+/// }
+/// ```
 pub func (it: ^List<T>) destroy() {
     mem::rawFree(uintptr(it.data));
     mem::free(it);
 }
 
+///
+/// ## Examples
+///
+/// ```
+/// #use std::adt
+/// 
+/// pub func main() -> int {
+/// 
+/// }
+/// ```
 pub func (it: ^List<T>) toRawPointer() -> ^T {
     return it.data;
 }
 
-pub func (it: List<T>) get(index: uint) -> T {
-    if index >= it.length {
-        panic("List.get: index >= length");
+/// Returns the value at the given index
+///
+/// ## Examples
+///
+/// ```
+/// #use std::adt
+/// 
+/// pub func main() -> int {
+/// 
+/// }
+/// ```
+pub func (it: List<T>) get(index: uint) -> Option<T> {
+    if index < 0 || index >= it.length {
+        return Option::None;
     }
 
-    return it.data[index];
+    return Option::Some(it.data[index]);
 }
 
+/// Returns how many items are 
+/// currently in the list
+/// 
+/// ## Examples
+///
+/// ```
+/// #use std::adt
+/// 
+/// pub func main() -> int {
+///     foo := adt::List::new();
+///     return foo.getLength();
+/// }
+/// ```
 pub func (it: List<T>) getLength() -> uint {
     return it.length;
 }
 
+/// Returns the amount of memory allocated
+/// for the list, which is  not the amount
+/// of items in the list.
+/// 
+/// ## Examples
+///
+/// ```
+/// #use std::adt
+/// 
+/// pub func main() -> int {
+///     foo := adt::List::newWithCapacity(555);
+///     return foo.getCapacity();
+/// }
+/// ```
 pub func (it: List<T>) getCapacity() -> uint {
     return it.capacity;
 }
@@ -77,6 +163,23 @@ func (it: ^mut List<T>) grow() {
     it.data = newData;
 }
 
+/// Overrides the growth rate of the list
+/// so that rather in growing in rate of 2,
+/// it grows in a rate of N where N is the
+/// rate specified.
+///
+/// ## Examples
+///
+/// ```
+/// #use std::adt
+/// 
+/// pub func main() -> int {
+///     foo := adt::List::new<int>();
+///     foo.setGrowthRate(1.5);
+///     foo.destroy();
+///     return 0;
+/// }
+/// ```
 pub func (it: ^mut List<T>) setGrowthRate(mut rate: f32) {
     if rate <= 0f {
         rate = DEFAULT_GROWTH_RATE;
@@ -87,6 +190,22 @@ pub func (it: ^mut List<T>) setGrowthRate(mut rate: f32) {
 /// This will peek at the top of the List
 /// it will _not_ pop the value off the list.
 /// Returns None if the list is empty.
+///
+/// ## Examples
+///
+/// ```
+/// #use std::adt
+/// 
+/// pub func main() -> int {
+///     ages := adt::List::new<int>
+///     ages.append(17);
+///     ages.append(16);
+///     ages.append(32);
+///     ages.append(93);
+///     lastAgeAppended := ages.top();
+///     return lastAgeAppended.unwrap();
+/// }
+/// ```
 pub func (it: ^mut List<T>) top() -> Option<T> {
     if it.length == 0 {
         return Option::None;
@@ -97,6 +216,22 @@ pub func (it: ^mut List<T>) top() -> Option<T> {
 /// Pop the last value T from the list. Note that
 /// it does not clear out the popped item.
 /// Returns None if the list is empty.
+///
+/// ## Examples
+///
+/// ```
+/// #use std::adt
+/// #use std::io
+/// 
+/// pub func main() -> int {
+///     identifiers := adt::List::new<string>();
+///     identifiers.append("foo");
+///     identifiers.append("bar");
+///     someIdentifier := identifiers.pop();
+///     io::println(someIdentifier.unwrap());
+///     return 0;
+/// }
+/// ```
 pub func (it: ^mut List<T>) pop() -> Option<T> {
     if it.length == 0 {
         return Option::None;
@@ -109,7 +244,21 @@ pub func (it: ^mut List<T>) pop() -> Option<T> {
 
 /// Append a value of type T to the List. If
 /// the length is at its capacity it will double
-/// in capacity.
+/// in capacity (by default, or it will grow by
+/// whatever length is set).
+///
+/// ## Examples
+///
+/// ```
+/// #use std::adt
+/// 
+/// pub func main() -> int {
+///     fupa := adt::List::new<u8>();
+///     fupa.append(23);
+///     fupa.destroy();
+///     return 0;
+/// }
+/// ```
 pub func (it: ^mut List<T>) append(value: T) {
     if it.length == it.capacity {
         it.grow();
