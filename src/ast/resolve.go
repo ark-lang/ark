@@ -181,7 +181,9 @@ func (v *Resolver) err(thing Locatable, err string, stuff ...interface{}) {
 	log.Error("resolve", util.TEXT_RED+util.TEXT_BOLD+"error:"+util.TEXT_RESET+" [%s:%d:%d] %s\n",
 		pos.Filename, pos.Line, pos.Char, fmt.Sprintf(err, stuff...))
 
-	log.Error("resolve", v.curSubmod.File.MarkPos(pos))
+	if v.curSubmod != nil {
+		log.Error("resolve", v.curSubmod.File.MarkPos(pos))
+	}
 
 	os.Exit(util.EXIT_FAILURE_SEMANTIC)
 }

@@ -1,13 +1,30 @@
 #use std::mem
 
+BASE_CAPACITY: uint = 32;
+
+pub type Element struct <K, V> {
+	key: K,
+	val: V,
+	busy: bool,
+};
+
 pub type HashMap struct <K, V> {
-	
+	data: []^mut Element<K, V>,	
+	capacity: uint,
+	size: uint,
 };
 
 pub func (HashMap) new<K, V>() -> ^mut HashMap<K, V> {
 	map := mem::alloc<HashMap<K, V>>();
-	@map = HashMap<K, V> {
 
+	// TODO(felix): checks
+	// 				declare global once bug is fixed
+	cap: uint = BASE_CAPACITY;
+
+	@map = HashMap<K, V> {
+		size: 0,
+		capacity: cap,
+		data: mem::allocArray<^mut Element<K, V>>(cap),
 	};
 	return map;
 }
