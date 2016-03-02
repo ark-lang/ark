@@ -14,4 +14,4 @@ tests := $(patsubst %.ark,%.test,$(wildcard tests/*.ark))
 test: clean $(tests)
 
 clean:
-	-rm $(tests)
+	@-rm $(tests)

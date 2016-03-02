@@ -946,6 +946,7 @@ func (v *Inferrer) HandleTyped(pos lexer.Position, typed Typed) int {
 	// A function access will always be the type of the function it accesses
 	case *FunctionAccessExpr:
 		fnType := &TypeReference{BaseType: typed.Function.Type}
+
 		if len(typed.Function.Type.GenericParameters) > 0 {
 			if len(typed.GenericArguments) > 0 {
 				gcon := NewGenericContext(getTypeGenericParameters(fnType.BaseType), typed.GenericArguments)
@@ -1206,7 +1207,7 @@ func (v *Inferrer) Finalize() {
 				panic("INTERNAL ERROR: Assumed unreachable")
 
 			default:
-				panic("INTERNAL ERROR: Unhandled ConstructorType escaped inference pass")
+				panic("INTERNAL ERROR: Unhandled ConstructorType escaped inference pass " + ct.String())
 			}
 		}
 

@@ -1,5 +1,3 @@
-#use std::io
-
 pub func contains(haystack: string, needle: string) -> bool {
 	if len(haystack) < len(needle) {
 		return false;

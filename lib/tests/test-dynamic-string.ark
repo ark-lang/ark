@@ -1,0 +1,11 @@
+#use std::io
+#use std::string
+
+pub func main() -> int {
+	test := string::String::from("hello, world!");
+	defer test.destroy();
+
+	io::printDynamicString(test);
+
+	return 0;
+}

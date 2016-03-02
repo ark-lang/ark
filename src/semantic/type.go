@@ -365,7 +365,8 @@ func (v *TypeCheck) CheckCallExpr(s *SemanticAnalyzer, expr *ast.CallExpr) {
 	}
 
 	var fnName string
-	if fae, ok := expr.Function.(*ast.FunctionAccessExpr); ok {
+	fae, ok := expr.Function.(*ast.FunctionAccessExpr)
+	if ok {
 		fnName = fae.Function.Name
 	} else {
 		fnName = "some func"

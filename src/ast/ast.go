@@ -1034,6 +1034,7 @@ func (v FunctionAccessExpr) GetType() *TypeReference {
 	if len(v.GenericArguments) > 0 {
 		return NewGenericContextFromTypeReference(ref).Replace(ref)
 	}
+
 	return ref
 }
 
@@ -1171,7 +1172,7 @@ func (_ ArrayAccessExpr) NodeName() string {
 
 func (v ArrayAccessExpr) Mutable() bool {
 	if pt, ok := v.Array.GetType().BaseType.ActualType().(PointerType); ok {
-		return pt.IsMutable;
+		return pt.IsMutable
 	}
 	return v.Array.Mutable()
 }
