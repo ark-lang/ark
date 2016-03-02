@@ -2,7 +2,7 @@
 #use std::mem
 #use std::unicode::utf8
 
-/// A UTF8 encoded dynamic string.
+/// A dynamic, unicode decoded string.
 pub type String struct {
 	data: ^mut adt::List<rune>,	
 };

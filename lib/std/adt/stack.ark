@@ -5,7 +5,7 @@
 // - isEmpty()
 // - find(T)
 
-/// A simple LIFO (last in first out) Stack.
+/// A simple LIFO (last in first out) queue/Stack.
 ///
 /// ## Example
 /// ```
