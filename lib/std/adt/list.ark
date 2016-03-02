@@ -4,9 +4,11 @@ pub type List struct<T> {
     data: ^mut T,
     length: uint,
     capacity: uint,
+    growthRate: f32,
 };
 
 BASE_CAPACITY: uint = 4;
+DEFAULT_GROWTH_RATE: f32 = 2;
 
 pub func (List) new<T>() -> ^mut List<T> {
     return List::newWithCapacity<T>(0);
@@ -23,6 +25,7 @@ pub func (List) newWithCapacity<T>(mut cap: uint) -> ^mut List<T> {
     @res = List<T>{
         data: (^mut T)(mem::rawAlloc(size)),
         length: 0,
+        growthRate: DEFAULT_GROWTH_RATE,
         capacity: cap,
     };
 
@@ -61,7 +64,7 @@ pub func (it: List<T>) getCapacity() -> uint {
 /// manually swapping the data for now.
 func (it: ^mut List<T>) grow() {
     oldData := it.data;
-    it.capacity *= 2;
+    it.capacity = uint(f32(it.capacity) * it.growthRate);
     newData := (^mut T)(mem::rawAlloc(sizeof(T) * it.capacity));
 
     mut i := uint(0);
@@ -72,6 +75,13 @@ func (it: ^mut List<T>) grow() {
 
     mem::rawFree(uintptr(oldData));
     it.data = newData;
+}
+
+pub func (it: ^mut List<T>) setGrowthRate(mut rate: f32) {
+    if rate <= 0f {
+        rate = DEFAULT_GROWTH_RATE;
+    }
+    it.growthRate = rate;
 }
 
 /// This will peek at the top of the List

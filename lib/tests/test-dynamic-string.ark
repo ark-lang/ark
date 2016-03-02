@@ -21,6 +21,7 @@ pub func main() -> int {
 	io::printDynamicString(test);
 
 	mut idx := uint(0);
+	io::printUint(test.length());
 	for idx < test.length() {
 		poppedValue := test.pop();
 		io::printRune(poppedValue.unwrap());
