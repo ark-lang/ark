@@ -161,6 +161,7 @@ func (v *Codegen) typeToLLVMType(typ ast.Type, gcon *ast.GenericContext) llvm.Ty
 			panic("missing generic map entry for type " + typ.TypeName() + " " + fmt.Sprintf("(%p)", typ))
 		}
 		return v.typeRefToLLVMTypeWithOuter(gcon.GetSubstitutionType(typ), gcon)
+
 	default:
 		log.Debugln("codegen", "Type was %s (%s)", typ.TypeName(), reflect.TypeOf(typ))
 		panic("Unimplemented type category in LLVM codegen")

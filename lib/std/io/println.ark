@@ -30,19 +30,8 @@ pub func printDynamicString(s: ^string::String) -> int {
 }
 
 pub func printRune(r: rune) -> int {
-	mut ar := uintptr(r);
-	
-	// because we cant cast a rune to a []rune
-	foo := []rune{r};
-
-	numBytes := utf8::numBytes(foo);
-	mut idx := uint(0);
-	for idx < numBytes {
-		printByte((u8)(ar));
-		ar += 1;
-		idx += 1;
-	}
-
+	mut rPtr := uintptr(r);
+	printByte((u8)(rPtr));
 	return 0;
 }
 

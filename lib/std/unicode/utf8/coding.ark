@@ -14,14 +14,6 @@ OFFSETS := []u32{
     0x03C82080, 0xFA082080, 0x82082080
 };
 
-SECOND_BYTE_RANGE := [](u8, u8) {
-	(0x80, 0xbf),
-	(0xa0, 0xbf),
-	(0x80, 0x9f),
-	(0x90, 0xbf),
-	(0x80, 0x8f),
-};
-
 pub func numRunes(src: []u8) -> uint {
 	mut i: uint = 0;
 	mut num: uint = 0;

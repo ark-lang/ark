@@ -29,5 +29,11 @@ pub func main() -> int {
 
 	test.pop(); // none
 
+	test.append('京');
+	value := test.pop();
+
+	io::printRune('\n');
+	io::printRune(value.unwrap());
+
 	return 0;
 }
