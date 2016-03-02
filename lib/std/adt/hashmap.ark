@@ -21,6 +21,6 @@ pub func (h: ^HashMap<K, V>) put(key: K, val: V) {
 		
 }
 
-pub func (h: ^HashMap) destroy<K, V>() {
+pub func (h: ^HashMap<K, V>) destroy() {
 	
 }
