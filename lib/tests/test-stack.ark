@@ -5,10 +5,15 @@ pub func main() -> int {
 	stack := adt::Stack::new<int>();
 	defer stack.destroy();
 	stack.push(5);
+	stack.push(10);
 
-	value: Option<int> = stack.pop();
-	actualValue := value.unwrap();
-	io::printInt(actualValue);
+	mut idx := uint(0);
+	for idx < stack.getLength() {
+		value: Option<int> = stack.pop();
+		actualValue := value.unwrap();
+		io::printInt(actualValue);
+		io::printRune('\n');
+	}
 
 	return 0;
 }
