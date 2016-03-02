@@ -1,3 +1,23 @@
+/// Returns if the given string
+/// contains the given value. The
+/// haystack is the string to look
+/// inside of for the needle.
+/// 
+/// ## Example
+///
+/// ```
+/// #use std::string
+/// #use std::io
+/// 
+/// pub func main() -> int {
+/// 	a := "foobar";
+/// 	b := "bar";
+/// 	if string::contains(a, b) {
+/// 		io::println("Found it!");
+/// 	}
+///		return 0;
+/// }
+/// ```
 pub func contains(haystack: string, needle: string) -> bool {
 	if len(haystack) < len(needle) {
 		return false;
@@ -22,6 +42,23 @@ pub func contains(haystack: string, needle: string) -> bool {
 	return false;
 }
 
+/// Returns if the given string
+/// has the given prefix
+///
+/// ## Example
+/// ```
+/// #use std::string
+/// #use std::io
+///
+/// pub func main() -> int {
+/// 	file := "image_temp";
+/// 	prefix := "image";
+/// 	if string::hasPrefix(file, prefix) {
+/// 		io::println("Yep!");
+/// 	}
+/// 	return 0;	
+/// }
+/// ```
 pub func hasPrefix(source: string, prefix: string) -> bool {
 	if len(prefix) > len(source) {
 		return false;
@@ -36,6 +73,22 @@ pub func hasPrefix(source: string, prefix: string) -> bool {
 	return true;
 }
 
+/// Returns if the given string
+/// ends with the given value
+///
+/// ## Example
+/// ```
+/// #use std::string
+/// #use std::io
+///
+/// pub func main() -> int {
+/// 	file := "main.ark";
+/// 	if string::hasPrefix(file, ext) {
+/// 		io::println("Yep!");
+/// 	}
+/// 	return 0;	
+/// }
+/// ```
 pub func hasSuffix(source: string, suffix: string) -> bool {
 	
 	if len(suffix) > len(source) {
@@ -54,6 +107,23 @@ pub func hasSuffix(source: string, suffix: string) -> bool {
 	return true;
 }
 
+/// Compares two strings character
+/// for character.
+///
+/// ## Example
+/// ```
+/// #use std::string
+/// #use std::io
+///
+/// pub func main() -> int {
+/// 	another := "hello, world";
+/// 	one := "dj khaled";
+/// 	if string::compare(another, one) {
+/// 		io::println("They are the same!");	
+/// 	}
+/// 	return 0;	
+/// }
+/// ```
 pub func compare(a: string, b: string) -> bool {
 	if len(a) != len(b) {
 		return false;
