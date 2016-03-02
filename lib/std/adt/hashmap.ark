@@ -1,0 +1,26 @@
+#use std::mem
+
+pub type HashMap struct <K, V> {
+	
+};
+
+pub func (HashMap) new<K, V>() -> ^mut HashMap<K, V> {
+	map := mem::alloc<HashMap<K, V>>();
+	@map = HashMap<K, V> {
+
+	};
+	return map;
+}
+
+pub func (h: ^HashMap<K, V>) get(key: K) -> Option<V> {
+	
+	return Option::None;
+}
+
+pub func (h: ^HashMap<K, V>) put(key: K, val: V) {
+		
+}
+
+pub func (h: ^HashMap) destroy<K, V>() {
+	
+}

@@ -63,7 +63,7 @@ pub func print(message: string) -> int {
 pub func printDynamicString(s: ^string::String) -> int {
 	mut idx := uint(0);
 	for idx < s.length() {
-		valAtIdx := s.at(idx);
+		valAtIdx := s.get(idx);
 		printRune(valAtIdx.unwrap());
 		idx += 1;
 	}

@@ -1,0 +1,6 @@
+#use std::adt
+
+pub func main() -> int {
+	map := adt::HashMap::new<string, int>();
+	return 0;
+}

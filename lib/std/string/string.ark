@@ -195,7 +195,7 @@ pub func (a: ^String) get(index: uint) -> Option<rune> {
 	if index < 0 || index > a.length() {
 		return Option::None;
 	}
-	return Option::Some(a.data.get(index));
+	return a.data.get(index);
 }
 
 /// Returns the length of the string
