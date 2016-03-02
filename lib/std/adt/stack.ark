@@ -1,0 +1,7 @@
+type Stack struct <T> {
+	data: List<T>,
+};
+
+// pub (s: ^Stack) new() -> ^mut Stack {
+	
+// }

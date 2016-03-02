@@ -2,17 +2,21 @@
 #use std::mem
 #use std::unicode::utf8
 
-/*
-	Implementation of a 
-	dynamic string type.
-*/
-
+/// A UTF8 encoded dynamic string.
 pub type String struct {
 	data: ^mut adt::List<rune>,	
 };
 
-// create a dynamic string from the given
-// static string
+/// Creates a heap-allocated, dynamic string
+/// from the given static string.
+///
+/// ## Example
+/// ```
+/// #use std::string
+///
+/// myString := string::String::from("Hello, World!");
+/// defer myString.destroy();
+/// ```
 pub func (String) from(source: string) -> ^mut String {
 	str := String::withCapacity(len(source));
 	mut idx := uint(0);
@@ -26,6 +30,26 @@ pub func (String) from(source: string) -> ^mut String {
 	return str;
 }
 
+/// Creates a zeroed out string with the given
+/// capacity.
+///
+/// ## Examples
+/// ```
+/// #use std::string
+/// 
+/// pub func main() -> int {
+/// 	buffer := string::String::withCapacity(32);
+/// 	defer buffer.destroy();
+/// 	
+/// 	mut idx := 0;
+/// 	for idx < 10 {
+/// 		buffer.concat("great moves!");	
+///			idx += 1;
+/// 	}
+/// 
+/// 	return 0;
+/// }
+/// ```
 pub func (String) withCapacity(size: uint) -> ^mut String {
 	str := mem::alloc<String>();
 	@str = String {
@@ -41,9 +65,25 @@ pub func (String) withCapacity(size: uint) -> ^mut String {
 	return str;
 }
 
-/// Clear the entire string
-/// returning it back to a length
-/// of zero.
+/// Clear the entire string returning it
+/// back to a length of zero
+///
+/// ## Examples
+/// ```
+/// #use std::string
+/// #use std::io
+/// 
+/// pub func main() -> int {
+/// 	johnsLeftString := string::String::from("Hello, World!");
+/// 	defer johnsLeftString.destroy();
+///
+/// 	io::printDynamicString(johnsLeftString);
+/// 	johnsLeftString.clear();
+/// 	io::printDynamicString(johnsLeftString);
+/// 
+/// 	return 0;
+/// }
+/// ```
 pub func (a: ^String) clear() {
 	mut idx := uint(0);
 	for idx < a.length() {
@@ -53,7 +93,21 @@ pub func (a: ^String) clear() {
 }
 
 /// Pops and returns the last rune
-/// in the string
+/// in the string wrapped in an Option type.
+/// 
+/// ## Examples
+/// 
+/// ```
+/// #use std::string
+/// #use std::io
+/// 
+/// pub func main() -> int {
+/// 	sentence := string::String::from("hey jude, how are ya?");
+/// 	end := string.pop();
+///		io::printRune(end.unwrap());
+/// 	return 0;
+/// }
+/// ```
 pub func (a: ^String) pop() -> Option<rune> {
 	if a.length() == 0 {
 		return Option::None;
@@ -61,7 +115,22 @@ pub func (a: ^String) pop() -> Option<rune> {
 	return a.data.pop();
 }
 
-/// Append a string
+/// Append a static, fixed length string
+/// to the end of a dynamic string
+/// 
+/// ## Examples
+/// 
+/// ```
+/// #use std::string
+/// #use std::io
+///
+/// pub func main() -> int {
+/// 	part := string::String::from("Hello, ");
+/// 	part.concat("world!");
+/// 	io::printDynamicString(part);
+///		return 0;
+/// }
+/// ```
 pub func (a: ^String) concat(other: string) {
 	mut idx := uint(0);
 	for idx < len(other) {
@@ -71,19 +140,97 @@ pub func (a: ^String) concat(other: string) {
 	}
 }
 
-/// Append a single rune
+/// Appends a rune to the end of 
+/// the given string
+///
+/// ## Examples
+/// 
+/// ```
+/// #use std::string
+/// #use std::io
+/// 
+/// pub func main() -> int {
+/// 	junk := []rune{'a', 'b', 'c'};
+///		foo := string::String::from("some letters: ");
+/// 	io::printDynamicString(foo);
+///
+///		mut idx := uint(0);
+///		for idx < len(junk) {
+/// 		if idx != 0 {
+/// 			foo.append(',');
+/// 		}
+/// 		foo.append(junk[idx]);
+/// 		idx += 1;
+/// 	}
+///
+/// 	io::printDynamicString(foo);
+/// 	return 0;
+/// }
+/// ```
 pub func (a: ^String) append(char: rune) {
 	a.data.append(char);
 }
 
-pub func (a: ^String) at(index: uint) -> rune {
-	return a.data.get(index);
+/// Returns the rune at the given index
+/// wrapped in an Option type.
+///
+/// ## Examples
+/// 
+/// ```
+/// #use std::string
+/// #use std::io
+/// 
+/// pub func main() -> int {
+/// 	foo := string::String::from("apples, tomatos, oranges");
+///		mut idx := uint(0);
+///		for idx < foo.length() {
+///			char := foo.at(idx);
+///			io::printRune(char.unwrap());
+///			idx += 1;
+///		}
+///		return 0;
+/// }
+/// ```
+pub func (a: ^String) at(index: uint) -> Option<rune> {
+	if index < 0 || index > a.length() {
+		return Option::None;
+	}
+	return Option::Some(a.data.get(index));
 }
 
+/// Returns the length of the string
+/// note that a string is dynamic, and this
+/// is not the amount of memory the string
+/// has reversed, just how much of that memory
+/// it is taking up.
+///
+/// ## Examples
+/// 
+/// ```
+/// #use std::string
+/// 
+/// pub func main() -> int {
+/// 	foo := string::String::from("Ark Language!");
+/// 	return foo.length();
+/// }
+/// ```
 pub func (a: ^String) length() -> uint {
 	return a.data.getLength();
 }
 
+/// Destroys the string
+///
+/// ## Examples
+/// 
+/// ```
+/// #use std::string
+///
+/// pub func main() -> int {
+/// 	name := string::String::from("Felix");
+/// 	name.destroy();
+///		return 0;
+/// }
+/// ```
 pub func (a: ^String) destroy() {
 	a.data.destroy();
 	mem::free(a);
