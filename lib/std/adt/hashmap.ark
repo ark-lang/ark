@@ -9,7 +9,7 @@ pub type Element struct <K, V> {
 };
 
 pub type HashMap struct <K, V> {
-	data: []^mut Element<K, V>,	
+	data: []^Element<K, V>,	
 	capacity: uint,
 	size: uint,
 };
@@ -24,7 +24,7 @@ pub func (HashMap) new<K, V>() -> ^mut HashMap<K, V> {
 	@map = HashMap<K, V> {
 		size: 0,
 //		capacity: cap,
-//		data: mem::allocArray<^mut Element<K, V>>(cap),
+//		data: mem::allocArray<Element<K, V>>(cap),
 	};
 	return map;
 }

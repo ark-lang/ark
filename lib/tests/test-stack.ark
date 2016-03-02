@@ -1,0 +1,6 @@
+#use std::adt
+
+pub func main() -> int {
+	stack := adt::Stack::new<int>();
+	return 0;
+}

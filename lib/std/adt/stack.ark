@@ -1,7 +1,13 @@
-type Stack struct <T> {
-	data: List<T>,
+#use std::mem
+
+pub type Stack struct <T> {
+	data: ^mut List<T>,
 };
 
-// pub (s: ^Stack) new() -> ^mut Stack {
-	
-// }
+pub func (Stack) new<T>() -> ^mut Stack<T> {
+	stack := mem::alloc<Stack<T>>();
+	@stack = Stack<T> {
+		data: List::new<T>(), 
+	};
+	return stack;
+}
