@@ -69,6 +69,29 @@ func (it: ^mut List<T>) grow() {
     it.data = newData;
 }
 
+/// This will peek at the top of the List
+/// it will _not_ pop the value off the list.
+/// Returns None if the list is empty.
+pub func (it: ^mut List<T>) top() -> Option<T> {
+    if it.length == 0 {
+        return Option::None;
+    }
+    return Option::Some(it.get(it.length - 1));
+}
+
+/// Pop the last value T from the list. Note that
+/// it does not clear out the popped item.
+/// Returns None if the list is empty.
+pub func (it: ^mut List<T>) pop() -> Option<T> {
+    if it.length == 0 {
+        return Option::None;
+    }
+    poppedValue := it.top();
+    // clear old value?
+    it.length -= 1;
+    return poppedValue;
+}
+
 pub func (it: ^mut List<T>) append(value: T) {
     if it.length == it.capacity {
         it.grow();

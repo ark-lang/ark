@@ -12,5 +12,22 @@ pub func main() -> int {
 	test.concat("rld");
 	io::printDynamicString(test);
 
+	poppedValue := test.pop();
+
+	io::println("just popped: ");
+	io::printRune(poppedValue.unwrap());
+	io::println("");
+
+	io::printDynamicString(test);
+
+	mut idx := uint(0);
+	for idx < test.length() {
+		poppedValue := test.pop();
+		io::printRune(poppedValue.unwrap());
+		idx += 1;
+	}
+
+	test.pop(); // none
+
 	return 0;
 }
