@@ -1,3 +1,6 @@
+/// A set of utility functions
+/// for static strings.
+
 /// Returns if the given string
 /// contains the given value. The
 /// haystack is the string to look
