@@ -1,6 +1,14 @@
 #use std::adt
+#use std::io
 
 pub func main() -> int {
 	stack := adt::Stack::new<int>();
+	defer stack.destroy();
+	stack.push(5);
+
+	value: Option<int> = stack.pop();
+	actualValue := value.unwrap();
+	io::printInt(actualValue);
+
 	return 0;
 }

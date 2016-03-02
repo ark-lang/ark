@@ -23,7 +23,7 @@ pub func (String) from(source: string) -> ^mut String {
 	for idx < len(source) {
 		char := []u8{source[idx]};
 		decodedChar := []rune{0};
-		decodeChar := utf8::decode(decodedChar, char);
+		utf8::decode(decodedChar, char);
 		str.append(decodedChar[0]);
 		idx += 1;
 	}

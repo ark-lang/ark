@@ -11,3 +11,16 @@ pub func (Stack) new<T>() -> ^mut Stack<T> {
 	};
 	return stack;
 }
+
+pub func (s: ^Stack<T>) push(val: T) {
+	s.data.append(val);	
+}
+
+pub func (s: ^Stack<T>) pop() -> Option<T> {
+	return s.data.pop();
+}
+
+pub func (s: ^Stack<T>) destroy() {
+	s.data.destroy();
+    mem::free(s);
+}
