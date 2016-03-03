@@ -65,6 +65,22 @@ pub func (String) withCapacity(size: uint) -> ^mut String {
 	return str;
 }
 
+/// Creates a new, empty string
+///
+/// ## Examples
+/// ```
+/// #use std::string
+/// 
+/// pub func main() -> int {
+/// 	buffer := strings::String::new();
+/// 	defer buffer.destroy();
+/// 	return 0;
+/// }
+/// ```
+pub func (String) new() -> ^mut String {
+	return String::withCapacity(0);
+}
+
 /// Clear the entire string returning it
 /// back to a length of zero
 ///
