@@ -296,7 +296,6 @@ func (v *parser) parseAttributes() AttrGroup {
 			}
 
 			if attrs.Set(attr.Key, attr) {
-				// TODO: I feel kinda dirty having this here
 				v.err("Duplicate attribute `%s`", attr.Key)
 			}
 
