@@ -1,5 +1,5 @@
 #use std::mem
-#use std::string
+#use std::strings
 
 pub type FileMode enum {
 	Read,
@@ -30,12 +30,19 @@ pub func (File) open(path: ^u8, mode: FileMode) -> Option<^mut File> {
 	return Option::Some(f);
 }
 
-pub func (f: ^mut File) readToString() -> string {
-	return f.name;
+pub func (f: ^mut File) readToString() -> Option<^mut strings::String> {
+	if !f.isOpen() {
+		return Option::None;
+	}
+	return Option::None;
+}
+
+pub func (f: ^mut File) isOpen() -> bool {
+	return f.handle != (^FILE)(0);
 }
 
 pub func (f: ^mut File) destroy() {
-	if f.handle != (^FILE)(0) {
+	if f.isOpen() {
 		C::fclose(f.handle);
 	}
 	mem::free(f);

@@ -1,8 +1,8 @@
 #use std::io
-#use std::string
+#use std::strings
 
 pub func main() -> int {
-	test := string::String::from("hello ");
+	test := strings::String::from("hello ");
 	defer test.destroy();
 
 	io::printDynamicString(test);

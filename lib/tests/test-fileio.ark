@@ -1,6 +1,6 @@
 #use std::mem
 #use std::io
-#use std::string
+#use std::strings
 
 pub func main(argc: uint, argv: ^^u8) -> int {
 	if argc < 2 {

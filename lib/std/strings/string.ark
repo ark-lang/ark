@@ -14,7 +14,7 @@ pub type String struct {
 /// ```
 /// #use std::string
 ///
-/// myString := string::String::from("Hello, World!");
+/// myString := strings::String::from("Hello, World!");
 /// defer myString.destroy();
 /// ```
 pub func (String) from(source: string) -> ^mut String {
@@ -38,7 +38,7 @@ pub func (String) from(source: string) -> ^mut String {
 /// #use std::string
 /// 
 /// pub func main() -> int {
-/// 	buffer := string::String::withCapacity(32);
+/// 	buffer := strings::String::withCapacity(32);
 /// 	defer buffer.destroy();
 /// 	
 /// 	mut idx := 0;
@@ -74,7 +74,7 @@ pub func (String) withCapacity(size: uint) -> ^mut String {
 /// #use std::io
 /// 
 /// pub func main() -> int {
-/// 	johnsLeftString := string::String::from("Hello, World!");
+/// 	johnsLeftString := strings::String::from("Hello, World!");
 /// 	defer johnsLeftString.destroy();
 ///
 /// 	io::printDynamicString(johnsLeftString);
@@ -106,7 +106,7 @@ pub func (a: ^String) toRawPointer() -> ^rune {
 /// #use std::io
 /// 
 /// pub func main() -> int {
-/// 	sentence := string::String::from("hey jude, how are ya?");
+/// 	sentence := strings::String::from("hey jude, how are ya?");
 /// 	end := string.pop();
 ///		io::printRune(end.unwrap());
 /// 	return 0;
@@ -129,7 +129,7 @@ pub func (a: ^String) pop() -> Option<rune> {
 /// #use std::io
 ///
 /// pub func main() -> int {
-/// 	part := string::String::from("Hello, ");
+/// 	part := strings::String::from("Hello, ");
 /// 	part.concat("world!");
 /// 	io::printDynamicString(part);
 ///		return 0;
@@ -155,7 +155,7 @@ pub func (a: ^String) concat(other: string) {
 /// 
 /// pub func main() -> int {
 /// 	junk := []rune{'a', 'b', 'c'};
-///		foo := string::String::from("some letters: ");
+///		foo := strings::String::from("some letters: ");
 /// 	io::printDynamicString(foo);
 ///
 ///		mut idx := uint(0);
@@ -185,7 +185,7 @@ pub func (a: ^String) append(char: rune) {
 /// #use std::io
 /// 
 /// pub func main() -> int {
-/// 	foo := string::String::from("apples, tomatos, oranges");
+/// 	foo := strings::String::from("apples, tomatos, oranges");
 ///		mut idx := uint(0);
 ///		for idx < foo.length() {
 ///			char := foo.at(idx);
@@ -214,7 +214,7 @@ pub func (a: ^String) get(index: uint) -> Option<rune> {
 /// #use std::string
 /// 
 /// pub func main() -> int {
-/// 	foo := string::String::from("Ark Language!");
+/// 	foo := strings::String::from("Ark Language!");
 /// 	return foo.length();
 /// }
 /// ```
@@ -230,7 +230,7 @@ pub func (a: ^String) length() -> uint {
 /// #use std::string
 ///
 /// pub func main() -> int {
-/// 	name := string::String::from("Felix");
+/// 	name := strings::String::from("Felix");
 /// 	name.destroy();
 ///		return 0;
 /// }

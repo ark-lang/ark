@@ -1,5 +1,5 @@
 #use std::unicode::utf8
-#use std::string
+#use std::strings
 #use std::mem
 
 [c] func printf(fmt: ^u8, ...) -> int;
@@ -58,13 +58,13 @@ pub func print(message: string) -> int {
 /// #use std::string
 /// 
 /// pub func main() -> int {
-/// 	name := string::String::from("Felix");
+/// 	name := strings::String::from("Felix");
 /// 	defer name.destroy();	
 /// 	io::printDynamicString(name);
 /// 	return 0;
 /// }
 /// ```
-pub func printDynamicString(s: ^string::String) -> int {
+pub func printDynamicString(s: ^strings::String) -> int {
 	mut idx := uint(0);
 	for idx < s.length() {
 		valAtIdx := s.get(idx);
