@@ -732,16 +732,23 @@ func (v *Inferrer) HandleTyped(pos lexer.Position, typed Typed) int {
 		fnId := v.HandleExpr(typed.Function)
 		if typed.Function.GetType() != nil {
 			ft, ok := typed.Function.GetType().BaseType.ActualType().(FunctionType)
-			if ok && len(ft.GenericParameters) == 0 {
-				for idx, arg := range typed.Arguments {
-					id := v.HandleExpr(arg)
-					if idx >= len(ft.Parameters) {
-						continue
-					}
-					v.AddSimpleIsConstraint(id, ft.Parameters[idx])
+			if ok {
+				if len(typed.Arguments) < len(ft.Parameters) {
+					v.errPos(typed.Pos(), "Call has too few arguments, want %d, has %d",
+						len(ft.Parameters), len(typed.Arguments))
 				}
-				v.AddSimpleIsConstraint(ann.Id, ft.Return)
-				break
+
+				if len(ft.GenericParameters) == 0 {
+					for idx, arg := range typed.Arguments {
+						id := v.HandleExpr(arg)
+						if idx >= len(ft.Parameters) {
+							continue
+						}
+						v.AddSimpleIsConstraint(id, ft.Parameters[idx])
+					}
+					v.AddSimpleIsConstraint(ann.Id, ft.Return)
+					break
+				}
 			}
 		}
 
