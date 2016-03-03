@@ -53,8 +53,10 @@ pub func (f: ^mut File) readToString() -> Option<^mut strings::String> {
 	
 	mut idx := uint(0);
 	for idx < size {
-		char := C::fgetc(f.handle);
-		printByte(char);
+		char := []u8{C::fgetc(f.handle)};
+		decodedChar := []rune{0};
+		utf8::decode(decodedChar, char);
+		result.append(decodedChar[0]);
 		idx += 1;
 	}
 

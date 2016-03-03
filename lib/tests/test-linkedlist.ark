@@ -2,7 +2,9 @@
 #use std::adt
 
 pub func main() -> int {
+    /*
     myLinkedList := adt::LinkedList::new<int>();
     defer myLinkedList.destroy();
+    */
     return 0;
 }

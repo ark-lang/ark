@@ -2,9 +2,15 @@
 #use std::io
 #use std::strings
 
-pub func main() -> int {
-	filePath := c"../CONTRIBUTING.md";
-	maybeFile: Option<^mut io::File> = io::File::open(filePath, io::FileMode::Read);
+pub func main(argc: int, argv: ^^u8) -> int {
+    mut fileToRead: ^u8;
+    if argc < 2 {
+        fileToRead = c"../LICENSE";
+    } else {
+        fileToRead = argv[1];
+    }
+      
+	maybeFile: Option<^mut io::File> = io::File::open(fileToRead, io::FileMode::Read);
 
 	mut myFile: ^mut io::File;
 
