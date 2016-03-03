@@ -350,7 +350,7 @@ func (v *TypeCheck) CheckCastExpr(s *SemanticAnalyzer, expr *ast.CastExpr) {
 }
 
 func (v *TypeCheck) CheckCallExpr(s *SemanticAnalyzer, expr *ast.CallExpr) {
-	fnType := expr.Function.GetType().BaseType.(ast.FunctionType)
+	fnType := expr.Function.GetType().BaseType.ActualType().(ast.FunctionType)
 
 	argLen := len(expr.Arguments)
 	paramLen := len(fnType.Parameters)

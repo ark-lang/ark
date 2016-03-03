@@ -261,6 +261,7 @@ type NamedType struct {
 	ParentModule  *Module
 	Methods       []*Function
 	StaticMethods []*Function
+	attrs         parser.AttrGroup
 }
 
 func (v *NamedType) addMethod(fn *Function) {
@@ -327,10 +328,21 @@ func (v *NamedType) CanCastTo(t Type) bool {
 }
 
 func (v *NamedType) Attrs() parser.AttrGroup {
-	return v.Type.Attrs()
+	attrs := make(parser.AttrGroup)
+	if v.Type.Attrs() != nil {
+		attrs.Extend(v.Type.Attrs())
+	}
+	if v.attrs != nil {
+		attrs.Extend(v.attrs)
+	}
+	return attrs
 }
 
 func (v *NamedType) Equals(t Type) bool {
+	if _, ok := t.(FunctionType); ok {
+		return t.Equals(v)
+	}
+
 	other, ok := t.(*NamedType)
 	if !ok {
 		return false
@@ -342,6 +354,11 @@ func (v *NamedType) Equals(t Type) bool {
 
 	if v.Name != other.Name {
 		return false
+	}
+
+	// Sanity check
+	if !v.attrs.Equals(other.attrs) {
+		panic("INTERNAL ERROR: Encountered equal named types with different attrs")
 	}
 
 	return true
@@ -965,12 +982,24 @@ func (v FunctionType) Attrs() parser.AttrGroup {
 }
 
 func (v FunctionType) Equals(t Type) bool {
-	other, ok := t.(FunctionType)
-	if !ok {
-		return false
+	var other FunctionType
+	var otherAttrs parser.AttrGroup
+	if named, ok := t.(*NamedType); ok {
+		ft, ok := named.Type.(FunctionType)
+		if !ok {
+			return false
+		}
+		other = ft
+		otherAttrs = named.Attrs()
+	} else {
+		ft, ok := t.(FunctionType)
+		if !ok {
+			return false
+		}
+		other = ft
 	}
 
-	if !v.Attrs().Equals(other.Attrs()) {
+	if !v.Attrs().Equals(otherAttrs) {
 		return false
 	}
 

@@ -7,6 +7,9 @@ func sub(a: int, b: int) -> int {
   return a - b;
 }
 
-func invoke(fn: [call_conv="x86fastcall"] func(int, int) -> int, a: int, b: int) -> int {
+[call_conv="x86fastcall"]
+type AFuncType func(int, int) -> int;
+
+func invoke(fn: AFuncType, a: int, b: int) -> int {
   return fn(a, b);
 }

@@ -1308,11 +1308,6 @@ func (v *parser) parseType(doNamed bool, onlyComposites bool, mustParse bool) Pa
 		}
 	}()
 
-	// If the next token is a [ and identifier it must be a group of attributes
-	if v.tokenMatches(0, lexer.Separator, "[") && v.tokenMatches(1, lexer.Identifier, "") {
-		attrs = v.parseAttributes()
-	}
-
 	if !onlyComposites {
 		if v.tokenMatches(0, lexer.Identifier, KEYWORD_FUNC) {
 			res = v.parseFunctionType()

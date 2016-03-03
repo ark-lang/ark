@@ -1279,13 +1279,13 @@ func (v *Inferrer) Finalize() {
 			}
 
 			if n.Function != nil {
-				if _, ok := n.Function.GetType().BaseType.(FunctionType); !ok {
+				if _, ok := n.Function.GetType().BaseType.ActualType().(FunctionType); !ok {
 					v.errPos(n.Function.Pos(), "Attempt to call non-function `%s`", n.Function.GetType().String())
 				}
 
 				// Insert a deref in cases where the code tries to call a value reciver
 				// with a pointer type.
-				if recType := n.Function.GetType().BaseType.(FunctionType).Receiver; recType != nil {
+				if recType := n.Function.GetType().BaseType.ActualType().(FunctionType).Receiver; recType != nil {
 					accessType := n.ReceiverAccess.GetType()
 
 					if accessType.BaseType.LevelsOfIndirection() == recType.BaseType.LevelsOfIndirection()+1 {

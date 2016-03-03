@@ -385,6 +385,7 @@ func (c *Constructor) constructTypeDeclNode(v *parser.TypeDeclNode) *TypeDecl {
 		Name:         v.Name.Value,
 		Type:         c.constructType(v.Type),
 		ParentModule: c.module,
+		attrs:        v.Attrs(),
 	}
 
 	res := &TypeDecl{
