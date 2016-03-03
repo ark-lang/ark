@@ -34,7 +34,9 @@ pub func (f: ^mut File) readToString() -> Option<^mut strings::String> {
 	if !f.isOpen() {
 		return Option::None;
 	}
-	return Option::None;
+
+	result: ^mut strings::String = strings::String::new();
+	return Option::Some(result);
 }
 
 pub func (f: ^mut File) isOpen() -> bool {

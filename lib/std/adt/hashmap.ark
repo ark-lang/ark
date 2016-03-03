@@ -16,15 +16,10 @@ pub type HashMap struct <K, V> {
 
 pub func (HashMap) new<K, V>() -> ^mut HashMap<K, V> {
 	map := mem::alloc<HashMap<K, V>>();
-
-	// TODO(felix): checks
-	// 				declare global once bug is fixed
-	//	cap: uint = BASE_CAPACITY;
-
+	cap: uint = BASE_CAPACITY;
 	@map = HashMap<K, V> {
 		size: 0,
-//		capacity: cap,
-//		data: mem::allocArray<Element<K, V>>(cap),
+		capacity: cap,
 	};
 	return map;
 }
