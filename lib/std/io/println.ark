@@ -4,6 +4,10 @@
 
 [c] func printf(fmt: ^u8, ...) -> int;
 
+pub func printNullTerminatedString(str: ^u8) -> int {
+	return C::printf(c"%s\n", str);
+}
+
 /// Prints the given static string
 /// to standard out, with a newline
 ///

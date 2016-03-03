@@ -1,11 +1,27 @@
 #use std::mem
 #use std::io
+#use std::string
 
-pub func main() -> int {
-	myFilePath := io::Path::new("/home/felix/index.html");
-	myFile := io::File::open(myFilePath, io::FileMode::Read);
+pub func main(argc: uint, argv: ^^u8) -> int {
+	if argc < 2 {
+		io::println("Error! Not enough arguments");
+		return -1;
+	}
 
-	myFile.close();
+	filePath := argv[1];
+	maybeFile: Option<^mut io::File> = io::File::open(filePath, io::FileMode::Read);
+
+	mut myFile: ^mut io::File;
+
+	match maybeFile {
+        Some(t) => myFile = t,
+        None => {
+        	io::println("Error! Failed to read file");
+        	return -1;
+        },
+    }
+
+	myFile.destroy();
 
 	return 0;
 }

@@ -92,6 +92,10 @@ pub func (a: ^String) clear() {
 	}
 }
 
+pub func (a: ^String) toRawPointer() -> ^rune {
+	return a.data.toRawPointer();
+}
+
 /// Pops and returns the last rune
 /// in the string wrapped in an Option type.
 /// 

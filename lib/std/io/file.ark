@@ -1,8 +1,72 @@
 #use std::mem
+#use std::string
+
+pub type FileMode enum {
+	Read,
+	Write,
+	Append,
+};
+
+pub type File struct {
+	name: string,
+	path: ^u8,
+	handle: ^FILE,
+};
+
+READ_FLAG := c"r";
+WRITE_FLAG := c"w";
+APPEND_FLAG := c"a";
+
+pub func (File) open(path: ^u8, mode: FileMode) -> Option<^mut File> {
+	mut f: ^mut File = mem::alloc<File>();
+	f.path = path;
+	f.handle = C::fopen(path, mode.getLegacyFileMode());
+
+	if f.handle == (^FILE)(0) {
+		// failed to read
+		return Option::None;
+	}
+
+	return Option::Some(f);
+}
+
+pub func (f: ^mut File) readToString() -> string {
+	return f.name;
+}
+
+pub func (f: ^mut File) destroy() {
+	if f.handle != (^FILE)(0) {
+		C::fclose(f.handle);
+	}
+	mem::free(f);
+}
 
 /*
-	WIP library that needs a bit more planning
-*/ 
+	Note this is just placeholder stuff...
+	none of this really means anything and
+	most of these are somewhat arbitrarily
+	chosen... lol
+*/
+pub func (f: FileMode) getLegacyFileMode() -> ^u8 {
+	match f {
+		FileMode::Read => {
+			return READ_FLAG;
+		},
+		FileMode::Write => {
+			return WRITE_FLAG;
+		},
+		FileMode::Append => {
+			return APPEND_FLAG;
+		},
+		_ => {
+			return READ_FLAG;
+		},
+	}
+	return READ_FLAG;
+}
+
+// C stuff for
+// loading files
 
 type FILE struct {};
 
@@ -13,55 +77,3 @@ type FILE struct {};
 [c] func fread(where: ^u8, sz: uint, dunno: uint, handle: ^FILE);
 [c] func fclose(handle: ^FILE);
 [c] func getenv(what: ^u8) -> ^u8;
-
-pub type FileMode enum {
-	Read,
-	Write,
-	Append,
-};
-
-/*
-	Note this is just placeholder stuff...
-*/
-pub func (f: FileMode) getLegacyMode() -> string {
-	if f == FileMode::Read {
-		return "r";
-	}
-	else if f == FileMode::Write {
-		return "w";
-	}
-	else if f == FileMode::Append {
-		return "a";
-	}
-	return "r"; // fuck it read
-}
-
-pub type Path struct {
-	location: string,
-};
-
-pub func (Path) new(location: string) -> ^mut Path {
-	mut p: ^mut Path = mem::alloc<Path>();
-	p.location = location;
-	return p;
-}
-
-pub type File struct {
-	name: string,
-	path: ^mut Path,
-	handle: ^FILE,
-};
-
-pub func (File) open(path: ^mut Path, mode: FileMode) -> ^mut File {
-	mut f: ^mut File = mem::alloc<File>();
-	f.path = path;
-	return f;
-}
-
-pub func (f: ^mut File) readToString() -> string {
-	return f.name;
-}
-
-pub func (f: ^mut File) close() {
-	// C::fclose(f.handle);
-}
