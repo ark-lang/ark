@@ -228,6 +228,15 @@ func (v *Codegen) Generate(input []*ast.Module) {
 }
 
 func (v *Codegen) recursiveGenericFunctionHelper(n *ast.FunctionDecl, access *ast.FunctionAccessExpr, gcon *ast.GenericContext, fn func(*ast.FunctionDecl, *ast.GenericContext)) {
+	visited := make(map[*ast.FunctionAccessExpr]bool)
+	v.recursiveGenericFunctionHelperInner(visited, n, access, gcon, fn)
+}
+
+func (v *Codegen) recursiveGenericFunctionHelperInner(visited map[*ast.FunctionAccessExpr]bool, n *ast.FunctionDecl, access *ast.FunctionAccessExpr, gcon *ast.GenericContext, fn func(*ast.FunctionDecl, *ast.GenericContext)) {
+	if visited[access] {
+		return
+	}
+
 	exit := true
 
 	var checkgargs func(gargs []*ast.TypeReference)
@@ -253,7 +262,8 @@ func (v *Codegen) recursiveGenericFunctionHelper(n *ast.FunctionDecl, access *as
 		newGcon := ast.NewGenericContext(subAccess.Function.Type.GenericParameters, subAccess.GenericArguments)
 		newGcon.Outer = gcon
 
-		v.recursiveGenericFunctionHelper(n, subAccess, newGcon, fn)
+		visited[subAccess] = true
+		v.recursiveGenericFunctionHelperInner(visited, n, subAccess, newGcon, fn)
 	}
 }
 
