@@ -1,0 +1,12 @@
+pub func main() -> int {
+    do<int>(0, 0);
+
+    return 0;
+}
+
+func do<T>(i: int, t: T) {
+    if i > 5 {
+        return;
+    }
+    do(i + 1);
+}
