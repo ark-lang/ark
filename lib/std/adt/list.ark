@@ -125,6 +125,13 @@ pub func (it: List<T>) get(index: uint) -> Option<T> {
     return Option::Some(it.data[index]);
 }
 
+pub func (it: List<T>) set(val: T, where: uint) {
+    if where < 0 || where >= it.length {
+        return;
+    }
+    it.data[where] = val;
+}
+
 /// Returns how many items are 
 /// currently in the list
 /// 

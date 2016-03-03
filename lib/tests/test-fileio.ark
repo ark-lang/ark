@@ -2,13 +2,8 @@
 #use std::io
 #use std::strings
 
-pub func main(argc: uint, argv: ^^u8) -> int {
-	if argc < 2 {
-		io::println("Error! Not enough arguments");
-		return -1;
-	}
-
-	filePath := argv[1];
+pub func main() -> int {
+	filePath := c"../CONTRIBUTING.md";
 	maybeFile: Option<^mut io::File> = io::File::open(filePath, io::FileMode::Read);
 
 	mut myFile: ^mut io::File;
@@ -19,6 +14,17 @@ pub func main(argc: uint, argv: ^^u8) -> int {
         	io::println("Error! Failed to read file");
         	return -1;
         },
+    }
+
+    result := myFile.readToString();
+    match result {
+    	Some(s) => {
+    		io::printDynamicString(s);
+    	},
+    	None => {
+    		io::println("Failed to print file contents!");
+    		return -1;
+    	},
     }
 
 	myFile.destroy();

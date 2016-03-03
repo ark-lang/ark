@@ -1,5 +1,6 @@
 #use std::mem
 #use std::strings
+#use std::unicode::utf8
 
 pub type FileMode enum {
 	Read,
@@ -13,9 +14,11 @@ pub type File struct {
 	handle: ^FILE,
 };
 
-READ_FLAG := c"r";
-WRITE_FLAG := c"w";
-APPEND_FLAG := c"a";
+SEEK_END: uint = 2;
+
+READ_FLAG: ^u8 = c"r";
+WRITE_FLAG: ^u8 = c"w";
+APPEND_FLAG: ^u8 = c"a";
 
 pub func (File) open(path: ^u8, mode: FileMode) -> Option<^mut File> {
 	mut f: ^mut File = mem::alloc<File>();
@@ -35,7 +38,26 @@ pub func (f: ^mut File) readToString() -> Option<^mut strings::String> {
 		return Option::None;
 	}
 
-	result: ^mut strings::String = strings::String::new();
+	if C::fseek(f.handle, 0, SEEK_END) != 0 {
+		panic("failed to seek");
+	}
+
+	size := C::ftell(f.handle);
+	if size == -1 {
+		panic("failed to tell");
+	}
+
+	C::rewind(f.handle);
+	
+	result: ^mut strings::String = strings::String::withCapacity(size);
+	
+	mut idx := uint(0);
+	for idx < size {
+		char := C::fgetc(f.handle);
+		printByte(char);
+		idx += 1;
+	}
+
 	return Option::Some(result);
 }
 
@@ -80,9 +102,10 @@ pub func (f: FileMode) getLegacyFileMode() -> ^u8 {
 type FILE struct {};
 
 #[c] func fopen(loc: ^u8, mode: ^u8) -> ^FILE;
-#[c] func fseek(handle: ^FILE, offset: uint, whence: uint);
+#[c] func fseek(handle: ^FILE, offset: uint, whence: uint) -> int;
 #[c] func ftell(handle: ^FILE) -> uint;
 #[c] func rewind(handle: ^FILE);
 #[c] func fread(where: ^u8, sz: uint, dunno: uint, handle: ^FILE);
 #[c] func fclose(handle: ^FILE);
 #[c] func getenv(what: ^u8) -> ^u8;
+#[c] func fgetc(handle: ^FILE) -> u8;

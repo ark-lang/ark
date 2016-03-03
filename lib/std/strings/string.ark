@@ -218,6 +218,10 @@ pub func (a: ^String) get(index: uint) -> Option<rune> {
 	return a.data.get(index);
 }
 
+pub func (a: ^String) set(val: rune, where: uint) {
+	a.data.set(val, where);
+}
+
 /// Returns the length of the string
 /// note that a string is dynamic, and this
 /// is not the amount of memory the string

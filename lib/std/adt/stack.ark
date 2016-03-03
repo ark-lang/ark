@@ -12,7 +12,7 @@
 /// #use std::adt
 /// 
 /// pub func main() -> int {
-/// 
+///     stack := adt::Stack::new();
 /// 	return 0;	
 /// }
 /// ```

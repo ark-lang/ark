@@ -11,9 +11,9 @@ At least, the library should contain libraries for:
   * File IO wrappers on top of the basic reader/writer?
 * Basic data structures
   * HashMap
-  * Vector
+  * List [x]
   * Linked List
-  * Stack
+  * Stack [x]
   * Ordered binary tree?
 * Formatting for I/O
 * Math
@@ -38,7 +38,7 @@ At least, the library should contain libraries for:
   * Channels
 * Date/time
 * Strings
-* UTF-8
+* UTF-8 [-]
 * Iterators
 
 Probably an official external library"
