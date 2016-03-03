@@ -228,15 +228,6 @@ func (v *Codegen) Generate(input []*ast.Module) {
 }
 
 func (v *Codegen) recursiveGenericFunctionHelper(n *ast.FunctionDecl, access *ast.FunctionAccessExpr, gcon *ast.GenericContext, fn func(*ast.FunctionDecl, *ast.GenericContext)) {
-	visited := make(map[*ast.FunctionAccessExpr]bool)
-	v.recursiveGenericFunctionHelperInner(visited, n, access, gcon, fn)
-}
-
-func (v *Codegen) recursiveGenericFunctionHelperInner(visited map[*ast.FunctionAccessExpr]bool, n *ast.FunctionDecl, access *ast.FunctionAccessExpr, gcon *ast.GenericContext, fn func(*ast.FunctionDecl, *ast.GenericContext)) {
-	if visited[access] {
-		return
-	}
-
 	exit := true
 
 	var checkgargs func(gargs []*ast.TypeReference)
@@ -259,11 +250,13 @@ func (v *Codegen) recursiveGenericFunctionHelperInner(visited map[*ast.FunctionA
 	}
 
 	for _, subAccess := range access.ParentFunction.Accesses {
+		if subAccess == access {
+			continue
+		}
 		newGcon := ast.NewGenericContext(subAccess.Function.Type.GenericParameters, subAccess.GenericArguments)
 		newGcon.Outer = gcon
 
-		visited[subAccess] = true
-		v.recursiveGenericFunctionHelperInner(visited, n, subAccess, newGcon, fn)
+		v.recursiveGenericFunctionHelper(n, subAccess, newGcon, fn)
 	}
 }
 
@@ -997,8 +990,17 @@ func (v *Codegen) genExprAndLoadIfNeccesary(n ast.Expr) llvm.Value {
 
 func (v *Codegen) genAccessExpr(n ast.Expr) llvm.Value {
 	if fae, ok := n.(*ast.FunctionAccessExpr); ok {
-		gcon := ast.NewGenericContext(fae.Function.Type.GenericParameters, fae.GenericArguments)
-		gcon.Outer = v.currentFunction().gcon
+		var gcon *ast.GenericContext
+		if v.currentFunction().gcon != nil {
+			genericArgs := make([]*ast.TypeReference, len(fae.GenericArguments))
+			for idx, arg := range fae.GenericArguments {
+				genericArgs[idx] = v.currentFunction().gcon.Replace(arg)
+			}
+			gcon = ast.NewGenericContext(fae.Function.Type.GenericParameters, genericArgs)
+			gcon.Outer = v.currentFunction().gcon
+		} else {
+			gcon = ast.NewGenericContext(fae.Function.Type.GenericParameters, fae.GenericArguments)
+		}
 
 		var fnName string
 

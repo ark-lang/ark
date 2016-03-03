@@ -93,7 +93,11 @@ func TypeReferenceMangledName(mangleType MangleType, typ *TypeReference, gcon *G
 
 		case *SubstitutionType:
 			if sub := gcon.GetSubstitutionType(typ); sub != nil {
-				res = TypeReferenceMangledName(mangleType, gcon.Get(&TypeReference{BaseType: typ}), gcon)
+				it := gcon.Get(&TypeReference{BaseType: typ})
+				if it.BaseType == typ {
+					panic("INTERNAL ERROR: Substitution type mapped to itself")
+				}
+				res = TypeReferenceMangledName(mangleType, it, gcon)
 			} else {
 				res = typ.Name
 			}
