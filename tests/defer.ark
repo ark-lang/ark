@@ -1,6 +1,6 @@
 #use std::io
 
-[c] func printf(fmt: ^u8, ...) -> int;
+#[c] func printf(fmt: ^u8, ...) -> int;
 
 func do() {
     defer io::println("do(): printed last");

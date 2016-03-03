@@ -276,13 +276,13 @@ func (v *parser) parseDocComments() []*DocComment {
 func (v *parser) parseAttributes() AttrGroup {
 	defer un(trace(v, "attributes"))
 
-	if !v.tokenMatches(0, lexer.Separator, "[") {
+	if !v.tokensMatch(lexer.Operator, "#", lexer.Separator, "[") {
 		return nil
 	}
 	attrs := make(AttrGroup)
 
-	for v.tokenMatches(0, lexer.Separator, "[") {
-		v.consumeToken()
+	for v.tokensMatch(lexer.Operator, "#", lexer.Separator, "[") {
+		v.consumeTokens(2)
 		for {
 			attr := &Attr{}
 
@@ -1307,10 +1307,7 @@ func (v *parser) parseType(doNamed bool, onlyComposites bool, mustParse bool) Pa
 		}
 	}()
 
-	// If the next token is a [ and identifier it must be a group of attributes
-	if v.tokenMatches(0, lexer.Separator, "[") && v.tokenMatches(1, lexer.Identifier, "") {
-		attrs = v.parseAttributes()
-	}
+	attrs = v.parseAttributes()
 
 	if !onlyComposites {
 		if v.tokenMatches(0, lexer.Identifier, KEYWORD_FUNC) {

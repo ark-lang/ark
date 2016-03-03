@@ -1,7 +1,5 @@
 #use std::io
 
-[c] func printf(fmt: ^u8, ...) -> int;
-
 pub func main() -> int {
     mut str := "hello!";
     str[1] = u8('a');

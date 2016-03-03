@@ -77,10 +77,10 @@ pub func (f: FileMode) getLegacyFileMode() -> ^u8 {
 
 type FILE struct {};
 
-[c] func fopen(loc: ^u8, mode: ^u8) -> ^FILE;
-[c] func fseek(handle: ^FILE, offset: uint, whence: uint);
-[c] func ftell(handle: ^FILE) -> uint;
-[c] func rewind(handle: ^FILE);
-[c] func fread(where: ^u8, sz: uint, dunno: uint, handle: ^FILE);
-[c] func fclose(handle: ^FILE);
-[c] func getenv(what: ^u8) -> ^u8;
+#[c] func fopen(loc: ^u8, mode: ^u8) -> ^FILE;
+#[c] func fseek(handle: ^FILE, offset: uint, whence: uint);
+#[c] func ftell(handle: ^FILE) -> uint;
+#[c] func rewind(handle: ^FILE);
+#[c] func fread(where: ^u8, sz: uint, dunno: uint, handle: ^FILE);
+#[c] func fclose(handle: ^FILE);
+#[c] func getenv(what: ^u8) -> ^u8;

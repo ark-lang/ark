@@ -1,6 +1,6 @@
-[c] func printf(fmt: ^u8, ...) -> int;
-[c] func malloc(size: uint) -> ^C::void;
-[c] func free(ptr: ^C::void);
+#[c] func printf(fmt: ^u8, ...) -> int;
+#[c] func malloc(size: uint) -> ^C::void;
+#[c] func free(ptr: ^C::void);
 
 pub func main() -> int {
 	x: C::uint = 0;

@@ -1,6 +1,6 @@
 type EmptyStruct struct {};
 
-[c] func printf(fmt: ^u8, ...) -> int;
+#[c] func printf(fmt: ^u8, ...) -> int;
 
 mut thing := Test{z: 42};
 

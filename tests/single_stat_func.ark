@@ -1,4 +1,4 @@
-[c] func printf(fmt: ^u8, ...) -> int;
+#[c] func printf(fmt: ^u8, ...) -> int;
 
 func add(a: int, b: int) -> int => a + b;
 

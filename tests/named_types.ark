@@ -1,4 +1,4 @@
-[c] func printf(fmt: ^u8, ...) -> int;
+#[c] func printf(fmt: ^u8, ...) -> int;
 
 type thing int;
 type thing2 thing;

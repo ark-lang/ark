@@ -2,8 +2,8 @@
 // %3 -> Fizz
 // %5 -> Buzz
 
-[c] func printf(fmt: ^u8, ...) -> int;
-[c] func putchar(c: s8);
+#[c] func printf(fmt: ^u8, ...) -> int;
+#[c] func putchar(c: s8);
 
 pub func main() -> int {
     mut i := 1;

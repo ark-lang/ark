@@ -1,4 +1,4 @@
-[c] func printf(fmt: ^u8, ...);
+#[c] func printf(fmt: ^u8, ...);
 
 pub func main() -> int {
     x := []int{0, 1, 2, 3, 4, 5};

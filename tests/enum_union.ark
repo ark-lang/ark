@@ -1,4 +1,4 @@
-[c] func printf(fmt: ^u8, ...) -> int;
+#[c] func printf(fmt: ^u8, ...) -> int;
 
 type Tree enum {
     Node{left: ^Tree, right: ^Tree},

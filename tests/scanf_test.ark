@@ -1,5 +1,5 @@
-[c] func scanf(fmt: ^u8, ...) -> int;
-[c] func printf(fmt: ^u8, ...) -> int;
+#[c] func scanf(fmt: ^u8, ...) -> int;
+#[c] func printf(fmt: ^u8, ...) -> int;
 
 pub func main() -> int {
     mut x: s32 = 0;

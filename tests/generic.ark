@@ -1,6 +1,4 @@
-[c] func printf(fmt: ^u8, ...) -> int;
-[c] func malloc(size: uint) -> ^C::void;
-[c] func free(ptr: ^C::void);
+#[c] func printf(fmt: ^u8, ...) -> int;
 
 type Option enum<T> {
     None,
