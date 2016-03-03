@@ -1,5 +1,5 @@
-[c] func malloc(size: uint) -> ^C::void;
-[c] func free(ptr: ^C::void);
+#[c] func malloc(size: uint) -> ^C::void;
+#[c] func free(ptr: ^C::void);
 
 pub func rawAlloc(bytes: uint) -> uintptr {
     return uintptr(C::malloc(bytes));

@@ -1,4 +1,4 @@
-[c] func printf(fmt: ^u8, ...) -> int;
+#[c] func printf(fmt: ^u8, ...) -> int;
 
 pub func main() -> int {
 	// oh god the horror

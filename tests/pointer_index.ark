@@ -1,4 +1,4 @@
-[c] func malloc(size: uint) -> ^mut u8;
+#[c] func malloc(size: uint) -> ^mut u8;
 
 pub func main() -> int {
     it := C::malloc(64);

@@ -10,7 +10,7 @@ pub func main() -> int {
 		return 1;
 	}
 
-	[nozero] mut dirtyVariable: int;
+	#[nozero] mut dirtyVariable: int;
 	_ = dirtyVariable;
 	mut zeroedVariable: int;
 	if zeroedVariable != 0 {
