@@ -13,6 +13,13 @@ func (_ UseBeforeDeclareCheck) Name() string { return "use before declare" }
 
 func (v *UseBeforeDeclareCheck) Init(s *SemanticAnalyzer) {
 	v.scopes = nil
+
+	v.scope = make(map[string]bool)
+	for name, ident := range s.Module.ModScope.Idents {
+		if ident.Type == ast.IDENT_VARIABLE {
+			v.scope[name] = true
+		}
+	}
 }
 
 func (v *UseBeforeDeclareCheck) EnterScope(s *SemanticAnalyzer) {

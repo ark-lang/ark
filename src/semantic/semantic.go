@@ -10,6 +10,7 @@ import (
 )
 
 type SemanticAnalyzer struct {
+	Module          *ast.Module
 	Submodule       *ast.Submodule
 	unresolvedNodes []*ast.Node
 	shouldExit      bool
@@ -69,11 +70,11 @@ func SemCheck(module *ast.Module, ignoreUnused bool) {
 		log.Timed("analysis pass", check.Name(), func() {
 			for _, submod := range module.Parts {
 				log.Timed("checking submodule", module.Name.String()+"/"+submod.File.Name, func() {
-					res := &SemanticAnalyzer{}
-					res.shouldExit = false
-					res.Submodule = submod
-					res.Check = check
-
+					res := &SemanticAnalyzer{
+						Module:    module,
+						Submodule: submod,
+						Check:     check,
+					}
 					res.Init()
 
 					vis := ast.NewASTVisitor(res)
