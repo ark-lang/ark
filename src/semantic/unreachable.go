@@ -1,8 +1,6 @@
 package semantic
 
-import (
-	"github.com/ark-lang/ark/src/ast"
-)
+import "github.com/ark-lang/ark/src/ast"
 
 type UnreachableCheck struct {
 }
@@ -52,10 +50,34 @@ func (v *UnreachableCheck) Finalize(s *SemanticAnalyzer) {
 
 }
 
+type loopTerminatingChecker struct {
+	nonTerminating bool
+}
+
+func (_ loopTerminatingChecker) EnterScope()           {}
+func (_ loopTerminatingChecker) ExitScope()            {}
+func (_ loopTerminatingChecker) PostVisit(n *ast.Node) {}
+
+// TODO account for labeled breaks
+func (v *loopTerminatingChecker) Visit(n *ast.Node) bool {
+	if _, ok := (*n).(*ast.BreakStat); ok {
+		v.nonTerminating = true
+		return false
+	}
+	return true
+}
+
 func IsNodeTerminating(n ast.Node) bool {
 	switch n := n.(type) {
 	case *ast.Block:
 		return n.IsTerminating
+	case *ast.LoopStat:
+		if n.LoopType == ast.LOOP_TYPE_INFINITE {
+			checker := &loopTerminatingChecker{}
+			vis := ast.NewASTVisitor(checker)
+			vis.VisitBlock(n.Body)
+			return !checker.nonTerminating
+		}
 	case *ast.ReturnStat:
 		return true
 	case *ast.IfStat:

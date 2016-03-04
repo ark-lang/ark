@@ -118,9 +118,6 @@ func (v *SemanticAnalyzer) Visit(n *ast.Node) bool {
 	// NOTE: The following means that if we encountered an error we will not
 	// analyze further down the AST. This should hinder some panics with
 	// relation to invalid data.
-	// Should the need arise we can further propagate this bool as a return
-	// value from SemanticCheck.Visit(). For this to work properly we might
-	// need to loop over checks as the outer loop, instead of the inner loop.
 	return !v.shouldExit
 }
 

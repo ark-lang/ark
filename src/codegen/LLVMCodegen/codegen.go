@@ -592,7 +592,10 @@ func (v *Codegen) genIfStat(n *ast.IfStat) {
 
 func (v *Codegen) genLoopStat(n *ast.LoopStat) {
 	curfn := v.currentFunction()
-	afterBlock := llvm.AddBasicBlock(v.currentLLVMFunction(), "loop_exit")
+	var afterBlock llvm.BasicBlock
+	if !semantic.IsNodeTerminating(n) {
+		afterBlock = llvm.AddBasicBlock(v.currentLLVMFunction(), "loop_exit")
+	}
 	v.curLoopExits[curfn] = append(v.curLoopExits[curfn], afterBlock)
 
 	switch n.LoopType {
@@ -608,7 +611,6 @@ func (v *Codegen) genLoopStat(n *ast.LoopStat) {
 			v.builder().CreateBr(loopBlock)
 		}
 
-		v.builder().SetInsertPointAtEnd(afterBlock)
 	case ast.LOOP_TYPE_CONDITIONAL:
 		evalBlock := llvm.AddBasicBlock(v.currentLLVMFunction(), "loop_condeval")
 		v.builder().CreateBr(evalBlock)
@@ -626,10 +628,12 @@ func (v *Codegen) genLoopStat(n *ast.LoopStat) {
 		if !isBreakOrNext(n.Body.LastNode()) {
 			v.builder().CreateBr(evalBlock)
 		}
-
-		v.builder().SetInsertPointAtEnd(afterBlock)
 	default:
 		panic("invalid loop type")
+	}
+
+	if !semantic.IsNodeTerminating(n) {
+		v.builder().SetInsertPointAtEnd(afterBlock)
 	}
 
 	v.curLoopExits[curfn] = v.curLoopExits[curfn][:len(v.curLoopExits[curfn])-1]
