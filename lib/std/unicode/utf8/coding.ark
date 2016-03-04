@@ -14,7 +14,7 @@ OFFSETS := []u32{
     0x03C82080, 0xFA082080, 0x82082080
 };
 
-RUNE_MAX_BYTES := 4;
+pub RUNE_MAX_BYTES := 4;
 
 pub func numRunes(src: []u8) -> uint {
 	mut i: uint = 0;
