@@ -49,7 +49,7 @@ pub func (pcg: ^mut Pcg32Random) boundedRand(bound: u32) -> u32 {
     // should usually terminate quickly; on average (assuming all bounds are
     // equally likely), 82.25% of the time, we can expect it to require just
     // one iteration.  In the worst case, someone passes a bound of 2^31 + 1
-    // (i.e., 2147483649), which invalidates almost 50% of the range.  In 
+    // (i.e., 2147483649), which invalidates almost 50% of the range.  In
     // practice, bounds are typically small and only a tiny amount of the range
     // is eliminated.
     for {
@@ -58,7 +58,4 @@ pub func (pcg: ^mut Pcg32Random) boundedRand(bound: u32) -> u32 {
             return r % bound;
         }
     }
-
-    // #737: We will never reach this point
-    return 0;
 }
