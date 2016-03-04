@@ -143,6 +143,7 @@ type StructMember struct {
 	Name   string
 	Public bool
 	Type   *TypeReference
+	docs   []*parser.DocComment
 }
 
 func (v StructType) String() string {
@@ -201,8 +202,8 @@ func (v StructType) GetMember(name string) *StructMember {
 	return nil
 }
 
-func (v StructType) addMember(name string, typ *TypeReference, public bool) StructType {
-	v.Members = append(v.Members, &StructMember{Name: name, Type: typ, Public: public})
+func (v StructType) addMember(name string, typ *TypeReference, public bool, docs []*parser.DocComment) StructType {
+	v.Members = append(v.Members, &StructMember{Name: name, Type: typ, Public: public, docs: docs})
 	return v
 }
 

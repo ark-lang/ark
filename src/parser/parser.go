@@ -1469,6 +1469,8 @@ func (v *parser) parseStructType(requireKeyword bool) *StructTypeNode {
 }
 
 func (v *parser) parseStructMember() *StructMemberNode {
+	docs := v.parseDocComments()
+
 	if !(v.tokensMatch(lexer.Identifier, "", lexer.Operator, ":") ||
 		v.tokensMatch(lexer.Identifier, KEYWORD_PUB, lexer.Identifier, "", lexer.Operator, ":")) {
 		return nil
@@ -1495,6 +1497,7 @@ func (v *parser) parseStructMember() *StructMemberNode {
 	}
 
 	res := &StructMemberNode{Name: NewLocatedString(name), Type: memType, Public: isPublic}
+	res.SetDocComments(docs)
 	res.SetWhere(lexer.NewSpan(firstToken.Where.Start(), memType.Where().End()))
 	return res
 }

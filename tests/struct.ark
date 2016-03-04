@@ -37,6 +37,7 @@ type Test2 struct {
 
 type Test struct {
     x: int,
+    /// Test doc comment
     y: int,
     z: f64,
     a: f32,

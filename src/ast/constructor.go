@@ -318,7 +318,7 @@ func (c *Constructor) constructStructTypeNode(v *parser.StructTypeNode) StructTy
 	}
 
 	for _, member := range v.Members {
-		structType = structType.addMember(member.Name.Value, c.constructTypeReferenceNode(member.Type), member.Public)
+		structType = structType.addMember(member.Name.Value, c.constructTypeReferenceNode(member.Type), member.Public, member.DocComments())
 	}
 
 	return structType
