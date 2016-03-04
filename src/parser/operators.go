@@ -92,6 +92,7 @@ func newBinOpPrecedenceMap() map[BinOpType]int {
 		{BINOP_LOG_OR},
 		{BINOP_LOG_AND},
 		{BINOP_BIT_OR},
+		{BINOP_BIT_XOR},
 		{BINOP_BIT_AND},
 		{BINOP_EQ, BINOP_NOT_EQ},
 		{BINOP_GREATER, BINOP_LESS, BINOP_GREATER_EQ, BINOP_LESS_EQ},
