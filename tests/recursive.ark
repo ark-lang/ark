@@ -1,5 +1,6 @@
 pub func main() -> int {
     do<int>(0, 0);
+    do2<int>(0);
 
     return 0;
 }
@@ -9,4 +10,11 @@ func do<T>(i: int, t: T) {
         return;
     }
     do(i + 1, t);
+}
+
+func do2<T>(i: int) {
+    if i > 5 {
+        return;
+    }
+    do2(i + 1);
 }
