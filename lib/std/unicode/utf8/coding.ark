@@ -14,6 +14,8 @@ OFFSETS := []u32{
     0x03C82080, 0xFA082080, 0x82082080
 };
 
+RUNE_MAX_BYTES := 4;
+
 pub func numRunes(src: []u8) -> uint {
 	mut i: uint = 0;
 	mut num: uint = 0;
@@ -62,11 +64,11 @@ pub func decode(mut dest: []rune, src: []u8) -> uint {
 		if nb >= 3 {
 			ch += rune(src[srcIndex]); ch <<= 6;
 			srcIndex += 1;
-		} 
+		}
 		if nb >= 2 {
 			ch += rune(src[srcIndex]); ch <<= 6;
 			srcIndex += 1;
-		} 
+		}
 		if nb >= 1 {
 			ch += rune(src[srcIndex]); ch <<= 6;
 			srcIndex += 1;

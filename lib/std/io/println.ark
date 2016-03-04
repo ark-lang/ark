@@ -27,7 +27,7 @@ pub func println(message: string) -> int {
 	return C::printf(c"%.*s\n", len(message), &message[0]);
 }
 
-/// Prints the given static string 
+/// Prints the given static string
 /// to standard out. Does not write
 /// a new line.
 ///
@@ -56,10 +56,10 @@ pub func print(message: string) -> int {
 /// ```
 /// #use std::io
 /// #use std::string
-/// 
+///
 /// pub func main() -> int {
 /// 	name := strings::String::from("Felix");
-/// 	defer name.destroy();	
+/// 	defer name.destroy();
 /// 	io::printDynamicString(name);
 /// 	return 0;
 /// }
@@ -82,17 +82,18 @@ pub func printDynamicString(s: ^strings::String) -> int {
 ///
 /// ```
 /// #use std::io
-/// 
+///
 /// pub func main() -> int {
-///  	io::printRune('A');	
+///  	io::printRune('A');
 /// 	return 0;
 /// }
 /// ```
 pub func printRune(r: rune) -> int {
-	mut rPtr := (^u8)(uintptr(&r));
-	rCast := []rune{r};
-	numBytes := utf8::numBytes(rCast);
-   	C::printf(c"%.*s", numBytes, rPtr);
+	rArray := []rune{r};
+	bArray := []u8{0, 0, 0, 0};
+	utf8::encode(bArray, rArray);
+	numBytes := utf8::numBytes(rArray);
+   	C::printf(c"%.*s", numBytes, &bArray[0]);
 	return 0;
 }
 
