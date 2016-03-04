@@ -32,7 +32,7 @@ pub func (o: Option<T>) unwrap() -> T {
         None => panic("Option.unwrap: expected Some, have None"),
     }
 
-    mut a: T;
+    a: T;
     return a;
 }
 
