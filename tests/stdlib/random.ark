@@ -1,0 +1,18 @@
+#use std::rand
+
+#[c] func printf(fmt: ^u8, ...);
+
+pub func main() -> int {
+	mut it: rand::Pcg32Random;
+	itp := ^mut it;
+	itp.seed(123, 3);
+
+	mut i := 0;
+	for i < 20 {
+		C::printf(c"%d ", itp.random());
+		i += 1;
+	}
+	C::printf(c"\n");
+
+    return 0;
+}

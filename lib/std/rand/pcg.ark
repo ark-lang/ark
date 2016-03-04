@@ -1,0 +1,64 @@
+/// state: RNG state. All values possible.
+/// inc: Controls which RNG sequence (stream) is selected. Must *always* be odd.
+type pcg_state_setseq_64 struct {
+	state: u64,
+	inc: u64,
+};
+
+pub type Pcg32Random pcg_state_setseq_64;
+
+/// Seed the rng.  Specified in two parts, state initializer and a
+/// sequence selection constant (a.k.a. stream id)
+pub func (rng: ^mut Pcg32Random) seed(initstate: u64, initseq: u64) {
+    rng.state = 0;
+    rng.inc = (initseq << 1) | 1;
+    rng.random();
+    rng.state += initstate;
+    rng.random();
+}
+
+/// Generate a uniformly distributed 32-bit random number
+pub func (rng: ^mut Pcg32Random) random() -> u32 {
+    oldstate := rng.state;
+    rng.state = oldstate * 6364136223846793005 + rng.inc;
+    xorshifted := u32(((oldstate >> 18) ^ oldstate) >> 27);
+    rot := u32(oldstate >> 59);
+    return (xorshifted >> rot) | (xorshifted << ((-rot) & 31));
+}
+
+
+/// Generate a uniformly distributed number, r, where 0 <= r < bound
+pub func (pcg: ^mut Pcg32Random) boundedRand(bound: u32) -> u32 {
+    // To avoid bias, we need to make the range of the RNG a multiple of
+    // bound, which we do by dropping output less than a threshold.
+    // A naive scheme to calculate the threshold would be to do
+    //
+    //     uint32_t threshold = 0x100000000ull % bound;
+    //
+    // but 64-bit div/mod is slower than 32-bit div/mod (especially on
+    // 32-bit platforms).  In essence, we do
+    //
+    //     uint32_t threshold = (0x100000000ull-bound) % bound;
+    //
+    // because this version will calculate the same modulus, but the LHS
+    // value is less than 2^32.
+
+    threshold := -bound % bound;
+
+    // Uniformity guarantees that this loop will terminate.  In practice, it
+    // should usually terminate quickly; on average (assuming all bounds are
+    // equally likely), 82.25% of the time, we can expect it to require just
+    // one iteration.  In the worst case, someone passes a bound of 2^31 + 1
+    // (i.e., 2147483649), which invalidates almost 50% of the range.  In 
+    // practice, bounds are typically small and only a tiny amount of the range
+    // is eliminated.
+    for {
+        r := pcg.random();
+        if (r >= threshold) {
+            return r % bound;
+        }
+    }
+
+    // #737: We will never reach this point
+    return 0;
+}
