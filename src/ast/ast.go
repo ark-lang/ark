@@ -1031,7 +1031,7 @@ func (v FunctionAccessExpr) GetType() *TypeReference {
 		ref = v.ExtraGenericContext.Replace(ref)
 	}
 
-	if len(v.GenericArguments) > 0 {
+	if len(v.GenericArguments) == len(v.Function.Type.GenericParameters) {
 		return NewGenericContextFromTypeReference(ref).Replace(ref)
 	}
 

@@ -16,5 +16,5 @@ func do2<T>(i: int) {
     if i > 5 {
         return;
     }
-    do2(i + 1);
+    do2<T>(i + 1);
 }

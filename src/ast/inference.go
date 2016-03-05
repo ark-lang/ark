@@ -1462,10 +1462,17 @@ func (v *Variable) SetType(t *TypeReference) {
 }
 
 func (v *FunctionAccessExpr) SetType(t *TypeReference) {
-	if len(v.GenericArguments) != len(v.Function.Type.GenericParameters) {
+	// TODO: Hookup better error handling
+	if len(v.GenericArguments) == 0 && len(v.Function.Type.GenericParameters) > 0 {
 		types, err := ExtractTypeVariable(&TypeReference{BaseType: v.Function.Type}, t)
 		if err != nil {
 			panic(err)
+		}
+
+		if len(types) != len(v.Function.Type.GenericParameters) {
+			log.Errorln("inference", "%s [%s:%d:%d] Unable to infer generic arguments for call",
+				util.Red("error:"), v.Pos().Filename, v.Pos().Line, v.Pos().Char)
+			os.Exit(1)
 		}
 
 		genArgs := make([]*TypeReference, len(v.Function.Type.GenericParameters))
@@ -1473,6 +1480,11 @@ func (v *FunctionAccessExpr) SetType(t *TypeReference) {
 			genArgs[idx] = types[param.Name]
 		}
 		v.GenericArguments = genArgs
+	} else if len(v.GenericArguments) != len(v.Function.Type.GenericParameters) {
+		log.Errorln("inference", "%s [%s:%d:%d] Amount of generic arguments must match amount of generic parameters, %d vs %d",
+			util.Red("error:"), v.Pos().Filename, v.Pos().Line, v.Pos().Char,
+			len(v.GenericArguments), len(v.Function.Type.GenericParameters))
+		os.Exit(1)
 	}
 }
 
@@ -1619,10 +1631,6 @@ func AddChildren(typ *TypeReference, dest []*TypeReference) []*TypeReference {
 		}
 
 	case FunctionType:
-		if t.Return != nil { // TODO: can it ever be nil?
-			dest = append(dest, t.Return)
-		}
-
 		if t.Receiver != nil {
 			dest = append(dest, t.Receiver)
 		}
