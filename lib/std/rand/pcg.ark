@@ -1,7 +1,7 @@
-/// state: RNG state. All values possible.
-/// inc: Controls which RNG sequence (stream) is selected. Must *always* be odd.
 type pcg_state_setseq_64 struct {
+    /// RNG state. All values possible.
 	state: u64,
+    /// Controls which RNG sequence (stream) is selected. Must *always* be odd.
 	inc: u64,
 };
 
