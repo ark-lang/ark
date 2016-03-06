@@ -1816,7 +1816,10 @@ func (v *parser) parsePostfixExpr() ParseNode {
 					break
 				}
 
-				arg := v.parseExpr()
+				arg := v.parseCompositeLiteral()
+				if arg == nil {
+					arg = v.parseExpr()
+				}
 				if arg == nil {
 					v.err("Expected valid expression as call argument")
 				}

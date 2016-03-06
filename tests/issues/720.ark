@@ -1,0 +1,9 @@
+#use std::io
+#use std::unicode::utf8
+
+pub func main() -> int {
+	num := utf8::numBytes([]rune{'R', 'u', 'n', 'e'});
+	io::printUint(num);
+	io::println("");
+    return 4 - int(num);
+}

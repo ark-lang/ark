@@ -1,0 +1,14 @@
+Name       = "Issue #720"
+Sourcefile = "720.ark"
+
+CompilerArgs = []
+RunArgs      = []
+
+CompilerError = 0
+RunError      = 0
+
+Input = ""
+
+CompilerOutput = ""
+RunOutput      = """4
+"""
