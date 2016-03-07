@@ -1,0 +1,11 @@
+type Thing struct{};
+
+func (this: Thing) self() -> Thing {
+	return this;
+}
+
+pub func main() -> int {
+	t: Thing;
+	t.self().self();
+	return 0;
+}
