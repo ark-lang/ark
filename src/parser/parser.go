@@ -1063,7 +1063,10 @@ func (v *parser) parseReturnStat() *ReturnStatNode {
 	}
 	startToken := v.consumeToken()
 
-	value := v.parseExpr()
+	value := v.parseCompositeLiteral()
+	if value == nil {
+		value = v.parseExpr()
+	}
 
 	var end lexer.Position
 	if value != nil {
