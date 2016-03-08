@@ -4,8 +4,11 @@ func (this: Thing) self() -> Thing {
 	return this;
 }
 
+func (this: Thing) array() -> []int {
+	return {0};
+}
+
 pub func main() -> int {
 	t: Thing;
-	t.self().self();
-	return 0;
+	return t.self().self().array()[0];
 }
