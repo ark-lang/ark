@@ -1,0 +1,7 @@
+pub func main() -> int {
+	a: u8 = 256;
+	b: u8 = -1;
+	c: s8 = 128;
+	d: s8 = -129;
+    return 0;
+}

@@ -1,0 +1,13 @@
+Name       = "int_lit_overflow"
+Sourcefile = "int_lit_overflow.ark"
+
+CompilerArgs = []
+RunArgs      = []
+
+CompilerError = -1
+RunError      = 0
+
+Input = ""
+
+CompilerOutput = ""
+RunOutput      = ""
