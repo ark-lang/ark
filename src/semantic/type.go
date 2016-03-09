@@ -1,6 +1,8 @@
 package semantic
 
 import (
+	"math/big"
+
 	"github.com/ark-lang/ark/src/ast"
 	"github.com/ark-lang/ark/src/parser"
 )
@@ -476,15 +478,21 @@ func (v *TypeCheck) CheckNumericLiteral(s *SemanticAnalyzer, lit *ast.NumericLit
 			panic("wrong type here: " + lit.GetType().String())
 		}
 
-		/*if lit.Type.IsSigned() {
-			bits -= 1
-			// FIXME this will give us a warning if a number is the lowest negative it can be
-			// because the `-` is a separate expression. eg:
-			// x: s8 = -128; // this gives a warning even though it's correct
-		}*/
+		signed := lit.GetType().BaseType.ActualType().(ast.PrimitiveType).IsSigned()
+		negative := lit.IntValue.Sign() == -1
 
-		if bits < lit.IntValue.BitLen() {
-			s.Warn(lit, "Integer overflows %s", lit.GetType().String())
+		if !signed && negative {
+			s.Err(lit, "Negative integer literal of unsigned type %s", lit.GetType().String())
+		} else if !signed && lit.IntValue.BitLen() > bits {
+			s.Err(lit, "Integer literal overflows type %s", lit.GetType().String())
+		} else if signed && negative {
+			value := new(big.Int)
+			value.Add(lit.IntValue, big.NewInt(1))
+			if value.BitLen() > bits-1 {
+				s.Err(lit, "Integer literal underflows type %s", lit.GetType().String())
+			}
+		} else if signed && !negative && lit.IntValue.BitLen() > bits-1 {
+			s.Err(lit, "Integer literal overflows type %s", lit.GetType().String())
 		}
 	}
 }
