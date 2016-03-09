@@ -49,10 +49,10 @@ pub func (f: ^mut File) readToString() -> Option<^mut strings::String> {
 
 	C::rewind(f.handle);
 	
-	result: ^mut strings::String = strings::String::withCapacity(size);
+	result: ^mut strings::String = strings::String::withCapacity(uint(size));
 	
 	mut idx := uint(0);
-	for idx < size {
+	for idx < uint(size) {
 		char := []u8{C::fgetc(f.handle)};
 		decodedChar := []rune{0};
 		utf8::decode(decodedChar, char);
@@ -105,7 +105,7 @@ type FILE struct {};
 
 #[c] func fopen(loc: ^u8, mode: ^u8) -> ^FILE;
 #[c] func fseek(handle: ^FILE, offset: uint, whence: uint) -> int;
-#[c] func ftell(handle: ^FILE) -> uint;
+#[c] func ftell(handle: ^FILE) -> int;
 #[c] func rewind(handle: ^FILE);
 #[c] func fread(where: ^u8, sz: uint, dunno: uint, handle: ^FILE);
 #[c] func fclose(handle: ^FILE);
