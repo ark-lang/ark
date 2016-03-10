@@ -391,11 +391,6 @@ func (v *Resolver) ResolveNode(node *Node) {
 		}
 
 	case *CompositeLiteral:
-		// TODO: why is this here?
-		if n.InEnum {
-			break
-		}
-
 		if n.Type == nil {
 			break
 		}
@@ -427,7 +422,6 @@ func (v *Resolver) ResolveNode(node *Node) {
 						enum.Type = &TypeReference{BaseType: itype, GenericArguments: et.GenericArguments} // TODO should this be `et`?
 						enum.CompositeLiteral = n
 						enum.CompositeLiteral.Type = &TypeReference{BaseType: member.Type, GenericArguments: et.GenericArguments}
-						enum.CompositeLiteral.InEnum = true
 						enum.SetPos(n.Pos())
 
 						*node = enum

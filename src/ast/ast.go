@@ -837,7 +837,6 @@ type CompositeLiteral struct {
 	Type   *TypeReference
 	Fields []string // len(Fields) == len(Values). empty fields represented as ""
 	Values []Expr
-	InEnum bool
 }
 
 func (_ CompositeLiteral) exprNode() {}
