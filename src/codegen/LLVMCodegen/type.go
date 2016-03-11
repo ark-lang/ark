@@ -222,7 +222,11 @@ func (v *Codegen) enumTypeToLLVMTypeFields(typ ast.EnumType, gcon *ast.GenericCo
 		}
 	}
 
-	// TODO: verify no overflow
+	if longestLength > 0x7ffffff {
+		// `int` is either 32 or 64-bit, so we'll be conservative here
+		panic("INTERNAL ERROR: Enum union length would overflow golang int-type")
+	}
+
 	return []llvm.Type{enumTagType, llvm.ArrayType(llvm.IntType(8), int(longestLength))}
 }
 
