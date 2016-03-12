@@ -92,7 +92,6 @@ func Resolve(mod *Module, mods *ModuleLookup) {
 
 func (v *Resolver) ResolveUsedModules() {
 	for _, submod := range v.module.Parts {
-		// TODO: Verify whether we need the outer scope
 		submod.UseScope = newScope(nil, v.module, nil)
 
 		for _, node := range submod.Nodes {
@@ -169,7 +168,6 @@ func (v *Resolver) ResolveTopLevelDecls() {
 func (v *Resolver) ResolveDescent() {
 	vis := NewASTVisitor(v)
 	for _, submod := range v.module.Parts {
-		// TODO: Remove if not needed
 		v.curSubmod = submod
 		vis.VisitSubmodule(submod)
 	}
@@ -262,9 +260,6 @@ func checkReceiverType(res *Resolver, loc Locatable, t *TypeReference, purpose s
 }
 
 func (v *Resolver) ResolveNode(node *Node) {
-	// TODO: I'm pretty sure the way we do pointers to everything
-	// mean that we don't actually need a Node pointer.
-
 	switch n := (*node).(type) {
 	case *TypeDecl:
 		// Only resolve non-generic type, generic types will currently be
@@ -378,7 +373,6 @@ func (v *Resolver) ResolveNode(node *Node) {
 		}
 
 	case *SizeofExpr:
-		// TODO: Check if we can clean this up
 		if n.Expr != nil {
 			if typ, ok := v.exprToType(n.Expr); ok {
 				n.Expr = nil
@@ -416,10 +410,9 @@ func (v *Resolver) ResolveNode(node *Node) {
 							v.err(n, "Enum `%s` has no member `%s`", enumName.String(), memberName)
 						}
 
-						// TODO sort out all the type duplication
 						enum := &EnumLiteral{}
 						enum.Member = memberName
-						enum.Type = &TypeReference{BaseType: itype, GenericArguments: et.GenericArguments} // TODO should this be `et`?
+						enum.Type = &TypeReference{BaseType: itype, GenericArguments: et.GenericArguments}
 						enum.CompositeLiteral = n
 						enum.CompositeLiteral.Type = &TypeReference{BaseType: member.Type, GenericArguments: et.GenericArguments}
 						enum.SetPos(n.Pos())
@@ -729,7 +722,7 @@ func (v *Resolver) ResolveType(src Locatable, t Type) Type {
 			nv.Receiver = v.ResolveTypeReference(src, t.Receiver)
 			checkReceiverType(v, src, nv.Receiver, "receiver")
 		}
-		if t.Return != nil { // TODO can this ever be nil
+		if t.Return != nil {
 			nv.Return = v.ResolveTypeReference(src, t.Return)
 		}
 
@@ -742,38 +735,7 @@ func (v *Resolver) ResolveType(src Locatable, t Type) Type {
 		} else if ident.Type != IDENT_TYPE {
 			v.err(src, "Expected type identifier, found %s `%s`", ident.Type, t.Name)
 		} else {
-			typ := ident.Value.(Type)
-
-			// TODO what is this stuff?
-			/*if namedType, ok := typ.(*NamedType); ok && len(t.GenericParameters) > 0 {
-				v.EnterScope()
-				name := namedType.Name + "<"
-				for idx, param := range namedType.GenericParameters {
-					paramType := *SubstitutionType{
-						Name: param,
-						Type: v.ResolveType(src, t.GenericParameters[idx]),
-					}
-					v.curScope.InsertType(paramType, ident.Public)
-
-					name += paramType.Type.TypeName()
-					if idx < len(namedType.GenericParameters)-1 {
-						name += ", "
-					}
-				}
-				name += ">"
-
-				typ = &NamedType{
-					Name:         name,
-					Type:         v.ResolveType(src, namedType.Type),
-					ParentModule: namedType.ParentModule,
-					Methods:      namedType.Methods,
-				}
-				v.ExitScope()
-			} else {*/
-			typ = v.ResolveType(src, typ)
-			//}
-
-			return typ
+			return v.ResolveType(src, ident.Value.(Type))
 		}
 
 		panic("unreachable")
