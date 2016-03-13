@@ -92,9 +92,8 @@ func NewCScope(mod *Module) *Scope {
 }
 
 func (v *Scope) err(err string, stuff ...interface{}) {
-	// TODO: which log tag
 	// TODO: These errors are unacceptably shitty
-	log.Error("parser", util.TEXT_RED+util.TEXT_BOLD+"error:"+util.TEXT_RESET+" %s\n",
+	log.Error("resolve", util.TEXT_RED+util.TEXT_BOLD+"error:"+util.TEXT_RESET+" %s\n",
 		fmt.Sprintf(err, stuff...))
 	os.Exit(util.EXIT_FAILURE_PARSE)
 }
@@ -181,18 +180,18 @@ func (v *Scope) Dump(depth int) {
 	indent := strings.Repeat(" ", depth)
 
 	if depth == 0 {
-		log.Debug("parser", indent)
-		log.Debugln("parser", "This scope:")
+		log.Debug("resolve", indent)
+		log.Debugln("resolve", "This scope:")
 	}
 
 	for name, ident := range v.Idents {
-		log.Debug("parser", indent)
-		log.Debugln("parser", " %s (%s)", name, ident.Type)
+		log.Debug("resolve", indent)
+		log.Debugln("resolve", " %s (%s)", name, ident.Type)
 	}
 
 	if v.Outer != nil {
-		log.Debug("parser", indent)
-		log.Debugln("parser", "Parent scope:")
+		log.Debug("resolve", indent)
+		log.Debugln("resolve", "Parent scope:")
 		v.Outer.Dump(depth + 1)
 	}
 
