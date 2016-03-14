@@ -434,7 +434,7 @@ func (c *Constructor) constructVarDeclNode(v *parser.VarDeclNode) *VariableDecl 
 		Attrs:        v.Attrs(),
 		Mutable:      v.Mutable.Value != "",
 		ParentModule: c.module,
-		IsReceiver:   v.IsReceiver,
+		IsImplicit:   v.IsImplicit,
 	}
 
 	if v.Type != nil {
@@ -872,8 +872,8 @@ func (c *Constructor) constructFunctionNode(v *parser.FunctionNode) *Function {
 
 	if v.Header.Receiver != nil {
 		function.Receiver = c.constructVarDeclNode(v.Header.Receiver)
-		if !function.Receiver.Variable.IsReceiver {
-			panic("INTERNAL ERROR: Reciever variable was not marked a reciever")
+		if !function.Receiver.Variable.IsImplicit {
+			panic("INTERNAL ERROR: Reciever variable was not marked implicit")
 		}
 
 		// Propagate generic parameters from reciever to method
@@ -900,7 +900,7 @@ func (c *Constructor) constructFunctionNode(v *parser.FunctionNode) *Function {
 	for _, arg := range v.Header.Arguments { // TODO rename v.Header.Arguments to v.Header.Parameters
 		arguments = append(arguments, arg)
 		decl := c.constructVarDeclNode(arg)
-		decl.Variable.IsParameter = true
+		decl.Variable.IsImplicit = true
 		function.Parameters = append(function.Parameters, decl)
 		function.Type.Parameters = append(function.Type.Parameters, decl.Variable.Type)
 	}

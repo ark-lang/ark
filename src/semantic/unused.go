@@ -65,7 +65,7 @@ func (v *UnusedCheck) AnalyzeUsage(s *SemanticAnalyzer) {
 		decl := v.encounteredDecl[idx]
 		switch it := it.(type) {
 		case *ast.Variable:
-			if !it.IsParameter && !it.IsReceiver && !it.FromStruct && v.uses[it] == 0 {
+			if !it.IsImplicit && v.uses[it] == 0 {
 				s.Warn(decl, "Unused variable `%s`", it.Name)
 			}
 

@@ -173,9 +173,6 @@ func (v Variable) MangledName(typ MangleType) string {
 	switch typ {
 	case MANGLE_ARK_UNSTABLE:
 		result := fmt.Sprintf("_V%d%s", len(v.Name), v.Name)
-		if v.FromStruct {
-			result = v.ParentModule.MangledName(typ) + result
-		}
 		return result
 	default:
 		panic("")

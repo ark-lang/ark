@@ -183,7 +183,6 @@ func (v *ASTVisitor) VisitChildren(n Node) {
 		n.Subscript = v.VisitExpr(n.Subscript)
 
 	case *SizeofExpr:
-		// TODO: Maybe visit sizeofExpr.Type at some point?
 		n.Expr = v.VisitExpr(n.Expr)
 
 	case *ArrayLenExpr:
