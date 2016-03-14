@@ -136,13 +136,11 @@ type Variable struct {
 	Name         string
 	Mutable      bool
 	Attrs        parser.AttrGroup
-	FromStruct   bool
 	ParentStruct StructType
 	ParentModule *Module
-	IsParameter  bool
-	IsArgument   bool
 
-	IsReceiver bool // TODO separate this out so it isn't as messy
+	// Is the variable not from an variable decl
+	IsImplicit bool
 }
 
 func (v Variable) String() string {

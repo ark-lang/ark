@@ -727,7 +727,7 @@ func (v *parser) parseVarDeclBody(isReceiver bool) *VarDeclNode {
 	res := &VarDeclNode{
 		Name:       NewLocatedString(name),
 		Type:       varType,
-		IsReceiver: isReceiver,
+		IsImplicit: isReceiver,
 	}
 	start := name.Where.Start()
 	if mutable != nil {
