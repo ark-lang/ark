@@ -1,4 +1,6 @@
-#use std::io
+//#use std::io
+
+#[c] func printf(fmt: ^u8, ...) -> int;
 
 type Iterator interface<T> {
     func iterate() -> Option<T>,
@@ -20,14 +22,17 @@ func iterateOver<T: Iterator<int>>(t: T) {
     for {
         i := t.iterate();
         match i {
-            Some(val) => {io::printInt(val); io::println("");},
+            Some(val) => {
+                v: int = val;
+                //io::printInt(val); io::println("");
+            },
             None => return,
         }
     }
 }
 
 pub func main() -> int {
-    io::println("iter");
+    //io::println("iter");
 
     test := Test{i: 5};
 
