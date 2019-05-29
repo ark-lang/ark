@@ -31,7 +31,7 @@ channel is `#ark-lang`.
 ### <a name="reddit"></a> Reddit
 We also have a sub-reddit for discussion, help, and more. A lot
 of the developers are Reddit addicts, so we can help you out
-with any questions. We usually post ocassional updates to the
+with any questions. We usually post occasional updates to the
 subreddit.
 
 ## <a name="direct-contribution"></a> Direct Contribution
@@ -77,7 +77,7 @@ Please run `make fmt` before creating a pull request.
 Requires `$GOPATH/bin` to be in your `$PATH` and Python 2.4 or newer.
 
 ### <a name="writing-tests"></a> Writing Tests
-Writings tests are very important. The tests are located
+Writing tests are very important. The tests are located
 in the `tests/` directory in this repository. Each test has
 an ark module, and its corresponding TOML file.
 
